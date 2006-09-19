@@ -34,37 +34,9 @@ class FrontendConfig:
         # String to prefix for the parameters
         self.glidein_param_prefix = "GlideinParam"
 
-        # String to prefix for the parameters
-        self.glidein_count_prefix = "GlideinCount"
-
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
-        # log files
-        # default is None, any other value must implement the write(str) method
-        self.activity_log = None
-        self.warning_log = None
-
-    #
-    # The following are used by the module
-    #
-
-    def logActivity(self,str):
-        if self.activity_log!=None:
-            try:
-                self.activity_log.write(str+"\n")
-            except:
-                # logging must never throw an exception!
-                logWarning("logActivity failed, was logging: %s"+str)
-
-    def logWarning(self,str):
-        if self.warining_log!=None:
-            try:
-                self.warining_log.write(str+"\n")
-            except:
-                # logging must throw an exception!
-                # silently ignore
-                pass 
 
 
 # global configuration of the module
@@ -132,7 +104,7 @@ def advertizeWork(factory_pool,
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
     fd=file(tmpnam,"w")
     try:
         try:
