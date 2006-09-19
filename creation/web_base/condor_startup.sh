@@ -27,6 +27,9 @@ glidein_variables=""
 # job_env = environment to pass to the job
 job_env=""
 
+#
+# Set a variable read from a file
+#
 function set_var {
     var_name=$1
     var_type=$2
@@ -41,11 +44,11 @@ function set_var {
 	return 0
     fi
 
-    var_val=`grep -i "$var_name" $config_file | awk '{print $2}'`
+    var_val=`grep "^$var_name" $config_file | awk '{print $2}'`
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
-	    echo "Cannot extract $var_req from '$config_file'" 1>&2
+	    echo "Cannot extract $var_name from '$config_file'" 1>&2
 	    exit 1
 	elif [ "$var_def" == "-" ]; then
 	    # no default, do not set
