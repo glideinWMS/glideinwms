@@ -14,6 +14,8 @@
 import os
 import sys
 import time
+sys.path.append("../lib")
+
 import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryInterface
