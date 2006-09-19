@@ -1,0 +1,25 @@
+# VarName		Type	Default		CondorName			Req.	Export 	UserName
+#                       S=Quote - = No Default	+ = VarName				Condor	- = Do not export
+#												+ = Use VarName
+#												@ = Use CondorName
+#################################################################################################################
+X509_USER_PROXY		C	-		GSI_DAEMON_PROXY		Y	N	-
+X509_CERT_DIR		C	-		GSI_DAEMON_TRUSTED_CA_DIR	Y	N	-
+GLIDEIN_Factory		S	-		+				Y	Y	@
+GLIDEIN_Name		S	-		+				Y	Y	@
+GLIDEIN_Site		S	$(GLIDEIN_Name)	+				N	Y	@
+GLIDEIN_Client		S	-		+				N	Y	@
+GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
+GLIDEIN_Start		C	1		+				Y	N	-
+GLIDEIN_Max_Idle_Mins 	I 	20 		+				N	N	-
+GLIDEIN_Retire_Time 	I 	7200		+				N	Y	-
+GLIDEIN_Update_Interval I 	- 		UPDATE_INTERVAL			N	N	-
+GLIDEIN_Use_TCP		I 	-		UPDATE_COLLECTOR_WITH_TCP	N	N	-
+TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
+CONDORG_CLUSTER		I	-		GLIDEIN_ClusterId		Y	Y	@
+CONDORG_SUBCLUSTER	I	-		GLIDEIN_ProcId			Y	Y	@
+CONDORG_SCHEDD		S	-		GLIDEIN_Schedd			Y	Y	@
+PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
+GLIDEIN_Job_Max_Hours	I	72		+				N	Y	-
+CONDOR_DIR		C	-		SBIN				Y	N	-
+

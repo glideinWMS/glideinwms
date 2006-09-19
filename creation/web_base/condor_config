@@ -1,0 +1,107 @@
+######################################################################
+##
+##  condor_config
+##
+##  This is the global configuration file for condor.
+##
+######################################################################
+
+LOG = $(LOCAL_DIR)/log
+EXECUTE = $(LOCAL_DIR)/execute
+HOSTALLOW_ADMINISTRATOR = $(HOSTNAME), $(HEAD_NODE)
+NEGOTIATOR_HOST = $(HEAD_NODE) 
+COLLECTOR_HOST = $(HEAD_NODE)
+CONDOR_HOST = $(HEAD_NODE)
+FILESYSTEM_DOMAIN = $(HOSTNAME)
+UID_DOMAIN = $(HOSTNAME)
+
+MAIL = /bin/mail
+DAEMON_LIST = MASTER, STARTD
+MASTER_ADDRESS_FILE = $(LOG)/.master_address
+MASTER = $(SBIN)/condor_master
+MASTER_LOG = $(LOG)/MasterLog
+STARTD = $(SBIN)/condor_startd
+STARTER = $(SBIN)/condor_starter
+
+STARTER_LIST = STARTER
+
+USE_NFS = False
+USE_CKPT_SERVER = False
+
+LOCK = $(LOG)
+STARTD_LOG = $(LOG)/StartdLog
+STARTER_LOG = $(LOG)/StarterLog
+
+STARTD_DEBUG = D_COMMAND
+
+SUSPEND = False
+CONTINUE = True
+PREEMPT = False
+WANT_VACATE = False
+WANT_SUSPEND = True
+SUSPEND_VANILLA = False
+WANT_SUSPEND_VANILLA = True
+KILL = False
+IS_GLIDEIN = True
+STARTD_EXPRS = IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_Expire, START, DaemonStopTime, $(GLIDEIN_VARIABLES)
+
+PREEN_INTERVAL = 0
+
+# No need to be nice... I got the slot
+JOB_RENICE_INCREMENT = 0
+
+#If the daemon crashes, run away fast
+MASTER_BACKOFF_CEILING = 600
+
+# how often should should starter update shadow with dynamic attributes?
+# default = 1200 sec, choose a larger value, at the expense of less
+# visibility into condor_q job dynamic attributes: cpu time, image size,
+# etc
+STARTER_UPDATE_INTERVAL = 3600
+
+# This section contains macros are here to help write legible
+# expressions:
+
+MINUTE          = 60
+HOUR            = (60 * $(MINUTE))
+StateTimer      = (CurrentTime - EnteredCurrentState)
+ActivityTimer   = (CurrentTime - EnteredCurrentActivity)
+ActivationTimer = (CurrentTime - JobStart)
+
+BenchmarkTimer = (CurrentTime - LastBenchmark)
+RunBenchmarks : (LastBenchmark == 0 ) || ($(BenchmarkTimer) >= (4 * $(HOUR)))
+
+GSI_DAEMON_DIRECTORY=$(LOCAL_DIR)
+GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile
+SEC_DEFAULT_AUTHENTICATION = REQUIRED
+SEC_DEFAULT_AUTHENTICATION_METHODS = GSI 
+
+LOCAL_CONFIG_FILE       = 
+
+STARTD_RESOURCE_PREFIX = "vm"
+VALID_COD_USERS = condor
+
+NUM_CPUS = 2
+VIRTUAL_MACHINE_TYPE_1 = cpus=1, memory=1%, swap=1%, disk=1%
+NUM_VIRTUAL_MACHINES_TYPE_1 = 1
+VIRTUAL_MACHINE_TYPE_2 = cpus=1, memory=99%, swap=99%, disk=99%
+NUM_VIRTUAL_MACHINES_TYPE_2 = 1
+
+STARTD_RESOURCE_PREFIX = vm
+
+#VM1_START_CONDITION = ($(WMS_TEST_START) && (WMSGroup =?= "test"))
+#VM2_START_CONDITION = ($(WMS_DEFAULT_START) && (WMSGroup =!= "Held"))
+#TIMEOUT_START_CONDITION = ((GLIDEIN_TORETIRE+WMSMaxTime+1200)<GLIDEIN_EXPIRE)
+
+#START = (((VirtualMachineID == 1) && $(VM1_START_CONDITION)) ||((VirtualMachineID == 2) && $(VM2_START_CONDITION))) && $(TIMEOUT_START_CONDITION)
+START = (VirtualMachineID == 2) && ($(GLIDEIN_Start))
+
+# Max time a job can run in the glidein
+GLIDEIN_MAX_JOB_TIME = $(GLIDEIN_Job_Max_Hours) * 3600
+
+MaxJobRetirementTime=$(GLIDEIN_MAX_JOB_TIME)
+SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_MAX_JOB_TIME)
+
+# How long will it wait in an unclaimed state before exiting
+STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle_Mins) * 60
+
