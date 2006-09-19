@@ -432,10 +432,9 @@ def create_attributes(stage_dir,glidein_attr_ids):
         for name in glidein_attrs.keys():
             val=glidein_attrs[name]
             fd.write("%s \t%s\n"%(name,val))
-            
-        add_file(ATTRS_FILE,stage_dir)
     finally:
         fd.close()
+    add_file(ATTRS_FILE,stage_dir)
 
 ###################################
 # Create a copy or a link in the
