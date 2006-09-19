@@ -1,3 +1,11 @@
+#
+# Description:
+#   This module implements the functions needed to keep the
+#   required number of idle glideins
+#
+# Author:
+#   Igor Sfiligoi (Sept 19th 2006)
+#
 
 import condorMonitor
 
