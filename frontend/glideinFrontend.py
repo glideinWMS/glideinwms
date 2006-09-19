@@ -16,14 +16,19 @@ def iterate_one(factory_pool,
     print "Match"
     count_glideins=glideinFrontendLib.countMatchIdle(match_str,condorq_dict,glidein_dict)
 
+    print count_glideins
     for glidename in count_glideins.keys():
         request_name=glidename
 
         idle_jobs=count_glideins[glidename]
 
-        glidein_min_idle=idle_jobs+reserve_idle # add a little safety margin
-        if glidein_min_idle>max_idle:
-            glidein_min_idle=max_idle # but never go above max
+        if idle_jobs>0:
+            glidein_min_idle=idle_jobs+reserve_idle # add a little safety margin
+            if glidein_min_idle>max_idle:
+                glidein_min_idle=max_idle # but never go above max
+        else:
+            # no idle, make sure the glideins know it
+            glidein_min_idle=0 
 
         print "Advertize %s %i"%(request_name,glidein_min_idle)
         glideinFrontendInterface.advertizeWork(factory_pool,client_name,request_name,glidename,glidein_min_idle,glidein_params)

@@ -40,8 +40,7 @@ def countMatchIdle(match_str,condorq_dict,glidein_dict):
                 pass
             glidein_count+=schedd_count
             pass
-        if glidein_count>0:
-            out_glidein_counts[glidename]=glidein_count
+        out_glidein_counts[glidename]=glidein_count
         pass
     return out_glidein_counts
 
