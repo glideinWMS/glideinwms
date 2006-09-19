@@ -400,7 +400,6 @@ def exe_cmd(cmd):
 def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
     tgz_name="condor_bin.tgz"
     outtar_name=os.path.join(stage_dir,tgz_name)
-    print condor_base_dir
     condor_sbin_dir=os.path.join(condor_base_dir,"sbin")
     try:
         if not os.path.isdir(condor_sbin_dir):
