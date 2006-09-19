@@ -1,4 +1,19 @@
-import os,sys,time
+#
+# Description:
+#   This is the main of the glideinFactory
+#
+# Arguments:
+#   $1 = poll period (in seconds)
+#   $2 = advertize rate (every $2 loops)
+#   $3 = glidein submit_dir
+#
+# Author:
+#   Igor Sfiligoi (Sept 15th 2006)
+#
+
+import os
+import sys
+import time
 import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryInterface
@@ -29,12 +44,14 @@ def perform_work(factory_name,glidein_name,schedd_name,
     
 
 ############################################################
-def iterate_one(jobDescript,jobAttributes,jobParams):
+def iterate_one(do_advertize,
+                jobDescript,jobAttributes,jobParams):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
 
-    print "Advertize"
-    glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),{})
+    if do_advertize:
+        print "Advertize"
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),{})
     
     work = glideFactoryInterface.findWork(factory_name,glidein_name)
     if len(work.keys())==0:
@@ -60,21 +77,27 @@ def iterate_one(jobDescript,jobAttributes,jobParams):
     return done_something
 
 ############################################################
-def iterate(jobDescript,jobAttributes,jobParams):
+def iterate(sleep_time,advertize_rate,
+            jobDescript,jobAttributes,jobParams):
+    count=0;
     while 1:
         print "Iteration at %s" % time.ctime()
-        done_something=iterate_one(jobDescript,jobAttributes,jobParams)
+        done_something=iterate_one(count==0,
+                                   jobDescript,jobAttributes,jobParams)
         print "Sleep"
-        time.sleep(30)
+        time.sleep(sleep_time)
+        count=(count+1)%advertize_rate
+        
         
 ############################################################
-def main(startup_dir):
+def main(sleep_time,advertize_rate,startup_dir):
     os.chdir(startup_dir)
     jobDescript=glideFactoryConfig.JobDescript()
     jobAttributes=glideFactoryConfig.JobAttributes()
     jobParams=glideFactoryConfig.JobParams()
 
-    iterate(jobDescript,jobAttributes,jobParams)
+    iterate(sleep_time,advertize_rate,
+            jobDescript,jobAttributes,jobParams)
 
 ############################################################
 #
@@ -83,5 +106,5 @@ def main(startup_dir):
 ############################################################
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
  
