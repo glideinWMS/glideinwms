@@ -77,7 +77,7 @@ frontendConfig=FrontendConfig()
 ############################################################
 
 
-def findGlideins(factory_pool=None,
+def findGlideins(factory_pool,
                  additional_constraint=None):
     global frontendConfig
     
@@ -124,10 +124,10 @@ def findGlideins(factory_pool=None,
 
 # glidein_params is a dictionary of values to publish
 #  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
-def advertizeWork(client_name,request_name,
+def advertizeWork(factory_pool,
+                  client_name,request_name,
                   glidein_name,min_nr_glideins,
-                  glidein_params={},
-                  factory_pool=None):
+                  glidein_params={}):
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
