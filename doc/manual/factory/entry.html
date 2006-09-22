@@ -1,42 +1,384 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
+
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
   <title>Glidein Entry Point</title>
+
+
 </head>
+
+
 <body>
+
 <h1>Glidein Entry Point</h1>
+
 <h2>Description</h2>
-A Glidein Entry Point is a directory structure that contains the configuration of a glidein. <br>
+
+A Glidein Entry Point is a directory structure that contains the
+configuration of a glidein. <br>
+
 It contains information like the desired Gatekeeper and startup dir, as
 well as user parameters, like target architecture and available
 datasets, plus all the code needed to make all this work.<br>
+
 <br>
+
 <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+
   <tbody>
+
     <tr>
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
       <h2>Repository</h2>
+
       <h3>CVSROOT</h3>
+
 cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
+
       <h2>Package(s)</h2>
-glideinWMS/create</td>
+
+glideinWMS/creation</td>
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
       <h2>Author(s)</h2>
+
 Since Aug. 14th - Igor Sfiligoi (Fermilb Computing Division)</td>
+
     </tr>
+
   </tbody>
 </table>
+
 <br>
+
 <h2>Documentation content</h2>
+
 <ul>
+
   <li><a href="#installation">Installation</a></li>
+
 </ul>
+
 <h2><a name="installation"></a>Installation</h2>
+
+Before you start, make sure you have read&nbsp;the <a href="#requirements">Requirements</a> section; in
+particular, make sure you have a Web server installed and&nbsp;the
+document area is accessible and writable.<br>
+
 <br>
+
+The installation is performed using the command<br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">create_entry</span><br>
+
+</div>
+
 <br>
+
+It will create all the needed directories and files.<br>
+
 <br>
+
+The command has following options:<br>
+
+&nbsp;
+<table style="width: 100%;" border="1" cellpadding="2" cellspacing="2">
+
+  <tbody>
+
+    <tr>
+
+      <th>Switch</th>
+
+      <th></th>
+
+      <th>Description</th>
+
+      <th>Default</th>
+
+    </tr>
+
+    <tr>
+
+      <td>-F&nbsp;|&nbsp;-factory </td>
+
+      <td>&lt;ID&gt; </td>
+
+      <td>Factory name</td>
+
+      <td>`uname -n`</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-n&nbsp;|&nbsp;-name </td>
+
+      <td>&lt;ID&gt; </td>
+
+      <td>Glidein name</td>
+
+      <td>-&nbsp;<b>Required</b></td>
+
+    </tr>
+
+    <tr>
+
+      <td>-t&nbsp;|&nbsp;-site </td>
+
+      <td>&lt;ID&gt; </td>
+
+      <td>Site identifier (may be different that name)</td>
+
+      <td>&lt;NameID&gt;</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-g&nbsp;|&nbsp;-gatekeeper </td>
+
+      <td>&lt;gatekeeper&gt; </td>
+
+      <td>Grid gatekeeper/resource</td>
+
+      <td>-&nbsp;<b>Required</b></td>
+
+    </tr>
+
+    <tr>
+
+      <td>-u&nbsp;|&nbsp;-gridtype </td>
+
+      <td>&lt;grid_type&gt; </td>
+
+      <td>Condor Grid type</td>
+
+      <td>"gt2"</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-r&nbsp;|&nbsp;-rsl </td>
+
+      <td>&lt;RSL&gt; </td>
+
+      <td>Globus RSL option</td>
+
+      <td><i>None</i> - Do not set</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-s&nbsp;|&nbsp;-startdir </td>
+
+      <td>&lt;path|ID&gt; </td>
+
+      <td>Where to start the glidein, usually "OSG","Condor" or
+"."</td>
+
+      <td>"."</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-S&nbsp;|&nbsp;-submitbase </td>
+
+      <td>&lt;base_dir&gt; </td>
+
+      <td>Submit base dir</td>
+
+      <td>$HOME</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-W&nbsp;|&nbsp;-stagebase </td>
+
+      <td>&lt;base_dir&gt; </td>
+
+      <td>Stage base dir</td>
+
+      <td>"/var/www/html/glidestage"</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-L&nbsp;|&nbsp;-stagesymlink </td>
+
+      <td>&lt;Bool&gt; </td>
+
+      <td>Can I symlink stage dir?
+      <p>There need to be two copies, one in submit and one in
+stage dir.<br>
+
+Symlinking helps maintain consistency, but does require
+both to be
+visible at all times.</p>
+
+      </td>
+
+      <td>1</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-C&nbsp;|&nbsp;-condorbase </td>
+
+      <td>&lt;base_dir&gt; </td>
+
+      <td>Condor distribution base dir</td>
+
+      <td>From environment</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-w&nbsp;|&nbsp;-webdir </td>
+
+      <td>&lt;base_url&gt; </td>
+
+      <td>Base Web server URL</td>
+
+      <td>"http://`uname -n`/glidestage"</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-p&nbsp;|&nbsp;-proxy </td>
+
+      <td>&lt;proxy_url&gt; </td>
+
+      <td>Squid cache to use</td>
+
+      <td><i>None</i> - Do not use</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-d&nbsp;|&nbsp;-schedd </td>
+
+      <td>&lt;ScheddName&gt; </td>
+
+      <td>Which schedd to use</td>
+
+      <td>"schedd_glideins@`uname -n`"</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-a&nbsp;|&nbsp;-attr </td>
+
+      <td>&lt;name=val&gt; </td>
+
+      <td>Glidein attribute.
+      <p>List as many as needed. All will be used.</p>
+
+      </td>
+
+      <td>[] - No attributes</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-f&nbsp;|&nbsp;-file </td>
+
+      <td>&lt;absname[:relname[:can_modify]]&gt; </td>
+
+      <td>User file to ship to WN.
+      <p>List as many as needed. All will be used.</p>
+
+      </td>
+
+      <td>[] - No attributes
+      </td>
+
+    </tr>
+
+    <tr>
+
+      <td>-c&nbsp;|&nbsp;-script </td>
+
+      <td>&lt;absname[:relname]&gt; </td>
+
+      <td>User script to execute on WN.
+      <p>List as many as needed. All will be used.</p>
+
+      </td>
+
+      <td>[] - No attributes
+      </td>
+
+    </tr>
+
+    <tr>
+
+      <td>-y&nbsp;|&nbsp;-subsys </td>
+
+      <td>&lt;absname:conf_sw:dir:out_conf[:relname]&gt; </td>
+
+      <td>User subsytem to ship to WN.
+      <p>List as many as needed. All will be used.</p>
+
+      </td>
+
+      <td>[] - No attributes
+      </td>
+
+    </tr>
+
+    <tr>
+
+      <td>-m&nbsp;|&nbsp;-param </td>
+
+      <td>&lt;name=val&gt; </td>
+
+      <td>User param.
+      <p>List as many as needed. All will be used.</p>
+
+      </td>
+
+      <td>[] - No attributes
+      </td>
+
+    </tr>
+
+  </tbody>
+</table>
+
 <br>
+
+<h3>Examples</h3>
 <br>
+
+<br>
+
+<h2><a name="requirements"></a>Requirements</h2>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
 </body>
 </html>
