@@ -1,36 +1,132 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
 <head>
+
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-  <title>glideinWMS</title>
+  <title>Glidein based WMS</title>
+
+
 </head>
+
+
 <body>
-<h1>glideinWMS</h1>
+
+<h1>Glidein based WMS</h1>
+
 <br>
+
 <h2>Description</h2>
-The glideinWMS package holds the Condor glidein based Factory and Frontend.<br>
+
+The glideinWMS package holds the Condor glidein based Workload
+Management System (WMS).<br>
+
 <br>
+
 <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
+
   <tbody>
+
     <tr>
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
       <h2>Repository</h2>
+
       <h3>CVSROOT</h3>
+
 cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
-      <h2>Package(s)</h2>
+
+      <h3>Package(s)</h3>
+
 glideinWMS</td>
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
       <h2>Author(s)</h2>
+
 Since Aug. 14th - Igor Sfiligoi (Fermilb Computing Division)</td>
+
     </tr>
+
   </tbody>
 </table>
-<h2>Documentation content</h2>
-<ul>
-  <li><a href="factory/index.html">Glidein Factory</a></li>
-  <li>Glidein Frontend</li>
-  <li>Condor considerations</li>
-</ul>
+
 <br>
+
+<h2>The glidein mechanism</h2>
+
+As the title says, this WMS is based on glideins. But what are <span style="font-style: italic; font-weight: bold;">the glideins</span>?<br>
+
+<br>
+
+A glidein is, simply put, a properly configured <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_1Introduction.html#SECTION00412000000000000000">Condor
+Startd</a> submitted as a Grid job. <br>
+
+Once the glidein starts on a worker node, it will join the the
+specified Condor pool, making the obtained Grid-batch slot a slot in
+the Condor pool. At this point, a regular Condor job can start there as
+if was a dedicated resource. See the picture below for a schematic
+overview.<br>
+
+<img src="glideins.png"><br>
+
+Condor glideins are a convenient way to expand a Condor pool. Apart
+from the task of submitting new glideins as needed, everything else&nbsp;stays the same as in a dedicated pool.<br>
+
+<h2>WMS Overview</h2>
+
+The glidein based WMS is made of two pieces:<br>
+
+<ul>
+
+  <li>One or more glidein factories</li>
+
+  <li>One or more VO frontends</li>
+
+</ul>
+
+The two pieces perform each a part of the job:<br>
+
+<ul>
+
+  <li>The glidein factories are the one that know about available
+Grid sites and know how to submit glideins to them.&nbsp;</li>
+
+  <li>The VO frontends are the ones that know about the VO job
+specifics and know how many and what kind of glideins are needed. </li>
+
+</ul>
+
+The two pieces communicate via a common Condor Collector; see the image
+below for a schematic view.<br>
+
+<img src="overview.png"><br>
+
+A single WMS (identified by the Condor Collector) can serve multiple
+frontends via multiple factories. It is a truly many-to-many system.
+However, the current implementation does not support prioritzation
+between different frontends, so it is best to have only one frontend;
+multiple factories will instead work as desired.<br>
+
+<h2>Implementation details</h2>
+
+Due to the amount of material avaialable, the documentation has been
+split in several pages:<br>
+
+<ul>
+
+  <li><a href="factory/index.html">Glidein Factory</a></li>
+
+  <li>Glidein Frontend</li>
+
+</ul>
+
+You will also need to install and maintain a Condor pool. The Condor
+main page can be found at <a href="http://www.cs.wisc.edu/condor/">http://www.cs.wisc.edu/condor/</a>.<br>
+
+<br>
+
+<br>
+
+<br>
+
 </body>
 </html>
