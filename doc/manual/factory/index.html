@@ -2,11 +2,10 @@
 <html>
 <head>
 
-  
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-
-  
   <title>Glidein Factory</title>
+
+
 </head>
 
 
@@ -16,14 +15,123 @@
 
 <h2>Description</h2>
 
-A&nbsp;Glidein Factory is a combination of a glidein entry point and an actual factory process.<br>
+A&nbsp;Glidein Factory is a combination of a glidein entry point
+and an actual factory process.<br>
 
 The factory process advertises itself to a Condor Collector, gets work
 from the same Collector and submits glideins as configured by the
 glidein entry point.<br>
 
+<h2>Index</h2>
+
+<ul>
+
+  <li><a href="#overview">Overview</a></li>
+
+  <li><a href="#overview">The Glidein Factory
+philosophy</a></li>
+
+  <li><a href="#implementation">Implementation
+details</a></li>
+
+  <ul>
+
+    <li><a href="entry.html">Glidein Entry Point</a></li>
+
+    <li>Glidein Factory Daemon</li>
+
+  </ul>
+
+  <li><a href="#ref">Reference</a></li>
+
+</ul>
+
+<h2><a name="overview"></a>Overview</h2>
+
+The main task of the Glidein Factory is to listen for requests
+from&nbsp;<a href="../frontend/index.html">frontend
+clients</a> and submit glideins. Look at the picture
+below for a schematic view.<br>
+
+<img src="overview.png"><br>
+
 <br>
 
+As can be seen from the above pictures, the factory daemon
+itself&nbsp;publishes&nbsp;what kind of glideins it can submit.
+A glidein kind is called a <span style="font-weight: bold;"><a name="glidein_entry_point"></a>glidein entry point</span>,
+as it usually points to a different Grid resource. <br>
+
+<br>
+
+A single glidein factory can handle multiple glidein entry points. For
+each entry point, it will advertise a different class-ad. Similarly,
+each request from a frontend client will affect a single entry point; a
+frontend will need to advertise several requests in order to
+have&nbsp;glideins submitted to all the desirable resources.<br>
+
+<br>
+
+Each entry point resides in a different&nbsp;directory. A glidein
+entry point is completely self contained, and the factory does not need
+to know anything about its internals. The factory only cares about the
+list of parameters the entry point expects and the jobs submission
+file; everything else is taken care by the glidein startup script. See
+the picture below for an overview.<br>
+
+<br>
+
+<img src="entry_points_overview.png"><br>
+
+<br>
+
+<h2><a name="phylosophy"></a>The Glidein
+Factory philosophy</h2>
+
+Now that the basic overview of the factory was given, let describe the
+philosophy behind the Glidein Factory.<br>
+
+<br>
+
+As said in the overview, the factory will serve requests from frontend
+clients. Each request contains the required number of glideins needed and the glidein parameters.<br>
+<br>
+The main idea behind this is that a frontend has several (hundreds or
+even thousands) of user jobs in the queue and is looking for resources
+where to run them. The frontend does not want to handle the submission
+of glideins but just asks the factory(s) for a certain amount of
+glideins to be kept in the Grid queues, in order to get as many
+resources as possible. If the frontend ever runs out of user jobs, it
+will advertise that the factory(s) should not keep any more idle
+glideins in the queues.<br>
+
+<br>
+
+<h2><a name="implementation"></a>Implementation
+details</h2>
+
+Due to the amount of material available, the documentation has been
+split in several pages:<br>
+
+<ul>
+
+  <li><a href="entry.html">Glidein Entry Point</a></li>
+
+  <li>The Glidein Factory Daemon</li>
+
+</ul>
+
+&nbsp;<br>
+
+<br>
+
+<br>
+
+<br>
+
+<br>
+
+<a name="ref"></a>
 <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
 
   <tbody>
@@ -31,15 +139,12 @@ glidein entry point.<br>
     <tr>
 
       <td style="width: 50%; text-align: left; vertical-align: top;">
-      
       <h2>Repository</h2>
 
-      
       <h3>CVSROOT</h3>
 
 cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
 
-      
       <h2>Package(s)</h2>
 
 glideinWMS/factory<br>
@@ -47,33 +152,16 @@ glideinWMS/factory<br>
 glideinWMS/creation</td>
 
       <td style="width: 50%; text-align: left; vertical-align: top;">
-      
       <h2>Author(s)</h2>
 
-Since Aug. 14th - Igor Sfiligoi (Fermilb Computing Division)</td>
+Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
 
     </tr>
 
-  
   </tbody>
 </table>
 
 <br>
 
-<h2>Documentation content</h2>
-
-<ul>
-
-  <li><a href="entry.html">Glidein Entry Point</a></li>
-
-  <li>The Glidein Factory Process</li>
-
-</ul>
-
-<span style="font-weight: bold;"><br>
-
-<br>
-
-</span>
 </body>
 </html>
