@@ -28,7 +28,7 @@ glidein entry point.<br>
 
   <li><a href="#overview">Overview</a></li>
 
-  <li><a href="#overview">The Glidein Factory
+  <li><a href="#philosophy">The Glidein Factory
 philosophy</a></li>
 
   <li><a href="#implementation">Implementation
@@ -85,7 +85,7 @@ the picture below for an overview.<br>
 
 <br>
 
-<h2><a name="phylosophy"></a>The Glidein
+<h2><a name="philosophy"></a>The Glidein
 Factory philosophy</h2>
 
 Now that the basic overview of the factory was given, let describe the
@@ -94,8 +94,11 @@ philosophy behind the Glidein Factory.<br>
 <br>
 
 As said in the overview, the factory will serve requests from frontend
-clients. Each request contains the required number of glideins needed and the glidein parameters.<br>
+clients. Each request contains the required number of glideins needed
+and the glidein parameters.<br>
+
 <br>
+
 The main idea behind this is that a frontend has several (hundreds or
 even thousands) of user jobs in the queue and is looking for resources
 where to run them. The frontend does not want to handle the submission
@@ -120,15 +123,6 @@ split in several pages:<br>
   <li>The Glidein Factory Daemon</li>
 
 </ul>
-
-&nbsp;<br>
-
-<br>
-
-<br>
-
-<br>
-
 <br>
 
 <a name="ref"></a>
