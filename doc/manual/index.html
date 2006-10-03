@@ -13,7 +13,6 @@
 
 <h1>Glidein based WMS</h1>
 
-
 <h2>Description</h2>
 
 The glideinWMS package holds the Condor glidein based Workload
@@ -29,6 +28,11 @@ Management System (WMS).<br>
 
   <li><a href="overview">WMS overview</a></li>
 
+  <li><a href="#classads">Data Exchange overview</a></li>
+  <ul>
+    <li><a href="#factory_classads">The Glidein Factory Class-Ad</a></li>
+    <li><a href="#frontend_classads">The VO Frontend Class-Ad</a></li>
+  </ul>
   <li><a href="#implementation">Implementation
 details</a></li>
 
@@ -112,6 +116,73 @@ However, the current implementation does not support prioritization
 between different frontends, so it is best to have only one frontend;
 multiple factories will instead work as desired.<br>
 
+<h2><a name="classads"></a>Data exchange overview</h2>
+
+In the previous section we described the general architecture of the
+WMS. Let now have a look at the type of information that the two pieces
+publish.<br>
+
+<h3><a name="factory_classads"></a>The Glidein&nbsp;Factory Class-Ad</h3>
+
+A&nbsp;factory publishes one class-ad per glidein kind. The
+class-ad contains <br>
+
+<ul>
+
+  <li>the name of the glidein (and&nbsp;the
+factory),&nbsp;</li>
+
+  <li>the attributes that describe the glidein, and&nbsp;</li>
+
+  <li>the list of parameters that the glidein accepts. All the
+parameters&nbsp;have also default values associated with them, in
+case a frontend does not redefine them.&nbsp;</li>
+
+</ul>
+
+Look at the picture below for a generic description.<br>
+
+<br>
+
+<img src="factory_publish.png"><br>
+
+<br>
+
+Please notice that the glidein attributes can be completely arbitrary;
+the only predefined attributes are the glidein and factory name, plus
+the convention that anything that starts with <span style="font-family: monospace; font-weight: bold;">GlideinParam</span>
+is a parameter.<br>
+
+<h3><a name="frontend_classads"></a>The VO Frontend Class-Ad</h3>
+
+A VO frontend will obtain the list all available glideins and select
+the ones that fit its needs, based on the published attributes. For
+each fitting glidein, a frontend class-ad will be published. Such a
+class-ad will contain <br>
+
+<ul>
+
+  <li>the name of the frontend and a request ID,&nbsp;</li>
+
+  <li>the desired glidein name,&nbsp;</li>
+
+  <li>the rate of glidein submissions, and</li>
+
+  <li>the glidein parameters.</li>
+
+</ul>
+
+Have a look at the picture below for a generic description.<br>
+
+<img src="frontend_publish.png"><br>
+
+In the current implementation, the only glidein rate setting parameter
+supported is <span style="font-family: monospace; font-weight: bold;">ReqIdleGlideins</span>,
+that tells the factory how many idle glideins to keep in the queue at
+any given time. Future versions may contain more sophisticated
+controls, like the maximum number of glideins to keep in the queue or
+the maximum rate at which the glideins should be submitted.<br>
+
 <h2><a name="implementation"></a>Implementation
 details</h2>
 
@@ -133,7 +204,8 @@ more Condor pools:<br>
 
 <ul>
 
-  <li><a href="#pool_WMS">one for exchanging messages
+  <li><a href="#pool_WMS">one for exchanging
+messages
 between the factory and the frontends</a></li>
 
   <li><a href="#pool_glidein">one for each VO
@@ -147,7 +219,7 @@ separate unless you have just a small system.<br>
 
 <br>
 
-Installing and properly configuring a Condor pool is (unfortuantely) a
+Installing and properly configuring a Condor pool is (unfortunately) a
 complex process, and this manual will not attempt to describe all the
 glory details. In this manual, it is assumed you have installed a
 Condor pool already (see <a href="http://www.cs.wisc.edu/condor/">http://www.cs.wisc.edu/condor/</a>
@@ -171,25 +243,38 @@ to make sure that the information is not tampered with, so you should
 enable the integrity checks!<br>
 
 <br>
+
 If you happen to know the IP addresses of all the factories and all the
 frontends, it is also good practice to limit the ability to submit new
 requests to only those nodes ( + obviously the Collector machine).<br>
+
 <br>
 
 Here is a prototype of the security config:
 <pre>SEC_DEFAULT_AUTHENTICATION = REQUIRED<br>SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;Your choice here&gt;<br>SEC_DEFAULT_INTEGRITY = REQUIRED<br>HOSTALLOW_WRITE = machine1,machine2, ... ,machineN<br></pre>
 
-For more information about GSI, look at the configuration of the <a href="#pool_glidein">glidein pool</a>. For all other kinds, please follow the instructions in the <a href="http://www.cs.wisc.edu/condor/manual/">Condor manual</a>.<br>
+For more information about GSI, look at the configuration of the <a href="#pool_glidein">glidein pool</a>. For all other
+kinds, please follow the instructions in the <a href="http://www.cs.wisc.edu/condor/manual/">Condor manual</a>.<br>
+
 <br>
+
 To ease monitoring and debugging, it is also useful to allow
 unauthenticated read of the information; as said before, there is
-nothing to hide. However, <span style="font-weight: bold;">be sure you enable this only for the Collector</span>, and require the factory and the frontend to authenticate at all times, since this is needed for the integrity checks to work. <br>
+nothing to hide. However, <span style="font-weight: bold;">be
+sure you enable this only for the Collector</span>, and require
+the factory and the frontend to authenticate at all times, since this
+is needed for the integrity checks to work. <br>
+
 <br>
+
 The lines to add, on the Collector machine, are:<br>
+
 <pre>SEC_READ_AUTHENTICATION = OPTIONAL<br>SEC_CLIENT_AUTHENTICATION = OPTIONAL<br>SEC_READ_INTEGRITY = OPTIONAL<br>SEC_CLIENT_INTEGRITY = OPTIONAL<br></pre>
+
 Last, please notice that there is no need for a Negotiator in this
 pool. All the matching is done by the factory and frontend software
 itself. (An no need for Startds either.)<br>
+
 <br>
 
 <h3><a name="pool_glidein"></a>The glidein pool</h3>
@@ -198,59 +283,98 @@ The glidein pool relies heavily on&nbsp;GSI, also known as x509,
 authentication. The reason for this is due to the nature of glideins;
 the Condor Startd is a Grid job. And thus have&nbsp;a x509 proxy
 available at startup.<br>
+
 So the glidein Condor pool must be setup to support at least GSI; other
 methods can be used used too, to support your local user job submission
 policies.<br>
+
 <br>
+
 Regarding other security features, integrity checks should be enabled
 and encryption should be left as an option for the transfer of
 sensitive information in user jobs.<br>
 
 <br>
+
 Here is a prototype of the security config:
 <pre>SEC_DEFAULT_AUTHENTICATION = REQUIRED<br>SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;local methods&gt;, GSI<br>SEC_DEFAULT_INTEGRITY = REQUIRED<br>SEC_DEFAULT_ENCRYPTION = OPTIONAL<br></pre>
-The GSI authentication needs some other parameters to be enabled, too. See the <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_7Security.html#SECTION00473100000000000000">Condor manual</a> for the full details.<br>
+
+The GSI authentication needs some other parameters to be enabled, too.
+See the <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_7Security.html#SECTION00473100000000000000">Condor
+manual</a> for the full details.<br>
+
 <br>
+
 First of all, you must tell Condor what kind of proxies will you trust;
 i.e. you must provide it with the public keys of all the trusted
 Certification Authorities (CAs).<br>
+
 <br>
+
 Next, you have to tell condor how it will authenticate with the other
 parties. You can use either a host certificate/key pair or a regular
 proxy. The glidein will always use a proxy, but all the other Condor
 daemons (Collector, Negotiator and Schedd) can use a host certificate
 if they are running as root and the machine has the host certificates
-installed.&nbsp; Please note that the two methods are equivalent, as
+installed.&nbsp; Please note that the two methods are equivalent,
+as
 Condor will extract, as needed, a proxy from the certificate using the
 provided key.<br>
+
 <br>
+
 Last but not least, you must specify who do you trust. A sensitive
 sysadmin will want only the known DNs (Distinguished Names, i.e. the
 text representation of the proxy identity) to be allowed to be
 impersonate Condor daemons. There are two places where this has to be
 set:<br>
+
 <ul>
-  <li>The first one is the so called Grid Mapfile; it must list all the
+
+  <li>The first one is the so called Grid Mapfile; it must list
+all the
 DNs Condor will trust. If you use GSI just for the maintenance of the
 glidein pool, it should list only the trusted DNs mapped as user <span style="font-style: italic;">condor</span>.<br>
+
 For example:<br>
+
     <pre>[root@cmswmshead.fnal.gov] cat grid-mapfile <br>"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head" condor<br>"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1" condor<br>"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1" condor<br></pre>
-If instead you use GSI for authenticating your users, too, make sure all of them are listed there.<br>
+
+If instead you use GSI for authenticating your users, too, make sure
+all of them are listed there.<br>
+
   </li>
-  <li>The second place is where you list all the proxies you will trust
+
+  <li>The second place is where you list all the proxies you will
+trust
 to be Condor daemons. Please notice that all the trusted DNs need to be
 listed in <span style="font-weight: bold;">both places</span>.</li>
+
 </ul>
+
 A prototype of the above configuration is:<br>
-<pre>GSI_DAEMON_DIRECTORY = /opt/condor/certs<br># Use a Proxy<br>GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br># Use a Ceritficate/Key pair<br>#GSI_DAEMON_CERT = $(GSI_DAEMON_DIRECTORY)/hostcert.pem<br>#GSI_DAEMON_KEY  = $(GSI_DAEMON_DIRECTORY)/hostkey.pem<br>GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br>GSI_DAEMON_NAME= /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head,\<br>                 /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1,\<br>                 /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1</pre>
+
+<pre>GSI_DAEMON_DIRECTORY = /opt/condor/certs<br># Use a Proxy<br>GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br># Use a Certificate/Key pair<br>#GSI_DAEMON_CERT = $(GSI_DAEMON_DIRECTORY)/hostcert.pem<br>#GSI_DAEMON_KEY = $(GSI_DAEMON_DIRECTORY)/hostkey.pem<br>GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br>GSI_DAEMON_NAME= /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head,\<br> /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1,\<br> /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1</pre>
+
 <br>
+
 Last, to ease monitoring and debugging, it is also useful to allow
-unauthenticated read of the information, unless you have strict privacy requirements in your environment.<br>
+unauthenticated read of the information, unless you have strict privacy
+requirements in your environment.<br>
+
 <br>
+
 To enable it, add the following lines:<br>
+
 <pre>SEC_READ_AUTHENTICATION = OPTIONAL<br>SEC_CLIENT_AUTHENTICATION = OPTIONAL<br>SEC_READ_INTEGRITY = OPTIONAL<br>SEC_CLIENT_INTEGRITY = OPTIONAL<br></pre>
+
 <br>
-Please note that you do not need to worry about glidein security configuration at a global level; the <a href="factory/index.html">glidein factory</a> will make sure the settings are correct in the glideins.<br>
+
+Please note that you do not need to worry about glidein security
+configuration at a global level; the <a href="factory/index.html">glidein
+factory</a> will make sure the settings are correct in the
+glideins.<br>
+
 <br>
 
 <br>
