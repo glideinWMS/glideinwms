@@ -18,8 +18,6 @@
 The glideinWMS package holds the Condor glidein based Workload
 Management System (WMS).<br>
 
-<br>
-
 <h2>Index</h2>
 
 <ul>
@@ -28,19 +26,39 @@ Management System (WMS).<br>
 
   <li><a href="overview">WMS overview</a></li>
 
-  <li><a href="#classads">Data Exchange overview</a></li>
   <ul>
-    <li><a href="#factory_classads">The Glidein Factory Class-Ad</a></li>
-    <li><a href="#frontend_classads">The VO Frontend Class-Ad</a></li>
+
+    <li><a href="factory/index.html">Glidein Factory</a></li>
+
   </ul>
+
+  <ul>
+
+    <li><a href="frontend/index.html">VO
+Frontend</a></li>
+
+  </ul>
+
+  <li><a href="#classads">Data Exchange overview</a></li>
+
+  <ul>
+
+    <li><a href="#factory_classads">The Glidein
+Factory Class-Ad</a></li>
+
+    <li><a href="#frontend_classads">The VO Frontend
+Class-Ad</a></li>
+
+  </ul>
+
   <li><a href="#implementation">Implementation
 details</a></li>
 
   <ul>
 
-    <li><a href="factory/index.html">Glidein Factory</a></li>
+    <li><a href="factory/index.html#implementation">Glidein Factory</a></li>
 
-    <li><a href="frontend/index.html">VO
+    <li><a href="frontend/index.html#implementation">VO
 Frontend</a></li>
 
   </ul>
@@ -116,13 +134,29 @@ However, the current implementation does not support prioritization
 between different frontends, so it is best to have only one frontend;
 multiple factories will instead work as desired.<br>
 
-<h2><a name="classads"></a>Data exchange overview</h2>
+<br>
+
+More details can be found on<br>
+
+<ul>
+
+  <li>on the <a href="factory/index.html">Glidein
+Factory page</a>, and</li>
+
+  <li>on the <a href="frontend/index.html">VO
+Frontend page</a>.</li>
+
+</ul>
+
+<h2><a name="classads"></a>Data exchange
+overview</h2>
 
 In the previous section we described the general architecture of the
 WMS. Let now have a look at the type of information that the two pieces
 publish.<br>
 
-<h3><a name="factory_classads"></a>The Glidein&nbsp;Factory Class-Ad</h3>
+<h3><a name="factory_classads"></a>The
+Glidein&nbsp;Factory Class-Ad</h3>
 
 A&nbsp;factory publishes one class-ad per glidein kind. The
 class-ad contains <br>
@@ -153,7 +187,8 @@ the only predefined attributes are the glidein and factory name, plus
 the convention that anything that starts with <span style="font-family: monospace; font-weight: bold;">GlideinParam</span>
 is a parameter.<br>
 
-<h3><a name="frontend_classads"></a>The VO Frontend Class-Ad</h3>
+<h3><a name="frontend_classads"></a>The VO
+Frontend Class-Ad</h3>
 
 A VO frontend will obtain the list all available glideins and select
 the ones that fit its needs, based on the published attributes. For
@@ -186,14 +221,16 @@ the maximum rate at which the glideins should be submitted.<br>
 <h2><a name="implementation"></a>Implementation
 details</h2>
 
-Due to the amount of material available, the documentation has been
-split in several pages:<br>
+Due to the amount of material available, the documentation
+is being kept<br>
 
 <ul>
 
-  <li><a href="factory/index.html">Glidein Factory</a></li>
+  <li>on the <a href="factory/index.html#implementation">Glidein
+Factory page</a>, and </li>
 
-  <li><a href="frontend/index.html">VO Frontend</a></li>
+  <li>on the <a href="frontend/index.html#implementation">VO
+Frontend page</a>.</li>
 
 </ul>
 
@@ -236,7 +273,8 @@ pool!<br>
 
 <h3><a name="pool_WMS"></a>The WMS pool</h3>
 
-The <a href="overview.png" target="_blank">WMS pool</a> can use any authentication mechanism you prefer; GSI (i.e.
+The <a href="overview.png" target="_blank">WMS pool</a>
+can use any authentication mechanism you prefer; GSI (i.e.
 x509), Kerberos, etc., all work fine for this purpose. There is also
 nothing to hide, so encryption can be turned off. However, you do want
 to make sure that the information is not tampered with, so you should
@@ -279,7 +317,8 @@ itself. (An no need for Startds either.)<br>
 
 <h3><a name="pool_glidein"></a>The glidein pool</h3>
 
-The <a href="glideins.png" target="_blank">glidein pool</a> relies heavily on GSI, also known as x509,
+The <a href="glideins.png" target="_blank">glidein
+pool</a> relies heavily on GSI, also known as x509,
 authentication. The reason for this is due to the nature of glideins;
 the Condor Startd is a Grid job. And thus have&nbsp;a x509 proxy
 available at startup.<br>
