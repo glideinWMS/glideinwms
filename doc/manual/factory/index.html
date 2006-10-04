@@ -276,10 +276,29 @@ This one can be used to temporarily blacklist malfunctioning nodes that
 would pass regular sanity checks (for example: memory corruption or I/O
 errors), while waiting for the Grid site admin to take action.
 <h3><a name="create_entry"></a>Creating a new entry point</h3>
-To be written.<br>
+To create an entry point, all you need to do is decide where to put the
+entry point submit and Web directories, and launch the command<br>
+<pre>create_entry</pre>
+The complete description of the command line options can be found <a href="entry.html">here</a>.<br>
 <h3><a name="run_daemon"></a>Starting a Glidein Factory Daemon</h3>
-To be written.<br>
+To start the Glidein Factory Daemon, all you need to do is <br>
+<ul>
+  <li>decide the frequency of updates,</li>
+  <li>move to the Glidein Factory directory</li>
+  <li>launch the daemon with<br>
+    <pre>python glideFactory &lt;sleep between loops&gt; &lt;advertise every N loops&gt; &lt;entry point submit directory&gt;</pre>
+  </li>
+</ul>
+and you are all set.<br>
 <br>
+All the activity messages will be printed on standard output and
+standard error, so you may want to redirect those to a log file.<br>
+<br>
+A real life example could be:<br>
+<pre>cd glideinWMS/factory
+python glideFactory.py 5 6 /opt/glideins/glidein_fnal24
+</pre>
+This will start a daemon that runs on the entry point located in <span style="font-family: monospace;">/opt/glideins/glidein_fnal24</span>, waits 5 seconds between checks and advertises itself every 6 loops.<br>
 <h2><a name="scalability"></a>Scalability considerations</h2>
 To be written. <br>
 <br>
