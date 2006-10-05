@@ -92,14 +92,48 @@ A few examples:<br>
 Finally, the advertize procedure loops over the counts and converts them into appropriate Condor Class Ads.<br>
 
 <br>
-The glue code is reposponsible of parsing the input parameters, loading the configuration values and loop over the above steps.<br>
+The glue code is responsible of parsing the input parameters, loading the configuration values and loop over the above steps.<br>
 <br>
+<h2>The VO Frontend management</h2>
+
+The VO Frontend configuration is composed of a single file that needs to be passed as a parameter to the executable.<br>
 <br>
+The configuration file is essentially a piece of Python code that needs to define the following objects:<br>
+<ul>
+  <li><span style="font-weight: bold; font-family: monospace;">frontend_name</span><br>
+This is the name of the frontend, and must be a string (like <span style="font-family: monospace;">'cms-fe1.fnal.us'</span>)</li>
+  <li><span style="font-weight: bold; font-family: monospace;">factory_pool</span><br>
+This is the name of the WMS Condor Collector, and it must be a string (like <span style="font-family: monospace;">'cmswms1.fnal.gov'</span>).<br>
+If you are using a single Collector, this can be set to None.</li>
+  <li><span style="font-weight: bold; font-family: monospace;">schedd_names</span><br>
+This is the list of schedd names where user jobs are being queued, each name being a string (like <span style="font-family: monospace;">['schedd1@cmssubmit1.fnal.gov','schedd2@cmssubmit1.fnal.gov','cmssubmit2.fnal.gov']</span>)</li>
+  <li>job_constraint<br>
+A <a href="http://www.cs.wisc.edu/condor/manual/v6.8/condor_q.html#SECTION0010263000000000000000">Condor constraint</a> to be used with condor_q when looking for user jobs. (like <span style="font-family: monospace;">"JobUniverse==5"</span>, i.e. consider only Vanilla jobs)<br>
+If you want to consider all user jobs, this can be set to None.</li>
+  <li><span style="font-weight: bold; font-family: monospace;">match_string</span><br>
+This is the matchmaking policy the frontend will use. See the Implementation section for more information.</li>
+  <li><span style="font-weight: bold; font-family: monospace;">glidein_params</span><br>
+This is the dictionary of parameters to set in the frontend requests.
+In this version it is not flexible and will send the same parameters
+for all the requests.<br>
+One parameter is always needed: <span style="font-weight: bold; font-family: monospace;">GLIDEIN_Collector</span>, and it is used to specify the location of the VO Collector.<br>
+(An example: glidein_params={"GLIDEIN_Collector":"cms-fe1.fnal.gov"})</li>
+</ul>
+Once you have the desired configuration file, you just need to decide
+the frequency of matchmaking, move to the VO frontend directory&nbsp;
+and launch the command:<br>
+<div style="text-align: left; margin-left: 40px;">
+<pre>python glideinFrontend.py &lt;sleep between loops&gt; &lt;force advertise every N loops&gt; &lt;config file path&gt;<br></pre>
+</div>
+<br>
+
+All the activity messages will be printed on standard output and
+standard error, so you may want to redirect those to a log file.<br>
 
 <br>
 
-<br>
-
+A real life example could be:<br>
+<pre>cd glideinWMS/frontend<br>python glideinFrontend.py 15 4 ~/vo_23.conf</pre>
 <br>
 
 <br>
