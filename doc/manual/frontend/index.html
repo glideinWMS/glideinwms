@@ -26,13 +26,73 @@ if needed. See the picture below for a general overview.<br>
 <img src="overview.png"><br>
 
 <br>
+
 <br>
+
 <br>
+
 The VO frontend knows nothing about the glideins or Grid sites; the
 only information in has are the attributes that the various Glidein
 Factories publish. This makes the life of the&nbsp;frontend much
 easier, as it only has to worry about matching user job requirements to
 the factory attributes.<br>
+
+<br>
+
+<h2>Implementation</h2>
+
+The current implementation of the VO frontend is Python based, and is very simple.<br>
+
+<br>
+
+The code is composed of 4 logical pieces:<br>
+
+<ul>
+
+  <li>a&nbsp;class that holds the Glidein Factory Ads,</li>
+
+  <li>a&nbsp;class that holds the user jobs Ads,</li>
+
+  <li>a&nbsp;matchmaking procedure,&nbsp;</li>
+  <li>a procedure that advertizes the requests, and</li>
+
+  <li>the glue that links the above together.</li>
+
+</ul>
+
+The top two classes simply contact the appropriate Condor Collector and store the data in memory.<br>
+
+<br>
+
+The matchmaking procedure loops over all the factory ads
+and&nbsp;counts the number of idle user jobs that match the
+attributes of that particular factory entry point. <br>
+<br>
+The matching
+expression is a <a href="http://www.python.org/doc/">Python expression</a>, having as inputs an object holding
+the job attributes, named <span style="font-weight: bold; font-family: monospace;">job</span>,
+and an object holding the entry point attributes, named <span style="font-weight: bold; font-family: monospace;">glidein</span>.
+Both objects are dictionaries, with keys being attribute names, and
+values being attribute values.<br>
+
+<br>
+
+A few examples:<br>
+
+<div style="margin-left: 40px;">
+<pre>job["CDFMaxHours"]&lt;glidein["WMSMaxHours"]</pre>
+
+<pre>job["HasData"] or (glidein["site"] in string.split(job["SitesWithRequiredData"]))</pre>
+
+<pre>(job["Arch"] == glidein["Arch"]) and (job["gccVersion"]==glidein["gccVersion"])</pre>
+
+</div>
+
+<br>
+Finally, the advertize procedure loops over the counts and converts them into appropriate Condor Class Ads.<br>
+
+<br>
+The glue code is reposponsible of parsing the input parameters, loading the configuration values and loop over the above steps.<br>
 <br>
 <br>
 
