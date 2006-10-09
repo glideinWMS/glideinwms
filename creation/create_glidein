@@ -30,7 +30,8 @@ class Params:
                          ('user_files',('-f','-file'),[],'absname[:relname[:can_modify]]',"User file to ship to WN, repeat as needed"),
                          ('user_scripts',('-c','-script'),[],'absname[:relname]',"User script to execute on WN, repeat as needed"),
                          ('user_subsys',('-y','-subsys'),[],'absname:conf_sw:dir:out_conf[:relname]',"User subsytem to ship to WN, repeat as needed"),
-                         ('user_params',('-m','-param'),[],'name=val',"User param, repeat as needed")
+                         ('user_params',('-m','-param'),[],'name=val',"User param, repeat as needed"),
+                         (self.load_file,('-e','-cfg'),None,'filename',"Load configuration file")
                          )
 
         self.src_dir=os.path.join(os.getcwd(),"web_base")
@@ -69,8 +70,11 @@ class Params:
     def init(self):
         for el in self.param_desc:
             param_name=el[0]
-            param_def=el[2]
-            exec('self.%s=%s'%(param_name,repr(param_def)))
+            if type(param_name)==type(""):
+                # only if a regular parameter
+                param_def=el[2]
+                exec('self.%s=%s'%(param_name,repr(param_def)))
+            # else it is a special one that does not need initialization
 
     def parse(self,argv):
         argidx=0
@@ -84,17 +88,44 @@ class Params:
                 param_strs=el[1]                
                 if arg_name in param_strs:
                     param_name=el[0]
-                    if eval("type(self.%s)"%param_name)==type([]):
-                        # append if a list
-                        exec("self.%s.append('%s')"%(param_name,arg_val))
+                    if type(param_name)==type(""):
+                        # regular type, assign
+                        if eval("type(self.%s)"%param_name)==type([]):
+                            # append if a list
+                            exec("self.%s.append('%s')"%(param_name,arg_val))
+                        else:
+                            exec("self.%s='%s'"%(param_name,arg_val))
                     else:
-                        exec("self.%s='%s'"%(param_name,arg_val))
+                        # special type, exec
+                        param_name(arg_val)
                     found=1
                     break
             if not found:
                 self.usage()
                 raise RuntimeError,"Unknown arg '%s'"%arg_name
-                
+
+    #load from a file
+    #one element per line
+    # -opt val
+    def load_file(self,fname):
+        fd=open(fname,"r")
+        try:
+            lines=fd.readlines()
+        finally:
+            fd.close()
+        argv=[]
+        for line in lines:
+            line=string.strip(line)
+            if len(line)==0:
+                continue #skip empty lines
+            if line[0]=='#':
+                continue #skip comments
+            
+            name,val=string.split(line,None,1)
+            argv.append(name)
+            argv.append(val)
+
+        self.parse(argv)
 
     def usage(self):
         print "Usage: create_glidein <opts>"
