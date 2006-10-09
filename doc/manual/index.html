@@ -266,7 +266,7 @@ discussed.<br>
 <br>
 
 Most configuration changes needed by the Glidein-based WMS regard
-security; you definitely don't want just anybody to mess up with you
+security; you definitely don't want just anybody to mess with you
 pool!<br>
 
 <br>
@@ -323,8 +323,8 @@ authentication. The reason for this is due to the nature of glideins;
 the Condor Startd is a Grid job. And thus have&nbsp;a x509 proxy
 available at startup.<br>
 
-So the glidein Condor pool must be setup to support at least GSI; other
-methods can be used used too, to support your local user job submission
+So the glidein Condor pool must be set up to support at least GSI; other
+methods can be used too, to support your local user job submission
 policies.<br>
 
 <br>
@@ -344,7 +344,7 @@ manual</a> for the full details.<br>
 
 <br>
 
-First of all, you must tell Condor what kind of proxies will you trust;
+First of all, you must tell Condor what kind of proxies you will trust;
 i.e. you must provide it with the public keys of all the trusted
 Certification Authorities (CAs).<br>
 
@@ -364,7 +364,7 @@ provided key.<br>
 
 Last but not least, you must specify who do you trust. A sensitive
 sysadmin will want only the known DNs (Distinguished Names, i.e. the
-text representation of the proxy identity) to be allowed to be
+text representation of the proxy identity) to be allowed to
 impersonate Condor daemons. There are two places where this has to be
 set:<br>
 
