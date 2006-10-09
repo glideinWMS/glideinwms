@@ -13,6 +13,7 @@
 
 import os
 import sys
+import traceback
 import time
 sys.path.append("../lib")
 
@@ -55,9 +56,21 @@ def iterate(sleep_time,
             schedd_names,job_constraint,match_str,
             max_idle,reserve_idle,
             glidein_params):
+    is_first=1
     while 1:
         print "Iteration at %s" % time.ctime()
-        done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,max_idle,reserve_idle,glidein_params)
+        try:
+            done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,max_idle,reserve_idle,glidein_params)
+        except:
+            if is_first:
+                raise
+            else:
+                # if not the first pass, just warn
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                print "Exception: %s" %(jid,segment,tb)
+                
+        is_first=0
         print "Sleep"
         time.sleep(sleep_time)
 
