@@ -13,6 +13,7 @@
 
 import os
 import sys
+import traceback
 import time
 sys.path.append("../lib")
 
@@ -81,15 +82,26 @@ def iterate_one(do_advertize,
 ############################################################
 def iterate(sleep_time,advertize_rate,
             jobDescript,jobAttributes,jobParams):
+    is_first=1
     count=0;
     while 1:
         print "Iteration at %s" % time.ctime()
-        done_something=iterate_one(count==0,
-                                   jobDescript,jobAttributes,jobParams)
+        try:
+            done_something=iterate_one(count==0,
+                                       jobDescript,jobAttributes,jobParams)
+        except:
+            if is_first:
+                raise
+            else:
+                # if not the first pass, just warn
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                print "Exception: %s" %(jid,segment,tb)
+                
         print "Sleep"
         time.sleep(sleep_time)
         count=(count+1)%advertize_rate
-        
+        is_first=0
         
 ############################################################
 def main(sleep_time,advertize_rate,startup_dir):
