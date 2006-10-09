@@ -185,8 +185,8 @@ glideins</a> to be kept in the Grid queue.<br>
 
 The <a href="../overview.png" target="_blank">typical
 scenario</a> features a frontend with several (hundreds or
-even thousands) of user jobs in the queue that is looking for resources
-where to run them. It will fetch the factory classads, select the ones
+even thousands of) user jobs in the queue that is looking for resources
+to run them. It will fetch the factory classads, select the ones
 that satisfy its needs, and advertise class-ads with requests for those
 glideins. If the frontend ever runs out of user jobs, it
 will advertise the fact that it does not need those glideins anymore.
@@ -233,9 +233,9 @@ that share the same factory name. See the picture below for an overview.<br>
 
 Each entry point resides in a different&nbsp;directory. A glidein
 entry point is completely described by the files on disk, and the
-Glidein Factory Damon does not need
+Glidein Factory Daemon does not need
 to know anything about its internals. The daemon only cares about the
-list of supported parameters and the jobs submission
+list of supported parameters and the glidein submission
 file; everything else is taken care by the glidein startup script.<br>
 
 
@@ -341,7 +341,7 @@ below.<br>
 
 
 The task of the basic startup script (called <span style="font-family: monospace; font-weight: bold;">glidein_startup.sh</span>)
-is thus reduced at loading the other files, including the support
+is thus reduced to loading the other files, including the support
 scripts, the base config files and the Condor binaries. The list of
 files to load is obtained from the Web server as one of the first
 steps, making the startup script completely generic.<br>
@@ -354,7 +354,7 @@ steps, making the startup script completely generic.<br>
 
 Please notice two things. First, all the files transfered over the Web
 are signed using <span style="font-weight: bold; font-family: monospace;">sha1sum</span>.
-This prevents a hacker to tamper with the files while in transit. This
+This prevents a hacker from tampering with the files while in transit. This
 is especially important for executables and scripts (to prevent
 arbitrary code to be executed), but is useful for configuration files
 too.<br>
@@ -446,7 +446,7 @@ To run a Glidein Factory, you need to perform two steps:<br>
 
 
 
-and repeat as need to serve all the resources available.<br>
+and repeat as needed to serve all the resources available.<br>
 
 
 <br>
