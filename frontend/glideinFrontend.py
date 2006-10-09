@@ -68,7 +68,7 @@ def iterate(sleep_time,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                print "Exception: %s" %(jid,segment,tb)
+                print "Exception at %s: %s" % (time.ctime(),tb)
                 
         is_first=0
         print "Sleep"
