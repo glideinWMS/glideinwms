@@ -5,7 +5,6 @@ function usage {
     echo "where <options> is:"
     echo "  -factory <name>       : name of this factory"
     echo "  -name <name>          : name of this glidein"
-    echo "  -site <name>          : name of this site"
     echo "  -web <baseURL>        : base URL from where to fetch"
     echo "  -proxy <proxyURL>     : URL of the local proxy"
     echo "  -dir <dirID>          : directory ID (supports .,Condor, CONDOR, OSG)"
@@ -14,6 +13,7 @@ function usage {
     echo "  -cluster <ClusterID>  : condorG ClusterId"
     echo "  -subcluster <ProcID>  : condorG ProcId"
     echo "  -schedd <name>        : condorG Schedd Name"
+    echo "  -vars <fname>         : variables file name"
     echo "  -v <id>               : verbosity level (std and dbg supported)"
     echo "  -param_* <arg>        : user specified parameters"
     exit 1
@@ -28,7 +28,6 @@ while [ $# -gt 0 ]
 do case "$1" in
     -factory)    glidein_factory="$2";;
     -name)       glidein_name="$2";;
-    -site)       glidein_site="$2";;
     -web)        repository_url="$2";;
     -proxy)      proxy_url="$2";;
     -dir)        work_dir="$2";;
@@ -37,6 +36,7 @@ do case "$1" in
     -cluster)    condorg_cluster="$2";;
     -subcluster) condorg_subcluster="$2";;
     -schedd)     condorg_schedd="$2";;
+    -vars)       vars_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  usage
@@ -108,7 +108,6 @@ echo "condorg_subcluster= '$condorg_subcluster'"
 echo "condorg_schedd    = '$condorg_schedd'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
-echo "glidein_site      = '$glidein_site'"
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_sha1         = '$sign_sha1'"
@@ -228,7 +227,6 @@ echo > glidein_config
 echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
-echo "GLIDEIN_Site $glidein_site" >> glidein_config
 echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
@@ -413,6 +411,12 @@ while read file
 do
     fetch_file $file
 done < file_list.lst
+
+if [ -n "$vars_file" ]; then
+    echo "# --- Provided variables  ---" >> glidein_config
+    cat "$vars_file" >> glidein_config
+fi
+
 
 ##############################
 # Fetch list of support files

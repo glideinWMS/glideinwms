@@ -14,7 +14,6 @@ class Params:
     def __init__(self,argv):
         self.param_desc=(("factory_name",('-F','-factory'),socket.gethostname(),'ID', 'Factory name'),
                          ("glidein_name",('-n','-name'),None,'ID', 'Glidein name'),
-                         ("glidein_site",('-t','-site'),None,'ID', 'Site identifier (may be different that name)'),
                          ("gatekeeper",('-g','-gatekeeper'),None,'gatekeeper', 'Grid gatekeeper/resource'),
                          ("gridtype",('-u','-gridtype'),'gt2','grid_type','Condor Grid type'),
                          ("rsl",('-r','-rsl'),None,'RSL','Globus RSL option'),
@@ -27,6 +26,7 @@ class Params:
                          ('proxy_url',('-p','-proxy'),None,'proxy_url',"Squid cache to use"),
                          ('schedd_name',('-d','-schedd'),"schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use"),
                          ('glidein_attrs',('-a','-attr'),[],'name=val',"Glidein attribute, repeat as needed"),
+                         ('glidein_vars',('-v','-var'),[],'name=val',"Glidein variable, repeat as needed"),
                          ('user_files',('-f','-file'),[],'absname[:relname[:can_modify]]',"User file to ship to WN, repeat as needed"),
                          ('user_scripts',('-c','-script'),[],'absname[:relname]',"User script to execute on WN, repeat as needed"),
                          ('user_subsys',('-y','-subsys'),[],'absname:conf_sw:dir:out_conf[:relname]',"User subsytem to ship to WN, repeat as needed"),
@@ -53,9 +53,6 @@ class Params:
         if self.gatekeeper==None:
             self.usage()
             raise RuntimeError, "Missing gatekeeper"
-        
-        if self.glidein_site==None:
-            self.glidein_site=self.glidein_name
         
         if self.condor_base_dir==None:
             self.usage()
@@ -161,6 +158,7 @@ def main(params):
             copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
             copy_script("validate_node.sh",params.stage_dir,params.src_dir)
             create_attributes(params.stage_dir,params.glidein_attrs)
+            create_vars(params.stage_dir,params.glidein_vars)
             
             # this must be the last script in the list
             copy_script("condor_startup.sh",params.stage_dir,params.src_dir)
@@ -189,13 +187,13 @@ def main(params):
             link_attributes(params.submit_dir,params.stage_dir,int(params.stage_symlink))
 
             create_descript(params.submit_dir,
-                            params.factory_name,params.glidein_name,params.glidein_site,
+                            params.factory_name,params.glidein_name,
                             params.gridtype,params.gatekeeper,params.rsl,
                             params.schedd_name,
                             params.work_dir,params.web_url,params.proxy_url)
             
             create_submit(params.submit_dir,
-                          params.factory_name,params.glidein_name,params.glidein_site,
+                          params.factory_name,params.glidein_name,
                           params.gridtype,params.gatekeeper,params.rsl,
                           params.schedd_name,
                           params.work_dir,params.web_url,params.proxy_url,sha1)
@@ -221,6 +219,7 @@ def main(params):
 ############################################################
 
 ATTRS_FILE="attributes.cfg"
+VARS_FILE="variables.cfg"
 FILE_LISTFILE="file_list.lst"
 SCRIPT_LISTFILE="script_list.lst"
 SUBSYSTEM_LISTFILE="subsystem_list.lst"
@@ -468,6 +467,32 @@ def create_attributes(stage_dir,glidein_attr_ids):
     add_file(ATTRS_FILE,stage_dir)
 
 ###################################
+# Create variabless config file and
+# add it to the list of files
+def create_vars(stage_dir,glidein_var_ids):
+    glidein_vars={}
+    for id in glidein_var_ids:
+        id_list=string.split(id,"=",1)
+        if len(id_list)<2:
+            raise RuntimeError, "Not enough = in var: %s"%id
+        name,val=id_list
+        glidein_vars[name]=val
+    
+    global VARS_FILE
+    filepath=os.path.join(stage_dir,VARS_FILE)
+    try:
+        fd=open(filepath,"a+")
+    except IOError,e:
+        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+    try:
+        for name in glidein_vars.keys():
+            val=glidein_vars[name]
+            fd.write("%s \t%s\n"%(name,val))
+    finally:
+        fd.close()
+    add_file(VARS_FILE,stage_dir)
+
+###################################
 # Create a copy or a link in the
 # submit dir
 def link_attributes(submit_dir,stage_dir,do_softlink):
@@ -522,7 +547,7 @@ def copy_submit_file(filename,submit_dir,org_dir):
 #################################
 # Create glidein description file
 def create_descript(submit_dir,
-                    factory_name,glidein_name,glidein_site,
+                    factory_name,glidein_name,
                     gridtype,gatekeeper,rsl,
                     schedd_name,
                     startup_dir,web_base,proxy_id):
@@ -535,7 +560,6 @@ def create_descript(submit_dir,
     try:
         fd.write("FactoryName   %s\n"%factory_name)
         fd.write("GlideinName   %s\n"%glidein_name)
-        fd.write("GlideinSite   %s\n"%glidein_site)
         fd.write("Schedd        %s\n"%schedd_name)
         fd.write("GridType      %s\n"%gridtype)
         fd.write("Gatekeeper    %s\n"%gatekeeper)
@@ -551,7 +575,7 @@ def create_descript(submit_dir,
 ###########################
 # Create Condor submit file
 def create_submit(submit_dir,
-                  factory_name,glidein_name,glidein_site,
+                  factory_name,glidein_name,
                   gridtype,gatekeeper,rsl,
                   schedd_name,
                   startup_dir,web_base,proxy_id,sha1):
@@ -573,12 +597,11 @@ def create_submit(submit_dir,
         else:
             web_str="%s -proxy %s"%(web_base,proxy_id)
         
-        fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -subcluster $(Process) -schedd %s -site %s "%(glidein_name,schedd_name,glidein_site))+
-                 ("-dir %s -web %s -sign %s -signtype sha1 -factory %s " % (startup_dir,web_base,sha1,factory_name))+
+        fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
+                 ("-dir %s -web %s -sign %s -signtype sha1 -factory %s -vars %s " % (startup_dir,web_base,sha1,factory_name,VARS_FILE))+
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory = "%s"\n'%factory_name)
         fd.write('+GlideinName    = "%s"\n'%glidein_name)
-        fd.write('+GlideinSite    = "%s"\n'%glidein_site)
         fd.write('+GlideinClient  = "$ENV(GLIDEIN_CLIENT)"\n')
 
         
