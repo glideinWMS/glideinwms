@@ -51,7 +51,7 @@ fi
 # but first test it does exist
 
 if [ -x "$glexec_bin" ]; then
-    ; # do nothing
+    echo "Using gLExec binary '$glexec_bin'"
 else
     echo "gLExec binary '$glexec_bin' not found!" 2>&1
     exit 1
