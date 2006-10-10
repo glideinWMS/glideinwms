@@ -51,6 +51,7 @@ fi
 # but first test it does exist
 
 if [ -x "$glexec_bin" ]; then
+    ; # do nothing
 else
     echo "gLExec binary '$glexec_bin' not found!" 2>&1
     exit 1
@@ -59,4 +60,4 @@ fi
 append_config "GLEXEC_STARTER = True"
 append_config "GLEXEC = $glexec_bin"
 
-
+exit 0
