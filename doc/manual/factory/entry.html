@@ -38,6 +38,7 @@ a glance</a></li>
     <li><a href="#gcb">Integration with GCB</a></li>
 
     <li><a href="#security">Security handles</a></li>
+    <li><a href="#tcp">Using TCP to send updates to the Collector</a></li>
 
   </ul>
 
@@ -669,6 +670,16 @@ option, and the default values are:<br>
 
 </ul>
 
+<h2><a name="tcp"></a>Using TCP to send updates to the Collector</h2>
+By default, Condor uses UDP packets to comunicate between the glideins
+and the Collector. While more efficient than TCP, UDP packets are often
+blocked at the firewall, or lost on the WAN. <br>
+<br>
+To switch on TCP updates, please specify:<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const UPDATE_COLLECTOR_WITH_TCP=True</span><br style="font-family: monospace;">
+</div>
+<br>
+Please be aware that this will configure the glideins only; you still neet to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor documentation</a> for more details. <br>
 <br>
 
 <br>
