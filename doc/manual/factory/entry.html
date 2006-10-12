@@ -38,7 +38,10 @@ a glance</a></li>
     <li><a href="#gcb">Integration with GCB</a></li>
 
     <li><a href="#security">Security handles</a></li>
-    <li><a href="#tcp">Using TCP to send updates to the Collector</a></li>
+
+    <li><a href="#tcp">Using TCP to send updates to
+the Collector</a></li>
+    <li><a href="#custom_code">Adding custom code to the glideins</a></li>
 
   </ul>
 
@@ -295,7 +298,8 @@ Constants to pass to the user scripts.</td>
 
       <br>
 
-Similar to the constants, but the names are published and a frontend can modify them.</td>
+Similar to the constants, but the names are published and a frontend
+can modify them.</td>
 
       <td>[] - No attributes</td>
 
@@ -307,7 +311,11 @@ Similar to the constants, but the names are published and a frontend can modify 
 
       <td>&lt;absname[:relname[:can_modify]]&gt; </td>
 
-      <td>User file to ship to WN.<a href="entry.html#args_raw_foot1">*</a></td>
+      <td>User file to ship to WN.<a href="entry.html#args_raw_foot1">*</a><br>
+
+      <br>
+
+      <span style="font-style: italic;">can_modify</span> must be <span style="font-family: monospace;">0</span> or <span style="font-family: monospace;">1</span> and defaults to <span style="font-family: monospace;">0</span>.</td>
 
       <td>[] - No attributes </td>
 
@@ -484,7 +492,8 @@ default name, you definitely need to set this (to something like <span style="fo
 
 <br>
 
-You will also <span style="font-weight: bold;">most probably</span> also want to use:<br>
+You will also <span style="font-weight: bold;">most
+probably</span> also want to use:<br>
 
 <ul>
 
@@ -503,7 +512,8 @@ Please notice that several configuration files can be loaded.</li>
 
 <br>
 
-The other arguments are for advanced admins only, and are explaned below.<br>
+The other arguments are for advanced admins only, and are explaned
+below.<br>
 
 <br>
 
@@ -629,6 +639,7 @@ and optinally the GCB port (defaults to <span style="font-family: monospace;">65
 </div>
 
 For more flexibility, you can use parameters instead of constants.<br>
+
 <br>
 
 If you are more sofisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
@@ -642,6 +653,7 @@ routing file&gt;:gcb_route.cfg</span><br style="font-family: monospace;">
 </div>
 
 <br>
+
 Please be aware that the above will configure the glideins only; you
 still need to properly configure the Collector and the submit machines.
 <h3><a name="security"></a>Security handles</h3>
@@ -669,18 +681,97 @@ option, and the default values are:<br>
 
 </ul>
 
-<h2><a name="tcp"></a>Using TCP to send updates to the Collector</h2>
+<h3><a name="tcp"></a>Using TCP to send
+updates to the Collector</h3>
+
 By default, Condor uses UDP packets to comunicate between the glideins
 and the Collector. While more efficient than TCP, UDP packets are often
 blocked at the firewall, or lost on the WAN. <br>
-<br>
-To switch on TCP updates, please specify:<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-const UPDATE_COLLECTOR_WITH_TCP=True</span><br style="font-family: monospace;">
-</div>
-<br>
-Please be aware that this will configure the glideins only; you still neet to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor documentation</a> for more details. <br>
+
 <br>
 
+To switch on TCP updates, please specify:<br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const
+UPDATE_COLLECTOR_WITH_TCP=True</span><br style="font-family: monospace;">
+
+</div>
+
+<br>
+
+Please be aware that this will configure the glideins only; you still
+neet to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
+documentation</a> for more details. <br>
+
+<h3><a name="custom_code"></a>Adding custom code to the glideins</h3>
+
+While provided code should cover most of the general purpose use cases,
+some administrators may have additional needs. For these cases, the
+glidein creation command adds the following options:<br>
+
+<ul>
+
+  <li><span style="font-weight: bold; font-family: monospace;">-script</span><br>
+
+Path to the custom script, and optionally a short name to be used in
+the glidein. (like "<span style="font-family: monospace;">/tmp/myscript_v23.sh:cms_validation.sh</span>")<br>
+
+    <br>
+
+The script will be copied in the Web-accessible area, pulled by the
+glidein startup script and executed. If any parameters are needed, they
+can be specified using <span style="font-weight: bold; font-family: monospace;">-const</span>
+or <span style="font-weight: bold; font-family: monospace;">-param</span>,
+or stored in a file (see below).<br>
+
+    <br>
+
+When invoked, it will be given a single argument; the name of the
+config file to use. That file will contain all the glidein variables,
+one per line, with variable name first, a (set of) space(s), followed
+by the actual value.<br>
+
+    <div style="margin-left: 40px;"><span style="font-family: monospace;">GLIDEIN_Site &nbsp;fnal</span><br style="font-family: monospace;">
+
+    <span style="font-family: monospace;">MYVAR
+&nbsp;X34_44</span><br>
+
+    </div>
+
+It is scripts task to parse out those values; a bash example would be:<br>
+
+    <div style="margin-left: 40px;"><span style="font-family: monospace;">myval=`awk '/^MYVAR /{print
+$2}'`</span><br>
+
+    </div>
+
+  </li>
+
+  <li><span style="font-weight: bold; font-family: monospace;">-file</span><br>
+
+Path to the config file,&nbsp;optionally a short name to be used in
+the glidein, plus a flag to tell if the copy of the file can be changed
+after the creation of the entry point. (like "<span style="font-family: monospace;">/tmp/mydefault_vars_v44:cms_validation.cfg:0</span>")<br>
+    <br>
+The file will be copied in the Web-accessible area, and pulled by the
+glidein startup script as needed. It can be then used by any script
+(see above). <br>
+    <br>
+Please be cautious in using the modification flag; if set to <span style="font-family: monospace;">1</span>,
+the content of the file will not be verified by the glidein startup
+script and could be tampered in transit by a malicious user. So never
+put sensitive data (like the IP address of your security
+infrastructure) in a changeable file.&nbsp;</li>
+  <li><span style="font-weight: bold; font-family: monospace;">-subsystem</span><br>
+Sometimes it is usefull to transfer a whole subdirectory of files, and
+that is much easier to accomplish by means of a tar-ball.&nbsp;<br>
+    <br>
+&lt;To be finished&gt;</li>
+
+</ul>
+
+Please notice that the user provided scripts will be executed in the
+specified order, and before the Condor daemons are started up.<br>
 <br>
 
 <a name="ref"></a>
