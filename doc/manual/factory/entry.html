@@ -484,7 +484,7 @@ default name, you definitely need to set this (to something like <span style="fo
 
 <br>
 
-You will also most probably want to use:<br>
+You will also <span style="font-weight: bold;">most probably</span> also want to use:<br>
 
 <ul>
 
@@ -503,12 +503,11 @@ Please notice that several configuration files can be loaded.</li>
 
 <br>
 
-The other arguments are for experts only and will be documented in
-future releases, once more experience is gained.<br>
+The other arguments are for advanced admins only, and are explaned below.<br>
 
 <br>
 
-So a real life example would be:<br>
+Now, a real life example would be:<br>
 
 <pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] ./create_glidein -name cms_1 -const GLIDEIN_Site=fnal -gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor -proxy "cmsitbsquid002.fnal.gov:3128" \<br> -startdir Condor -factory fnalcms \<br> -stagedir /var/www/html/wmsglidestage -webdir http://cms-xen6.fnal.gov/wmsglidestage \<br> -attr 'GLIDEIN_Arch="INTEL"' -attr 'CMS_SiteID=23' -attr 'GCCVersion="4.0.1"'</pre>
 
