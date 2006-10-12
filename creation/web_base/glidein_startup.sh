@@ -13,7 +13,7 @@ function usage {
     echo "  -cluster <ClusterID>  : condorG ClusterId"
     echo "  -subcluster <ProcID>  : condorG ProcId"
     echo "  -schedd <name>        : condorG Schedd Name"
-    echo "  -vars <fname>         : variables file name"
+    echo "  -consts <fname>       : constants file name"
     echo "  -v <id>               : verbosity level (std and dbg supported)"
     echo "  -param_* <arg>        : user specified parameters"
     exit 1
@@ -36,7 +36,7 @@ do case "$1" in
     -cluster)    condorg_cluster="$2";;
     -subcluster) condorg_subcluster="$2";;
     -schedd)     condorg_schedd="$2";;
-    -vars)       vars_file="$2";;
+    -consts)       consts_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  usage
@@ -412,9 +412,9 @@ do
     fetch_file $file
 done < file_list.lst
 
-if [ -n "$vars_file" ]; then
-    echo "# --- Provided variables  ---" >> glidein_config
-    cat "$vars_file" >> glidein_config
+if [ -n "$consts_file" ]; then
+    echo "# --- Provided constants  ---" >> glidein_config
+    cat "$consts_file" >> glidein_config
 fi
 
 

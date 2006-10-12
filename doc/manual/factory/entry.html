@@ -34,6 +34,7 @@ a glance</a></li>
   <ul>
 
     <li><a href="#glexec">Integration with gLExec</a></li>
+
     <li><a href="#gcb">Integration with GCB</a></li>
 
     <li><a href="#security">Security handles</a></li>
@@ -257,10 +258,11 @@ visible at all times.</p>
 
       <td>&lt;name=val&gt; </td>
 
-      <td>Glidein attribute.
-      <p>List as many as needed. All will be used.</p>
+      <td>Glidein attribute.<a href="entry.html#args_raw_foot1">*</a><br>
 
-      </td>
+      <br>
+
+These will be published and are used for matchmaking.</td>
 
       <td>[] - No attributes</td>
 
@@ -268,17 +270,33 @@ visible at all times.</p>
 
     <tr>
 
-      <td>-v | -var</td>
+      <td>-n | -const</td>
 
       <td>&lt;name=val&gt;</td>
 
-      <td>Glidein variable.<br>
+      <td>Glidein constant.<a href="entry.html#args_raw_foot1">*</a><br>
 
       <br>
 
-List as many as needed. All will be used.</td>
+Constants to pass to the user scripts.</td>
 
       <td>[] - No variables</td>
+
+    </tr>
+
+    <tr>
+
+      <td>-m&nbsp;|&nbsp;-param</td>
+
+      <td>&lt;name=val&gt;</td>
+
+      <td>User parameter.<a href="entry.html#args_raw_foot1">*</a><br>
+
+      <br>
+
+Similar to the constants, but the names are published and a frontend can modify them.</td>
+
+      <td>[] - No attributes</td>
 
     </tr>
 
@@ -288,10 +306,7 @@ List as many as needed. All will be used.</td>
 
       <td>&lt;absname[:relname[:can_modify]]&gt; </td>
 
-      <td>User file to ship to WN.
-      <p>List as many as needed. All will be used.</p>
-
-      </td>
+      <td>User file to ship to WN.<a href="entry.html#args_raw_foot1">*</a></td>
 
       <td>[] - No attributes </td>
 
@@ -303,10 +318,7 @@ List as many as needed. All will be used.</td>
 
       <td>&lt;absname[:relname]&gt; </td>
 
-      <td>User script to execute on WN.
-      <p>List as many as needed. All will be used.</p>
-
-      </td>
+      <td>User script to execute on WN.<a href="entry.html#args_raw_foot1">*</a></td>
 
       <td>[] - No attributes </td>
 
@@ -318,25 +330,7 @@ List as many as needed. All will be used.</td>
 
       <td>&lt;absname:conf_sw:dir:out_conf[:relname]&gt; </td>
 
-      <td>User subsytem to ship to WN.
-      <p>List as many as needed. All will be used.</p>
-
-      </td>
-
-      <td>[] - No attributes </td>
-
-    </tr>
-
-    <tr>
-
-      <td>-m&nbsp;|&nbsp;-param </td>
-
-      <td>&lt;name=val&gt; </td>
-
-      <td>User param.
-      <p>List as many as needed. All will be used.</p>
-
-      </td>
+      <td>User subsytem to ship to WN.<a href="entry.html#args_raw_foot1">*</a></td>
 
       <td>[] - No attributes </td>
 
@@ -360,6 +354,8 @@ List as many as needed. All will be used.</td>
 
 <br>
 
+<a name="args_raw_foot1"></a>* - List as many as
+needed. All will be used.
 <h2><a name="args"></a>A guide to arguments</h2>
 
 You definitely <span style="font-weight: bold;">need to
@@ -443,8 +439,7 @@ they are running Condor as the underlying batch system, and <span style="font-fa
 Changing this value from the name of the machine allows you to move the
 factory without disrupting the system.</li>
 
-  <li><span style="font-weight: bold; font-family: monospace;">-var
-    </span><span style="font-family: monospace;">GLIDEIN_Site=&lt;sitestr&gt;</span><br>
+  <li><span style="font-weight: bold; font-family: monospace;">-const&nbsp;</span><span style="font-family: monospace;">GLIDEIN_Site=&lt;sitestr&gt;</span><br>
 
 This arguments&nbsp;defines the Condor glidein attribute <span style="font-family: monospace;">GLIDEIN_Site</span>.<br>
 
@@ -514,11 +509,11 @@ future releases, once more experience is gained.<br>
 
 So a real life example would be:<br>
 
-<pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] ./create_glidein -name cms_1 -var GLIDEIN_Site=fnal -gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor -proxy "cmsitbsquid002.fnal.gov:3128" \<br> -startdir Condor -factory fnalcms \<br> -stagedir /var/www/html/wmsglidestage -webdir http://cms-xen6.fnal.gov/wmsglidestage \<br> -attr 'GLIDEIN_Arch="INTEL"' -attr 'CMS_SiteID=23' -attr 'GCCVersion="4.0.1"'</pre>
+<pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] ./create_glidein -name cms_1 -const GLIDEIN_Site=fnal -gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor -proxy "cmsitbsquid002.fnal.gov:3128" \<br> -startdir Condor -factory fnalcms \<br> -stagedir /var/www/html/wmsglidestage -webdir http://cms-xen6.fnal.gov/wmsglidestage \<br> -attr 'GLIDEIN_Arch="INTEL"' -attr 'CMS_SiteID=23' -attr 'GCCVersion="4.0.1"'</pre>
 
 Or even better:<br>
 
-<pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] cat ~/cmsitb.txt<br>-gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor<br>-proxy "cmsitbsquid002.fnal.gov:3128"<br>-startdir Condor <br>-factory fnalcms<br>-stagedir /var/www/html/wmsglidestage <br>-webdir http://cms-xen6.fnal.gov/wmsglidestage<br>-attr GLIDEIN_Arch="INTEL" <br>-attr CMS_SiteID=23 <br>-attr GCCVersion="4.0.1"<br>-var GLIDEIN_Site=fnal<br>[me@mymachine creation] ./create_glidein -name cms_1 -cfg ~/cmsitb.txt</pre>
+<pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] cat ~/cmsitb.txt<br>-gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor<br>-proxy "cmsitbsquid002.fnal.gov:3128"<br>-startdir Condor <br>-factory fnalcms<br>-stagedir /var/www/html/wmsglidestage <br>-webdir http://cms-xen6.fnal.gov/wmsglidestage<br>-attr GLIDEIN_Arch="INTEL" <br>-attr CMS_SiteID=23 <br>-attr GCCVersion="4.0.1"<br>-const GLIDEIN_Site=fnal<br>[me@mymachine creation] ./create_glidein -name cms_1 -cfg ~/cmsitb.txt</pre>
 
 <h2><a name="advanced"></a>Advanced topics</h2>
 
@@ -580,15 +575,14 @@ To enable gLExec support in an entry point, you need to specify:<br>
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-script
 web_base/glexec_setup.sh</span><br>
 
-<span style="font-family: monospace;">-var
+<span style="font-family: monospace;">-const
 GLEXEC_BIN=&lt;path to glexec&gt;</span><br>
 
 <span style="font-family: monospace;"></span></div>
 
 For most current gLExec installation this comes down to:<br>
 
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-var
-GLEXEC_BIN=/opt/glite/sbin/glexec</span><br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;GLEXEC_BIN=/opt/glite/sbin/glexec</span><br>
 
 </div>
 
@@ -598,10 +592,9 @@ P.S.: At the time of writing, Condor had a bug that would not properly
 forward the user proxy, so you have to also turn the delegation off and
 enable encryption:<br>
 
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-var
-DELEGATE_JOB_GSI_CREDENTIALS=False<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;DELEGATE_JOB_GSI_CREDENTIALS=False<br>
 
--var SEC_DEFAULT_ENCRYPTION=REQUIRED</span><br>
+-const SEC_DEFAULT_ENCRYPTION=REQUIRED</span><br>
 
 </div>
 
@@ -612,21 +605,42 @@ This clashes with the network policies of most Grid sites, that have
 worker nodes in private networks or implement a restrictive firewall.
 To solve this, Condor provides GCB.
 <br>
+
 The detailed description of GCB is beyond the scope of this manual and
-you should refer to the Condor documentation avaialble at <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</a>. Here you will find only the parameters needed to enable it in the glideins.<br>
+you should refer to the Condor documentation avaialble at <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</a>.
+Here you will find only the parameters needed to enable it in the
+glideins.<br>
+
 <br>
+
 To use a single GCB, you need to specify:<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-script web_base/gcb_one_setup.sh</span><br style="font-family: monospace;">
-<span style="font-family: monospace;">-var GCB_IP=&lt;IP&gt;</span><br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-script
+web_base/gcb_one_setup.sh</span><br style="font-family: monospace;">
+
+<span style="font-family: monospace;">-const&nbsp;GCB_IP=&lt;IP&gt;</span><br>
+
 </div>
+
 and optinally the GCB port (defaults to <span style="font-family: monospace;">65432</span>):<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-var GCB_PORT=&lt;port&gt;</span><br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;GCB_PORT=&lt;port&gt;</span><br>
+
 </div>
+
+For more flexibility, you can use parameters instead of constants.<br>
 <br>
-If you are more sofisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB routing tables</a>, too, add:<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to routing file&gt;:gcb_route.cfg</span><br style="font-family: monospace;">
-<span style="font-family: monospace;">-var&nbsp;GCB_REMAP_ROUTE=gcb_route.cfg</span><br>
+
+If you are more sofisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
+routing tables</a>, too, add:<br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to
+routing file&gt;:gcb_route.cfg</span><br style="font-family: monospace;">
+
+<span style="font-family: monospace;">-const&nbsp;GCB_REMAP_ROUTE=gcb_route.cfg</span><br>
+
 </div>
+
 <br>
 Please be aware that the above will configure the glideins only; you
 still need to properly configure the Collector and the submit machines.
@@ -642,7 +656,7 @@ works fine for most&nbsp; users, but you may need to change them.<br>
 
 <br>
 
-The values are set using the <span style="font-weight: bold; font-family: monospace;">-var</span>
+The values are set using the <span style="font-weight: bold; font-family: monospace;">-const</span>
 option, and the default values are:<br>
 
 <ul>

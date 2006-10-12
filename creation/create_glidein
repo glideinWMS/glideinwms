@@ -26,11 +26,11 @@ class Params:
                          ('proxy_url',('-p','-proxy'),None,'proxy_url',"Squid cache to use"),
                          ('schedd_name',('-d','-schedd'),"schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use"),
                          ('glidein_attrs',('-a','-attr'),[],'name=val',"Glidein attribute, repeat as needed"),
-                         ('glidein_vars',('-v','-var'),[],'name=val',"Glidein variable, repeat as needed"),
+                         ('glidein_consts',('-n','-const'),[],'name=val',"Glidein constant, repeat as needed"),
+                         ('user_params',('-m','-param'),[],'name=val',"User param, repeat as needed"),
                          ('user_files',('-f','-file'),[],'absname[:relname[:can_modify]]',"User file to ship to WN, repeat as needed"),
                          ('user_scripts',('-c','-script'),[],'absname[:relname]',"User script to execute on WN, repeat as needed"),
                          ('user_subsys',('-y','-subsys'),[],'absname:conf_sw:dir:out_conf[:relname]',"User subsytem to ship to WN, repeat as needed"),
-                         ('user_params',('-m','-param'),[],'name=val',"User param, repeat as needed"),
                          (self.load_file,('-e','-cfg'),None,'filename',"Load configuration file")
                          )
 
@@ -158,7 +158,7 @@ def main(params):
             copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
             copy_script("validate_node.sh",params.stage_dir,params.src_dir)
             create_attributes(params.stage_dir,params.glidein_attrs)
-            create_vars(params.stage_dir,params.glidein_vars)
+            create_consts(params.stage_dir,params.glidein_consts)
             
             # this must be the last script in the list
             copy_script("condor_startup.sh",params.stage_dir,params.src_dir)
@@ -219,7 +219,7 @@ def main(params):
 ############################################################
 
 ATTRS_FILE="attributes.cfg"
-VARS_FILE="variables.cfg"
+CONSTS_FILE="constants.cfg"
 FILE_LISTFILE="file_list.lst"
 SCRIPT_LISTFILE="script_list.lst"
 SUBSYSTEM_LISTFILE="subsystem_list.lst"
@@ -467,30 +467,30 @@ def create_attributes(stage_dir,glidein_attr_ids):
     add_file(ATTRS_FILE,stage_dir)
 
 ###################################
-# Create variabless config file and
+# Create consts config file and
 # add it to the list of files
-def create_vars(stage_dir,glidein_var_ids):
-    glidein_vars={}
-    for id in glidein_var_ids:
+def create_consts(stage_dir,glidein_const_ids):
+    glidein_consts={}
+    for id in glidein_const_ids:
         id_list=string.split(id,"=",1)
         if len(id_list)<2:
-            raise RuntimeError, "Not enough = in var: %s"%id
+            raise RuntimeError, "Not enough = in const: %s"%id
         name,val=id_list
-        glidein_vars[name]=val
+        glidein_consts[name]=val
     
-    global VARS_FILE
-    filepath=os.path.join(stage_dir,VARS_FILE)
+    global CONSTS_FILE
+    filepath=os.path.join(stage_dir,CONSTS_FILE)
     try:
         fd=open(filepath,"a+")
     except IOError,e:
         raise RuntimeError, "Error creating %s: %s"%(filepath,e)
     try:
-        for name in glidein_vars.keys():
-            val=glidein_vars[name]
+        for name in glidein_consts.keys():
+            val=glidein_consts[name]
             fd.write("%s \t%s\n"%(name,val))
     finally:
         fd.close()
-    add_file(VARS_FILE,stage_dir)
+    add_file(CONSTS_FILE,stage_dir)
 
 ###################################
 # Create a copy or a link in the
@@ -598,7 +598,7 @@ def create_submit(submit_dir,
             web_str="%s -proxy %s"%(web_base,proxy_id)
         
         fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
-                 ("-dir %s -web %s -sign %s -signtype sha1 -factory %s -vars %s " % (startup_dir,web_base,sha1,factory_name,VARS_FILE))+
+                 ("-dir %s -web %s -sign %s -signtype sha1 -factory %s -consts %s " % (startup_dir,web_base,sha1,factory_name,CONSTS_FILE))+
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory = "%s"\n'%factory_name)
         fd.write('+GlideinName    = "%s"\n'%glidein_name)
