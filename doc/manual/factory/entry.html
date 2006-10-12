@@ -34,6 +34,7 @@ a glance</a></li>
   <ul>
 
     <li><a href="#glexec">Integration with gLExec</a></li>
+    <li><a href="#gcb">Integration with GCB</a></li>
 
     <li><a href="#security">Security handles</a></li>
 
@@ -525,49 +526,110 @@ While the above is enough for setting up a personal glidein pool on the
 local area network, you will need to do more fine tuning when deploying
 a larger one. In this section, the various advanced aspects of glidein
 pools will be presented.<br>
-<h3><a name="glexec"></a>Integration with gLExec</h3>
+
+<h3><a name="glexec"></a>Integration with
+gLExec</h3>
+
 As you may have noticed, all of the glideins are submitted with the
 same service proxy. While this has the advantage of simplifying the
 architecture and improve both efficiency and VO control, it does have a
 few problems:<br>
+
 <ul>
-  <li>All glidein scripts and Condor daemons, AND user jobs all run
+
+  <li>All glidein scripts and Condor daemons, AND user jobs all
+run
 under the same Unix UID. So users can interfere with the glidein tasks,
 possibly hacking the system.&nbsp;<br>
+
 Plus, when several glideins start on the same node (on multi
 processor/core machines), one user job can interfere with another user
 job.</li>
+
   <li>The real user is never authenticated against the Grid site
 autorization infrastructure. This makes it impossible for the sites to
 enforce their policies, nor analyze the useage of their resources; they
 see only glideins. This makes them very unfriendly toward the glideins.</li>
+
 </ul>
-To solve this problem, some Grid sites are deploying gLExec on the worker nodes. gLExec is a service that, taken<br>
+
+To solve this problem, some Grid sites are deploying gLExec on the
+worker nodes. gLExec is a service that, taken<br>
+
 <ul>
+
   <li>the user proxy, and</li>
+
   <li>the desired command</li>
+
 </ul>
+
 contacts the local authorization and mapping system, switches to the
 UID of the user (as oposed to the glidein UID), and executes the
 provided command as that UID. <br>
+
 <br>
-By using gLExec, a Glidein Factory can get rid of both of the above problems, and still keep all the advantages.<br>
+
+By using gLExec, a Glidein Factory can get rid of both of the above
+problems, and still keep all the advantages.<br>
+
 <br>
+
 To enable gLExec support in an entry point, you need to specify:<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-script web_base/glexec_setup.sh</span><br>
-<span style="font-family: monospace;">-var GLEXEC_BIN=&lt;path to glexec&gt;</span><br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-script
+web_base/glexec_setup.sh</span><br>
+
+<span style="font-family: monospace;">-var
+GLEXEC_BIN=&lt;path to glexec&gt;</span><br>
+
 <span style="font-family: monospace;"></span></div>
+
 For most current gLExec installation this comes down to:<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-var GLEXEC_BIN=/opt/glite/sbin/glexec</span><br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-var
+GLEXEC_BIN=/opt/glite/sbin/glexec</span><br>
+
 </div>
+
 <br>
+
 P.S.: At the time of writing, Condor had a bug that would not properly
 forward the user proxy, so you have to also turn the delegation off and
 enable encryption:<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-var DELEGATE_JOB_GSI_CREDENTIALS=False<br>
+
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-var
+DELEGATE_JOB_GSI_CREDENTIALS=False<br>
+
 -var SEC_DEFAULT_ENCRYPTION=REQUIRED</span><br>
+
 </div>
 
+<h3><a name="gcb"></a>Integration with GCB</h3>
+
+Condor daemons need two way communication in order to work properly.
+This clashes with the network policies of most Grid sites, that have
+worker nodes in private networks or implement a restrictive firewall.
+To solve this, Condor provides GCB.
+<br>
+The detailed description of GCB is beyond the scope of this manual and
+you should refer to the Condor documentation avaialble at <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</a>. Here you will find only the parameters needed to enable it in the glideins.<br>
+<br>
+To use a single GCB, you need to specify:<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-script web_base/gcb_one_setup.sh</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">-var GCB_IP=&lt;IP&gt;</span><br>
+</div>
+and optinally the GCB port (defaults to <span style="font-family: monospace;">65432</span>):<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-var GCB_PORT=&lt;port&gt;</span><br>
+</div>
+<br>
+If you are more sofisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB routing tables</a>, too, add:<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to routing file&gt;:gcb_route.cfg</span><br style="font-family: monospace;">
+<span style="font-family: monospace;">-var&nbsp;GCB_REMAP_ROUTE=gcb_route.cfg</span><br>
+</div>
+<br>
+Please be aware that the above will configure the glideins only; you
+still need to properly configure the Collector and the submit machines.
 <h3><a name="security"></a>Security handles</h3>
 
 As mentioned in the <a href="../index.html#pool_glidein">statup
