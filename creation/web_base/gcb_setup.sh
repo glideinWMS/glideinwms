@@ -73,7 +73,7 @@ if [ -z "$gcb_port" ]; then
 fi
 
 
-gcb_els=`echo "$gcb_list" | awk '{split($0,g,","); nr=0; for (i in g) nr=nr+1; for (i=1; i<=nr; i=i+1) print g[i]}`
+gcb_els=`echo "$gcb_list" | awk '{split($0,g,","); nr=0; for (i in g) nr=nr+1; for (i=1; i<=nr; i=i+1) print g[i]}'`
 
 if [ "$gcb_order" == "RANDOM" ];then
     gcb_els=`echo "$gcb_els" | awk 'BEGIN{srand()}{print rand() "\t" $0}' | sort -n |awk '{print $2}'`
