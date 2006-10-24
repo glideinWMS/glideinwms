@@ -1204,17 +1204,26 @@ web_base/gcb_setup.sh</span><br style="font-family: monospace;">
 
 </div>
 
-, optinally the order in which to consider the GCBs (only one will be
-used, but you can define the order in wich they will be tried out,
-defaults to <span style="font-family: monospace;">RANDOM</span>)<br>
-
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;GCB_ORDER=RANDOM|ROUNDROBIN|SEQUENTIAL</span><br>
+<br>
+The order in which the GCBs are considered is determined by (defaults to <span style="font-family: monospace;">RANDOM</span>)<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;<span style="font-weight: bold;">GCB_ORDER</span>=RANDOM|GCBLOAD|ROUNDROBIN|SEQUENTIAL</span><br>
 
 
 
 </div>
-
-and finally an optinal default GCB port (defaults to <span style="font-family: monospace;">65432</span>, no other port currently supported by Condor GCB anyhow):<br>
+where:<br>
+<ul>
+  <li><span style="font-family: monospace;">RANDOM</span><br>
+Randomly distributes between the listed GCBs</li>
+  <li><span style="font-family: monospace;">ROUNDROBIN</span> (or <span style="font-family: monospace;">RR</span>)<br>
+Round robin between them, based on the job submission number.</li>
+  <li><span style="font-family: monospace;">SEQUENTIAL</span> (or <span style="font-family: monospace;">SEQ</span>)<br>
+Keep the order. Essentially always tries the first one first (the others will be used only if the first one fails)</li>
+  <li><span style="font-family: monospace;">GCBLOAD</span><br>
+Order by GCB load. All GCBs must support the freesockets query and you must upload the <span style="font-family: monospace;">gcb_broker_query</span> binary, too. See below.</li>
+</ul>
+<br>
+You can also specify a default GCB port (defaults to <span style="font-family: monospace;">65432)</span>:<br>
 
 
 
@@ -1223,13 +1232,11 @@ and finally an optinal default GCB port (defaults to <span style="font-family: m
 
 
 </div>
-
-
-
-For more flexibility, you can use parameters instead of constants, and
+although Condor GCB right now does not support any other port number.<br>
+<br>
+Also, for more flexibility, you can use parameters instead of constants, and
 let <a href="../frontend/index.html#management">the
 frontends</a> to provide their own GCB servers.<br>
-
 <br>
 
 
