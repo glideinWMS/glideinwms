@@ -36,11 +36,16 @@ function setup_gcb {
 	return 1
     fi
 
-    nc -z $vg_gcb_ip $vg_gcb_port
+    which nc >/dev/null 2>&1
     ret=$?
-    if [ $ret -ne 0 ]; then
-	echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via nc"
-	return 1
+    if [ "$ret" -eq 0 ]; then
+	# try only if nc does indeed exists
+	nc -z -w 2 $vg_gcb_ip $vg_gcb_port
+	ret=$?
+	if [ $ret -ne 0 ]; then
+	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via nc"
+	    return 1
+	fi
     fi
 
     # configure Condor to use it
