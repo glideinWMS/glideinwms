@@ -27,7 +27,7 @@ function setup_gcb {
 	return 1
     fi
     vg_gcb_port=`echo "$1" | awk -F ":" '{print $2}'`
-    if [ -z "$vg_gcb_port"]; then
+    if [ -z "$vg_gcb_port" ]; then
 	vg_gcb_port=$gcb_port
     fi
 
