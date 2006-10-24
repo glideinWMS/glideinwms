@@ -78,13 +78,20 @@ if [ -z "$gcb_port" ]; then
 fi
 
 
-gcb_els=`echo "$gcb_list" | awk '{split($0,g,","); nr=0; for (i in g) nr=nr+1; for (i=1; i<=nr; i=i+1) print g[i]}'`
-
 if [ "$gcb_order" == "RANDOM" ];then
-    gcb_els=`echo "$gcb_els" | awk 'BEGIN{srand()}{print rand() "\t" $0}' | sort -n |awk '{print $2}'`
+    # random order
+    gcb_els=`echo "$gcb_list" | awk 'BEGIN{srand()}{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'`
+elif [ "$gcb_order" == "RR" -o "$gcb_order" == "ROUNDROBIN" ]; then
+    # round robin, based on the cluster number
+    nr1=`grep '^CONDORG_CLUSTER ' $glidein_config | awk '{print $2}'`
+    nr2=`grep '^CONDORG_SUBCLUSTER ' $glidein_config | awk '{print $2}'`
+    let nr=$nr1+$nr2
+    nr_gcb_els=`echo "$gcb_list" | awk '{split($0,g,","); nr=0; for (i in g) nr=nr+1; print nr}'`
+    let start_nr=$nr%$nr_gcb_els
+    gcb_els=`echo "$gcb_list" | awk "{split(\\\\$0,g,\",\"); for (i=1; i<=$nr_gcb_els; i=i+1) print g[((i+$start_nr)%$nr_gcb_els)+1]}"`
 elif [ "$gcb_order" == "SEQ" -o "$gcb_order" == "SEQUENTIAL" ]; then
-    # nothing to do, alreqdy in order
-    echo > /dev/null
+    # sequential, first always first
+    gcb_els=`echo "$gcb_list" | awk '{split($0,g,","); nr=0; for (i in g) nr=nr+1; for (i=1; i<=nr; i=i+1) print g[i]}'`
 else
     echo "Invalid GCB_ORDER specified ($gcb_order)!" 1>&2
     exit 1
