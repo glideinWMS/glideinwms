@@ -49,7 +49,7 @@ function setup_gcb {
     append_config "BIND_ALL_INTERFACES = true"
     append_config "NET_REMAP_ENABLE = true"
     append_config "NET_REMAP_SERVICE = GCB"
-    append_config "NET_REMAP_INAGENT = $gcb_ip"
+    append_config "NET_REMAP_INAGENT = $vg_gcb_ip"
 
     echo "Using GCB $vg_gcb_ip:$vg_gcb_port"
     return 0
