@@ -11,7 +11,7 @@ glidein_config=$1
 function append_config {
     echo "$1" >> condor_config
     if [ $? -ne 0 ]; then
-	echo "Failed to to update condor_config!" 2>&1
+	echo "Failed to to update condor_config!" 1>&2
 	exit 1
     fi    
 }
@@ -21,7 +21,7 @@ function append_config {
 # gLExec does not like symlinks adn this way we are sure it is a file
 cp -p /bin/sh ./sh
 if [ $? -ne 0 ]; then
-    echo "Failed to copy /bin/sh to . ($PWD)" 2>&1
+    echo "Failed to copy /bin/sh to . ($PWD)" 1>&2
     exit 1
 fi
 append_config "SH=$PWD/sh" 
@@ -33,7 +33,7 @@ append_config "SH=$PWD/sh"
 # the tmo directory is world writtable
 glide_tmp_dir=`grep '^TMP_DIR ' $glidein_config | awk '{print $2}'`
 if [ -z "$glide_tmp_dir" ]; then
-    echo "TMP_DIR not found!" 2>&1
+    echo "TMP_DIR not found!" 1>&2
     exit 1
 fi
 append_config "GLEXEC_USER_DIR=$glide_tmp_dir"
@@ -53,7 +53,7 @@ fi
 if [ -x "$glexec_bin" ]; then
     echo "Using gLExec binary '$glexec_bin'"
 else
-    echo "gLExec binary '$glexec_bin' not found!" 2>&1
+    echo "gLExec binary '$glexec_bin' not found!" 1>&2
     exit 1
 fi
 

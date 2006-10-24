@@ -12,7 +12,7 @@ glidein_config=$1
 function append_config {
     echo "$1" >> condor_config
     if [ $? -ne 0 ]; then
-	echo "Failed to to update condor_config!" 2>&1
+	echo "Failed to to update condor_config!" 1>&2
 	exit 1
     fi    
 }
@@ -57,7 +57,7 @@ function setup_gcb {
 
 gcb_list=`grep '^GCB_LIST ' $glidein_config | awk '{print $2}'`
 if [ -z "$gcb_list" ]; then
-    echo "No GCB_LIST found!" 2>&1
+    echo "No GCB_LIST found!" 1>&2
     exit 1
 fi
 
@@ -81,7 +81,7 @@ elif [ "$gcb_order" == "SEQ" -o "$gcb_order" == "SEQUENTIAL" ]; then
     # nothing to do, alreqdy in order
     echo > /dev/null
 else
-    echo "Invalid GCB_ORDER specified ($gcb_order)!" 2>&1
+    echo "Invalid GCB_ORDER specified ($gcb_order)!" 1>&2
     exit 1
 fi
 
@@ -94,12 +94,12 @@ for gcb in $gcb_els; do
 	gcb_configured=1
 	break
     else
-	echo "$msg" 2>&1
+	echo "$msg" 1>&2
     fi
 done
 
 if [ "$gcb_configured" -eq 0 ]; then
-    echo "All GCBs failed!" 2>&1
+    echo "All GCBs failed!" 1>&2
     exit 1
 fi
 
@@ -109,7 +109,7 @@ if [ -n "$gcb_remap" ]; then
     if [ -r "$gcb_remap" ]; then
 	append_config "NET_REMAP_ROUTE = $PWD/$gcb_remap"
     else
-	echo "GCB_REMAP_ROUTE specified ($gcb_remap) but file not found!" 2>&1
+	echo "GCB_REMAP_ROUTE specified ($gcb_remap) but file not found!" 1>&2
 	exit 1
     fi
 fi

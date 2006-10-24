@@ -11,14 +11,14 @@ glidein_config=$1
 function append_config {
     echo "$1" >> condor_config
     if [ $? -ne 0 ]; then
-	echo "Failed to to update condor_config!" 2>&1
+	echo "Failed to to update condor_config!" 1>&2
 	exit 1
     fi    
 }
 
 gcb_ip=`grep '^GCB_IP ' $glidein_config | awk '{print $2}'`
 if [ -z "$gcb_ip" ]; then
-    echo "No GCB_IP found!" 2>&1
+    echo "No GCB_IP found!" 1>&2
     exit 1
 fi
 
@@ -32,7 +32,7 @@ fi
 nc -z $gcb_ip $gcb_port
 ret=$?
 if [ $ret -ne 0 ]; then
-  echo "Cannot talk to GCB ${gcb_ip}:${gcb_port}" 2>&1
+  echo "Cannot talk to GCB ${gcb_ip}:${gcb_port}" 1>&2
   exit 1
 fi
 
@@ -48,7 +48,7 @@ if [ -n "$gcb_remap" ]; then
     if [ -r "$gcb_remap" ]; then
 	append_config "NET_REMAP_ROUTE = $PWD/$gcb_remap"
     else
-	echo "GCB_REMAP_ROUTE specified ($gcb_remap) but file not found!" 2>&1
+	echo "GCB_REMAP_ROUTE specified ($gcb_remap) but file not found!" 1>&2
 	exit 1
     fi
 fi
