@@ -21,12 +21,12 @@ function append_config {
 # return !=0  on recoverable error
 # fail catastrophically on unrecoverable error
 function setup_gcb {
-    vg_gcb_ip=`echo "$0" | awk -F ":" '{print $1}'`
+    vg_gcb_ip=`echo "$1" | awk -F ":" '{print $1}'`
     if [ -z "$vg_gcb_ip" ]; then
 	echo "GCB name is an empty string!"
 	return 1
     fi
-    vg_gcb_port=`echo "$0" | awk -F ":" '{print $2}'`
+    vg_gcb_port=`echo "$1" | awk -F ":" '{print $2}'`
     if [ -z "$vg_gcb_port"]; then
 	vg_gcb_port=$gcb_port
     fi
