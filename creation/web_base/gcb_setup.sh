@@ -55,7 +55,7 @@ function setup_gcb {
     return 0
 }
 
-gcb_ip=`grep '^GCB_LIST ' $glidein_config | awk '{print $2}'`
+gcb_list=`grep '^GCB_LIST ' $glidein_config | awk '{print $2}'`
 if [ -z "$gcb_list" ]; then
     echo "No GCB_LIST found!" 2>&1
     exit 1
