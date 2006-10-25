@@ -95,7 +95,7 @@ def iterate(sleep_time,advertize_rate,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                 glideFactoryLib.factoryConfig.warning_log("Exception at %s: %s" % (time.ctime(),tb))
+                 glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
                 
         glideFactoryLib.factoryConfig.activity_log.write("Sleep")
         time.sleep(sleep_time)
