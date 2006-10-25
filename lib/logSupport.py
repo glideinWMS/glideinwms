@@ -37,7 +37,8 @@ class DayLogFile:
     ##########################
 
     def write_on_exception(self,exception_msg,msg):
-        return # do nothing
+        print "%s: %s" % (exception_msg,msg)
+        return 
 
     def get_fname(self,timestamp):
         return "%s.%s.log"%(self.base_fname,time.strftime("%Y%m%d",time.localtime(timestamp)))
