@@ -20,10 +20,8 @@ sys.path.append("../lib")
 import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryInterface
+import logSupport
 
-# all logging to stdout
-glideFactoryLib.factoryConfig.activity_log=sys.stdout
-glideFactoryLib.factoryConfig.warining_log=sys.stderr
 
 ############################################################
 def perform_work(factory_name,glidein_name,schedd_name,
@@ -105,6 +103,12 @@ def iterate(sleep_time,advertize_rate,
         
 ############################################################
 def main(sleep_time,advertize_rate,startup_dir):
+    # create log files in the glidein log directory
+    activity_log=logSupport.FayLogFile(os.path.join(startup_dir,"log/factory_info")
+    warning_log=logSupport.FayLogFile(os.path.join(startup_dir,"log/factory_err")
+    glideFactoryLib.factoryConfig.activity_log=activity_log
+    glideFactoryLib.factoryConfig.warining_log=warning_log
+
     os.chdir(startup_dir)
     jobDescript=glideFactoryConfig.JobDescript()
     jobAttributes=glideFactoryConfig.JobAttributes()
