@@ -63,11 +63,11 @@ a glance</a></li>
 
 
 
+    
+
+
     <li><a href="#glexec">Integration with gLExec</a></li>
-
-
-
-    <li><a href="#gcb">Integration with GCB</a></li>
+    <li><a href="#gcb">Private networks and&nbsp;firewalls</a></li>
 
 
 
@@ -1166,7 +1166,7 @@ Another thing to consider is the startup directory; it must be
 accessible by both the starting user and the target user(s). The
 directory you usualy start in the Grid is most often not readable by
 any other user, so you must select something else with <span style="font-weight: bold; font-family: monospace;">-startdir</span>. Both <span style="font-family: monospace;">Condor</span> and <span style="font-family: monospace;">OSG</span> should be fine, or you can specify any other fixed, WN-local location.<br>
-<h3><a name="gcb"></a>Integration with GCB</h3>
+<h3><a name="gcb"></a>Private networks and firewalls</h3>
 
 
 
@@ -1220,8 +1220,25 @@ Round robin between them, based on the job submission number.</li>
   <li><span style="font-family: monospace;">SEQUENTIAL</span> (or <span style="font-family: monospace;">SEQ</span>)<br>
 Keep the order. Essentially always tries the first one first (the others will be used only if the first one fails)</li>
   <li><span style="font-family: monospace;">GCBLOAD</span><br>
-Order by GCB load. All GCBs must support the freesockets query and you must upload the <span style="font-family: monospace;">gcb_broker_query</span> binary, too. See below.</li>
+Order by GCB load. All GCBs must support the <span style="font-family: monospace;">freesockets</span> query&nbsp;and you must upload the <span style="font-family: monospace;">gcb_broker_query</span> binary, too. See below.</li>
 </ul>
+If your GCBs support <span style="font-family: monospace;">freesockets</span>
+queries (v6.9.1 and above), you most probably want to protect your
+glideins from failing due to an overloaded GCB. To do that, you need to
+transfer the <span style="font-family: monospace;">gcb_broker_query</span> binary to the worker nodes:<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to binary&gt;:gcb_broker_query</span><br>
+
+
+
+</div>
+and decide what is the minimum number of free sockets you are confortable with:<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const GCB_MIN_FREE=&lt;number&gt;</span><br>
+
+
+
+</div>
+I would suggest you set it to at least 100, possibly more. Most Condor
+versions use around 5 sockets per VM (depending on configuration).<br>
 <br>
 You can also specify a default GCB port (defaults to <span style="font-family: monospace;">65432)</span>:<br>
 
