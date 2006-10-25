@@ -105,8 +105,8 @@ def iterate(sleep_time,advertize_rate,
 ############################################################
 def main(sleep_time,advertize_rate,startup_dir):
     # create log files in the glidein log directory
-    activity_log=logSupport.FayLogFile(os.path.join(startup_dir,"log/factory_info"))
-    warning_log=logSupport.FayLogFile(os.path.join(startup_dir,"log/factory_err"))
+    activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_info"))
+    warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_err"))
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warining_log=warning_log
 

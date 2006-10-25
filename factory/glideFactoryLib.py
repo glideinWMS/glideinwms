@@ -82,7 +82,7 @@ class FactoryConfig:
                 self.activity_log.write(str+"\n")
             except:
                 # logging must never throw an exception!
-                logWarning("logActivity failed, was logging: %s"+str)
+                self.logWarning("logActivity failed, was logging: %s"+str)
 
     def logWarning(self,str):
         if self.warining_log!=None:
