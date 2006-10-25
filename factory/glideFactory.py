@@ -52,7 +52,7 @@ def iterate_one(do_advertize,
     glidein_name=jobDescript.data['GlideinName']
 
     if do_advertize:
-        print "Advertize"
+        glideFactoryLib.factoryConfig.activity_log.write("Advertize")
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),{})
     
     work = glideFactoryInterface.findWork(factory_name,glidein_name)
@@ -84,7 +84,7 @@ def iterate(sleep_time,advertize_rate,
     is_first=1
     count=0;
     while 1:
-        print "Iteration at %s" % time.ctime()
+        glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
             done_something=iterate_one(count==0,
                                        jobDescript,jobAttributes,jobParams)
@@ -95,9 +95,9 @@ def iterate(sleep_time,advertize_rate,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                print "Exception at %s: %s" % (time.ctime(),tb)
+                 glideFactoryLib.factoryConfig.warning_log("Exception at %s: %s" % (time.ctime(),tb))
                 
-        print "Sleep"
+        glideFactoryLib.factoryConfig.activity_log.write("Sleep")
         time.sleep(sleep_time)
         count=(count+1)%advertize_rate
         is_first=0
