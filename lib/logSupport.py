@@ -4,6 +4,7 @@
 # Author:
 #  Igor Sfiligoi (Oct 25th 2006)
 #
+import os
 import time
 
 # this class can be used instead of a file for writing
@@ -17,7 +18,7 @@ class DayLogFile:
 
     def write(self,msg):
         now=time.time()
-        fname=self.get_fname()
+        fname=self.get_fname(now)
         try:
             fd=open(fname,"a")
         except:
