@@ -97,7 +97,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
                                                 sys.exc_info()[2])
                 glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
                 
-        cleanupObj.clenup()
+        cleanupObj.cleanup()
         glideFactoryLib.factoryConfig.activity_log.write("Sleep")
         time.sleep(sleep_time)
         count=(count+1)%advertize_rate
