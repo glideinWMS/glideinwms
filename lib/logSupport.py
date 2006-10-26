@@ -17,7 +17,7 @@ class DayLogFile:
 
     def write(self,msg):
         now=time.time()
-        fname=self.__get_fname()
+        fname=self.get_fname()
         try:
             fd=open(fname,"a")
         except:
