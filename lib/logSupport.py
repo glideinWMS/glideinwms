@@ -25,7 +25,7 @@ class DayLogFile:
             self.write_on_exception("Cannot open %s"%fname,msg)
         try:
             try:
-                fd.write(self.format_msg(now,msg))
+                fd.write(self.format_msg(now,msg)+"\n")
             except:
                 self.write_on_exception("Cannot open %s"%fname,msg)
         finally:
