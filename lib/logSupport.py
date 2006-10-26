@@ -53,15 +53,17 @@ class DayLogFile:
 # this class is used for cleanup
 class DirCleanup:
     def __init__(self,dirname,maxlife,
-                 warning_log): # if null, no logging
+                 activity_log,warning_log): # if null, no logging
         self.dirname=dirname
         self.maxlife=maxlife
+        self.activity_log=activity_log
         self.warning_log=warning_log
         return
 
     def cleanup(self):
         treshold_time=time.time()-self.maxlife
         fnames=os.listdir(self.dirname)
+        count removes=0
         for fname in fnames:
             fpath=os.path.join(self.dirname,fname)
             fstat=os.lstat(fpath)
@@ -76,5 +78,10 @@ class DirCleanup:
                 except:
                    if self.warning_log:
                        self.warning_log.write("Could not remove %s"%fpath)
+                count_removes=count_removes+1
+        if count_removes>0:
+            if self.activity_log:
+                self.activity_log.write("Removed %i files."%count_removes)
+
         return
 
