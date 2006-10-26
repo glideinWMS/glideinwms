@@ -77,7 +77,7 @@ def iterate(log_dir,sleep_time,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                warning_log.write(print "Exception at %s: %s" % (time.ctime(),tb))
+                warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
                 
         is_first=0
         activity_log.write("Sleep")
