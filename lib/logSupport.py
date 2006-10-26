@@ -4,7 +4,7 @@
 # Author:
 #  Igor Sfiligoi (Oct 25th 2006)
 #
-import os
+import os,os.path,stat
 import time
 
 # this class can be used instead of a file for writing
