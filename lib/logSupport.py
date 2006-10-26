@@ -50,3 +50,31 @@ class DayLogFile:
     def format_time(self,timestamp):
         return "%li"%timestamp
 
+# this class is used for cleanup
+class DirCleanup:
+    def __init__(self,dirname,maxlife,
+                 warning_log): # if null, no logging
+        self.dirname=dirname
+        self.maxlife=maxlife
+        self.warning_log=warning_log
+        return
+
+    def cleanup(self):
+        treshold_time=time.time()-self.maxlife
+        fnames=os.listdir(self.dirname)
+        for fname in fnames:
+            fpath=os.path.join(self.dirname,fname)
+            fstat=os.lstat(fpath)
+            fmode=fstat[stat.ST_MODE]
+            isdir=stat.S_ISDIR(fmode)
+            if isdir:
+                continue #ignore directories
+            update_time=fstat[stat.ST_MTIME]
+            if update_time<treshold_time:
+                try:
+                    os.unlink(fpath)
+                except:
+                   if self.warning_log:
+                       self.warning_log.write("Could not remove %s"%fpath)
+        return
+

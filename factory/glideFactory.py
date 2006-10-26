@@ -79,7 +79,7 @@ def iterate_one(do_advertize,
     return done_something
 
 ############################################################
-def iterate(sleep_time,advertize_rate,
+def iterate(cleanupObj,sleep_time,advertize_rate,
             jobDescript,jobAttributes,jobParams):
     is_first=1
     count=0;
@@ -102,6 +102,7 @@ def iterate(sleep_time,advertize_rate,
         count=(count+1)%advertize_rate
         is_first=0
         
+        
 ############################################################
 def main(sleep_time,advertize_rate,startup_dir):
     # create log files in the glidein log directory
@@ -110,12 +111,16 @@ def main(sleep_time,advertize_rate,startup_dir):
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warining_log=warning_log
 
+    cleanupObj=glideFactoryLib.DirCleanup(startup_dir,
+                                          7*24*3600,
+                                          warning_log)
+
     os.chdir(startup_dir)
     jobDescript=glideFactoryConfig.JobDescript()
     jobAttributes=glideFactoryConfig.JobAttributes()
     jobParams=glideFactoryConfig.JobParams()
 
-    iterate(sleep_time,advertize_rate,
+    iterate(cleanupObj,sleep_time,advertize_rate,
             jobDescript,jobAttributes,jobParams)
 
 ############################################################
