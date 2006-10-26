@@ -111,9 +111,9 @@ def main(sleep_time,advertize_rate,startup_dir):
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warining_log=warning_log
 
-    cleanupObj=glideFactoryLib.DirCleanup(startup_dir,
-                                          7*24*3600,
-                                          activity_log,warning_log)
+    cleanupObj=logSupport.DirCleanup(startup_dir,
+                                     7*24*3600,
+                                     activity_log,warning_log)
 
     os.chdir(startup_dir)
     jobDescript=glideFactoryConfig.JobDescript()

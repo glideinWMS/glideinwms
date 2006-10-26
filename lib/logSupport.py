@@ -63,7 +63,7 @@ class DirCleanup:
     def cleanup(self):
         treshold_time=time.time()-self.maxlife
         fnames=os.listdir(self.dirname)
-        count removes=0
+        count_removes=0
         for fname in fnames:
             fpath=os.path.join(self.dirname,fname)
             fstat=os.lstat(fpath)
