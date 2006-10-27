@@ -111,7 +111,8 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
                         # don't quote ints
                         fd.write('%s%s = %s\n'%(prefix,attr,el))
                     else:
-                        fd.write('%s%s = "%s"\n'%(prefix,attr,el))
+                        escaped_el=string.replace(el,'"','\\"')
+                        fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
         finally:
             fd.close()
 
