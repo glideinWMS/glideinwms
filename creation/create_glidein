@@ -274,7 +274,17 @@ def add_param(submit_dir,param_name,param_defval):
     global global_glidein_consts
     if param_name in global_glidein_consts:
         raise RuntimeError, "Trying to convert const '%s' into a param!"%param_name
-    add_line(PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,repr(param_defval)))
+
+    if param_defval[0]=='"':
+        # make sure strings are well defined
+        if  param_defval[-1]!='"':
+            raise RuntimeError, "Param '%s' start with a quote but does not end with one!"%param_name
+        param_defval=repr(param_defval[1:-1])
+    else:
+        if not param_defval.isdigit():
+            raise RuntimeError, "Param '%s' not a number and not quoted!"%param_name
+
+    add_line(PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,param_defval))
 
 #################################
 # Calculate SHA1 for the file
