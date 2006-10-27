@@ -274,7 +274,7 @@ def add_param(submit_dir,param_name,param_defval):
     global global_glidein_consts
     if param_name in global_glidein_consts:
         raise RuntimeError, "Trying to convert const '%s' into a param!"%param_name
-    add_line(PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,param_defval))
+    add_line(PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,repr(param_defval)))
 
 #################################
 # Calculate SHA1 for the file
