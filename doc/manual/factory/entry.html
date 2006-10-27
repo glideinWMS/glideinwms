@@ -1207,7 +1207,7 @@ probably</span> also want to use:<br>
 
 
 This allows you to load a set of variables from a file. As your system
-elvolves, most options will stay the same, so it makes sense to store
+evolves, most options will stay the same, so it makes sense to store
 them in a file, and leave on the command line only the ones that do
 change (like the entry point name).<br>
 
@@ -1234,7 +1234,7 @@ Please notice that several configuration files can be loaded.</li>
 
 
 
-The other arguments are for advanced admins only, and are explaned
+The other arguments are for advanced admins only, and are explained
 below.<br>
 
 
@@ -1313,7 +1313,7 @@ job.</li>
 
 
   <li>The real user is never authenticated against the Grid site
-autorization infrastructure. This makes it impossible for the sites to
+authorization infrastructure. This makes it impossible for the sites to
 enforce their policies, nor can they analyze the usage of their
 resources; they
 see only glideins. This makes them very unfriendly toward the glidein
@@ -1354,7 +1354,7 @@ worker nodes. gLExec is a service that, taken<br>
 
 
 contacts the local authorization and mapping system, switches to the
-UID of the user (as oposed to the glidein UID), and executes the
+UID of the user (as opposed to the glidein UID), and executes the
 provided command as that UID. <br>
 
 
@@ -1442,7 +1442,7 @@ the delegation by setting:<br>
 
 Another thing to consider is the startup directory; it must be
 accessible by both the starting user and the target user(s). The
-directory you usualy start in the Grid is most often not readable by
+directory you usually start in the Grid is most often not readable by
 any other user, so you must select something else with <span style="font-weight: bold; font-family: monospace;">-startdir</span>. Both <span style="font-family: monospace;">Condor</span> and <span style="font-family: monospace;">OSG</span> should be fine, or you can specify any other fixed, WN-local location.<br>
 </div>
 
@@ -1538,7 +1538,7 @@ transfer the <span style="font-family: monospace;">gcb_broker_query</span> binar
 
 </div>
 
-and decide what is the minimum number of free sockets you are confortable with:<br>
+and decide what is the minimum number of free sockets you are comfortable with:<br>
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-const GCB_MIN_FREE=&lt;number&gt;</span><br>
 
@@ -1577,7 +1577,7 @@ frontends</a> to provide their own GCB servers.<br>
 
 
 
-If you are more sofisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
+If you are more sophisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
 routing tables</a>, too, add:<br>
 
 
@@ -1611,7 +1611,7 @@ still need to properly configure the Collector and the submit machines.
 
 
 
-As mentioned in the <a href="../index.html#pool_glidein">statup
+As mentioned in the <a href="../index.html#pool_glidein">startup
 page</a>,&nbsp;the glidein pool must be properly configured
 to protect it from hackers and malicious users. The same page also
 describes what needs to be done on the collector machine.<br>
@@ -1668,7 +1668,7 @@ updates to the Collector</h3>
 
 
 
-By default, Condor uses UDP packets to comunicate between the glideins
+By default, Condor uses UDP packets to communicate between the glideins
 and the Collector. While more efficient than TCP, UDP packets are often
 blocked at the firewall, or lost on the WAN. <br>
 
@@ -1703,7 +1703,7 @@ UPDATE_COLLECTOR_WITH_TCP=True</span><br style="font-family: monospace;">
 
 
 Please be aware that this will configure the glideins only; you still
-neet to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
+need to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
 documentation</a> for more details.<br>
 <h3><a name="start_rank"></a>Setting the glidein start and rank&nbsp;condition</h3>
 As with any Condor pool, you may need to set the startd <a href="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00463000000000000000">start</a> and <a href="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00465000000000000000">rank</a> conditions. <br>
@@ -1726,7 +1726,7 @@ The glideins have two mechanisms to regulate this:<br>
 <ol>
   <li>After a specified amount of time, the glidein will enter the <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_6Startd_Policy.html#17710">RETIRING state</a>.
 This means, it will wait for the current job to finish (or kill it if
-it does not end within a configurable timeout) and exit immediatelly
+it does not end within a configurable timeout) and exit immediately
 afterwards. This obviously implies that no new jobs will start after it
 entered that state.<br>
 The two timeouts can be set by:<br>
@@ -1735,7 +1735,7 @@ The two timeouts can be set by:<br>
       <li style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Job_Max_Time</span>=&lt;nr of seconds&gt;</li>
     </ul>
 The two default to 2 and 100 hours.</li>
-  <li>If a glidein is not claimed within a configurable timout, the glidein will exit.<br>
+  <li>If a glidein is not claimed within a configurable timeout, the glidein will exit.<br>
 The timeout can be set by:<br>
     <ul>
       <li><span style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Max_Idle</span>=&lt;nr of seconds&gt;</span></li>
@@ -1895,11 +1895,11 @@ changeable file.&nbsp;</li>
 
 
 
-Sometimes it is usefull to transfer a whole set of files, or even
+Sometimes it is useful to transfer a whole set of files, or even
 directories, and
 that is much easier to accomplish by means of a tar-ball. A subsystem
 is the glidein way to describe a compressed tarball that is delivered
-to the worker nodes, untarred in a separate directory and advertized to
+to the worker nodes, untarred in a separate directory and advertised to
 the other scripts.<br>
 
 
