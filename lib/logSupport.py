@@ -6,6 +6,7 @@
 #
 import os,os.path,stat
 import time
+import re
 
 # this class can be used instead of a file for writing
 class DayLogFile:
@@ -52,9 +53,14 @@ class DayLogFile:
 
 # this class is used for cleanup
 class DirCleanup:
-    def __init__(self,dirname,maxlife,
+    def __init__(self,
+                 dirname,
+                 fname_expression, # regular expression, used with re.match
+                 maxlife,
                  activity_log,warning_log): # if None, no logging
         self.dirname=dirname
+        self.fname_expression=fname_expression
+        self.fname_expression_obj=re.compile(fname_expression)
         self.maxlife=maxlife
         self.activity_log=activity_log
         self.warning_log=warning_log
@@ -73,6 +79,8 @@ class DirCleanup:
                 continue #ignore directories
             update_time=fstat[stat.ST_MTIME]
             if update_time<treshold_time:
+                if self.fname_expression_obj.match(fname)==None:
+                    continue # ignore files that do not match
                 try:
                     os.unlink(fpath)
                 except:

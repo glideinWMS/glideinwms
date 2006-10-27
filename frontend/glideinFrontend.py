@@ -60,7 +60,7 @@ def iterate(log_dir,sleep_time,
     global activity_log,warning_log
     activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
     warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
-    cleanupObj=logSupport.DirCleanup(log_dir,
+    cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)",
                                      7*24*3600,
                                      activity_log,warning_log)
     
