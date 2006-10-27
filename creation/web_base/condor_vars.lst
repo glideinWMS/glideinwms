@@ -11,6 +11,7 @@ GLIDEIN_Site		S	$GLIDEIN_Name	+				N	Y	@
 GLIDEIN_Client		S	-		+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
 GLIDEIN_Start		C	1		+				N	N	-
+GLIDEIN_Rank		C	1		RANK				N	N	-
 GLIDEIN_Max_Idle_Mins 	I 	20 		+				N	N	-
 GLIDEIN_Retire_Time 	I 	7200		+				N	Y	-
 GLIDEIN_Update_Interval I 	- 		UPDATE_INTERVAL			N	N	-
