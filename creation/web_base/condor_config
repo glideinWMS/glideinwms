@@ -98,11 +98,9 @@ STARTD_RESOURCE_PREFIX = vm
 START = (VirtualMachineID == 2) && ($(GLIDEIN_Start))
 
 # Max time a job can run in the glidein
-GLIDEIN_MAX_JOB_TIME = $(GLIDEIN_Job_Max_Hours) * 3600
-
-MaxJobRetirementTime=$(GLIDEIN_MAX_JOB_TIME)
-SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_MAX_JOB_TIME)
+MaxJobRetirementTime=$(GLIDEIN_Job_Max_Time)
+SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 
 # How long will it wait in an unclaimed state before exiting
-STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle_Mins) * 60
+STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
