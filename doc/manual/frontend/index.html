@@ -2,44 +2,61 @@
 <html>
 <head>
 
+
+  
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
+
+  
   <title>The VO Frontend</title>
-
-
 </head>
 
 
 <body>
 
+
 <h1>The VO Frontend</h1>
 
+
 <h2>Description</h2>
+
 
 The VO Frontend is, as the name suggests, the user interface of a
 <a href="../index.html">glidein&nbsp;based WMS</a>.<br>
 
+
 <h2>Index</h2>
+
 
 <ul>
 
+
   <li><a href="#overview">Overview</a></li>
+
 
   <li><a href="#implementation">Implementation</a></li>
 
-  <li><a href="#management">The VO frontend
+
+  <li><a href="#management">The VO Frontend
 management</a></li>
+  <li><a href="#run_daemon">Starting a VO Frontend Daemon</a></li>
+
 
   <li><a href="#ref">Reference</a></li>
 
+
 </ul>
 
+
 <h2><a name="overview"></a>Overview</h2>
+
 
 The main task of the VO frontend is to look for user jobs and ask the <a href="../factory/index.html">Glidein Factories</a> to
 provide <a href="../index.html#glideins">glideins</a>,
 if needed. See the picture below for a general overview.<br>
 
+
 <img src="overview.png"><br>
+
 
 The VO frontend knows nothing about the glideins or Grid sites; the
 only information in has are the attributes that the various Glidein
@@ -47,39 +64,55 @@ Factories publish. This makes the life of the&nbsp;frontend much
 easier, as it only has to worry about matching user job requirements to
 the factory attributes.<br>
 
+
 <h2><a name="implementation"></a>Implementation</h2>
+
 
 The current implementation of the VO frontend is <a href="http://www.python.org">Python</a> based, and is
 very simple.<br>
 
+
 <br>
+
 
 The code is composed of 4 logical pieces:<br>
 
+
 <ul>
+
 
   <li>a&nbsp;class that holds the Glidein Factory Ads,</li>
 
+
   <li>a&nbsp;class that holds the user jobs Ads,</li>
+
 
   <li>a&nbsp;matchmaking procedure,&nbsp;</li>
 
+
   <li>a procedure that advertises the requests, and</li>
+
 
   <li>the glue that links the above together.</li>
 
+
 </ul>
+
 
 The top two classes simply contact the appropriate Condor Collector and
 store the data in memory.<br>
 
+
 <br>
+
 
 <a name="match_expr"></a>The matchmaking procedure loops over all the <a href="../index.html#factory_classads">factory ads</a>
 and&nbsp;counts the number of idle user jobs that match the
 attributes of that particular factory entry point. <br>
 
+
 <br>
+
 
 The matching
 expression is a <a href="http://www.python.org/doc/">Python
@@ -89,135 +122,198 @@ and an object holding the entry point attributes, named <span style="font-weight
 Both objects are dictionaries, with keys being attribute names, and
 values being attribute values.<br>
 
+
 <br>
 
+
 A few examples:<br>
+
 
 <div style="margin-left: 40px;">
 <pre>job["CDFMaxHours"]&lt;glidein["WMSMaxHours"]</pre>
 
+
 <pre>job["HasData"] or (glidein["site"] in string.split(job["SitesWithRequiredData"]))</pre>
+
 
 <pre>(job["Arch"] == glidein["Arch"]) and (job["gccVersion"]==glidein["gccVersion"])</pre>
 
+
 </div>
 
+
 <br>
+
 
 Finally, the advertise procedure loops over the counts and converts
 them into appropriate <a href="../index.html#frontend_classads">Condor
 Class Ads</a>.<br>
 
+
 <br>
+
 
 The glue code is responsible of parsing the input parameters, loading
 the configuration values and loop over the above steps.<br>
 
+
 <h2><a name="management"></a>The VO Frontend
 management</h2>
+
 
 The VO Frontend configuration is composed of a single file that needs
 to be passed as a parameter to the executable.<br>
 
+
 <br>
+
 
 The configuration file is essentially a piece of Python code that needs
 to define the following objects:<br>
 
+
 <ul>
+
 
   <li><span style="font-weight: bold; font-family: monospace;">frontend_name</span><br>
 
+
 This is the name of the frontend, and must be a string (like <span style="font-family: monospace;">'cms-fe1.fnal.us'</span>)</li>
 
+
   <li><span style="font-weight: bold; font-family: monospace;">factory_pool</span><br>
+
 
 This is the name of the WMS Condor Collector, and it must be a string
 (like <span style="font-family: monospace;">'cmswms1.fnal.gov'</span>).<br>
 
+
 If you are using a single Collector, this can be set to None.</li>
 
+
   <li><span style="font-weight: bold; font-family: monospace;">schedd_names</span><br>
+
 
 This is the list of schedd names where user jobs are being queued, each
 name being a string (like <span style="font-family: monospace;">['schedd1@cmssubmit1.fnal.gov','schedd2@cmssubmit1.fnal.gov','cmssubmit2.fnal.gov']</span>)</li>
 
-<li><span style="font-weight: bold; font-family: monospace;">job_constraint</span><br>
+
+  <li><span style="font-weight: bold; font-family: monospace;">job_constraint</span><br>
+
 
 A <a href="http://www.cs.wisc.edu/condor/manual/v6.8/condor_q.html#SECTION0010263000000000000000">Condor
 constraint</a> to be used with condor_q when looking for user
 jobs. (like <span style="font-family: monospace;">"JobUniverse==5"</span>,
 i.e. consider only Vanilla jobs)<br>
 
+
 If you want to consider all user jobs, this can be set to None.</li>
 
+
   <li><span style="font-weight: bold; font-family: monospace;">match_string</span><br>
+
 
 This is the matchmaking policy the frontend will use. See the <a href="#match_expr">Implementation section</a> for more
 information.</li>
 
+
   <li><span style="font-weight: bold; font-family: monospace;">glidein_params</span><br>
+
 
 This is the dictionary of parameters to set in the frontend requests.
 In this version it is not flexible and will send the same parameters
 for all the requests.<br>
 
+
 One parameter is always needed: <span style="font-weight: bold; font-family: monospace;">GLIDEIN_Collector</span>,
 and it is used to specify the location of the VO Collector.<br>
 
+
 (An example: <span style="font-family: monospace;">glidein_params={"GLIDEIN_Collector":"cms-fe1.fnal.gov"}</span>)</li>
+  <li><span style="font-family: monospace; font-weight: bold;">log_dir</span><br>
+Where to put the Frontend log files.<br>
+(An example: <span style="font-family: monospace;">log_dir='/tmp/glideFrontendLogs_%s'%frontend_name</span>)</li>
+
 
 </ul>
 
+
+<h2><a name="run_daemon"></a>Starting a VO Frontent Daemon</h2>
 Once you have the desired configuration file, you just need to decide
 the frequency of matchmaking, move to the VO frontend
 directory&nbsp; and launch the command:<br>
 
+
 <div style="text-align: left; margin-left: 40px;">
 <pre>python glideinFrontend.py &lt;sleep between loops&gt; &lt;force advertise every N loops&gt; &lt;config file path&gt;<br></pre>
 
+
 </div>
 
+
+All the activity messages will go into<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;log_dir&gt;/frontend_info.&lt;date&gt;.log</span><br>
+</div>
+while the warnings go into<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;log_dir&gt;/frontend_err.&lt;date&gt;.log</span><br>
+</div>
+The fronted logs are deleted after a week.<br>
 <br>
 
-All the activity messages will be printed on standard output and
-standard error, so you may want to redirect those to a log file.<br>
-
-<br>
 
 A real life example could be:<br>
 
+
 <pre>cd glideinWMS/frontend<br>python glideinFrontend.py 15 4 ~/vo_23.conf</pre>
 
+
 <br>
+
 
 <a name="ref"></a>
 <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
 
+
   <tbody>
+
 
     <tr>
 
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
+      
       <h2>Repository</h2>
 
+
+      
       <h3>CVSROOT</h3>
+
 
 cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
 
+
+      
       <h2>Package(s)</h2>
+
 
 glideinWMS/frontend</td>
 
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
+      
       <h2>Author(s)</h2>
+
 
 Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
 
+
     </tr>
 
+
+  
   </tbody>
 </table>
+
 
 </body>
 </html>
