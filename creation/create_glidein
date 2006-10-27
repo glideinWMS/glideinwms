@@ -89,9 +89,9 @@ class Params:
                         # regular type, assign
                         if eval("type(self.%s)"%param_name)==type([]):
                             # append if a list
-                            exec("self.%s.append('%s')"%(param_name,arg_val))
+                            exec("self.%s.append('%s')"%(param_name,repr(arg_val)))
                         else:
-                            exec("self.%s='%s'"%(param_name,arg_val))
+                            exec("self.%s=%s"%(param_name,repr(arg_val)))
                     else:
                         # special type, exec
                         param_name(arg_val)
