@@ -2,946 +2,403 @@
 <html>
 <head>
 
-
-
-
-  
-  
-  
   <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-
-
-
-  
-  
-  
   <title>Glidein Entry Point Creation</title>
+
+
 </head>
 
 
 <body>
 
-
-
-
 <h1>Glidein Entry Point Creation</h1>
-
-
-
 
 <h2>Description</h2>
 
-
-
-
 The Glidein Entry Point creation is handled by a command line tool. The
-use of this tool is described here, as well as the suggested configuration for most used cases.<br>
-
-
-
+use of this tool is described here, as well as the suggested
+configuration for most used cases.<br>
 
 <h2>Index</h2>
 
-
-
-
 <ul>
 
-
-
-
   <li><a href="#name">Command name</a></li>
-
-
-
 
   <li><a href="#args_raw">Command line arguments at
 a glance</a></li>
 
-
-
-
   <li><a href="#args">A guide to arguments</a></li>
-
-
-
 
   <li><a href="#advanced">Advanced topics</a></li>
 
-
-
-
-  
-  
-  
   <ul>
 
-
-
-
-    
-
-
     <li><a href="#glexec">Integration with gLExec</a></li>
+
     <ul>
+
       <li><a href="glexec_troubleshooting">Troubleshooting</a></li>
+
     </ul>
 
-    <li><a href="#gcb">Private networks and&nbsp;firewalls</a></li>
-
-
-
+    <li><a href="#gcb">Private networks
+and&nbsp;firewalls</a></li>
 
     <li><a href="#security">Security handles</a></li>
 
-
-
-
     <li><a href="#tcp">Using TCP to send updates to
 the Collector</a></li>
-    <li><a href="#start_rank">Setting the glidein start and rank condition</a></li>
-    <li><a href="#time_limit">Limiting time spent on a Grid resource</a></li>
 
+    <li><a href="#start_rank">Setting the glidein
+start and rank condition</a></li>
 
-
+    <li><a href="#time_limit">Limiting time spent on
+a Grid resource</a></li>
 
     <li><a href="#custom_code">Adding custom code to
 the glideins</a></li>
+    <li><a href="#paramvsconst">Parameters versus constants</a></li>
 
-
-
-
-  
-  
-  
   </ul>
-
-
-
 
   <li><a href="#ref">Reference</a></li>
 
-
-
-
 </ul>
-
-
-
 
 <h2><a name="name"></a>Command name</h2>
 
-
-
-
 The installation is performed using the command<br>
-
-
-
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">create_glidein</span><br>
 
-
-
-
 </div>
 
-
-
-
 <br>
-
-
-
 
 located in<br>
 
-
-
-
 <div style="margin-left: 40px;"><span style="font-family: monospace;">glideinWMS/creation</span><br>
-
-
-
 
 </div>
 
-
-
-
 <br>
 
-
-
-
 It will create all the needed directories and files needed by a <a href="index.html#glidein_daemons">Glidein Factory Daemon</a>.<br>
-
-
-
 
 <h2><a name="args_raw"></a>Command line
 arguments at a glance</h2>
 
-
-
-
 The command has the following options:<br>
-
-
-
 
 &nbsp;
 <table style="width: 100%;" border="1" cellpadding="2" cellspacing="2">
 
-
-
-
   <tbody>
 
-
-
-
     <tr>
-
-
-
 
       <th>Switch</th>
 
-
-
-
       <th></th>
-
-
-
 
       <th>Description</th>
 
-
-
-
       <th>Default</th>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-F&nbsp;|&nbsp;-factory </td>
 
-
-
-
       <td>&lt;ID&gt; </td>
-
-
-
 
       <td>Factory name</td>
 
-
-
-
       <td>`uname -n`</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-n&nbsp;|&nbsp;-name </td>
 
-
-
-
       <td>&lt;ID&gt; </td>
-
-
-
 
       <td>Glidein name</td>
 
-
-
-
       <td>-&nbsp;<b>Required</b></td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-g&nbsp;|&nbsp;-gatekeeper </td>
 
-
-
-
       <td>&lt;gatekeeper&gt; </td>
-
-
-
 
       <td>Grid gatekeeper/resource</td>
 
-
-
-
       <td>-&nbsp;<b>Required</b></td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-u&nbsp;|&nbsp;-gridtype </td>
 
-
-
-
       <td>&lt;grid_type&gt; </td>
-
-
-
 
       <td>Condor Grid type</td>
 
-
-
-
       <td>"gt2"</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-r&nbsp;|&nbsp;-rsl </td>
 
-
-
-
       <td>&lt;RSL&gt; </td>
-
-
-
 
       <td>Globus RSL option</td>
 
-
-
-
       <td><i>None</i> - Do not set</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-s&nbsp;|&nbsp;-startdir </td>
 
-
-
-
       <td>&lt;path|ID&gt; </td>
-
-
-
 
       <td>Where to start the glidein, usually "OSG","Condor" or
 "."</td>
 
-
-
-
       <td>"."</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-S&nbsp;|&nbsp;-submitbase </td>
 
-
-
-
       <td>&lt;base_dir&gt; </td>
-
-
-
 
       <td>Submit base dir</td>
 
-
-
-
       <td>$HOME</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-W&nbsp;|&nbsp;-stagebase </td>
 
-
-
-
       <td>&lt;base_dir&gt; </td>
-
-
-
 
       <td>Stage base dir</td>
 
-
-
-
       <td>"/var/www/html/glidestage"</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-L&nbsp;|&nbsp;-stagesymlink </td>
 
-
-
-
       <td>&lt;Bool&gt; </td>
 
-
-
-
       <td>Can I symlink stage dir?
-      
-      
-      
       <p>There need to be two copies, one in submit and one in
 stage dir.<br>
-
-
-
 
 Symlinking helps maintain consistency, but does require
 both to be
 visible at all times.</p>
 
-
-
-
       </td>
-
-
-
 
       <td>1</td>
 
-
-
-
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-C&nbsp;|&nbsp;-condorbase </td>
 
-
-
-
       <td>&lt;base_dir&gt; </td>
-
-
-
 
       <td>Condor distribution base dir</td>
 
-
-
-
       <td>From environment</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-w&nbsp;|&nbsp;-webdir </td>
 
-
-
-
       <td>&lt;base_url&gt; </td>
-
-
-
 
       <td>Base Web server URL</td>
 
-
-
-
       <td>"http://`uname -n`/glidestage"</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-p&nbsp;|&nbsp;-proxy </td>
 
-
-
-
       <td>&lt;proxy_url&gt; </td>
-
-
-
 
       <td>Squid cache to use</td>
 
-
-
-
       <td><i>None</i> - Do not use</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-d&nbsp;|&nbsp;-schedd </td>
 
-
-
-
       <td>&lt;ScheddName&gt; </td>
-
-
-
 
       <td>Which schedd to use</td>
 
-
-
-
       <td>"schedd_glideins@`uname -n`"</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-a&nbsp;|&nbsp;-attr </td>
 
-
-
-
       <td>&lt;name=val&gt; </td>
-
-
-
 
       <td>Glidein attribute.<a href="entry.html#args_raw_foot1">*</a><br>
 
-
-
-
       <br>
-
-
-
 
 These will be published and are used for matchmaking.</td>
 
-
-
-
       <td>[] - No attributes</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-n | -const</td>
 
-
-
-
       <td>&lt;name=val&gt;</td>
-
-
-
 
       <td>Glidein constant.<a href="entry.html#args_raw_foot1">*</a><br>
 
-
-
-
       <br>
-
-
-
 
 Constants to pass to the user scripts.</td>
 
-
-
-
       <td>[] - No variables</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-m&nbsp;|&nbsp;-param</td>
 
-
-
-
       <td>&lt;name=val&gt;</td>
-
-
-
 
       <td>User parameter.<a href="entry.html#args_raw_foot1">*</a><br>
 
-
-
-
       <br>
-
-
-
 
 Similar to the constants, but the names are published and a frontend
 can modify them.</td>
 
-
-
-
       <td>[] - No attributes</td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-f&nbsp;|&nbsp;-file </td>
 
-
-
-
       <td>&lt;absname[:relname[:can_modify]]&gt; </td>
-
-
-
 
       <td>User file to ship to WN.<a href="entry.html#args_raw_foot1">*</a><br>
 
-
-
-
       <br>
-
-
-
 
       <span style="font-style: italic;">can_modify</span>
 must be <span style="font-family: monospace;">0</span>
 or <span style="font-family: monospace;">1</span>
 and defaults to <span style="font-family: monospace;">0</span>.</td>
 
-
-
-
       <td>[] - No attributes </td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-c&nbsp;|&nbsp;-script </td>
 
-
-
-
       <td>&lt;absname[:relname]&gt; </td>
-
-
-
 
       <td>User script to execute on WN.<a href="entry.html#args_raw_foot1">*</a></td>
 
-
-
-
       <td>[] - No attributes </td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-y&nbsp;|&nbsp;-subsys </td>
 
-
-
-
       <td>&lt;absname:conf_sw:dir:out_conf[:relname]&gt; </td>
-
-
-
 
       <td>User subsytem to ship to WN.<a href="entry.html#args_raw_foot1">*</a></td>
 
-
-
-
       <td>[] - No attributes </td>
-
-
-
 
     </tr>
 
-
-
-
     <tr>
-
-
-
 
       <td>-e | -cfg</td>
 
-
-
-
       <td>&lt;filename&gt;</td>
 
-
-
-
       <td>Load configuration file</td>
-
-
-
 
       <td><span style="font-style: italic;">None</span>
 - Do not load any file</td>
 
-
-
-
     </tr>
 
-
-
-
-  
-  
-  
   </tbody>
 </table>
 
-
-
-
 <br>
-
-
-
 
 <a name="args_raw_foot1"></a>* - List as many as
 needed. All will be used.
 <h2><a name="args"></a>A guide to arguments</h2>
 
-
-
-
 You definitely <span style="font-weight: bold;">need to
 set</span> the following arguments:<br>
 
-
-
-
 <ul>
 
-
-
-
   <li><span style="font-family: monospace; font-weight: bold;">-name</span><br>
-
-
-
 
 The name of the entry point. It will be used to advertise the entry
 point, will be define Condor glidein attribute <span style="font-family: monospace;">GLIDEIN_Name</span>,
 and is used also to create the directory names.<br>
 
-
-
-
     <br>
-
-
-
 
 Choose a short name that describes the Grid resource it represents and
 append a version number (like <span style="font-family: monospace;">"fnalcms_1"</span>).
@@ -950,35 +407,17 @@ stated in the <a href="index.html#management">Glidein
 Factory management section</a>, it is much easier to create a new
 entry point than modify an existing one.</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-gatekeeper</span><br>
-
-
-
 
 The identifier of your Grid resource (like <span style="font-family: monospace;">"cmsitbsrv01.fnal.gov/jobmanager-condor"</span>).<br>
 
-
-
-
     <br>
-
-
-
 
     <span style="font-weight: bold; font-family: monospace;">-rsl</span>
 may also be needed. Please check the Grid site documentation and/or ask
 the Grid site administrator.<br>
 
-
-
-
     <br>
-
-
-
 
 The current implementation has been tested with Globus v2 Gatekeepers
 only, but if you want to test it with different Condor Grid types,
@@ -986,331 +425,150 @@ please use <span style="font-weight: bold; font-family: monospace;">-gridtype</s
 (<span style="font-family: monospace;">"gt2"</span>
 is the default).</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-proxy</span><br>
-
-
-
 
 If you have a Web cache you can use, you set it here (like <span style="font-family: monospace;">"cmsitbsquid002.fnal.gov:3128"</span>).<br>
 
-
-
-
     <br>
-
-
-
 
 If you cannot use any Web cache server, you can skip this argument (the
 default is not to use caching).</li>
 
-
-
-
 </ul>
-
-
-
 
 You <span style="font-weight: bold;">most probably want
 to set</span> the following arguments, too:<br>
 
-
-
-
 <ul>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-submitbase</span><br>
-
-
-
 
 Where to create the entry point submit directory. The default is the
 user home directory.</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-stagedir</span>
 and <span style="font-weight: bold; font-family: monospace;">-webdir</span><br>
 
-
-
-
 These two define where the Web server directories are located.<br>
-
-
-
 
 The defaults are reasonable, but you may have different needs.</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-startdir</span><br>
-
-
-
 
 This argument defines where the glidein should run.<br>
 
-
-
-
     <br>
-
-
-
 
 Most OSG sites are known to crash if you use your starting directory to
 run. For those sites, it is good practice to specify <span style="font-family: monospace;">"Condor"</span> if
 they are running Condor as the underlying batch system, and <span style="font-family: monospace;">"OSG"</span> else.</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-factory</span><br>
-
-
-
 
 Changing this value from the name of the machine allows you to move the
 factory without disrupting the system.</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-const&nbsp;</span><span style="font-family: monospace;">GLIDEIN_Site=&lt;sitestr&gt;</span><br>
-
-
-
 
 This arguments&nbsp;defines the Condor glidein attribute <span style="font-family: monospace;">GLIDEIN_Site</span>.<br>
 
-
-
-
     <br>
-
-
-
 
 Logically defining a site is useful, so that you can change entry
 points but the user jobs do still known where they are running. If not
 specified, it
 defaults to the entry point name. </li>
 
-
-
-
 </ul>
-
-
-
 
 Some other arguments you <span style="font-weight: bold;">might
 want to set</span>, are:<br>
 
-
-
-
 <ul>
-
-
-
 
   <li><span style="font-family: monospace; font-weight: bold;">-attr</span><br>
 
-
-
-
 Attributes you want to publish.<br>
 
-
-
-
     <br>
-
-
-
 
 These are used by the <a href="../frontend/index.html#match_expr">VO
 frontend matchmaking</a>.<br>
 
-
-
-
     <br>
-
-
-
 
 Example attributes are:<br>
 
-
-
-
-    
-    
-    
     <pre>'GLIDEIN_Arch="INTEL"'<br>'CMS_SiteID=23'</pre>
-
-
-
 
   </li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-schedd</span><br>
-
-
-
 
 If you want to use multiple Condor schedds or you don't like the
 default name, you definitely need to set this (to something like <span style="font-family: monospace;">"myschedd@mymachine.mydomain"</span>)</li>
 
-
-
-
 </ul>
 
-
-
-
 <br>
-
-
-
 
 You will also <span style="font-weight: bold;">most
 probably</span> also want to use:<br>
 
-
-
-
 <ul>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-cfg</span><br>
-
-
-
 
 This allows you to load a set of variables from a file. As your system
 evolves, most options will stay the same, so it makes sense to store
 them in a file, and leave on the command line only the ones that do
 change (like the entry point name).<br>
 
-
-
-
     <br>
-
-
-
 
 Please notice that several configuration files can be loaded.</li>
 
-
-
-
 </ul>
 
-
-
-
 <br>
-
-
-
 
 The other arguments are for advanced admins only, and are explained
 below.<br>
 
-
-
-
 <br>
-
-
-
 
 Now, a real life example would be:<br>
 
-
-
-
 <pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] ./create_glidein -name cms_1 -const GLIDEIN_Site=fnal -gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor -proxy "cmsitbsquid002.fnal.gov:3128" \<br> -startdir Condor -factory fnalcms \<br> -stagedir /var/www/html/wmsglidestage -webdir http://cms-xen6.fnal.gov/wmsglidestage \<br> -attr 'GLIDEIN_Arch="INTEL"' -attr 'CMS_SiteID=23' -attr 'GCCVersion="4.0.1"'</pre>
-
-
-
 
 Or even better:<br>
 
-
-
-
 <pre style="margin-left: 40px;">[me@mymachine ~] cd glideinWMS/creation<br>[me@mymachine creation] cat ~/cmsitb.txt<br>-gatekeeper cmsitbsrv01.fnal.gov/jobmanager-condor<br>-proxy "cmsitbsquid002.fnal.gov:3128"<br>-startdir Condor <br>-factory fnalcms<br>-stagedir /var/www/html/wmsglidestage <br>-webdir http://cms-xen6.fnal.gov/wmsglidestage<br>-attr GLIDEIN_Arch="INTEL" <br>-attr CMS_SiteID=23 <br>-attr GCCVersion="4.0.1"<br>-const GLIDEIN_Site=fnal<br>[me@mymachine creation] ./create_glidein -name cms_1 -cfg ~/cmsitb.txt</pre>
 
-
-
-
 <h2><a name="advanced"></a>Advanced topics</h2>
-
-
-
 
 While the above is enough for setting up a personal glidein pool on the
 local area network, you will need to do more fine tuning when deploying
 a larger one. In this section, the various advanced aspects of glidein
-pools will be presented.<br>
-
-
-
-
+pools will be presented.
 <h3><a name="glexec"></a>Integration with
 gLExec</h3>
-
-
-
 
 As you may have noticed, all of the glideins are submitted with the
 same service proxy. While this has the advantage of simplifying the
 architecture and improve both efficiency and VO control, it does have a
 few problems:<br>
 
-
-
-
 <ul>
-
-
-
 
   <li>All glidein scripts and Condor daemons, AND user jobs all
 run
 under the same Unix UID. So users can interfere with the glidein tasks,
 possibly hacking the system.&nbsp;<br>
 
-
-
-
 Plus, when several glideins start on the same node (on multi
 processor/core machines), one user job can interfere with another user
 job.</li>
-
-
-
 
   <li>The real user is never authenticated against the Grid site
 authorization infrastructure. This makes it impossible for the sites to
@@ -1319,137 +577,76 @@ resources; they
 see only glideins. This makes them very unfriendly toward the glidein
 based WMS.</li>
 
-
-
-
 </ul>
-
-
-
 
 To solve this problem, some Grid sites are deploying gLExec on the
 worker nodes. gLExec is a service that, taken<br>
 
-
-
-
 <ul>
-
-
-
 
   <li>the user proxy, and</li>
 
-
-
-
   <li>the desired command</li>
 
-
-
-
 </ul>
-
-
-
 
 contacts the local authorization and mapping system, switches to the
 UID of the user (as opposed to the glidein UID), and executes the
 provided command as that UID. <br>
 
-
-
-
 <br>
-
-
-
 
 By using gLExec, a Glidein Factory can get rid of both of the above
 problems, and still keep all the advantages.<br>
 
-
-
-
 <br>
 
-
-
-
 To enable gLExec support in an entry point, you need to specify:<br>
-
-
-
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-script
 web_base/glexec_setup.sh</span><br>
 
-
-
-
 <span style="font-family: monospace;">-const
 GLEXEC_BIN=&lt;path to glexec&gt;</span><br>
 
-
-
-
 <span style="font-family: monospace;"></span></div>
-
-
-
 
 For most current gLExec installation this comes down to:<br>
 
-
-
-
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;GLEXEC_BIN=/opt/glite/sbin/glexec</span><br>
 
-
-
-
 </div>
-
-
-
 
 More details about scripts in general can be found in the <a href="#custom_code">"custom code"</a> section.<br>
+
 <h4 style="margin-left: 40px;"><a name="glexec_troubleshooting"></a>Troubleshooting</h4>
-<div style="margin-left: 40px;">gLExec installations on at least one
-site had problems with delegated proxies. If in doubt, try to disable
-the delegation by setting:<br>
+
+<div style="margin-left: 40px;">gLExec installations on at
+least one site had problems with delegated proxies. If in doubt, try to
+disable the delegation by setting:<br>
+
 </div>
-
-
-
 
 <div style="margin-left: 80px;"><span style="font-family: monospace;">-const&nbsp;DELEGATE_JOB_GSI_CREDENTIALS=False<br>
 
-
-
-
 -const SEC_DEFAULT_ENCRYPTION=REQUIRED</span><br>
 
-
-
-
 </div>
-
-
-
 
 <div style="margin-left: 40px;"><br>
 
 Another thing to consider is the startup directory; it must be
 accessible by both the starting user and the target user(s). The
 directory you usually start in the Grid is most often not readable by
-any other user, so you must select something else with <span style="font-weight: bold; font-family: monospace;">-startdir</span>. Both <span style="font-family: monospace;">Condor</span> and <span style="font-family: monospace;">OSG</span> should be fine, or you can specify any other fixed, WN-local location.<br>
+any other user, so you must select something else with <span style="font-weight: bold; font-family: monospace;">-startdir</span>.
+Both <span style="font-family: monospace;">Condor</span>
+and <span style="font-family: monospace;">OSG</span>
+should be fine, or you can specify any other fixed, WN-local location.<br>
+
 </div>
 
-<h3><a name="gcb"></a>Private networks and firewalls</h3>
-
-
-
+<h3><a name="gcb"></a>Private networks and
+firewalls</h3>
 
 Condor daemons need two way communication in order to work properly.
 This clashes with the network policies of most Grid sites, that have
@@ -1457,50 +654,31 @@ worker nodes in private networks or implement a restrictive firewall.
 To solve this, Condor provides GCB.
 <br>
 
-
-
-
 The detailed description of GCB is beyond the scope of this manual and
 you should refer to the Condor documentation available at <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</a>.
 Here you will find only the parameters needed to enable it in the
 glideins.<br>
 
-
-
-
 <br>
 
-
-
-
 To use Condor with GCB, you need to specify:<br>
-
-
-
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-script
 web_base/gcb_setup.sh</span><br style="font-family: monospace;">
 
-
-
-
 <span style="font-family: monospace;">-const&nbsp;GCB_LIST=&lt;IP&gt;[:&lt;PORT&gt;][,&lt;IP&gt;[:&lt;PORT&gt;]]*</span><br>
-
-
-
 
 </div>
 
+P.S.: More details about scripts in general can be found in the <a href="entry.html#custom_code">"custom code"</a>
+section.<br>
 
-P.S.: More details about scripts in general can be found in the <a href="entry.html#custom_code">"custom code"</a> section.<br>
 <br>
 
-The order in which the GCBs are considered is determined by (defaults to <span style="font-family: monospace;">RANDOM</span>)<br>
+The order in which the GCBs are considered is determined by (defaults
+to <span style="font-family: monospace;">RANDOM</span>)<br>
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;<span style="font-weight: bold;">GCB_ORDER</span>=RANDOM|GCBLOAD|ROUNDROBIN|SEQUENTIAL</span><br>
-
-
-
 
 </div>
 
@@ -1512,38 +690,41 @@ where:<br>
 
 Randomly distributes between the listed GCBs</li>
 
-  <li><span style="font-family: monospace;">ROUNDROBIN</span> (or <span style="font-family: monospace;">RR</span>)<br>
+  <li><span style="font-family: monospace;">ROUNDROBIN</span>
+(or <span style="font-family: monospace;">RR</span>)<br>
 
 Round robin between them, based on the job submission number.</li>
 
-  <li><span style="font-family: monospace;">SEQUENTIAL</span> (or <span style="font-family: monospace;">SEQ</span>)<br>
+  <li><span style="font-family: monospace;">SEQUENTIAL</span>
+(or <span style="font-family: monospace;">SEQ</span>)<br>
 
-Keep the order. Essentially always tries the first one first (the others will be used only if the first one fails)</li>
+Keep the order. Essentially always tries the first one first (the
+others will be used only if the first one fails)</li>
 
   <li><span style="font-family: monospace;">GCBLOAD</span><br>
 
-Order by GCB load. All GCBs must support the <span style="font-family: monospace;">freesockets</span> query&nbsp;and you must upload the <span style="font-family: monospace;">gcb_broker_query</span> binary, too. See below.</li>
+Order by GCB load. All GCBs must support the <span style="font-family: monospace;">freesockets</span>
+query&nbsp;and you must upload the <span style="font-family: monospace;">gcb_broker_query</span>
+binary, too. See below.</li>
 
 </ul>
 
 If your GCBs support <span style="font-family: monospace;">freesockets</span>
 queries (v6.9.1 and above), you most probably want to protect your
 glideins from failing due to an overloaded GCB. To do that, you need to
-transfer the <span style="font-family: monospace;">gcb_broker_query</span> binary to the worker nodes:<br>
+transfer the <span style="font-family: monospace;">gcb_broker_query</span>
+binary to the worker nodes:<br>
 
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to binary&gt;:gcb_broker_query</span><br>
-
-
-
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to
+binary&gt;:gcb_broker_query</span><br>
 
 </div>
 
-and decide what is the minimum number of free sockets you are comfortable with:<br>
+and decide what is the minimum number of free sockets you are
+comfortable with:<br>
 
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-const GCB_MIN_FREE=&lt;number&gt;</span><br>
-
-
-
+<div style="margin-left: 40px;"><span style="font-family: monospace;">-const
+GCB_MIN_FREE=&lt;number&gt;</span><br>
 
 </div>
 
@@ -1554,13 +735,7 @@ versions use around 5 sockets per VM (depending on configuration).<br>
 
 You can also specify a default GCB port (defaults to <span style="font-family: monospace;">65432)</span>:<br>
 
-
-
-
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;GCB_PORT=&lt;port&gt;</span><br>
-
-
-
 
 </div>
 
@@ -1568,221 +743,187 @@ although Condor GCB right now does not support any other port number.<br>
 
 <br>
 
-Also, for more flexibility, you can use parameters instead of constants, and
+Also, for more flexibility, you can use parameters instead of
+constants, and
 let <a href="../frontend/index.html#management">the
 frontends</a> to provide their own GCB servers.<br>
 
 <br>
 
-
-
-
 If you are more sophisticate, and want to use <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
 routing tables</a>, too, add:<br>
-
-
-
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-file &lt;path to
 routing file&gt;:gcb_route.cfg</span><br style="font-family: monospace;">
 
-
-
-
 <span style="font-family: monospace;">-const&nbsp;GCB_REMAP_ROUTE=gcb_route.cfg</span><br>
-
-
-
 
 </div>
 
-
-
-
 <br>
-
-
-
 
 Please be aware that the above will configure the glideins only; you
 still need to properly configure the Collector and the submit machines.
 <h3><a name="security"></a>Security handles</h3>
-
-
-
 
 As mentioned in the <a href="../index.html#pool_glidein">startup
 page</a>,&nbsp;the glidein pool must be properly configured
 to protect it from hackers and malicious users. The same page also
 describes what needs to be done on the collector machine.<br>
 
-
-
-
 The glidein itself can also be configured. The default configuration
 works fine for most&nbsp; users, but you may need to change them.<br>
 
-
-
-
 <br>
-
-
-
 
 The values are set using the <span style="font-weight: bold; font-family: monospace;">-const</span>
 or <span style="font-weight: bold; font-family: monospace;">-param</span>
 option, and the default values are:<br>
 
-
-
-
 <ul>
-
-
-
 
   <li><span style="font-family: monospace; font-weight: bold;">SEC_DEFAULT_ENCRYPTION</span>=<span style="font-family: monospace;">OPTIONAL</span></li>
 
-
-
-
   <li><span style="font-family: monospace; font-weight: bold;">SEC_DEFAULT_INTEGRITY</span>=<span style="font-family: monospace;">REQUIRED</span></li>
-
-
-
 
   <li><span style="font-family: monospace; font-weight: bold;">DELEGATE_JOB_GSI_CREDENTIALS</span>=<span style="font-family: monospace;">False</span></li>
 
-
-
-
 </ul>
-
-
-
 
 <h3><a name="tcp"></a>Using TCP to send
 updates to the Collector</h3>
-
-
-
 
 By default, Condor uses UDP packets to communicate between the glideins
 and the Collector. While more efficient than TCP, UDP packets are often
 blocked at the firewall, or lost on the WAN. <br>
 
-
-
-
 <br>
 
-
-
-
 To switch on TCP updates, please specify:<br>
-
-
-
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">-const
 UPDATE_COLLECTOR_WITH_TCP=True</span><br style="font-family: monospace;">
 
-
-
-
 </div>
 
+(or the <span style="font-family: monospace;">-param</span>
+equivalent)<br>
 
-
-
-(or the <span style="font-family: monospace;">-param</span> equivalent)<br>
 <br>
-
-
-
 
 Please be aware that this will configure the glideins only; you still
 need to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
 documentation</a> for more details.<br>
-<h3><a name="start_rank"></a>Setting the glidein start and rank&nbsp;condition</h3>
-As with any Condor pool, you may need to set the startd <a href="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00463000000000000000">start</a> and <a href="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00465000000000000000">rank</a> conditions. <br>
+
+<h3><a name="start_rank"></a>Setting the
+glidein start and rank&nbsp;condition</h3>
+
+As with any Condor pool, you may need to set the startd <a href="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00463000000000000000">start</a>
+and <a href="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00465000000000000000">rank</a>
+conditions. <br>
+
 For a glidein, you can set this with<br>
+
 <ul>
+
   <li style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Start</span>=&lt;expression&gt;</li>
+
   <li><span style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Rank</span>=&lt;expression&gt;</span></li>
+
 </ul>
-Use either <span style="font-family: monospace;">-const</span> or <span style="font-family: monospace;">-param</span> as it suits you better.<br>
+
+Use either <span style="font-family: monospace;">-const</span>
+or <span style="font-family: monospace;">-param</span>
+as it suits you better.<br>
+
 <br>
+
 For example:<br>
--const 'GLIDEIN_Start=Owner=="sfiligoi"' -const 'GLIDEIN_Rank=ImageSize'<br>
-<h3><a name="time_limit"></a>Limiting time spent on a Grid resource</h3>
-The whole concept of gliding into Grid resources is based on the idea that you are getting those resources on a <span style="font-weight: bold;">temporary basis</span>.
+<div style="margin-left: 40px;"><span style="font-family: monospace;">
+-const 'GLIDEIN_Start="Owner==\"sfiligoi\""' -const 'GLIDEIN_Rank=ImageSize'</span><br>
+</div>
+
+<h3><a name="time_limit"></a>Limiting time
+spent on a Grid resource</h3>
+
+The whole concept of gliding into Grid resources is based on the idea
+that you are getting those resources on a <span style="font-weight: bold;">temporary basis</span>.
 This implies that you need to leave the slot as soon as possible, else
 your jobs will simply be killed by the annoyed Grid administrators.<br>
-On the other hand, submitting new glideins is not cost free, so you want to keep the resource for at least some period of time.<br>
+
+On the other hand, submitting new glideins is not cost free, so you
+want to keep the resource for at least some period of time.<br>
+
 <br>
+
 The glideins have two mechanisms to regulate this:<br>
+
 <ol>
-  <li>After a specified amount of time, the glidein will enter the <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_6Startd_Policy.html#17710">RETIRING state</a>.
-This means, it will wait for the current job to finish (or kill it if
-it does not end within a configurable timeout) and exit immediately
-afterwards. This obviously implies that no new jobs will start after it
-entered that state.<br>
+
+  <li>After a specified amount of time, the glidein will enter
+the <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_6Startd_Policy.html#17710">RETIRING
+state</a>. This means, it will wait for the current job to finish
+(or kill it if it does not end within a configurable timeout) and exit
+immediately afterwards. This obviously implies that no new jobs will
+start after it entered that state.<br>
+
 The two timeouts can be set by:<br>
+
     <ul>
-      <li style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Retire_Time</span>=&lt;nr of seconds&gt;</li>
-      <li style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Job_Max_Time</span>=&lt;nr of seconds&gt;</li>
+
+      <li style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Retire_Time</span>=&lt;nr
+of seconds&gt;</li>
+
+      <li style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Job_Max_Time</span>=&lt;nr
+of seconds&gt;</li>
+
     </ul>
+
 The two default to 2 and 100 hours.</li>
-  <li>If a glidein is not claimed within a configurable timeout, the glidein will exit.<br>
+
+  <li>If a glidein is not claimed within a configurable timeout,
+the glidein will exit.<br>
+
 The timeout can be set by:<br>
+
     <ul>
-      <li><span style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Max_Idle</span>=&lt;nr of seconds&gt;</span></li>
+
+      <li><span style="font-family: monospace;"><span style="font-weight: bold;">GLIDEIN_Max_Idle</span>=&lt;nr
+of seconds&gt;</span></li>
+
     </ul>
+
 The default is 20 minutes.</li>
+
 </ol>
-Use either <span style="font-family: monospace;">-const</span> or <span style="font-family: monospace;">-param</span> as it suits you better.<br>
+
+Use either <span style="font-family: monospace;">-const</span>
+or <span style="font-family: monospace;">-param</span>
+as it suits you better.<br>
+
 <br>
+
 An example:<br>
-<div style="margin-left: 40px; font-family: monospace;">-const GLIDEIN_Max_Idle=300 -const&nbsp;GLIDEIN_Retire_Time=14400 -param 180000</div>
 
-
-
+<div style="margin-left: 40px; font-family: monospace;">-const
+GLIDEIN_Max_Idle=300 -const&nbsp;GLIDEIN_Retire_Time=14400 -param
+180000</div>
 
 <h3><a name="custom_code"></a>Adding custom
 code to the glideins</h3>
-
-
-
 
 While provided code should cover most of the general purpose use cases,
 some administrators may have additional needs. For these cases, the
 glidein creation command adds the following options:<br>
 
-
-
-
 <ul>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-script</span><br>
-
-
-
 
 Path to the custom script, and optionally a short name to be used in
 the glidein. (like "<span style="font-family: monospace;">/tmp/myscript_v23.sh:cms_validation.sh</span>")<br>
 
-
-
-
     <br>
-
-
-
 
 The script will be copied in the Web-accessible area, and when a
 glidein starts, the&nbsp;glidein startup script will pull it and
@@ -1791,13 +932,7 @@ can be specified using <span style="font-weight: bold; font-family: monospace;">
 or <span style="font-weight: bold; font-family: monospace;">-param</span>,
 or stored in a file (see below).<br>
 
-
-
-
     <br>
-
-
-
 
 When invoked, the script will be given a single argument; the name of
 the
@@ -1805,81 +940,36 @@ config file to use. That file will contain all the glidein variables,
 one per line, with variable name first, a (set of) space(s), followed
 by the actual value. For example:<br>
 
-
-
-
-    
-    
-    
     <div style="margin-left: 40px;"><span style="font-family: monospace;">GLIDEIN_Site &nbsp;fnal</span><br style="font-family: monospace;">
-
-
-
 
     <span style="font-family: monospace;">MYVAR
 &nbsp;X34_44</span><br>
 
-
-
-
     </div>
-
-
-
 
 It is scripts task to parse out those values; a bash example would be:<br>
 
-
-
-
-    
-    
-    
     <div style="margin-left: 40px;"><span style="font-family: monospace;">myval=`awk '/^MYVAR /{print
 $2}'`</span><br>
 
-
-
-
     </div>
-
-
-
 
   </li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-file</span><br>
-
-
-
 
 Path to the config file,&nbsp;optionally a short name to be used in
 the glidein, plus a flag to tell if the copy of the file can be changed
 after the creation of the entry point. (like "<span style="font-family: monospace;">/tmp/mydefault_vars_v44:cms_validation.cfg:0</span>")<br>
 
-
-
-
     <br>
-
-
-
 
 The file will be copied in the Web-accessible area, and pulled by the
 glidein startup script when a glidein starts. It can be then used by
 any script
 (see above). <br>
 
-
-
-
     <br>
-
-
-
 
 Please be cautious in using the modification flag; if set to <span style="font-family: monospace;">1</span>,
 the content of the file will not be verified by the glidein startup
@@ -1887,13 +977,7 @@ script and could be tampered in transit by a malicious user. So never
 put sensitive data (like the switch to disable security checks) in a
 changeable file.&nbsp;</li>
 
-
-
-
   <li><span style="font-weight: bold; font-family: monospace;">-subsystem</span><br>
-
-
-
 
 Sometimes it is useful to transfer a whole set of files, or even
 directories, and
@@ -1902,268 +986,169 @@ is the glidein way to describe a compressed tarball that is delivered
 to the worker nodes, untarred in a separate directory and advertised to
 the other scripts.<br>
 
-
-
-
     <br>
-
-
-
 
 The subsystem argument is a little complex:<br>
 
-
-
-
-    
-    
-    
     <div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;absname:conf_sw:dir:out_conf[:relname]&gt;</span><br>
-
-
-
 
     </div>
 
-
-
-
 so let describe each piece separately:<br>
 
-
-
-
-    
-    
-    
     <ul>
-
-
-
 
       <li><span style="font-weight: bold;">absname</span><br>
 
-
-
-
 Path to the costum tarball. (like <span style="font-family: monospace;">"/tmp/mytar_v12.5.tgz"</span>)</li>
-
-
-
 
       <li><span style="font-weight: bold;">conf_sw</span><br>
 
-
-
-
 Name of a configuration switch. (like <span style="font-family: monospace;">"ENABLE_KRB5"</span>)<br>
 
-
-
-
         <br>
-
-
-
 
 The tarball will be unpacked only if that parameter will be set to <span style="font-family: monospace;">1</span>. Use the <span style="font-weight: bold; font-family: monospace;">-param</span>
 switch to define the default value.<br>
 
-
-
-
 A special name <span style="font-family: monospace;">"TRUE"</span>
 can be used to always untar it.</li>
 
-
-
-
       <li><span style="font-weight: bold;">dir</span><br>
-
-
-
 
 Name of the subdirectory to untar it in. (like <span style="font-family: monospace;">"krb5"</span>)</li>
 
-
-
-
       <li><span style="font-weight: bold;">out_conf</span><br>
-
-
-
 
 Name of a variable name. (like <span style="font-family: monospace;">"KRB5_SUBSYS_DIR"</span>)<br>
 
-
-
-
         <br>
-
-
-
 
 The variable will be set to the absolute path of the directory where
 the tarball was unpacked, if and only if the unpacking actually
 happened. It will not be defined if the value of conf_sw was not <span style="font-family: monospace;">1</span>.</li>
 
-
-
-
       <li><span style="font-weight: bold;">relname</span><br>
-
-
-
 
 A short name to be used in the glidein. (like <span style="font-family: monospace;">"krb5.tgz"</span>)</li>
 
-
-
-
-    
-    
-    
     </ul>
-
-
-
 
 So a complete example, including the switches, would be<br>
 
-
-
-
-    
-    
-    
     <div style="margin-left: 40px;"><span style="font-family: monospace;"><span style="font-weight: bold;">-subsystem</span>&nbsp;/tmp/mytar_v12.5.tgz:ENABLE_KRB5:krb5:KRB5_SUBSYS_DIR:krb5.tgz&nbsp;<span style="font-weight: bold;">-param</span>&nbsp;ENABLE_KRB5=1</span><br>
-
-
-
 
     </div>
 
-
-
-
     <br>
-
-
 
   </li>
 
-
-
-
 </ul>
-
-
 
 Please notice that files and subsystems will be downloaded before the
 scripts, and that the user provided scripts will be executed in the
 specified order, and before the Condor daemons are started up.<br>
 
+<h3><a name="paramvsconst"></a>Parameters versus constants</h3>
 
+Values&nbsp;can be passed to the glidein scripts in two ways:<br>
 
+<ul>
+
+  <li>via constants, using <span style="font-family: monospace; font-weight: bold;">-const</span>,
+and</li>
+
+  <li>via parameters, using <span style="font-family: monospace; font-weight: bold;">-param</span>.</li>
+
+</ul>
+
+From the script point of view, there is no difference between them. The
+script will not even know if one or the other was used.<br>
 
 <br>
 
+The difference is how the glidein factory itself treats them:<br>
 
+<ul>
 
+  <li>Constant are stored in a file (called <span style="font-family: monospace;">constants.cfg</span>)
+and transfered to the worker node. The file is signed and cannot be
+modified after it has been created.</li>
+
+  <li>The default values of the parameters are published by the
+glidein factory, and the VO frontends can set their own values when <a href="../index.html#overview">asking for more glideins</a>.
+Different glidein jobs can thus have a different value for the same
+parameter, so the values are passed as job arguments.</li>
+
+</ul>
+
+To make this transparent to the scripts, the startup script copy all
+the values, constants or&nbsp;parameters, to a common file for all
+to use. <br>
+
+<br>
+
+Please be aware that constants and parameters treat numbers and strings
+in a different way:<br>
+
+<ul>
+
+  <li><span style="font-family: monospace;">-const</span> treats all options a strings, i.e. takes whatever
+comes after the equal(=) sign and passes it over to the glidein. This
+also mean that <span style="font-weight: bold;">any
+quotes are passed along as specified</span>! This means that <span style="font-family: monospace;">-const x=abc</span> and <span style="font-family: monospace;">-const 'x="abc"'</span> will give different results.</li>
+
+  <li><span style="font-family: monospace;">-param</span> is instead typed and expect strings to be quoted!<br>
+
+So <span style="font-family: monospace;">-param 'x=1'</span>
+and <span style="font-family: monospace;">-param 'x="1"'</span>
+are different as one represent a number and the other a string. So a
+frontend will be able to change the first one in <span style="font-family: monospace;">5</span> but not in <span style="font-family: monospace;">"abc"</span>, while it
+can do it for the second one. However, from the script point of view,
+the default values are the same.<br>
+
+Also, not quoting a string will give you an error. (a bad example: <span style="font-family: monospace;">-param x=abc</span>)</li>
+
+</ul>
+
+The difference is needed to use the full power of Condor ClassAds, while&nbsp;keeping management of constants easy.<br>
+
+<br>
 
 <a name="ref"></a>
 <table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
 
-
-
-
   <tbody>
-
-
-
 
     <tr>
 
-
-
-
       <td style="width: 50%; text-align: left; vertical-align: top;">
-      
-      
-      
       <h2>Repository</h2>
 
-
-
-
-      
-      
-      
       <h3>CVSROOT</h3>
-
-
-
 
 cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
 
-
-
-
-      
-      
-      
       <h2>Package(s)</h2>
-
-
-
 
 glideinWMS/creation</td>
 
-
-
-
       <td style="width: 50%; text-align: left; vertical-align: top;">
-      
-      
-      
       <h2>Author(s)</h2>
-
-
-
 
 Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
 
-
-
-
     </tr>
 
-
-
-
-  
-  
-  
   </tbody>
 </table>
 
-
-
+<br>
 
 <br>
 
-
-
-
 <br>
-
-
-
-
-<br>
-
-
-
 
 </body>
 </html>
