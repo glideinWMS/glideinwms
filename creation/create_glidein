@@ -176,10 +176,6 @@ def main(params):
 
             # plus the basic standard params
             add_param(params.submit_dir,"GLIDEIN_Collector",'"Fake"')
-            add_param(params.submit_dir,"GLIDEIN_Retire_Time",'1200')
-            add_param(params.submit_dir,"GLIDEIN_Max_Idle_Mins",'20')
-            add_param(params.submit_dir,"GLIDEIN_Use_TCP",'0')
-            add_param(params.submit_dir,"GLIDEIN_Job_Max_Hours",'72')
             
             # copy the startup file
             copy_submit_file(STARTUP_FILE,params.submit_dir,params.src_dir)
