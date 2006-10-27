@@ -73,13 +73,13 @@ class JobAttributes(ConfigFile):
     def __init__(self):
         global factoryConfig
         ConfigFile.__init__(self,factoryConfig.job_attrs_file,
-                            repr) # values are in python format
+                            lambda s:s) # values are in python format
 
 
 class JobParams(ConfigFile):
     def __init__(self):
         global factoryConfig
         ConfigFile.__init__(self,factoryConfig.job_params_file,
-                            repr) # values are in python format
+                            lambda s:s) # values are in python format
 
 
