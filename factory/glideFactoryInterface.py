@@ -11,6 +11,7 @@ import condorExe
 import condorMonitor
 import os
 import time
+import string
 
 
 ############################################################
