@@ -71,6 +71,9 @@ function params2file {
  -e 's/\.open,/(/g'\
  -e 's/\.gt,/>/g'\
  -e 's/\.lt,/</g'\
+ -e 's/\.minus,/-/g'\
+ -e 's/\.plus,/+/g'\
+ -e 's/\.eq,/=/g'\
  -e "s/\.singquot,/'/g"\
  -e 's/\.quot,/"/g'\
  -e 's/\.fork,/\`/g'\
