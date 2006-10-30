@@ -406,7 +406,7 @@ def extractJobId(submit_out):
     raise condorExe.ExeError, "Could not find cluster info!"
 
 escape_table={'.':'.dot,',
-              ',':'.coma,',
+              ',':'.comma,',
               '&':'.amp,',
               '\\':'.backslash,',
               '|':'.pipe,',
