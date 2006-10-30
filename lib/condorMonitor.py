@@ -2,12 +2,14 @@
 # Description:
 #   This module implements classes to query the condor daemons
 #   and manipulate the results
+#   Please notice that it also converts \" into "
 #
 # Author:
 #   Igor Sfiligoi (Aug 30th 2006)
 #
 
 import condorExe
+import string
 import xml.parsers.expat
 
 #
@@ -293,7 +295,8 @@ def xml2list_char_data(data):
     elif xml2list_intype in ("b","un"):
         pass #nothing to do, value was in attribute
     else:
-        xml2list_inattr["val"]+= data
+        unescaped_data=string.replace(data,'\\"','"')
+        xml2list_inattr["val"]+= unescaped_data
 
 def xml2list(xml_data):
     global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
