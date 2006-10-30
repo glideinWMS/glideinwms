@@ -44,7 +44,7 @@ function set_var {
 	return 0
     fi
 
-    var_val=`grep "^$var_name" $config_file | awk '{print $2}'`
+    var_val=`grep "^$var_name" $config_file | awk '{idx=length($1); print substr($0,idx+2)}'`
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
