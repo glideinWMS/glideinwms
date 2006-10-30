@@ -279,7 +279,9 @@ def add_param(submit_dir,param_name,param_defval):
         # make sure strings are well defined
         if  param_defval[-1]!='"':
             raise RuntimeError, "Param '%s' start with a quote but does not end with one!"%param_name
-        param_defval=repr(param_defval[1:-1])
+        
+        param_defval=string.replace(param_defval[1:-1],'\\"','"')
+        param_defval=repr(param_defval)
     else:
         if not param_defval.isdigit():
             raise RuntimeError, "Param '%s' not a number and not quoted!"%param_name
