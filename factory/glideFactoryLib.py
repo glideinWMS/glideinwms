@@ -405,6 +405,42 @@ def extractJobId(submit_out):
             return (long(found.group("cluster")),int(found.group("count")))
     raise condorExe.ExeError, "Could not find cluster info!"
 
+escape_table={'.':'.dot,',
+              ',':'.coma,',
+              '&':'.amp,',
+              '\\':'.backslash,',
+              '|':'.pipe,',
+              "`":'.fork,',
+              '"':'.quot,',
+              "'":'.singquot,',
+              '<':'.lt,',
+              '>':'.gt,',
+              '(':'.open,',
+              ')':'.close,',
+              '{':'.gopen,',
+              '}':'.gclose,',
+              '[':'.sopen,',
+              ']':'.sclose,',
+              '#':'.comment,',
+              '$':'.dollar,',
+              '*':'.star,',
+              '?':'.question,',
+              '!':'.not,',
+              '~':'.tilde,',
+              ':':'.colon,',
+              ';':'.semicolon,',
+              ' ':'.nbsp,'}
+def escapeParam(param_str):
+    global escape_table
+    out_str=""
+    for c in param_str:
+        if escape_table.has_key(c):
+            out_str=out_str+escape_table[c]
+        else:
+            out_str=out_str+c
+    return out_str
+    
+
 # submit N new glideins
 def submitGlideins(schedd_name,client_name,nr_glideins,params):
     global factoryConfig
@@ -417,7 +453,7 @@ def submitGlideins(schedd_name,client_name,nr_glideins,params):
     params_arr=[]
     for k in params.keys():
         params_arr.append(k)
-        params_arr.append(str(params[k]))
+        params_arr.append(escapeParam(str(params[k])))
     params_str=string.join(params_arr," ")
     
     try:
