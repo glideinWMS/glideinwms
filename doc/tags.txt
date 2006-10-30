@@ -1,5 +1,11 @@
-v0_1	The first fully functional version
-	Needs more polishing and better configuration, but it works
+v0_3	Added support for GCB and gLExec
+	Better stability and logging.
+	Many bug fixes.
+	Greately improved user documentation.
+	NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
 
 v0_2	First fully configured version
 	Very few things are still hardcoded here
+
+v0_1    The first fully functional version
+        Needs more polishing and better configuration, but it works
