@@ -14,7 +14,7 @@ GLIDEIN_Start		C	1		+				N	N	-
 GLIDEIN_Rank		C	1		RANK				N	N	-
 GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	7200		+				N	Y	-
-GLIDEIN_Job_Max_Time	I	360000		+				Y	Y	-
+GLIDEIN_Job_Max_Time	I	360000		+				N	Y	-
 GLIDEIN_Update_Interval I 	- 		UPDATE_INTERVAL			N	N	-
 GLIDEIN_Use_TCP		I 	-		UPDATE_COLLECTOR_WITH_TCP	N	N	-
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
