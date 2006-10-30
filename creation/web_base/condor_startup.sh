@@ -95,7 +95,7 @@ function set_var {
     fi
 
     # define it for future use
-    eval $var_name=$var_val
+    eval "$var_name='$var_val'"
     return 0
 }
 
