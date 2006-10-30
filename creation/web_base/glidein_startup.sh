@@ -53,7 +53,33 @@ function params2file {
     shift
     while [ $# -gt 0 ]
     do
-	echo "$1 $2" >> "$config_file"
+       pfval=`echo "$2" | sed\
+ -e 's/\.nbsp,/ /g'\
+ -e 's/\.semicolon,/;/g'\
+ -e 's/\.colon,/:/g'\
+ -e 's/\.tilde,/~/g'\
+ -e 's/\.not,/!/g'\
+ -e 's/\.question,/?/g'\
+ -e 's/\.start,/*/g'\
+ -e 's/\.dollar,/$/g'\
+ -e 's/\.comment,/#/g'\
+ -e 's/\.sclose,/]/g'\
+ -e 's/\.sopen,/[/g'\
+ -e 's/\.gclose,/}/g'\
+ -e 's/\.gopen,/{/g'\
+ -e 's/\.close,/)/g'\
+ -e 's/\.open,/(/g'\
+ -e 's/\.gt,/>/g'\
+ -e 's/\.lt,/</g'\
+ -e "s/\.singquot,/'/g"\
+ -e 's/\.quot,/"/g'\
+ -e 's/\.fork,/\`/g'\
+ -e 's/\.pipe,/|/g'\
+ -e 's/\.backslash,/\\\/g'\
+ -e 's/\.amp,/\&/g'\
+ -e 's/\.comma,/,/g'\
+ -e 's/\.dot,/./g'`
+	echo "$1 $pfval" >> "$config_file"
 	if [ -z "$param_list" ]; then
 	    param_list="$1"
 	else
