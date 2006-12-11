@@ -21,6 +21,7 @@ class Params:
                          ("submit_base_dir",('-S','-submitbase'),os.environ["HOME"],"base_dir","Submit base dir"),
                          ("stage_base_dir",('-W','-stagebase'),"/var/www/html/glidestage","base_dir","Stage base dir"),
                          ("stage_symlink",('-L','-stagesymlink'),"1","Bool","Can I symlink stage dir?"),
+                         ("monitor_base_dir",('-M','-monitorbase'),"/var/www/html/glidemonitor","base_dir","Monitoring base dir"),
                          ("condor_base_dir",('-C','-condorbase'),find_condor_base_dir(), "base_dir","Condor distribution base dir"),
                          ("web_base_url",('-w','-webdir'),"http://%s/glidestage"%socket.gethostname(),'base_url','Base Web server URL'),
                          ('proxy_url',('-p','-proxy'),None,'proxy_url',"Squid cache to use"),
@@ -60,6 +61,7 @@ class Params:
         
         glidein_subdir="glidein_%s"%self.glidein_name
         self.stage_dir=os.path.join(self.stage_base_dir,glidein_subdir)
+        self.monitor_dir=os.path.join(self.monitor_base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit_base_dir,glidein_subdir)
         self.web_url=os.path.join(self.web_base_url,glidein_subdir)
 
@@ -165,62 +167,70 @@ def main(params):
     try:
         create_dir(params.stage_dir)
         try:
-            # put user files in stage
-            for id in params.user_files:
-                copy_user_file(id,params.stage_dir)
-            for id in params.user_scripts:
-                copy_user_script(id,params.stage_dir)
-            for id in params.user_subsys:
-                copy_user_subsystem(id,params.stage_dir,params.submit_dir)
-                
-            #put known files in stage
-            create_condor_tar(params.stage_dir,params.submit_dir,params.condor_base_dir)
-            copy_stage_file("condor_config",params.stage_dir,params.src_dir)
-            copy_stage_file("condor_vars.lst",params.stage_dir,params.src_dir)
-            copy_stage_file("nodes.blacklist",params.stage_dir,params.src_dir,can_be_modified=1)
-            copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
-            copy_script("validate_node.sh",params.stage_dir,params.src_dir)
-            create_attributes(params.stage_dir,params.glidein_attrs)
-            create_consts(params.stage_dir,params.glidein_consts)
-            
-            # this must be the last script in the list
-            copy_script("condor_startup.sh",params.stage_dir,params.src_dir)
-            sha1=finalize_sha1(params.stage_dir)
+            create_dir(params.monitor_dir)
+            try:
+               # make a link from the submit dir to the monitor dir
+               symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
-            #
-            # Stage is finished
-            # Populate submit dir
-            #
-            create_dir(os.path.join(params.submit_dir,"log"))
-            
-            # Write down the user parameters
-            for id in params.user_params:
-                add_user_param(id,params.submit_dir)
+               # put user files in stage
+               for id in params.user_files:
+                   copy_user_file(id,params.stage_dir)
+               for id in params.user_scripts:
+                   copy_user_script(id,params.stage_dir)
+               for id in params.user_subsys:
+                   copy_user_subsystem(id,params.stage_dir,params.submit_dir)
 
-            # plus the basic standard params
-            add_param(params.submit_dir,"GLIDEIN_Collector",'"Fake"')
-            
-            # copy the startup file
-            copy_submit_file(STARTUP_FILE,params.submit_dir,params.src_dir)
+               #put known files in stage
+               create_condor_tar(params.stage_dir,params.submit_dir,params.condor_base_dir)
+               copy_stage_file("condor_config",params.stage_dir,params.src_dir)
+               copy_stage_file("condor_vars.lst",params.stage_dir,params.src_dir)
+               copy_stage_file("nodes.blacklist",params.stage_dir,params.src_dir,can_be_modified=1)
+               copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
+               copy_script("validate_node.sh",params.stage_dir,params.src_dir)
+               create_attributes(params.stage_dir,params.glidein_attrs)
+               create_consts(params.stage_dir,params.glidein_consts)
 
-            link_attributes(params.submit_dir,params.stage_dir,int(params.stage_symlink))
+               # this must be the last script in the list
+               copy_script("condor_startup.sh",params.stage_dir,params.src_dir)
+               sha1=finalize_sha1(params.stage_dir)
 
-            create_descript(params.submit_dir,
-                            params.factory_name,params.glidein_name,
-                            params.gridtype,params.gatekeeper,params.rsl,
-                            params.schedd_name,
-                            params.work_dir,params.web_url,params.proxy_url)
-            
-            create_submit(params.submit_dir,
-                          params.factory_name,params.glidein_name,
-                          params.gridtype,params.gatekeeper,params.rsl,
-                          params.schedd_name,
-                          params.work_dir,params.web_url,params.proxy_url,sha1)
+               #
+               # Stage is finished
+               # Populate submit dir
+               #
+               create_dir(os.path.join(params.submit_dir,"log"))
 
-            create_submit_wrapper(params.submit_dir)
-            create_test_submit(params.submit_dir)
+               # Write down the user parameters
+               for id in params.user_params:
+                   add_user_param(id,params.submit_dir)
 
-            params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.cfg"))
+               # plus the basic standard params
+               add_param(params.submit_dir,"GLIDEIN_Collector",'"Fake"')
+
+               # copy the startup file
+               copy_submit_file(STARTUP_FILE,params.submit_dir,params.src_dir)
+
+               link_attributes(params.submit_dir,params.stage_dir,int(params.stage_symlink))
+
+               create_descript(params.submit_dir,
+                               params.factory_name,params.glidein_name,
+                               params.gridtype,params.gatekeeper,params.rsl,
+                               params.schedd_name,
+                               params.work_dir,params.web_url,params.proxy_url)
+
+               create_submit(params.submit_dir,
+                             params.factory_name,params.glidein_name,
+                             params.gridtype,params.gatekeeper,params.rsl,
+                             params.schedd_name,
+                             params.work_dir,params.web_url,params.proxy_url,sha1)
+
+               create_submit_wrapper(params.submit_dir)
+               create_test_submit(params.submit_dir)
+
+               params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.cfg"))
+            except:
+               shutil.rmtree(params.monitor_dir)
+               raise
         except:
             shutil.rmtree(params.stage_dir)
             raise
@@ -231,6 +241,7 @@ def main(params):
     print "Created glidein '%s'"%params.glidein_name
     print "Submit files can be found in %s"%params.submit_dir
     print "Support files are in %s"%params.stage_dir
+    print "Monitoring files are in %s"%params.monitor_dir
 
 
 ############################################################
