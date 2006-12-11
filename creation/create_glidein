@@ -134,6 +134,29 @@ class Params:
             param_desc=el[-1]
             print "\t%-30s - %s (Default=%s)"%("%s <%s>  "%(param_str,param_opt_name),param_desc,repr(param_def))
 
+    #save into a file
+    #The file should be usable for reload
+    # -opt val
+    def save_into_file(self,fname):
+        fd=open(fname,"w")
+        try:
+            for el in self.param_desc:
+                param_name=el[0]
+                if type(param_name)==type(""):
+                    # only if a regular parameter
+                    param_flag=el[1][-1]
+                    exec('param_vals=self.%s'%param_name)
+                    if type(param_vals)!=type([]):
+                        # treat everything a a list... much easier
+                        param_vals=[param_vals]
+                    for param_val in param_vals:
+                        fd.write("%s %s\n"%(param_flag,param_val))
+                # else it is a special one that cannot be saved
+        finally:
+            fd.close()
+        return
+    
+
 ################################################################################
 
 def main(params):
@@ -196,6 +219,8 @@ def main(params):
 
             create_submit_wrapper(params.submit_dir)
             create_test_submit(params.submit_dir)
+
+            params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.cfg"))
         except:
             shutil.rmtree(params.stage_dir)
             raise
