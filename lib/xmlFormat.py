@@ -66,7 +66,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) is types.StringType:
+        elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
             head_arr.append(' %s="None"' % attr)
@@ -84,7 +84,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) is types.StringType:
+        elif type(el) in types.StringTypes:
             if attr in text_params:
                 text_attrs.append(attr)
             else:
@@ -218,7 +218,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) is types.StringType:
+        elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
             head_arr.append(' %s="None"' % attr)
@@ -237,11 +237,11 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",
     
     for idx in keys:
         el = dict[idx]
-        if ((type(el) in (types.IntType,types.LongType,types.FloatType,types.StringType)) or
+        if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
                 val = "None"
-            elif type(el) is types.StringType:
+            elif type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
                 val = "%.12g" % el
@@ -294,7 +294,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val"
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) is types.StringType:
+        elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
             head_arr.append(' %s="None"' % attr)
@@ -313,11 +313,11 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val"
     
     for idx in keys:
         el = dict[idx]
-        if ((type(el) in (types.IntType,types.LongType,types.FloatType,types.StringType)) or
+        if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
                 val = "None"
-            elif type(el) is types.StringType:
+            elif type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
                 val = "%.12g" % el
@@ -382,7 +382,7 @@ def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_par
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) is types.StringType:
+        elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
             head_arr.append(' %s="None"' % attr)
@@ -400,11 +400,11 @@ def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_par
         els = list
 
     for el in els:
-        if ((type(el) in (types.IntType,types.LongType,types.FloatType,types.StringType)) or
+        if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
                 val = "None"
-            if type(el) is types.StringType:
+            if type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
                 val = "%.12g" % el
@@ -457,7 +457,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name="val",params={},subtypes_pa
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) is types.StringType:
+        elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
             head_arr.append(' %s="None"' % attr)
@@ -475,11 +475,11 @@ def list2file(fd,list,list_name,el_name,el_attr_name="val",params={},subtypes_pa
         els = list
 
     for el in els:
-        if ((type(el) in (types.IntType,types.LongType,types.FloatType,types.StringType)) or
+        if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
                 val = "None"
-            elif type(el) is types.StringType:
+            elif type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
                 val = "%.12g" % el
