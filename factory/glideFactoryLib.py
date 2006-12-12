@@ -64,6 +64,10 @@ class FactoryConfig:
         self.activity_log = None
         self.warning_log = None
 
+        # monitoring objects
+        # create them for the logging to occur
+        self.qc_stats = None
+
     def config_submit_freq(self,sleepBetweenSubmits,maxSubmitsXCycle):
         self.submit_sleep=sleepBetweenSubmits
         self.max_submits=maxSubmitsXCycle
@@ -85,9 +89,9 @@ class FactoryConfig:
                 self.logWarning("logActivity failed, was logging: %s"+str)
 
     def logWarning(self,str):
-        if self.warining_log!=None:
+        if self.warning_log!=None:
             try:
-                self.warining_log.write(str+"\n")
+                self.warning_log.write(str+"\n")
             except:
                 # logging must throw an exception!
                 # silently ignore
@@ -258,7 +262,17 @@ def logStats(condorq,condorstatus):
     qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
     s_running=len(condorstatus.fetchStored().keys())
     factoryConfig.logActivity("Client '%s', schedd status %s, collector running %i"%(condorq.client_name,qc_status,s_running))
+    if factoryConfig.qc_stats!=None:
+        factoryConfig.qc_stats.logSchedd(condorq.client_name,qc_status)
+    
     return
+
+def logWorkRequests(work):
+    for work_key in work.keys():
+        if work[work_key]['requests'].has_key('IdleGlideins'):
+            factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work_key,work[work_key]['requests']['IdleGlideins']))
+            factoryConfig.qc_stats.logRequest(work_key,work[work_key]['requests'])
+
 
 ############################################################
 #

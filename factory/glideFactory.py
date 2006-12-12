@@ -20,6 +20,7 @@ sys.path.append("../lib")
 
 import glideFactoryConfig
 import glideFactoryLib
+import glideFactoryMonitoring
 import glideFactoryInterface
 import logSupport
 
@@ -56,6 +57,8 @@ def iterate_one(do_advertize,
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),{})
     
     work = glideFactoryInterface.findWork(factory_name,glidein_name)
+    glideFactoryLib.logWorkRequests(work)
+    
     if len(work.keys())==0:
         return 0 # nothing to be done
 
@@ -86,8 +89,10 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
+            glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             done_something=iterate_one(count==0,
                                        jobDescript,jobAttributes,jobParams)
+            glideFactoryLib.factoryConfig.qc_stats.write_file()
         except:
             if is_first:
                 raise
@@ -111,6 +116,8 @@ def main(sleep_time,advertize_rate,startup_dir):
     warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_err"))
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
+    
+    glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor")
 
     cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"log"),"(job\..*\.out)|(job\..*\.err)|(factory_info\..*)|(factory_err\..*)",
                                      7*24*3600,

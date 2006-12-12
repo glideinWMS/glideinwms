@@ -54,6 +54,16 @@ factoryConfig=FactoryConfig()
 
 
 def findWork(factory_name,glidein_name):
+    """
+    Look for requests.
+    Look for classAds that have my factory and glidein name.
+
+    Return:
+      Dictionary, each key is the name of a frontend.
+      Each value has a 'requests' and a 'params' key.
+        Both refer to classAd dictionaries.
+    """
+
     global factoryConfig
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s")'%(factoryConfig.client_id,glidein_name,factory_name)
