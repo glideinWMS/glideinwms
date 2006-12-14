@@ -22,15 +22,25 @@ class MonitoringConfig:
     def __init__(self):
         # set default values
         # user should modify if needed
-        self.rrd_step=60        #default to 1 minute
+        self.rrd_step=30        #default to 30 seconds
         self.rrd_heartbeat=120  #default to 1 minute, should be at least twice the loop time
         self.rrd_ds_name="val"
-        self.rrd_archives=[('LAST',0.5,1,3000),     # max precision, keep 2 days at default step, 
-                           ('AVERAGE',0.8,10,6000), # 10 min precision, keep for a month and a half
-                           ('AVERAGE',0.95,120,10000) # 2 hour precision, keep for a couple of years
+        self.rrd_archives=[('LAST',0.5,1,2*60*4),             # max precision, keep 4 hours at default step, 
+                           ('AVERAGE',0.8,10,60/5*24*2),      # 5 min precision, keep 2 days
+                           ('AVERAGE',0.92,60,2*24*45),       # 30 min precision, keep for a month and a half
+                           ('AVERAGE',0.98,240,12*370)        # 2 hour precision, keep for a years
                            ]
+        self.rrd_archives_small=[('LAST',0.5,1,2*60*2),       # max precision, keep 2 hours at default step, 
+                                 ('AVERAGE',0.8,10,60/5*6),   # 5 min precision, keep 6 hours
+                                 ('AVERAGE',0.92,60,2*24*2),  # 30 min precision, keep for 2 days
+                                 ('AVERAGE',0.98,240,12*45)   # 2 hour precision, keep for a month and a half
+                                 ]
 
-
+        self.rrd_reports=[('hour',3600,0),          # an hour worth of data, max resolution
+                          ('day',3600*24,1),        # a day worth of data, medium resolution
+                          ('month',3600*24*31,2)    # a month worth of data, low resolution
+                          ]
+        
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
 
@@ -68,24 +78,82 @@ class MonitoringConfig:
         return
     
     def write_rrd(self,relative_fname,ds_type,time,val,min=None,max=None):
+        """
+        Create a RRD file, using rrdtool.
+        """
         if self.rrd_bin==None:
             return # nothing to do, no rrd bin no rrd creation
         
-        fname=os.path.join(self.monitor_dir,relative_fname)      
-        #print "Writing RRD "+fname
+        for tp in ((".rrd",self.rrd_archives),(".small.rrd",self.rrd_archives_small)):
+            rrd_ext,rrd_archives=tp
+            fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
+            #print "Writing RRD "+fname
         
-        if not os.path.isfile(fname):
-            #print "Create RRD "+fname
-            if min==None:
-                min='U'
-            if max==None:
-                max='U'
-            create_rrd(self.rrd_bin,fname,
-                       self.rrd_step,self.rrd_archives,
-                       (self.rrd_ds_name,ds_type,self.rrd_heartbeat,min,max))
+            if not os.path.isfile(fname):
+                #print "Create RRD "+fname
+                if min==None:
+                    min='U'
+                if max==None:
+                    max='U'
+                create_rrd(self.rrd_bin,fname,
+                           self.rrd_step,rrd_archives,
+                           (self.rrd_ds_name,ds_type,self.rrd_heartbeat,min,max))
 
-        #print "Updating RRD "+fname
-        update_rrd(self.rrd_bin,fname,time,val)
+            #print "Updating RRD "+fname
+            update_rrd(self.rrd_bin,fname,time,val)
+        return
+    
+    def rrd2xml(self,relative_fname,archive_id,
+                period,relative_rrd_files):
+        """
+        Convert one or more RRDs into an XML file using
+        rrdtool xport.
+
+        rrd_files is a list of (rrd_id,rrd_fname)
+        """
+
+        if self.rrd_bin==None:
+            return # nothing to do, no rrd bin no rrd conversion
+        
+        fname=os.path.join(self.monitor_dir,relative_fname)      
+        #print "Converting RRD into "+fname
+
+        rrd_archive=self.rrd_archives[archive_id]
+
+        # convert relative fnames to absolute ones
+        rrd_files=[]
+        for rrd_file in relative_rrd_files:
+            rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1])))
+
+        rrd2xml(self.rrd_bin,fname+".tmp",
+                self.rrd_step*rrd_archive[2], # step in seconds
+                self.rrd_ds_name,
+                rrd_archive[0], #ds_type
+                period,rrd_files)
+
+        try:
+            os.remove(fname+"~")
+        except:
+            pass
+
+        try:
+            os.rename(fname,fname+"~")
+        except:
+            pass
+
+        os.rename(fname+".tmp",fname)
+
+
+    def report_rrds(self,base_fname,
+                    relative_rrd_files):
+        """
+        Create default XML files out of the RRD files
+        """
+
+        for r in self.rrd_reports:
+            pname,period,idx=r
+            self.rrd2xml(base_fname+".%s.xml"%pname,idx,
+                         period,relative_rrd_files)
         return
 
 # global configuration of the module
@@ -107,9 +175,13 @@ class condorQStats:
         qc_status is a dictionary of condor_status:nr_jobs
         """
         if self.data.has_key(client_name):
-            el=self.data[client_name]
+            t_el=self.data[client_name]
         else:
-            el={}
+            t_el={}
+            self.data[client_name]=t_el
+
+        el={}
+        t_el['Status']=el
 
         status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"))
         for p in status_pairs:
@@ -118,7 +190,6 @@ class condorQStats:
                 el[str]=qc_status[nr]
             else:
                 el[str]=0
-        self.data[client_name]=el
         self.updated=time.time()
 
     def logRequest(self,client_name,requests):
@@ -129,14 +200,17 @@ class condorQStats:
           'IdleGlideins'
         """
         if self.data.has_key(client_name):
-            el=self.data[client_name]
+            t_el=self.data[client_name]
         else:
-            el={}
+            t_el={}
+            self.data[client_name]=t_el
+
+        el={}
+        t_el['Requested']=el
 
         if requests.has_key('IdleGlideins'):
-            el['RequestedIdle']=requests['IdleGlideins']
+            el['Idle']=requests['IdleGlideins']
 
-        self.data[client_name]=el
         self.updated=time.time()
 
 
@@ -145,20 +219,34 @@ class condorQStats:
 
     def get_xml(self):
         return xmlFormat.dict2string(self.data,
-                                     dict_name="glideins",el_name="frontend",
+                                     dict_name="frontends",el_name="frontend",
                                      params={"updated":long(self.updated)},
                                      subtypes_params={"class":{}})
 
     def write_file(self):
         global monitoringConfig
+        # write snaphot file
         monitoringConfig.write_file("schedd_status.xml",self.get_xml())
+        # update RRDs
         for fe in self.data.keys():
             fe_dir="frontend_"+fe
             monitoringConfig.establish_dir(fe_dir)
             fe_el=self.data[fe]
-            for a in fe_el.keys():
-                a_el=fe_el[a]
-                monitoringConfig.write_rrd("%s/attribute_%s.rrd"%(fe_dir,a),"GAUGE",self.updated,a_el)
+            for tp in fe_el.keys():
+                # type - status or requested
+                for a in fe_el[tp].keys():
+                    a_el=fe_el[tp][a]
+                    monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
+                                               "GAUGE",self.updated,a_el)
+        # create history XML files for RRDs
+        for fe in self.data.keys():
+            fe_dir="frontend_"+fe
+            fe_el=self.data[fe]
+            for tp in fe_el.keys():
+                # type - status or requested
+                for a in fe_el[tp].keys():
+                    monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
+                                                 [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
         return
     
 
@@ -181,5 +269,25 @@ def create_rrd(rrdbin,rrdfname,
 def update_rrd(rrdbin,rrdfname,
                time,val):
     cmdline='%s update %s %li:%i'%(rrdbin,rrdfname,time,val)
+    outstr=iexe_cmd(cmdline)
+    return
+
+def rrd2xml(rrdbin,xmlfname,
+            rrd_step,ds_name,ds_type,
+            period,rrd_files):
+    now=long(time.time())
+    start=((now-period)/rrd_step)*rrd_step
+    end=((now-1)/rrd_step)*rrd_step
+    cmdline='%s xport -s %li -e %li --step %i' % (rrdbin,start,end,rrd_step)
+    for rrd_file in rrd_files:
+        cmdline=cmdline+" DEF:%s=%s:%s:%s"%(rrd_file+(ds_name,ds_type))
+
+    for rrd_file in rrd_files:
+        ds_id=rrd_file[0]
+        cmdline=cmdline+" XPORT:%s:%s"%(ds_id,ds_id)
+
+    cmdline=cmdline+" >%s"%xmlfname
+
+    #print cmdline
     outstr=iexe_cmd(cmdline)
     return
