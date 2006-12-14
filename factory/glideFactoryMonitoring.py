@@ -40,6 +40,10 @@ class MonitoringConfig:
                           ('day',3600*24,1),        # a day worth of data, medium resolution
                           ('month',3600*24*31,2)    # a month worth of data, low resolution
                           ]
+        self.graph_sizes=[('small',200,75),
+                          ('medium',400,150),
+                          ('large',800,300)
+                          ]
         
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
@@ -59,18 +63,9 @@ class MonitoringConfig:
         finally:
             fd.close()
 
-        try:
-            os.remove(fname+"~")
-        except:
-            pass
-
-        try:
-            os.rename(fname,fname+"~")
-        except:
-            pass
-
-        os.rename(fname+".tmp",fname)
-
+        tmp2final(fname)
+        return
+    
     def establish_dir(self,relative_dname):
         dname=os.path.join(self.monitor_dir,relative_dname)      
         if not os.path.isdir(dname):
@@ -103,6 +98,8 @@ class MonitoringConfig:
             update_rrd(self.rrd_bin,fname,time,val)
         return
     
+    #############################################################################
+
     def rrd2xml(self,relative_fname,archive_id,
                 period,relative_rrd_files):
         """
@@ -130,19 +127,8 @@ class MonitoringConfig:
                 self.rrd_ds_name,
                 rrd_archive[0], #ds_type
                 period,rrd_files)
-
-        try:
-            os.remove(fname+"~")
-        except:
-            pass
-
-        try:
-            os.rename(fname,fname+"~")
-        except:
-            pass
-
-        os.rename(fname+".tmp",fname)
-
+        tmp2final(fname)
+        return
 
     def report_rrds(self,base_fname,
                     relative_rrd_files):
@@ -154,6 +140,54 @@ class MonitoringConfig:
             pname,period,idx=r
             self.rrd2xml(base_fname+".%s.xml"%pname,idx,
                          period,relative_rrd_files)
+        return
+
+    #############################################################################
+
+    def rrd2graph(self,relative_fname,archive_id,
+                  period,width,height,
+                  title,relative_rrd_files):
+        """
+        Convert one or more RRDs into a graph using
+        rrdtool xport.
+
+        rrd_files is a list of (rrd_id,rrd_fname,graph_style,color,description)
+        """
+
+        if self.rrd_bin==None:
+            return # nothing to do, no rrd bin no rrd conversion
+        
+        fname=os.path.join(self.monitor_dir,relative_fname)      
+        #print "Converting RRD into "+fname
+
+        rrd_archive=self.rrd_archives[archive_id]
+
+        # convert relative fnames to absolute ones
+        rrd_files=[]
+        for rrd_file in relative_rrd_files:
+            rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1]),rrd_file[2],rrd_file[3]))
+
+        rrd2graph(self.rrd_bin,fname+".tmp",
+                  self.rrd_step*rrd_archive[2], # step in seconds
+                  self.rrd_ds_name,
+                  rrd_archive[0], #ds_type
+                  period,width,height,title,rrd_files)
+        tmp2final(fname)
+        return
+
+    def graph_rrds(self,base_fname,
+                   relative_title,relative_rrd_files):
+        """
+        Create default XML files out of the RRD files
+        """
+
+        for r in self.rrd_reports:
+            pname,period,idx=r
+            title=relative_title+" - last "+pname
+            for g in self.graph_sizes:
+                gname,width,height=g
+                self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,
+                               period,width,height,title,relative_rrd_files)
         return
 
 # global configuration of the module
@@ -238,6 +272,9 @@ class condorQStats:
                     a_el=fe_el[tp][a]
                     monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
                                                "GAUGE",self.updated,a_el)
+        return
+    
+    def create_support_history(self):
         # create history XML files for RRDs
         for fe in self.data.keys():
             fe_dir="frontend_"+fe
@@ -247,12 +284,39 @@ class condorQStats:
                 for a in fe_el[tp].keys():
                     monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
                                                  [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
-        return
-    
+        # create graphs for RRDs
+        for fe in self.data.keys():
+            fe_dir="frontend_"+fe
+            fe_el=self.data[fe]
+            monitoringConfig.graph_rrds("%s/Idle"%fe_dir,
+                                        "Idle glideins",
+                                        [("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
+                                         ("Idle","%s/Status_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
+            monitoringConfig.graph_rrds("%s/Running"%fe_dir,
+                                        "Running glideins",
+                                        [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
+            monitoringConfig.graph_rrds("%s/Held"%fe_dir,
+                                        "Held glideins",
+                                        [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
 
+        return
     
     
 ############### P R I V A T E ################
+
+def tmp2final(fname):
+    try:
+        os.remove(fname+"~")
+    except:
+        pass
+
+    try:
+        os.rename(fname,fname+"~")
+    except:
+        pass
+
+    os.rename(fname+".tmp",fname)
+    return
 
 def create_rrd(rrdbin,rrdfname,
                rrd_step,rrd_archives,
@@ -291,3 +355,27 @@ def rrd2xml(rrdbin,xmlfname,
     #print cmdline
     outstr=iexe_cmd(cmdline)
     return
+
+def rrd2graph(rrdbin,fname,
+              rrd_step,ds_name,ds_type,
+              period,width,height,
+              title,rrd_files):
+    now=long(time.time())
+    start=((now-period)/rrd_step)*rrd_step
+    end=((now-1)/rrd_step)*rrd_step
+    cmdline='%s graph %s -s %li -e %li --step %i -l 0 --imgformat PNG --title "%s"' % (rrdbin,fname,start,end,rrd_step,title)
+    for rrd_file in rrd_files:
+        ds_id=rrd_file[0]
+        ds_fname=rrd_file[1]
+        cmdline=cmdline+" DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)
+
+    for rrd_file in rrd_files:
+        ds_id=rrd_file[0]
+        ds_graph_type=rrd_file[2]
+        ds_color=rrd_file[3]
+        cmdline=cmdline+' "%s:%s#%s:%s"'%(ds_graph_type,ds_id,ds_color,ds_id)
+
+    #print cmdline
+    outstr=iexe_cmd(cmdline)
+    return
+
