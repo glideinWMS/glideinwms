@@ -311,16 +311,15 @@ def xml2list(xml_data):
     p.EndElementHandler = xml2list_end_element
     p.CharacterDataHandler = xml2list_char_data
 
-    pre_xml=1
-    for line in xml_data:
-        # skip the part before the xml data
-        if pre_xml and line[:5]!="<?xml":
-            continue
-        pre_xml=0
-        
-        p.Parse(line,0)
-    if not pre_xml:
-        p.Parse("",1)
+    found_xml=-1
+    for line in range(len(xml_data)):
+        # look for the xml header
+        if xml_data[line][:5]=="<?xml":
+            found_xml=line
+            break
+
+    if found_xml>=0:
+        p.Parse(string.join(xml_data[found_xml:]),1)
     # else no xml, so return an empty list
     
     return xml2list_data
