@@ -16,6 +16,7 @@ import os.path
 import sys
 import traceback
 import time
+import threading
 sys.path.append("../lib")
 
 import glideFactoryConfig
@@ -23,6 +24,10 @@ import glideFactoryLib
 import glideFactoryMonitoring
 import glideFactoryInterface
 import logSupport
+import copy
+
+# this thread will be used for lazy updates of rrd history conversions
+qc_rrd_thread=None
 
 
 ############################################################
@@ -33,16 +38,24 @@ def perform_work(factory_name,glidein_name,schedd_name,
     else:
         condor_pool=None
     
+    #glideFactoryLib.factoryConfig.activity_log.write("QueryQ (%s,%s,%s,%s)"%(factory_name,glidein_name,client_name,schedd_name))
     condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,client_name,schedd_name)
+    #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s)"%(factory_name,glidein_name,client_name,schedd_name))
     condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,client_name,condor_pool)
+    #glideFactoryLib.factoryConfig.activity_log.write("Work")
 
     glideFactoryLib.logStats(condorQ,condorStatus)
 
     nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,params)
     if nr_submitted>0:
+        #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
 
+    #glideFactoryLib.factoryConfig.activity_log.write("Sanitize")
+
     glideFactoryLib.sanitizeGlideins(condorQ,condorStatus)
+    
+    #glideFactoryLib.factoryConfig.activity_log.write("Work done")
     return 0
     
 
@@ -56,12 +69,14 @@ def iterate_one(do_advertize,
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),{})
     
+    #glideFactoryLib.factoryConfig.activity_log.write("Find work")
     work = glideFactoryInterface.findWork(factory_name,glidein_name)
     glideFactoryLib.logWorkRequests(work)
     
     if len(work.keys())==0:
         return 0 # nothing to be done
 
+    #glideFactoryLib.factoryConfig.activity_log.write("Perform work")
     schedd_name=jobDescript.data['Schedd']
 
     done_something=0
@@ -84,6 +99,7 @@ def iterate_one(do_advertize,
 ############################################################
 def iterate(cleanupObj,sleep_time,advertize_rate,
             jobDescript,jobAttributes,jobParams):
+    global qc_rrd_thread
     is_first=1
     count=0;
     while 1:
@@ -92,7 +108,25 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             done_something=iterate_one(count==0,
                                        jobDescript,jobAttributes,jobParams)
+            
+            glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             glideFactoryLib.factoryConfig.qc_stats.write_file()
+
+            # keep just one thread running at any given time
+            # if the old one is still running, do nothing (lazy)
+            # create_support_history can take a-while
+            if qc_rrd_thread==None:
+                thread_alive=0
+            else:
+                thread_alive=qc_rrd_thread.isAlive()
+                if not thread_alive:
+                    qc_rrd_thread.join()
+
+            if not thread_alive:
+                glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats")
+                qc_copy=copy.deepcopy(glideFactoryLib.factoryConfig.qc_stats)
+                qc_rrd_thread=threading.Thread(target=qc_copy.create_support_history)
+                qc_rrd_thread.start()
         except:
             if is_first:
                 raise
