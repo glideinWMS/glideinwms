@@ -363,7 +363,7 @@ def rrd2graph(rrdbin,fname,
     now=long(time.time())
     start=((now-period)/rrd_step)*rrd_step
     end=((now-1)/rrd_step)*rrd_step
-    cmdline='%s graph %s -s %li -e %li --step %i -l 0 --imgformat PNG --title "%s"' % (rrdbin,fname,start,end,rrd_step,title)
+    cmdline='%s graph %s -s %li -e %li --step %i -l 0 -w %i -h %i --imgformat PNG --title "%s"' % (rrdbin,fname,start,end,rrd_step,width,height,title)
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_fname=rrd_file[1]
@@ -374,6 +374,8 @@ def rrd2graph(rrdbin,fname,
         ds_graph_type=rrd_file[2]
         ds_color=rrd_file[3]
         cmdline=cmdline+' "%s:%s#%s:%s"'%(ds_graph_type,ds_id,ds_color,ds_id)
+
+    cmdline=cmdline+' "COMMENT:Created on %s"'%time.strftime("%b %d %H\:%M\:%S %Z %Y")
 
     #print cmdline
     outstr=iexe_cmd(cmdline)
