@@ -164,7 +164,7 @@ def getCondorStatusData(factory_name,glidein_name,client_name,pool_name=None,
         csa_str=client_startd_attribute
 
     status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,csa_str,client_name)
-    status=condorMonitor.CondorStatus()
+    status=condorMonitor.CondorStatus(pool_name=pool_name)
     status.factory_name=factory_name
     status.glidein_name=glidein_name
     status.client_name=client_name
