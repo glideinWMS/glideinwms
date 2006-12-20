@@ -52,7 +52,7 @@ class FactoryConfig:
         self.remove_sleep = 1.0
 
         # Max commands per cycle
-        self.max_submits = 25
+        self.max_submits = 100
         self.max_cluster_size=10
         self.max_removes = 5
 
