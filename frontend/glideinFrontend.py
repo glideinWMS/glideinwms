@@ -90,7 +90,7 @@ def main(sleep_time,advertize_rate,config_file):
     iterate(config_dict['log_dir'],sleep_time,
             config_dict['frontend_name'],config_dict['factory_pool'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],
-            20, 5,
+            100, 5,
             config_dict['glidein_params'])
 
 ############################################################
