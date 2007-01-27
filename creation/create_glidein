@@ -152,7 +152,8 @@ class Params:
                         # treat everything a a list... much easier
                         param_vals=[param_vals]
                     for param_val in param_vals:
-                        fd.write("%s %s\n"%(param_flag,param_val))
+                        if param_val!=None:
+                          fd.write("%s %s\n"%(param_flag,param_val))
                 # else it is a special one that cannot be saved
         finally:
             fd.close()
