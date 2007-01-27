@@ -1,5 +1,9 @@
 #!/bin/bash
 
+function warn {
+ echo `date` $@
+}
+
 function usage {
     echo "Usage: glidein_startup.sh <options>"
     echo "where <options> is:"
@@ -105,7 +109,7 @@ if [ "$debug_mode" == "dbg" ]; then
 fi
 
 if [ -z "$repository_url" ]; then
-    echo "Missing Web URL!" 1>&2
+    warn "Missing Web URL!" 1>&2
     usage
 fi
 
@@ -114,7 +118,7 @@ if [ -z "$proxy_url" ]; then
 fi
 
 if [ -z "sign_id" ]; then
-    echo "Missing signature!" 1>&2
+    warn "Missing signature!" 1>&2
     usage
 fi
 
@@ -125,7 +129,7 @@ fi
 if [ "$sign_type" == "sha1" ]; then
     sign_sha1="$sign_id"
 else
-    echo "Unsupported signtype $sign_type found!" 1>&2
+    warn "Unsupported signtype $sign_type found!" 1>&2
     usage
 fi
     
@@ -157,7 +161,7 @@ fi
 # In the Grid world I cannot trust anybody
 umask 0022
 if [ $? -ne 0 ]; then
-    echo "Failed in umask 0022" 1>&2
+    warn "Failed in umask 0022" 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
@@ -175,12 +179,12 @@ elif [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
     GLOBUS_LOCATION=/osgroot/osgcore/globus
     . $GLOBUS_LOCATION/etc/globus-user-env.sh
 else
-    echo "Could not find OSG and/or Globus!" 1>&2
-    echo "Looked in:" 1>&2
-    echo ' $OSG_GRID/setup.sh' 1>&2
-    echo ' $GLOBUS_LOCATION/etc/globus-user-env.sh' 1>&2
-    echo ' /opt/globus/etc/globus-user-env.sh' 1>&2
-    echo ' /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
+    warn "Could not find OSG and/or Globus!" 1>&2
+    warn "Looked in:" 1>&2
+    warn ' $OSG_GRID/setup.sh' 1>&2
+    warn ' $GLOBUS_LOCATION/etc/globus-user-env.sh' 1>&2
+    warn ' /opt/globus/etc/globus-user-env.sh' 1>&2
+    warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
@@ -205,13 +209,13 @@ echo "Started in $start_dir"
 def_work_dir="$work_dir/glide_XXXXXX"
 work_dir=`mktemp -d "$def_work_dir"`
 if [ $? -ne 0 ]; then
-    echo "Cannot create temp '$def_work_dir'" 1>&2
+    warn "Cannot create temp '$def_work_dir'" 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 else
     cd "$work_dir"
     if [ $? -ne 0 ]; then
-	echo "Dir '$work_dir' was created but I cannot cd into it!" 1>&2
+	warn "Dir '$work_dir' was created but I cannot cd into it!" 1>&2
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
     else
@@ -222,7 +226,7 @@ fi
 # mktemp makes it user readable by definition (ignores umask)
 chmod a+rx "$work_dir"
 if [ $? -ne 0 ]; then
-    echo "Failed chmod '$work_dir'" 1>&2
+    warn "Failed chmod '$work_dir'" 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
@@ -230,7 +234,7 @@ fi
 glide_tmp_dir="${work_dir}/tmp"
 mkdir "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
-    echo "Cannot create '$glide_tmp_dir'" 1>&2
+    warn "Cannot create '$glide_tmp_dir'" 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
@@ -239,14 +243,14 @@ fi
 # than the glidein user
 chmod a+rwx "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
-    echo "Failed chmod '$glide_tmp_dir'" 1>&2
+    warn "Failed chmod '$glide_tmp_dir'" 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
 # prevent others to remove or rename a file in tmp
 chmod o+t "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
-    echo "Failed special chmod '$glide_tmp_dir'" 1>&2
+    warn "Failed special chmod '$glide_tmp_dir'" 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
@@ -276,7 +280,7 @@ else
   if [ $? -eq 0 ]; then
     wget_nocache_flag="--cache=off"
   else
-    echo "Unknown kind of wget, cannot disable caching" 1>&2
+    warn "Unknown kind of wget, cannot disable caching" 1>&2
   fi
 fi
 
@@ -299,7 +303,7 @@ function fetch_file_base {
 
 	wget -q "$repository_url/$fname"
 	if [ $? -ne 0 ]; then
-	    echo "Failed to load file '$fname' from '$repository_url'" 1>&2
+	    warn "Failed to load file '$fname' from '$repository_url'" 1>&2
 	    return 1
 	fi
     else  # I have a Squid
@@ -310,7 +314,7 @@ function fetch_file_base {
 	env http_proxy=$proxy_url wget $avoid_cache_str -q "$repository_url/$fname"
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
-	    echo "Failed to load file '$fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
+	    warn "Failed to load file '$fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
 	    return 1
 	fi
     fi
@@ -323,7 +327,7 @@ function fetch_file_base {
 	else
 	    sha1sum -c $tmp_signname
 	    if [ $? -ne 0 ]; then
-		echo "File $fname is corrupted!" 1>&2
+		warn "File $fname is corrupted!" 1>&2
 		rm -f $tmp_signname
 		return 1
 	    fi
@@ -359,25 +363,25 @@ function fetch_subsystem_base {
     ss_dir="$work_dir/${subsystem_dir}"
     mkdir "$ss_dir"
     if [ $? -ne 0 ]; then
-	echo "Cannot create '$ss_dir'" 1>&2
+	warn "Cannot create '$ss_dir'" 1>&2
 	return 1
     fi
     cd "$ss_dir"
     if [ $? -ne 0 ]; then
-	echo "Could not change to '$ss_dir'" 1>&2
+	warn "Could not change to '$ss_dir'" 1>&2
 	return 1
     fi
 
     tar -xmzf "$in_tgz_path"
     if [ $? -ne 0 ]; then
-	echo "Failed untarring $in_tgz_path" 1>&2
+	warn "Failed untarring $in_tgz_path" 1>&2
 	return 1
     fi
     rm -f "$in_tgz_path"
     cd $work_dir
     echo "$config_out $ss_dir" >> $config_file
     if [ $? -ne 0 ]; then
-	echo "Failed to update the config file $config_file" 1>&2
+	warn "Failed to update the config file $config_file" 1>&2
 	return 1
     fi
     return 0
@@ -389,7 +393,7 @@ function fetch_subsystem_base {
 # requested in config file
 function try_fetch_subsystem {
     if [ $# -ne 5 ]; then
-	echo "Not enough arguments in try_fetch_subsystem $@" 1>&2
+	warn "Not enough arguments in try_fetch_subsystem $@" 1>&2
 	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
@@ -422,7 +426,7 @@ fetch_file "signature.sha1"
 echo "$sign_sha1  signature.sha1">signature.sha1.test
 sha1sum -c signature.sha1.test
 if [ $? -ne 0 ]; then
-    echo "Corrupted signature file!" 1>&2
+    warn "Corrupted signature file!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
@@ -470,7 +474,7 @@ do
     "./$script" glidein_config
     ret=$?
     if [ $ret -ne 0 ]; then
-	echo "Error running '$script'" 1>&2
+	warn "Error running '$script'" 1>&2
 	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
