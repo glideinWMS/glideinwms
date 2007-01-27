@@ -159,25 +159,25 @@ echo === Condor ended `date` ===
 echo
 
 if [ "$debug_mode" == "1" ]; then
-    ls -l log*/*
+    ls -l log*/* 2>/dev/null
     echo "MasterLog"
     echo "=================================================="
-    tail -100 log*/MasterLog
+    cat log*/MasterLog 2>/dev/null
     echo "--------------------------------------------------"
     echo
     echo "StartdLog"
     echo "=================================================="
-    tail -100 log*/StartdLog
+    cat log*/StartdLog 2>/dev/null
     echo "--------------------------------------------------"
     echo
     echo "StarterLog.vm2"
     echo "=================================================="
-    tail -100 log*/StarterLog.vm2
+    cat log*/StarterLog.vm2 2>/dev/null
     echo "--------------------------------------------------"
     echo
     echo "StarterLog.vm1"
     echo "=================================================="
-    tail -100 log*/StarterLog.vm1
+    cat log*/StarterLog.vm1 2>/dev/null
     echo "--------------------------------------------------"
     echo
 fi
