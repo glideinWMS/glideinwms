@@ -11,15 +11,10 @@ import os,os.path,stat
 import re,mmap
 import cPickle
 
-# this class will keep track of:
-#  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
-#  - list of completed jobs
-# It will also return the previously cached value, to be used for
-# incremental counts
-class logSummary:
-    def __init__(self,logname):
-        self.logname=logname
-        self.cachename=logname+".scpk"
+class cachedLogClass:
+    # virtual, do not use
+    # the Constructor needs to define logname and cachename
+    # also loadFromLog need to be implemented
 
     # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
@@ -70,6 +65,32 @@ class logSummary:
         fd.close()
         return
 
+    ####### PRIVATE ###########
+    def saveCache(self):
+        # two steps; first create a tmp file, then rename
+        tmpname=self.cachename+(".tmp_%i"%os.getpid())
+        fd=open(tmpname,"w")
+        cPickle.dump(self.data,fd)
+        fd.close()
+
+        try:
+            os.remove(self.cachename)
+        except:
+            pass # may not exist
+        os.rename(tmpname,self.cachename)
+        
+        return
+
+        
+# this class will keep track of:
+#  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
+#  - list of completed jobs
+# These data is available in self.data dictionary
+class logSummary(cachedLogClass):
+    def __init__(self,logname):
+        self.logname=logname
+        self.cachename=logname+".clspk"
+
     def loadFromLog(self):
         tmpdata={}
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -85,20 +106,18 @@ class logSummary:
         self.data=tmpdata
         return
 
-    ####### PRIVATE ###########
-    def saveCache(self):
-        # two steps; first create a tmp file, then rename
-        tmpname=self.cachename+(".tmp_%i"%os.getpid())
-        fd=open(tmpname,"w")
-        cPickle.dump(self.data,fd)
-        fd.close()
+# this class will keep track of
+#  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
+# These data is available in self.data dictionary
+class logCounts(cachedLogClass):
+    def __init__(self,logname):
+        self.logname=logname
+        self.cachename=logname+".clcpk"
 
-        try:
-            os.remove(self.cachename)
-        except:
-            pass # may not exist
-        os.rename(tmpname,self.cachename)
-        
+    def loadFromLog(self):
+        tmpdata={}
+        jobs = parseSubmitLogFastRaw(self.logname)
+        self.data  = countAndInterpretRawStatuses(jobs)
         return
 
 
