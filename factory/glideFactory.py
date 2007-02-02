@@ -23,6 +23,7 @@ import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryMonitoring
 import glideFactoryInterface
+import glideFactoryLogParser
 import logSupport
 import copy
 
@@ -102,6 +103,9 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
     global qc_rrd_thread
     is_first=1
     count=0;
+
+    tracker=glideFactoryLogParser.trackChanges("log","condor_activity")
+
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
@@ -109,6 +113,10 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
             done_something=iterate_one(count==0,
                                        jobDescript,jobAttributes,jobParams)
             
+            glideFactoryLib.factoryConfig.activity_log.write("Checking logs")
+            chjobs=tracker.getChangedJobs()
+            for s in chjobs.keys():
+                glideFactoryLib.factoryConfig.activity_log.write("%s: Entered:%i Exited:%i"%(s,len(chjobs[s]['Entered']),len(chjobs[s]['Exited'])))
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             glideFactoryLib.factoryConfig.qc_stats.write_file()
 
