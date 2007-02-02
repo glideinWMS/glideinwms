@@ -83,10 +83,23 @@ class cachedLogClass:
 
         
 # this class will keep track of:
+#  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
+# These data is available in self.data dictionary
+class logSummary(cachedLogClass):
+    def __init__(self,logname):
+        self.logname=logname
+        self.cachename=logname+".cstpk"
+
+    def loadFromLog(self):
+        jobs = parseSubmitLogFastRaw(self.logname)
+        self.data = listAndInterpretRawStatuses(jobs)
+        return
+
+# this class will keep track of:
 #  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
 #  - list of completed jobs
 # These data is available in self.data dictionary
-class logSummary(cachedLogClass):
+class logCompleted(cachedLogClass):
     def __init__(self,logname):
         self.logname=logname
         self.cachename=logname+".clspk"
@@ -102,7 +115,7 @@ class logSummary(cachedLogClass):
         if status.has_key("Completed"):
             tmpdata['completed_jobs']=status['Completed']
         else:
-            tmpdata['completed_jobs']=0
+            tmpdata['completed_jobs']=[]
         self.data=tmpdata
         return
 
