@@ -15,4 +15,4 @@ import condorLogParser
 # Further on it will need to implement glidein exit code checks
 class dirSummary(condorLogParser.dirSummary):
     def __init__(self,dirname,inactive_files=None):
-        condorLogParser.dirSummary.__init__(self,dirname,log_prefix="condor_activity_",log_suffix=".log",inactive_files=incative_files)
+        condorLogParser.dirSummary.__init__(self,dirname,log_prefix="condor_activity_",log_suffix=".log",inactive_files=inactive_files)
