@@ -14,7 +14,7 @@
 
 import os,os.path,stat
 import re,mmap
-import cPickle
+import cPickle,sets
 
 # -------------- Single Log classes ------------------------
 
@@ -114,6 +114,43 @@ class logSummary(cachedLogClass):
                     other[k]=self.data[k]
                 pass
             return other
+
+    # diff self data with other info
+    # return data[status]['Entered'|'Exited'] - list of jobs
+    def diff(self,other):
+        if other==None:
+            outdata={}
+            for k in self.data.keys():
+                outdata[k]={'Exited':[],'Entered':self.data[k]}
+            return outdata
+        else:
+            outdata={}
+            
+            keys={} # keys will contain the merge of the two lists
+            
+            for s in (self.data.keys()+other.keys()):
+                keys[s]=None
+
+            for s in keys.keys():
+                if self.data.has_key(s):
+                    sel=self.data[s]
+                else:
+                    sel=[]
+                    
+                if other.has_key(s):
+                    oel=other[s]
+                else:
+                    oel=[]
+
+                outdata_s={'Entered':[],'Exited':[]}
+                outdata[s]=outdata_s
+
+                sset=sets.Set(sel)
+                oset=sets.Set(oel)
+
+                outdata_s['Entered']=list(sset.difference(oset))
+                outdata_s['Exited']=list(oset.difference(sset))
+            return outdata
             
 
 # this class will keep track of:
@@ -161,8 +198,49 @@ class logCompleted(cachedLogClass):
                 except: # missing key
                     other['counts'][k]=self.data['counts'][k]
                 pass
-            other['completed_jobs'][k]+=self.data['completed_jobs']
+            other['completed_jobs']+=self.data['completed_jobs']
             return other
+
+
+    # diff self data with other info
+    def diff(self,other):
+        if other==None:
+            outcj={}
+            outdata={'counts':self.data['counts'],'completed_jobs':outcj}
+            for k in self.data['counts'].keys():
+                outcj[k]={'Exited':[],'Entered':self.data[k]}
+            return outdata
+        else:
+            outct={}
+            outcj={'Entered':[],'Exited':[]}
+            outdata={'counts':outct,'completed_jobs':outcj}
+
+            keys={} # keys will contain the merge of the two lists
+            for s in (self.data['counts'].keys()+other['counts'].keys()):
+                keys[s]=None
+
+            for s in keys.keys():
+                if self.data['counts'].has_key(s):
+                    sct=self.data['counts'][s]
+                else:
+                    sct=0
+                    
+                if other['counts'].has_key(s):
+                    oct=other['counts'][s]
+                else:
+                    oct=0
+
+                outct[s]=sct-oct
+
+            sel=self.data['completed_jobs']
+            oel=other['completed_jobs']
+            sset=sets.Set(sel)
+            oset=sets.Set(oel)
+
+            outcj['Entered']=list(sset.difference(oset))
+            outcj['Exited']=list(oset.difference(sset))
+
+            return outdata
 
 # this class will keep track of
 #  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
@@ -200,6 +278,33 @@ class logCounts(cachedLogClass):
                     other[k]=self.data[k]
                 pass
             return other
+
+    # diff self data with other info
+    # return diff of counts
+    def diff(self,other):
+        if other==None:
+            return self.data
+        else:
+            outdata={}
+            
+            keys={} # keys will contain the merge of the two lists
+            for s in (self.data.keys()+other.keys()):
+                keys[s]=None
+
+            for s in keys.keys():
+                if self.data.has_key(s):
+                    sel=self.data[s]
+                else:
+                    sel=0
+                    
+                if other.has_key(s):
+                    oel=other[s]
+                else:
+                    oel=0
+
+                outdata[s]=sel-oel
+
+            return outdata
 
 # -------------- Multiple Log classes ------------------------
 
@@ -284,6 +389,12 @@ class cacheDirClass:
 
         return
 
+    # diff self data with other info
+    def diff(self,other):
+        dummyobj=self.logClass("/dummy/dummy")
+        dummyobj.data=self.data # a little rough but works
+        return  dummyobj.diff(other) 
+        
 # this class will keep track of:
 #  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
