@@ -105,6 +105,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
     count=0;
 
     old_glidein_stats=glideFactoryLogParser.dirSummary("log")
+    old_glidein_stats.load()
 
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
@@ -116,6 +117,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.activity_log.write("Checking logs")
             
             glidein_stats=glideFactoryLogParser.dirSummary("log")
+            glidein_stats.load()
             glidein_stats_diff=glidein_stats.diff(old_glidein_stats.data)
             for s in glidein_stats_diff.keys():
                 glideFactoryLib.factoryConfig.activity_log.write("%s: Entered:%i Exited:%i"%(s,len(glidein_stats_diff[s]['Entered']),len(glidein_stats_diff[s]['Exited'])))
