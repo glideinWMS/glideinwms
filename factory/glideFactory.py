@@ -104,7 +104,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
     is_first=1
     count=0;
 
-    tracker=glideFactoryLogParser.trackChanges("log","condor_activity")
+    old_glidein_stats=glideFactoryLogParser.dirSummary("log")
 
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
@@ -114,9 +114,13 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
                                        jobDescript,jobAttributes,jobParams)
             
             glideFactoryLib.factoryConfig.activity_log.write("Checking logs")
-            chjobs=tracker.getChangedJobs()
-            for s in chjobs.keys():
-                glideFactoryLib.factoryConfig.activity_log.write("%s: Entered:%i Exited:%i"%(s,len(chjobs[s]['Entered']),len(chjobs[s]['Exited'])))
+            
+            glidein_stats=glideFactoryLogParser.dirSummary("log")
+            glidein_stats_diff=glidein_stats.diff(old_glidein_stats.data)
+            for s in glidein_stats_diff.keys():
+                glideFactoryLib.factoryConfig.activity_log.write("%s: Entered:%i Exited:%i"%(s,len(glidein_stats_diff[s]['Entered']),len(glidein_stats_diff[s]['Exited'])))
+            old_glidein_stats=glidein_stats
+            
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             glideFactoryLib.factoryConfig.qc_stats.write_file()
 
