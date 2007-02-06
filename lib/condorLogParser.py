@@ -7,14 +7,26 @@
 #   Igor Sfiligoi (Feb 1st 2007)
 #
 
+# NOTE:
+# Inactive files are log files that have only completed or removed entries
+# Such files will not change in the future
+#
+
 import os,os.path,stat
 import re,mmap
 import cPickle
 
+# -------------- Single Log classes ------------------------
+
 class cachedLogClass:
     # virtual, do not use
-    # the Constructor needs to define logname and cachename
-    # also loadFromLog need to be implemented
+    # the Constructor needs to define logname and cachename (possibly by using clInit)
+    # also loadFromLog, merge and isActive need to be implemented
+
+    # init method to be used by real constructors
+    def clInit(self,logname,cache_ext):
+        self.logname=logname
+        self.cachename=logname+cache_ext
 
     # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
@@ -60,25 +72,12 @@ class cachedLogClass:
 
         
     def loadCache(self):
-        fd=open(self.cachename,"r")
-        self.data=cPickle.load(fd)
-        fd.close()
+        self.data=loadCache(self.cachename)
         return
 
     ####### PRIVATE ###########
     def saveCache(self):
-        # two steps; first create a tmp file, then rename
-        tmpname=self.cachename+(".tmp_%i"%os.getpid())
-        fd=open(tmpname,"w")
-        cPickle.dump(self.data,fd)
-        fd.close()
-
-        try:
-            os.remove(self.cachename)
-        except:
-            pass # may not exist
-        os.rename(tmpname,self.cachename)
-        
+        saveCache(self.cachename,self.data)
         return
 
         
@@ -87,13 +86,35 @@ class cachedLogClass:
 # These data is available in self.data dictionary
 class logSummary(cachedLogClass):
     def __init__(self,logname):
-        self.logname=logname
-        self.cachename=logname+".cstpk"
+        self.clInit(logname,".cstpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
         self.data = listAndInterpretRawStatuses(jobs)
         return
+
+    def isActive(self):
+        active=False
+        for k in self.data.keys():
+            if not (k in ['Completed','Removed']):
+                if len(self.data[k])>0:
+                    active=True # it is enought that at least one non Completed/removed job exist
+        return active
+
+    # merge self data with other info
+    # return merged data, may modify other
+    def merge(self,other):
+        if other==None:
+            return self.data
+        else:
+            for k in self.data.keys():
+                try:
+                    other[k]+=self.data[k]
+                except: # missing key
+                    other[k]=self.data[k]
+                pass
+            return other
+            
 
 # this class will keep track of:
 #  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
@@ -101,8 +122,7 @@ class logSummary(cachedLogClass):
 # These data is available in self.data dictionary
 class logCompleted(cachedLogClass):
     def __init__(self,logname):
-        self.logname=logname
-        self.cachename=logname+".clspk"
+        self.clInit(logname,".clspk")
 
     def loadFromLog(self):
         tmpdata={}
@@ -119,6 +139,31 @@ class logCompleted(cachedLogClass):
         self.data=tmpdata
         return
 
+    def isActive(self):
+        active=False
+        counts=self.data['counts']
+        for k in counts.keys():
+            if not (k in ['Completed','Removed']):
+                if counts[k]>0:
+                    active=True # it is enought that at least one non Completed/removed job exist
+        return active
+
+
+    # merge self data with other info
+    # return merged data, may modify other
+    def merge(self,other):
+        if other==None:
+            return self.data
+        else:
+            for k in self.data['counts'].keys():
+                try:
+                    other['counts'][k]+=self.data['counts'][k]
+                except: # missing key
+                    other['counts'][k]=self.data['counts'][k]
+                pass
+            other['completed_jobs'][k]+=self.data['completed_jobs']
+            return other
+
 # this class will keep track of
 #  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
@@ -132,6 +177,140 @@ class logCounts(cachedLogClass):
         jobs = parseSubmitLogFastRaw(self.logname)
         self.data  = countAndInterpretRawStatuses(jobs)
         return
+
+    def isActive(self):
+        active=False
+        for k in self.data.keys():
+            if not (k in ['Completed','Removed']):
+                if self.data[k]>0:
+                    active=True # it is enought that at least one non Completed/removed job exist
+        return active
+
+
+    # merge self data with other info
+    # return merged data, may modify other
+    def merge(self,other):
+        if other==None:
+            return self.data
+        else:
+            for k in self.data.keys():
+                try:
+                    other[k]+=self.data[k]
+                except: # missing key
+                    other[k]=self.data[k]
+                pass
+            return other
+
+# -------------- Multiple Log classes ------------------------
+
+# this is a generic class
+# while usefull, you probably don't wnat ot use it directly
+class cacheDirClass:
+    def __init__(self,logClass,
+                 dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None): # if ==None, will be reloaded from cache
+        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+
+    def cdInit(self,logClass,
+               dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+               inactive_files=None): # if ==None, will be reloaded from cache
+        self.logClass=logClass # this is an actual class, not an object
+        self.dirname=dirname
+        self.log_prefix=log_prefix
+        self.log_suffix=log_suffix
+        self.inactive_files_cache=os.path.join(dirname,log_prefix+log_suffix+cache_ext)
+        if inactive_files==None:
+            if os.path.isfile(self.inactive_files_cache):
+                self.inactive_files=loadCache(self.inactive_files_cache)
+            else:
+                self.inactive_files=[]
+        else:
+            self.inactive_files=inactive_files
+        return
+    
+
+    # return a list of log files
+    def getFileList(self, active_only):
+        prefix_len=len(self.log_prefix)
+        suffix_len=len(self.log_suffix)
+        files=[]
+        fnames=os.listdir(self.dirname)
+        for fname in fnames:
+            if  ((fname[:prefix_len]==self.log_prefix) and
+                 (fname[-suffix_len:]==self.log_suffix) and
+                 ((not active_only) or (not (fname in self.inactive_files))) 
+                 ):
+                files.append(fname)
+                pass
+            pass
+        return files
+
+    # compare to cache, and tell if the log file has changed since last checked
+    def has_changed(self):
+        ch=False
+        fnames=self.getFileList(active_only=True)
+        for fname in fnames:
+            obj=self.logClass(os.path.join(self.dirname,fname))
+            ch=(ch or obj.has_changed()) # it is enough that one changes
+        return ch
+
+    
+    def load(self,active_only=True):
+        mydata=None
+        new_inactives=[]
+
+        # get list of log files
+        fnames=self.getFileList(active_only)
+
+        # load and merge data
+        for fname in fnames:
+            obj=self.logClass(os.path.join(self.dirname,fname))
+            obj.load()
+            mydata=obj.merge(mydata)
+            if not obj.isActive():
+                new_inactives.append(fname)
+                pass
+            pass
+        self.data=mydata
+
+        # try to save inactive files in the cache
+        # if one was looking at inactive only
+        if active_only and (len(new_inactives)>0):
+            self.inactive_files+=new_inactives
+            try:
+                saveCache(self.inactive_files_cache,self.inactive_files)
+            except IOError:
+                return # silently ignore, this was a load in the end
+
+        return
+
+# this class will keep track of:
+#  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
+# These data is available in self.data dictionary
+class dirSummary(cacheDirClass):
+    def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None): # if ==None, will be reloaded from cache
+        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+
+
+# this class will keep track of:
+#  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
+#  - list of completed jobs
+# These data is available in self.data dictionary
+class dirCompleted(cacheDirClass):
+    def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None): # if ==None, will be reloaded from cache
+        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+
+
+# this class will keep track of
+#  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
+# These data is available in self.data dictionary
+class dirCounts(cacheDirClass):
+    def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None): # if ==None, will be reloaded from cache
+        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+
 
 
 ##############################################################################
@@ -297,3 +476,27 @@ def parseSubmitLogFast(fname):
         jobs[rawJobId2Nr(k)]=int(jobs_raw[k])
     return jobs
 
+################################
+#  Cache handling functions
+################################
+
+def loadCache(fname):
+    fd=open(fname,"r")
+    data=cPickle.load(fd)
+    fd.close()
+    return data
+
+def saveCache(fname,data):
+    # two steps; first create a tmp file, then rename
+    tmpname=fname+(".tmp_%i"%os.getpid())
+    fd=open(tmpname,"w")
+    cPickle.dump(data,fd)
+    fd.close()
+
+    try:
+        os.remove(fname)
+    except:
+        pass # may not exist
+    os.rename(tmpname,fname)
+        
+    return
