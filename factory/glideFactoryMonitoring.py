@@ -275,6 +275,7 @@ class condorQStats:
         return
     
     def create_support_history(self):
+        global monitoringConfig
         # create history XML files for RRDs
         for fe in self.data.keys():
             fe_dir="frontend_"+fe
@@ -301,7 +302,93 @@ class condorQStats:
 
         return
     
+class condorLogSummary:
+    def __init__(self):
+        self.data={}
+        self.updated=time.time()
+        self.current_stats_data={}     # will contain dictionary client->dirSummary.data
+        self.stats_diff={}             # will contain the differences
+        self.job_statuses=('Wait','Idle','Running','Held','Completed','Removed') #const
+
+    def reset(self):
+        # reserve only those that has been around this time
+        new_stats_data={}
+        for c in self.stats_diff.keys():
+            new_stats_data=self.current_stats_data[c]
+
+        self.current_stats_data=new_stats_data
+
+        # and flush out the differences
+        self.stats_diff={}
+        
+
+    def logSummary(self,client_name,stats):
+        """
+         stats - glideFactoryLogParser.dirSummary
+        """
+        if self.current_stats_data.has_key(client_name):
+            old_stats_data=self.current_stats_data[s]
+        else:
+            old_stats_data=None
+        
+        self.stats_diff[client_name]=stats.diff(old_stats_data)
+        self.current_stats_data[client_name]=stats.data
+        self.updated=time.time()
+
+    def write_file(self):
+        global monitoringConfig
+        for client_name in self.stats_diff.keys():
+            fe_dir="frontend_"+client_name
+            for s in self.job_statuses:
+                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs  
+                    if s in self.current_stats_data[client_name].keys():
+                        count=len(self.current_stats_data[client_name][s])
+                    else:
+                        count=0
+                    
+                    monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
+                                               "GAUGE",self.updated,count)
+
+                if s in self.stats_diff[client_name].keys():
+                    entered=len(self.stats_diff[client_name][s]['Entered'])
+                    exited=-len(self.stats_diff[client_name][s]['Exited'])
+                else:
+                    entered=0
+                    exited=0
+                    
+                monitoringConfig.write_rrd("%s/Log_%s_Entered"%(fe_dir,s),
+                                           "ABSOLUTE",self.updated,entered)
+                monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
+                                           "ABSOLUTE",self.updated,exited)
+        return
     
+    def create_support_history(self):
+        global monitoringConfig
+        # create history XML files for RRDs
+        for client_name in self.stats_diff.keys():
+            fe_dir="frontend_"+client_name
+            for s in self.job_statuses:
+                report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s)),
+                             ('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s))]
+                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+                    report_rrds.append(('Count',"%s/Log_%s_Count.rrd"%(fe_dir,s)))
+                monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
+
+        # create graphs for RRDs
+        colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
+        for client_name in self.stats_diff.keys():
+            fe_dir="frontend_"+client_name
+            for s in self.job_statuses:
+                monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
+                                            "Difference in "+s,
+                                            [('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00"),
+                                             ('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s)),"AREA","ff0000"])
+
+                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+                    monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
+                                                s,
+                                                [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s)),"AREA",colors[s]])
+
 ############### P R I V A T E ################
 
 def tmp2final(fname):

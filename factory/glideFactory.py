@@ -28,6 +28,7 @@ import logSupport
 import copy
 
 # this thread will be used for lazy updates of rrd history conversions
+log_rrd_thread=None
 qc_rrd_thread=None
 
 
@@ -44,8 +45,10 @@ def perform_work(factory_name,glidein_name,schedd_name,
     #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s)"%(factory_name,glidein_name,client_name,schedd_name))
     condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,client_name,condor_pool)
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
+    log_stats=glideFactoryLogParser.dirSummary("log",client_name)
 
     glideFactoryLib.logStats(condorQ,condorStatus)
+    glideFactoryLib.factoryConfig.log_stats.logSummary(client_name,log_stats)
 
     nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,params)
     if nr_submitted>0:
@@ -100,47 +103,40 @@ def iterate_one(do_advertize,
 ############################################################
 def iterate(cleanupObj,sleep_time,advertize_rate,
             jobDescript,jobAttributes,jobParams):
-    global qc_rrd_thread
+    global log_rrd_thread,qc_rrd_thread
     is_first=1
     count=0;
 
-    old_glidein_stats=glideFactoryLogParser.dirSummary("log")
-    old_glidein_stats.load()
-
+    glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
+            glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             done_something=iterate_one(count==0,
                                        jobDescript,jobAttributes,jobParams)
             
-            glideFactoryLib.factoryConfig.activity_log.write("Checking logs")
-            
-            glidein_stats=glideFactoryLogParser.dirSummary("log")
-            glidein_stats.load()
-            glidein_stats_diff=glidein_stats.diff(old_glidein_stats.data)
-            for s in ('Wait','Idle','Running','Held','Completed','Removed'):
-                if s in glidein_stats.data.keys():
-                    count=len(glidein_stats.data[s])
-                else:
-                    count=0
-                
-                if s in glidein_stats_diff.keys():
-                    entered=len(glidein_stats_diff[s]['Entered'])
-                    exited=len(glidein_stats_diff[s]['Exited'])
-                else:
-                    entered=0
-                    exited=0
-                    
-                glideFactoryLib.factoryConfig.activity_log.write("%s: Current: %i Entered:%i Exited:%i"%(s,count,entered,exited))
-            old_glidein_stats=glidein_stats
-            
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
+            glideFactoryLib.factoryConfig.log_stats.write_file()
             glideFactoryLib.factoryConfig.qc_stats.write_file()
 
-            # keep just one thread running at any given time
+            # keep just one thread per monitoring type running at any given time
             # if the old one is still running, do nothing (lazy)
             # create_support_history can take a-while
+            if log_rrd_thread==None:
+                thread_alive=0
+            else:
+                thread_alive=log_rrd_thread.isAlive()
+                if not thread_alive:
+                    log_rrd_thread.join()
+
+            if not thread_alive:
+                glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for logSummary")
+                log_copy=copy.deepcopy(glideFactoryLib.factoryConfig.log_stats)
+                log_rrd_thread=threading.Thread(target=log_copy.create_support_history)
+                log_rrd_thread.start()
+
+            # -----
             if qc_rrd_thread==None:
                 thread_alive=0
             else:
@@ -149,7 +145,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
                     qc_rrd_thread.join()
 
             if not thread_alive:
-                glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats")
+                glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for qc")
                 qc_copy=copy.deepcopy(glideFactoryLib.factoryConfig.qc_stats)
                 qc_rrd_thread=threading.Thread(target=qc_copy.create_support_history)
                 qc_rrd_thread.start()

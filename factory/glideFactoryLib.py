@@ -67,6 +67,7 @@ class FactoryConfig:
         # monitoring objects
         # create them for the logging to occur
         self.qc_stats = None
+        self.log_stats = None
 
     def config_submit_freq(self,sleepBetweenSubmits,maxSubmitsXCycle):
         self.submit_sleep=sleepBetweenSubmits
