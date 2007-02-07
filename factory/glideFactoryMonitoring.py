@@ -314,7 +314,7 @@ class condorLogSummary:
         # reserve only those that has been around this time
         new_stats_data={}
         for c in self.stats_diff.keys():
-            new_stats_data=self.current_stats_data[c]
+            new_stats_data[c]=self.current_stats_data[c]
 
         self.current_stats_data=new_stats_data
 
