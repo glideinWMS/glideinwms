@@ -351,7 +351,7 @@ class condorLogSummary:
                                                "GAUGE",self.updated,count)
 
                 sdiff=self.stats_diff[client_name]
-                if ((sdiff!-None) and (s in sdiff.keys())):
+                if ((sdiff!=None) and (s in sdiff.keys())):
                     entered=len(sdiff[s]['Entered'])
                     exited=-len(sdiff[s]['Exited'])
                 else:
