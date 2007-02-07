@@ -663,7 +663,7 @@ def create_submit(submit_dir,
         fd.write("WhenToTransferOutput  = ON_EXIT\n")
         fd.write("\nNotification = Never\n")
         fd.write("\n+Owner = undefined\n")
-        fd.write("\nLog = job.log\n")
+        fd.write("\nLog = log/condor_activity_$ENV(GLIDEIN_LOGNR).log\n")
         fd.write("Output = log/job.$(Cluster).$(Process).out\n")
         fd.write("Error = log/job.$(Cluster).$(Process).err\n")
         fd.write("stream_output = False\n")
@@ -687,6 +687,7 @@ def create_test_submit(submit_dir):
         fd.write("export GLIDEIN_COUNT=1\n")
         fd.write("export GLIDEIN_VERBOSITY=dbg\n")
         fd.write('export GLIDEIN_PARAMS="-param_GLIDEIN_Collector $HOSTNAME"\n')
+        fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("condor_submit -name `grep Schedd %s|awk '{print $2}'` %s\n"%(DESCRIPT_FILE,SUBMIT_FILE))
     finally:
         fd.close()
@@ -713,6 +714,7 @@ def create_submit_wrapper(submit_dir):
         fd.write("export GLIDEIN_COUNT=$1\nshift\n")
         fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
         fd.write('GLIDEIN_PARAMS=""\nwhile [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
+        fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("condor_submit -name $schedd %s\n"%SUBMIT_FILE)
     finally:
         fd.close()
