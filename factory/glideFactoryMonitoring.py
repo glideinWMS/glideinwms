@@ -339,9 +339,11 @@ class condorLogSummary:
         global monitoringConfig
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
+            monitoringConfig.establish_dir(fe_dir)
+            sdata=self.current_stats_data[client_name]
+            sdiff=self.stats_diff[client_name]
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-                    sdata=self.current_stats_data[client_name]
                     if ((sdata!=None) and (s in sdata.keys())):
                         count=len(sdata[s])
                     else:
@@ -350,7 +352,6 @@ class condorLogSummary:
                     monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
                                                "GAUGE",self.updated,count)
 
-                sdiff=self.stats_diff[client_name]
                 if ((sdiff!=None) and (s in sdiff.keys())):
                     entered=len(sdiff[s]['Entered'])
                     exited=-len(sdiff[s]['Exited'])
