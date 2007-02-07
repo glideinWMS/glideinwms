@@ -390,7 +390,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
                                                 s,
-                                                [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s)),"AREA",colors[s]])
+                                                [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
 
 ############### P R I V A T E ################
 
