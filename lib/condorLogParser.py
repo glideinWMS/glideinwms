@@ -120,8 +120,9 @@ class logSummary(cachedLogClass):
     def diff(self,other):
         if other==None:
             outdata={}
-            for k in self.data.keys():
-                outdata[k]={'Exited':[],'Entered':self.data[k]}
+            if self.data!=None:
+                for k in self.data.keys():
+                    outdata[k]={'Exited':[],'Entered':self.data[k]}
             return outdata
         elif self.data==None:
             outdata={}
@@ -210,8 +211,11 @@ class logCompleted(cachedLogClass):
     # diff self data with other info
     def diff(self,other):
         if other==None:
-            outcj={'Exited':[],'Entered':self.data['completed_jobs']}
-            outdata={'counts':self.data['counts'],'completed_jobs':outcj}
+            if self.data!=None:
+                outcj={'Exited':[],'Entered':self.data['completed_jobs']}
+                outdata={'counts':self.data['counts'],'completed_jobs':outcj}
+            else:
+                outdata={'counts':{},'completed_jobs':{'Exited':[],'Entered':[]}}
             return outdata
         elif self.data==None:
             outcj={'Entered':[],'Exited':other['completed_jobs']}
@@ -293,7 +297,10 @@ class logCounts(cachedLogClass):
     # return diff of counts
     def diff(self,other):
         if other==None:
-            return self.data
+            if self.data!=None:
+                return self.data
+            else:
+                return {}
         elif self.data==None:
             outdata={}
             for s in other.keys():
