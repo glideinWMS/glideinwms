@@ -327,7 +327,7 @@ class condorLogSummary:
          stats - glideFactoryLogParser.dirSummary
         """
         if self.current_stats_data.has_key(client_name):
-            old_stats_data=self.current_stats_data[s]
+            old_stats_data=self.current_stats_data[client_name]
         else:
             old_stats_data=None
         
