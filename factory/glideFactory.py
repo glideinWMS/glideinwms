@@ -46,6 +46,7 @@ def perform_work(factory_name,glidein_name,schedd_name,
     condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,client_name,condor_pool)
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
     log_stats=glideFactoryLogParser.dirSummary("log",client_name)
+    log_stats.load()
 
     glideFactoryLib.logStats(condorQ,condorStatus)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_name,log_stats)
