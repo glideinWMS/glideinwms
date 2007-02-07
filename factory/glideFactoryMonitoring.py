@@ -385,7 +385,7 @@ class condorLogSummary:
                 monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
                                             "Difference in "+s,
                                             [('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00"),
-                                             ('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s)),"AREA","ff0000"])
+                                             ('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000")])
 
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
