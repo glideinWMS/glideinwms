@@ -343,7 +343,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     sdata=self.current_stats_data[client_name]
                     if ((sdata!=None) and (s in sdata.keys())):
-                        count=sdata[s])
+                        count=len(sdata[s])
                     else:
                         count=0
                     
