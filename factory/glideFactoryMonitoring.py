@@ -327,11 +327,10 @@ class condorLogSummary:
          stats - glideFactoryLogParser.dirSummary
         """
         if self.current_stats_data.has_key(client_name):
-            old_stats_data=self.current_stats_data[client_name]
+            self.stats_diff[client_name]=stats.diff(self.current_stats_data[client_name])
         else:
-            old_stats_data=None
+            self.stats_diff[client_name]=None # should only compare agains a known result
         
-        self.stats_diff[client_name]=stats.diff(old_stats_data)
         self.current_stats_data[client_name]=stats.data
         self.updated=time.time()
 
