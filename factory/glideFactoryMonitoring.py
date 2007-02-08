@@ -361,8 +361,9 @@ class condorLogSummary:
                     
                 monitoringConfig.write_rrd("%s/Log_%s_Entered"%(fe_dir,s),
                                            "ABSOLUTE",self.updated,entered)
-                monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
-                                           "ABSOLUTE",self.updated,exited)
+                if not (s in ('Completed','Removed')): # Always 0 for them
+                    monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
+                                               "ABSOLUTE",self.updated,exited)
         return
     
     def create_support_history(self):
@@ -371,9 +372,9 @@ class condorLogSummary:
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
             for s in self.job_statuses:
-                report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s)),
-                             ('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s))]
+                report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s))]
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+                    report_rrds.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s)))
                     report_rrds.append(('Count',"%s/Log_%s_Count.rrd"%(fe_dir,s)))
                 monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
 
@@ -382,10 +383,12 @@ class condorLogSummary:
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
             for s in self.job_statuses:
+                rrd_files=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00")]
+                if not (s in ('Completed','Removed')): # always 0 for them
+                    rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
+
                 monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
-                                            "Difference in "+s,
-                                            [('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00"),
-                                             ('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000")])
+                                            "Difference in "+s, rrd_files)
 
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
