@@ -392,6 +392,40 @@ class condorLogSummary:
                                                 s,
                                                 [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
 
+        # create support index files
+        for client_name in self.stats_diff.keys():
+            fe_dir="frontend_"+client_name
+            for rp in monitoringConfig.rrd_reports:
+                period=rp[0]
+                for sz in monitoringConfig.graph_sizes:
+                    size=sz[0]
+                    fname="%s/0Log.%s.%s.html"%(fe_dir,period,size)
+                    if (not os.path.isfile(fname)): #create only if it does not exist
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s over last %s</title>\n"%(client_name,period));
+                        fd.frite("</head>\n<body>\n")
+                        fd.write("<h1>%s over last %s</h1>\n"%(client_name,period));
+                        fd.write("<table>")
+                        for s in self.job_statuses:
+                            f not (s in ('Completed','Removed')): # special treatement
+                                fd.write('<tr>')
+                                for w in ['Count','Diff']:
+                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                if s=='Running':
+                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff'),period,size))
+                                elif s=='Held':
+                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff'),period,size))
+                                fd.write('</tr>\n')                            
+                        fd.write("</table>")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+                    pass # for sz
+                pass # for rp
+            pass # for client_name
+        return
+
 ############### P R I V A T E ################
 
 def tmp2final(fname):
