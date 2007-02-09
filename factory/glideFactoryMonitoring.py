@@ -404,7 +404,7 @@ class condorLogSummary:
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
                         fd.write("<title>%s over last %s</title>\n"%(client_name,period));
-                        fd.frite("</head>\n<body>\n")
+                        fd.write("</head>\n<body>\n")
                         fd.write("<h1>%s over last %s</h1>\n"%(client_name,period));
                         fd.write("<table>")
                         for s in self.job_statuses:
