@@ -399,7 +399,7 @@ class condorLogSummary:
                 period=rp[0]
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
-                    fname==os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
                     if (not os.path.isfile(fname)): #create only if it does not exist
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
