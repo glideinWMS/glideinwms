@@ -413,9 +413,9 @@ class condorLogSummary:
                                 for w in ['Count','Diff']:
                                     fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
                                 if s=='Running':
-                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff'),period,size))
+                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff',period,size))
                                 elif s=='Held':
-                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff'),period,size))
+                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
                                 fd.write('</tr>\n')                            
                         fd.write("</table>")
                         fd.write("</body>\n</html>\n")
