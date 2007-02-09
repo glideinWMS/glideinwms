@@ -408,7 +408,7 @@ class condorLogSummary:
                         fd.write("<h1>%s over last %s</h1>\n"%(client_name,period));
                         fd.write("<table>")
                         for s in self.job_statuses:
-                            f not (s in ('Completed','Removed')): # special treatement
+                            if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr>')
                                 for w in ['Count','Diff']:
                                     fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
