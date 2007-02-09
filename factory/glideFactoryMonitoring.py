@@ -22,23 +22,21 @@ class MonitoringConfig:
     def __init__(self):
         # set default values
         # user should modify if needed
-        self.rrd_step=30        #default to 30 seconds
-        self.rrd_heartbeat=120  #default to 1 minute, should be at least twice the loop time
+        self.rrd_step=300       #default to 5 minutes
+        self.rrd_heartbeat=1800 #default to 30 minutes, should be at least twice the loop time
         self.rrd_ds_name="val"
-        self.rrd_archives=[('LAST',0.5,1,2*60*4),             # max precision, keep 4 hours at default step, 
-                           ('AVERAGE',0.8,10,60/5*24*2),      # 5 min precision, keep 2 days
-                           ('AVERAGE',0.92,60,2*24*45),       # 30 min precision, keep for a month and a half
-                           ('AVERAGE',0.98,240,12*370)        # 2 hour precision, keep for a years
+        self.rrd_archives=[('AVERAGE',0.8,1,60/5*24*2),      # max precision, keep 2 days
+                           ('AVERAGE',0.92,6,2*24*45),       # 30 min precision, keep for a month and a half
+                           ('AVERAGE',0.98,24,12*370)        # 2 hour precision, keep for a year
                            ]
-        self.rrd_archives_small=[('LAST',0.5,1,2*60*2),       # max precision, keep 2 hours at default step, 
-                                 ('AVERAGE',0.8,10,60/5*6),   # 5 min precision, keep 6 hours
-                                 ('AVERAGE',0.92,60,2*24*2),  # 30 min precision, keep for 2 days
-                                 ('AVERAGE',0.98,240,12*45)   # 2 hour precision, keep for a month and a half
+        self.rrd_archives_small=[('AVERAGE',0.8,1,60/5*6),   # max precision, keep 6 hours
+                                 ('AVERAGE',0.92,6,2*24*2),  # 30 min precision, keep for 2 days
+                                 ('AVERAGE',0.98,24,12*45)   # 2 hour precision, keep for a month and a half
                                  ]
 
         self.rrd_reports=[('hour',3600,0),          # an hour worth of data, max resolution
-                          ('day',3600*24,1),        # a day worth of data, medium resolution
-                          ('month',3600*24*31,2)    # a month worth of data, low resolution
+                          ('day',3600*24,0),        # a day worth of data, still high resolution
+                          ('month',3600*24*31,1)    # a month worth of data, low resolution
                           ]
         self.graph_sizes=[('small',200,75),
                           ('medium',400,150),
