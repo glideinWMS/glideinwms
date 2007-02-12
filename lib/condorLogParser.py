@@ -521,9 +521,9 @@ def parseSubmitLogFastRaw(fname):
         if status in ('019','020','025','026','022','023','010','011'):
             # these are intermediate states, so just flip a bit
             if status in ('020','026','022','10'): # connection lost
-                jobs[jobid][0]=str(int(jobs[jobid][0])+1)
+                jobs[jobid]=str(int(jobs[jobid][0])+1)+jobs[jobid][1:]
             else:
-                jobs[jobid][0]=str(int(jobs[jobid][0])-1)
+                jobs[jobid]=str(int(jobs[jobid][0])-1)+jobs[jobid][1:]
         elif status in ('003','006','008'):
             pass # do nothing, that was just informational
         else:
