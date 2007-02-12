@@ -456,6 +456,41 @@ class dirCounts(cacheDirClass):
 #  Condor log parsing functions
 ################################
 
+# Status codes
+# ------------
+# 000 - Job submitted
+# 001 - Job executing
+# 002 - Error in executable
+# 003 - Job was checkpointed
+# 004 - Job was evicted
+# 005 - Job terminated
+# 006 - Image size of job updated
+# 007 - Shadow exception
+# 008 - <Not used>
+# 009 - Job was aborted
+# 010 - Job was suspended
+# 011 - Job was unsuspended
+# 012 - Job was held
+# 013 - Job was released
+# 014 - Parallel node executed (not used here)
+# 015 - Parallel node terminated (not used here)
+# 016 - POST script terminated
+# 017 - Job submitted to Globus
+# 018 - Globus submission failed
+# 019 - Globus Resource Back Up
+# 020 - Detected Down Globus Resource
+# 021 - Remote error
+# 022 - Remote system diconnected 
+# 023 - Remote system reconnected
+# 024 - Remote system cannot recconect
+# 025 - Grid Resource Back Up
+# 026 - Detected Down Grid Resource
+# 027 - Job submitted to grid resource
+
+# Flags in the first char
+# 0XX - No Flag
+# YXX - Y is number of flags set
+
 # read a condor submit log
 # return a dictionary of jobStrings each having the last statusString
 # for example {'1583.004': '000', '3616.008': '009'}
@@ -483,7 +518,16 @@ def parseSubmitLogFastRaw(fname):
         jobid=buf[idx:i1-4]
         idx=i1+1
 
-        jobs[jobid]=status
+        if status in ('019','020','025','026','022','023','010','011'):
+            # these are intermediate states, so just flip a bit
+            if status in ('020','026','022','10'): # connection lost
+                jobs[jobid][0]=str(int(jobs[jobid][0])+1)
+            else:
+                jobs[jobid][0]=str(int(jobs[jobid][0])-1)
+        elif status in ('003','006','008'):
+            pass # do nothing, that was just informational
+        else:
+            jobs[jobid]=status
         i1=buf.find("...",idx)
         if i1<0:
             break
@@ -502,47 +546,17 @@ def rawJobId2Nr(str):
     else:
         return (-1,-1) #invalid
 
-# Status codes
-# 000 - Job submitted
-# 001 - Job executing
-# 002 - Error in executable
-# 003 - Job was checkpointed
-# 004 - Job was evicted
-# 005 - Job terminated
-# 006 - Image size of job updated
-# 007 - Shadow exception
-# 008 - <Not used>
-# 009 - Job was aborted
-# 010 - Job was suspended
-# 011 - Job was unsuspended
-# 012 - Job was held
-# 013 - Job was released
-# 014 - Parallel node executed (not used here)
-# 015 - Parallel node terminated (not used here)
-# 016 - POST script terminated
-# 017 - Job submitted to Globus
-# 018 - Globus submission failed
-# 019 - Globus Resource Back Up
-# 020 - Detected Down Globus Resource
-# 021 - Remote error
-# 022 - Remote system call socket lost 
-# 023 - Remote system call socket reestablished
-# 024 - Remote system call reconnect failure
-# 025 - Grid Resource Back Up
-# 026 - Detected Down Grid Resource
-# 027 - Job submitted to grid resource
-
 # reduce the syayus to either Wait, Idle, Running, Held, Completed or Removed
 def interpretStatus(status):
     if status==5:
         return "Completed"
     elif status==9:
         return "Removed"
-    elif status in (1,3,6,10,11,22,23):
+    elif status==1:
         return "Running"
     elif status==12:
         return "Held"
-    elif status in (0,20,26):
+    elif status==0:
         return "Wait"
     else:
         return "Idle"
@@ -566,7 +580,7 @@ def countAndInterpretRawStatuses(jobs_raw):
     outc={}
     tmpc=countStatuses(jobs_raw)
     for s in tmpc.keys():
-        i_s=interpretStatus(int(s))
+        i_s=interpretStatus(int(s[1:])) # ignore flags
         try:
             outc[i_s]+=tmpc[s]
         except:  # there are only a few possible values, so using exceptions is faster
@@ -592,7 +606,7 @@ def listAndInterpretRawStatuses(jobs_raw):
     outc={}
     tmpc=listStatuses(jobs_raw)
     for s in tmpc.keys():
-        i_s=interpretStatus(int(s))
+        i_s=interpretStatus(int(s[1:])) #ignore flags
         try:
             outc[i_s]+=tmpc[s]
         except:  # there are only a few possible values, so using exceptions is faster
