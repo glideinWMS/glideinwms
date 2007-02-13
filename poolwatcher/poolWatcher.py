@@ -29,4 +29,4 @@ while 1:
     print time.ctime()
     for s in sites.keys():
         print "Site: '%s' VMs: %i"%(s,len(sites[s]))
-    sleep 30
+    time.sleep(30)
