@@ -23,10 +23,19 @@ import condorMonitor
 while 1:
     status=condorMonitor.CondorStatus()
     status.load()
-    gsite=condorMonitor.Group(status,lambda el:el['GLIDEIN_Site'],lambda el:el)
-    gsite.load()
-    sites=gsite.fetchStored()
+    ssite=condorMonitor.Summarize(status,lambda el:[el['GLIDEIN_Site'],el['State']])
+    sites=ssite.countStored()
     print time.ctime()
     for s in sites.keys():
-        print "Site: '%s' VMs: %i"%(s,len(sites[s]))
+	states=sites[s]
+	if states.has_key('Claimed'):
+          claimed=states['Claimed']
+        else: 
+          claimed=0
+        if states.has_key('Unclaimed'):
+          unclaimed=states['Unclaimed']
+        else:
+          unclaimed=0
+
+        print "Site: '%s' Claimed: %i Unclaimed: %i"%(s,claimed,unclaimed)
     time.sleep(30)
