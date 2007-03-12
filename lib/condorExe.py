@@ -56,14 +56,15 @@ def exe_cmd(condor_exe,args):
 
 # can throw ExeError
 def iexe_cmd(cmd):
-    childout, childin, childerr = popen2.popen3(cmd)
-    childin.close()
-    tempOut = childout.readlines()
-    childout.close()
-    tempErr = childerr.readlines()
-    childerr.close()
-    if (len(tempErr)!=0):
-        raise ExeError, "Error running '%s'\n%s"%(cmd,tempErr)
+    child=popen2.Popen3(cmd,True)
+    child.tochild.close()
+    tempOut = child.fromchild.readlines()
+    child.fromchild.close()
+    tempErr = child.childerr.readlines()
+    child.childerr.close()
+    errcode=child.wait()
+    if (errcode!=0):
+        raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
     return tempOut
 
 #
