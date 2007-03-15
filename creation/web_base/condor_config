@@ -108,3 +108,8 @@ SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 # How long will it wait in an unclaimed state before exiting
 STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
+# randomize update interval to minimize packet loss
+UPDATE_INTERVAL = $RANDOM_INTEGER(270, 370, 1)
+MASTER_UPDATE_INTERVAL = $RANDOM_INTEGER(270, 330, 1)
+
+
