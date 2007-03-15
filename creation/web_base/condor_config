@@ -32,7 +32,10 @@ LOCK = $(LOG)
 STARTD_LOG = $(LOG)/StartdLog
 STARTER_LOG = $(LOG)/StarterLog
 
-STARTD_DEBUG = D_COMMAND
+ALL_DEBUG = 
+STARTD_DEBUG = D_PID
+STARTER_DEBUG = 
+MASTER_DEBUG = D_PID
 
 SUSPEND = False
 CONTINUE = True
@@ -45,7 +48,8 @@ KILL = False
 IS_GLIDEIN = True
 STARTD_EXPRS = IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_Expire, START, DaemonStopTime, $(GLIDEIN_VARIABLES)
 
-PREEN_INTERVAL = 0
+# effectively disable checking of new binaries
+MASTER_CHECK_NEW_EXEC_INTERVAL = 3600000
 
 # No need to be nice... I got the slot
 JOB_RENICE_INCREMENT = 0
