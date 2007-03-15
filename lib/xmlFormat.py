@@ -10,6 +10,9 @@ import types
 import cgi
 import string
 
+# this is the default tab
+DEFAULT_TAB="   "
+
 #########################################################################################
 #
 # This module is a generic purpose XML formatter
@@ -129,7 +132,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
 # Convert a class into an XML string
 # all the simple attributes will be put in the header
 # other dictionaries will be put into the body
-def class2string(inst,inst_name,params={},subclass_params={},dicts_params={},lists_params={},tree_params={},text_params=[],indent_tab="   ",leading_tab="",debug_str=""):
+def class2string(inst,inst_name,params={},subclass_params={},dicts_params={},lists_params={},tree_params={},text_params=[],indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params,attr):
         if attr in subclass_params.keys():
@@ -164,7 +167,7 @@ def class2string(inst,inst_name,params={},subclass_params={},dicts_params={},lis
 # Write a class as XML into an open file
 # all the simple attributes will be put in the header
 # other dictionaries will be put into the body
-def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params={},lists_params={},tree_params={},text_params=[],indent_tab="   ",leading_tab="",debug_str=""):
+def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params={},lists_params={},tree_params={},text_params=[],indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params,attr):
         if attr in subclass_params.keys():
@@ -207,7 +210,7 @@ def complete_dict_params(dict_params):
 
 # Convert a dictionary into an XML string
 # all elements should be of the same type, although this is not enforced
-def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",params={},subtypes_params={},indent_tab="   ",leading_tab="",debug_str=""):
+def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     res_arr= []
 
     head_arr = []
@@ -285,7 +288,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",
 
 # Write a dictionary formatted as XML into an open file
 # all elements should be of the same type, although this is not enforced
-def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",params={},subtypes_params={},indent_tab="   ",leading_tab="",debug_str=""):
+def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     head_arr = []
     head_arr.append(leading_tab+('<%s' % dict_name))
     for attr in params.keys():
@@ -371,7 +374,7 @@ def complete_list_params(list_params):
 # Convert a list into an XML string
 # Do not show the indexes, use dict2string if that is needed
 # all elements should be of the same type, although this is not enforced
-def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_params={},indent_tab="   ",leading_tab="",debug_str=""):
+def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     res_arr= []
 
     head_arr = []
@@ -448,7 +451,7 @@ def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_par
 # Write a list formatted as XML in an open file
 # Do not show the indexes, use dict2file if that is needed
 # all elements should be of the same type, although this is not enforced
-def list2file(fd,list,list_name,el_name,el_attr_name="val",params={},subtypes_params={},indent_tab="   ",leading_tab="",debug_str=""):
+def list2file(fd,list,list_name,el_name,el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     head_arr = []
     head_arr.append(leading_tab+('<%s' % list_name))
     for attr in params.keys():
@@ -525,7 +528,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name="val",params={},subtypes_pa
 # a tree is a dictionary that have inside other dictionaries of the same type
 # all the clients are contained in an element of list type
 # only simple attributes are allowed and will be put in the header
-def tree2string(tree,tree_name,child_element,indent_tab="   ",leading_tab="",debug_str=""):
+def tree2string(tree,tree_name,child_element,indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     res= []
     line = leading_tab+'<'+tree_name
     for key in tree.keys():
@@ -551,7 +554,7 @@ def tree2string(tree,tree_name,child_element,indent_tab="   ",leading_tab="",deb
 # a tree is a dictionary that have inside other dictionaries of the same type
 # all the clients are contained in an element of list type
 # only simple attributes are allowed and will be put in the header
-def tree2file(fd,tree,tree_name,child_element,indent_tab="   ",leading_tab="",debug_str=""):
+def tree2file(fd,tree,tree_name,child_element,indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     line = leading_tab+'<'+tree_name
     for key in tree.keys():
         if key==child_element:
