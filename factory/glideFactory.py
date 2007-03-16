@@ -156,7 +156,7 @@ def iterate_one(do_advertize,
                 jobDescript,jobAttributes,jobParams):
     done_something = find_and_perform_work(jobDescript,jobParams)
 
-    if do_advertize:
+    if do_advertize or done_something:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
         advertize_myself(jobDescript,jobAttributes,jobParams,glideFactoryLib.factoryConfig.qc_stats.get_total())
     
