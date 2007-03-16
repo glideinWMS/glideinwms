@@ -254,7 +254,7 @@ class condorQStats:
     def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         return xmlFormat.dict2string(self.data,
                                      dict_name="frontends",el_name="frontend",
-                                     subtypes_params={"class":{'subclass_params':{'req':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
+                                     subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_total(self):
