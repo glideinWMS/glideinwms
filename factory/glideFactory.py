@@ -65,7 +65,7 @@ def perform_work(factory_name,glidein_name,schedd_name,
     
 
 ############################################################
-def find_and_perform_work(jobDescript,JobParams):
+def find_and_perform_work(jobDescript,jobParams):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
 
