@@ -267,7 +267,7 @@ class condorQStats:
 
                     if tel==None:
                         # first one, just copy over
-                        tel=copy.deepcopy(el)
+                        total[w]=copy.deepcopy(el)
                     else:
                         # successive, sum 
                         for a in el.keys():
@@ -275,9 +275,9 @@ class condorQStats:
                                 tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
-                        #for a in tel.keys():
-                        #    if not el.has_key(a):
-                        #        del tel[a]
+                        for a in tel.keys():
+                            if not el.has_key(a):
+                                del tel[a]
         
         for w in total.keys():
             if total[w]==None:
