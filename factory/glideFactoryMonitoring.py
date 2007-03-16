@@ -9,7 +9,7 @@
 
 import os,os.path
 import time
-import xmlFormat
+import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
 ############################################################
@@ -249,16 +249,34 @@ class condorQStats:
     def get_data(self):
         return self.data
 
-    def get_xml(self):
+    def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         return xmlFormat.dict2string(self.data,
                                      dict_name="frontends",el_name="frontend",
-                                     params={"updated":long(self.updated)},
-                                     subtypes_params={"class":{}})
+                                     subtypes_params={"class":{}},
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
+
+    def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
+                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
+                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
+                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
+                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
+                              "human":timeConversion.getHuman(self.updated)}}
+         return xmlFormat.class2string(xml_updated,
+                                       dict_name="updated",el_name="timezone",
+                                       subtypes_params={"class":{}},
+                                       indent_tab=indent_tab,leading_tab=leading_tab)
+
 
     def write_file(self):
         global monitoringConfig
         # write snaphot file
-        monitoringConfig.write_file("schedd_status.xml",self.get_xml())
+        xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
+                 '<glideFactoryQStats>\n'+
+                 self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 "</glideFactoryQStats>\n")
+        monitoringConfig.write_file("schedd_status.xml",xml_str)
         # update RRDs
         for fe in self.data.keys():
             fe_dir="frontend_"+fe
