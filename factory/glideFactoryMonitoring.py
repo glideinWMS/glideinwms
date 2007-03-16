@@ -262,10 +262,10 @@ class condorQStats:
                      "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
                               "RFC2822":timeConversion.getRFC2822_Local(self.updated),
                               "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.class2string(xml_updated,
-                                      dict_name="updated",el_name="timezone",
-                                      subtypes_params={"class":{}},
-                                      indent_tab=indent_tab,leading_tab=leading_tab)
+        return xmlFormat.dict2string(xml_updated,
+                                     dict_name="updated",el_name="timezone",
+                                     subtypes_params={"class":{}},
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
 
 
     def write_file(self):
