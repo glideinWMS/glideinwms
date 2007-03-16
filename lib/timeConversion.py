@@ -36,7 +36,7 @@ def getRFC2822_UTC(now=None):
 def getRFC2822_Local(now=None):
     if now==None:
         now=time.time()
-    return time.strftime("%a, %d %b %Y %H:%M:%S",time.gmtime(now))+("%+03i%02i"%((time.timezone/3600),(time.timezone%3600/60)))
+    return time.strftime("%a, %d %b %Y %H:%M:%S",time.localtime(now))+("%+03i%02i"%((time.timezone/3600),(time.timezone%3600/60)))
 
 
 
