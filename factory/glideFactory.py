@@ -97,6 +97,45 @@ def find_and_perform_work(jobDescript,jobParams):
     return done_something
 
 ############################################################
+def write_stats():
+    global log_rrd_thread,qc_rrd_thread
+    
+    glideFactoryLib.factoryConfig.log_stats.write_file()
+    glideFactoryLib.factoryConfig.qc_stats.write_file()
+
+    # keep just one thread per monitoring type running at any given time
+    # if the old one is still running, do nothing (lazy)
+    # create_support_history can take a-while
+    if log_rrd_thread==None:
+        thread_alive=0
+    else:
+        thread_alive=log_rrd_thread.isAlive()
+        if not thread_alive:
+            log_rrd_thread.join()
+
+    if not thread_alive:
+        glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for logSummary")
+        log_copy=copy.deepcopy(glideFactoryLib.factoryConfig.log_stats)
+        log_rrd_thread=threading.Thread(target=log_copy.create_support_history)
+        log_rrd_thread.start()
+
+    # -----
+    if qc_rrd_thread==None:
+        thread_alive=0
+    else:
+        thread_alive=qc_rrd_thread.isAlive()
+        if not thread_alive:
+            qc_rrd_thread.join()
+
+    if not thread_alive:
+        glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for qc")
+        qc_copy=copy.deepcopy(glideFactoryLib.factoryConfig.qc_stats)
+        qc_rrd_thread=threading.Thread(target=qc_copy.create_support_history)
+        qc_rrd_thread.start()
+
+    return
+
+############################################################
 def advertize_myself(jobDescript,jobAttributes,jobParams,current_qc_total):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
@@ -125,7 +164,6 @@ def iterate_one(do_advertize,
 ############################################################
 def iterate(cleanupObj,sleep_time,advertize_rate,
             jobDescript,jobAttributes,jobParams):
-    global log_rrd_thread,qc_rrd_thread
     is_first=1
     count=0;
 
@@ -144,38 +182,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
                                        jobDescript,jobAttributes,jobParams,old_qc_total)
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
-            glideFactoryLib.factoryConfig.log_stats.write_file()
-            glideFactoryLib.factoryConfig.qc_stats.write_file()
-
-            # keep just one thread per monitoring type running at any given time
-            # if the old one is still running, do nothing (lazy)
-            # create_support_history can take a-while
-            if log_rrd_thread==None:
-                thread_alive=0
-            else:
-                thread_alive=log_rrd_thread.isAlive()
-                if not thread_alive:
-                    log_rrd_thread.join()
-
-            if not thread_alive:
-                glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for logSummary")
-                log_copy=copy.deepcopy(glideFactoryLib.factoryConfig.log_stats)
-                log_rrd_thread=threading.Thread(target=log_copy.create_support_history)
-                log_rrd_thread.start()
-
-            # -----
-            if qc_rrd_thread==None:
-                thread_alive=0
-            else:
-                thread_alive=qc_rrd_thread.isAlive()
-                if not thread_alive:
-                    qc_rrd_thread.join()
-
-            if not thread_alive:
-                glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for qc")
-                qc_copy=copy.deepcopy(glideFactoryLib.factoryConfig.qc_stats)
-                qc_rrd_thread=threading.Thread(target=qc_copy.create_support_history)
-                qc_rrd_thread.start()
+            write_stats()
         except:
             if is_first:
                 raise
