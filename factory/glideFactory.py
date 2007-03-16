@@ -136,9 +136,11 @@ def write_stats():
     return
 
 ############################################################
-def advertize_myself(jobDescript,jobAttributes,jobParams,current_qc_total):
+def advertize_myself(jobDescript,jobAttributes,jobParams):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
+
+    current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
 
     glidein_monitor_monitors={}
     for w in current_qc_total.keys():
@@ -158,7 +160,7 @@ def iterate_one(do_advertize,
 
     if do_advertize or done_something:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
-        advertize_myself(jobDescript,jobAttributes,jobParams,glideFactoryLib.factoryConfig.qc_stats.get_total())
+        advertize_myself(jobDescript,jobAttributes,jobParams)
     
     return done_something
 
