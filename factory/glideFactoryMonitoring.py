@@ -224,9 +224,10 @@ class condorQStats:
                 el[str]=0
         self.updated=time.time()
 
-    def logRequest(self,client_name,requests):
+    def logRequest(self,client_name,requests,params):
         """
         requests is a dictinary of requests
+        params is a dictinary of parameters
 
         At the moment, it looks only for
           'IdleGlideins'
@@ -243,8 +244,9 @@ class condorQStats:
         if requests.has_key('IdleGlideins'):
             el['Idle']=requests['IdleGlideins']
 
-        self.updated=time.time()
+        el['Parameters']=copy.deepcopy(params)
 
+        self.updated=time.time()
 
     def get_data(self):
         return self.data
@@ -267,16 +269,23 @@ class condorQStats:
 
                     if tel==None:
                         # first one, just copy over
-                        total[w]=copy.deepcopy(el)
+                        total[w]={}
+                        tel=total[w]
+                        for a in el.keys():
+                            if type(el[a])==type(1): # copy only numbers
+                                tel[a]=el[a]
                     else:
                         # successive, sum 
                         for a in el.keys():
-                            if tel.has_key(a):
-                                tel[a]+=el[a]
+                            if type(el[a])==type(1): # consider only numbers
+                                if tel.has_key(a):
+                                    tel[a]+=el[a]
                             # if other frontends did't have this attribute, ignore
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
                             if not el.has_key(a):
+                                del tel[a]
+                            elif type(el[a])!=type(1):
                                 del tel[a]
         
         for w in total.keys():

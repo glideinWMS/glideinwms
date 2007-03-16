@@ -272,7 +272,8 @@ def logWorkRequests(work):
     for work_key in work.keys():
         if work[work_key]['requests'].has_key('IdleGlideins'):
             factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work_key,work[work_key]['requests']['IdleGlideins']))
-            factoryConfig.qc_stats.logRequest(work_key,work[work_key]['requests'])
+            factoryConfig.logActivity("  Params: %s"%work[work_key]['params'])
+            factoryConfig.qc_stats.logRequest(work_key,work[work_key]['requests'],work[work_key]['params'])
 
 
 ############################################################
