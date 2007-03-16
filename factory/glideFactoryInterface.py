@@ -35,8 +35,8 @@ class FactoryConfig:
         # String to prefix for the parameters
         self.glidein_param_prefix = "GlideinParam"
 
-        # String to prefix for the parameters
-        self.glidein_count_prefix = "GlideinCount"
+        # String to prefix for the monitoring
+        self.glidein_monitor_prefix = "GlideinMonitor"
 
         # String to prefix for the requests
         self.client_req_prefix = "Req"
@@ -96,8 +96,8 @@ def findWork(factory_name,glidein_name):
 
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
-# similar for glidein_params and glidein_monitor_counts
-def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={},glidein_monitor_counts={}):
+# similar for glidein_params and glidein_monitor_monitors
+def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={},glidein_monitor_monitors={}):
     global factoryConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -112,10 +112,10 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
 
-            # write out both the attributes, params and counts
+            # write out both the attributes, params and monitors
             for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
                                   (factoryConfig.glidein_param_prefix,glidein_params),
-                                  (factoryConfig.glidein_count_prefix,glidein_monitor_counts)):
+                                  (factoryConfig.glidein_monitor_prefix,glidein_monitor_monitors)):
                 for attr in data.keys():
                     el=data[attr]
                     if type(el)==type(1):
