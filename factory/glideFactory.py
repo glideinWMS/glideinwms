@@ -153,12 +153,13 @@ def advertize_myself(jobDescript,jobAttributes,jobParams,current_qc_total):
 
 ############################################################
 def iterate_one(do_advertize,
-                jobDescript,jobAttributes,jobParams,current_qc_total):
+                jobDescript,jobAttributes,jobParams):
+    done_something = find_and_perform_work(jobDescript,jobParams)
+
     if do_advertize:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
-        advertize_myself(jobDescript,jobAttributes,jobParams,current_qc_total)
+        advertize_myself(jobDescript,jobAttributes,jobParams,glideFactoryLib.factoryConfig.qc_stats.get_total())
     
-    done_something = find_and_perform_work(jobDescript,jobParams)
     return done_something
 
 ############################################################
@@ -171,15 +172,11 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
-            if glideFactoryLib.factoryConfig.qc_stats!=None:
-                old_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
-            else:
-                old_qc_total={}
-            
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
+
             done_something=iterate_one(count==0,
-                                       jobDescript,jobAttributes,jobParams,old_qc_total)
+                                       jobDescript,jobAttributes,jobParams)
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             write_stats()
