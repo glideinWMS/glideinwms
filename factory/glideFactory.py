@@ -97,21 +97,27 @@ def find_and_perform_work(jobDescript,jobParams):
     return done_something
 
 ############################################################
-def iterate_one(do_advertize,
-                jobDescript,jobAttributes,jobParams,current_qc_total):
+def advertize_myself(jobDescript,jobAttributes,jobParams,current_qc_total):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
 
+    glidein_monitor_monitors={}
+    for w in current_qc_total.keys():
+        for a in current_qc_total[w].keys():
+            glidein_monitor_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+    try:
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitor_monitors)
+    except:
+        glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
+
+    return
+
+############################################################
+def iterate_one(do_advertize,
+                jobDescript,jobAttributes,jobParams,current_qc_total):
     if do_advertize:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
-        glidein_monitor_monitors={}
-        for w in current_qc_total.keys():
-            for a in current_qc_total[w].keys():
-                glidein_monitor_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
-        try:
-            glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitor_monitors)
-        except:
-            glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
+        advertize_myself(jobDescript,jobAttributes,jobParams,current_qc_total)
     
     done_something = find_and_perform_work(jobDescript,jobParams)
     return done_something
