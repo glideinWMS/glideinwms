@@ -288,7 +288,7 @@ class condorQStats:
     def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         total=self.get_total()
         return xmlFormat.class2string(total,
-                                      dict_name="total",
+                                      inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_updated():
