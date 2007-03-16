@@ -21,22 +21,22 @@ def getHuman(now=None):
 def getISO8601_UTC(now=None):
     if now==None:
         now=time.time()
-    return time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime(self.updated))
+    return time.strftime("%Y-%m-%dT%H:%M:%SZ",time.gmtime(now))
 
 def getISO8601_Local(now=None):
     if now==None:
         now=time.time()
-    return time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime(self.updated))+("%+03i:%2i"%((time.timezone/3600),(time.timezone%3600/60)))
+    return time.strftime("%Y-%m-%dT%H:%M:%S",time.localtime(now))+("%+03i:%2i"%((time.timezone/3600),(time.timezone%3600/60)))
 
 def getRFC2822_UTC(now=None):
     if now==None:
         now=time.time()
-    return time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(self.updated))
+    return time.strftime("%a, %d %b %Y %H:%M:%S +0000",time.gmtime(now))
 
 def getRFC2822_Local(now=None):
     if now==None:
         now=time.time()
-    return time.strftime("%a, %d %b %Y %H:%M:%S",time.gmtime(self.updated))+("%+03i%2i"%((time.timezone/3600),(time.timezone%3600/60)))
+    return time.strftime("%a, %d %b %Y %H:%M:%S",time.gmtime(now))+("%+03i%2i"%((time.timezone/3600),(time.timezone%3600/60)))
 
 
 
