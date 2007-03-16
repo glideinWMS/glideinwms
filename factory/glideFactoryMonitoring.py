@@ -8,7 +8,7 @@
 #
 
 import os,os.path
-import time
+import time,copy
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
@@ -255,6 +255,46 @@ class condorQStats:
                                      subtypes_params={"class":{}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
+    def get_total(self):
+        total={'Status':None,'Requested':None}
+
+        for f in self.data.keys():
+            fe=self.data[f]
+            for w in fe.keys():
+                if total.has_key(w): # ignore eventual not supported classes
+                    el=fe[w]
+                    tel=total[w]
+
+                    if tel==None:
+                        # first one, just copy over
+                        tel=copy.deepcopy(el)
+                    else:
+                        # successive, sum 
+                        for a in el.keys():
+                            if tel.has_key(a):
+                                tel[a]+=el[a]
+                            # if other frontends did't have this attribute, ignore
+                        # if any attribute from prev. frontends are not in the current one, remove from total
+                        for a in tel.keys():
+                            if not el.has_key(a):
+                                del tel[a]
+        
+        for w in total.keys():
+            if total[w]==None:
+                del total[w] # remove entry if not defined
+
+        return total
+    
+    def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        total=self.get_total()
+        return xmlFormat.dict2string(total,
+                                     dict_name="total",el_name="frontend",
+                                     subtypes_params={"class":{}},
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
+
+    def get_updated():
+        return self.updated
+
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
                             "ISO8601":timeConversion.getISO8601_UTC(self.updated),
@@ -275,6 +315,7 @@ class condorQStats:
                  '<glideFactoryQStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</glideFactoryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml",xml_str)
         # update RRDs
