@@ -349,8 +349,9 @@ class condorQStats:
             for tp in fe_el.keys():
                 # type - status or requested
                 for a in fe_el[tp].keys():
-                    monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
-                                                 [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
+                    if type(fe_el[tp][a])!=type({}): # ignore subdictionaries
+                        monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
+                                                     [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
         # create graphs for RRDs
         for fe in self.data.keys():
             fe_dir="frontend_"+fe
