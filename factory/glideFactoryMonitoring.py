@@ -335,8 +335,9 @@ class condorQStats:
                 # type - status or requested
                 for a in fe_el[tp].keys():
                     a_el=fe_el[tp][a]
-                    monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
-                                               "GAUGE",self.updated,a_el)
+                    if type(a_el)!=type({}): # ignore subdictionaries
+                        monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
+                                                   "GAUGE",self.updated,a_el)
         return
     
     def create_support_history(self):
