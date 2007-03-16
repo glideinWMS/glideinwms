@@ -94,11 +94,13 @@ def findWork(factory_name,glidein_name):
 
     return out
 
+start_time=time.time()
+advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
 def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={},glidein_monitor_monitors={}):
-    global factoryConfig
+    global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
@@ -111,6 +113,9 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
             fd.write('Name = "%s@%s"\n'%(glidein_name,factory_name))
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
+            fd.write('DaemonStartTime = %li\n'%start_time)
+            fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
+            advertizeGlideinCounter+=1
 
             # write out both the attributes, params and monitors
             for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
