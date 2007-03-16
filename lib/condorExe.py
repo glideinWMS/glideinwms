@@ -65,7 +65,7 @@ def iexe_cmd(cmd):
     try:
        errcode=child.wait()
     except OSError, e:
-       raise ExeError, "Error running '%s'\nStderr:%s\nException: %s"%(cms,tempErr,e)
+       raise ExeError, "Error running '%s'\nStderr:%s\nException: %s"%(cmd,tempErr,e)
     if (errcode!=0):
         raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
     return tempOut
