@@ -65,7 +65,7 @@ def perform_work(factory_name,glidein_name,schedd_name,
     
 
 ############################################################
-def find_and_perform_work(jobDescript):
+def find_and_perform_work(jobDescript,JobParams):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
 
@@ -113,7 +113,7 @@ def iterate_one(do_advertize,
         except:
             glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
     
-    done_something = find_and_perform_work(jobDescript)
+    done_something = find_and_perform_work(jobDescript,jobParams)
     return done_something
 
 ############################################################
