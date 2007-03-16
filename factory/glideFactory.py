@@ -66,13 +66,17 @@ def perform_work(factory_name,glidein_name,schedd_name,
 
 ############################################################
 def iterate_one(do_advertize,
-                jobDescript,jobAttributes,jobParams):
+                jobDescript,jobAttributes,jobParams,current_qc_total):
     factory_name=jobDescript.data['FactoryName']
     glidein_name=jobDescript.data['GlideinName']
 
     if do_advertize:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),{})
+        glidein_monitor_monitors={}
+        for w in current_qc_total.keys():
+            for a in current_qc_total[w].keys():
+                glidein_monitor_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitor_monitors)
     
     #glideFactoryLib.factoryConfig.activity_log.write("Find work")
     work = glideFactoryInterface.findWork(factory_name,glidein_name)
@@ -112,10 +116,15 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
     while 1:
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
+            if glideFactoryLib.factoryConfig.qc_stats!=None:
+                old_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
+            else:
+                old_qc_total={}
+            
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             done_something=iterate_one(count==0,
-                                       jobDescript,jobAttributes,jobParams)
+                                       jobDescript,jobAttributes,jobParams,old_qc_total)
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             glideFactoryLib.factoryConfig.log_stats.write_file()
