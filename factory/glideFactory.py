@@ -142,12 +142,12 @@ def advertize_myself(jobDescript,jobAttributes,jobParams):
 
     current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
 
-    glidein_monitor_monitors={}
+    glidein_monitors={}
     for w in current_qc_total.keys():
         for a in current_qc_total[w].keys():
-            glidein_monitor_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
+            glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitor_monitors)
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitors)
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 

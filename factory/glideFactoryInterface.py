@@ -99,7 +99,7 @@ advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={},glidein_monitor_monitors={}):
+def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={},glidein_monitors={}):
     global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -120,7 +120,7 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
             # write out both the attributes, params and monitors
             for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
                                   (factoryConfig.glidein_param_prefix,glidein_params),
-                                  (factoryConfig.glidein_monitor_prefix,glidein_monitor_monitors)):
+                                  (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
                 for attr in data.keys():
                     el=data[attr]
                     if type(el)==type(1):
@@ -135,3 +135,5 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
         condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s"%tmpnam)
     finally:
         os.remove(tmpnam)
+
+
