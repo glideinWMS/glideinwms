@@ -147,9 +147,29 @@ def advertize_myself(jobDescript,jobAttributes,jobParams):
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitors)
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitors.copy())
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
+
+    current_qc_data=glideFactoryLib.factoryConfig.qc_stats.get_data()
+    for client_name in current_qc_data.keys():
+        try:
+            fstatus=current_qc_data[client_name]['Status'].copy()
+        except:
+            fstatus={}
+        try:
+            fparams=current_qc_data[client_name]['Requested']['Parameters']
+        except:
+            fparams={}
+        params=jobParams.data.copy()
+        for p in fparams.keys():
+            if p in params.keys(): # can only overwrite existing params, not create new ones
+                params[p]=fparams[p]
+        try:
+            glideFactoryInterface.advertizeGlideinClientMonitoring(factory_name,glidein_name,client_name,jobAttributes.data.copy(),params,fstatus)
+        except:
+            glideFactoryLib.factoryConfig.warning_log.write("Advertize of '%s' failed"%client_name)
+        
 
     return
 
