@@ -97,7 +97,8 @@ function create_gridmapfile {
 	exit 1
     fi
 
-    echo "\"$idp\"" condor > grid-mapfile
+    touch grid-mapfile
+    echo "\"$idp\"" condor >> grid-mapfile
     if [ $? -ne 0 ]; then
 	echo "Cannot add user identity to grid-mapfile!" 1>&2
 	exit 1
