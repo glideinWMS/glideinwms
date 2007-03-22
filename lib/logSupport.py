@@ -24,11 +24,13 @@ class DayLogFile:
             fd=open(fname,"a")
         except:
             self.write_on_exception("Cannot open %s"%fname,msg)
+            raise
         try:
             try:
                 fd.write(self.format_msg(now,msg)+"\n")
             except:
                 self.write_on_exception("Cannot open %s"%fname,msg)
+                raise
         finally:
             fd.close()
         
