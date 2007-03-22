@@ -17,7 +17,7 @@ import condorMonitor
 # specify the appropriate constraint
 #
 def getIdleCondorQ(schedd_names,constraint=None):
-    return getCondorQConstrained(schedd_names,"JobStatus==1",constraints)
+    return getCondorQConstrained(schedd_names,"JobStatus==1",constraint)
 
 #
 # Return a dictionary of schedds containing idle jobs
@@ -27,7 +27,7 @@ def getIdleCondorQ(schedd_names,constraint=None):
 # specify the appropriate constraint
 #
 def getRunningCondorQ(schedd_names,constraint=None):
-    return getCondorQConstrained(schedd_names,"JobStatus==2",constraints)
+    return getCondorQConstrained(schedd_names,"JobStatus==2",constraint)
 
 #
 # Get the number of jobs that match each glidein
