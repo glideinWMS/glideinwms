@@ -35,6 +35,9 @@ class FrontendConfig:
         # String to prefix for the parameters
         self.glidein_param_prefix = "GlideinParam"
 
+        # String to prefix for the monitors
+        self.glidein_monitor_prefix = "GlideinMonitor"
+
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
@@ -97,10 +100,11 @@ def findGlideins(factory_pool,
 
 # glidein_params is a dictionary of values to publish
 #  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
+# similar for glidein_params and glidein_monitors
 def advertizeWork(factory_pool,
                   client_name,request_name,
                   glidein_name,min_nr_glideins,
-                  glidein_params={}):
+                  glidein_params={},glidein_monitors={}):
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -117,16 +121,17 @@ def advertizeWork(factory_pool,
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
 
-            # write out both the params
-            prefix=frontendConfig.glidein_param_prefix
-            for attr in glidein_params.keys():
-                el=glidein_params[attr]
-                if type(el)==type(1):
-                    # don't quote ints
-                    fd.write('%s%s = %s\n'%(prefix,attr,el))
-                else:
-                    escaped_el=string.replace(str(el),'"','\\"')
-                    fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
+            # write out both the params and monitors
+            for (prefix,data) in ((frontendConfig.glidein_param_prefix,glidein_params),
+                                  (frontendConfig.glidein_monitor_prefix,glidein_monitors)):
+                for attr in data.keys():
+                    el=data[attr]
+                    if type(el)==type(1):
+                        # don't quote ints
+                        fd.write('%s%s = %s\n'%(prefix,attr,el))
+                    else:
+                        escaped_el=string.replace(str(el),'"','\\"')
+                        fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
         finally:
             fd.close()
 
