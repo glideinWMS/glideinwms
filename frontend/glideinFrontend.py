@@ -31,7 +31,7 @@ def iterate_one(frontend_name,factory_pool,
     condorq_dict=glideinFrontendLib.getIdleCondorQ(schedd_names,job_constraint)
 
     activity_log.write("Match")
-    count_glideins=glideinFrontendLib.countMatchIdle(match_str,condorq_dict,glidein_dict)
+    count_glideins=glideinFrontendLib.countMatch(match_str,condorq_dict,glidein_dict)
 
     for glidename in count_glideins.keys():
         request_name=glidename
