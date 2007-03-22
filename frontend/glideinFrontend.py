@@ -39,7 +39,7 @@ def iterate_one(frontend_name,factory_pool,
         request_name=glidename
 
         idle_jobs=count_glideins_idle[glidename]
-        running_jobs=count_glideins_idle[glidename]
+        running_jobs=count_glideins_running[glidename]
 
         if idle_jobs>0:
             glidein_min_idle=idle_jobs+reserve_idle # add a little safety margin
