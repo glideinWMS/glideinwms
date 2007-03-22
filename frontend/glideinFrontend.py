@@ -28,15 +28,18 @@ def iterate_one(frontend_name,factory_pool,
                 glidein_params):
     global activity_log
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
-    condorq_dict=glideinFrontendLib.getIdleCondorQ(schedd_names,job_constraint)
+    condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(schedd_names,job_constraint)
+    condorq_dict_running=glideinFrontendLib.getRunningCondorQ(schedd_names,job_constraint)
 
     activity_log.write("Match")
-    count_glideins=glideinFrontendLib.countMatch(match_str,condorq_dict,glidein_dict)
+    count_glideins_idle=glideinFrontendLib.countMatch(match_str,condorq_dict_idle,glidein_dict)
+    count_glideins_running=glideinFrontendLib.countMatch(match_str,condorq_dict_running,glidein_dict)
 
-    for glidename in count_glideins.keys():
+    for glidename in count_glideins_idle.keys():
         request_name=glidename
 
-        idle_jobs=count_glideins[glidename]
+        idle_jobs=count_glideins_idle[glidename]
+        running_jobs=count_glideins_idle[glidename]
 
         if idle_jobs>0:
             glidein_min_idle=idle_jobs+reserve_idle # add a little safety margin
@@ -47,7 +50,7 @@ def iterate_one(frontend_name,factory_pool,
             glidein_min_idle=0 
 
         activity_log.write("Advertize %s %i"%(request_name,glidein_min_idle))
-        glidein_monitors={"Idle":idle_jobs}
+        glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
         glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_params,glidein_monitors)
 
     return

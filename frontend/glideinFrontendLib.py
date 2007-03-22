@@ -17,17 +17,17 @@ import condorMonitor
 # specify the appropriate constraint
 #
 def getIdleCondorQ(schedd_names,constraint=None):
-    out_condorq_dict={}
-    for schedd in schedd_names:
-        condorq=condorMonitor.CondorQ(schedd)
-        idle_constraint="JobStatus==1"
-        if constraint!=None:
-            idle_constraint="(%s) && (%s)"%(idle_constraint,constraint)
+    return getCondorQConstrained(schedd_names,"JobStatus==1",constraints)
 
-        condorq.load(idle_constraint)
-        if len(condorq.fetchStored())>0:
-            out_condorq_dict[schedd]=condorq
-    return out_condorq_dict
+#
+# Return a dictionary of schedds containing idle jobs
+# Each element is a condorQ
+#
+# If not all the jobs of the schedd has to be considered,
+# specify the appropriate constraint
+#
+def getRunningCondorQ(schedd_names,constraint=None):
+    return getCondorQConstrained(schedd_names,"JobStatus==2",constraints)
 
 #
 # Get the number of jobs that match each glidein
@@ -65,4 +65,24 @@ def countMatch(match_str,condorq_dict,glidein_dict):
 # I N T E R N A L - Do not use
 #
 ############################################################
+
+#
+# Return a dictionary of schedds containing jobs of a certain type 
+# Each element is a condorQ
+#
+# If not all the jobs of the schedd has to be considered,
+# specify the appropriate additional constraint
+#
+def getCondorQConstrained(schedd_names,type_constraint,constraint=None):
+    out_condorq_dict={}
+    for schedd in schedd_names:
+        condorq=condorMonitor.CondorQ(schedd)
+        full_constraint=type_constraint.copy()
+        if constraint!=None:
+            full_constraint="(%s) && (%s)"%(full_constraint,constraint)
+
+        condorq.load(full_constraint)
+        if len(condorq.fetchStored())>0:
+            out_condorq_dict[schedd]=condorq
+    return out_condorq_dict
 
