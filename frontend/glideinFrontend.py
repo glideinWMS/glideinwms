@@ -50,8 +50,11 @@ def iterate_one(frontend_name,factory_pool,
             glidein_min_idle=0 
 
         activity_log.write("Advertize %s %i"%(request_name,glidein_min_idle))
-        glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
-        glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_params,glidein_monitors)
+        try:
+          glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
+          glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_params,glidein_monitors)
+        except:
+          warning_log.write("Advertize %s %i failed"%(request_name,glidein_min_idle))
 
     return
 
