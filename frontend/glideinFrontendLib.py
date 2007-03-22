@@ -77,7 +77,7 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None):
     out_condorq_dict={}
     for schedd in schedd_names:
         condorq=condorMonitor.CondorQ(schedd)
-        full_constraint=type_constraint.copy()
+        full_constraint=type_constraint[0:] #make copy
         if constraint!=None:
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
