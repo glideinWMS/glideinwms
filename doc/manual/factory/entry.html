@@ -58,7 +58,9 @@ a Grid resource</a></li>
 
     <li><a href="#custom_code">Adding custom code to
 the glideins</a></li>
-    <li><a href="#paramvsconst">Parameters versus constants</a></li>
+
+    <li><a href="#paramvsconst">Parameters versus
+constants</a></li>
 
   </ul>
 
@@ -468,16 +470,19 @@ they are running Condor as the underlying batch system, and <span style="font-fa
 Changing this value from the name of the machine allows you to move the
 factory without disrupting the system.</li>
 
-  <li><span style="font-weight: bold; font-family: monospace;">-const&nbsp;</span><span style="font-family: monospace;">GLIDEIN_Site=&lt;sitestr&gt;</span><br>
+  <li><span style="font-weight: bold; font-family: monospace;">-const&nbsp;</span><span style="font-family: monospace;">GLIDEIN_Site=&lt;sitestr&gt;<br>
 
-This arguments&nbsp;defines the Condor glidein attribute <span style="font-family: monospace;">GLIDEIN_Site</span>.<br>
+    </span><span style="font-weight: bold; font-family: monospace;">-attr </span><span style="font-family: monospace;">GLIDEIN_Site="&lt;sitestr&gt;</span>"<br>
+
+This two arguments&nbsp;define the Condor glidein attribute <span style="font-family: monospace;">GLIDEIN_Site</span>,
+both for use of the Frontend and for the use of the job negotiation.<br>
 
     <br>
 
 Logically defining a site is useful, so that you can change entry
 points but the user jobs do still known where they are running. If not
 specified, it
-defaults to the entry point name. </li>
+defaults to the entry point name in the startd ClassAd.</li>
 
 </ul>
 
@@ -486,6 +491,13 @@ want to set</span>, are:<br>
 
 <ul>
 
+  <li><span style="font-weight: bold; font-family: monospace;">-const&nbsp;</span><span style="font-family: monospace;">GLIDEIN_Expose_Grid_Env=&lt;True/False&gt;</span><br>
+
+Specify if the Grid environment variables should be exposed to the user job.<br>
+    <br>
+The default behaviour is to hide the startup environment of the Glidein and to only set the variables set by the <span style="font-weight: bold; font-family: monospace;">-const</span>&nbsp;and <span style="font-weight: bold; font-family: monospace;">-param</span> settings. You can change this by setting <span style="font-weight: bold; font-family: monospace;">-const&nbsp;</span><span style="font-family: monospace;">GLIDEIN_Expose_Grid_Env=True.</span></li>
+</ul>
+<ul>
   <li><span style="font-family: monospace; font-weight: bold;">-attr</span><br>
 
 Attributes you want to publish.<br>
@@ -839,8 +851,11 @@ as it suits you better.<br>
 <br>
 
 For example:<br>
+
 <div style="margin-left: 40px;"><span style="font-family: monospace;">
--const 'GLIDEIN_Start="Owner==\"sfiligoi\""' -const 'GLIDEIN_Rank=ImageSize'</span><br>
+-const 'GLIDEIN_Start="Owner==\"sfiligoi\""' -const
+'GLIDEIN_Rank=ImageSize'</span><br>
+
 </div>
 
 <h3><a name="time_limit"></a>Limiting time
@@ -1050,7 +1065,8 @@ Please notice that files and subsystems will be downloaded before the
 scripts, and that the user provided scripts will be executed in the
 specified order, and before the Condor daemons are started up.<br>
 
-<h3><a name="paramvsconst"></a>Parameters versus constants</h3>
+<h3><a name="paramvsconst"></a>Parameters
+versus constants</h3>
 
 Values&nbsp;can be passed to the glidein scripts in two ways:<br>
 
@@ -1094,12 +1110,16 @@ in a different way:<br>
 
 <ul>
 
-  <li><span style="font-family: monospace;">-const</span> treats all options a strings, i.e. takes whatever
+  <li><span style="font-family: monospace;">-const</span>
+treats all options a strings, i.e. takes whatever
 comes after the equal(=) sign and passes it over to the glidein. This
 also mean that <span style="font-weight: bold;">any
-quotes are passed along as specified</span>! This means that <span style="font-family: monospace;">-const x=abc</span> and <span style="font-family: monospace;">-const 'x="abc"'</span> will give different results.</li>
+quotes are passed along as specified</span>! This means that <span style="font-family: monospace;">-const x=abc</span>
+and <span style="font-family: monospace;">-const 'x="abc"'</span>
+will give different results.</li>
 
-  <li><span style="font-family: monospace;">-param</span> is instead typed and expect strings to be quoted!<br>
+  <li><span style="font-family: monospace;">-param</span>
+is instead typed and expect strings to be quoted!<br>
 
 So <span style="font-family: monospace;">-param 'x=1'</span>
 and <span style="font-family: monospace;">-param 'x="1"'</span>
@@ -1112,7 +1132,8 @@ Also, not quoting a string will give you an error. (a bad example: <span style="
 
 </ul>
 
-The difference is needed to use the full power of Condor ClassAds, while&nbsp;keeping management of constants easy.<br>
+The difference is needed to use the full power of Condor ClassAds,
+while&nbsp;keeping management of constants easy.<br>
 
 <br>
 
