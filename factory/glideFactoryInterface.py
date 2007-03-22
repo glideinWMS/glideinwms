@@ -175,7 +175,7 @@ def advertizeGlideinClientMonitoring(factory_name,glidein_name,client_name,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s"%tmpnam)
+        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_LICENSE_AD %s"%tmpnam) # must use a different AD that the frontend
     finally:
         os.remove(tmpnam)
 
