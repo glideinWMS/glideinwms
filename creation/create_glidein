@@ -223,7 +223,7 @@ def main(params):
                                    params.work_dir,params.proxy_url)
 
                create_submit(params.submit_dir,
-                             params.factory_name,params.glidein_name,
+                             params.factory_name,params.glidein_name,"sole",
                              params.schedd_name,
                              params.work_dir,params.web_url,sha1)
 
