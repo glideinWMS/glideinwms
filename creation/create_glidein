@@ -225,7 +225,7 @@ def main(params):
                create_submit(params.submit_dir,
                              params.factory_name,params.glidein_name,"sole",
                              params.schedd_name,
-                             params.work_dir,params.web_url,sha1)
+                             params.web_url,sha1)
 
                create_submit_wrapper(params.submit_dir)
                create_test_submit(params.submit_dir)
@@ -647,7 +647,7 @@ def create_job_descript(submit_dir,
 def create_submit(submit_dir,
                   factory_name,glidein_name,entry_name,
                   schedd_name,
-                  startup_dir,web_base,sha1):
+                  web_base,sha1):
     global SUBMIT_FILE
     filepath=os.path.join(submit_dir,SUBMIT_FILE)
     try:
@@ -661,7 +661,7 @@ def create_submit(submit_dir,
         fd.write("Executable = %s\n"%STARTUP_FILE)
 
         fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
-                 ("-dir %s -web %s -sign %s -signtype sha1 -factory %s -consts %s " % (startup_dir,web_base,sha1,factory_name,CONSTS_FILE))+
+                 ("-web %s -sign %s -signtype sha1 -factory %s -consts %s " % (web_base,sha1,factory_name,CONSTS_FILE))+
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory    = "%s"\n'%factory_name)
         fd.write('+GlideinName       = "%s"\n'%glidein_name)

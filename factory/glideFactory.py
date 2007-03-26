@@ -60,10 +60,16 @@ def perform_work(factory_name,glidein_name,entry_name,
     if jobDescript.data.has_key("ProxyURL"):
         submit_params.insert(0,jobDescript.data["ProxyURL"])
         submit_params.insert(0,"-proxy")
+
+    submit_params.insert(0,jobDescript.data["StartupDir"])
+    submit_params.insert(0,"-dir")
+
     if jobDescript.data.has_key("GlobusRSL"):
         submit_params.insert(0,"globus_rsl = %s"%jobDescript.data["GlobusRSL"])
+
     submit_params.insert(0,jobDescript.data["Gatekeeper"])
     submit_params.insert(0,jobDescript.data["GridType"])
+
     # use the extended params for submission
     nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,submit_params)
     if nr_submitted>0:
