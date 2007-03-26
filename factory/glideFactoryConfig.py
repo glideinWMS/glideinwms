@@ -11,6 +11,7 @@ class FactoryConfig:
         # set default values
         # user should modify if needed
 
+        self.glidein_descript_file = "glidein.descript"
         self.job_descript_file = "job.descript"
         self.job_attrs_file = "attributes.cfg"
         self.job_params_file = "params.cfg"
@@ -62,6 +63,12 @@ class ConfigFile:
 # Configuration
 #
 ############################################################
+
+class GlideinDescript(ConfigFile):
+    def __init__(self):
+        global factoryConfig
+        ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
+                            repr) # convert everything in strings
 
 class JobDescript(ConfigFile):
     def __init__(self):

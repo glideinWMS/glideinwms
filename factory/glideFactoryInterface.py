@@ -54,10 +54,10 @@ factoryConfig=FactoryConfig()
 ############################################################
 
 
-def findWork(factory_name,glidein_name):
+def findWork(factory_name,glidein_name,entry_name):
     """
     Look for requests.
-    Look for classAds that have my factory and glidein name.
+    Look for classAds that have my (factory, glidein name, entry name).
 
     Return:
       Dictionary, each key is the name of a frontend.
@@ -67,9 +67,10 @@ def findWork(factory_name,glidein_name):
 
     global factoryConfig
     
-    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s")'%(factoryConfig.client_id,glidein_name,factory_name)
+    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
     status=condorMonitor.CondorStatus("any")
     status.glidein_name=glidein_name
+    status.entry_name=entry_name
     status.load(status_constraint)
 
     data=status.fetchStored()
@@ -100,7 +101,7 @@ advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={},glidein_monitors={}):
+def advertizeGlidein(factory_name,glidein_name,entry_name,glidein_attrs={},glidein_params={},glidein_monitors={}):
     global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -111,9 +112,10 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
         try:
             fd.write('MyType = "%s"\n'%factoryConfig.factory_id)
             fd.write('GlideinMyType = "%s"\n'%factoryConfig.factory_id)
-            fd.write('Name = "%s@%s"\n'%(glidein_name,factory_name))
+            fd.write('Name = "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
+            fd.write('EntryName = "%s"\n'%entry_name)
             fd.write('DaemonStartTime = %li\n'%start_time)
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             advertizeGlideinCounter+=1
@@ -140,7 +142,7 @@ def advertizeGlidein(factory_name,glidein_name,glidein_attrs={},glidein_params={
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlideinClientMonitoring(factory_name,glidein_name,client_name,
+def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_name,
                                      glidein_attrs={},client_params={},client_monitors={}):
     #global factoryConfig,advertizeGlideinCounter
 
@@ -153,9 +155,10 @@ def advertizeGlideinClientMonitoring(factory_name,glidein_name,client_name,
             fd.write('MyType = "%s"\n'%factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n'%factoryConfig.factoryclient_id)
             fd.write('Name = "%s"\n'%client_name)
-            fd.write('ReqGlidein = "%s@%s"\n'%(glidein_name,factory_name))
+            fd.write('ReqGlidein = "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
             fd.write('ReqFactoryName = "%s"\n'%factory_name)
             fd.write('ReqGlideinName = "%s"\n'%glidein_name)
+            fd.write('ReqEntryName = "%s"\n'%entry_name)
             #fd.write('DaemonStartTime = %li\n'%start_time)
             #fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             #advertizeGlideinCounter+=1

@@ -213,17 +213,19 @@ def main(params):
 
                link_attributes(params.submit_dir,params.stage_dir,int(params.stage_symlink))
 
-               create_descript(params.submit_dir,
-                               params.factory_name,params.glidein_name,
-                               params.gridtype,params.gatekeeper,params.rsl,
-                               params.schedd_name,
-                               params.work_dir,params.web_url,params.proxy_url)
+               create_glidein_descript(params.submit_dir,
+                                       params.factory_name,params.glidein_name,
+                                       params.schedd_name,
+                                       params.web_url)
+
+               create_job_descript(params.submit_dir,"sole",
+                                   params.gridtype,params.gatekeeper,params.rsl,
+                                   params.work_dir,params.proxy_url)
 
                create_submit(params.submit_dir,
                              params.factory_name,params.glidein_name,
-                             params.gridtype,params.gatekeeper,params.rsl,
                              params.schedd_name,
-                             params.work_dir,params.web_url,params.proxy_url,sha1)
+                             params.work_dir,params.web_url,sha1)
 
                create_submit_wrapper(params.submit_dir)
                create_test_submit(params.submit_dir)
@@ -261,6 +263,7 @@ SIGNATURE_FILE="signature.sha1"
 
 PARAMS_FILE="params.cfg"
 STARTUP_FILE="glidein_startup.sh"
+GLIDEIN_FILE="glidein.descript"
 DESCRIPT_FILE="job.descript"
 SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
@@ -598,13 +601,11 @@ def copy_submit_file(filename,submit_dir,org_dir):
 
 #################################
 # Create glidein description file
-def create_descript(submit_dir,
-                    factory_name,glidein_name,
-                    gridtype,gatekeeper,rsl,
-                    schedd_name,
-                    startup_dir,web_base,proxy_id):
-    global DESCRIPT_FILE
-    filepath=os.path.join(submit_dir,DESCRIPT_FILE)
+def create_glidein_descript(submit_dir,
+                            factory_name,glidein_name,
+                            schedd_name,web_base):
+    global GLIDEIN_FILE
+    filepath=os.path.join(submit_dir,GLIDEIN_FILE)
     try:
         fd=open(filepath,"w+")
     except IOError,e:
@@ -613,12 +614,29 @@ def create_descript(submit_dir,
         fd.write("FactoryName   %s\n"%factory_name)
         fd.write("GlideinName   %s\n"%glidein_name)
         fd.write("Schedd        %s\n"%schedd_name)
+        fd.write("WebURL        %s\n"%web_base)
+    finally:
+        fd.close()
+    
+#################################
+# Create glidein description file
+def create_job_descript(submit_dir,
+                        entry_name,
+                        gridtype,gatekeeper,rsl,
+                        startup_dir,proxy_id):
+    global DESCRIPT_FILE
+    filepath=os.path.join(submit_dir,DESCRIPT_FILE)
+    try:
+        fd=open(filepath,"w+")
+    except IOError,e:
+        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+    try:
+        fd.write("EntryName     %s\n"%entry_name)
         fd.write("GridType      %s\n"%gridtype)
         fd.write("Gatekeeper    %s\n"%gatekeeper)
         if rsl!=None:
             fd.write("GlobusRSL     %s\n"%rsl)
         fd.write("StartupDir    %s\n"%startup_dir)
-        fd.write("WebURL        %s\n"%web_base)
         if proxy_id!=None:
             fd.write("ProxyURL      %s\n"%proxy_id)
     finally:
@@ -627,10 +645,9 @@ def create_descript(submit_dir,
 ###########################
 # Create Condor submit file
 def create_submit(submit_dir,
-                  factory_name,glidein_name,
-                  gridtype,gatekeeper,rsl,
+                  factory_name,glidein_name,entry_name,
                   schedd_name,
-                  startup_dir,web_base,proxy_id,sha1):
+                  startup_dir,web_base,sha1):
     global SUBMIT_FILE
     filepath=os.path.join(submit_dir,SUBMIT_FILE)
     try:
@@ -639,22 +656,17 @@ def create_submit(submit_dir,
         raise RuntimeError, "Error creating %s: %s"%(filepath,e)
     try:
         fd.write("Universe = grid\n")
-        fd.write("Grid_Resource = %s %s\n"%(gridtype,gatekeeper))
-        if rsl!=None:
-            fd.write("GlobusRSL = %s\n"%rsl)
+        fd.write("Grid_Resource = $ENV(GLIDEIN_GRIDTYPE) $ENV(GLIDEIN_GATEKEEPER)\n")
+        fd.write("$ENV(GLIDEIN_GRIDOPTS)\n") # additional options, like globus_rsl or globus_xml
         fd.write("Executable = %s\n"%STARTUP_FILE)
 
-        if proxy_id==None:
-            web_str=web_base
-        else:
-            web_str="%s -proxy %s"%(web_base,proxy_id)
-        
         fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
                  ("-dir %s -web %s -sign %s -signtype sha1 -factory %s -consts %s " % (startup_dir,web_base,sha1,factory_name,CONSTS_FILE))+
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
-        fd.write('+GlideinFactory = "%s"\n'%factory_name)
-        fd.write('+GlideinName    = "%s"\n'%glidein_name)
-        fd.write('+GlideinClient  = "$ENV(GLIDEIN_CLIENT)"\n')
+        fd.write('+GlideinFactory    = "%s"\n'%factory_name)
+        fd.write('+GlideinName       = "%s"\n'%glidein_name)
+        fd.write('+GlideinEntryName  = "$ENV(GLIDEIN_ENTRY_NAME"\n')
+        fd.write('+GlideinClient     = "$ENV(GLIDEIN_CLIENT)"\n')
 
         
         fd.write("\nTransfer_Executable   = True\n")
@@ -675,7 +687,7 @@ def create_submit(submit_dir,
 ############################
 # Create a test shell script
 def create_test_submit(submit_dir):
-    global SUBMIT_FILE,DESCRIPT_FILE
+    global SUBMIT_FILE,GLIDEIN_FILE,DESCRIPT_FILE
     filepath=os.path.join(submit_dir,"job_test.sh")
     try:
         fd=open(filepath,"w+")
@@ -688,7 +700,11 @@ def create_test_submit(submit_dir):
         fd.write("export GLIDEIN_VERBOSITY=dbg\n")
         fd.write('export GLIDEIN_PARAMS="-param_GLIDEIN_Collector $HOSTNAME"\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write("condor_submit -name `grep Schedd %s|awk '{print $2}'` %s\n"%(DESCRIPT_FILE,SUBMIT_FILE))
+        fd.write("export GLIDEIN_ENTRY_NAME 'test'\n")
+        fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' %s|awk '{print $2}'`\n"%DESCRIPT_FILE)
+        fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' %s|awk '{print $2}'`\n"%DESCRIPT_FILE)
+        fd.write("export GLIDEIN_GRIDOPTS ''\n")
+        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(GLIDEIN_FILE,SUBMIT_FILE))
     finally:
         fd.close()
     # Make it executable
@@ -705,14 +721,18 @@ def create_submit_wrapper(submit_dir):
         raise RuntimeError, "Error creating %s: %s"%(filepath,e)
     try:
         fd.write("#!/bin/bash\n\n")
-        fd.write("if [ $# -lt 4 ]; then\n")
-        fd.write(' echo "At least 4 args expected!" 1>&2\n echo "Usage: %s schedd client count mode [params]*"\n 1>&2\n'%SUBMIT_WRAPPER)
+        fd.write("if [ $# -lt 8 ]; then\n")
+        fd.write(' echo "At least 8 args expected!" 1>&2\n echo "Usage: %s entry_name schedd client count mode gridtype gatekeeper gridopts [params]*"\n 1>&2\n'%SUBMIT_WRAPPER)
         fd.write(" exit 1\n")
         fd.write("fi\n")
+        fd.write('export GLIDEIN_ENTRY_NAME="$1"\nshift\n')
         fd.write("schedd=$1\nshift\n")
-        fd.write("export GLIDEIN_CLIENT=$1\nshift\n")
+        fd.write('export GLIDEIN_CLIENT="$1"\nshift\n')
         fd.write("export GLIDEIN_COUNT=$1\nshift\n")
         fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
+        fd.write("export GLIDEIN_GRIDTYPE=$1\nshift\n")
+        fd.write('export GLIDEIN_GATEKEEPER="$1"\nshift\n')
+        fd.write('export GLIDEIN_GRIDOPTS="$1"\nshift\n')
         fd.write('GLIDEIN_PARAMS=""\nwhile [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("condor_submit -name $schedd %s\n"%SUBMIT_FILE)

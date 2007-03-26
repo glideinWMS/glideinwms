@@ -194,7 +194,7 @@ def keepIdleGlideins(condorq,min_nr_idle,params):
         idle_glideins=0
     if idle_glideins<min_nr_idle:
         factoryConfig.logActivity("Need more glideins: min=%i, idle=%i"%(min_nr_idle,idle_glideins))
-        submitGlideins(condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,params)
+        submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
     # We have enough glideins in the queue
@@ -461,7 +461,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(schedd_name,client_name,nr_glideins,params):
+def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,params):
     global factoryConfig
 
     submitted_jids=[]
@@ -485,7 +485,7 @@ def submitGlideins(schedd_name,client_name,nr_glideins,params):
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            submit_out=condorExe.iexe_cmd("./job_submit.sh %s %s %i dbg %s"%(schedd_name,client_name,nr_to_submit,params_str))
+            submit_out=condorExe.iexe_cmd("./job_submit.sh %s %s %s %i dbg %s"%(entry_name,schedd_name,client_name,nr_to_submit,params_str))
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster,j))
