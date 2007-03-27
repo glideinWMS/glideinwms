@@ -30,6 +30,7 @@ class FactoryConfig:
         # The name of the attribute that identifies the glidein
         self.factory_schedd_attribute = "GlideinFactory"
         self.glidein_schedd_attribute = "GlideinName"
+        self.entry_schedd_attribute = "GlideinEntryName"
         self.client_schedd_attribute = "GlideinClient"
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
@@ -168,10 +169,10 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
     else:
         gsa_str=glidein_startd_attribute
 
-    if entry_schedd_attribute==None:
-        esa_str=factoryConfig.entry_schedd_attribute
+    if entry_startd_attribute==None:
+        esa_str=factoryConfig.entry_startd_attribute
     else:
-        esa_str=entry_schedd_attribute
+        esa_str=entry_startd_attribute
 
     if client_startd_attribute==None:
         csa_str=factoryConfig.client_startd_attribute
