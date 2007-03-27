@@ -155,7 +155,7 @@ def getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name,
 def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_name=None,
                         factory_startd_attribute=None,  # if None, use the global one
                         glidein_startd_attribute=None,  # if None, use the global one
-                        entry_schedd_attribute=None,    # if None, use the global one
+                        entry_startd_attribute=None,    # if None, use the global one
                         client_startd_attribute=None):  # if None, use the global one
     global factoryConfig
 
