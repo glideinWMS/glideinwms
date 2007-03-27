@@ -34,6 +34,7 @@ class FactoryConfig:
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
         self.glidein_startd_attribute = "GLIDEIN_Name"
+        self.entry_startd_attribute = "GLIDEIN_Entry_Name"
         self.client_startd_attribute = "GLIDEIN_Client"
         self.schedd_startd_attribute = "GLIDEIN_Schedd"
         self.clusterid_startd_attribute = "GLIDEIN_ClusterId"
@@ -114,10 +115,11 @@ factoryConfig=FactoryConfig()
 # To be passed to the main functions
 #
 
-def getCondorQData(factory_name,glidein_name,client_name,schedd_name,
+def getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name,
                    factory_schedd_attribute=None,  # if None, use the global one
                    glidein_schedd_attribute=None,  # if None, use the global one
-                   client_schedd_attribute=None): # if None, use the global one
+                   entry_schedd_attribute=None,    # if None, use the global one
+                   client_schedd_attribute=None):  # if None, use the global one
     global factoryConfig
 
     if factory_schedd_attribute==None:
@@ -129,23 +131,30 @@ def getCondorQData(factory_name,glidein_name,client_name,schedd_name,
         gsa_str=factoryConfig.glidein_schedd_attribute
     else:
         gsa_str=glidein_schedd_attribute
+   
+    if entry_schedd_attribute==None:
+        esa_str=factoryConfig.entry_schedd_attribute
+    else:
+        esa_str=entry_schedd_attribute
 
     if client_schedd_attribute==None:
         csa_str=factoryConfig.client_schedd_attribute
     else:
         csa_str=client_schedd_attribute
 
-    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,csa_str,client_name)
+    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name)
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factory_name
     q.glidein_name=glidein_name
+    q.entry_name=entry_name
     q.client_name=client_name
     q.load(q_glidein_constraint)
     return q
 
-def getCondorStatusData(factory_name,glidein_name,client_name,pool_name=None,
+def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_name=None,
                         factory_startd_attribute=None,  # if None, use the global one
                         glidein_startd_attribute=None,  # if None, use the global one
+                        entry_schedd_attribute=None,    # if None, use the global one
                         client_startd_attribute=None):  # if None, use the global one
     global factoryConfig
 
@@ -159,15 +168,21 @@ def getCondorStatusData(factory_name,glidein_name,client_name,pool_name=None,
     else:
         gsa_str=glidein_startd_attribute
 
+    if entry_schedd_attribute==None:
+        esa_str=factoryConfig.entry_schedd_attribute
+    else:
+        esa_str=entry_schedd_attribute
+
     if client_startd_attribute==None:
         csa_str=factoryConfig.client_startd_attribute
     else:
         csa_str=client_startd_attribute
 
-    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,csa_str,client_name)
+    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name)
     status=condorMonitor.CondorStatus(pool_name=pool_name)
     status.factory_name=factory_name
     status.glidein_name=glidein_name
+    status.entry_name=entry_name
     status.client_name=client_name
     status.load(status_glidein_constraint)
     return status
