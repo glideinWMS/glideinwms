@@ -25,13 +25,19 @@ def xmlfile2dict(fname):
 #    <param name="x" value="12"/>
 #    <param name="y" value="88"/>
 #   </params>
+#   <files>
+#    <file absname="/tmp/abc.txt"/>
+#    <file absname="/tmp/w.log" mod="-rw-r--r--"/>
+#   </files>
 #   <temperature F="100" C="40"/>
 #  </test>
 # becomes
 #  {u'date': u'1/2/07',
-#   u'params': {u'y': u'88',
-#               u'x': u'12',
+#   u'params': {u'y': {u'value':u'88'},
+#               u'x': {u'value':u'12'},
 #               u'what': u'xx'},
+#   u'files': [{u'absname':u'/tmp/abc.txt'},
+#              {u'mod':u'-rw-r--r--',u'absname:u'/tmp/w.log'}],
 #   u'temperature': {u'C': u'40',
 #                    u'F': u'100'}
 #  }
@@ -95,13 +101,18 @@ def domel2dict(doc):
         tag = el.tagName
         #print tag
         eldata=domel2dict(el)
-        if (is_singular_of(tag,myname) and        # subelements, like "param" - "params"
-            (len(eldata.keys())==2) and eldata.has_key("name") and eldata.has_key("value")): # it is a name/value pair
-            data[eldata['name']]=eldata['value']
-        elif (is_singular_of(tag,myname) and        # subelements, like "param" - "params"
-              eldata.has_key("name")):              # it ihas a name, but not a value
-            data[eldata['name']]=eldata
-            del eldata['name']
+        if is_singular_of(tag,myname): # subelements, like "param" - "params"
+            if eldata.has_key("name"):
+                data[eldata['name']]=eldata
+                del eldata['name']
+            elif ((data=={}) or        # first element, will define everything
+                  (type(data)==type([]))):   # already a list
+                # most probably one wants a list in this case
+                if data=={}:
+                    data=[]
+                data.append(eldata)
+            else: # cannot use it as a list
+                data[tag]=eldata
         else: #just a regular subtree
             data[tag]=eldata
     return data
