@@ -9,9 +9,91 @@ import string
 import shutil
 import socket
 import traceback
+sys.path.append("../lib")
+import xmlParse
+
+class SubParams:
+    def __init__(self,data):
+        self.data=data
+
+    # make data elements look like class attributes
+    def __getattr__(self,name):
+        return self.get_el(name)
+
+    # make data elements look like a dictionary
+    def keys(self):
+        return self.data.keys()
+    def has_key(self,name):
+        return self.data.has_key(name)
+    def __getitem__(self,name):
+        return self.get_el(name)    
+    def __repr__(self):
+        return str(self.data)
+
+
+    #
+    # PRIVATE
+    #
+    def get_el(self,name):
+        el=self.data[name]
+        if type(el)==type({}):
+            return SubParams(el)
+        elif type(el)==type([]):
+            outlst=[]
+            for k in el:
+                if type(k)==type({}):
+                    outlst.append(SubParams(k))
+                else:
+                    outlst.append(k)
+            return outlst
+        else:
+            return el
+        
 
 class Params:
     def __init__(self,argv):
+        self.attr_defaults={"value":(None,"Value","Value of the attribute (string)"),
+                            "publish":("True","Bool","Should it be published by the factory?"),
+                            "parameter":("True","Bool","Should it be a parameter for the glidein?"),
+                            "const":("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)"),
+                            "type":("string","string|int","What kind on data is value.")}
+
+        self.file_defaults={"absfname":(None,"fname","File name on the local disk."),
+                            "relfname":(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)"),
+                            "const":("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached."),
+                            "executable":("False",'Bool','Is this an executable that needs to be run in the glidein?'),
+                            "untar":("False",'Bool','Do I need to untar it? '),
+                            "untar_options":{"cond_attr":(None,"attrname","If defined, the attribute name used at runtime to determine if the file should be untarred or not."),
+                                             "dir":(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)"),
+                                             "absdir_outattr":(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)')}}
+        
+        
+        sub_defaults={'attrs':({},'Dictionary of attributes',"Each attribute entry contains:\n"+defdict2string(self.attr_defaults,'\t')),
+                      'files':([],'List of files',"Each file entry contains:\n"+defdict2string(self.file_defaults,'\t'))}
+        self.entry_defaults={"gatekeeper":(None,'gatekeeper', 'Grid gatekeeper/resource'),
+                             "gridtype":('gt2','grid_type','Condor Grid type'),
+                             "rsl":(None,'RSL','Globus RSL option'),
+                             "work_dir":(".",".|Condor|OSG","Where to start glidein"),
+                             'proxy_url':(None,'proxy_url',"Squid cache to use"),
+                             "attrs":sub_defaults['attrs'],
+                             "files":sub_defaults['files']}
+        
+        self.defaults={"factory_name":(socket.gethostname(),'ID', 'Factory name'),
+                       "glidein_name":(None,'ID', 'Glidein name'),
+                       'schedd_name':("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use"),
+                       "submit":{"base_dir":(os.environ["HOME"],"base_dir","Submit base dir")},
+                       "stage":{"base_dir":("/var/www/html/glidefactory/stage","base_dir","Stage base dir"),
+                                "web_base_url":("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL'),
+                                "use_symlink":("True","Bool","Can I symlink stage dir from submit dir?")},
+                       "monitor":{"base_dir":("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir")},
+                       "condor":{"tar_file":(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)"),
+                                 "base_dir":(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)")},
+                       "attrs":sub_defaults['attrs'],
+                       "files":sub_defaults['files'],
+                       "entries":({},"Dictionary of entries","Each entry contains:\n"+defdict2string(self.entry_defaults,'\t'))}
+                       
+                       
+                                    
         self.param_desc=(("factory_name",('-F','-factory'),socket.gethostname(),'ID', 'Factory name'),
                          ("glidein_name",('-n','-name'),None,'ID', 'Glidein name'),
                          ("gatekeeper",('-g','-gatekeeper'),None,'gatekeeper', 'Grid gatekeeper/resource'),
@@ -35,15 +117,14 @@ class Params:
                          (self.load_file,('-e','-cfg'),None,'filename',"Load configuration file")
                          )
 
+        # support dir
         self.src_dir=os.path.join(os.getcwd(),"web_base")
 
+        self.load_file(argv[1])
         # load values from arguments
-        self.init()
-        
-        # load values from arguments
-        self.parse(argv[1:])
+        #self.parse(argv[1:])
         # create derived values
-        self.derive()
+        #self.derive()
         pass
 
     def derive(self):
@@ -65,15 +146,6 @@ class Params:
         self.submit_dir=os.path.join(self.submit_base_dir,glidein_subdir)
         self.web_url=os.path.join(self.web_base_url,glidein_subdir)
 
-
-    def init(self):
-        for el in self.param_desc:
-            param_name=el[0]
-            if type(param_name)==type(""):
-                # only if a regular parameter
-                param_def=el[2]
-                exec('self.%s=%s'%(param_name,repr(param_def)))
-            # else it is a special one that does not need initialization
 
     def parse(self,argv):
         argidx=0
@@ -107,34 +179,17 @@ class Params:
     #one element per line
     # -opt val
     def load_file(self,fname):
-        fd=open(fname,"r")
-        try:
-            lines=fd.readlines()
-        finally:
-            fd.close()
-        argv=[]
-        for line in lines:
-            line=string.strip(line)
-            if len(line)==0:
-                continue #skip empty lines
-            if line[0]=='#':
-                continue #skip comments
-            
-            name,val=string.split(line,None,1)
-            argv.append(name)
-            argv.append(val)
+        if fname=="-":
+            fname=sys.stdin
+        self.data=xmlParse.xmlfile2dict(fname)
+        self.subparams=SubParams(self.data)
+        return
 
-        self.parse(argv)
+    def __getattr__(self,name):
+        return self.subparams.__getattr__(name)
 
     def usage(self):
-        print "Usage: create_glidein <opts>"
-        print "where <opts> are:"
-        for el in self.param_desc:
-            param_str=string.join(el[1],"|")
-            param_def=el[2]
-            param_opt_name=el[-2]
-            param_desc=el[-1]
-            print "\t%-30s - %s (Default=%s)"%("%s <%s>  "%(param_str,param_opt_name),param_desc,repr(param_def))
+        print "Usage: create_glidein cfg_fname"
 
     #save into a file
     #The file should be usable for reload
@@ -164,81 +219,119 @@ class Params:
 
 def main(params):
     #print params.__dict__
-    create_dir(params.submit_dir)
+    create_dir(params.submit.base_dir)
     try:
-        create_dir(params.stage_dir)
+        # create log submit subdir
+        create_dir(os.path.join(params.submit.base_dir,"log")) # no try/except needed, will be deleted by external except if needed
+        
+        create_dir(params.stage.base_dir)
         try:
-            create_dir(params.monitor_dir)
+            # create entry subdirs for both submit and stage
+            for entry_name in params.entries.keys():
+                for base_dir in (params.submit.base_dir,params.stage.base_dir):
+                    entry_dir=os.path.join(base_dir,"entry_"+entry_name)
+                    create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
+
+            create_dir(params.monitor.base_dir)
             try:
                # make a link from the submit dir to the monitor dir
-               symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
+               symlink_file(params.monitor.base_dir,os.path.join(params.submit.base_dir)+"/monitor")
 
                # put user files in stage
-               for id in params.user_files:
-                   copy_user_file(id,params.stage_dir)
-               for id in params.user_scripts:
-                   copy_user_script(id,params.stage_dir)
-               for id in params.user_subsys:
-                   copy_user_subsystem(id,params.stage_dir,params.submit_dir)
+               for file in params.files:
+                   copy_file_unparsed(file,params.stage.base_dir,params.submit.base_dir)
+               ## repeat for all the entries
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage.base_dir,"entry_"+entry_name)
+                   entry_submit_dir=os.path.join(params.submit.base_dir,"entry_"+entry_name)
+                   for file in params.entries[entry_name].files:
+                       copy_file_unparsed(file,entry_stage_dir,entry_submit_dir)
 
-               #put known files in stage
-               create_condor_tar(params.stage_dir,params.submit_dir,params.condor_base_dir)
+               #put condor tarball into stage
+               if params.condor.tar_file!=None: # condor tarball available
+                   condor_uf=SubParams({"absfname":params.condor.tar_file,
+                                        "relfname":CONDOR_FILE,
+                                        "const":"True",
+                                        "untar":"True",
+                                        "untar_options":{"cond_attr":None,
+                                                         "dir":CONDOR_DIR,
+                                                         "absdir_outattr":CONDOR_ATTR}})
+                   copy_file_unparsed(condor_uf,params.stage.base_dir,params.submit.base_dir)
+               else: # create a new tarball
+                   create_condor_tar(params.stage.base_dir,params.submit.base_dir,params.condor.base_dir)
+               
+               #put system files into stage
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
                copy_stage_file("condor_vars.lst",params.stage_dir,params.src_dir)
                copy_stage_file("nodes.blacklist",params.stage_dir,params.src_dir,can_be_modified=1)
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir)
-               create_attributes(params.stage_dir,params.glidein_attrs)
-               create_consts(params.stage_dir,params.glidein_consts)
+               
+               
+               # put user attributes into config files
+               for attr_name in params.attrs.keys():
+                   add_attr_unparsed(attr_name, params.attrs[attr_name],params.stage.base_dir,params.submit.base_dir)
+
+               # add the basic standard params
+               add_param(params.submit.base_dir,"GLIDEIN_Collector",'Fake',is_string=True)
+               # finalize
+               add_attr_files(params.stage.base_dir)
+
+               ## repeat for all the entries
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage.base_dir,"entry_"+entry_name)
+                   entry_submit_dir=os.path.join(params.submit.base_dir,"entry_"+entry_name)
+                   for attr_name in params.entries[entry_name].attrs.keys():
+                       add_attr_unparsed(attr_name, params.entries[entry_name].attrs[attr_name],entry_stage_dir,entry_submit_dir)
+                   add_attr_file(entry_stage_dir)
 
                # this must be the last script in the list
                copy_script("condor_startup.sh",params.stage_dir,params.src_dir)
-               sha1=finalize_sha1(params.stage_dir)
+               sha1=finalize_sha1(params.stage.base_dir,params.submit_base_dir,"main")
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage.base_dir,"entry_"+entry_name)
+                   esha1=finalize_sha1(entry_stage_dir,params.submit_base_dir,"entry_"+entry_name)
 
                #
                # Stage is finished
                # Populate submit dir
                #
-               create_dir(os.path.join(params.submit_dir,"log"))
-
-               # Write down the user parameters
-               for id in params.user_params:
-                   add_user_param(id,params.submit_dir)
-
-               # plus the basic standard params
-               add_param(params.submit_dir,"GLIDEIN_Collector",'"Fake"')
 
                # copy the startup file
-               copy_submit_file(STARTUP_FILE,params.submit_dir,params.src_dir)
+               copy_submit_file(STARTUP_FILE,params.submit.base_dir,params.src_dir)
 
-               link_attributes(params.submit_dir,params.stage_dir,int(params.stage_symlink))
+               link_attributes(params.submit.base_dir,params.stage.base_dir,int(params.stage.use_symlink))
 
-               create_glidein_descript(params.submit_dir,
+               create_glidein_descript(params.submit.base_dir,
                                        params.factory_name,params.glidein_name,
                                        params.schedd_name,
-                                       params.web_url)
+                                       params.stage.web_base_url)
 
-               create_job_descript(params.submit_dir,"sole",
-                                   params.gridtype,params.gatekeeper,params.rsl,
-                                   params.work_dir,params.proxy_url)
-
-               create_submit(params.submit_dir,
-                             params.factory_name,params.glidein_name,"sole",
+               create_submit(params.submit.base_dir,
+                             params.factory_name,params.glidein_name,
                              params.schedd_name,
-                             params.web_url,sha1)
+                             params.stage.web_base_url,sha1)
 
-               create_submit_wrapper(params.submit_dir)
-               create_test_submit(params.submit_dir)
+               create_submit_wrapper(params.submit.base_dir)
+               create_test_submit(params.submit.base_dir)
 
-               params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.cfg"))
+               #params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.cfg"))
+
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage.base_dir,"entry_"+entry_name)
+                   entry_submit_dir=os.path.join(params.submit.base_dir,"entry_"+entry_name)
+                   entry_el=params.entries[entry_name]
+                   create_job_descript(entry_submit_dir,entry_name,
+                                       entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
+                                       entry_el.work_dir,entry_el.proxy_url)
             except:
-               shutil.rmtree(params.monitor_dir)
+               shutil.rmtree(params.monitor.base_dir)
                raise
         except:
-            shutil.rmtree(params.stage_dir)
+            shutil.rmtree(params.stage.base_dir)
             raise
     except:
-        shutil.rmtree(params.submit_dir)
+        shutil.rmtree(params.submit.base_dir)
         raise
 
     print "Created glidein '%s'"%params.glidein_name
@@ -255,20 +348,23 @@ def main(params):
 
 ATTRS_FILE="attributes.cfg"
 CONSTS_FILE="constants.cfg"
+PARAMS_FILE="params.cfg"
+
 FILE_LISTFILE="file_list.lst"
 SCRIPT_LISTFILE="script_list.lst"
 SUBSYSTEM_LISTFILE="subsystem_list.lst"
 SIGNATURE_FILE="signature.sha1"
 
 
-PARAMS_FILE="params.cfg"
+CONDOR_FILE="condor_bin.tgz"
+CONDOR_DIR="condor"
+CONDOR_ATTR="CONDOR_DIR"
+
 STARTUP_FILE="glidein_startup.sh"
 GLIDEIN_FILE="glidein.descript"
 DESCRIPT_FILE="job.descript"
 SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
-
-global_glidein_consts=[]
 
 #####################
 # Simply create a dir
@@ -308,23 +404,23 @@ def add_line(filename,dir,line):
     finally:
         fd.close()
 
-########################
-# Write a line in a file
-def add_param(submit_dir,param_name,param_defval):
-    global global_glidein_consts
-    if param_name in global_glidein_consts:
-        raise RuntimeError, "Trying to convert const '%s' into a param!"%param_name
+############################
+# Add a published attributed
+def add_attr(stage_dir,attr_name,attr_val):
+    add_line(ATTRS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
 
-    if param_defval[0]=='"':
-        # make sure strings are well defined
-        if  param_defval[-1]!='"':
-            raise RuntimeError, "Param '%s' start with a quote but does not end with one!"%param_name
-        
-        param_defval=string.replace(param_defval[1:-1],'\\"','"')
+############################
+# Add a constant attribute
+def add_const(stage_dir,attr_name,attr_val):
+    add_line(CONSTS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
+
+########################
+# Add a parameter
+def add_param(submit_dir,param_name,param_defval,is_string):
+    if is_string:
         param_defval=repr(param_defval)
     else:
-        if not param_defval.isdigit():
-            raise RuntimeError, "Param '%s' not a number and not quoted!"%param_name
+        param_defval=repr(int(param_defval))
 
     add_line(PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,param_defval))
 
@@ -363,19 +459,23 @@ def add_script(filename,stage_dir):
 ######################
 # Register a subsystem
 def add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out):
+    if config_check==None:
+        config_check="TRUE" #TRUE has a special meaning for the glidein
     add_sha1(filename,stage_dir)
     add_line(SUBSYSTEM_LISTFILE,stage_dir,"%s %s %s %s"%(config_check,wnsubdir,filename,config_out))
     if config_check!="TRUE":
         # TRUE is not a real parameter, so no need to log it
-        add_param(submit_dir,config_check,0) # if it is optional, default==0
+        add_param(submit_dir,config_check,0,is_string=False) # if it is optional, default==0
 
 ##########################################
 # Calculate SHA1 for the list files
 # Return the sha1sum of the signature file
-def finalize_sha1(stage_dir):
+def finalize_sha1(stage_dir,submit_dir,title):
     for f in (FILE_LISTFILE,SCRIPT_LISTFILE,SUBSYSTEM_LISTFILE):
         add_sha1(f,stage_dir)
-    return calc_sha1(SIGNATURE_FILE,stage_dir)
+    sha1=calc_sha1(SIGNATURE_FILE,stage_dir)
+    add_line(SUMMARY_SIGNATURE_FILE,submit_dir,"%s  %s"%(sha1,title))
+    return sha1
     
 #####################
 # Copy a regular file
@@ -394,74 +494,102 @@ def copy_script(filename,stage_dir,org_dir):
 def copy_subsystem(filename,stage_dir,submit_dir,org_dir,config_check,wnsubdir,config_out):
     copy_file(os.path.join(org_dir,filename),stage_dir)
     add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out)
-    
+
 #####################
 # Copy a user file
-# id = absname[:relname[:can_modify]]
-def copy_user_file(id,stage_dir):
-    can_be_modified=0 #default
-
-    id_list=string.split(id,":")
-    if len(id_list)==1:
-        copy_file(id,stage_dir)
-        filename=os.path.basename(id)
-    elif len(id_list) in (2,3):
-        filename=id_list[1]
-        copy_file(id_list[0],os.path.join(stage_dir,filename))
-        
-        if len(id_list)==3:
-            can_be_modified=int(id_list[2])
-    else:
-        raise RuntimeError, "Too many : in file arg: %s"%id
-
-    add_file(filename,stage_dir,can_be_modified)
-
-####################
-# Copy a user script
-# id = absname[:relname]
-def copy_user_script(id,stage_dir):
-    id_list=string.split(id,":")
-    if len(id_list)==1:
-        copy_file(id,stage_dir)
-        filename=os.path.basename(id)
-    elif len(id_list)==2:
-        filename=id_list[1]
-        copy_file(id_list[0],os.path.join(stage_dir,filename))
-    else:
-        raise RuntimeError, "Too many : in script arg: %s"%id
-        
-    add_script(filename,stage_dir)
-
-######################
-# Copy a subsystem
-# id = absname:conf_sw:dir:out_conf[:relname]
-def copy_user_subsystem(id,stage_dir,submit_dir):
-    id_list=string.split(id,":")
-    if len(id_list)<4:
-        raise RuntimeError, "Not enough : in subsys arg: %s"%id
-    config_check,wnsubdir,config_out=id_list[1:4]
-
-    if len(id_list)==4:
-        copy_file(id_list[0],stage_dir)
-        filename=os.path.basename(id_list[0])
-    elif len(id_list)==5:
-        filename=id_list[4]
-        copy_file(id_list[0],os.path.join(stage_dir,filename))
-    else:
-        raise RuntimeError, "Too many : in subsys arg: %s"%id
-
-    add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out)
+# file as described by Params.file_defaults
+def copy_file_unparsed(file,stage_dir,submit_dir):
+    if file.absfname==None:
+        raise RuntimeError, "Found a file element without a absname: %s"%file
     
-######################
-# Add user param
-# id = name=val
-def add_user_param(id,submit_dir):
-    id_list=string.split(id,"=",1)
-    if len(id_list)<2:
-        raise RuntimeError, "Not enough = in param arg: %s"%id
-    param_name,param_defval=id_list
-    add_param(submit_dir,param_name,param_defval)
+    relfname=file.relfname
+    if relfname==None:
+        relfile=os.path.basename(file.absfname) # defualt is the final part of absfname
+    if len(relfname)<1:
+        raise RuntimeError, "Found a file element with an empty relfname: %s"%file
+
+    copy_file(file.absfname,os.path.join(stage_dir,relfname))
     
+    is_const=eval(file.const,{},{})
+    is_executable=eval(file.executable,{},{})
+    do_untar=eval(file.untar,{},{})
+
+    if is_executable: # a script
+        if is_const:
+            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%file
+    
+        if do_untar:
+            raise RuntimeError, "A tar file cannot be executable: %s"%file
+
+        add_script(relfname,stage_dir)
+    elif do_untar: # a tarball
+        if is_const:
+            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
+
+        wnsubdir=file.untar_options.dir
+        if wnsubdir==None:
+            wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
+
+        #temporary, should be fixed in future versions
+        if file.untar_options.absdir_outattr==None:
+            raise RuntimeError, 'Currently untar_options.absdir_outattr must be defined: %s'%file
+        
+        add_subsystem(relfname,stage_dir,submit_dir,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr)
+    else: # not executable nor tarball => simple file
+        add_file(relfname,stage_dir,not is_const)
+
+
+#######################
+# Register an attribute
+# attr_obj as described by Params.attr_defaults
+def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
+    if attr_obj.value==None:
+        raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
+    
+    do_publish=eval(attr_obj.publish,{},{})
+    is_param=eval(attr_obj.parameter,{},{})
+    is_const=eval(attr_obj.const,{},{})
+
+    if (not attr_obj.type in ("string","int")):
+        raise RuntimeError, "Wrong type '%s' for attribute '%s', must be either 'int' or 'string'"%(attr_obj.type,attr_name)
+    
+    if do_publish: # publish in factory ClassAd
+        if is_parameter: # but also push to glidein
+            if is_const:
+                add_attr(stage_dir,attr_name,attr_obj.value)
+                add_const(stage_dir,attr_name,attr_obj.value)
+            else:
+                add_param(submit_dir,attr_name,attr_obj.value,attr_obj.type=="string")
+        else: # only publish
+            if (not is_const):
+                raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
+            
+            add_attr(stage_dir,attr_name,attr_obj.value)
+    else: # do not publish, only to glidein
+        if is_parameter:
+            if is_const:
+                add_const(stage_dir,attr_name,attr_obj.value)
+            else:
+                raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
+        else:
+            raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
+    
+#############################################
+# Register the files that host the attributes
+def add_attr_files(stage_dir):
+    global ATTRS_FILE,CONSTS_FILE
+    for fname in (ATTRS_FILE,CONSTS_FILE):
+        # touch the file, in case it does not exist
+        filepath=os.path.join(stage_dir,fname)
+        try:
+            fd=open(filepath,"a+")
+        except IOError,e:
+            raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
+        fd.close()
+        # register it
+        add_file(fname,stage_dir, create_if_empty=True)
+
+     
 ##############################
 # Execute a command in a shell
 def exe_cmd(cmd):
@@ -480,7 +608,8 @@ def exe_cmd(cmd):
 # Create condor tarball and
 # add it to the list of subsaystems
 def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
-    tgz_name="condor_bin.tgz"
+    global CONDOR_FILE,CONDOR_DIR,CONDOR_ATTR
+    tgz_name=CONDOR_FILE
     outtar_name=os.path.join(stage_dir,tgz_name)
     condor_sbin_dir=os.path.join(condor_base_dir,"sbin")
     try:
@@ -488,64 +617,10 @@ def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
             raise RuntimeError, "%s is not a directory"%condor_sbin_dir
         exe_cmd('cd "%s"; tar -czf "%s" condor_master condor_startd condor_starter'%(condor_sbin_dir,outtar_name))
         
-        add_subsystem(tgz_name,stage_dir,submit_dir,"TRUE","condor","CONDOR_DIR")
+        add_subsystem(tgz_name,stage_dir,submit_dir,None,CONDOR_DIR,CONDOR_ATTR)
     except RuntimeError, e:
         raise RuntimeError, "Error creating condor tgz: %s"%e
 
-###################################
-# Create attributes config file and
-# add it to the list of files
-def create_attributes(stage_dir,glidein_attr_ids):
-    glidein_attrs={}
-    for id in glidein_attr_ids:
-        id_list=string.split(id,"=",1)
-        if len(id_list)<2:
-            raise RuntimeError, "Not enough = in arg: %s"%id
-        name,val=id_list
-        glidein_attrs[name]=val
-    
-    global ATTRS_FILE
-    filepath=os.path.join(stage_dir,ATTRS_FILE)
-    try:
-        fd=open(filepath,"a+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        for name in glidein_attrs.keys():
-            val=glidein_attrs[name]
-            fd.write("%s \t%s\n"%(name,val))
-    finally:
-        fd.close()
-    add_file(ATTRS_FILE,stage_dir)
-
-###################################
-# Create consts config file and
-# add it to the list of files
-def create_consts(stage_dir,glidein_const_ids):
-    global global_glidein_consts
-
-    glidein_consts={}
-    for id in glidein_const_ids:
-        id_list=string.split(id,"=",1)
-        if len(id_list)<2:
-            raise RuntimeError, "Not enough = in const: %s"%id
-        name,val=id_list
-        glidein_consts[name]=val
-    
-    global CONSTS_FILE
-    filepath=os.path.join(stage_dir,CONSTS_FILE)
-    try:
-        fd=open(filepath,"a+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        for name in glidein_consts.keys():
-            val=glidein_consts[name]
-            fd.write("%s \t%s\n"%(name,val))
-            global_glidein_consts.append(name)
-    finally:
-        fd.close()
-    add_file(CONSTS_FILE,stage_dir)
 
 ###################################
 # Create a copy or a link in the
@@ -645,7 +720,7 @@ def create_job_descript(submit_dir,
 ###########################
 # Create Condor submit file
 def create_submit(submit_dir,
-                  factory_name,glidein_name,entry_name,
+                  factory_name,glidein_name,
                   schedd_name,
                   web_base,sha1):
     global SUBMIT_FILE
@@ -740,6 +815,19 @@ def create_submit_wrapper(submit_dir):
         fd.close()
     # Make it executable
     os.chmod(filepath,0755)
+
+def defdict2string(defaults,indent):
+    outstrarr=[]
+
+    for k in defaults.keys():
+        el=defaults[k]
+        if type(el)==type({}):  #sub-dictionary
+            outstrarr.append("%s%s:\n%s"%(indent,k,defdict2string(el,indent+"\t")))
+        else:
+            #print el
+            defvalue,ktype,txt=el
+            outstrarr.append("%s%s(%s) - %s [%s]"%(indent,k,ktype,txt,defvalue)) 
+    return string.join(outstrarr,"\n")
     
 ############################################################
 #
