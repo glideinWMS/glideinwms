@@ -812,7 +812,6 @@ def create_submit(submit_dir,
     try:
         fd.write("Universe = grid\n")
         fd.write("Grid_Resource = $ENV(GLIDEIN_GRIDTYPE) $ENV(GLIDEIN_GATEKEEPER)\n")
-        fd.write("$ENV(GLIDEIN_GRIDOPTS)\n") # additional options, like globus_rsl or globus_xml
         fd.write("Executable = %s\n"%STARTUP_FILE)
 
         fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
@@ -858,7 +857,6 @@ def create_test_submit(submit_dir):
         fd.write("export GLIDEIN_ENTRY_NAME 'test'\n")
         fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' %s|awk '{print $2}'`\n"%DESCRIPT_FILE)
         fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' %s|awk '{print $2}'`\n"%DESCRIPT_FILE)
-        fd.write("export GLIDEIN_GRIDOPTS ''\n")
         fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(GLIDEIN_FILE,SUBMIT_FILE))
     finally:
         fd.close()
@@ -887,12 +885,12 @@ def create_submit_wrapper(submit_dir):
         fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
         fd.write("export GLIDEIN_GRIDTYPE=$1\nshift\n")
         fd.write('export GLIDEIN_GATEKEEPER="$1"\nshift\n')
-        fd.write('export GLIDEIN_GRIDOPTS="$1"\nshift\n')
+        fd.write('GLIDEIN_GRIDOPTS="$1"\nshift\n')
         fd.write('GLIDEIN_PARAMS=""\n')
         fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
         fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write("condor_submit -name $schedd %s\n"%SUBMIT_FILE)
+        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $schedd %s\n'%SUBMIT_FILE)
     finally:
         fd.close()
     # Make it executable
