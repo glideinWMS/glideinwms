@@ -262,7 +262,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
 
     os.chdir(startup_dir)
     glideinDescript=glideFactoryConfig.GlideinDescript()
-    if not (entry_name in string.split(glideinDescript.data['Entries'],'.')):
+    if not (entry_name in string.split(glideinDescript.data['Entries'],',')):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
