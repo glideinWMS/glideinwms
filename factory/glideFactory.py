@@ -58,8 +58,8 @@ def perform_work(factory_name,glidein_name,entry_name,
 
     submit_attrs=[]
 
-    submit_attrs.append(jobDescript.data["Gatekeeper"])
     submit_attrs.append(jobDescript.data["GridType"])
+    submit_attrs.append(jobDescript.data["Gatekeeper"])
 
     if jobDescript.data.has_key("GlobusRSL"):
         submit_attrs.append("globus_rsl = %s"%jobDescript.data["GlobusRSL"])
