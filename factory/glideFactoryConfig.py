@@ -58,6 +58,24 @@ class ConfigFile:
         finally:
             fd.close()
 
+# load from the entry subdir
+class EntryConfigFile(ConfigFile):
+    def __init__(self,entry_name,config_file,convert_function=repr):
+        ConfigFile.__init__(self,os.path.join("entry_"+entry_name,config_file),convert_function)
+        self.entry_name=entry_name
+        self.config_file_short=config_file
+
+# load both the main and entry subdir config file
+# and join the results
+class JoinConfigFile(ConfigFile):
+    def __init__(self,entry_name,config_file,convert_function=repr):
+        ConfigFile.__init__(self,config_file,convert_function)
+        self.entry_name=entry_name
+        entry_obj=EntryConfigFile(entry_name,config_file,convert_function)
+        #merge by overriding whatever is found in the subdir
+        for k in entry_obj.data.keys():
+            self.data[k]=entry_obj.data[k]
+
 ############################################################
 #
 # Configuration
@@ -70,23 +88,23 @@ class GlideinDescript(ConfigFile):
         ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
                             repr) # convert everything in strings
 
-class JobDescript(ConfigFile):
+class JobDescript(EntryConfigFile):
+    def __init__(self,entry_name):
+        global factoryConfig
+        EntryConfigFile.__init__(self,entry_name,factoryConfig.job_descript_file,
+                                 repr) # convert everything in strings
+
+class JobAttributes(JoinConfigFile):
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.job_descript_file,
-                            repr) # convert everything in strings
+        JoinConfigFile.__init__(self,entry_name,factoryConfig.job_attrs_file,
+                                lambda s:s) # values are in python format
 
-class JobAttributes(ConfigFile):
+
+class JobParams(JoinConfigFile):
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.job_attrs_file,
-                            lambda s:s) # values are in python format
-
-
-class JobParams(ConfigFile):
-    def __init__(self):
-        global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.job_params_file,
-                            lambda s:s) # values are in python format
+        JoinConfigFile.__init__(self,entry_name,factoryConfig.job_params_file,
+                                lambda s:s) # values are in python format
 
 

@@ -246,10 +246,10 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
         
         
 ############################################################
-def main(sleep_time,advertize_rate,startup_dir):
+def main(sleep_time,advertize_rate,startup_dir,entry_name):
     # create log files in the glidein log directory
-    activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_info"))
-    warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_err"))
+    activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_%s_info"%entry_name))
+    warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_%s_err"%entry_name))
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
@@ -261,9 +261,11 @@ def main(sleep_time,advertize_rate,startup_dir):
 
     os.chdir(startup_dir)
     glideinDescript=glideFactoryConfig.GlideinDescript()
-    jobDescript=glideFactoryConfig.JobDescript()
-    jobAttributes=glideFactoryConfig.JobAttributes()
-    jobParams=glideFactoryConfig.JobParams()
+    if not (entry_name in string.split(glideinDescript.data['Entries'],'.')):
+        raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
+    jobDescript=glideFactoryConfig.JobDescript(entry_name)
+    jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
+    jobParams=glideFactoryConfig.JobParams(entry_name)
 
     iterate(cleanupObj,sleep_time,advertize_rate,
             glideinDescript,jobDescript,jobAttributes,jobParams)
@@ -275,5 +277,5 @@ def main(sleep_time,advertize_rate,startup_dir):
 ############################################################
 
 if __name__ == '__main__':
-    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
+    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3],sys.argv[4])
  
