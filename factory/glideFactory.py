@@ -61,14 +61,14 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs.append(jobDescript.data["Gatekeeper"])
     submit_attrs.append(jobDescript.data["GridType"])
 
-    submit_attrs.append("-dir")
-    submit_attrs.append(jobDescript.data["StartupDir"])
-
     if jobDescript.data.has_key("GlobusRSL"):
         submit_attrs.append("globus_rsl = %s"%jobDescript.data["GlobusRSL"])
     else:
         submit_attrs.append("") #something is needed, empty string is fine
         
+    submit_attrs.append("-dir")
+    submit_attrs.append(jobDescript.data["StartupDir"])
+
     if jobDescript.data.has_key("ProxyURL"):
         submit_attrs.apeend("-proxy")
         submit_attrs.append(jobDescript.data["ProxyURL"])
