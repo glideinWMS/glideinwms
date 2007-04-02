@@ -888,7 +888,9 @@ def create_submit_wrapper(submit_dir):
         fd.write("export GLIDEIN_GRIDTYPE=$1\nshift\n")
         fd.write('export GLIDEIN_GATEKEEPER="$1"\nshift\n')
         fd.write('export GLIDEIN_GRIDOPTS="$1"\nshift\n')
-        fd.write('GLIDEIN_PARAMS=""\nwhile [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
+        fd.write('GLIDEIN_PARAMS=""\n')
+        fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
+        fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("condor_submit -name $schedd %s\n"%SUBMIT_FILE)
     finally:
