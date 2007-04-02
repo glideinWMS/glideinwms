@@ -195,7 +195,7 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,params):
+def keepIdleGlideins(condorq,min_nr_idle,submit_attrs,params):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -210,7 +210,7 @@ def keepIdleGlideins(condorq,min_nr_idle,params):
         idle_glideins=0
     if idle_glideins<min_nr_idle:
         factoryConfig.logActivity("Need more glideins: min=%i, idle=%i"%(min_nr_idle,idle_glideins))
-        submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,params)
+        submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
     # We have enough glideins in the queue
@@ -477,7 +477,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,params):
+def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,params):
     global factoryConfig
 
     submitted_jids=[]
@@ -485,12 +485,17 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,params):
     if nr_glideins>factoryConfig.max_submits:
         nr_glideins=factoryConfig.max_submits
 
+    submit_attrs_arr=[]
+    for e in submit_attrs:
+        submit_attrs_arr.append("'"+e+"'")
+    submit_attrs_str = string.join(submit_attrs_arr," ")
+
     params_arr=[]
     for k in params.keys():
         params_arr.append(k)
-        params_arr.append(escapeParam(str(params[k])))
+        params_arr.append("'"+escapeParam(str(params[k]))+"'")
     params_str=string.join(params_arr," ")
-    
+
     try:
         nr_submitted=0
         while (nr_submitted<nr_glideins):
@@ -501,7 +506,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,params):
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            submit_out=condorExe.iexe_cmd("./job_submit.sh %s %s %s %i dbg %s"%(entry_name,schedd_name,client_name,nr_to_submit,params_str))
+            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" "%s" %i "dbg" %s %s'%(entry_name,schedd_name,client_name,nr_to_submit,submit_arr_str,params_str))
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster,j))

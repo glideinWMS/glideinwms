@@ -56,23 +56,25 @@ def perform_work(factory_name,glidein_name,entry_name,
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_name,log_stats)
 
 
-    submit_params=params[0:] # make a copy
-    #insert job info in front
-    if jobDescript.data.has_key("ProxyURL"):
-        submit_params.insert(0,jobDescript.data["ProxyURL"])
-        submit_params.insert(0,"-proxy")
+    submit_attrs=[]
 
-    submit_params.insert(0,jobDescript.data["StartupDir"])
-    submit_params.insert(0,"-dir")
+    submit_attrs.append(jobDescript.data["Gatekeeper"])
+    submit_attrs.append(jobDescript.data["GridType"])
+
+    submit_attrs.append("-dir")
+    submit_attrs.append(jobDescript.data["StartupDir"])
 
     if jobDescript.data.has_key("GlobusRSL"):
-        submit_params.insert(0,"globus_rsl = %s"%jobDescript.data["GlobusRSL"])
-
-    submit_params.insert(0,jobDescript.data["Gatekeeper"])
-    submit_params.insert(0,jobDescript.data["GridType"])
+        submit_attrs.append("globus_rsl = %s"%jobDescript.data["GlobusRSL"])
+    else:
+        submit_attrs.append("") #something is needed, empty string is fine
+        
+    if jobDescript.data.has_key("ProxyURL"):
+        submit_attrs.apeend("-proxy")
+        submit_attrs.append(jobDescript.data["ProxyURL"])
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,submit_params)
+    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,submit_attrs,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
