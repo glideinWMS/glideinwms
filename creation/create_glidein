@@ -361,7 +361,8 @@ def main(params):
                create_glidein_descript(params.submit_dir,
                                        params.factory_name,params.glidein_name,
                                        params.schedd_name,
-                                       params.web_url)
+                                       params.web_url,
+                                        params.entries.keys())
 
                create_submit(params.submit_dir,
                              params.factory_name,params.glidein_name,
@@ -743,7 +744,8 @@ def copy_submit_file(filename,submit_dir,org_dir):
 # Create glidein description file
 def create_glidein_descript(submit_dir,
                             factory_name,glidein_name,
-                            schedd_name,web_base):
+                            schedd_name,web_base,
+                            entries):
     global GLIDEIN_FILE
     filepath=os.path.join(submit_dir,GLIDEIN_FILE)
     try:
@@ -755,6 +757,7 @@ def create_glidein_descript(submit_dir,
         fd.write("GlideinName   %s\n"%glidein_name)
         fd.write("Schedd        %s\n"%schedd_name)
         fd.write("WebURL        %s\n"%web_base)
+        fd.write("Entries       %s\n"%string.join(entries,","))
     finally:
         fd.close()
     
