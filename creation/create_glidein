@@ -335,7 +335,7 @@ def main(params):
                    entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    for attr_name in params.entries[entry_name].attrs.keys():
                        add_attr_unparsed(attr_name, params.entries[entry_name].attrs[attr_name],entry_stage_dir,entry_submit_dir)
-                   add_attr_files(entry_stage_dir,entry_submit_file)
+                   add_attr_files(entry_stage_dir,entry_submit_dir)
 
                # this must be the last script in the list
                copy_script("condor_startup.sh",params.stage_dir,params.src_dir)
