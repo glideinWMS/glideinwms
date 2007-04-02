@@ -464,7 +464,12 @@ def add_line(filename,dir,line):
 
 ############################
 # Add a published attributed
-def add_attr(stage_dir,attr_name,attr_val):
+def add_attr(stage_dir,attr_name,attr_val,is_string):
+    if is_string:
+        attr_val=repr(attr_val)
+    else:
+        attr_val=repr(int(attr_val))
+
     add_line(ATTRS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
 
 ############################
@@ -622,7 +627,7 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
     if do_publish: # publish in factory ClassAd
         if is_parameter: # but also push to glidein
             if is_const:
-                add_attr(stage_dir,attr_name,attr_obj.value)
+                add_attr(stage_dir,attr_name,attr_obj.value,attr_obj.type=="string")
                 add_const(stage_dir,attr_name,attr_obj.value)
             else:
                 add_param(submit_dir,attr_name,attr_obj.value,attr_obj.type=="string")
@@ -630,7 +635,7 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
             if (not is_const):
                 raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
             
-            add_attr(stage_dir,attr_name,attr_obj.value)
+            add_attr(stage_dir,attr_name,attr_obj.value,attr_obj.type=="string")
     else: # do not publish, only to glidein
         if is_parameter:
             if is_const:
