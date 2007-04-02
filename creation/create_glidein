@@ -353,6 +353,10 @@ def main(params):
                copy_submit_file(STARTUP_FILE,params.submit_dir,params.src_dir)
 
                link_attributes(params.submit_dir,params.stage_dir,bool(params.stage.use_symlink))
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+                   link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
                create_glidein_descript(params.submit_dir,
                                        params.factory_name,params.glidein_name,
