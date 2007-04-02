@@ -327,7 +327,7 @@ def main(params):
                # add the basic standard params
                add_param(params.submit_dir,"GLIDEIN_Collector",'Fake',is_string=True)
                # finalize
-               add_attr_files(params.stage_dir)
+               add_attr_files(params.stage_dir,params.submit_dir)
 
                ## repeat for all the entries
                for entry_name in params.entries.keys():
@@ -647,8 +647,8 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
     
 #############################################
 # Register the files that host the attributes
-def add_attr_files(stage_dir):
-    global ATTRS_FILE,CONSTS_FILE
+def add_attr_files(stage_dir,submit_dir):
+    global ATTRS_FILE,CONSTS_FILE,PARAMS_FILE
     for fname in (ATTRS_FILE,CONSTS_FILE):
         # touch the file, in case it does not exist
         filepath=os.path.join(stage_dir,fname)
@@ -659,6 +659,13 @@ def add_attr_files(stage_dir):
         fd.close()
         # register it
         add_file(fname,stage_dir,0)
+    # also make sure that the params file exist
+    filepath=os.path.join(submit_dir,PARAMS_FILE)
+    try:
+        fd=open(filepath,"a+")
+    except IOError,e:
+        raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
+    fd.close()
 
      
 ##############################
