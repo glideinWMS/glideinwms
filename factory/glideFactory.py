@@ -16,6 +16,8 @@ import os.path
 import sys
 import traceback
 import time
+import string
+import copy
 import threading
 sys.path.append("../lib")
 
@@ -25,7 +27,6 @@ import glideFactoryMonitoring
 import glideFactoryInterface
 import glideFactoryLogParser
 import logSupport
-import copy
 
 # this thread will be used for lazy updates of rrd history conversions
 log_rrd_thread=None
