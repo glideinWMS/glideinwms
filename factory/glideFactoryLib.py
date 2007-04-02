@@ -506,7 +506,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,p
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" "%s" %i "dbg" %s %s'%(entry_name,schedd_name,client_name,nr_to_submit,submit_arr_str,params_str))
+            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" "%s" %i "dbg" %s %s'%(entry_name,schedd_name,client_name,nr_to_submit,submit_attrs_str,params_str))
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster,j))
