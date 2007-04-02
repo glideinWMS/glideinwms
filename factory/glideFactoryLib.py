@@ -493,7 +493,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,p
     params_arr=[]
     for k in params.keys():
         params_arr.append(k)
-        params_arr.append("'"+escapeParam(str(params[k]))+"'")
+        params_arr.append(escapeParam(str(params[k])))
     params_str=string.join(params_arr," ")
 
     try:
