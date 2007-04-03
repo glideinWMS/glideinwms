@@ -36,6 +36,36 @@ class SubParams:
     #
     # PROTECTED
     #
+
+    # validate input against bae template (i.e. the defaults)
+    def validate(self,base,path_text):
+        for k in self.data.keys():
+            if not base.has_key(k):
+                # element not in base, report
+                raise RuntimeError, "Unknown parameter %s.%s"%(path_text,k)
+            else:
+                # verify subelements, if any
+                defel=base[k]
+                if type(defel)==type({}):
+                    # subdictionary
+                    self[k].validate(defel,"%s.%s"%(path_text,k))
+                else:
+                    # final element
+                    defvalue,ktype,txt,subdef=defel
+
+                    if type(defvalue)==type({}):
+                        # dictionary el elements
+                        data_el=self[k]
+                        for data_subkey in data_el.keys():
+                            data_el[data_subkey].validate(subdef,"%s.%s.%s"%(path_text,k,data_subkey))
+                    elif type(defvalue)==type([]):
+                        # list of elements
+                        for data_el in self[k]:
+                            data_el.validate(subdef,"%s.*.%s"%(path_text,k))
+                    else:
+                        # a simple value
+                        pass #nothing to be done
+
     # put default values where there is nothing
     def use_defaults(self,defaults):
         for k in defaults.keys():
@@ -173,6 +203,8 @@ class Params:
         pass
 
     def derive(self):
+        self.subparams.validate(self.defaults,"glidein")
+
         # glidein name does not have a reasonable default
         if self.glidein_name==None:
             raise RuntimeError, "Missing glidein name"
