@@ -3,7 +3,7 @@
          schedd_name="myschedd@">
  <submit base_dir="/myarea/glidein_submit"/>
  <stage base_dir="/var/www/html/glidefactory/stage"
-        web_base_dir="http://mymachine.sleep.edu:9876/glidefactory/stage"
+        web_base_url="http://mymachine.sleep.edu:9876/glidefactory/stage"
         use_symlink="True"/>
  <monitor base_dir="/var/www/html/glidefactory/stage"/>
  <condor base_dir="/opt/glidecondor"/> 
