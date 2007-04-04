@@ -9,15 +9,18 @@ function usage {
     echo "where <options> is:"
     echo "  -factory <name>       : name of this factory"
     echo "  -name <name>          : name of this glidein"
+    echo "  -entry <name>         : name of this glidein entry"
     echo "  -web <baseURL>        : base URL from where to fetch"
     echo "  -proxy <proxyURL>     : URL of the local proxy"
     echo "  -dir <dirID>          : directory ID (supports .,Condor, CONDOR, OSG)"
     echo "  -sign <sign>          : signature of the signature file"
     echo "  -signtype <id>        : type of signature (only sha1 supported for now)"
+    echo "  -signentry <sign>     : signature of the entry signature file"
     echo "  -cluster <ClusterID>  : condorG ClusterId"
     echo "  -subcluster <ProcID>  : condorG ProcId"
     echo "  -schedd <name>        : condorG Schedd Name"
     echo "  -consts <fname>       : constants file name"
+    echo "  -glidescript <fname>  : glidein startup file name"
     echo "  -v <id>               : verbosity level (std and dbg supported)"
     echo "  -param_* <arg>        : user specified parameters"
     exit 1
@@ -32,15 +35,18 @@ while [ $# -gt 0 ]
 do case "$1" in
     -factory)    glidein_factory="$2";;
     -name)       glidein_name="$2";;
+    -entry)      glidein_entry="$2";;
     -web)        repository_url="$2";;
     -proxy)      proxy_url="$2";;
     -dir)        work_dir="$2";;
     -sign)       sign_id="$2";;
     -signtype)   sign_type="$2";;
+    -signentry)  sign_entry_id="$2";;
     -cluster)    condorg_cluster="$2";;
     -subcluster) condorg_subcluster="$2";;
     -schedd)     condorg_schedd="$2";;
-    -consts)       consts_file="$2";;
+    -consts)     consts_file="$2";;
+    -glidescript)   glidescript_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  usage
@@ -50,11 +56,28 @@ shift
 done
 
 
+###################################
+# Add a line to the config file
+function add_config_line {
+    id=$1
+
+    rm -f glidein_config.old #just in case one was there
+    mv glidein_config glidein_config.old
+    if [ $? -ne 0 ]; then
+	warn "Error renaming glidein_config into glidein_config.old" 1>&2
+	sleep $sleep_time # wait a bit, to reduce lost glideins
+	exit 1
+    fi
+    grep -v "^$id " glidein_config.old > glidein_config
+    echo "$@" >> glidein_config
+    rm -f glidein_config.old
+}
+
+###################################
+# Put parameters into the config file
 function params2file {
     param_list=""
 
-    config_file=$1
-    shift
     while [ $# -gt 0 ]
     do
        pfval=`echo "$2" | sed\
@@ -86,7 +109,7 @@ function params2file {
  -e 's/\.amp,/\&/g'\
  -e 's/\.comma,/,/g'\
  -e 's/\.dot,/./g'`
-	echo "$1 $pfval" >> "$config_file"
+	add_config_line "$1 $pfval"
 	if [ -z "$param_list" ]; then
 	    param_list="$1"
 	else
@@ -108,6 +131,17 @@ if [ "$debug_mode" == "dbg" ]; then
  sleep_time=10
 fi
 
+if [ -z "glidein_name" ]; then
+    warn "Missing gliden name!" 1>&2
+    usage
+fi
+
+if [ -z "glidein_entry" ]; then
+    warn "Missing glidein entry name!" 1>&2
+    usage
+fi
+
+
 if [ -z "$repository_url" ]; then
     warn "Missing Web URL!" 1>&2
     usage
@@ -122,12 +156,18 @@ if [ -z "sign_id" ]; then
     usage
 fi
 
+if [ -z "sign_entry_id" ]; then
+    warn "Missing entry signature!" 1>&2
+    usage
+fi
+
 if [ -z sign_type ]; then
     sign_type="sha1"
 fi
 
 if [ "$sign_type" == "sha1" ]; then
     sign_sha1="$sign_id"
+    sign_entry_sha1="$sign_entry_id"
 else
     warn "Unsupported signtype $sign_type found!" 1>&2
     usage
@@ -141,6 +181,7 @@ echo "condorg_subcluster= '$condorg_subcluster'"
 echo "condorg_schedd    = '$condorg_schedd'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
+echo "glidein_entry     = '$glidein_entry'"
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_sha1         = '$sign_sha1'"
@@ -255,18 +296,27 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+entry_dir="${work_dir}/entry_${glidein_entry}"
+mkdir "$entry_dir"
+if [ $? -ne 0 ]; then
+    warn "Cannot create '$entry_dir'" 1>&2
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+
 # create glidein_config
 echo > glidein_config
 echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
+echo "GLIDEIN_Entry_Name $glidein_entry" >> glidein_config
 echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
-params2file glidein_config $params
+params2file $params
 
 ###################################
 # Find out what kind of wget I have
@@ -287,7 +337,15 @@ fi
 #####################
 # Fetch a single file
 function fetch_file {
-    fetch_file_base "$1" "$2"
+    fetch_file_gen "$1" "$2" ""
+}
+
+function fetch_entry_file {
+    fetch_file_gen "$1" "$2" "entry"
+}
+
+function fetch_file_gen {
+    fetch_file_base "$1" "$2" "$3"
     if [ $? -ne 0 ]; then
 	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
@@ -299,11 +357,23 @@ function fetch_file {
 function fetch_file_base {
     fname="$1"
     avoid_cache="$2"
+    fetch_entry="$3"
+
+    if [ -z "$fetch_entry" ]; then
+	ffb_repository="$repository_url"
+	ffb_outname="$fname"
+	ffb_signature="signature.sha1"
+    else
+	ffb_repository="$repository_url/entry_$glidein_entry"
+	ffb_outname="$entry_dir/$fname"
+	ffb_signature="$entry_dir/signature.sha1"
+    fi
+
     if [ "$proxy_url" == "None" ]; then # no Squid defined
 
-	wget -q "$repository_url/$fname"
+	wget -q  -O "$ffb_outname" "$ffb_repository/$fname"
 	if [ $? -ne 0 ]; then
-	    warn "Failed to load file '$fname' from '$repository_url'" 1>&2
+	    warn "Failed to load file '$fname' from '$ffb_repository'" 1>&2
 	    return 1
 	fi
     else  # I have a Squid
@@ -311,7 +381,7 @@ function fetch_file_base {
         if [ "$avoid_cache" == "nocache" ]; then
           avoid_cache_str="$wget_nocache_flag"
         fi
-	env http_proxy=$proxy_url wget $avoid_cache_str -q "$repository_url/$fname"
+	env http_proxy=$proxy_url wget $avoid_cache_str -q  -O "$ffb_outname" "$ffb_repository/$fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
 	    warn "Failed to load file '$fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
@@ -319,14 +389,20 @@ function fetch_file_base {
 	fi
     fi
     if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
-	tmp_signname=signature.sha1_$$_`date +%s`
-	grep $fname signature.sha1 > $tmp_signname
+	tmp_signname="${ffb_signature}_$$_`date +%s`"
+	grep "$fname" "$ffb_signature" > $tmp_signname
 	if [ $? -ne 0 ]; then
 	    rm -f $tmp_signname
 	    echo "No signature for $fname."
 	else
-	    sha1sum -c $tmp_signname
-	    if [ $? -ne 0 ]; then
+	    if [ -z "$fetch_entry" ]; then
+		sha1sum -c $tmp_signname
+		ffb_rc=$?
+	    else
+		(cd $entry_dir; sha1sum -c $tmp_signname)
+		ffb_rc=$?
+	    fi
+	    if [ $ffb_rc -ne 0 ]; then
 		warn "File $fname is corrupted!" 1>&2
 		rm -f $tmp_signname
 		return 1
@@ -352,14 +428,19 @@ function fetch_subsystem {
 
 # this one will return 1 on error
 function fetch_subsystem_base {
-    config_file=$1
-    subsystem_dir=$2
-    in_tgz=$3
-    config_out=$4
+    subsystem_dir="$1"
+    in_tgz="$2"
+    config_out="$3"
+    fetch_entry="$4"
 
-    fetch_file "$in_tgz"
-    in_tgz_path=`pwd`/$in_tgz
-
+    if [ -z "$fetch_entry" ]; then
+	fetch_file "$in_tgz"
+	in_tgz_path="$work_dir/$in_tgz"
+    else
+	fetch_file_entry "$in_tgz"
+	in_tgz_path="$entry_dir/$in_tgz"	
+    fi
+    
     ss_dir="$work_dir/${subsystem_dir}"
     mkdir "$ss_dir"
     if [ $? -ne 0 ]; then
@@ -379,11 +460,7 @@ function fetch_subsystem_base {
     fi
     rm -f "$in_tgz_path"
     cd $work_dir
-    echo "$config_out $ss_dir" >> $config_file
-    if [ $? -ne 0 ]; then
-	warn "Failed to update the config file $config_file" 1>&2
-	return 1
-    fi
+    add_config_line "$config_out $ss_dir"
     return 0
 }
 
@@ -392,18 +469,19 @@ function fetch_subsystem_base {
 # Fetch subsytsem only if 
 # requested in config file
 function try_fetch_subsystem {
-    if [ $# -ne 5 ]; then
+    if [ $# -ne 6 ]; then
 	warn "Not enough arguments in try_fetch_subsystem $@" 1>&2
 	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
     fi
     
-    config_file=$1
-    config_check=$2
-    subsystem_dir=$3
-    in_tgz=$4
-    config_out=$5
+    fetch_entry="$1"
+    config_file="$2"
+    config_check="$3"
+    subsystem_dir="$4"
+    in_tgz="$5"
+    config_out="$6"
 
     if [ "$config_check" == "TRUE" ]; then
 	# TRUE is a special case
@@ -413,7 +491,7 @@ function try_fetch_subsystem {
     fi
 
     if [ "$get_ss" == "1" ]; then
-       fetch_subsystem $config_file $subsystem_dir $in_tgz $config_out
+       fetch_subsystem "$subsystem_dir" "$in_tgz" "$config_out" "$fetch_entry"
     fi
 }
 
@@ -432,12 +510,24 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+# Fetch entry signature file
+fetch_entry_file "signature.sha1"
+echo "$sign_entry_sha1  signature.sha1">"$entry_dir/signature.sha1.test"
+(cd $entry_dir; sha1sum -c signature.sha1.test)
+if [ $? -ne 0 ]; then
+    warn "Corrupted entry signature file!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+
 # re-enable for everything else
 check_signature=1
 
 ##############################
 # Fetch list of support files
 fetch_file "file_list.lst"
+fetch_entry_file "file_list.lst"
 
 # Fetch files
 while read file
@@ -445,25 +535,51 @@ do
     fetch_file $file
 done < file_list.lst
 
+# Fetch entry files
+while read file
+do
+    fetch_entry_file $file
+done < "$entry_dir/file_list.lst"
+
 if [ -n "$consts_file" ]; then
     echo "# --- Provided constants  ---" >> glidein_config
-    cat "$consts_file" >> glidein_config
+    # merge constants
+    while read line
+    do
+	add_config_line $line
+    done < "$consts_file"
 fi
 
+if [ -n "$entry_dir/$consts_file" ]; then
+    echo "# --- Provided entry constants  ---" >> glidein_config
+    # merge constants
+    while read line
+    do
+	add_config_line $line
+    done < "$entry_dir$consts_file"
+fi
 
 ##############################
 # Fetch list of support files
 fetch_file "subsystem_list.lst"
+fetch_entry_file "subsystem_list.lst"
 
 # Try fetching the subsystems
 while read subsys
 do
-    try_fetch_subsystem glidein_config $subsys
+    try_fetch_subsystem "" glidein_config $subsys
+done < subsystem_list.lst
+
+# Try fetching the entry subsystems
+while read subsys
+do
+    try_fetch_subsystem entry glidein_config $subsys
 done < subsystem_list.lst
 
 ##############################
 # Fetch list of scripts
 fetch_file "script_list.lst"
+fetch_entry_file "script_list.lst"
 
 echo "# --- Script values ---" >> glidein_config
 # Fetch and execute scripts
@@ -471,6 +587,36 @@ while read script
 do
     fetch_file "$script"
     chmod u+x "$script"
+    if [ $? -ne 0 ]; then
+	warn "Error making '$script' executable" 1>&2
+	cd "$start_dir";rm -fR "$work_dir"
+	sleep $sleep_time # wait a bit, to reduce lost glideins
+	exit 1
+    fi
+    if [ "$script" != "$glidescript_file" ]; then
+	"./$script" glidein_config
+	ret=$?
+	if [ $ret -ne 0 ]; then
+	    warn "Error running '$script'" 1>&2
+	    cd "$start_dir";rm -fR "$work_dir"
+	    sleep $sleep_time # wait a bit, to reduce lost glideins
+	    exit 1
+	fi
+   fi # glidescript must be the last to run
+done < script_list.lst
+
+# Fetch and execute scripts
+while read script
+do
+    fetch_file_entry "$script"
+    mv "$entry_dir/$script" "$script"
+    chmod u+x "$script"
+    if [ $? -ne 0 ]; then
+	warn "Error making '$script' executable" 1>&2
+	cd "$start_dir";rm -fR "$work_dir"
+	sleep $sleep_time # wait a bit, to reduce lost glideins
+	exit 1
+    fi
     "./$script" glidein_config
     ret=$?
     if [ $ret -ne 0 ]; then
@@ -481,6 +627,17 @@ do
     fi
 done < script_list.lst
 
+###############################
+# Start the glidein main script
+echo "# --- Glinein Script values ---" >> glidein_config
+"./$glidescript_file" glidein_config
+ret=$?
+if [ $ret -ne 0 ]; then
+  warn "Error running '$glidescript_file'" 1>&2
+  cd "$start_dir";rm -fR "$work_dir"
+  sleep $sleep_time # wait a bit, to reduce lost glideins
+  exit 1
+fi
 
 #########################
 # clean up after I finish
