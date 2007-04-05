@@ -556,7 +556,7 @@ if [ -n "$entry_dir/$consts_file" ]; then
     while read line
     do
 	add_config_line $line
-    done < "$entry_dir$consts_file"
+    done < "$entry_dir/$consts_file"
 fi
 
 ##############################
