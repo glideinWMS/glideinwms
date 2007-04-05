@@ -131,6 +131,11 @@ if [ "$debug_mode" == "dbg" ]; then
  sleep_time=10
 fi
 
+if [ -z "$glidescript_file" ]; then
+    warn "Missing gliden startup script!" 1>&2
+    usage
+fi
+
 if [ -z "glidein_name" ]; then
     warn "Missing gliden name!" 1>&2
     usage
@@ -566,12 +571,14 @@ fi
 fetch_file "subsystem_list.lst"
 fetch_entry_file "subsystem_list.lst"
 
+echo "# --- Subsystem values  ---" >> glidein_config
 # Try fetching the subsystems
 while read subsys
 do
     try_fetch_subsystem "" glidein_config $subsys
 done < subsystem_list.lst
 
+echo "# --- Entry subsystem values  ---" >> glidein_config
 # Try fetching the entry subsystems
 while read subsys
 do
@@ -604,9 +611,12 @@ do
 	    sleep $sleep_time # wait a bit, to reduce lost glideins
 	    exit 1
 	fi
-   fi # glidescript must be the last to run
+    else
+      echo "Skipping glidescript $$glidescript_file"
+    fi # glidescript must be the last to run
 done < script_list.lst
 
+echo "# --- Entry script values ---" >> glidein_config
 # Fetch and execute scripts
 while read script
 do
@@ -627,7 +637,7 @@ do
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
     fi
-done < script_list.lst
+done < "$entry_dir/script_list.lst"
 
 ###############################
 # Start the glidein main script
