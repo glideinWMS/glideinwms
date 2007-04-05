@@ -168,38 +168,19 @@ class Params:
                        "entries":({},"Dictionary of entries","Each entry contains:\n"+defdict2string(self.entry_defaults,'\t'),self.entry_defaults)}
                        
                        
-                                    
-        self.param_desc=(("factory_name",('-F','-factory'),socket.gethostname(),'ID', 'Factory name'),
-                         ("glidein_name",('-n','-name'),None,'ID', 'Glidein name'),
-                         ("gatekeeper",('-g','-gatekeeper'),None,'gatekeeper', 'Grid gatekeeper/resource'),
-                         ("gridtype",('-u','-gridtype'),'gt2','grid_type','Condor Grid type'),
-                         ("rsl",('-r','-rsl'),None,'RSL','Globus RSL option'),
-                         ("work_dir",('-s','-startdir'),".","Where to start glidein, usually 'OSG','Condor' or '.'"),
-                         ("submit_base_dir",('-S','-submitbase'),os.environ["HOME"],"base_dir","Submit base dir"),
-                         ("stage_base_dir",('-W','-stagebase'),"/var/www/html/glidestage","base_dir","Stage base dir"),
-                         ("stage_symlink",('-L','-stagesymlink'),"1","Bool","Can I symlink stage dir?"),
-                         ("monitor_base_dir",('-M','-monitorbase'),"/var/www/html/glidemonitor","base_dir","Monitoring base dir"),
-                         ("condor_base_dir",('-C','-condorbase'),find_condor_base_dir(), "base_dir","Condor distribution base dir"),
-                         ("web_base_url",('-w','-webdir'),"http://%s/glidestage"%socket.gethostname(),'base_url','Base Web server URL'),
-                         ('proxy_url',('-p','-proxy'),None,'proxy_url',"Squid cache to use"),
-                         ('schedd_name',('-d','-schedd'),"schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use"),
-                         ('glidein_attrs',('-a','-attr'),[],'name=val',"Glidein attribute, repeat as needed"),
-                         ('glidein_consts',('-n','-const'),[],'name=val',"Glidein constant, repeat as needed"),
-                         ('user_params',('-m','-param'),[],'name=val',"User param, repeat as needed"),
-                         ('user_files',('-f','-file'),[],'absname[:relname[:can_modify]]',"User file to ship to WN, repeat as needed"),
-                         ('user_scripts',('-c','-script'),[],'absname[:relname]',"User script to execute on WN, repeat as needed"),
-                         ('user_subsys',('-y','-subsys'),[],'absname:conf_sw:dir:out_conf[:relname]',"User subsytem to ship to WN, repeat as needed"),
-                         (self.load_file,('-e','-cfg'),None,'filename',"Load configuration file")
-                         )
-
         # support dir
         self.src_dir=os.path.join(os.getcwd(),"web_base")
 
-        self.load_file(argv[1])
-        # load values from arguments
-        #self.parse(argv[1:])
-        # create derived values
-        self.derive()
+        try:
+            if len(argv)<1:
+                raise RuntimeError, "Missing config file"
+
+            self.load_file(argv[1])
+            # create derived values
+            self.derive()
+        except:
+            self.usage()
+            raise
         pass
 
     def derive(self):
@@ -229,35 +210,6 @@ class Params:
         self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
-
-
-    def parse(self,argv):
-        argidx=0
-        while (argidx<len(argv)):
-            arg_name=argv[argidx]
-            argidx+=1
-            arg_val=argv[argidx]
-            argidx+=1
-            found=0
-            for el in self.param_desc:
-                param_strs=el[1]                
-                if arg_name in param_strs:
-                    param_name=el[0]
-                    if type(param_name)==type(""):
-                        # regular type, assign
-                        if eval("type(self.%s)"%param_name)==type([]):
-                            # append if a list
-                            exec("self.%s.append(%s)"%(param_name,repr(arg_val)))
-                        else:
-                            exec("self.%s=%s"%(param_name,repr(arg_val)))
-                    else:
-                        # special type, exec
-                        param_name(arg_val)
-                    found=1
-                    break
-            if not found:
-                self.usage()
-                raise RuntimeError,"Unknown arg '%s'"%arg_name
 
     #load from a file
     #one element per line
