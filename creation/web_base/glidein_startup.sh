@@ -362,10 +362,12 @@ function fetch_file_base {
     if [ -z "$fetch_entry" ]; then
 	ffb_repository="$repository_url"
 	ffb_outname="$fname"
+	ffb_desc_fname="$fname"
 	ffb_signature="signature.sha1"
     else
 	ffb_repository="$repository_url/entry_$glidein_entry"
 	ffb_outname="$entry_dir/$fname"
+	ffb_desc_fname="entry_$glidein_entry/$fname"
 	ffb_signature="$entry_dir/signature.sha1"
     fi
 
@@ -393,7 +395,7 @@ function fetch_file_base {
 	grep "$fname" "$ffb_signature" > $tmp_signname
 	if [ $? -ne 0 ]; then
 	    rm -f $tmp_signname
-	    echo "No signature for $fname."
+	    echo "No signature for $ffb_desc_fname."
 	else
 	    if [ -z "$fetch_entry" ]; then
 		sha1sum -c $tmp_signname
@@ -403,12 +405,12 @@ function fetch_file_base {
 		ffb_rc=$?
 	    fi
 	    if [ $ffb_rc -ne 0 ]; then
-		warn "File $fname is corrupted!" 1>&2
+		warn "File $ffb_desc_fname is corrupted!" 1>&2
 		rm -f $tmp_signname
 		return 1
 	    fi
 	    rm -f $tmp_signname
-	    echo "Signature OK for $fname."
+	    echo "Signature OK for $ffb_desc_fname."
 	fi
     fi
     return 0
@@ -437,7 +439,7 @@ function fetch_subsystem_base {
 	fetch_file "$in_tgz"
 	in_tgz_path="$work_dir/$in_tgz"
     else
-	fetch_file_entry "$in_tgz"
+	fetch_entry_file "$in_tgz"
 	in_tgz_path="$entry_dir/$in_tgz"	
     fi
     
@@ -608,7 +610,7 @@ done < script_list.lst
 # Fetch and execute scripts
 while read script
 do
-    fetch_file_entry "$script"
+    fetch_entry_file "$script"
     mv "$entry_dir/$script" "$script"
     chmod u+x "$script"
     if [ $? -ne 0 ]; then

@@ -851,7 +851,7 @@ def create_submit(submit_dir,
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory    = "%s"\n'%factory_name)
         fd.write('+GlideinName       = "%s"\n'%glidein_name)
-        fd.write('+GlideinEntryName  = "$ENV(GLIDEIN_ENTRY_NAME"\n')
+        fd.write('+GlideinEntryName  = "$ENV(GLIDEIN_ENTRY_NAME)"\n')
         fd.write('+GlideinClient     = "$ENV(GLIDEIN_CLIENT)"\n')
 
         
