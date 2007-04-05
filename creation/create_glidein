@@ -221,7 +221,7 @@ class Params:
         try:
             self.data=xmlParse.xmlfile2dict(fname)
         except xml.parsers.expat.ExpatError, e:
-            raise RuntimeError, "XML error parsing config file: %s"%s
+            raise RuntimeError, "XML error parsing config file: %s"%e
         self.subparams=SubParams(self.data)
         return
 
