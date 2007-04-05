@@ -576,7 +576,7 @@ done < subsystem_list.lst
 while read subsys
 do
     try_fetch_subsystem entry glidein_config $subsys
-done < subsystem_list.lst
+done < "$entry_dir/subsystem_list.lst"
 
 ##############################
 # Fetch list of scripts
