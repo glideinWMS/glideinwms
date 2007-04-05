@@ -179,9 +179,11 @@ class Params:
             self.load_file(argv[1])
             # create derived values
             self.derive()
-        except:
-            self.usage()
-            raise
+        except RuntimeError, e:
+            params.usage()
+            print ""
+            print e
+            sys.exit(1)
         pass
 
     def derive(self):
