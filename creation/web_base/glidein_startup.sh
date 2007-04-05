@@ -612,7 +612,7 @@ do
 	    exit 1
 	fi
     else
-      echo "Skipping glidescript $$glidescript_file"
+      echo "Skipping glidescript $glidescript_file"
     fi # glidescript must be the last to run
 done < script_list.lst
 
