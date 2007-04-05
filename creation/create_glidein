@@ -217,7 +217,10 @@ class Params:
     def load_file(self,fname):
         if fname=="-":
             fname=sys.stdin
-        self.data=xmlParse.xmlfile2dict(fname)
+        try:
+            self.data=xmlParse.xmlfile2dict(fname)
+        except xml.parsers.expat.ExpatError, e:
+            raise RuntimeError, "XML error parsing config file: %s"%s
         self.subparams=SubParams(self.data)
         return
 
