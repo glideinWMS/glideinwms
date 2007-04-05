@@ -888,7 +888,7 @@ def create_test_submit(submit_dir):
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("export GLIDEIN_ENTRY_NAME=test\n")
         fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$/{print \$1}" %s`\n'%SUMMARY_SIGNATURE_FILE)
+        fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
         fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' %s|awk '{print $2}'`\n"%DESCRIPT_FILE)
         fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' %s|awk '{print $2}'`\n"%DESCRIPT_FILE)
         fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(GLIDEIN_FILE,SUBMIT_FILE))

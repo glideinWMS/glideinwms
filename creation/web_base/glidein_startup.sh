@@ -49,7 +49,7 @@ do case "$1" in
     -glidescript)   glidescript_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
-    *)  (warn "Unknown option $1"; usage) 1>&2
+    *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
 shift
 shift
