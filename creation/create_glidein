@@ -12,6 +12,7 @@ import socket
 import traceback
 sys.path.append("../lib")
 import xmlParse
+import xml.parsers.expat
 
 class SubParams:
     def __init__(self,data):
