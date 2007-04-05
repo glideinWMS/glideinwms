@@ -847,7 +847,7 @@ def create_submit(submit_dir,
         fd.write("Executable = %s\n"%STARTUP_FILE)
 
         fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry $ENV(GLIDEIN_ENTRY_NAME) -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
-                 ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY)-signtype sha1 -factory %s -consts %s -glidescript %s " % (web_base,factory_name,CONSTS_FILE,STARTUP_FILE))+
+                 ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY) -signtype sha1 -factory %s -consts %s -glidescript %s " % (web_base,factory_name,CONSTS_FILE,STARTUP_FILE))+
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory    = "%s"\n'%factory_name)
         fd.write('+GlideinName       = "%s"\n'%glidein_name)
