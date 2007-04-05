@@ -180,7 +180,7 @@ class Params:
             # create derived values
             self.derive()
         except RuntimeError, e:
-            params.usage()
+            self.usage()
             print ""
             print e
             sys.exit(1)
