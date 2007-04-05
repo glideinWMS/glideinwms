@@ -172,7 +172,7 @@ class Params:
         self.src_dir=os.path.join(os.getcwd(),"web_base")
 
         try:
-            if len(argv)<1:
+            if len(argv)<2:
                 raise RuntimeError, "Missing config file"
 
             self.load_file(argv[1])
