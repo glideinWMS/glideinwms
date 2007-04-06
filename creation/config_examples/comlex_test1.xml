@@ -53,8 +53,8 @@
     <attr name="GLIDEIN_Site" value="site2" publish="True" parameter="True" const="True"/>
    </attrs>
    <files>
-     <file absfname="/myarea/config/cfgs_somewhere_v12.3.cfg" relname="site_configs.cfg" const="True"/>
-     <file absfname="/myarea/bins/krb5_v11.tgz" relname="krb5.tgz" const="True" untar="True">
+     <file absfname="/myarea/config/cfgs_somewhere_v12.3.cfg" relfname="site_configs.cfg" const="True"/>
+     <file absfname="/myarea/bins/krb5_v11.tgz" relfname="krb5.tgz" const="True" untar="True">
        <untar_options absdir_outattr="SITE_KRB5" dir="krb5"/>
      </file>
      <file absfname="/myarea/scripts/site_setup.sh" const="True" executable="True"/>
