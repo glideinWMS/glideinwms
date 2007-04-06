@@ -50,6 +50,9 @@ DEFAULT_TEXT_PARAMS=[]
 
 DEFAULT_EL_ATTR_NAME="val"
 
+# if set to True, no None will ever be printed
+DEFAULT_IGNORE_NONES=False
+
 ##########################################################
 #
 # End defaults
@@ -89,7 +92,10 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
         elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
-            head_arr.append(' %s="None"' % attr)
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s)" % (attr,debug_str)
         
@@ -132,7 +138,10 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
         elif type(el) is types.InstanceType:
             inst_attrs.append(attr)
         elif el==None:
-            head_arr.append(' %s="None"' % attr)
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Unsupported type (%s) for attr %s (%s)" % (type(el),attr,debug_str)
     if (len(inst_attrs)==0) and (len(dict_attrs)==0) and (len(list_attrs)==0) and (len(tree_attrs)==0) and (len(text_attrs)==0):
@@ -262,7 +271,10 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
         elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
-            head_arr.append(' %s="None"' % attr)
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>')
@@ -281,7 +293,10 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
         if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
-                val = "None"
+                if DEFAULT_IGNORE_NONES:
+                    continue # ignore nones
+                else:
+                    val = "None"
             elif type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
@@ -341,7 +356,10 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
         elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
-            head_arr.append(' %s="None"' % attr)
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>\n')
@@ -360,7 +378,10 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
         if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
-                val = "None"
+                if DEFAULT_IGNORE_NONES:
+                    continue # ignore nones
+                else:
+                    val = "None"
             elif type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
@@ -432,7 +453,10 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
         elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
-            head_arr.append(' %s="None"' % attr)
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>')
@@ -450,7 +474,10 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
         if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
-                val = "None"
+                if DEFAULT_IGNORE_NONES:
+                    continue # ignore nones
+                else:
+                    val = "None"
             if type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
@@ -510,7 +537,10 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
         elif type(el) in types.StringTypes:
             head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
         elif el==None:
-            head_arr.append(' %s="None"' % attr)
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>\n')
@@ -528,7 +558,10 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
         if ((type(el) in ((types.IntType,types.LongType,types.FloatType)+types.StringTypes)) or
             (el==None)):
             if el==None:
-                val = "None"
+                if DEFAULT_IGNORE_NONES:
+                    continue # ignore nones
+                else:
+                    val = "None"
             elif type(el) in types.StringTypes:
                 val = cgi.escape(el,1)
             elif type(el) is types.FloatType:
