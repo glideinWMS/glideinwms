@@ -42,10 +42,13 @@ import string
 ##########################################################
 
 DEFAULT_TAB="   "
+
 DEFAULT_DICTS_PARAMS={}
 DEFAULT_LISTS_PARAMS={}
 DEFAULT_TREE_PARAMS={}
 DEFAULT_TEXT_PARAMS=[]
+
+DEFAULT_EL_ATTR_NAME="val"
 
 ##########################################################
 #
@@ -235,14 +238,17 @@ def complete_dict_params(dict_params):
     if not ("dict_attr_name" in res.keys()):
         res["dict_attr_name"] = "name"
     if not ("el_attr_name" in res.keys()):
-        res["el_attr_name"] = "val"
+        res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
     if not ("subtypes_params" in res.keys()):
         res["subtypes_params"] = {}
     return res
 
 # Convert a dictionary into an XML string
 # all elements should be of the same type, although this is not enforced
-def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+    if el_attr_name==None:
+        el_attr_name=DEFAULT_EL_ATTR_NAME
+
     res_arr= []
 
     head_arr = []
@@ -320,7 +326,10 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",
 
 # Write a dictionary formatted as XML into an open file
 # all elements should be of the same type, although this is not enforced
-def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+    if el_attr_name==None:
+        el_attr_name=DEFAULT_EL_ATTR_NAME
+
     head_arr = []
     head_arr.append(leading_tab+('<%s' % dict_name))
     for attr in params.keys():
@@ -398,7 +407,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val"
 def complete_list_params(list_params):
     res = list_params.copy()
     if not ("el_attr_name" in res.keys()):
-        res["el_attr_name"] = "val"
+        res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
     if not ("subtypes_params" in res.keys()):
         res["subtypes_params"] = {}
     return res
@@ -406,7 +415,10 @@ def complete_list_params(list_params):
 # Convert a list into an XML string
 # Do not show the indexes, use dict2string if that is needed
 # all elements should be of the same type, although this is not enforced
-def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+    if el_attr_name==None:
+        el_attr_name=DEFAULT_EL_ATTR_NAME
+
     res_arr= []
 
     head_arr = []
@@ -483,7 +495,10 @@ def list2string(list,list_name,el_name,el_attr_name="val",params={},subtypes_par
 # Write a list formatted as XML in an open file
 # Do not show the indexes, use dict2file if that is needed
 # all elements should be of the same type, although this is not enforced
-def list2file(fd,list,list_name,el_name,el_attr_name="val",params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_params={},indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+    if el_attr_name==None:
+        el_attr_name=DEFAULT_EL_ATTR_NAME
+
     head_arr = []
     head_arr.append(leading_tab+('<%s' % list_name))
     for attr in params.keys():
