@@ -37,7 +37,23 @@ DEFAULT_TAB="   "
 #########################################################################################
 
 
+##########################################################
+#
+# The following Global varables are used to set defaults
+# When the user does not specify anything
+#
+##########################################################
 
+DEFAULT_DICTS_PARAMS={}
+DEFAULT_LISTS_PARAMS={}
+DEFAULT_TREE_PARAMS={}
+DEFAULT_TEXT_PARAMS=[]
+
+##########################################################
+#
+# End defaults
+#
+##########################################################
 
 ######################################################################
 def complete_class_params(class_params):
@@ -45,13 +61,13 @@ def complete_class_params(class_params):
     if not ("subclass_params" in res.keys()):
         res["subclass_params"] = {}
     if not ("dicts_params" in res.keys()):
-        res["dicts_params"] = {}
+        res["dicts_params"] = DEFAULT_DICTS_PARAMS
     if not ("lists_params" in res.keys()):
-        res["lists_params"] = {}
+        res["lists_params"] = DEFAULT_LISTS_PARAMS
     if not ("tree_params" in res.keys()):
-        res["tree_params"] = {}
+        res["tree_params"] = DEFAULT_TREE_PARAMS
     if not ("text_params" in res.keys()):
-        res["text_params"] = []
+        res["text_params"] = DEFAULT_TEXT_PARAMS
     return res
 
 # internal, get header of a class
@@ -132,13 +148,22 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
 # Convert a class into an XML string
 # all the simple attributes will be put in the header
 # other dictionaries will be put into the body
-def class2string(inst,inst_name,params={},subclass_params={},dicts_params={},lists_params={},tree_params={},text_params=[],indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+def class2string(inst,inst_name,params={},subclass_params={},dicts_params=None,lists_params=None,tree_params=None,text_params=None,indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params,attr):
         if attr in subclass_params.keys():
             return complete_class_params(subclass_params[attr])
         else: # if attr not explicitly specified, use default behaviour
             return complete_class_params({})
+
+    if dicts_params==None:
+        dicts_params=DEFAULT_DICTS_PARAMS
+    if lists_params==None:
+        lists_params=DEFAULT_LISTS_PARAMS
+    if tree_params==None:
+        tree_params=DEFAULT_TREE_PARAMS
+    if text_params==None:
+        text_params=DEFAULT_TEXT_PARAMS
 
     head_str,is_complete,inst_attrs,dict_attrs,list_attrs,tree_attrs,text_attrs = class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_params,leading_tab,debug_str)
     if is_complete:
@@ -167,7 +192,7 @@ def class2string(inst,inst_name,params={},subclass_params={},dicts_params={},lis
 # Write a class as XML into an open file
 # all the simple attributes will be put in the header
 # other dictionaries will be put into the body
-def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params={},lists_params={},tree_params={},text_params=[],indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
+def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params=None,lists_params=None,tree_params=None,text_params=None,indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     # return a pair (new_subclass_params,new_dict2list_params)
     def get_subclass_param(subclass_params,attr):
         if attr in subclass_params.keys():
@@ -175,6 +200,15 @@ def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params={},li
         else: # if attr not explicitly specified, use default behaviour
             return complete_class_params({})
 
+    if dicts_params==None:
+        dicts_params=DEFAULT_DICTS_PARAMS
+    if lists_params==None:
+        lists_params=DEFAULT_LISTS_PARAMS
+    if tree_params==None:
+        tree_params=DEFAULT_TREE_PARAMS
+    if text_params==None:
+        text_params=DEFAULT_TEXT_PARAMS
+        
     head_str,is_complete,inst_attrs,dict_attrs,list_attrs,tree_attrs,text_attrs = class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_params,leading_tab,debug_str)
     fd.write(head_str+"\n")
     if is_complete:
