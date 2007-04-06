@@ -269,7 +269,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name="val",
     if type(dict)==types.DictType:
         keys = dict.keys()
     else:
-        keys = range(len(dist)) # allow lists to be used as dictionaries
+        keys = range(len(dict)) # allow lists to be used as dictionaries
     
     
     for idx in keys:
