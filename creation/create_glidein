@@ -153,8 +153,8 @@ class Params:
                                              "absdir_outattr":(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)}}
         
         
-        sub_defaults={'attrs':({},'Dictionary of attributes',"Each attribute entry contains:\n"+defdict2string(self.attr_defaults,'\t'),self.attr_defaults),
-                      'files':([],'List of files',"Each file entry contains:\n"+defdict2string(self.file_defaults,'\t'),self.file_defaults)}
+        sub_defaults={'attrs':({},'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
+                      'files':([],'List of files',"Each file entry contains",self.file_defaults)}
         self.entry_defaults={"gatekeeper":(None,'gatekeeper', 'Grid gatekeeper/resource',None),
                              "gridtype":('gt2','grid_type','Condor Grid type',None),
                              "rsl":(None,'RSL','Globus RSL option',None),
@@ -175,7 +175,7 @@ class Params:
                                  "base_dir":(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)},
                        "attrs":sub_defaults['attrs'],
                        "files":sub_defaults['files'],
-                       "entries":({},"Dictionary of entries","Each entry contains:\n"+defdict2string(self.entry_defaults,'\t'),self.entry_defaults)}
+                       "entries":({},"Dictionary of entries","Each entry contains",self.entry_defaults)}
                        
                        
         # support dir
@@ -901,20 +901,89 @@ def create_submit_wrapper(submit_dir):
     # Make it executable
     os.chmod(filepath,0755)
 
-def defdict2string(defaults,indent):
+#######################################################
+# Wrap a text string to a fixed length
+def col_wrap(text,width,indent):
+    short_text,next_char=shorten_text(text,width)
+    if len(short_text)!=len(text): # was shortened
+        org_short_text=short_text[0:]
+        # make sure you are not breaking words.
+        while not (next_char in ('',' ','\t')):
+            if len(short_text)==0:
+                # could not break on word boundary, leave as is
+                short_text=org_short_text
+                break
+            next_char=short_text[-1]
+            short_text=short_text[:-1]
+        
+        if len(short_text)<(width-len(indent)):
+            # too short, just split as it was
+            short_text=org_short_text
+
+        # calc next lines
+        subtext=col_wrap(indent+text[len(short_text):],width,indent)
+        # glue
+        return short_text+"\n"+subtext
+    else:
+        return text
+
+# shorten text, make sure you properly account tabs
+# return (shorten text,next char)
+def shorten_text(text,width):
+    count=0
+    idx=0
+    for c in text:
+        if count>=width:
+             return (text[:idx],c)
+        if c=='\t':
+            count=count+8
+            if count>width:
+                return (text[:idx],c)
+            idx=idx+1
+        else:
+            count=count+1
+            idx=idx+1
+        
+    return (text[:idx],'')
+
+##################################################
+# convert deefualts to a string
+def defdict2string(defaults,indent,width=80):
     outstrarr=[]
 
-    for k in defaults.keys():
+    keys=defaults.keys()
+    keys.sort()
+
+    final_keys=[]
+    # put simple elements first
+    for k in keys:
+        el=defaults[k]
+        if type(el)!=type({}):
+            defvalue,ktype,txt,subdef=el
+            if subdef==None:
+                final_keys.append(k)
+    # put simple elements first
+    for k in keys:
+        el=defaults[k]
+        if type(el)==type({}):
+            final_keys.append(k)
+        else:
+            defvalue,ktype,txt,subdef=el
+            if subdef!=None:
+                final_keys.append(k)
+
+    for k in final_keys:
         el=defaults[k]
         if type(el)==type({}):  #sub-dictionary
-            outstrarr.append("%s%s:\n%s"%(indent,k,defdict2string(el,indent+"\t")))
+            outstrarr.append("%s%s:"%(indent,k)+"\n"+defdict2string(el,indent+"\t"))
         else:
             #print el
             defvalue,ktype,txt,subdef=el
+            wrap_indent=indent+string.ljust("",len("%s(%s) - "%(k,ktype)))
             if subdef!=None:
-                outstrarr.append("%s%s(%s) - [%s] %s:\n%s"%(indent,k,ktype,defvalue,txt,defdict2string(subdef,indent+"\t")))
+                outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(subdef,indent+"\t"))
             else:
-                outstrarr.append("%s%s(%s) - %s [%s]"%(indent,k,ktype,txt,defvalue))
+                outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent,k,ktype,txt,defvalue),width,wrap_indent))
     return string.join(outstrarr,"\n")
     
 ############################################################
