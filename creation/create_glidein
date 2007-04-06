@@ -906,6 +906,7 @@ def create_submit_wrapper(submit_dir):
 def col_wrap(text,width,indent):
     short_text,next_char=shorten_text(text,width)
     if len(short_text)!=len(text): # was shortened
+        #print short_text
         org_short_text=short_text[0:]
         # make sure you are not breaking words.
         while not (next_char in ('',' ','\t')):
@@ -916,12 +917,12 @@ def col_wrap(text,width,indent):
             next_char=short_text[-1]
             short_text=short_text[:-1]
         
-        if len(short_text)<(width-len(indent)):
+        if len(short_text)<=len(indent):
             # too short, just split as it was
             short_text=org_short_text
 
         # calc next lines
-        subtext=col_wrap(indent+text[len(short_text):],width,indent)
+        subtext=col_wrap(indent+text[len(short_text):].lstrip(' \t'),width,indent)
         # glue
         return short_text+"\n"+subtext
     else:
@@ -975,13 +976,13 @@ def defdict2string(defaults,indent,width=80):
     for k in final_keys:
         el=defaults[k]
         if type(el)==type({}):  #sub-dictionary
-            outstrarr.append("%s%s:"%(indent,k)+"\n"+defdict2string(el,indent+"\t"))
+            outstrarr.append("%s%s:"%(indent,k)+"\n"+defdict2string(el,indent+"\t",width))
         else:
             #print el
             defvalue,ktype,txt,subdef=el
             wrap_indent=indent+string.ljust("",len("%s(%s) - "%(k,ktype)))
             if subdef!=None:
-                outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(subdef,indent+"\t"))
+                outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(subdef,indent+"\t",width))
             else:
                 outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent,k,ktype,txt,defvalue),width,wrap_indent))
     return string.join(outstrarr,"\n")
