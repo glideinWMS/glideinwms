@@ -185,6 +185,12 @@ class Params:
             if len(argv)<2:
                 raise RuntimeError, "Missing config file"
 
+            if argv[1]=="-help":
+                self.usage()
+                print "\nA config file will contain:"
+                print self.get_description("  ")
+                sys.exit(1)
+                
             self.load_file(argv[1])
             # create derived values
             self.derive()
@@ -237,6 +243,10 @@ class Params:
         return out
 
 
+    def get_description(self,indent="",width=80):
+        return defdict2string(self.defaults,indent,width)
+
+
     #load from a file
     #one element per line
     # -opt val
@@ -254,7 +264,7 @@ class Params:
         return self.subparams.__getattr__(name)
 
     def usage(self):
-        print "Usage: create_glidein cfg_fname"
+        print "Usage: create_glidein cfg_fname|-help"
 
     #save into a file
     #The file should be usable for reload
@@ -937,7 +947,7 @@ def shorten_text(text,width):
         if count>=width:
              return (text[:idx],c)
         if c=='\t':
-            count=count+8
+            count=((count+8)/8)*8 #round to neares mult of 8
             if count>width:
                 return (text[:idx],c)
             idx=idx+1
