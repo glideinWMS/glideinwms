@@ -13,6 +13,7 @@ import traceback
 sys.path.append("../lib")
 import xmlParse
 import xml.parsers.expat
+import xmlFormat
 
 class SubParams:
     def __init__(self,data):
@@ -213,6 +214,14 @@ class Params:
         self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+
+    def get_xml(self):
+        old_default_lists_params=xmlFormat.DEFAULT_LISTS_PARAMS
+        xmlFormat.DEFAULT_LISTS_PARAMS={'files':{'el_name':'file','el_attr_name':'file','subtypes_params':{'class':{}}}}
+        out=xmlFormat.class2string(params.data,'glideins')
+        xmlFormat.DEFAULT_LISTS_PARAMS=old_default_lists_params
+        return out
+
 
     #load from a file
     #one element per line
