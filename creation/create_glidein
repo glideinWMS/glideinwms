@@ -219,7 +219,7 @@ class Params:
         old_default_lists_params=xmlFormat.DEFAULT_LISTS_PARAMS
         old_default_dicts_params=xmlFormat.DEFAULT_DICTS_PARAMS
         xmlFormat.DEFAULT_LISTS_PARAMS={'files':{'el_name':'file','subtypes_params':{'class':{}}}}
-        xmlFormat.DEFAULT_DICTS_PARAMS={'attrs':{'el_name':'attr','subtypes_params':{'class':{}}}}
+        xmlFormat.DEFAULT_DICTS_PARAMS={'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'entries':{'el_name':'entry','subtypes_params':{'class':{}}}}
         out=xmlFormat.class2string(self.data,'glidein')
         xmlFormat.DEFAULT_LISTS_PARAMS=old_default_lists_params
         xmlFormat.DEFAULT_DICTS_PARAMS=old_default_dicts_params
