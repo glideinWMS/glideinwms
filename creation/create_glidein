@@ -189,6 +189,7 @@ class Params:
                 self.usage()
                 print "\nA config file will contain:"
                 print self.get_description("  ")
+                print "\nThe config file will be in XML format."
                 sys.exit(1)
                 
             self.load_file(argv[1])
