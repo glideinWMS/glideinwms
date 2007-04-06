@@ -62,7 +62,14 @@ class SubParams:
                             data_el[data_subkey].validate(subdef,"%s.%s.%s"%(path_text,k,data_subkey))
                     elif type(defvalue)==type([]):
                         # list of elements
-                        for data_el in self[k]:
+                        if type(self.data[k])==type({}):
+                            if len(self.data[k].keys())==0:
+                                self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
+
+                        mylist=self[k]
+                        if type(mylist)!=type([]):
+                            raise RuntimeError, "Parameter %s.%s not a list: %s %s"%(path_text,k,type(mylist),mylist)
+                        for data_el in mylist:
                             data_el.validate(subdef,"%s.*.%s"%(path_text,k))
                     else:
                         # a simple value
@@ -98,6 +105,7 @@ class SubParams:
                         self.data[k]=[] # no elements yet, set and empty list
                     else:
                         # need to set defaults on all elements in the list
+                        mylist=self[k]
                         for data_el in self[k]:
                             data_el.use_defaults(subdef)
                 else:
