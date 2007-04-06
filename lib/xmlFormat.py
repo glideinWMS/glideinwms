@@ -10,9 +10,6 @@ import types
 import cgi
 import string
 
-# this is the default tab
-DEFAULT_TAB="   "
-
 #########################################################################################
 #
 # This module is a generic purpose XML formatter
@@ -44,6 +41,7 @@ DEFAULT_TAB="   "
 #
 ##########################################################
 
+DEFAULT_TAB="   "
 DEFAULT_DICTS_PARAMS={}
 DEFAULT_LISTS_PARAMS={}
 DEFAULT_TREE_PARAMS={}
