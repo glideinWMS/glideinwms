@@ -34,6 +34,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
           glideinDescript,entries):
 
     childs={}
+    glideFactoryLib.factoryConfig.activity_log.write("Starting entries %s"%entries)
     try:
         for entry_name in entries:
             childs[entry_name]=popen2.Popen3("%s glideFactoryEntry.py %s %s %s %s"%(sys.executable,sleep_time,advertize_rate,startup_dir,entry_name),True)
@@ -42,6 +43,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
             childs[entry_name].tochild.close()
 
         while 1:
+            glideFactoryLib.factoryConfig.activity_log.write("Checking entries %s"%entries)
             for entry_name in childs.keys():
                 child=childs[entry_name]
                 if child.poll()!=-1:
@@ -50,6 +52,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                     tempErr = child.childerr.readlines()
                     del childs[entry_name]
                     raise RuntimeError,"Entry '%s' exited, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
+            glideFactoryLib.factoryConfig.activity_log.write("Sleep")
             time.sleep(sleep_time)
     finally:        
         # cleanup at exit
@@ -96,8 +99,13 @@ def main(sleep_time,advertize_rate,startup_dir):
     
     # start
     try:
-        spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
-              glideinDescript,entries)
+        try:
+            spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
+                  glideinDescript,entries)
+        except:
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
     finally:
         fd.close()
     
