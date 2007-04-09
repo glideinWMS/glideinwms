@@ -17,6 +17,7 @@ import sys
 import fcntl
 import popen2
 import traceback
+import signal
 import time
 import string
 import copy
