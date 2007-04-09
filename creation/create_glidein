@@ -993,7 +993,12 @@ def defdict2string(defaults,indent,width=80):
             defvalue,ktype,txt,subdef=el
             wrap_indent=indent+string.ljust("",len("%s(%s) - "%(k,ktype)))
             if subdef!=None:
-                outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(subdef,indent+"\t",width))
+                if type(defvalue)==type({}):
+                    dict_subdef=copy.deepcopy(subdef)
+                    dict_subdef["name"]=(None,"name","Name",None)
+                    outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(dict_subdef,indent+"\t",width))
+                else:
+                    outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(subdef,indent+"\t",width))
             else:
                 outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent,k,ktype,txt,defvalue),width,wrap_indent))
     return string.join(outstrarr,"\n")
