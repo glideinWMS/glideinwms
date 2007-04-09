@@ -6,6 +6,7 @@
 #   $1 = poll period (in seconds)
 #   $2 = advertize rate (every $2 loops)
 #   $3 = glidein submit_dir
+#   $4 = entry name
 #
 # Author:
 #   Igor Sfiligoi (Sept 15th 2006)
@@ -14,6 +15,7 @@
 import os
 import os.path
 import sys
+import fcntl
 import traceback
 import time
 import string
@@ -250,6 +252,8 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
         
 ############################################################
 def main(sleep_time,advertize_rate,startup_dir,entry_name):
+    startup_time=time.time()
+
     # create log files in the glidein log directory
     activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_%s_info"%entry_name))
     warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_%s_err"%entry_name))
@@ -270,9 +274,30 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
-    iterate(cleanupObj,sleep_time,advertize_rate,
-            glideinDescript,jobDescript,jobAttributes,jobParams)
+    # check lock file
+    lock_file="entry_%s/glideinWMS.lock"%entry_name
+    if not os.path.exists(lock_file): #create a lock file if needed
+        fd=open(lock_file,"w")
+        fd.close()
 
+    fd=open(lock_file,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except IOError:
+        fd.close()
+        raise RuntimeError, "Another glidein factory already running for entry '%s'"%entry_name
+    fd.seek(0)
+    fd.truncate()
+    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(startup_time)))
+    fd.flush()
+    
+    # start
+    try:
+        iterate(cleanupObj,sleep_time,advertize_rate,
+                glideinDescript,jobDescript,jobAttributes,jobParams)
+    finally:
+        fd.close()
+    
 ############################################################
 #
 # S T A R T U P
