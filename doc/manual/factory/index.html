@@ -5,6 +5,8 @@
 
 
 
+
+  
   
   
   
@@ -12,6 +14,8 @@
 
 
 
+
+  
   
   
   
@@ -24,12 +28,15 @@
 
 
 
+
 <h1>Glidein Factory</h1>
 
 
 
 
+
 <h2>Description</h2>
+
 
 
 
@@ -40,7 +47,9 @@ A&nbsp;Glidein Factory is the glidein producing infrastructure of a
 
 
 
+
 <h2>Index</h2>
+
 
 
 
@@ -50,7 +59,9 @@ A&nbsp;Glidein Factory is the glidein producing infrastructure of a
 
 
 
+
   <li><a href="#overview">Overview</a></li>
+
 
 
 
@@ -61,16 +72,20 @@ philosophy</a></li>
 
 
 
+
   <li><a href="#implementation">Implementation
 details</a></li>
 
 
 
 
+
+  
   
   
   
   <ul>
+
 
 
 
@@ -81,16 +96,20 @@ Factory Daemons</a> (<a href="factory_internals.html">internals</a>)</li>
 
 
 
+
     <li><a href="#glidein_startup">The glidein
 startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
 
+
+  
   
   
   
   </ul>
+
 
 
 
@@ -99,6 +118,8 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
+
+  
   
   
   
@@ -106,7 +127,9 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
-    <li><a href="#create_entry">Creating a new entry point</a></li>
+
+    <li><a href="#create_entry">Creating a new configuration directory</a></li>
+
 
 
 
@@ -114,6 +137,8 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
+
+  
   
   
   
@@ -121,7 +146,9 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
+
   <li><a href="#scalability">Scalability consideration</a></li>
+
 
 
 
@@ -131,12 +158,15 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
+
 </ul>
 
 
 
 
+
 <h2><a name="overview"></a>Overview</h2>
+
 
 
 
@@ -151,12 +181,15 @@ below for a schematic view.<br>
 
 
 
+
 <img src="overview.png"><br>
 
 
 
 
+
 <br>
+
 
 
 
@@ -169,6 +202,7 @@ each entry point, it will advertise a different class-ad. <br>
 
 
 
+
 Similarly,
 each request from a frontend client will affect a single entry point; a
 frontend will need to advertise several requests in order to
@@ -177,8 +211,10 @@ have glideins submitted to all the desirable resources.<br>
 
 
 
+
 <h2><a name="philosophy"></a>The Glidein
 Factory philosophy</h2>
+
 
 
 
@@ -190,7 +226,9 @@ abstract as much as possible. <br>
 
 
 
+
 <br>
+
 
 
 
@@ -203,7 +241,9 @@ to know that an entry point exists, and the parameters it takes.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -220,7 +260,9 @@ glideins</a> to be kept in the Grid queue.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -239,14 +281,17 @@ glideins in the queue.<br>
 
 
 
+
 <h2><a name="implementation"></a>Implementation
 details</h2>
 
 
 
 
+
 <h3><a name="glidein_daemons"></a>The Glidein
 Factory Daemons</h3>
+
 
 
 
@@ -261,12 +306,15 @@ that share the same factory name. See the picture below for an overview.<br>
 
 
 
-<br>
-
-
-
 
 <br>
+
+
+
+
+
+<br>
+
 
 
 
@@ -276,7 +324,9 @@ that share the same factory name. See the picture below for an overview.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -290,7 +340,9 @@ file; everything else is taken care by the glidein startup script.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -299,8 +351,10 @@ More details about the Glidein Factory Daemon internals can be found <a href="fa
 
 
 
+
 <h3><a name="glidein_startup"></a>The glidein
 startup script</h3>
+
 
 
 
@@ -313,7 +367,9 @@ script that will do the work.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -323,7 +379,9 @@ A startup script needs to perform several tasks:<br>
 
 
 
+
 <ul>
+
 
 
 
@@ -334,7 +392,9 @@ reasonable (else user jobs will fail)</li>
 
 
 
+
   <li>obtain the Condor binaries</li>
+
 
 
 
@@ -344,7 +404,9 @@ reasonable (else user jobs will fail)</li>
 
 
 
+
   <li>prepare the environment for&nbsp;Condor</li>
+
 
 
 
@@ -354,7 +416,9 @@ reasonable (else user jobs will fail)</li>
 
 
 
+
 </ul>
+
 
 
 
@@ -367,7 +431,9 @@ Condor binaries, and a base configuration file. <br>
 
 
 
+
 <br>
+
 
 
 
@@ -378,7 +444,9 @@ each Grid flavor treats data in a different way!<br>
 
 
 
+
 <br>
+
 
 
 
@@ -392,7 +460,9 @@ delivery is required.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -403,12 +473,15 @@ below.<br>
 
 
 
+
 <img src="glidein_script.png"><br>
 
 
 
 
+
 <br>
+
 
 
 
@@ -422,7 +495,9 @@ steps, making the startup script completely generic.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -437,7 +512,9 @@ too.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -447,7 +524,9 @@ The signature checking is implemented in two steps:<br>
 
 
 
+
 <ol>
+
 
 
 
@@ -460,6 +539,7 @@ then passed as one of the parameters to the startup script.</li>
 
 
 
+
   <li>The startup script loads the signature file from the Web
 server and verifies its signature. All other downloads, including the
 file containing the list of other files, is checked against the values
@@ -468,6 +548,8 @@ in the signature file. See the pseudo-code below.<br>
 
 
 
+
+    
     
     
     
@@ -475,7 +557,9 @@ in the signature file. See the pseudo-code below.<br>
     
     
     
+    
     <pre>wget http://head.fnal.gov/glidein_g1/signature.sha1<br>sha1sum <span style="font-style: italic;">known_sha1</span> signature.sha1<br>if $?!=0 then<br> exit 1<br>fi<br>grep files_list signature.sha1 &gt; filelist.sha1<br>wget http://head.fnal.gov/glidein_g1/files_list.lst<br>sha1sum -c filelist.sha1<br>if $?!=0 then<br> exit 2<br>fi<br>for file in files_list.lst do<br> wget http://head.fnal.gov/glidein_g1/$file<br>done<br>sha1sum -c signature.sha1<br>if $?!=0 then<br> exit 3<br>fi<br><span style="font-style: italic;">launch scripts</span></pre>
+
 
 
 
@@ -485,12 +569,15 @@ in the signature file. See the pseudo-code below.<br>
 
 
 
+
   </li>
 
 
 
 
+
 </ol>
+
 
 
 
@@ -506,7 +593,9 @@ both OSG and gLite has expressed interest in deploying a Squid server on every G
 
 
 
+
 <br>
+
 
 
 
@@ -516,7 +605,9 @@ More details about the startup script internals and support scripts provided by 
 
 
 
+
 <h2><a name="management"></a>Glidein Factory management</h2>
+
 
 
 
@@ -525,15 +616,19 @@ To run a Glidein Factory, you need to perform two steps:<br>
 
 
 
+
 <ol>
 
 
 
-  <li>Create an entry point</li>
+
+  <li>Create a configuration directory</li>
+
 
 
 
   <li>Run the Glidein Factory Daemon</li>
+
 
 
 
@@ -542,11 +637,14 @@ To run a Glidein Factory, you need to perform two steps:<br>
 
 
 
+
 and repeat as needed to serve all the resources available.<br>
 
 
 
+
 <br>
+
 
 
 
@@ -554,7 +652,9 @@ Please notice that it is extremely difficult to change an entry point after it h
 
 
 
+
 <br>
+
 
 
 
@@ -562,7 +662,9 @@ The reason why changes are so problematic are two fold:<br>
 
 
 
+
 <ul>
+
 
 
 
@@ -573,6 +675,7 @@ script, all glideins already in the queue will fail.&nbsp;</li>
 
 
 
+
   <li>The second problem is caching. For performance&nbsp;reasons, most
 Web caches don't check too often if the original document has been
 changed; a glidein could thus get an old copy of a file and fail the
@@ -580,7 +683,9 @@ signature check.</li>
 
 
 
+
 </ul>
+
 
 
 
@@ -588,25 +693,34 @@ There is only one file that is neither signed nor cached and can be thus modifie
 This one can be used to temporarily blacklist malfunctioning nodes that
 would pass regular sanity checks (for example: memory corruption or I/O
 errors), while waiting for the Grid site admin to take action.
-<h3><a name="create_entry"></a>Creating a new entry point</h3>
+<h3><a name="create_entry"></a>Creating a new configuration directory</h3>
+
 
 
 
 To create an entry point you need:<br>
 
+
 <ul>
 
-  <li>the name of the Gatekeeper,</li>
 
-  <li>the configuration details of the Grid pool,</li>
+  <li>the name of the Gatekeeper(s),</li>
 
-  <li>the location of the entry submit point, and</li>
+
+  <li>the configuration details of the Grid pool(s),</li>
+
+
+  <li>the location of the&nbsp;submit point, and</li>
+
 
   <li>the loction of the Web server data directory.</li>
 
+
 </ul>
 
+
 The entry point itself is created by&nbsp;launching the command<br>
+
 
 
 
@@ -614,7 +728,9 @@ The entry point itself is created by&nbsp;launching the command<br>
 
 
 
-The complete description of the command line options can be found <a href="entry.html">here</a>.<br>
+
+<a href="entry.html">The complete description of the configuration is described on a dedicated page</a> .<br>
+
 
 
 
@@ -622,7 +738,9 @@ The complete description of the command line options can be found <a href="entry
 
 
 
+
 To start the Glidein Factory Daemon, all you need to do is <br>
+
 
 
 
@@ -630,7 +748,9 @@ To start the Glidein Factory Daemon, all you need to do is <br>
 
 
 
+
   <li>decide the frequency of updates,</li>
+
 
 
 
@@ -638,10 +758,13 @@ To start the Glidein Factory Daemon, all you need to do is <br>
 
 
 
+
   <li>launch the daemon with<br>
 
 
 
+
+    
     
     
     
@@ -649,7 +772,9 @@ To start the Glidein Factory Daemon, all you need to do is <br>
 
 
 
+
   </li>
+
 
 
 
@@ -657,20 +782,32 @@ To start the Glidein Factory Daemon, all you need to do is <br>
 
 
 
+
 and you are all set.<br>
 
 
 
+
 <br>
+
 Activity messages will be printed in<br>
+
 <div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;entry point submit directory&gt;/log/factory_info.&lt;date&gt;.log</span><br>
+
 </div>
+
 while all the warnings go into<br>
+
 <div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;entry point submit directory&gt;/log/factory_err.&lt;date&gt;.log</span><br>
+
 </div>
+
 Both the glidein factory logs and the actual glidein logs are deleted after a week.<br>
+
 <br>
+
 Finally, a real life example could be:<br>
+
 
 
 
@@ -678,7 +815,9 @@ Finally, a real life example could be:<br>
 
 
 
+
 This will start a daemon that runs on the entry point located in <span style="font-family: monospace;">/opt/glideins/glidein_fnal24</span>, waits 5 seconds between checks and advertises itself every 6 loops.<br>
+
 
 
 
@@ -686,29 +825,37 @@ This will start a daemon that runs on the entry point located in <span style="fo
 
 
 
+
 To be written. <br>
 
 
 
+
 <br>
+
 
 
 
 Should talk about the use of multiple schedds and the possibility of having multiple entry points to the same Grid resource.<br>
 
+
 <br>
+
 
 Will be documented in future releases.<br>
 
 
 
 
-<br>
-
-
-
 
 <br>
+
+
+
+
+
+<br>
+
 
 
 
@@ -719,7 +866,9 @@ Will be documented in future releases.<br>
 
 
 
+
   <tbody>
+
 
 
 
@@ -729,7 +878,9 @@ Will be documented in future releases.<br>
 
 
 
+
       <td style="width: 50%; text-align: left; vertical-align: top;">
+      
       
       
       
@@ -738,10 +889,13 @@ Will be documented in future releases.<br>
 
 
 
+
+      
       
       
       
       <h3>CVSROOT</h3>
+
 
 
 
@@ -751,10 +905,13 @@ cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
 
 
 
+
+      
       
       
       
       <h2>Package(s)</h2>
+
 
 
 
@@ -764,7 +921,9 @@ glideinWMS/factory<br>
 
 
 
+
 glideinWMS/creation</td>
+
 
 
 
@@ -773,7 +932,9 @@ glideinWMS/creation</td>
       
       
       
+      
       <h2>Author(s)</h2>
+
 
 
 
@@ -783,11 +944,14 @@ Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
 
 
 
+
     </tr>
 
 
 
 
+
+  
   
   
   
@@ -797,7 +961,9 @@ Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
 
 
 
+
 <br>
+
 
 
 
