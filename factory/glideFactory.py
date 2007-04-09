@@ -57,7 +57,10 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
     finally:        
         # cleanup at exit
         for entry_name in childs.keys():
-            os.kill(childs[entry_name].pid)
+            try:
+                os.kill(childs[entry_name].pid,signal.SIGTERM)
+            except OSError:
+                pass # ignore failed kills of non-existent processes
         
         
 ############################################################
