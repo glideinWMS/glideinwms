@@ -1,6 +1,6 @@
 #
 # Description:
-#   This is the main of the glideinFactory
+#   This is the main of the glideinFactoryEntry
 #
 # Arguments:
 #   $1 = poll period (in seconds)
@@ -9,7 +9,8 @@
 #   $4 = entry name
 #
 # Author:
-#   Igor Sfiligoi (Sept 15th 2006)
+#   Igor Sfiligoi (Sep 15th 2006 - as glideFactory.py)
+#   Igor Sfiligoi (Apr 9th 2007 - as glideFactoryEntry.py)
 #
 
 import os
