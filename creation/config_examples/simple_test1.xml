@@ -1,10 +1,10 @@
 <glidein factory_name="myfactory" glidein_name="simple_test1">
  <attrs>
   <attr name="GLIDEIN_Platform" value="Linux" publish="True" parameter="False"/>
-  <attr name="SEC_DEFAULT_ENCRYPTION" value="REQUIRED" publish="False" parameter="Ture" const="True"/>
+  <attr name="SEC_DEFAULT_ENCRYPTION" value="REQUIRED" publish="False" parameter="True" const="True"/>
  </attrs>
  <files>
-   <file absfname="/etc/grid-config/grid-mapfile" const="False"/>
+   <file absfname="/etc/grid-config/grid-mapfile" const="True"/>
  </files>
  <entries>
   <entry name="sole"
@@ -17,3 +17,4 @@
   </entry>
  </entries>
 </glidein>
+
