@@ -1,3 +1,6 @@
+v0_6    The glidein factory now serves multiple entry points.
+        The config file is now XML based.
+
 v0_5    More bug fixes.
         Added monitoring info in the classads.
         Improved monitoring info of the Factory.
