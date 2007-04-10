@@ -701,11 +701,23 @@ def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
     global CONDOR_FILE,CONDOR_DIR,CONDOR_ATTR
     tgz_name=CONDOR_FILE
     outtar_name=os.path.join(stage_dir,tgz_name)
-    condor_sbin_dir=os.path.join(condor_base_dir,"sbin")
     try:
-        if not os.path.isdir(condor_sbin_dir):
-            raise RuntimeError, "%s is not a directory"%condor_sbin_dir
-        exe_cmd('cd "%s"; tar -czf "%s" condor_master condor_startd condor_starter'%(condor_sbin_dir,outtar_name))
+        condor_bins=['sbin/condor_master','sbin/condor_startd','sbin/condor_starter']
+
+        # check that dir and files exist
+        if not os.path.isdir(condor_base_dir):
+            raise RuntimeError, "%s is not a directory"%condor_base_dir
+        for f in condor_bins:
+            if not os.path.isfile(os.path.join(condor_base_dir,f)):
+                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
+
+        # check if optional binaries exist, if they do, include
+        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh']:
+            if os.path.isfile(os.path.join(condor_base_dir,f)):
+                condor_bins.append(f)
+        
+        # tar
+        exe_cmd('cd "%s"; tar -czf "%s" %s'%(condor_base_dir,outtar_name.string.join(condor_bins," ")))
         
         add_subsystem(tgz_name,stage_dir,submit_dir,None,CONDOR_DIR,CONDOR_ATTR)
     except RuntimeError, e:
