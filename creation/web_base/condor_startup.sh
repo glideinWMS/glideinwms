@@ -9,7 +9,7 @@ pstr='"'
 
 config_file=$1
 
-debug_mode=`grep -i "^DEBUG_MODE" $config_file | awk '{print $2}'`
+debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
 if [ "$debug_mode" == "1" ]; then
     echo "-------- $config_file in condor_startup.sh ----------"
@@ -46,7 +46,7 @@ function set_var {
 	return 0
     fi
 
-    var_val=`grep "^$var_name" $config_file | awk '{print substr($0,index($0,$2))}'`
+    var_val=`grep "^$var_name " $config_file | awk '{print substr($0,index($0,$2))}'`
     if [ -z "$var_val" ]; then
 	if [ "$var_req" == "Y" ]; then
 	    # needed var, exit with error
