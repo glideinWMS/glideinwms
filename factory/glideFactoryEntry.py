@@ -256,14 +256,14 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
     startup_time=time.time()
 
     # create log files in the glidein log directory
-    activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_%s_info"%entry_name))
-    warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_%s_err"%entry_name))
+    activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"entry_%s/log/factory_info"%entry_name))
+    warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"entry_%s/log/factory_err"%entry_name))
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor")
 
-    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"log"),"(job\..*\.out)|(job\..*\.err)|(factory_info\..*)|(factory_err\..*)",
+    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)|(factory_info\..*)|(factory_err\..*)",
                                      7*24*3600,
                                      activity_log,warning_log)
 
