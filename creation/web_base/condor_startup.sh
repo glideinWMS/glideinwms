@@ -155,7 +155,7 @@ fi
 echo === Condor starting `date` ===
 
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
-$CONDOR_DIR/condor_master -r $retmins -dyn -f 
+$CONDOR_DIR/sbin/condor_master -r $retmins -dyn -f 
 ret=$?
 
 echo === Condor ended `date` ===
