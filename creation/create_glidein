@@ -396,11 +396,11 @@ def main(params):
                                        entry_el.work_dir,entry_el.proxy_url)
 
                # calculate signatures
-               add_file(VARS_FILE,params.stage_dir,params.src_dir) # now I can finally register it
+               add_file(VARS_FILE,params.stage_dir,0) # now I can finally register it
                sha1=finalize_sha1(params.stage_dir,params.submit_dir,"main")
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   add_file(VARS_FILE,entry_stage_dir,params.src_dir) # now I can finally register it
+                   add_file(VARS_FILE,entry_stage_dir,0) # now I can finally register it
                    esha1=finalize_sha1(entry_stage_dir,params.submit_dir,"entry_"+entry_name)
             except:
                shutil.rmtree(params.monitor_dir)
