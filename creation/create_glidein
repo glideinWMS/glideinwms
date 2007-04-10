@@ -522,14 +522,12 @@ def add_sha1(filename,stage_dir):
 #################################
 # Add a new variable to VARS_FILE
 def add_var(stage_dir,attr_name,is_string,do_glidein_publish,do_job_publish):
-    if is_string:
-        attr_type="S"
-    else:
-        attr_type="I"
-    bool_str={True:"Y",False:"N"}
+    type_str={True:"S",False:"I"}
+    glide_str={True:"Y",False:"N"}
+    job_str={True:"+",False:"-"}
     add_line(VARS_FILE,stage_dir,
-             "%s\t%s\t-\t+\tN\t%s\t%s\n"%(attr_name,attr_type,bool_str[do_glidein_publish],bool_str[do_job_publish]))
-        
+             "%s\t%s\t-\t+\tN\t%s\t%s\n"%(attr_name,type_str[is_string],glide_str[do_glidein_publish],job_str[do_job_publish]))
+    
 #########################
 # Register a regular file
 def add_file(filename,stage_dir,can_be_modified=0):
