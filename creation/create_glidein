@@ -717,7 +717,7 @@ def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
                 condor_bins.append(f)
         
         # tar
-        exe_cmd('cd "%s"; tar -czf "%s" %s'%(condor_base_dir,outtar_name.string.join(condor_bins," ")))
+        exe_cmd('cd "%s"; tar -czf "%s" %s'%(condor_base_dir,outtar_name,string.join(condor_bins," ")))
         
         add_subsystem(tgz_name,stage_dir,submit_dir,None,CONDOR_DIR,CONDOR_ATTR)
     except RuntimeError, e:
