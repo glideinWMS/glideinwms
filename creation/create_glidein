@@ -581,9 +581,10 @@ def finalize_sha1(stage_dir,submit_dir,title):
 def copy_stage_file(filename,stage_dir,org_dir,can_be_modified=0,out_fname=None):
     if out_fname==None:
         copy_file(os.path.join(org_dir,filename),stage_dir)
+        add_file(filename,stage_dir,can_be_modified)
     else:
         copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
-    add_file(filename,stage_dir,can_be_modified)
+        add_file(out_fname,stage_dir,can_be_modified)
 
 ###############
 # Copy a script
