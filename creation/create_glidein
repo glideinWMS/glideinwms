@@ -309,8 +309,8 @@ def main(params):
                     entry_dir=os.path.join(params.monitor_dir,"entry_"+entry_name)
                     create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
                     
-               # make a link from the submit dir to the monitor dir
-               symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
+                # make a link from the submit dir to the monitor dir
+                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
                # put user files in stage
                for file in params.files:
