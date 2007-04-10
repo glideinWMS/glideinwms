@@ -15,6 +15,9 @@ CONDOR_HOST = $(HEAD_NODE)
 FILESYSTEM_DOMAIN = $(HOSTNAME)
 UID_DOMAIN = $(HOSTNAME)
 
+SBIN = $(CONDOR_DIR)/sbin
+LIBEXEC = $(CONDOR_DIR)/libexec
+
 MAIL = /bin/mail
 DAEMON_LIST = MASTER, STARTD
 MASTER_ADDRESS_FILE = $(LOG)/.master_address
@@ -22,8 +25,6 @@ MASTER = $(SBIN)/condor_master
 MASTER_LOG = $(LOG)/MasterLog
 STARTD = $(SBIN)/condor_startd
 STARTER = $(SBIN)/condor_starter
-# if anythign is needed from LIBEXEC, it will be in the same directory as SBIN
-LIBEXEC = $(SBIN)
 
 STARTER_LIST = STARTER
 
