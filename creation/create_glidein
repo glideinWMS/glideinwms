@@ -140,6 +140,8 @@ class Params:
         self.attr_defaults={"value":(None,"Value","Value of the attribute (string)",None),
                             "publish":("True","Bool","Should it be published by the factory?",None),
                             "parameter":("True","Bool","Should it be a parameter for the glidein?",None),
+                            "glidein_publish":("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None),
+                            "job_publish":("False","Bool","Should the glidein publish it to the job? (Used only if parameter is True.)",None),
                             "const":("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None),
                             "type":("string","string|int","What kind on data is value.",None)}
 
@@ -325,7 +327,7 @@ def main(params):
                
                #put system files into stage
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
-               copy_stage_file("condor_vars.lst",params.stage_dir,params.src_dir)
+               copy_stage_file(VARS_FILE,params.stage_dir,params.src_dir)
                copy_stage_file("nodes.blacklist",params.stage_dir,params.src_dir,can_be_modified=1)
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir)
@@ -428,6 +430,7 @@ SIGNATURE_FILE="signature.sha1"
 CONDOR_FILE="condor_bin.tgz"
 CONDOR_DIR="condor"
 CONDOR_ATTR="CONDOR_DIR"
+VARS_FILE="condor_vars.lst"
 
 STARTUP_FILE="glidein_startup.sh"
 GLIDEIN_FILE="glidein.descript"
@@ -516,6 +519,17 @@ def add_sha1(filename,stage_dir):
     sha1=calc_sha1(filename,stage_dir)
     add_line(SIGNATURE_FILE,stage_dir,"%s  %s"%(sha1,filename))
 
+#################################
+# Add a new variable to VARS_FILE
+def add_var(stage_dir,attr_name,is_string,do_glidein_publish,do_job_publish):
+    if is_string:
+        attr_type="S"
+    else:
+        attr_type="I"
+    bool_str={True:"Y",False:"N"}
+    add_line(VARS_FILE,stage_dir,
+             "%s\t%s\t-\t+\tN\t%s\t%s\n"%(attr_name,attr_type,bool_str[do_glidein_publish],bool_str[do_job_publish]))
+        
 #########################
 # Register a regular file
 def add_file(filename,stage_dir,can_be_modified=0):
@@ -656,7 +670,15 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
                 raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
         else:
             raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
-    
+
+    if is_parameter:
+        do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
+        do_job_publish=eval(attr_obj.job_publish,{},{})
+
+        if do_glidein_publish or do_job_publish:
+            # need to add a line only if will be published
+            add_var(stage_dir,attr_name,attr_obj.type=="string",do_glidein_publish,do_job_publish)
+
 #############################################
 # Register the files that host the attributes
 def add_attr_files(stage_dir,submit_dir):
