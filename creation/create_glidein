@@ -288,14 +288,19 @@ def main(params):
     try:
         # create log submit subdir
         create_dir(os.path.join(params.submit_dir,"log")) # no try/except needed, will be deleted by external except if needed
+
+        # create entry dirs, including internal log dirs
+        for entry_name in params.entries.keys():
+            entry_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+            create_dir(entry_dir)
+            create_dir(os.path.join(entry_dir,"log"))
         
         create_dir(params.stage_dir)
         try:
-            # create entry subdirs for both submit and stage
+            # create entry dirs
             for entry_name in params.entries.keys():
-                for base_dir in (params.submit_dir,params.stage_dir):
-                    entry_dir=os.path.join(base_dir,"entry_"+entry_name)
-                    create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
+                entry_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
 
             create_dir(params.monitor_dir)
             try:
