@@ -17,6 +17,8 @@ if [ "$debug_mode" == "1" ]; then
     echo "-----------------------------------------------------"
 fi
 
+entry_name=`grep -i "^GLIDEIN_Entry_Name " $config_file | awk '{print $2}'`
+
 export CONDOR_CONFIG="${PWD}/condor_config"
 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
@@ -100,6 +102,7 @@ function set_var {
 }
 
 grep -v "^#" condor_vars.lst > condor_vars.lst.tmp 
+grep -v "^#" "entry_${entry_name}/condor_vars.lst" >> condor_vars.lst.tmp 
 while read line
 do
     set_var $line

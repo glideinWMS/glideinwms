@@ -11,7 +11,7 @@ function check_blacklist {
 	exit 1
     fi
     emyname=`echo $myname | sed 's/\./\\\./g'`
-    grep -q -e "'^$emyname'" nodes.blacklist
+    grep -q -e "'^$emyname'" "entry_${entry_name}/nodes.blacklist"
     if [ $? -eq 0 ]; then
 	echo "My name '$myname' is in blacklist! Exiting."
 	exit 1
@@ -23,7 +23,7 @@ function check_blacklist {
 	return 0
     fi
     emyip=`echo $myip | sed 's/\./\\\./g'`
-    grep -q -e "'$emyip'" nodes.blacklist
+    grep -q -e "'$emyip'" "entry_${entry_name}/nodes.blacklist"
     if [ $? -eq 0 ]; then
 	echo "My ip '$myip' is in blacklist! Exiting."
 	exit 1
@@ -74,6 +74,8 @@ function check_quotas {
 
 # Assume all functions exit on error
 config_file=$1
+
+entry_name=`grep -i "^GLIDEIN_Entry_Name " $config_file | awk '{print $2}'`
 
 check_blacklist
 

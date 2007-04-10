@@ -328,11 +328,15 @@ def main(params):
                #put system files into stage
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
                copy_stage_file(VARS_FILE,params.stage_dir,params.src_dir)
-               copy_stage_file("nodes.blacklist",params.stage_dir,params.src_dir,can_be_modified=1)
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir)
                
-               
+                ## repeat for all the entries
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                   copy_stage_file(VARS_FILE+".entry",entry_stage_dir,params.src_dir,out_fname=VARS_FILE)
+                   copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,can_be_modified=1)
+              
                # put user attributes into config files
                for attr_name in params.attrs.keys():
                    add_attr_unparsed(attr_name, params.attrs[attr_name],params.stage_dir,params.submit_dir)
@@ -574,8 +578,11 @@ def finalize_sha1(stage_dir,submit_dir,title):
     
 #####################
 # Copy a regular file
-def copy_stage_file(filename,stage_dir,org_dir,can_be_modified=0):
-    copy_file(os.path.join(org_dir,filename),stage_dir)
+def copy_stage_file(filename,stage_dir,org_dir,can_be_modified=0,out_fname=None):
+    if out_fname==None:
+        copy_file(os.path.join(org_dir,filename),stage_dir)
+    else:
+        copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
     add_file(filename,stage_dir,can_be_modified)
 
 ###############
