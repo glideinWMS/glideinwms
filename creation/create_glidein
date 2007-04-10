@@ -526,7 +526,7 @@ def add_var(stage_dir,attr_name,is_string,do_glidein_publish,do_job_publish):
     glide_str={True:"Y",False:"N"}
     job_str={True:"+",False:"-"}
     add_line(VARS_FILE,stage_dir,
-             "%s\t%s\t-\t+\tN\t%s\t%s\n"%(attr_name,type_str[is_string],glide_str[do_glidein_publish],job_str[do_job_publish]))
+             "%s\t%s\t-\t+\tN\t%s\t%s"%(attr_name,type_str[is_string],glide_str[do_glidein_publish],job_str[do_job_publish]))
     
 #########################
 # Register a regular file
