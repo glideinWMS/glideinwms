@@ -261,7 +261,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
-    glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor")
+    glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
 
     cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)|(factory_info\..*)|(factory_err\..*)",
                                      7*24*3600,
