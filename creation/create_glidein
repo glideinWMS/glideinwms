@@ -327,14 +327,14 @@ def main(params):
                
                #put system files into stage
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
-               copy_stage_file(VARS_FILE,params.stage_dir,params.src_dir)
+               copy_file(os.path.join(params.src_dir,VARS_FILE),os.path.join(params.stage_dir,VARS_FILE)) # will be modified when attrs processed
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir)
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   copy_stage_file(VARS_FILE+".entry",entry_stage_dir,params.src_dir,out_fname=VARS_FILE)
+                   copy_file(os.path.join(params.src_dir,VARS_FILE+".entry"),os.path.join(entry_stage_dir,VARS_FILE)) # will be modified when attrs processed
                    copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,can_be_modified=1)
               
                # put user attributes into config files
@@ -396,9 +396,11 @@ def main(params):
                                        entry_el.work_dir,entry_el.proxy_url)
 
                # calculate signatures
+               add_file(VARS_FILE,params.stage_dir,params.src_dir) # now I can finally register it
                sha1=finalize_sha1(params.stage_dir,params.submit_dir,"main")
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                   add_file(VARS_FILE,entry_stage_dir,params.src_dir) # now I can finally register it
                    esha1=finalize_sha1(entry_stage_dir,params.submit_dir,"entry_"+entry_name)
             except:
                shutil.rmtree(params.monitor_dir)
