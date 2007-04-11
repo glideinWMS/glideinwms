@@ -236,6 +236,8 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             write_stats()
+        except KeyboardInterrupt:
+            raise # this is an exit signal, pass through
         except:
             if is_first:
                 raise
@@ -277,7 +279,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
     # check lock file
-    lock_file="entry_%s/glideinWMS.lock"%entry_name
+    lock_file="entry_%s/factory.lock"%entry_name
     if not os.path.exists(lock_file): #create a lock file if needed
         fd=open(lock_file,"w")
         fd.close()

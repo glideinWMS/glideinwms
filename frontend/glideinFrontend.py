@@ -102,6 +102,8 @@ def iterate(log_dir,sleep_time,
                     activity_log.write("Iteration at %s" % time.ctime())
                     try:
                         done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,max_idle,reserve_idle,glidein_params)
+                    except KeyboardInterrupt:
+                        raise # this is an exit signal, pass trough
                     except:
                         if is_first:
                             raise
