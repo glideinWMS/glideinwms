@@ -13,6 +13,7 @@
   <attr name="GLIDEIN_UseGCB" value="1" publish="True" parameter="False"/>
   <attr name="GCB_ORDER" value="RANDOM" publish="False" parameter="True" const="True"/>
   <attr name="GCB_LIST" value="131.215.211.223,131.215.211.222,131.215.211.254" publish="False" parameter="True" const="True"/>
+  <attr name="UseVOSoftware" type="int" value="3" publish="False" parameter="True" job_publish="True"/>
  </attrs>
  <files>
    <file absfname="/etc/grid-config/grid-mapfile" const="False"/>
@@ -34,7 +35,7 @@
     work_dir="Condor">
    <attrs>
     <attr name="GLIDEIN_Arch" value="X86_64" publish="True" parameter="False"/>
-    <attr name="NEED_INTEL_SUPPORT" value="True" publish="True" parameter="True" const="False"/>
+    <attr name="NEED_INTEL_SUPPORT" value="True" publish="True" parameter="True" const="False" glidein_publish="True" job_publish="True"/>
     <attr name="GLIDEIN_Site" value="site1" publish="True" parameter="True" const="True"/>
    </attrs>
    <files>

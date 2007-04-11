@@ -13,6 +13,7 @@
    <attrs>
     <attr name="GLIDEIN_Arch" value="INTEL" publish="True" parameter="False"/>
     <attr name="GLIDEIN_Site" value="as&quot;i'te" publish="True" parameter="True" const="True"/>
+    <attr name="GLIDEIN_SE" value="aSE" publish="True" parameter="True" const="True" glidein_publish="True" job_publish="False"/>
    </attrs>
   </entry>
  </entries>
