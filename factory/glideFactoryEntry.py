@@ -298,6 +298,10 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
                 glideinDescript,jobDescript,jobAttributes,jobParams)
     finally:
         fd.close()
+        glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],
+                                                 glideinDescript.data['GlideinName'],
+                                                 jobDescript.data['EntryName'])
+
     
 ############################################################
 #

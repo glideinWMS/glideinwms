@@ -139,6 +139,25 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,glidein_attrs={},glide
     finally:
         os.remove(tmpnam)
 
+# remove add from Collector
+def deadvertizeGlidein(factory_name,glidein_name,entry_name):
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('Requirements = Name == "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
+        finally:
+            fd.close()
+
+        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_AD %s"%tmpnam)
+    finally:
+        os.remove(tmpnam)
+    
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -179,6 +198,24 @@ def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client
             fd.close()
 
         condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_LICENSE_AD %s"%tmpnam) # must use a different AD that the frontend
+    finally:
+        os.remove(tmpnam)
+
+# remove add from Collector
+def deadvertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_name):
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%factoryConfig.factoryclient_id)
+            fd.write('Requirements = Name == "%s"\n'%client_name)
+        finally:
+            fd.close()
+
+        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_LICENSE_AD %s"%tmpnam)
     finally:
         os.remove(tmpnam)
 
