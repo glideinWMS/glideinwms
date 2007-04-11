@@ -297,6 +297,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
     try:
         try:
             try:
+                 glideFactoryLib.factoryConfig.activity_log.write("Starting up")
                 iterate(cleanupObj,sleep_time,advertize_rate,
                         glideinDescript,jobDescript,jobAttributes,jobParams)
             except KeyboardInterrupt:
