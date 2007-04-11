@@ -299,6 +299,8 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
             try:
                 iterate(cleanupObj,sleep_time,advertize_rate,
                         glideinDescript,jobDescript,jobAttributes,jobParams)
+            except KeyboardInterrupt:
+                glideFactoryLib.factoryConfig.activity_log.write("Received signal...exit")
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
