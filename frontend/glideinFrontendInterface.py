@@ -139,6 +139,48 @@ def advertizeWork(factory_pool,
     finally:
         os.remove(tmpnam)
 
+# Remove ClassAd from Collector
+def deadvertizeWork(factory_pool,
+                    client_name,request_name):
+    global frontendConfig
+
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%frontendConfig.client_id)
+            fd.write('Requirements = Name == "%s@%s"\n'%(request_name,client_name))
+        finally:
+            fd.close()
+
+        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s %s"%(pool2str(factory_pool),tmpnam))
+    finally:
+        os.remove(tmpnam)
+
+# Remove ClassAd from Collector
+def deadvertizeAllWork(factory_pool,
+                       client_name):
+    global frontendConfig
+
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%frontendConfig.client_id)
+            fd.write('Requirements = ClientName == "%s"\n'%client_name)
+        finally:
+            fd.close()
+
+        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s %s"%(pool2str(factory_pool),tmpnam))
+    finally:
+        os.remove(tmpnam)
+
 ############################################################
 #
 # I N T E R N A L - Do not use
