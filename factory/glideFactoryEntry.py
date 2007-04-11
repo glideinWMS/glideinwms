@@ -236,6 +236,8 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             write_stats()
+        except KeyboardInterrupt:
+            raise # this is an exit signal, pass through
         except:
             if is_first:
                 raise
@@ -315,6 +317,9 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],
                                                          glideinDescript.data['GlideinName'],
                                                          jobDescript.data['EntryName'])
+                glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(glideinDescript.data['FactoryName'],
+                                                                            glideinDescript.data['GlideinName'],
+                                                                            jobDescript.data['EntryName'])
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
