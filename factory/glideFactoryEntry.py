@@ -13,6 +13,7 @@
 #   Igor Sfiligoi (Apr 9th 2007 - as glideFactoryEntry.py)
 #
 
+import signal
 import os
 import os.path
 import sys
@@ -326,5 +327,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
 ############################################################
 
 if __name__ == '__main__':
+    signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
+    signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
     main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3],sys.argv[4])
  
