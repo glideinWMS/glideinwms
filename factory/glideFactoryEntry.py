@@ -236,8 +236,6 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             write_stats()
-        except KeyboardInterrupt:
-            raise # this is an exit signal, pass through
         except:
             if is_first:
                 raise

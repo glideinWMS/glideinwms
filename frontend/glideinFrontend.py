@@ -77,7 +77,7 @@ def iterate(log_dir,sleep_time,
                                      activity_log,warning_log)
     
 
-    lock_file=os.path.join(log_dir,"glideinWMS.lock")
+    lock_file=os.path.join(log_dir,"frontend.lock")
     if not os.path.exists(lock_file): #create a lock file if needed
         fd=open(lock_file,"w")
         fd.close()
