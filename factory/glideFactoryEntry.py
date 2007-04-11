@@ -313,9 +313,12 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
                                                          glideinDescript.data['GlideinName'],
                                                          jobDescript.data['EntryName'])
             except:
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                sys.exc_info()[2])
                 glideFactoryLib.factoryConfig.warning_log.write("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
                                                                                                        glideinDescript.data['GlideinName'],
                                                                                                        jobDescript.data['EntryName']))
+                glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
     finally:
         fd.close()
 
