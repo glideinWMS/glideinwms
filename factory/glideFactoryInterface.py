@@ -153,7 +153,7 @@ def deadvertizeGlidein(factory_name,glidein_name,entry_name):
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_AD %s"%tmpnam)
+        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s"%tmpnam)
     finally:
         os.remove(tmpnam)
     
@@ -215,7 +215,7 @@ def deadvertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,clie
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_LICENSE_AD %s"%tmpnam)
+        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_LICENSE_ADS %s"%tmpnam)
     finally:
         os.remove(tmpnam)
 
