@@ -68,6 +68,8 @@ def iterate(log_dir,sleep_time,
             max_idle,reserve_idle,
             glidein_params):
     global activity_log,warning_log
+    startup_time=time.time()
+
     activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
     warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
     cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)",
