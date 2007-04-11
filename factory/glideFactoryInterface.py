@@ -229,7 +229,7 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n'%factoryConfig.factoryclient_id)
-            fd.write('Requirements = ReqGlidein = "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
+            fd.write('Requirements = ReqGlidein == "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
         finally:
             fd.close()
 
