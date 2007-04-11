@@ -298,6 +298,9 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
                 glideinDescript,jobDescript,jobAttributes,jobParams)
     finally:
         fd.close()
+        glideFactoryLib.factoryConfig.activityg_log.write("Deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
+                                                                                       glideinDescript.data['GlideinName'],
+                                                                                       jobDescript.data['EntryName']))
         glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],
                                                  glideinDescript.data['GlideinName'],
                                                  jobDescript.data['EntryName'])
