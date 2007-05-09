@@ -40,9 +40,12 @@ qc_rrd_thread=None
 ############################################################
 def perform_work(factory_name,glidein_name,entry_name,
                  schedd_name,
-                 client_name,idle_glideins,
+                 client_name,client_int_name,client_int_req,
+                 idle_glideins,
                  jobDescript,
                  params):
+    glideFactoryLib.factoryConfig.client_internals[client_name]={"ClientName":client_int_name,"ReqName":client_int_req}
+
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
     else:
@@ -117,9 +120,17 @@ def find_and_perform_work(glideinDescript,jobDescript,jobParams):
             if not (k in params.keys()):
                 params[k]=jobParams.data[k]
 
+        try:
+            client_int_name=work[work_key]['internals']["ClientName"]
+            client_int_req=work[work_key]['internals']["ReqName"]
+        except:
+            client_int_name="DummyName"
+            client_int_req="DummyReq"
+
         if work[work_key]['requests'].has_key('IdleGlideins'):
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
-                                         work_key,work[work_key]['requests']['IdleGlideins'],
+                                         work_key,client_int_name,client_int_req,
+                                         work[work_key]['requests']['IdleGlideins'],
                                          jobDescript,params)
         #else, it is malformed and should be skipped
 
@@ -184,6 +195,7 @@ def advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams):
     current_qc_data=glideFactoryLib.factoryConfig.qc_stats.get_data()
     for client_name in current_qc_data.keys():
         client_qc_data=current_qc_data[client_name]
+        client_internals=glideFactoryLib.factoryConfig.client_internals[client_name]
 
         client_monitors={}
         for w in client_qc_data.keys():
@@ -200,7 +212,7 @@ def advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams):
             if p in params.keys(): # can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
         try:
-            glideFactoryInterface.advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_name,jobAttributes.data.copy(),params,client_monitors.copy())
+            glideFactoryInterface.advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_name,client_internals["ClientName"],client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
         except:
             glideFactoryLib.factoryConfig.warning_log.write("Advertize of '%s' failed"%client_name)
         
@@ -230,6 +242,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
+            glideFactoryLib.factoryConfig.client_internals = {}
 
             done_something=iterate_one(count==0,
                                        glideinDescript,jobDescript,jobAttributes,jobParams)

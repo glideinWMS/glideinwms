@@ -82,7 +82,7 @@ def findWork(factory_name,glidein_name,entry_name):
     # copy over requests and parameters
     for k in data.keys():
         kel=data[k]
-        el={"requests":{},"params":{},"monitor":{}}
+        el={"requests":{},"params":{},"monitor":{},"internals":{}}
         for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
                              ("params",factoryConfig.glidein_param_prefix),
                              ("monitor",factoryConfig.glidein_monitor_prefix)):
@@ -92,6 +92,9 @@ def findWork(factory_name,glidein_name,entry_name):
                     continue # skip reserved names
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=kel[attr]
+        for attr in kel.keys():
+            if attr in ("ClientName","ReqName","LastHeardFrom"):
+                el["internals"][attr]=kel[attr]
         
         out[k]=el
 
@@ -162,7 +165,8 @@ def deadvertizeGlidein(factory_name,glidein_name,entry_name):
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_name,
+def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,
+                                     client_name,client_int_name,client_int_req,
                                      glidein_attrs={},client_params={},client_monitors={}):
     #global factoryConfig,advertizeGlideinCounter
 
@@ -179,6 +183,8 @@ def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client
             fd.write('ReqFactoryName = "%s"\n'%factory_name)
             fd.write('ReqGlideinName = "%s"\n'%glidein_name)
             fd.write('ReqEntryName = "%s"\n'%entry_name)
+            fd.write('ReqClientName = "%s"\n'%client_int_name)
+            fd.write('ReqClientReqName = "%s"\n'%client_int_req)
             #fd.write('DaemonStartTime = %li\n'%start_time)
             #fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             #advertizeGlideinCounter+=1
