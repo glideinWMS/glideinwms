@@ -28,6 +28,7 @@ class FrontendConfig:
         # The name of the attribute that identifies the glidein
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
+        self.factoryclient_id = "glidefactoryclient"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -41,6 +42,8 @@ class FrontendConfig:
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
+
+        self.condor_reserved_names=("MyType","TargetType","GlideinMyType","MyAddress",'UpdatesHistory','UpdatesTotal','UpdatesLost','UpdatesSequenced','UpdateSequenceNumber','DaemonStartTime')
 
 
 # global configuration of the module
@@ -65,7 +68,7 @@ def findGlideins(factory_pool,
 
     data=status.fetchStored()
 
-    reserved_names=("MyType","TargetType","GlideinMyType","MyAddress")
+    reserved_names=frontendConfig.condor_reserved_names
     for k in reserved_names:
         if data.has_key(k):
             del data[k]
@@ -76,20 +79,69 @@ def findGlideins(factory_pool,
     for k in data.keys():
         kel=data[k].copy()
 
-        el={"params":{}}
+        el={"params":{},"monitor":{}}
 
         # first remove reserved anmes
         for attr in reserved_names:
             if kel.has_key(attr):
                 del kel[attr]
 
-        # then move the parameters
-        prefix = frontendConfig.glidein_param_prefix
-        plen=len(prefix)
-        for attr in kel.keys():
-            if attr[:plen]==prefix:
-                el["params"][attr[plen:]]=kel[attr]
+        # then move the parameters and monitoring
+        for (prefix,eldata) in ((frontendConfig.glidein_param_prefix,el["params"]),
+                              (frontendConfig.glidein_monitor_prefix,el["monitor"])):
+            plen=len(prefix)
+            for attr in kel.keys():
+                if attr[:plen]==prefix:
+                    eldata[attr[plen:]]=kel[attr]
+                    del kel[attr]
+
+        # what is left are glidein attributes
+        el["attrs"]=kel
+        
+        out[k]=el
+
+    return out
+
+def findGlideinClientMonitoring(factory_pool,client_name,
+                                additional_constraint=None):
+    global frontendConfig
+    
+    status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factoryclient_id
+    if client_name!=None:
+        status_constraint='%s && (ReqClientName=?="%s")'%client_name
+    if additional_constraint!=None:
+        status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
+    status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
+    status.load(status_constraint)
+
+    data=status.fetchStored()
+
+    reserved_names=frontendConfig.condor_reserved_names
+    for k in reserved_names:
+        if data.has_key(k):
+            del data[k]
+
+    out={}
+
+    # copy over requests and parameters
+    for k in data.keys():
+        kel=data[k].copy()
+
+        el={"params":{},"monitor":{}}
+
+        # first remove reserved anmes
+        for attr in reserved_names:
+            if kel.has_key(attr):
                 del kel[attr]
+
+        # then move the parameters and monitoring
+        for (prefix,eldata) in ((frontendConfig.glidein_param_prefix,el["params"]),
+                              (frontendConfig.glidein_monitor_prefix,el["monitor"])):
+            plen=len(prefix)
+            for attr in kel.keys():
+                if attr[:plen]==prefix:
+                    eldata[attr[plen:]]=kel[attr]
+                    del kel[attr]
 
         # what is left are glidein attributes
         el["attrs"]=kel
