@@ -68,6 +68,7 @@ class FactoryConfig:
 
         # monitoring objects
         # create them for the logging to occur
+        self.client_internals = None
         self.qc_stats = None
         self.log_stats = None
 
