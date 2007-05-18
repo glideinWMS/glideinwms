@@ -123,3 +123,17 @@ def main(sleep_time,advertize_rate,startup_dir):
 if __name__ == '__main__':
     main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
  
+
+###########################################################
+#
+# CVS info
+#
+# $Id: glideFactory.py,v 1.57 2007/05/18 19:10:57 sfiligoi Exp $
+#
+# Log:
+#  $Log: glideFactory.py,v $
+#  Revision 1.57  2007/05/18 19:10:57  sfiligoi
+#  Add CVS tags
+#
+#
+###########################################################

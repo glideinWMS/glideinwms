@@ -96,16 +96,30 @@ class JobDescript(EntryConfigFile):
                                  repr) # convert everything in strings
 
 class JobAttributes(JoinConfigFile):
-    def __init__(self):
+    def __init__(self,entry_name):
         global factoryConfig
         JoinConfigFile.__init__(self,entry_name,factoryConfig.job_attrs_file,
                                 lambda s:s) # values are in python format
 
 
 class JobParams(JoinConfigFile):
-    def __init__(self):
+    def __init__(self,entry_name):
         global factoryConfig
         JoinConfigFile.__init__(self,entry_name,factoryConfig.job_params_file,
                                 lambda s:s) # values are in python format
 
 
+
+###########################################################
+#
+# CVS info
+#
+# $Id: glideFactoryConfig.py,v 1.8 2007/05/18 19:10:57 sfiligoi Exp $
+#
+# Log:
+#  $Log: glideFactoryConfig.py,v $
+#  Revision 1.8  2007/05/18 19:10:57  sfiligoi
+#  Add CVS tags
+#
+#
+###########################################################

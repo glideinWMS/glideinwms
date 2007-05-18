@@ -1072,3 +1072,17 @@ if __name__ == '__main__':
         params.usage()
         print ""
         print e
+
+###########################################################
+#
+# CVS info
+#
+# $Id: create_glidein,v 1.74 2007/05/18 19:07:18 sfiligoi Exp $
+#
+# Log:
+#  $Log: create_glidein,v $
+#  Revision 1.74  2007/05/18 19:07:18  sfiligoi
+#  Add CVS tags
+#
+#
+###########################################################

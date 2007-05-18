@@ -244,3 +244,17 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
     finally:
         os.remove(tmpnam)
 
+
+###########################################################
+#
+# CVS info
+#
+# $Id: glideFactoryInterface.py,v 1.19 2007/05/18 19:10:57 sfiligoi Exp $
+#
+# Log:
+#  $Log: glideFactoryInterface.py,v $
+#  Revision 1.19  2007/05/18 19:10:57  sfiligoi
+#  Add CVS tags
+#
+#
+###########################################################

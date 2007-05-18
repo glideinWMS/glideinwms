@@ -539,3 +539,17 @@ def removeGlideins(schedd_name,jid_list):
             break # limit reached, stop
     factoryConfig.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
 
+
+###########################################################
+#
+# CVS info
+#
+# $Id: glideFactoryLib.py,v 1.20 2007/05/18 19:10:57 sfiligoi Exp $
+#
+# Log:
+#  $Log: glideFactoryLib.py,v $
+#  Revision 1.20  2007/05/18 19:10:57  sfiligoi
+#  Add CVS tags
+#
+#
+###########################################################
