@@ -160,6 +160,7 @@ class Params:
         self.entry_defaults={"gatekeeper":(None,'gatekeeper', 'Grid gatekeeper/resource',None),
                              "gridtype":('gt2','grid_type','Condor Grid type',None),
                              "rsl":(None,'RSL','Globus RSL option',None),
+                             'schedd_name':(None,"ScheddName","Which schedd to use (Overrides the global one if specified)",None),
                              "work_dir":(".",".|Condor|OSG","Where to start glidein",None),
                              'proxy_url':(None,'proxy_url',"Squid cache to use",None),
                              "attrs":sub_defaults['attrs'],
@@ -167,7 +168,7 @@ class Params:
         
         self.defaults={"factory_name":(socket.gethostname(),'ID', 'Factory name',None),
                        "glidein_name":(None,'ID', 'Glidein name',None),
-                       'schedd_name':("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use",None),
+                       'schedd_name':("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None),
                        "submit":{"base_dir":(os.environ["HOME"],"base_dir","Submit base dir",None)},
                        "stage":{"base_dir":("/var/www/html/glidefactory/stage","base_dir","Stage base dir",None),
                                 "web_base_url":("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL',None),
@@ -400,9 +401,13 @@ def main(params):
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
                    entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    entry_el=params.entries[entry_name]
+                   schedd_name=entry_el.schedd_name
+                   if schedd_name==None:
+                       # use the global one if specific not provided
+                       schedd_name=params.schedd_name
                    create_job_descript(entry_submit_dir,entry_name,
                                        entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
-                                       params.schedd_name,
+                                       schedd_name,
                                        entry_el.work_dir,entry_el.proxy_url)
 
                # calculate signatures
@@ -1077,10 +1082,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.74 2007/05/18 19:07:18 sfiligoi Exp $
+# $Id: create_glidein,v 1.75 2007/05/18 19:36:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.75  2007/05/18 19:36:21  sfiligoi
+#  Add support for entry-specific schedd_names
+#
 #  Revision 1.74  2007/05/18 19:07:18  sfiligoi
 #  Add CVS tags
 #
