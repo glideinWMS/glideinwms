@@ -383,9 +383,8 @@ def main(params):
 
                create_glidein_descript(params.submit_dir,
                                        params.factory_name,params.glidein_name,
-                                       params.schedd_name,
                                        params.web_url,
-                                        params.entries.keys())
+                                       params.entries.keys())
 
                create_submit(params.submit_dir,
                              params.factory_name,params.glidein_name,
@@ -403,6 +402,7 @@ def main(params):
                    entry_el=params.entries[entry_name]
                    create_job_descript(entry_submit_dir,entry_name,
                                        entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
+                                       params.schedd_name,
                                        entry_el.work_dir,entry_el.proxy_url)
 
                # calculate signatures
@@ -822,7 +822,7 @@ def copy_submit_file(filename,submit_dir,org_dir):
 # Create glidein description file
 def create_glidein_descript(submit_dir,
                             factory_name,glidein_name,
-                            schedd_name,web_base,
+                            web_base,
                             entries):
     global GLIDEIN_FILE
     filepath=os.path.join(submit_dir,GLIDEIN_FILE)
@@ -833,7 +833,6 @@ def create_glidein_descript(submit_dir,
     try:
         fd.write("FactoryName   %s\n"%factory_name)
         fd.write("GlideinName   %s\n"%glidein_name)
-        fd.write("Schedd        %s\n"%schedd_name)
         fd.write("WebURL        %s\n"%web_base)
         fd.write("Entries       %s\n"%string.join(entries,","))
     finally:
@@ -844,6 +843,7 @@ def create_glidein_descript(submit_dir,
 def create_job_descript(submit_dir,
                         entry_name,
                         gridtype,gatekeeper,rsl,
+                        schedd_name,
                         startup_dir,proxy_id):
     global DESCRIPT_FILE
     filepath=os.path.join(submit_dir,DESCRIPT_FILE)
@@ -857,6 +857,7 @@ def create_job_descript(submit_dir,
         fd.write("Gatekeeper    %s\n"%gatekeeper)
         if rsl!=None:
             fd.write("GlobusRSL     %s\n"%rsl)
+        fd.write("Schedd        %s\n"%schedd_name)
         fd.write("StartupDir    %s\n"%startup_dir)
         if proxy_id!=None:
             fd.write("ProxyURL      %s\n"%proxy_id)

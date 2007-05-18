@@ -108,7 +108,7 @@ def find_and_perform_work(glideinDescript,jobDescript,jobParams):
         return 0 # nothing to be done
 
     #glideFactoryLib.factoryConfig.activity_log.write("Perform work")
-    schedd_name=glideinDescript.data['Schedd']
+    schedd_name=jobDescript.data['Schedd']
 
     done_something=0
     for work_key in work.keys():
