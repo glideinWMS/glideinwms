@@ -389,7 +389,6 @@ def main(params):
 
                create_submit(params.submit_dir,
                              params.factory_name,params.glidein_name,
-                             params.schedd_name,
                              params.web_url)
 
                create_submit_wrapper(params.submit_dir)
@@ -878,7 +877,6 @@ def create_job_descript(submit_dir,
 # Create Condor submit file
 def create_submit(submit_dir,
                   factory_name,glidein_name,
-                  schedd_name,
                   web_base):
     global SUBMIT_FILE
     filepath=os.path.join(submit_dir,SUBMIT_FILE)
@@ -891,7 +889,7 @@ def create_submit(submit_dir,
         fd.write("Grid_Resource = $ENV(GLIDEIN_GRIDTYPE) $ENV(GLIDEIN_GATEKEEPER)\n")
         fd.write("Executable = %s\n"%STARTUP_FILE)
 
-        fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry $ENV(GLIDEIN_ENTRY_NAME) -subcluster $(Process) -schedd %s "%(glidein_name,schedd_name))+
+        fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry $ENV(GLIDEIN_ENTRY_NAME) -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%glidein_name)+
                  ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY) -signtype sha1 -factory %s -consts %s -glidescript %s " % (web_base,factory_name,CONSTS_FILE,CONDOR_STARTUP_FILE))+
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory    = "%s"\n'%factory_name)
@@ -958,7 +956,7 @@ def create_submit_wrapper(submit_dir):
         fd.write(" exit 1\n")
         fd.write("fi\n")
         fd.write('export GLIDEIN_ENTRY_NAME="$1"\nshift\n')
-        fd.write("schedd=$1\nshift\n")
+        fd.write("export GLIDEIN_SCHEDD=$1\nshift\n")
         fd.write('export GLIDEIN_CLIENT="$1"\nshift\n')
         fd.write("export GLIDEIN_COUNT=$1\nshift\n")
         fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
@@ -971,7 +969,7 @@ def create_submit_wrapper(submit_dir):
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
         fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$/"\'{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $schedd %s\n'%SUBMIT_FILE)
+        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s\n'%SUBMIT_FILE)
     finally:
         fd.close()
     # Make it executable
@@ -1087,10 +1085,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.76 2007/05/18 19:57:32 sfiligoi Exp $
+# $Id: create_glidein,v 1.77 2007/05/18 20:35:05 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.77  2007/05/18 20:35:05  sfiligoi
+#  Fix submit file to handle multiple schedds
+#
 #  Revision 1.76  2007/05/18 19:57:32  sfiligoi
 #  Add support for listds of schedds
 #
