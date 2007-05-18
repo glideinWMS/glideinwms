@@ -397,14 +397,19 @@ def main(params):
 
                params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.xml"))
 
+               global_schedd_names=string.split(params.schedd_name,',')
+               global_schedd_idx=0
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
                    entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    entry_el=params.entries[entry_name]
+
                    schedd_name=entry_el.schedd_name
                    if schedd_name==None:
-                       # use the global one if specific not provided
-                       schedd_name=params.schedd_name
+                       # use one of the global ones if specific not provided
+                       schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
+                       global_schedd_idx=global_schedd_idx+1
+                   
                    create_job_descript(entry_submit_dir,entry_name,
                                        entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
                                        schedd_name,
@@ -1082,10 +1087,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.75 2007/05/18 19:36:21 sfiligoi Exp $
+# $Id: create_glidein,v 1.76 2007/05/18 19:57:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.76  2007/05/18 19:57:32  sfiligoi
+#  Add support for listds of schedds
+#
 #  Revision 1.75  2007/05/18 19:36:21  sfiligoi
 #  Add support for entry-specific schedd_names
 #
