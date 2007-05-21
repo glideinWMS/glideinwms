@@ -136,8 +136,12 @@ class MonitoringConfig:
 
         for r in self.rrd_reports:
             pname,period,idx=r
-            self.rrd2xml(base_fname+".%s.xml"%pname,idx,
-                         period,relative_rrd_files)
+            try:
+                self.rrd2xml(base_fname+".%s.xml"%pname,idx,
+                             period,relative_rrd_files)
+            except ExeError,e:
+                print "WARNING- XML %s.%s creation failed: %s"%(base_fname,pname,e)
+                
         return
 
     #############################################################################
@@ -184,8 +188,12 @@ class MonitoringConfig:
             title=relative_title+" - last "+pname
             for g in self.graph_sizes:
                 gname,width,height=g
-                self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,
-                               period,width,height,title,relative_rrd_files)
+                try:
+                    self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,
+                                   period,width,height,title,relative_rrd_files)
+                except ExeError,e:
+                    print "WARNING- graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
+                    
         return
 
 # global configuration of the module
@@ -579,10 +587,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.37 2007/05/18 19:10:57 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.38 2007/05/21 17:06:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.38  2007/05/21 17:06:12  sfiligoi
+#  Add more exception handling
+#
 #  Revision 1.37  2007/05/18 19:10:57  sfiligoi
 #  Add CVS tags
 #
