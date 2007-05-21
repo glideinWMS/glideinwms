@@ -56,7 +56,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
     condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
-    log_stats=glideFactoryLogParser.dirSummary("log",client_name)
+    log_stats=glideFactoryLogParser.dirSummary("entry_%s/log"%entry_name,client_name)
     log_stats.load()
 
     glideFactoryLib.logStats(condorQ,condorStatus)
@@ -360,10 +360,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.19 2007/05/21 15:39:17 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.20 2007/05/21 17:42:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.20  2007/05/21 17:42:16  sfiligoi
+#  Fix monitoring now that we have multiple entries
+#
 #  Revision 1.19  2007/05/21 15:39:17  sfiligoi
 #  More logging detail
 #
