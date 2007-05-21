@@ -14,6 +14,7 @@
 
 import os,os.path,stat
 import re,mmap
+import time
 import cPickle,sets
 
 # -------------- Single Log classes ------------------------
@@ -335,16 +336,19 @@ class logCounts(cachedLogClass):
 class cacheDirClass:
     def __init__(self,logClass,
                  dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None): # if ==None, will be reloaded from cache
-        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
 
     def cdInit(self,logClass,
                dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-               inactive_files=None): # if ==None, will be reloaded from cache
+               inactive_files=None,         # if ==None, will be reloaded from cache
+               inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
         self.logClass=logClass # this is an actual class, not an object
         self.dirname=dirname
         self.log_prefix=log_prefix
         self.log_suffix=log_suffix
+        self.inactive_timeout=inactive_timeout
         self.inactive_files_cache=os.path.join(dirname,log_prefix+log_suffix+cache_ext)
         if inactive_files==None:
             if os.path.isfile(self.inactive_files_cache):
@@ -389,12 +393,15 @@ class cacheDirClass:
         # get list of log files
         fnames=self.getFileList(active_only)
 
+        now=time.time()
         # load and merge data
         for fname in fnames:
-            obj=self.logClass(os.path.join(self.dirname,fname))
+            absfname=os.path.join(self.dirname,fname)
+            last_mod=os.path.getmtime(absfname)
+            obj=self.logClass(absfname)
             obj.load()
             mydata=obj.merge(mydata)
-            if not obj.isActive():
+            if ((now-last_mod)>self.inactive_timeout) and (not obj.isActive()):
                 new_inactives.append(fname)
                 pass
             pass
@@ -422,8 +429,9 @@ class cacheDirClass:
 # These data is available in self.data dictionary
 class dirSummary(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None): # if ==None, will be reloaded from cache
-        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+                 inactive_files=None,          # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
 
 
 # this class will keep track of:
@@ -432,8 +440,9 @@ class dirSummary(cacheDirClass):
 # These data is available in self.data dictionary
 class dirCompleted(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None): # if ==None, will be reloaded from cache
-        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
 
 
 # this class will keep track of
@@ -441,8 +450,9 @@ class dirCompleted(cacheDirClass):
 # These data is available in self.data dictionary
 class dirCounts(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None): # if ==None, will be reloaded from cache
-        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files)
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
 
 
 
