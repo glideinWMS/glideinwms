@@ -261,7 +261,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
                 glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
                 
         cleanupObj.cleanup()
-        glideFactoryLib.factoryConfig.activity_log.write("Sleep")
+        glideFactoryLib.factoryConfig.activity_log.write("Sleep %is"%sleep_time)
         time.sleep(sleep_time)
         count=(count+1)%advertize_rate
         is_first=0
@@ -360,10 +360,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.18 2007/05/18 19:10:57 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.19 2007/05/21 15:39:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.19  2007/05/21 15:39:17  sfiligoi
+#  More logging detail
+#
 #  Revision 1.18  2007/05/18 19:10:57  sfiligoi
 #  Add CVS tags
 #
