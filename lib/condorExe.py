@@ -63,9 +63,14 @@ def iexe_cmd(cmd):
     tempErr = child.childerr.readlines()
     child.childerr.close()
     try:
-       errcode=child.wait()
+        errcode=child.wait()
     except OSError, e:
-       raise ExeError, "Error running '%s'\nStderr:%s\nException OSError: %s"%(cmd,tempErr,e)
+        if len(tempOut)!=0:
+            # if there was some output, it is probably just a problem of timing
+            # have seen a lot of those when running very short processes
+            errcode=0
+        else:
+            raise ExeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
     if (errcode!=0):
         raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
     return tempOut
