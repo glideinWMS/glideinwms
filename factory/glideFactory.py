@@ -42,11 +42,34 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
 
         for entry_name in childs.keys():
             childs[entry_name].tochild.close()
+            # set it in non blocking mode
+            # since we will run for a long time, we do not want to block
+            for fd  in (childs[entry_name].fromchild.fileno(),childs[entry_name].childerr.fileno()):
+                fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+                fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+
 
         while 1:
             glideFactoryLib.factoryConfig.activity_log.write("Checking entries %s"%entries)
             for entry_name in childs.keys():
                 child=childs[entry_name]
+
+                # empty stdout and stderr
+                try:
+                    tempOut = child.fromchild.read()
+                    if len(tempOut)!=0:
+                        print child, tempOut
+                except IOError:
+                    pass # ignore
+                try:
+                    tempErr = child.childerr.read()
+                    if len(tempErr)!=0:
+                        print child, tempErr
+                except IOError:
+                    pass # ignore
+                
+                # look for exit childs
                 if child.poll()!=-1:
                     # the child exited
                     tempOut = child.fromchild.readlines()
@@ -128,10 +151,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.57 2007/05/18 19:10:57 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.58 2007/05/21 17:06:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.58  2007/05/21 17:06:42  sfiligoi
+#  Pass through stdout and stederr
+#
 #  Revision 1.57  2007/05/18 19:10:57  sfiligoi
 #  Add CVS tags
 #
