@@ -8,7 +8,7 @@
 #
 
 import os,os.path
-import time,copy
+import time,copy,string
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
@@ -69,6 +69,14 @@ class MonitoringConfig:
         if not os.path.isdir(dname):
             os.mkdir(dname)
         return
+
+    def find_disk_frontends(self):
+        frontends=[]
+        fnames=os.listdir(self.monitor_dir)
+        for fname in fnames:
+            if fname[:9]=="frontend_":
+                frontends.append(fname[9:])
+        return frontends
     
     def write_rrd(self,relative_fname,ds_type,time,val,min=None,max=None):
         """
@@ -335,10 +343,15 @@ class condorQStats:
                  "</glideFactoryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml",xml_str)
         # update RRDs
-        for fe in self.data.keys():
-            fe_dir="frontend_"+fe
+        for fe in [None]+self.data.keys():
+            if fe==None: # special key == Total
+                fe_dir="total"
+                fe_el=self.get_total()
+            else:
+                fe_dir="frontend_"+fe
+                fe_el=self.data[fe]
+
             monitoringConfig.establish_dir(fe_dir)
-            fe_el=self.data[fe]
             for tp in fe_el.keys():
                 # type - status or requested
                 for a in fe_el[tp].keys():
@@ -346,24 +359,32 @@ class condorQStats:
                     if type(a_el)!=type({}): # ignore subdictionaries
                         monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
                                                    "GAUGE",self.updated,a_el)
+
         return
     
     def create_support_history(self):
         global monitoringConfig
-        # create history XML files for RRDs
-        for fe in self.data.keys():
-            fe_dir="frontend_"+fe
-            fe_el=self.data[fe]
+        total_el=self.get_total()
+
+        # create human readable files for each entry + total
+        for fe in [None]+self.data.keys():
+            if fe==None: # special key == Total
+                fe="total"
+                fe_dir="total"
+                fe_el=self.get_total()
+            else:
+                fe_dir="frontend_"+fe
+                fe_el=self.data[fe]
+
+            # create history XML files for RRDs
             for tp in fe_el.keys():
                 # type - status or requested
                 for a in fe_el[tp].keys():
                     if type(fe_el[tp][a])!=type({}): # ignore subdictionaries
                         monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
                                                      [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
-        # create graphs for RRDs
-        for fe in self.data.keys():
-            fe_dir="frontend_"+fe
-            fe_el=self.data[fe]
+
+            # create graphs for RRDs
             monitoringConfig.graph_rrds("%s/Idle"%fe_dir,
                                         "Idle glideins",
                                         [("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
@@ -374,6 +395,81 @@ class condorQStats:
             monitoringConfig.graph_rrds("%s/Held"%fe_dir,
                                         "Held glideins",
                                         [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
+            
+        # create support index files
+        for fe in self.data.keys():
+            fe_dir="frontend_"+fe
+            fe_el=self.data[fe]
+            for rp in monitoringConfig.rrd_reports:
+                period=rp[0]
+                for sz in monitoringConfig.graph_sizes:
+                    size=sz[0]
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
+                    if (not os.path.isfile(fname)): #create only if it does not exist
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s over last %s</title>\n"%(fe,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write("<h1>%s over last %s</h1>\n"%(fe,period));
+                        fd.write("<table>")
+                        for s in ['Idle','Running','Held']:
+                            fd.write('<tr>')
+                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('</tr>\n')                            
+                        fd.write("</table>")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+
+        # create human readable files for total aggregating multiple entries 
+        frontend_list=monitoringConfig.find_disk_frontends()
+        frontend_list.sort()
+
+        colors=['00ff00','00ffff','ffff00','ff00ff']
+        for fname,tp in [('Status_Attribute_Idle','Idle'),
+                         ('Requested_Attribute_Idle','RequestedIdle'),
+                         ('Status_Attribute_Running','Running'),
+                         ('Status_Attribute_Held','Held')]:
+            rrd_fnames=[]
+            idx=0
+            for fe in frontend_list:
+                area_name="STACK"
+                if idx==0:
+                    area_name="AREA"
+                rrd_fnames.append((string.replace(string.replace(fe,".","_"),"@","_"),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
+                idx=idx+1
+            
+            monitoringConfig.graph_rrds("total/Split_%s"%fname,
+                                        "%s glideins"%tp,
+                                        rrd_fnames)
+
+        # create support index files for total
+        fe="Entry Total"
+        fe_dir="total"
+        fe_el=self.get_total()
+        for rp in monitoringConfig.rrd_reports:
+            period=rp[0]
+            for sz in monitoringConfig.graph_sizes:
+                size=sz[0]
+                fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
+                if (not os.path.isfile(fname)): #create only if it does not exist
+                    fd=open(fname,"w")
+                    fd.write("<html>\n<head>\n")
+                    fd.write("<title>%s over last %s</title>\n"%(fe,period));
+                    fd.write("</head>\n<body>\n")
+                    fd.write("<h1>%s over last %s</h1>\n"%(fe,period));
+                    fd.write("<table>")
+                    for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
+                              ('Running','Split_Status_Attribute_Running'),
+                              ('Held','Split_Status_Attribute_Held')]:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                        fd.write('</tr>\n')                            
+                    fd.write("</table>")
+                    fd.write("</body>\n</html>\n")
+                    fd.close()
+                    pass
 
         return
     
@@ -587,10 +683,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.38 2007/05/21 17:06:12 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.39 2007/05/21 21:58:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.39  2007/05/21 21:58:48  sfiligoi
+#  Add a total page to the monitoring (still missing total log monitoring)
+#
 #  Revision 1.38  2007/05/21 17:06:12  sfiligoi
 #  Add more exception handling
 #
