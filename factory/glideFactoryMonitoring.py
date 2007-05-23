@@ -411,7 +411,6 @@ class condorQStats:
         # create support index files
         for fe in self.data.keys():
             fe_dir="frontend_"+fe
-            fe_el=self.data[fe]
             for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
                 for sz in monitoringConfig.graph_sizes:
@@ -437,7 +436,7 @@ class condorQStats:
         frontend_list=monitoringConfig.find_disk_frontends()
         frontend_list.sort()
 
-        colors=['00ff00','00ffff','ffff00','ff00ff']
+        colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         for fname,tp in [('Status_Attribute_Idle','Idle'),
                          ('Requested_Attribute_Idle','RequestedIdle'),
                          ('Status_Attribute_Running','Running'),
@@ -458,7 +457,6 @@ class condorQStats:
         # create support index files for total
         fe="Entry Total"
         fe_dir="total"
-        fe_el=self.get_total()
         for rp in monitoringConfig.rrd_reports:
             period=rp[0]
             for sz in monitoringConfig.graph_sizes:
@@ -580,8 +578,12 @@ class condorLogSummary:
     def create_support_history(self):
         global monitoringConfig
         # create history XML files for RRDs
-        for client_name in self.stats_diff.keys():
-            fe_dir="frontend_"+client_name
+        for client_name in [None]+self.stats_diff.keys():
+            if client_name==None:
+                fe_dir="total"
+            else:
+                fe_dir="frontend_"+client_name
+
             for s in self.job_statuses:
                 report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s))]
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
@@ -591,8 +593,12 @@ class condorLogSummary:
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-        for client_name in self.stats_diff.keys():
-            fe_dir="frontend_"+client_name
+        for client_name in [None]+self.stats_diff.keys():
+            if client_name==None:
+                fe_dir="total"
+            else:
+                fe_dir="frontend_"+client_name
+
             for s in self.job_statuses:
                 rrd_files=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00")]
                 if not (s in ('Completed','Removed')): # always 0 for them
@@ -606,9 +612,47 @@ class condorLogSummary:
                                                 s,
                                                 [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
 
+        # Crate split graphs for total
+        frontend_list=monitoringConfig.find_disk_frontends()
+        frontend_list.sort()
+
+        colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
+        for s in self.job_statuses:
+            diff_rrd_files=[]
+            count_rrd_files=[]
+
+            idx=0
+            for fe in frontend_list:
+                area_name="STACK"
+                if idx==0:
+                    area_name="AREA"
+                fe_dir="frontend_"+fe
+                diff_rrd_files.append(['Entered_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Entered.rrd"%(fe_dir,s),area_name,colors[idx%len(colors)]])
+                idx=idx+1
+
+            if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+                idx=0
+                for fe in frontend_list:
+                    area_name="STACK"
+                    if idx==0:
+                        area_name="AREA"
+                    fe_dir="frontend_"+fe
+                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_name,string.replace(colors[idx%len(colors)],'f','c')])
+                    count_rrd_files.append([string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Count.rrd"%(fe_dir,s),area_name,colors[idx%len(colors)]])
+                    idx=idx+1
+                monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
+                                            s,count_rrd_files)
+            
+            monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
+                                        "Difference in "+s, diff_rrd_files)
+
         # create support index files
-        for client_name in self.stats_diff.keys():
-            fe_dir="frontend_"+client_name
+        for client_name in [None]+self.stats_diff.keys():
+            if client_name==None:
+                fe_dir="total"
+            else:
+                fe_dir="frontend_"+client_name
+
             for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
                 for sz in monitoringConfig.graph_sizes:
@@ -623,7 +667,7 @@ class condorLogSummary:
                         fd.write("<table>")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
-                                fd.write('<tr>')
+                                fd.write('<tr valign="top">')
                                 for w in ['Count','Diff']:
                                     fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
                                 if s=='Running':
@@ -632,6 +676,22 @@ class condorLogSummary:
                                     fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
                                 fd.write('</tr>\n')                            
                         fd.write("</table>")
+
+                        if client_name==None:
+                            # total has also the split graphs
+                            fd.write("<p><hr><p><table>")
+                            for s in self.job_statuses:
+                                if (not (s in ('Completed','Removed'))): # special treatement
+                                    fd.write('<tr valign="top">')
+                                    for w in ['Count','Diff']:
+                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                    if s=='Running':
+                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff',period,size))
+                                    elif s=='Held':
+                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
+                                    fd.write('</tr>\n')                            
+                            fd.write("</table>")
+                            
                         fd.write("</body>\n</html>\n")
                         fd.close()
                         pass
@@ -724,10 +784,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.41 2007/05/23 16:26:52 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.42 2007/05/23 17:55:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.42  2007/05/23 17:55:44  sfiligoi
+#  Add the missing Log for total monitoring
+#
 #  Revision 1.41  2007/05/23 16:26:52  sfiligoi
 #  Add creation of Log rrds for total
 #
