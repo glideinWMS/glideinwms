@@ -26,7 +26,7 @@ sys.path.append("../lib")
 
 import glideFactoryConfig
 import glideFactoryLib
-#import glideFactoryMonitoring
+import glideFactoryMonitorAggregator
 import logSupport
 
 
@@ -76,6 +76,10 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                     tempErr = child.childerr.readlines()
                     del childs[entry_name]
                     raise RuntimeError,"Entry '%s' exited, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
+
+            glideFactoryLib.factoryConfig.activity_log.write("Aggregate monitoring data")
+            glideFactoryMonitorAggregator.aggregateStatus()
+
             glideFactoryLib.factoryConfig.activity_log.write("Sleep")
             time.sleep(sleep_time)
     finally:        
@@ -97,8 +101,6 @@ def main(sleep_time,advertize_rate,startup_dir):
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
-    #glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor")
-
     cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
                                      7*24*3600,
                                      activity_log,warning_log)
@@ -106,6 +108,8 @@ def main(sleep_time,advertize_rate,startup_dir):
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
     entries=string.split(glideinDescript.data['Entries'],',')
+
+    glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir,"monitor"),entries)
 
     # check lock file
     lock_file=os.path.join(startup_dir,"glideinWMS.lock")
@@ -151,10 +155,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.58 2007/05/21 17:06:42 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.59 2007/05/23 19:58:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.59  2007/05/23 19:58:06  sfiligoi
+#  Start using the MonitorAggregator
+#
 #  Revision 1.58  2007/05/21 17:06:42  sfiligoi
 #  Pass through stdout and stederr
 #
