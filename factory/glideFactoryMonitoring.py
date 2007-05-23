@@ -8,7 +8,7 @@
 #
 
 import os,os.path
-import time,copy,string
+import re,time,copy,string
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
@@ -51,6 +51,8 @@ class MonitoringConfig:
         except ExeError,e:
             self.rrd_bin=None # not found
 
+        self.attribute_rrd_recmp=re.compile("^(?P<tp>[a-zA-Z]+)_Attribute_(?P<attr>[a-zA-Z]+)\.rrd$")
+
 
     def write_file(self,relative_fname,str):
         fname=os.path.join(self.monitor_dir,relative_fname)
@@ -77,6 +79,17 @@ class MonitoringConfig:
             if fname[:9]=="frontend_":
                 frontends.append(fname[9:])
         return frontends
+
+    # returns a list of [fname_without_rrd,type,attribute]
+    def find_disk_attributes(self,subdir):
+        attributes=[]
+        fnames=os.listdir(os.path.join(self.monitor_dir,subdir))
+        for fname in fnames:
+            parse=self.attribute_rrd_recmp.search(fname)
+            if parse==None:
+                continue # not an attribute rrd
+            attributes.append((fname[:-4],parse.group("tp"),parse.group("attr")))
+        return attributes
     
     def write_rrd(self,relative_fname,ds_type,time,val,min=None,max=None):
         """
@@ -437,10 +450,8 @@ class condorQStats:
         frontend_list.sort()
 
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
-        for fname,tp in [('Status_Attribute_Idle','Idle'),
-                         ('Requested_Attribute_Idle','RequestedIdle'),
-                         ('Status_Attribute_Running','Running'),
-                         ('Status_Attribute_Held','Held')]:
+        attr_rrds=monitoringConfig.find_disk_attributes("total")
+        for fname,tp,a in attr_rrds:
             rrd_fnames=[]
             idx=0
             for fe in frontend_list:
@@ -449,9 +460,13 @@ class condorQStats:
                     area_name="AREA"
                 rrd_fnames.append((string.replace(string.replace(fe,".","_"),"@","_"),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
                 idx=idx+1
-            
+
+            if tp=="Status":
+                tstr=a
+            else:
+                tstr="%s %s"%(tp,a)
             monitoringConfig.graph_rrds("total/Split_%s"%fname,
-                                        "%s glideins"%tp,
+                                        "%s glideins"%tstr,
                                         rrd_fnames)
 
         # create support index files for total
@@ -784,10 +799,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.43 2007/05/23 18:27:10 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.44 2007/05/23 22:04:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.44  2007/05/23 22:04:14  sfiligoi
+#  Create find_disk_attributes
+#
 #  Revision 1.43  2007/05/23 18:27:10  sfiligoi
 #  Rename XML tag to glideFactoryEntryQStats... since it was moved one level higher in the directory structure
 #
