@@ -348,11 +348,11 @@ class condorQStats:
         global monitoringConfig
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
-                 '<glideFactoryQStats>\n'+
+                 '<glideFactoryEntryQStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 "</glideFactoryQStats>\n")
+                 "</glideFactoryEntryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml",xml_str)
         # update RRDs
         for fe in [None]+self.data.keys():
@@ -784,10 +784,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.42 2007/05/23 17:55:44 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.43 2007/05/23 18:27:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.43  2007/05/23 18:27:10  sfiligoi
+#  Rename XML tag to glideFactoryEntryQStats... since it was moved one level higher in the directory structure
+#
 #  Revision 1.42  2007/05/23 17:55:44  sfiligoi
 #  Add the missing Log for total monitoring
 #
