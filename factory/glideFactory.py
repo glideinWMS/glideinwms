@@ -21,7 +21,7 @@ import signal
 import time
 import string
 import copy
-#import threading
+import threading
 sys.path.append("../lib")
 
 import glideFactoryConfig
@@ -29,6 +29,31 @@ import glideFactoryLib
 import glideFactoryMonitorAggregator
 import logSupport
 
+# this thread will be used for lazy updates of rrd history conversions
+rrd_thread=None
+
+############################################################
+def aggregate_stats():
+    global rrd_thread
+    
+    status=glideFactoryMonitorAggregator.aggregateStatus()
+
+    # keep just one thread per monitoring type running at any given time
+    # if the old one is still running, do nothing (lazy)
+    # create_support_history can take a-while
+    if rrd_thread==None:
+        thread_alive=0
+    else:
+        thread_alive=rrd_thread.isAlive()
+        if not thread_alive:
+            rrd_thread.join()
+
+    if not thread_alive:
+        glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats")
+        rrd_thread=threading.Thread(target=glideFactoryMonitorAggregator.create_status_history)
+        rrd_thread.start()
+
+    return
 
 ############################################################
 def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
@@ -78,7 +103,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                     raise RuntimeError,"Entry '%s' exited, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
 
             glideFactoryLib.factoryConfig.activity_log.write("Aggregate monitoring data")
-            glideFactoryMonitorAggregator.aggregateStatus()
+            aggregate_stats()
 
             glideFactoryLib.factoryConfig.activity_log.write("Sleep")
             time.sleep(sleep_time)
@@ -108,6 +133,7 @@ def main(sleep_time,advertize_rate,startup_dir):
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
     entries=string.split(glideinDescript.data['Entries'],',')
+    entries.sort()
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir,"monitor"),entries)
 
@@ -155,10 +181,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.59 2007/05/23 19:58:06 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.60 2007/05/23 22:04:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.60  2007/05/23 22:04:51  sfiligoi
+#  Finalize aggregate monitoring
+#
 #  Revision 1.59  2007/05/23 19:58:06  sfiligoi
 #  Start using the MonitorAggregator
 #
