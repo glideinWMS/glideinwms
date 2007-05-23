@@ -34,9 +34,11 @@ class MonitoringConfig:
                                  ('AVERAGE',0.98,24,12*45)   # 2 hour precision, keep for a month and a half
                                  ]
 
-        self.rrd_reports=[('hour',3600,0),          # an hour worth of data, max resolution
-                          ('day',3600*24,0),        # a day worth of data, still high resolution
-                          ('month',3600*24*31,1)    # a month worth of data, low resolution
+        self.rrd_reports=[('hour',3600,0,1),          # an hour worth of data, max resolution, update at every slot
+                          ('day',3600*24,0,6),        # a day worth of data, still high resolution, update as if it was medium res
+                          ('week',3600*24*7,1,1),     # a week worth of data, medium resolution, update at every slot
+                          ('month',3600*24*31,1,8),   # a month worth of data, medium resolution, update as if it was low res
+                          ('year',3600*24*365,1,12)   # a week worth of data, low resolution, update one a day
                           ]
         self.graph_sizes=[('small',200,75),
                           ('medium',400,150),
@@ -119,7 +121,7 @@ class MonitoringConfig:
     
     #############################################################################
 
-    def rrd2xml(self,relative_fname,archive_id,
+    def rrd2xml(self,relative_fname,archive_id,freq,
                 period,relative_rrd_files):
         """
         Convert one or more RRDs into an XML file using
@@ -162,9 +164,9 @@ class MonitoringConfig:
         """
 
         for r in self.rrd_reports:
-            pname,period,idx=r
+            pname,period,idx,freq=r
             try:
-                self.rrd2xml(base_fname+".%s.xml"%pname,idx,
+                self.rrd2xml(base_fname+".%s.xml"%pname,idx,freq,
                              period,relative_rrd_files)
             except ExeError,e:
                 print "WARNING- XML %s.%s creation failed: %s"%(base_fname,pname,e)
@@ -173,7 +175,7 @@ class MonitoringConfig:
 
     #############################################################################
 
-    def rrd2graph(self,relative_fname,archive_id,
+    def rrd2graph(self,relative_fname,archive_id,freq,
                   period,width,height,
                   title,relative_rrd_files):
         """
@@ -190,7 +192,7 @@ class MonitoringConfig:
 
         fname=os.path.join(self.monitor_dir,relative_fname)      
         try:
-            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]):
+            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq):
                 return # file to new to see any benefit from an update
         except OSError:
             pass # file does not exist -> create
@@ -217,12 +219,12 @@ class MonitoringConfig:
         """
 
         for r in self.rrd_reports:
-            pname,period,idx=r
+            pname,period,idx,freq=r
             title=relative_title+" - last "+pname
             for g in self.graph_sizes:
                 gname,width,height=g
                 try:
-                    self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,
+                    self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,freq,
                                    period,width,height,title,relative_rrd_files)
                 except ExeError,e:
                     print "WARNING- graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
@@ -799,10 +801,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.44 2007/05/23 22:04:14 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.45 2007/05/23 22:27:39 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.45  2007/05/23 22:27:39  sfiligoi
+#  Add week and year graphs
+#
 #  Revision 1.44  2007/05/23 22:04:14  sfiligoi
 #  Create find_disk_attributes
 #
