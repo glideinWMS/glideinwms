@@ -517,13 +517,42 @@ class condorLogSummary:
         self.current_stats_data[client_name]=stats.data
         self.updated=time.time()
 
+    def get_stats_total(self):
+        total={'Wait':None,'Idle':None,'Running':None,'Held':None}
+        for k in total.keys():
+            total[k]=[]
+            tdata=total[k]
+            for client_name in self.stats_diff.keys():
+                sdata=self.current_stats_data[client_name]
+                if ((sdata!=None) and (k in sdata.keys())):
+                    tdata=tdata+sdata[k]
+        return total
+
+    def get_diff_total(self):
+        total={'Wait':None,'Idle':None,'Running':None,'Held':None,'Completed':None,'Removed':None}
+        for k in total.keys():
+            total[k]={'Entered':[],'Exited':[]}
+            tdata=total[k]
+            for client_name in self.stats_diff.keys():
+                sdiff=self.stats_diff[client_name]
+                if ((sdiff!=None) and (k in sdiff.keys())):
+                    for e in tdata.keys():
+                        tdata[e]=tdata[e]+sdiff[k][e]
+        return total
+
     def write_file(self):
         global monitoringConfig
-        for client_name in self.stats_diff.keys():
-            fe_dir="frontend_"+client_name
+        for client_name in [None]+self.stats_diff.keys():
+            if client_name==None:
+                fe_dir="total"
+                sdata=self.get_stats_total()
+                sdiff=self.get_diff_total()
+            else:
+                fe_dir="frontend_"+client_name
+                sdata=self.current_stats_data[client_name]
+                sdiff=self.stats_diff[client_name]
+
             monitoringConfig.establish_dir(fe_dir)
-            sdata=self.current_stats_data[client_name]
-            sdiff=self.stats_diff[client_name]
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     if ((sdata!=None) and (s in sdata.keys())):
@@ -695,10 +724,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.40 2007/05/23 15:45:39 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.41 2007/05/23 16:26:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.41  2007/05/23 16:26:52  sfiligoi
+#  Add creation of Log rrds for total
+#
 #  Revision 1.40  2007/05/23 15:45:39  sfiligoi
 #  Create graphs and XML files only when needed (before they were receated at each iteration, creating a huge load without any benefit)
 #
