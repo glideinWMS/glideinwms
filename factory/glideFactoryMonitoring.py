@@ -118,10 +118,16 @@ class MonitoringConfig:
         if self.rrd_bin==None:
             return # nothing to do, no rrd bin no rrd conversion
         
-        fname=os.path.join(self.monitor_dir,relative_fname)      
-        #print "Converting RRD into "+fname
-
         rrd_archive=self.rrd_archives[archive_id]
+
+        fname=os.path.join(self.monitor_dir,relative_fname)      
+        try:
+            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]):
+                return # file to new to see any benefit from an update
+        except OSError:
+            pass # file does not exist -> create
+
+        #print "Converting RRD into "+fname
 
         # convert relative fnames to absolute ones
         rrd_files=[]
@@ -167,10 +173,16 @@ class MonitoringConfig:
         if self.rrd_bin==None:
             return # nothing to do, no rrd bin no rrd conversion
         
-        fname=os.path.join(self.monitor_dir,relative_fname)      
-        #print "Converting RRD into "+fname
-
         rrd_archive=self.rrd_archives[archive_id]
+
+        fname=os.path.join(self.monitor_dir,relative_fname)      
+        try:
+            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]):
+                return # file to new to see any benefit from an update
+        except OSError:
+            pass # file does not exist -> create
+
+        #print "Converting RRD into "+fname
 
         # convert relative fnames to absolute ones
         rrd_files=[]
@@ -683,10 +695,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.39 2007/05/21 21:58:48 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.40 2007/05/23 15:45:39 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.40  2007/05/23 15:45:39  sfiligoi
+#  Create graphs and XML files only when needed (before they were receated at each iteration, creating a huge load without any benefit)
+#
 #  Revision 1.39  2007/05/21 21:58:48  sfiligoi
 #  Add a total page to the monitoring (still missing total log monitoring)
 #
