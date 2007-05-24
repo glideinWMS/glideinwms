@@ -718,6 +718,7 @@ class condorLogSummary:
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
+                client_name="Entry total"
             else:
                 fe_dir="frontend_"+client_name
 
@@ -732,6 +733,7 @@ class condorLogSummary:
                         fd.write("<title>%s over last %s</title>\n"%(client_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write("<h1>%s over last %s</h1>\n"%(client_name,period));
+                        fd.write('<p>[<a href="0Status.%s.%s.html">Status</a>]</p>\n'%(period,size)) 
                         fd.write("<table>")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
@@ -852,10 +854,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.46 2007/05/24 16:10:28 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.47 2007/05/24 16:34:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.47  2007/05/24 16:34:17  sfiligoi
+#  Fix title in oLog and add a link to 0Status
+#
 #  Revision 1.46  2007/05/24 16:10:28  sfiligoi
 #  Add links on all the -Sttaus files
 #
