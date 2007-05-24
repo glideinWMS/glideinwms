@@ -398,7 +398,7 @@ class condorQStats:
             if fe==None: # special key == Total
                 fe="total"
                 fe_dir="total"
-                fe_el=self.get_total()
+                fe_el=total_el
             else:
                 fe_dir="frontend_"+fe
                 fe_el=self.data[fe]
@@ -436,7 +436,31 @@ class condorQStats:
                         fd.write("<html>\n<head>\n")
                         fd.write("<title>%s over last %s</title>\n"%(fe,period));
                         fd.write("</head>\n<body>\n")
-                        fd.write("<h1>%s over last %s</h1>\n"%(fe,period));
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
+                        
+
+                        fd.write("</tr><tr>\n")
+                        
+                        fd.write('<td>[<a href="../total/0Status.%s.%s.html">Entry total</a>]</td>\n'%(period,size))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
+                        
+                        fd.write("</tr></table>\n")
                         fd.write("<table>")
                         for s in ['Idle','Running','Held']:
                             fd.write('<tr>')
@@ -484,7 +508,34 @@ class condorQStats:
                     fd.write("<html>\n<head>\n")
                     fd.write("<title>%s over last %s</title>\n"%(fe,period));
                     fd.write("</head>\n<body>\n")
-                    fd.write("<h1>%s over last %s</h1>\n"%(fe,period));
+                    fd.write('<table width="100%"><tr>\n')
+                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
+
+                    link_arr=[]
+                    for ref_sz in monitoringConfig.graph_sizes:
+                        ref_size=ref_sz[0]
+                        if size!=ref_size:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    link_arr=[]
+                    for ref_rp in monitoringConfig.rrd_reports:
+                        ref_period=ref_rp[0]
+                        if period!=ref_period:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                    fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
+                        
+                    fd.write("</tr><tr>\n")
+
+                    fd.write('<td>[<a href="../../total/0Status.%s.%s.html">Factory total</a>]</td>\n'%(period,size))
+                    link_arr=[]
+                    for ref_fe in frontend_list:
+                        link_arr.append('<a href="../frontend_%s/0Status.%s.%s.html">%s</a>'%(ref_fe,period,size,ref_fe))
+                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write("</tr></table>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
                               ('Running','Split_Status_Attribute_Running'),
@@ -801,10 +852,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.45 2007/05/23 22:27:39 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.46 2007/05/24 16:10:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.46  2007/05/24 16:10:28  sfiligoi
+#  Add links on all the -Sttaus files
+#
 #  Revision 1.45  2007/05/23 22:27:39  sfiligoi
 #  Add week and year graphs
 #
