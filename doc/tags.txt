@@ -1,3 +1,9 @@
+v0_8	Add support for multiple schedds
+	Add initial support for pseudo interactive monitoring
+	Inproved Web monitoring
+	Better documentation
+	NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
+
 v0_7	Add support for Condor 6.9.2 => subdirs in condor tarball
 	Add support for user variables
 	Move log and monitoring files into entry dir
