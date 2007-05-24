@@ -176,7 +176,31 @@ def create_status_history():
                     fd.write("<html>\n<head>\n")
                     fd.write("<title>%s over last %s</title>\n"%(fe,period));
                     fd.write("</head>\n<body>\n")
-                    fd.write("<h1>%s over last %s</h1>\n"%(fe,period));
+                    fd.write('<table width="100%"><tr>\n')
+                    fd.write('<td rowspan=2 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period));
+
+                    link_arr=[]
+                    for ref_sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
+                        ref_size=ref_sz[0]
+                        if size!=ref_size:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    link_arr=[]
+                    for entry in monitorAggregatorConfig.entries:
+                            link_arr.append('<a href="../entry_%s/total/0Status.%s.%s.html">%s</a>'%(entry,period,size,entry))
+                    fd.write('<td width="33%%" rowspan=2 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write("</tr><tr>\n")
+
+                    link_arr=[]
+                    for ref_rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
+                        ref_period=ref_rp[0]
+                        if period!=ref_period:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write("</tr></table>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
                               ('Running','Split_Status_Attribute_Running'),
@@ -211,10 +235,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.2 2007/05/23 22:04:51 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.3 2007/05/24 14:34:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.3  2007/05/24 14:34:51  sfiligoi
+#  Add links between pages
+#
 #  Revision 1.2  2007/05/23 22:04:51  sfiligoi
 #  Finalize aggregate monitoring
 #
