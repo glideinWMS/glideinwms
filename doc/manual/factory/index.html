@@ -150,7 +150,7 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
 
 
 
-    <li><a href="#create_entry">Creating a new configuration directory</a></li>
+    <li><a href="#create_entry">Creating a new configuration directory tree</a></li>
 
 
 
@@ -167,6 +167,12 @@ startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
   
   
   
+  </ul>
+  <li><a href="#monitoring">Glidein Factory Monitoring</a></li>
+  <ul>
+    <li><a href="#monitoring_classads">Looking at ClassAds</a></li>
+    <li><a href="#monitoring_web">Web monitoring</a></li>
+    <li><a href="#monitoring_history">Historical Web Monitoring</a></li>
   </ul>
 
 
@@ -718,7 +724,7 @@ To run a Glidein Factory, you need to perform two steps:<br>
 
 
 
-  <li>Create a configuration directory</li>
+  <li>Create the configuration directories</li>
 
 
 
@@ -801,7 +807,7 @@ There is only one file that is neither signed nor cached and can be thus modifie
 This one can be used to temporarily blacklist malfunctioning nodes that
 would pass regular sanity checks (for example: memory corruption or I/O
 errors), while waiting for the Grid site admin to take action.
-<h3><a name="create_entry"></a>Creating a new configuration directory</h3>
+<h3><a name="create_entry"></a>Creating a new configuration directory tree</h3>
 
 
 
@@ -958,7 +964,21 @@ Finally, a real life example could be:<br>
 
 
 This will start a daemon that runs on the entry point located in <span style="font-family: monospace;">/opt/glideins/glidein_fnal24</span>, waits 5 seconds between checks and advertises itself every 6 loops.<br>
-
+<h2><a name="monitoring"></a>Glidein Factory Monitoring</h2>
+Monitoring is an essential part of any service. One has to monitor to
+both the healt of the system and to tune the system. The various ways
+you can monitor a Glidein Factory are described below.
+<h3><a name="monitoring_classads"></a>Looking at ClassAds</h3>
+As explained in the <a href="../index.html#classads">Data exchange overview</a>,
+the Entry Point Daemons expose a lot of monitoring information in the
+ClassAds sent to the WMS collector. While this may not be the most user
+friendly interface, most of the monitoring information you'll ever need
+is present there.<br>
+<h3><a name="monitoring_web"></a>Web monitoring</h3>
+The Glidein Factory Daemon and the Entry Point Daemons also create XML documents on a Web accessible area (see <span style="font-family: monospace;">&lt;</span><span style="font-weight: bold; font-family: monospace;">glidein</span><span style="font-family: monospace;">&gt;&lt;</span><span style="font-weight: bold; font-family: monospace;">monitor
+base_dir&gt;</span> on the <a href="entry.html#args_global">configuration page</a>). These xml files contain the same information you would get by <a href="#monitoring_classads">fetching the ClassAds</a>, in addition to a short summary.<br>
+<h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
+The Entry Point Daemons will also create <a href="http://oss.oetiker.ch/rrdtool/">RRD databases</a> and associated graphs for a period of up to one year. This way, one can easily monitor the evolution of the system.
 
 
 
