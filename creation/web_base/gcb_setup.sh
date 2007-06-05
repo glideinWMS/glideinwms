@@ -18,8 +18,8 @@ function append_config {
 }
 
 # return rank (higher is better) if success
-#        in stdout it returns ip:port
-# return -1  on error
+# in stdout it returns "score ip:port"
+# return 0 on success, >0 on error
 function check_gcb {
     vg_gcb_ip=`echo "$1" | awk -F ":" '{print $1}'`
     if [ -z "$vg_gcb_ip" ]; then
@@ -33,7 +33,7 @@ function check_gcb {
 
     if [ "$vg_gcb_port" -ne "$default_gcb_port" ]; then
 	echo "Non standard port $vg_gcb_port (not $default_gcb_port) not supported!"
-	return -1
+	return 2
     fi
 
     # check if I can connect to that port
@@ -45,7 +45,7 @@ function check_gcb {
 	ret=$?
 	if [ $ret -ne 0 ]; then
 	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via nc"
-	    return -1
+	    return 3
 	fi
     fi
 
@@ -54,7 +54,7 @@ function check_gcb {
 	ret=$?
 	if [ $ret -ne 0 ]; then
 	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via gcb_broker_query"
-	    return -1
+	    return 4
 	fi
 	vg_free_sockets=`echo "$restr" | awk '{print $3}'`
     else
@@ -65,12 +65,12 @@ function check_gcb {
     if [ -n "$gcb_min_free" ]; then
 	if [ "$vg_free_sockets" -lt "$gcb_min_free" ]; then
 	    echo "GCB $vg_gcb_ip:$vg_gcb_port has only $vg_free_sockets free, needed $gcb_min_free"
-	    return -1
+	    return 5
 	fi
     fi
 
-    echo "$vg_gcb_ip:$vg_gcb_port"
-    return $vg_free_sockets
+    echo "$vg_free_sockets $vg_gcb_ip:$vg_gcb_port"
+    return 0
 }
 
 # fail catastrophically on unrecoverable error
@@ -153,12 +153,12 @@ elif [ "$gcb_order" == "GCBLOAD" ]; then
     base2_gcb_els=""
     for gcb in $base1_gcb_els; do
 	msg=`check_gcb $gcb`
-	score=$?
-	if [ "$score" -ne "-1" ]; then
+	ret=$?
+	if [ "$ret" -eq 0 ]; then
 	    if [ -z "$base2_gcb_els" ]; then
-		base2_gcb_els="$score $msg"
+		base2_gcb_els="$msg"
 	    else
-		base2_gcb_els=`echo "$base2_gcb_els"; echo $msg`
+		base2_gcb_els=`echo "$base2_gcb_els"; echo "$msg"`
 	    fi
 	else
 	    echo "$msg" 1>&2
@@ -180,8 +180,8 @@ gcb_configured=0
 for gcb in $gcb_els; do
     msg=`check_gcb $gcb`
     ret=$?
-    if [ "$ret" -ne "-1" ]; then
-	setup_gcb "$msg"
+    if [ "$ret" -eq 0 ]; then
+	setup_gcb `echo "$msg" |awk '{print $2}'`
 	gcb_configured=1
 	break
     else
