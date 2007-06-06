@@ -439,6 +439,9 @@ There are several ways to monitor the entry points of the glidein factory:<br>
     Using the Web monitoring<br>
   </li>
   <li>
+    Using the WMS tools<br>
+  </li>
+  <li>
     Looking at the glidein factory log files
   </li>
   <li>
@@ -451,14 +454,30 @@ There are several ways to monitor the entry points of the glidein factory:<br>
 <h3>
   7.1 Glidein factory entry Web monitoring<br>
 </h3>
-Each entry point, has its own history on the Web.<br>
+You can either monitor the factory as a whole, or just a single entry point.<br>
 <br>
-In the above example, the SanDiego entry can be monitored at<br>
+In the above example, the factory monitoring is located at<br>
+<div style=MARGIN-LEFT:40px>
+  http://wmsmachine.fnal.gov:8256/glidefactory/monitor/glidein_v1_0/<br>
+</div>
+
+Moreover, each entry point, has its own history on the Web.<br>
+<br>
+For example, the SanDiego entry can be monitored at<br>
 <div style=MARGIN-LEFT:40px>
   http://wmsmachine.fnal.gov:8256/glidefactory/monitor/glidein_v1_0/entry_SanDiego/<br>
 </div>
 <h3>
-  7.2 Glidein factory entry log files
+  7.2 Glidein factory monitoring via WMS tools<br>
+</h3>
+You can get the equivalent of the Web page snaphot by using 
+<b>~/glideinWMS/tools/wmsXMLView.py</b>:<br>
+<div style=MARGIN-LEFT:40px>
+  cd ~/glideinWMS/tools/<br>
+  python wmsXMLView.py<br>
+</div>
+<h3>
+  7.3 Glidein factory entry log files
 </h3>
 The glidein factory writes two log files per entry point
 <span style=FONT-WEIGHT:bold>factory_info.YYYYMMDD.log</span> and
@@ -474,7 +493,7 @@ All errors are reported in the
 <span style=FONT-WEIGHT:bold>factory_info.YYYYMMDD.log </span>contains entries
 about what the factory is doing.<br>
 <h3>
-  7.3 Glidein output
+  7.4 Glidein output
 </h3>
 Each glidein creates 2 files on exit;
 job.<span style=FONT-WEIGHT:bold>ID</span>.out and
@@ -487,7 +506,7 @@ In the above example, the SanDiego log files are in<br>
 <br>
 Problems are usually reasonably easy to spot.<br>
 <h3>
-  7.4 Glidein factory ClassAds in the WMS Collector
+  7.5 Glidein factory ClassAds in the WMS Collector
 </h3>
 The glidein factory also advertises summary information in the WMS collector.<br>
 <br>
