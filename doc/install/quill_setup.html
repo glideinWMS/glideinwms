@@ -1,0 +1,197 @@
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<head>
+
+<style>
+BODY, P, DIV, H1, H2, H3, H4, H5, H6, ADDRESS, OL, UL, TITLE, TD, OPTION, SELECT {
+ font-family: Verdana;
+ 
+}
+
+BODY, P, DIV, ADDRESS, OL, UL, LI, TITLE, TD, OPTION, SELECT {  
+  font-size: 10.0pt;
+  margin-top:0pt;  
+  margin-bottom:0pt;  
+} 
+
+BODY, P {
+  margin-left:0pt; 
+  margin-right:0pt;
+}
+
+BODY {
+  line-height: ;
+  background: white;
+  margin: 6px;
+  padding: 0px;
+}
+
+h6 { font-size: 10pt }
+h5 { font-size: 11pt }
+h4 { font-size: 12pt }
+h3 { font-size: 13pt }
+h2 { font-size: 14pt }
+h1 { font-size: 16pt }
+
+blockquote {padding: 10px; border: 1px #DDDDDD dashed }
+
+a img {border: 0}
+
+</style>
+
+
+
+
+</head>
+
+
+<body revision="dmqrsvn_23hgqmcw:92">
+
+<h1>
+  Condor Quill setup
+</h1>
+<h2>
+  1. Description
+</h2>
+This document describes how to configure Condor quill.<br>
+<h2>
+  2. Required software
+</h2>
+A reasonably recent Linux OS (SL4 used at press time).<br>
+A <a href=http://www.postgresql.org/ title="PostgreSQL Hoe Page">PostgreSQL
+server</a>.<br>
+The
+<a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">Condor
+distribution</a>.<br>
+<h2>
+  3. Installation instructions
+</h2>
+The installation will assume you
+<a href="condor_v6.9.2_install.html" title="Condor v6.9.2 Installation">have
+installed Condor v6.9.2</a>.<br>
+The install directory is <span style=FONT-WEIGHT:bold>/opt/glidecondor</span>,
+the working directory is
+<span style=FONT-WEIGHT:bold>/opt/glidecondor/condor_local</span> and the
+machine name is <span style=FONT-WEIGHT:bold>mymachine.fnal.gov</span>. and its
+IP <span style=FONT-WEIGHT:bold>131.225.70.222</span>.<br>
+If you want to use a different setup, make the necessary changes.<br>
+<br>
+Unless explicity mentioned, all operations are to be done as root.<br>
+<h3>
+  3.1 Obtain and install PostgreSQL RPMs<br>
+</h3>
+Most Linux distributions come with very old versions of PostgreSQL, so you will
+want to download the latest version.<br>
+The RPMs can be found on<br>
+<a href=http://www.postgresql.org/ftp/binary/ title="PostgreSQL Download page">http://www.postgresql.org/ftp/binary/</a><br>
+<br>
+At the time of writing, the latest version is v8.2.4, and the RPM files to
+install are<br>
+<div style=MARGIN-LEFT:40px>
+  postgresql-8.2.4-1PGDG.i686.rpm<br>
+  postgresql-libs-8.2.4-1PGDG.i686.rpm<br>
+  postgresql-server-8.2.4-1PGDG.i686.rpm<br>
+</div>
+<h3>
+  3.2 Initialize PostgreSQL
+</h3>
+Switch to user postgres:<br>
+<div style=MARGIN-LEFT:40px>
+  su - postgres<br>
+</div>
+And initialize initialize the database with:<br>
+<div style=MARGIN-LEFT:40px>
+  initdb /var/lib/pgsql/data<br>
+</div>
+<h3>
+  3.3 Configure PostgreSQL
+</h3>
+PostgreSQL by default only accepts local connections., so you need to configure
+it in order for Quill to use it.<br>
+Please do it as user postgres.<br>
+<br>
+To enable TCP/IP traffic, you need to&nbsp; change
+<span style=FONT-WEIGHT:bold>listen_addresses </span>in
+<span style=FONT-WEIGHT:bold>/var/lib/pgsql/data/postgresql.conf</span>
+<span style=FONT-WEIGHT:bold></span>to:<br>
+<div style=MARGIN-LEFT:40px>
+  # Make it listen to TCP ports<br>
+  listen_addresses = '*'<br>
+</div>
+<br>
+Moreover, you need to specify which machines will be able to access it.<br>
+Unless you have strict security policies forbiding this, I recommend enabling
+read access to the whole world by adding the following line
+to<span style=FONT-WEIGHT:bold> /var/lib/pgsql/data/pg_hba.conf</span>:<br>
+<div style=MARGIN-LEFT:40px>
+  host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
+  quillreader&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; password<br>
+</div>
+<br>
+On the other hand, we want only the local machine to be able to write the
+database., so we will add to
+<span style=FONT-WEIGHT:bold>/var/lib/pgsql/data/pg_hba.conf</span>::<br>
+<div style=MARGIN-LEFT:40px>
+  host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
+  quillwriter&nbsp;&nbsp;&nbsp;&nbsp; 131.225.70.222/32 &nbsp; password<br>
+</div>
+<h3>
+  3.4 Start PostgreSQL
+</h3>
+To start PostgreSQL, just run:<br>
+<div style=MARGIN-LEFT:40px>
+  /etc/init.d/postgresql start<br>
+</div>
+There should be no error messages.<br>
+<h3>
+  3.5 Initalize Quill users
+</h3>
+Switch to user postgres:<br>
+<div style=MARGIN-LEFT:40px>
+  su - postgres<br>
+</div>
+And initialize initialize the Quill users with:<br>
+<div style=MARGIN-LEFT:40px>
+  createuser quillreader --no-createdb --no-adduser --no-createrole --pwprompt<br>
+  # passwd <span style=FONT-WEIGHT:bold>reader</span><br>
+  createuser quillwriter --createdb --no-adduser --no-createrole --pwprompt<br>
+  # password &lt;writer passwd&gt;<br>
+</div>
+<h3>
+  3.5 Configure Condor
+</h3>
+Append the following lines to
+<span style=FONT-WEIGHT:bold>/opt/glidecondor/etc/condor_config</span>:<br>
+<div style=MARGIN-LEFT:40px>
+  #############################<br>
+  # Quill settings<br>
+  #############################<br>
+  QUILL_ENABLED = TRUE<br>
+  QUILL_NAME = quill@$(FULL_HOSTNAME)<br>
+  QUILL_DB_NAME = $(HOSTNAME)<br>
+  QUILL_DB_QUERY_PASSWORD = reader<br>
+  QUILL_DB_IP_ADDR = $(HOSTNAME):5432<br>
+  QUILL_MANAGE_VACUUM = TRUE<br>
+</div>
+<br>
+In
+<span style=FONT-WEIGHT:bold>/opt/glidecondor/condor_local/condor_config.local</span>,<br>
+add <span style=FONT-WEIGHT:bold>QUILL</span> to
+<span style=FONT-WEIGHT:bold>DAEMON_LIST,</span> getting something like:<br>
+<div style=MARGIN-LEFT:40px>
+  DAEMON_LIST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  = MASTER, QUILL, SCHEDD<br>
+</div>
+<br>
+Finally, put the writer passwd into
+<span style=FONT-WEIGHT:bold>/opt/glidecondor/condor_local/spool/.quillwritepassword</span>:<br>
+<div style=MARGIN-LEFT:40px>
+  echo "&lt;writer passwd&gt;" &gt;
+  /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+  chown condor /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+  chmod go-rwx /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+</div>
+<br>
+<br>
+<br></body>
+</html>
