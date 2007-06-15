@@ -155,7 +155,7 @@ def findGlideinClientMonitoring(factory_pool,client_name,
 # similar for glidein_params and glidein_monitors
 def advertizeWork(factory_pool,
                   client_name,request_name,
-                  glidein_name,min_nr_glideins,
+                  glidein_name,min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={}):
     global frontendConfig
 
@@ -172,6 +172,7 @@ def advertizeWork(factory_pool,
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
+            fd.write('ReqMaxRun = %i\n'%max_run_glideins)
 
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,glidein_params),

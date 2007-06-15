@@ -51,11 +51,13 @@ def iterate_one(frontend_name,factory_pool,
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
+        # we don't need more slots than number of jobs in the queue
+        glidein_max_run=idle_jobs+running_jobs
 
         activity_log.write("Advertize %s %i"%(request_name,glidein_min_idle))
         try:
           glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
-          glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_params,glidein_monitors)
+          glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
           warning_log.write("Advertize %s %i failed"%(request_name,glidein_min_idle))
 
