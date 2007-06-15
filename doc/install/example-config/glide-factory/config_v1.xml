@@ -1,6 +1,6 @@
 <glidein factory_name="factory1" 
          glidein_name="v1_0" 
-         schedd_name="schedd_glideins1@wmsmachine.fnal.gov">
+         schedd_name="schedd_glideins1@wmsmachine.fnal.gov,schedd_glideins2@wmsmachine.fnal.gov,schedd_glideins3@wmsmachine.fnal.gov,schedd_glideins4@wmsmachine.fnal.gov">
    <monitor base_dir="/var/www/html/glidefactory/monitor"/>
    <condor base_dir="/opt/glidecondor"/>
    <submit base_dir="/home/gfactory/glidein_submit"/>
