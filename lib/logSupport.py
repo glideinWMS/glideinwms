@@ -5,6 +5,7 @@
 #  Igor Sfiligoi (Oct 25th 2006)
 #
 import os,os.path,stat
+import timeConversion
 import time
 import re
 
@@ -51,7 +52,7 @@ class DayLogFile:
         return "[%s %s] %s"%(self.format_time(timestamp),os.getpid(),msg)
 
     def format_time(self,timestamp):
-        return "%li"%timestamp
+        return timeConversion.getISO8601_Local(timestamp)
 
 # this class is used for cleanup
 class DirCleanup:
