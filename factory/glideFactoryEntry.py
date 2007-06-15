@@ -362,17 +362,20 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
     signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
-    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3],sys.argv[4],sys.argv[5])
+    main(sys.argv[1],int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],sys.argv[5])
  
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.21 2007/06/15 18:53:44 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.22 2007/06/15 19:11:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.22  2007/06/15 19:11:50  sfiligoi
+#  Fix typo
+#
 #  Revision 1.21  2007/06/15 18:53:44  sfiligoi
 #  Add parent pid to the list of entries, so that an entry can exit if parent dies
 #
