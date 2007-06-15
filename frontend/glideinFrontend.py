@@ -27,7 +27,7 @@ import logSupport
 ############################################################
 def iterate_one(frontend_name,factory_pool,
                 schedd_names,job_constraint,match_str,
-                max_idle,reserve_idle,
+                max_idle,reserve_idle,reserve_running_fraction,
                 glidein_params):
     global activity_log
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
@@ -51,8 +51,8 @@ def iterate_one(frontend_name,factory_pool,
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
-        # we don't need more slots than number of jobs in the queue
-        glidein_max_run=idle_jobs+running_jobs
+        # we don't need more slots than number of jobs in the queue (modulo reserve)
+        glidein_max_run=int((idle_jobs+running_jobs)*(1+reserve_running_fraction)+1)
 
         activity_log.write("Advertize %s %i"%(request_name,glidein_min_idle))
         try:
@@ -67,7 +67,7 @@ def iterate_one(frontend_name,factory_pool,
 def iterate(log_dir,sleep_time,
             frontend_name,factory_pool,
             schedd_names,job_constraint,match_str,
-            max_idle,reserve_idle,
+            max_idle,reserve_idle,reserve_running_fraction,
             glidein_params):
     global activity_log,warning_log
     startup_time=time.time()
@@ -103,7 +103,7 @@ def iterate(log_dir,sleep_time,
                 while 1:
                     activity_log.write("Iteration at %s" % time.ctime())
                     try:
-                        done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,max_idle,reserve_idle,glidein_params)
+                        done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,max_idle,reserve_idle,reserve_running_fraction,glidein_params)
                     except KeyboardInterrupt:
                         raise # this is an exit signal, pass trough
                     except:
@@ -144,7 +144,7 @@ def main(sleep_time,advertize_rate,config_file):
     iterate(config_dict['log_dir'],sleep_time,
             config_dict['frontend_name'],config_dict['factory_pool'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],
-            100, 5,
+            100, 5,0.05,
             config_dict['glidein_params'])
 
 ############################################################
