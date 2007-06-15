@@ -283,7 +283,8 @@ As <span style=FONT-WEIGHT:bold>root</span>, create the Web base directory
   6.2 Setup the GSI security
 </h3>
 Create and maintain the a valid x509 proxy in
-<span style=FONT-WEIGHT:bold>~/.globus/x509_service_proxy</span>.<br>
+<span style=FONT-WEIGHT:bold>~/.globus/x509_service_proxy</span>.
+This proxy must, at any point in time, have a validity of at least the longest expected job being run by the glideinWMS (and not less than 12 hours).<br>
 How you keep this proxy valid (via
 <a href=http://grid.ncsa.uiuc.edu/myproxy/ title="MyProxy home page">MyProxy</a>,
 <a href=http://www.kx509.org/ title="kx509 Mode Page">kx509</a>, voms-proxy-init
