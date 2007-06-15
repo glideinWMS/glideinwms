@@ -36,6 +36,14 @@ import logSupport
 log_rrd_thread=None
 qc_rrd_thread=None
 
+############################################################
+def check_parent(parent_pid):
+    if os.path.exists('/proc/%s'%parent_pid):
+        return # parent still exists, we are fine
+    
+    glideFactoryLib.factoryConfig.activity_log.write("Parent died, exit.")    
+    raise KeyboardInterrupt,"Parent died"
+
 
 ############################################################
 def perform_work(factory_name,glidein_name,entry_name,
@@ -231,13 +239,14 @@ def iterate_one(do_advertize,
     return done_something
 
 ############################################################
-def iterate(cleanupObj,sleep_time,advertize_rate,
+def iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
             glideinDescript,jobDescript,jobAttributes,jobParams):
     is_first=1
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     while 1:
+        check_parent(parent_pid)
         glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
@@ -268,7 +277,7 @@ def iterate(cleanupObj,sleep_time,advertize_rate,
         
         
 ############################################################
-def main(sleep_time,advertize_rate,startup_dir,entry_name):
+def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     startup_time=time.time()
 
     # create log files in the glidein log directory
@@ -305,7 +314,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
         raise RuntimeError, "Another glidein factory already running for entry '%s'"%entry_name
     fd.seek(0)
     fd.truncate()
-    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(startup_time)))
+    fd.write("PID: %s\nParent PID:%s\nStarted: %s\n"%(os.getpid(),parent_pid,time.ctime(startup_time)))
     fd.flush()
     
     # start
@@ -313,7 +322,7 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
         try:
             try:
                 glideFactoryLib.factoryConfig.activity_log.write("Starting up")
-                iterate(cleanupObj,sleep_time,advertize_rate,
+                iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
                         glideinDescript,jobDescript,jobAttributes,jobParams)
             except KeyboardInterrupt:
                 glideFactoryLib.factoryConfig.activity_log.write("Received signal...exit")
@@ -353,17 +362,20 @@ def main(sleep_time,advertize_rate,startup_dir,entry_name):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
     signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
-    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3],sys.argv[4])
+    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3],sys.argv[4],sys.argv[5])
  
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.20 2007/05/21 17:42:16 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.21 2007/06/15 18:53:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.21  2007/06/15 18:53:44  sfiligoi
+#  Add parent pid to the list of entries, so that an entry can exit if parent dies
+#
 #  Revision 1.20  2007/05/21 17:42:16  sfiligoi
 #  Fix monitoring now that we have multiple entries
 #

@@ -63,7 +63,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
     glideFactoryLib.factoryConfig.activity_log.write("Starting entries %s"%entries)
     try:
         for entry_name in entries:
-            childs[entry_name]=popen2.Popen3("%s glideFactoryEntry.py %s %s %s %s"%(sys.executable,sleep_time,advertize_rate,startup_dir,entry_name),True)
+            childs[entry_name]=popen2.Popen3("%s glideFactoryEntry.py %s %s %s %s %s"%(sys.executable,os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
 
         for entry_name in childs.keys():
             childs[entry_name].tochild.close()
@@ -181,10 +181,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.60 2007/05/23 22:04:51 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.61 2007/06/15 18:53:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.61  2007/06/15 18:53:44  sfiligoi
+#  Add parent pid to the list of entries, so that an entry can exit if parent dies
+#
 #  Revision 1.60  2007/05/23 22:04:51  sfiligoi
 #  Finalize aggregate monitoring
 #
