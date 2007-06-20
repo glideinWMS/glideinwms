@@ -100,7 +100,7 @@ Switch to user postgres:<br>
 </div>
 And initialize initialize the database with:<br>
 <div style=MARGIN-LEFT:40px>
-  initdb /var/lib/pgsql/data<br>
+  initdb -A "ident sameuser" -D /var/lib/pgsql/data<br>
 </div>
 <h3>
   3.3 Configure PostgreSQL
@@ -125,7 +125,7 @@ to<span style=FONT-WEIGHT:bold> /var/lib/pgsql/data/pg_hba.conf</span>:<br>
 <div style=MARGIN-LEFT:40px>
   host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
   quillreader&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0
-  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; password<br>
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; md5<br>
 </div>
 <br>
 On the other hand, we want only the local machine to be able to write the
@@ -133,7 +133,7 @@ database., so we will add to
 <span style=FONT-WEIGHT:bold>/var/lib/pgsql/data/pg_hba.conf</span>::<br>
 <div style=MARGIN-LEFT:40px>
   host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
-  quillwriter&nbsp;&nbsp;&nbsp;&nbsp; 131.225.70.222/32 &nbsp; password<br>
+  quillwriter&nbsp;&nbsp;&nbsp;&nbsp; 131.225.70.222/32 &nbsp; md5<br>
 </div>
 <h3>
   3.4 Start PostgreSQL
