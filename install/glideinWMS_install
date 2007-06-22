@@ -1,0 +1,1151 @@
+#!/bin/env python
+
+import os
+import os.path
+import shutil
+import tarfile
+import readline
+import pwd
+import string
+import time
+import md5
+import getpass
+import socket
+import stat
+
+#############################
+#
+# Global variables
+#
+#############################
+
+# CONDOR_BASE_PATH will point to the base condor directory when condor is installed
+CONDOR_BASE_PATH=None
+# Where is the OSG VDT client installed
+VDT_BASE_PATH=None
+# Has the GSI securtiy been configured
+GSI_SECURITY_CONFIGURED=0
+# Which port the PostgreSQL is running, if installed 
+POSTGRESQL_PORT=None
+# What are the passwords used for quill? (None means not configured yet)
+QUILL_DB_PASSWDS=None
+
+# Was the condor pool collector installed on this machine?
+POOL_COLLECTOR_INSTALLED=0
+
+##########################################
+#
+# Main of the intallation procedure
+#
+##########################################
+
+def installer(install_options):
+    print "What do you want to install?"
+    print "(May select several options at one, using a , separated list)"
+    opt_keys=install_options.keys()
+    opt_keys.sort()
+    for k in opt_keys:
+        print "[%s] %s"%(k,install_options[k]["title"])
+
+    have_valid_select=0
+    while not have_valid_select:
+        selected_options_str=raw_input("Please select: ")
+        selected_options=selected_options_str.split(",")
+        have_valid_select=1 # assume valid unless disprooved
+        for s in selected_options:
+            if not install_options.has_key(s):
+                print "Invalid option [%s]!"%s
+                have_valid_select=0 # re-ask
+                break
+
+    selected_options.sort(lambda x,y:cmp(install_options[x]["order"],(install_options[y]["order"])))
+
+    print
+    print "The following profiles will be installed:"
+    for k in selected_options:
+        print "[%s] %s"%(k,install_options[k]["title"])
+    print
+    
+    for k in selected_options:
+        install_options[k]["proc"]()
+    return
+
+def main():
+    install_options={"1":{"title":"glideinWMS Collector",
+                          "proc":wms_install,"order":11},
+                     "2":{"title":"Glidein Factory",
+                          "proc":gfactory_install,"order":12},
+                     "3":{"title":"GCB","proc":gcb_install,"order":13},
+                     "4":{"title":"pool Collector",
+                          "proc":collector_install,"order":14},
+                     "5":{"title":"Schedd node",
+                          "proc":schedd_node_install,"order":15},
+                     "6":{"title":"Condor for VO Frontend",
+                          "proc":condor_frontend_install,"order":16},
+                     "7":{"title":"VO Frontend",
+                          "proc":vofrontend_install,"order":17},
+                     '8':{"title":"Components",
+                          "proc":main_install_components,"order":1}}
+                     
+    print "Welcome to the glideinWMS Installation Helper"
+    print ""
+    return installer(install_options)
+
+def main_install_components():
+    install_options={'a':{"title":"OSG VDT client",
+                          "proc":install_vdt,"order":1},
+                     'b':{"title":"Base Condor installation",
+                          "proc":install_condor,"order":2}}
+
+    if os.getuid()==0:
+        install_options['c']={"title":"PostgreSQL database",
+                              "proc":install_postgresql,"order":3}
+        install_options['d']={"title":"Quill-specific PostgreSQL database",
+                              "proc":query_quill_db,"order":4}
+
+                     
+    return installer(install_options)
+
+##########################################
+#
+# Subset specific procedures
+#
+##########################################
+
+def collector_install():
+    print "Pool collector installation only partially implemented"
+    yn=raw_input("Do you want to try?: (y/n) ")
+    if yn!="y":
+        return
+
+    global VDT_BASE_PATH
+    global CONDOR_BASE_PATH
+    global GSI_SECURITY_CONFIGURED
+    global POOL_COLLECTOR_INSTALLED
+
+    print "Installing pool collector"
+    print
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
+    if CONDOR_BASE_PATH==None:
+        install_condor()
+
+    if not GSI_SECURITY_CONFIGURED:
+        configure_gsi_security()
+
+    default_poolname="My pool"
+    a_poolname=raw_input("What name would you like to use for this pool?: [%s] "%default_poolname)
+    if a_poolname=="":
+        a_poolname=default_poolname
+
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## Whis is a Collector machine, limit deamons\n")
+        config_fd.write("######################################################\n")
+        config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR\n")
+        config_fd.write("COLLECTOR_NAME = %s\n\n"%a_poolname)
+        config_fd.write("############################################################\n")
+        config_fd.write("## Negotiator tuning\n")
+        config_fd.write("############################################################\n")
+        config_fd.write("NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom\n")
+    finally:
+        config_fd.close()
+    
+    print "**************************************************"
+    print "Pool collector installation succeeded"
+    print "**************************************************"
+    print
+    POOL_COLLECTOR_INSTALLED=1
+    
+    return
+
+def schedd_node_install():
+    print "Schedd installation only partially implemented"
+    yn=raw_input("Do you want to try?: (y/n) ")
+    if yn!="y":
+        return
+
+    global VDT_BASE_PATH
+    global CONDOR_BASE_PATH
+    global GSI_SECURITY_CONFIGURED
+    global POSTGRESQL_PORT
+
+    print "Installing user submit schedds"
+    print
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
+    if CONDOR_BASE_PATH==None:
+        install_condor()
+
+    if not GSI_SECURITY_CONFIGURED:
+        configure_gsi_security()
+
+    if POSTGRESQL_PORT==None:
+        query_postgresql()
+
+    if QUILL_DB_PASSWDS==None:
+        query_quill_db()
+
+    return
+
+def wms_install():
+    print "WMS collector installation only partially implemented"
+    yn=raw_input("Do you want to try?: (y/n) ")
+    if yn!="y":
+        return
+
+    global VDT_BASE_PATH
+    global CONDOR_BASE_PATH
+    global GSI_SECURITY_CONFIGURED
+
+    print "Installing WMS collector"
+    print
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
+    if CONDOR_BASE_PATH==None:
+        install_condor()
+
+    if not GSI_SECURITY_CONFIGURED:
+        configure_gsi_security()
+
+    return
+
+def gfactory_install():
+    print "Glidein Factory installation not yet implemented"
+    return
+
+def gcb_install():
+    print "GCB installation not yet implemented"
+    return
+
+def condor_frontend_install():
+    print "Condor for VO Frontend installation not yet implemented"
+    return
+
+def vofrontend_install():
+    print "VO Frontend installation not yet implemented"
+
+    return
+
+##########################################
+#
+# Task specific procedures
+#
+##########################################
+
+# Ask the user for location of directory
+# and create it
+########################################
+
+def create_empty_dir(question, def_dir):
+    if def_dir!=None:
+        question=question+("[%s] "%def_dir)
+    while 1:
+        user_dir=raw_input(question)
+        if user_dir=="":
+            user_dir=def_dir
+        user_dir=os.path.abspath(user_dir)
+        
+        if not os.path.exists(user_dir):
+            yn=raw_input("Directory '%s' does not exist, should I create it?: (y/n) "%user_dir)
+            if yn!="y":
+                continue #do not create, ask for a new one
+            else:
+                try:
+                    os.mkdir(user_dir)
+                except:
+                    print "Failed to create '%s'!"% user_dir
+                    continue
+        else:
+            if len(os.listdir(user_dir))!=0:
+                print "Directory '%s' not empty!"% user_dir
+                continue
+
+        try: # write a test file
+            fd=open("%s/test.tst"%user_dir,"w")
+            fd.close()
+            os.unlink("%s/test.tst"%user_dir)
+        except:
+            print "Directory '%s' not writtable!"% user_dir
+            continue
+        
+        return user_dir #obtained and checked the directory
+ 
+
+# Ask the user if it has an OSG client
+# Install one else
+########################################
+def query_vdt():
+    global VDT_BASE_PATH
+
+    while 1:
+        yn=raw_input("Do you have already a OSG VDT installation?: (y/n) ")
+        if (yn!="y") and (yn!="n"):
+            print "Please answer y or n"
+            continue 
+
+        if yn=="y":
+            user_dir=raw_input("Where is the OSG VDT installed?: ")
+            user_dir=os.path.abspath(user_dir)
+            if not os.path.isfile("%s/setup.sh"%user_dir):
+                print "Directory '%s' not a VDT area (does not contain setup.sh)"%user_dir
+                continue
+            if not os.path.isfile("%s/globus/TRUSTED_CA/INDEX.txt"%user_dir):
+                print "Directory '%s' not a OSG VDT area (does not contain globus/TRUSTED_CA/INDEX.txt)"%user_dir
+                continue
+            if not os.path.isfile("%s/globus/bin/grid-proxy-info"%user_dir):
+                print "Directory '%s' not a OSG VDT area (does not contain globus/bin/grid-proxy-info)"%user_dir
+                continue
+            # found and verified the installation
+            print "Using OSG VDT installation in %s"%user_dir
+            print
+            VDT_BASE_PATH=user_dir
+            return
+        else:
+            yn=raw_input("Do you want to install the OSG VDT client?: (y/n) ")
+            if (yn!="y"):
+                continue # do not install, ask again 
+
+        #not found, try to install
+        break
+
+    # install OSG VDT client
+    install_vdt()
+
+# Install OSG client
+################################
+def install_vdt():
+    global VDT_BASE_PATH
+    def_vdt_base_path="/opt/vdt"
+    user_dir=create_empty_dir("Where do you want the OSG VDT installed?: ",def_vdt_base_path)
+    
+    # install pacman
+    err=os.system("cd %s&&wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.19.tar.gz&&tar --no-same-owner -xzvf pacman-3.19.tar.gz&&rm -f  pacman-3.19.tar.gz"%user_dir)
+    if err!=0:
+        raise RuntimeError,"Failed to install pacman!"
+    print
+
+    # ask user about the appropriate platform
+    tested_platforms=('linux-rhel-3','SL-3','linux-rhel-4','SL-4','linux-fedora-4')
+    print "OSG client installation tends to be very picky about the platforms it installs under"
+    print "Most of the time, one needs to pretent to be one of the tested platforms"
+    print "The platforms known to work are: %s"%string.join(tested_platforms,',')
+    while 1:
+        platform=raw_input("Which platform do you want to use: ")
+        if not (platform in tested_platforms):
+            yn=raw_input("Platform '%s' is not one of the tested ones. Are you sure you want to use it?: (y/n) "%platform)
+            if (yn!="y"):
+                continue # not sure, reask
+        # user selected a platform
+        break
+    print
+    print "The OSG VDT installation will start in a moment"
+    print "Please do not enable Condor, as we will install it separatelly"
+    time.sleep(2)
+    print
+
+    # install the OSG client
+    err=os.system("cd %s/pacman-3.19;source setup.sh;cd %s&&pacman -trust-all-caches -pretend-platform %s -get OSG:client"%(user_dir,user_dir,platform))
+    if err!=0:
+        raise RuntimeError,"Failed to install the OSG client!"
+
+    
+    # remove the condor component
+    # ignore any error
+    os.system("cd %s/pacman-3.19;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,user_dir))
+
+    # initialize the OSG client (only if root)
+    if os.getuid()==0:
+        err=os.system("cd %s;source setup.sh;vdt-control --on"%user_dir)
+        if err!=0:
+            raise RuntimeError,"Failed to initalize the OSG client!"
+
+    # everything went well, register
+    print
+    print "OSG VDT client installed"
+    print
+    
+    VDT_BASE_PATH=user_dir
+    return
+    
+# Install Condor from tarball
+# and run condor_configure
+################################
+
+def install_condor():
+    global CONDOR_BASE_PATH
+
+    print "Installing condor"
+    print
+
+    ################################
+    # Ask which user should run condor
+    # and verify it
+    if os.getuid()==0:
+        # only root can change UID
+        def_condor_user="condor"
+        while 1:
+            condor_user=raw_input("Which user should Condor run under?: [%s] "%def_condor_user)
+            if condor_user=="":
+                condor_user=def_condor_user
+            try:
+                pwd.getpwnam(condor_user)
+            except:
+                print "User '%s' does not exist. Either create it or specify a different user."%condor_user
+                continue
+            break # got and verified the user
+
+
+    ################################
+    # Ask for the condor tarball
+    # and verify it
+
+    while 1:
+        condor_tarball=raw_input("Where do you have the Condor tarball? ")
+        if not os.path.isfile(condor_tarball):
+            print "File '%s' not found!"%condor_tarball
+            continue
+
+        print "Checking..."
+
+        try:
+            fd=tarfile.open(condor_tarball,"r:gz")
+        except:
+            print "File '%s' not a valid tar.gz file!"%condor_tarball
+            continue
+
+        try:
+            try:
+                first_dir=fd.getnames()[0]
+                if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
+                    print "File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(condor_tarball,first_dir)
+                    continue
+                condor_version=first_dir[7:-1]
+                print "Seems condor version %s"%condor_version
+                try:
+                    fd.getmember(first_dir+"condor_configure")
+                except:
+                    print "Filename '%s' missing %s!"%(condor_tarball,first_dir+"condor_configure")
+                    continue
+                break; # found and verified it
+            except:
+                print "File '%s' corrupted!"%condor_tarball
+                continue
+        finally:
+            fd.close()
+    print
+
+    ################################
+    # Ask for the install dir
+    # and verify it
+
+    def_condor_base_dir="/opt/glidecondor"
+    user_condor_base_dir=create_empty_dir("Where do you want to install it?: ",def_condor_base_dir)
+    os.mkdir("%s/tar"%user_condor_base_dir)
+    print "Installing condor in '%s'"%user_condor_base_dir
+    print
+    
+    ################################
+    # Ask for admin email
+
+    while 1:
+        admin_email=raw_input("If something goes wrong with Condor, who should get email about it?: ")
+        if admin_email.find('@')<0:
+            print "'%s' is not a valid email address!"%admin_email
+            continue
+        break #found and verified
+
+    ################################
+    # Do the actual installation
+    # Hard fail if anything goes wrong
+
+    try:
+        print "Extracting from tarball"
+        fd=tarfile.open(condor_tarball,"r:gz")
+        for f in fd.getmembers():
+            fd.extract(f,"%s/tar"%user_condor_base_dir)
+        fd.close()
+    
+        print "Running condor_configure"
+        cmdline="cd %s/tar/condor-%s;./condor_configure --install=%s/tar/condor-%s/release.tar --install-dir=%s --local-dir=%s/condor_local --install-log=%s/tar/condor_configure.log"%(user_condor_base_dir,condor_version,user_condor_base_dir,condor_version,user_condor_base_dir,user_condor_base_dir,user_condor_base_dir)
+        if os.getuid()==0:
+            cmdline="%s  --owner=%s"%(cmdline,condor_user)
+            
+        err=os.system(cmdline)
+        if err!=0:
+            raise RuntimeError,"condor_configure failed! (%i)"%err
+    finally:
+        # installation files not needed anymore
+        shutil.rmtree("%s/tar"%user_condor_base_dir)
+
+    ##################################################
+    # Append condor_config.local to main condor_config
+    # leave condor_config.local empty
+
+    local_fd=open("%s/condor_local/condor_config.local"%user_condor_base_dir,"r")
+    try:
+        local_lines=local_fd.readlines()
+    finally:
+        local_fd.close()
+
+    config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
+    try:
+        config_fd.write("\n########################################################\n")
+        config_fd.write("# Whatever condor_configure put into condor_config.local\n")
+        config_fd.write("########################################################\n\n")
+        config_fd.writelines(local_lines)
+    finally:
+        config_fd.close()
+
+    # empty condor_config.local
+    local_fd=open("%s/condor_local/condor_config.local"%user_condor_base_dir,"w")
+    local_fd.close()
+
+    ##################################################
+    # Configure values condor_configure does not
+    config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("# Base configuration values for glideinWMS\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("##  When something goes wrong with condor at your site, who should get the email?\n")
+        config_fd.write("CONDOR_ADMIN = %s\n\n"%admin_email)
+        config_fd.write("##  With glideins, there is nothing shared\n")
+        config_fd.write("UID_DOMAIN=$(FULL_HOSTNAME)\nFILESYSTEM_DOMAIN=$(FULL_HOSTNAME)\n\n")
+        config_fd.write("##  Condor needs to create a few lock files to synchronize access to various log files\n")
+        config_fd.write("##  Use the log directory so they are collocated\n")
+        config_fd.write("LOCK = $(LOG)\n\n")
+        config_fd.write("##  Without security, the only secure connection is the local one\n")
+        config_fd.write("HOSTALLOW_WRITE = $(FULL_HOSTNAME)\n\n")
+    finally:
+        config_fd.close()
+
+    ##################################################
+    # Put condor in path
+    if os.getuid()==0: # different if root or not
+        # as root
+
+        #########################################
+        # Put link into /etc/condor/condor_config
+        if not os.path.exists('/etc/condor'):
+            os.mkdir('/etc/condor')
+        if os.path.exists('/etc/condor/condor_config'):
+            # an old version exists... replace
+            os.unlink('/etc/condor/condor_config')
+        os.symlink("%s/etc/condor_config"%user_condor_base_dir,'/etc/condor/condor_config')
+
+        #########################################
+        # put condor binaries in system wide path
+        fd=open("/etc/profile.d/condor.sh","w")
+        try:
+            fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
+            fd.write("  PATH=${PATH}:%s/bin\n"%user_condor_base_dir)
+            fd.write("fi\n")
+        finally:
+            fd.close()
+        os.chmod("/etc/profile.d/condor.sh",
+                 stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
+    else:
+        # as regular user
+
+        #########################################
+        # put condor config in .bashrc
+        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+        try:
+            fd.write("\n# Condor settings\n")
+            fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
+            fd.write("  export PATH=%s/bin:${PATH}\n"%user_condor_base_dir)
+            fd.write("  export CONDOR_CONFIG=%s/etc/condor_config\n"%user_condor_base_dir)
+            fd.write("fi\n\n")
+        finally:
+            fd.close()
+        
+        # and in .cshrc
+        fd=open("%s/.cshrc"%os.environ['HOME'],"a")
+        try:
+            fd.write("\n# Condor settings\n")
+            fd.write("set path = ( %s/bin $path)\n"%user_condor_base_dir)
+            fd.write("setenv CONDOR_CONFIG %s/etc/condor_config\n\n"%user_condor_base_dir)
+        finally:
+            fd.close()
+
+        # put condor config in the path for the rest of the installation
+        os.environ['CONDOR_CONFIG']="%s/etc/condor_config\n\n"%user_condor_base_dir
+
+        print
+        print "The Condor config has been put in your login files"
+        print "Please remember to exit and reenter the terminal after the install"
+        print
+        
+
+    ##############################
+    # DO TO
+    ########
+    # Link to /etc/condor_config
+    # And put it in the path
+    ##############################
+    
+    ##################################################
+    # Condor installed, register it
+    CONDOR_BASE_PATH = user_condor_base_dir
+    print "Condor installed"
+    print
+    return
+
+# Update condor config with
+# GSI security
+################################
+
+def configure_gsi_security():
+    global CONDOR_BASE_PATH
+    global VDT_BASE_PATH
+    global GSI_SECURITY_CONFIGURED
+
+    print "Configuring GSI security"
+    print
+
+    #################################
+    # Create security support directory 
+    os.mkdir("%s/certs"%CONDOR_BASE_PATH)
+
+    #################################
+    # Ask if uses proxy or cert
+    # and verify
+    print "To use the GSI security, you either need a valid GSI proxy or "
+    print "a valid x509 certificate and relative key"
+    while 1:
+        pc=raw_input("Will you be using a proxy or a cert? (proxy/cert) ")
+        if (pc!="proxy") and (pc!="cert"):
+            print "Please select either proxy or cert"
+            continue
+
+        if pc=="proxy":
+            proxy_fname=raw_input("Where is your proxy located?: ")
+            proxy_fname=os.path.abspath(proxy_fname)
+            if not os.path.isfile(proxy_fname):
+                print "Proxy '%s' not found"%proxy_fname
+                continue
+
+            #extract DN
+            dn_fd=os.popen("source %s/setup.sh;grid-proxy-info -file %s"%(VDT_BASE_PATH,proxy_fname))
+            dn_blob=dn_fd.read()
+            err=dn_fd.close()
+            if err!=None:
+                print "Failed to extract DN from proxy '%s'!"%proxy_fname
+                continue
+            i=dn_blob.find("identity : ")
+            if i<0:
+                print "Failed to extract Identity from proxy '%s'!"%proxy_fname
+                continue
+            dn_blob=dn_blob[i+11:] # remove part before identity
+            my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
+            
+            use_proxy=1
+            break # proxy found
+        else:
+            cert_fname=raw_input("Where is your certificate located?: ")
+            cert_fname=os.path.abspath(cert_fname)
+            if not os.path.isfile(cert_fname):
+                print "Certificate '%s' not found"%cert_fname
+                continue
+            cert_keyname=raw_input("Where is your certificate key located?: ")
+            cert_keyname=os.path.abspath(cert_keyname)
+            if not os.path.isfile(cert_keyname):
+                print "Certificate key '%s' not found"%cert_keyname
+                continue
+
+            #extract DN
+            dn_fd=os.popen("openssl x509 -subject -in %s"%cert_fname)
+            dn_blob=dn_fd.read()
+            err=dn_fd.close()
+            if err!=None:
+                print "Failed to extract DN from certificate '%s'!"%cert_fname
+                continue
+            i=dn_blob.find("subject= ")
+            if i<0:
+                print "Failed to extract Subject from certificate '%s'!"%cert_fname
+                continue
+            dn_blob=dn_blob[i+9:] # remove part before subject
+            my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
+            
+            use_proxy=0
+            break # cert and key found
+            
+    print "My DN = '%s'"%my_dn
+    print
+
+    #################################
+    # create grid-mapfile
+    # ask user for additional DNs
+    dns={"condor":my_dn}
+    print "You will most probably need other DNs in the grid mapfile"
+    print "Please add all the DNs that can be used to connect to the "
+    print "Condor daemons running on this node"
+    print
+    print "Please insert all such DNs, together with a user nickname."
+    print "An empty DN entry means you are done."
+    while 1:
+        a_dn=raw_input("DN: ")
+        if a_dn=="":
+            break # done
+        default_uid="condor%03i"%len(dns.keys())
+        a_uid=raw_input("nickname: [%s]"%default_uid)
+        if a_uid=="":
+            a_uid=default_uid
+        if a_uid.find(" ")>=0:
+            print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname."%a_uid
+            continue
+        if a_uid in other_dns.keys():
+            print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
+            continue
+        dns[a_uid]=a_dn
+
+    
+    gridmap_fd=open("%s/certs/grid-mapfile"%CONDOR_BASE_PATH,"w")
+    try:
+        for a_uid in dns.keys():
+            config_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
+    finally:
+        gridmap_fd.close()
+
+    #################################
+    # do the config
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("############################################################\n")
+        config_fd.write("## Security config\n")
+        config_fd.write("############################################################\n\n")
+        config_fd.write("############################\n")
+        config_fd.write("# Authentication settings\n")
+        config_fd.write("############################\n")
+        config_fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
+        config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
+        config_fd.write("SEC_READ_AUTHENTICATION = OPTIONAL\n")
+        config_fd.write("SEC_CLIENT_AUTHENTICATION = OPTIONAL\n\n")
+        config_fd.write("# Grid Certificate directory\n")
+        config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s/globus/TRUSTED_CA\n\n"%VDT_BASE_PATH)
+        config_fd.write("############################\n")
+        config_fd.write("# Privacy settings\n")
+        config_fd.write("############################\n")
+        config_fd.write("SEC_DEFAULT_ENCRYPTION = OPTIONAL\n")
+        config_fd.write("SEC_DEFAULT_INTEGRITY = REQUIRE\n")
+        config_fd.write("SEC_READ_INTEGRITY = OPTIONAL\n")
+        config_fd.write("SEC_CLIENT_INTEGRITY = OPTIONAL\n")
+        config_fd.write("SEC_READ_ENCRYPTION = OPTIONAL\n")
+        config_fd.write("SEC_CLIENT_ENCRYPTION = OPTIONAL\n\n")
+        config_fd.write("############################\n")
+        config_fd.write("# Set daemon cert location\n")
+        config_fd.write("############################\n")
+        config_fd.write("GSI_DAEMON_DIRECTORY = %s/certs\n\n"%CONDOR_BASE_PATH)
+        config_fd.write("############################\n")
+        config_fd.write("# Credentials\n")
+        config_fd.write("############################\n")
+        if use_proxy:
+            config_fd.write("GSI_DAEMON_PROXY = %s\n\n"%proxy_fname)
+            config_fd.write("# If you ever decide to use a Certificate, see below\n")
+            config_fd.write("#GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem\n")
+            config_fd.write("#GSI_DAEMON_KEY  = /etc/grid-security/hostkey.pem\n\n")
+        else:
+            config_fd.write("GSI_DAEMON_CERT = %s\n"%cert_fname)
+            config_fd.write("GSI_DAEMON_KEY  = %s\n\n"%cert_keyname)
+            config_fd.write("# If you ever decide to use a Proxy, see below\n")
+            config_fd.write("#GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy\n\n")
+        config_fd.write("############################\n")
+        config_fd.write("# Where to find DN->uid mappings\n")
+        config_fd.write("############################\n")
+        config_fd.write("GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile\n\n")
+
+        config_fd.write("############################\n")
+        config_fd.write("# do not use IP based controls\n")
+        config_fd.write("############################\n")
+        config_fd.write("HOSTALLOW_WRITE = *\n\n")
+    finally:
+        config_fd.close()
+
+
+    #################################
+    #GSI security configured
+    GSI_SECURITY_CONFIGURED=1
+    return
+
+
+# Ask the user if it has PostgreSQL installed
+# Install one else
+########################################
+def query_postgresql():
+    global POSTGRESQL_PORT
+
+    while 1:
+        yn=raw_input("Do you have already a PostgreSQL installation?: (y/n) ")
+        if (yn!="y") and (yn!="n"):
+            print "Please answer y or n"
+            continue 
+
+        if yn=="y":
+            default_port="5432"
+            user_port=raw_input("What port is it running on?: [%s] "%default_port)
+            if user_port=="":
+                user_port=default_port
+
+            # verify the port is registered to postgres
+            fd=open("/etc/services","r")
+            try:
+                lines=fd.readlines()
+            finally:
+                fd.close()
+            found_port=0
+            for line in lines:
+                if line[:8]=="postgres":
+                    if line[8:].find("%s/"%user_port)>=0:
+                        found_port=1
+                        break
+            if not found_port:
+                print "Postgres port %s not registered in /etc/services"%user_port
+                continue
+            
+            # found and verified the installation
+            POSTGRESQL_PORT=user_port
+            return
+        else:
+            yn=raw_input("Do you want to install the PostgreSQL server?: (y/n) ")
+            if (yn!="y"):
+                continue # do not install, ask again
+            if os.getuid()!=0:
+                print "I can only install postgresql as root!"
+                continue
+                
+        #not found, try to install
+        break
+
+    # install postgreSQL server
+    install_postgresql()
+
+# Install PostgreSQL server
+################################
+def install_postgresql():
+    global POSTGRESQL_PORT
+
+    if os.getuid()!=0:
+        raise RuntimeError, "I can only install postgresql as root!"
+
+
+    print "Installing PostgreSQL"
+    print
+
+    ############################
+    # Ask where rpm is running
+
+    print "You must manually download the proper PostgreSQL RPM from the"
+    print "official site (http://www.postgresql.org/ftp/binary/)"
+    print "Version v8.2.4 has been tested, but you should always use the"
+    print "latest stable version"
+    while 1:
+        rpm_fname=raw_input("Where do you have the PostgreSQL RPM?: ")
+        rpm_fname=os.path.abspath(rpm_fname)
+        rpm_dir=os.path.dirname(rpm_fname)
+        rpm_short_name=os.path.basename(rpm_fname)
+
+        if rpm_short_name[:11]!='postgresql-':
+            print "File '%s' not a postgres rpm! (should be something like 'postgresql-8.2.3-1PGDG.i686.rpm'"%rpm_fname
+            continue
+
+        # needs 2 more rpms
+        rpm2_short_name=rpm_short_name[:11]+'libs-'+rpm_short_name[11:]
+        rpm2_fname=os.path.join(rpm_dir,rpm2_short_name)
+        rpm3_short_name=rpm_short_name[:11]+'server-'+rpm_short_name[11:]
+        rpm3_fname=os.path.join(rpm_dir,rpm3_short_name)
+
+
+        problems=0
+        for f in (rpm_fname,rpm2_fname,rpm3_fname):
+            if not os.path.isfile(f):
+                print "File '%s' not found!"%f
+                problems=1
+                break
+            err=os.system("rpm -qv -p %s"%f)
+            if err!=0:
+                print "'%s' is not a valid RPM!"%f
+                problems=1
+                break
+        if problems:
+            continue # ask again
+
+        # files found and verified
+        break
+
+    ##########################
+    # Install the RPM
+    print "Installing the PostgreSQL RPM"
+    err=os.system("rpm -i %s %s %s"%(rpm_fname,rpm2_fname,rpm3_fname))
+    if err!=0:
+        raise RuntimeError, "Installation of the RPMs failed!"
+    print
+
+
+    ##########################
+    # create the database dir
+    def_dir="/var/lib/pgsql/data"
+    db_dir=def_dir
+    db_dir=create_empty_dir("Where do you want to host the DB data?: ",def_dir)
+    os.chmod(db_dir,stat.S_IRWXU)
+    os.chown(db_dir,pwd.getpwnam("postgres")[2],pwd.getpwnam("postgres")[3])
+
+    ####################################################
+    # The RPM expects it in a standard location
+    # Create a symlink is user asked for a different one
+    if db_dir!=def_dir:
+        os.symlink(db_dir,def_dir)
+
+    ##########################
+    # Initialize it
+    print "Initializing PostgreSQL"
+    print 'su - postgres -c "initdb -A \'ident sameuser\' -D %s"'%def_dir
+    err=os.system('su - postgres -c "initdb -A \'ident sameuser\' -D %s"'%def_dir)
+    if err!=0:
+        raise RuntimeError, "Initialization of postgresql DB failed!"
+
+
+    ##########################
+    # Select the port
+    default_port="5432"
+    while 1:
+        db_port=raw_input("What port shoud it run on?: [%s] "%default_port)
+        if db_port=="":
+            db_port=default_port
+
+        # verify the port is registered to postgres
+        try:
+            db_port_nr=int(db_port)
+        except ValueError:
+            print "'%s' not a number!"%db_port
+            continue
+        if (db_port_nr<1) or (db_port_nr>65500):
+            print "'%s' out of range!"%db_port
+            continue
+        #verified
+        break
+
+    ##########################
+    # Configure network access
+    fd=open("/var/lib/pgsql/data/postgresql.conf","a")
+    try:
+        fd.write("\n###############################################\n")
+        fd.write("# Enable connections on all network interfaces \n")
+        fd.write("###############################################\n")
+        fd.write("listen_addresses = '*'\n\n")
+        fd.write("###############################################\n")
+        fd.write("# Configure the IP port \n")
+        fd.write("###############################################\n")
+        fd.write("port = %s\n\n"%db_port)
+    finally:
+        fd.close()
+    
+    ##########################
+    # Start PostgreSQL
+    err=os.system('/etc/init.d/postgresql start')
+    if err!=0:
+        raise RuntimeError, "Starting of postgresql DB failed!\nSee /var/lib/pgsql/pgstartup.log."
+
+
+    ######################################
+    # Implement a more restrictive policy
+    err=os.system('su - postgres -c \'psql -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"\'')
+    if err!=0:
+        raise RuntimeError, "Error restricting postgres DB!"
+
+    err=os.system('su - postgres -c \'psql -d template1 -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"\'')
+    if err!=0:
+        raise RuntimeError, "Error restricting template1 DB!"
+
+
+    #################################
+    # PostgreSQL installed
+    print
+    print "PostgreSQL installed"
+    print
+    POSTGRESQL_PORT=db_port
+    return
+
+#  
+########################################
+def get_postgresql_passwd(question,user):
+    global POSTGRESQL_PORT
+    while 1:
+        user_passwd=getpass.getpass(question)
+
+        # this env variable is used instead of stdin
+        os.environ['PGPASSWORD']=user_passwd
+
+        # try to connect to postgres and look for passwd auth error
+        # (anything else means user does not exist)
+        err=os.system('psql -h %s -p %s -U "%s" -d postgres -c "\qecho OK"'%(socket.getfqdn(),POSTGRESQL_PORT,user))
+        
+        del os.environ['PGPASSWORD']
+
+        if err==0:
+            return user_passwd
+
+        print "Wrong password!"
+
+
+# Verify if quill settings were set 
+# Install one else
+########################################
+def query_quill_db():
+    global POSTGRESQL_PORT
+    global QUILL_DB_SETUP
+
+    ########################################
+    # first make sure postgress is installed
+    if POSTGRESQL_PORT==None:
+        query_postgresql()
+
+    ########################################
+    # Check if quill already accounts setup
+    ask_confirm=0
+    while 1:
+        if ask_confirm:
+            while raw_input("Have you configured quill accounts?: (y/n) ")!='y':
+                pass
+        ask_confirm=1 # if I need to try more than one, I should wait for user input
+
+        #set a fake passwd nobody should ever use
+        os.environ['PGPASSWORD']='dontuse'
+
+        # try to connect to postgres and look for passwd auth error
+        # (anything else means user does not exist)
+        quill_users_err={}
+        for user in ['quillreader','quillwriter']:
+            quill_users_err[user]=os.system('psql -h %s -p %s -U "%s" -d postgres -c "\qecho Enabled" 2>&1 |grep -q "password authentication failed"'%(socket.getfqdn(),POSTGRESQL_PORT,user))
+        
+        del os.environ['PGPASSWORD']
+        
+        if (quill_users_err['quillreader']==0) and (quill_users_err['quillreader']==0):
+            # already configured, ask for passwd
+            reader_passwd=get_postgresql_passwd("Please enter the password used by quill to read from the DB: ",
+                                                "quillreader")
+            writer_passwd=get_postgresql_passwd("Please enter the password used by quill to update the DB: ",
+                                                "quillwriter")
+            QUILL_DB_PASSWDS={'reader':reader_passwd,'writer':writer_passwd}
+            return
+        elif (quill_users_err['quillreader']!=0) and (quill_users_err['quillreader']!=0):
+            # not yet configured, do it
+            print "Quill accounts not found"
+            print
+            if os.getuid()==0:
+                setup_quill_db()
+                return
+            else:
+                print "I can only configure quill accounts as root!"
+        else:
+            print "Quill only partially setup! Please fix it before continuing."
+            
+
+# Configure the quill settings in DB
+####################################
+def setup_quill_db():
+    if os.getuid()!=0:
+        raise RuntimeError, "I can only setup postgresql quill settings as root!"
+
+    ##################################
+    # get passwords
+    reader_passwd=getpass.getpass("Please enter the password used by quill to read from the DB: ")
+    writer_passwd=getpass.getpass("Please enter the password used by quill to update the DB: ")
+
+    #########################################
+    # Ask how open the read access should be
+    deny_ro=raw_input("Deny remote RO access?: (y/n) ")
+
+    ##################################
+    # Add quill users in pg_hba.conf
+    fd=open("/var/lib/pgsql/data/pg_hba.conf","r+")
+    try:
+        # read all lines in memory
+        lines=fd.readlines()
+
+        # insert the quill accounts
+
+        # find the line to insert it
+        # must be before any other config
+        # but possibly after the comments
+        for i in range(len(lines)):
+            line=lines[i]
+            if line.find('TYPE'):
+                # found the comment line I want to insert after
+                i=i+1
+                break
+            if not line[0] in ('#',' ','\t','\n'):
+                # found a config line, insert here (even if not after comments)
+                break
+
+        
+        lines.insert(i,"\n")
+        lines.insert(i+1,"# Condor quill entries\n")
+        if deny_ro!="y":
+            lines.insert(i+2,"# Allow read from everywhere\n")
+            lines.insert(i+3,"host \tall \tquillreader \t0.0.0.0/0 \tmd5\n")
+        else:
+            lines.insert(i+2,"# Limit read to the local machine\n")
+            lines.insert(i+3,"host \tall \tquillreader \t%s/32 \tmd5\n"%socket.gethostbyname(socket.getfqdn()))
+            
+        lines.insert(i+4,"local \tall \tquillreader \t \tmd5\n")
+        lines.insert(i+5,"# Limit writes to the local machine\n")
+        lines.insert(i+6,"host \tall \tquillwriter \t%s/32 \tmd5\n"%socket.gethostbyname(socket.getfqdn()))
+        lines.insert(i+7,"\n")
+
+        # replace the contents with the new data
+        fd.seek(0)
+        fd.writelines(lines)
+    finally:
+        fd.close()
+        
+    #####################################
+    # Tell postgres to reload the config
+    err=os.system('/etc/init.d/postgresql reload')
+    if err!=0:
+        raise RuntimeError, "Error updating PostgreSQL!"
+
+    ##########################################
+    # Create and configure the quill accounts
+    tmp_fname="/var/lib/pgsql/data/tmp_%s_%s.tmp"%(os.getpid(),time.time())
+    fd=open(tmp_fname,"w")
+    try:
+        fd.write("CREATE USER quillreader NOCREATEDB PASSWORD '%s';\n"%reader_passwd)
+        fd.write("CREATE USER quillwriter CREATEDB PASSWORD '%s';\n"%writer_passwd)
+        fd.write("REVOKE CREATE ON SCHEMA public FROM PUBLIC;\n")
+        fd.write("GRANT CREATE ON SCHEMA public TO quillwriter;\n")
+        fd.write("GRANT USAGE ON SCHEMA public TO quillwriter;\n")
+    finally:
+        fd.close()
+
+    try:
+        os.chown(tmp_fname,pwd.getpwnam('postgres')[2],pwd.getpwnam('postgres')[3])
+
+        err=os.system('su - postgres -c "psql -d template1 -f %s"'%tmp_fname)
+        if err!=0:
+            raise RuntimeError, "Error creating quill accounts!"
+    finally:
+        os.unlink(tmp_fname)
+
+    err=os.system('su - postgres -c \'psql -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"\'')
+    if err!=0:
+        raise RuntimeError, "Error restricting postgres DB!"
+
+
+    ################################
+    # Configured
+    QUILL_DB_PASSWDS={'reader':reader_passwd,'writer':writer_passwd}
+    return
+
+
+##########################################
+   
+main()
