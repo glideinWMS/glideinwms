@@ -157,7 +157,8 @@ And initialize initialize the Quill users with:<br>
   createuser quillwriter --createdb --no-adduser --no-createrole --pwprompt<br>
   # password &lt;writer passwd&gt;<br>
   psql -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
-  psql -c "GRANT CREATE ON SCHEMA public TO quillwriter; GRANT USAGE ON SCHEMA public TO quillwriter;"<br>
+  psql -d template1 -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
+  psql -d template1 -c "GRANT CREATE ON SCHEMA public TO quillwriter; GRANT USAGE ON SCHEMA public TO quillwriter;"<br>
 </div>
 <h3>
   3.6 Configure Condor
