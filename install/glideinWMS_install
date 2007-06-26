@@ -1402,7 +1402,7 @@ def create_secondary_schedd_support_files():
     # Secondary schedd startup file
     fd=open("%s/start_master_schedd.sh"%CONDOR_BASE_PATH,"w")
     try:
-        fd.write("!/bin/sh\n")
+        fd.write("#!/bin/sh\n")
         fd.write("source %s/new_schedd_setup.sh $1\n"%CONDOR_BASE_PATH)
         fd.write("# add whatever other config you need\n")
         fd.write("%s/sbin/condor_master\n"%CONDOR_BASE_PATH)
@@ -1417,7 +1417,7 @@ def create_secondary_schedd_support_files():
     # All other must be added by someone else
     fd=open("%s/start_condor.sh"%CONDOR_BASE_PATH,"w")
     try:
-        fd.write("!/bin/sh\n")
+        fd.write("#!/bin/sh\n")
         fd.write("%s/sbin/condor_master\n"%CONDOR_BASE_PATH)
         fd.write("sleep 1\n")
     finally:
