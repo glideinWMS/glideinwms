@@ -44,6 +44,8 @@ SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=0
 
 # Was a condor collector installed on this machine?
 COLLECTOR_INSTALLED=0
+# Was a main schedd configured on this machine?
+MAIN_SCHEDD_INSTALLED=0
 
 ##########################################
 #
@@ -140,39 +142,22 @@ def collector_install():
     if VDT_BASE_PATH==None:
         query_vdt()
 
+    condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
         install_condor()
 
     if not GSI_SECURITY_CONFIGURED:
         configure_gsi_security()
 
+    if not COLLECTOR_INSTALLED:
+        setup_collector('My pool')
 
-    #####################################
-    # Configure Collector and Negotiator
-    default_poolname="My pool"
-    a_poolname=raw_input("What name would you like to use for this pool?: [%s] "%default_poolname)
-    if a_poolname=="":
-        a_poolname=default_poolname
+    restart_condor()
 
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
-    try:
-        config_fd.write("\n######################################################\n")
-        config_fd.write("## This is a Collector machine, limit deamons\n")
-        config_fd.write("######################################################\n")
-        config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR\n")
-        config_fd.write("COLLECTOR_NAME = %s\n\n"%a_poolname)
-        config_fd.write("############################################################\n")
-        config_fd.write("## Negotiator tuning\n")
-        config_fd.write("############################################################\n")
-        config_fd.write("NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom\n")
-    finally:
-        config_fd.close()
-    
     print "**************************************************"
     print "Pool collector installation succeeded"
     print "**************************************************"
     print
-    COLLECTOR_INSTALLED=1
     
     return
 
@@ -183,6 +168,7 @@ def schedd_node_install():
     global QUILL_CONFIG_DONE
     global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
     global COLLECTOR_INSTALLED
+    global MAIN_SCHEDD_INSTALLED
 
     print "Installing user submit schedds"
     print
@@ -190,6 +176,7 @@ def schedd_node_install():
     if VDT_BASE_PATH==None:
         query_vdt()
 
+    condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
         install_condor()
 
@@ -199,60 +186,8 @@ def schedd_node_install():
     if not QUILL_CONFIG_DONE:
         setup_quill()
 
-    ################################################
-    # configure list of daemons
-    # and if needed, where is the collector node
-    if not COLLECTOR_INSTALLED:
-        # the collector is running on another node, ask which one
-        while 1:
-            pool_node=raw_input("What node is the collector running (i.e. CONDOR_HOST)?: ")
-            try:
-                socket.gethostbyname(pool_node)
-            except:
-                print "'%s' not a valid host name!"%pool_node
-                continue
-            #have a valid pool_node
-            break
-        
-        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
-        try:
-            config_fd.write("\n######################################################\n")
-            config_fd.write("## Point to the collector node\n")
-            config_fd.write("######################################################\n")
-            config_fd.write("CONDOR_HOST = %s\n\n"%pool_node)
-            config_fd.write("######################################################\n")
-            config_fd.write("## This is both a Collector and a Schedd machine\n")
-            config_fd.write("######################################################\n")
-            config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR, SCHEDD, QUILL\n\n")
-        finally:
-            config_fd.close()
-    else:
-        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
-        try:
-            config_fd.write("######################################################\n")
-            config_fd.write("## This is both a Schedd machine, limit daemons\n")
-            config_fd.write("######################################################\n")
-            config_fd.write("DAEMON_LIST   = MASTER, SCHEDD, QUILL\n\n")
-        finally:
-            config_fd.close()
-
-
-    ################################
-    # Set optimized schedd values
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
-    try:
-        config_fd.write("\n######################################################\n")
-        config_fd.write("## Schedd tuning\n")
-        config_fd.write("######################################################\n\n")
-        config_fd.write("# Allow up to 2k concurrent running jobs\n")
-        config_fd.write("MAX_JOBS_RUNNING        = 2000\n")
-        config_fd.write("# Start 8 jobs every 2 seconds\n")
-        config_fd.write("JOB_START_DELAY = 2\n")
-        config_fd.write("JOB_START_COUNT = 8\n")
-        config_fd.write("# Prevent checking on ImageSize\n")
-        config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
-    finally:
-        config_fd.close()
+    if not MAIN_SCHEDD_INSTALLED:
+        setup_main_schedd()
 
     ###################################
     # configure the GCB routing tables
@@ -335,10 +270,10 @@ def schedd_node_install():
         schedd_name="jobs%i"%(i+1)
         configure_secondary_schedd(schedd_name)
 
+    restart_condor()
+
     print "**************************************************"
     print "User submit schedd installation succeeded"
-    print "To start condor, use:"
-    print "  %s/start_condor.sh"%CONDOR_BASE_PATH
     print "**************************************************"
     print
         
@@ -407,6 +342,7 @@ def wms_install():
     if RRD_BIN_PATH==None:
         query_rrd()
 
+    condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
         install_condor()
 
@@ -416,16 +352,11 @@ def wms_install():
     if not QUILL_CONFIG_DONE:
         setup_quill()
 
-    ################################
-    # List needed daemons
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
-    try:
-        config_fd.write("\n######################################################\n")
-        config_fd.write("## This is both a Collector and a Schedd machine\n")
-        config_fd.write("######################################################\n")
-        config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR, SCHEDD, QUILL\n\n")
-    finally:
-        config_fd.close()
+    if not COLLECTOR_INSTALLED:
+        setup_collector('My glideinWMS pool')
+    
+    if not MAIN_SCHEDD_INSTALLED:
+        setup_main_schedd()
 
     ################################
     # Set optimized Condor-G values
@@ -437,7 +368,6 @@ def wms_install():
         config_fd.write("GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)\n")
         config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=2000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=20\n")
-        config_fd.write("MAX_JOBS_RUNNING        = 2000\n\n")
     finally:
         config_fd.close()
 
@@ -465,28 +395,70 @@ def wms_install():
 
         break # have the number of schedds
 
-    for i in range(nr_schedds):
-        schedd_name="glideins%i"%(i+1)
-        configure_secondary_schedd(schedd_name)
+
+    restart_condor()
 
     print "******************************************"
     print "WMS collector successfully installed"
     print "******************************************"
     print
-    COLLECTOR_INSTALLED=1
 
     return
 
-def gfactory_install():
-    print "Glidein Factory installation not yet implemented"
+def condor_frontend_install():
+    global CONDOR_BASE_PATH
+
+
+    if CONDOR_BASE_PATH==None:
+        if os.getuid()==0:
+            print
+            print "You are trying to install Condor for the VO Frontend as root"
+            print "While this is possible, it is not recommended."
+            print "For security reasons, it is better to install it as a non-priviledged user"
+            yn=raw_input("Do you want to continue?: (y/n) ")
+            if yn!='y':
+                print
+                print "Not installing Condor for VO Frontend as root."
+                print "Remember to install it as a regular user"
+                print
+                return
+
+    print
+    print "Installing Condor for VO Frontend"
+    print
+    if CONDOR_BASE_PATH==None:
+        install_condor()
+
+        setup_main_schedd()
+        
+        ####################################################
+        # If used only for the VO frontend, disable daemons
+        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        try:
+            config_fd.write("\n######################################################\n")
+            config_fd.write("## This machine should run no daemons\n")
+            config_fd.write("######################################################\n")
+            config_fd.write("DAEMON_LIST=MASTER\n")
+            config_fd.write("DAEMON_SHUTDOWN=True\n\n")
+        finally:
+            config_fd.close()
+    # else nothing to be done
+
+    #
+    # No need to start condor, client only
+    #
+
+    print
+    print "Condor for VO Frontend installed"
+    print
     return
 
 def gcb_install():
     print "GCB installation not yet implemented"
     return
 
-def condor_frontend_install():
-    print "Condor for VO Frontend installation not yet implemented"
+def gfactory_install():
+    print "Glidein Factory installation not yet implemented"
     return
 
 def vofrontend_install():
@@ -641,6 +613,8 @@ def install_vdt():
 
 def install_condor():
     global CONDOR_BASE_PATH
+    global CONDOR_USER
+    global CONDOR_LOCAL_DIR
 
     print "Installing condor"
     print
@@ -661,6 +635,9 @@ def install_condor():
                 print "User '%s' does not exist. Either create it or specify a different user."%condor_user
                 continue
             break # got and verified the user
+        CONDOR_USER=condor_user
+    else:
+        CONDOR_USER=pwd.getpwuid(os.getuid())[0]
 
 
     ################################
@@ -734,7 +711,8 @@ def install_condor():
         fd.close()
     
         print "Running condor_configure"
-        cmdline="cd %s/tar/condor-%s;./condor_configure --install=%s/tar/condor-%s/release.tar --install-dir=%s --local-dir=%s/condor_local --install-log=%s/tar/condor_configure.log"%(user_condor_base_dir,condor_version,user_condor_base_dir,condor_version,user_condor_base_dir,user_condor_base_dir,user_condor_base_dir)
+        CONDOR_LOCAL_DIR="%s/condor_local"%user_condor_base_dir
+        cmdline="cd %s/tar/condor-%s;./condor_configure --install=%s/tar/condor-%s/release.tar --install-dir=%s --local-dir=%s --install-log=%s/tar/condor_configure.log"%(user_condor_base_dir,condor_version,user_condor_base_dir,condor_version,user_condor_base_dir,CONDOR_LOCAL_DIR,user_condor_base_dir)
         if os.getuid()==0:
             cmdline="%s  --owner=%s"%(cmdline,condor_user)
             
@@ -865,6 +843,78 @@ def install_condor():
     else:
         os.environ['PATH']="%s/bin:"%user_condor_base_dir
     
+    ##########################################
+    # Node wide startup file
+    # Will have only primary master for now
+    # Any other must be added by someone else
+    fd=open("%s/start_condor.sh"%user_condor_base_dir,"w")
+    try:
+        fd.write("#!/bin/sh\n")
+        fd.write("%s/sbin/condor_master\n"%user_condor_base_dir)
+        fd.write("sleep 1\n")
+    finally:
+        fd.close()
+    os.chmod("%s/start_condor.sh"%user_condor_base_dir,
+             stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
+    if os.getuid()==0:
+        ##################################################
+        # init.d file for authomated startup and shutdown
+        fd=open("/etc/init.d/condor","w")
+        try:
+            fd.write("#!/bin/bash\n")
+            fd.write("# Source function library.\n")
+            fd.write("if [ -f /etc/init.d/functions ] ; then\n")
+            fd.write("        . /etc/init.d/functions\n")
+            fd.write("elif [ -f /etc/rc.d/init.d/functions ] ; then\n")
+            fd.write("        . /etc/rc.d/init.d/functions\n")
+            fd.write("else\n")
+            fd.write("        exit 0\n")
+            fd.write("fi\n\n")
+
+            fd.write("start() {\n")
+            fd.write('        echo -n "Starting condor: "\n')
+            fd.write("        %s/start_condor.sh 2>/dev/null 1>&2 && success || failure\n"%user_condor_base_dir)
+            fd.write("        RETVAL=$?\n")
+            fd.write("        echo\n")
+            fd.write("}\n\n")
+
+            fd.write("stop() {\n")
+            fd.write('        echo -n "Shutting down condor: "\n')
+            fd.write("        pkill -9 -u %s 'condor_.*' 2>/dev/null 1>&2 && success || failure\n"%CONDOR_USER)
+            fd.write("        RETVAL=$?\n")
+            fd.write("        echo\n")
+            fd.write("}\n\n")
+
+            fd.write("restart() {\n")
+            fd.write("        stop\n")
+            fd.write("        start\n")
+            fd.write("}\n\n")
+
+            fd.write("case $1 in\n")
+            fd.write("        start)\n")
+            fd.write("                start\n")
+            fd.write("        ;;\n")
+            fd.write("        stop)\n")
+            fd.write("                stop\n")
+            fd.write("        ;;\n")
+            fd.write("        restart)\n")
+            fd.write("                restart\n")
+            fd.write("        ;;\n")
+            fd.write("        status)\n")
+            fd.write("                status %s/sbin/condor_master\n"%user_condor_base_dir)
+            fd.write("        ;;\n")
+            fd.write("        *)\n")
+            fd.write('        echo $"Usage: $prog {start|stop|restart|status}"\n')
+            fd.write("        exit 1\n")
+            fd.write("esac\n\n")
+
+            fd.write("exit $RETVAL\n")
+        finally:
+            fd.close()
+        os.chmod("/etc/init.d/condor",
+                 stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
     ##################################################
     # Condor installed, register it
     CONDOR_BASE_PATH = user_condor_base_dir
@@ -872,10 +922,27 @@ def install_condor():
     print
     return
 
+def restart_condor():
+    global CONDOR_USER
+    global CONDOR_BASE_PATH
+
+    print
+    print "Restarting Condor"
+    print
+
+    # try to kill old condor daemons, if any
+    os.system("pkill -9 -u %s 'condor_.*'"%CONDOR_USER)
+
+    # start condor daemons
+    err=os.system("%s/start_condor.sh"%CONDOR_BASE_PATH)
+    if err!=0:
+        raise RuntimeError, "Failed to start Condor"
+    return
+
+
 # Update condor config with
 # GSI security
 ################################
-
 def configure_gsi_security():
     global CONDOR_BASE_PATH
     global VDT_BASE_PATH
@@ -1046,6 +1113,104 @@ def configure_gsi_security():
     #################################
     #GSI security configured
     GSI_SECURITY_CONFIGURED=1
+    return
+
+# Update condor config with
+# collector and negotiator settings
+######################################
+def setup_collector(default_poolname):
+    global CONDOR_BASE_PATH
+    global COLLECTOR_INSTALLED
+    
+    a_poolname=raw_input("What name would you like to use for this pool?: [%s] "%default_poolname)
+    if a_poolname=="":
+        a_poolname=default_poolname
+
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## This is a Collector machine, limit deamons\n")
+        config_fd.write("######################################################\n")
+        config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR\n")
+        config_fd.write("COLLECTOR_NAME = %s\n\n"%a_poolname)
+        config_fd.write("############################################################\n")
+        config_fd.write("## Negotiator tuning\n")
+        config_fd.write("############################################################\n")
+        config_fd.write("NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom\n")
+    finally:
+        config_fd.close()
+
+    COLLECTOR_INSTALLED=1
+    return
+
+
+# Update condor config with
+# schedd settings
+################################
+def setup_main_schedd():
+    global CONDOR_BASE_PATH
+    global COLLECTOR_INSTALLED
+    global MAIN_SCHEDD_INSTALLED
+    global QUILL_CONFIG_DONE
+
+    # not all the use cases need Quill
+    if QUILL_CONFIG_DONE:
+        schedd_daemons="SCHEDD, QUILL"
+    else:
+        schedd_daemons="SCHEDD"
+
+    if not COLLECTOR_INSTALLED:
+        # the collector is running on another node, ask which one
+        while 1:
+            pool_node=raw_input("What node is the collector running (i.e. CONDOR_HOST)?: ")
+            try:
+                socket.gethostbyname(pool_node)
+            except:
+                print "'%s' not a valid host name!"%pool_node
+                continue
+            #have a valid pool_node
+            break
+        
+        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        try:
+            config_fd.write("\n######################################################\n")
+            config_fd.write("## Point to the collector node\n")
+            config_fd.write("######################################################\n")
+            config_fd.write("CONDOR_HOST = %s\n\n"%pool_node)
+            config_fd.write("######################################################\n")
+            config_fd.write("## This is a Schedd machine\n")
+            config_fd.write("######################################################\n")
+            config_fd.write("DAEMON_LIST   = MASTER, %s\n\n"%schedd_daemons)
+        finally:
+            config_fd.close()
+    else:
+        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        try:
+            config_fd.write("######################################################\n")
+            config_fd.write("## This is both a Collector and a Schedd machine\n")
+            config_fd.write("######################################################\n")
+            config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR, %s\n\n"%schedd_daemons)
+        finally:
+            config_fd.close()
+
+    ################################
+    # Set optimized schedd values
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## Schedd tuning\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("# Allow up to 2k concurrent running jobs\n")
+        config_fd.write("MAX_JOBS_RUNNING        = 2000\n")
+        config_fd.write("# Start 8 jobs every 2 seconds\n")
+        config_fd.write("JOB_START_DELAY = 2\n")
+        config_fd.write("JOB_START_COUNT = 8\n")
+        config_fd.write("# Prevent checking on ImageSize\n")
+        config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
+    finally:
+        config_fd.close()
+
+    MAIN_SCHEDD_INSTALLED=1
     return
 
 
@@ -1445,6 +1610,7 @@ def setup_quill():
     global QUILL_DB_PASSWDS
     global POSTGRESQL_PORT
     global QUILL_CONFIG_DONE
+    global CONDOR_USER
 
     if QUILL_DB_PASSWDS==None:
         query_quill_db()
@@ -1458,7 +1624,7 @@ def setup_quill():
         config_fd.write("#############################\n")
         config_fd.write("QUILL_ENABLED = TRUE\n")
         config_fd.write("QUILL_NAME = quill@$(FULL_HOSTNAME)\n")
-        config_fd.write("QUILL_DB_NAME = $(HOSTNAME)\n")
+        config_fd.write("QUILL_DB_NAME = quill\n")
         config_fd.write("QUILL_DB_QUERY_PASSWORD = %s\n"%QUILL_DB_PASSWDS['reader'])
         config_fd.write("QUILL_DB_IP_ADDR = $(HOSTNAME):%s\n"%POSTGRESQL_PORT)
         config_fd.write("QUILL_MANAGE_VACUUM = TRUE\n")
@@ -1473,6 +1639,8 @@ def setup_quill():
     finally:
         fd.close()
     os.chmod("%s/condor_local/spool/.quillwritepassword"%CONDOR_BASE_PATH,stat.S_IRUSR)
+    os.chown("%s/condor_local/spool/.quillwritepassword"%CONDOR_BASE_PATH,
+             pwd.getpwnam(CONDOR_USER)[2],pwd.getpwnam(CONDOR_USER)[3])
 
     QUILL_CONFIG_DONE=1
     return
@@ -1482,6 +1650,7 @@ def setup_quill():
 ###############################################
 def create_secondary_schedd_support_files():
     global CONDOR_BASE_PATH
+    global CONDOR_LOCAL_DIR
     global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
 
     ##############################
@@ -1494,8 +1663,8 @@ def create_secondary_schedd_support_files():
         fd.write(" return 1\n")
         fd.write("fi\n\n")
         
-        fd.write("LD=`condor_config_val LOCAL_DIR`\n")
-        fd.write("QDB=`condor_config_val QUILL_DB_NAME`\n\n")
+        fd.write("LD=%s\n"%CONDOR_LOCAL_DIR)
+        fd.write("QDB=quill\n\n")
 
         fd.write("export _CONDOR_SCHEDD_NAME=schedd_$1\n")
         fd.write("export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}\n")
@@ -1523,7 +1692,7 @@ def create_secondary_schedd_support_files():
         fd.write("# create needed directories\n")
         fd.write("%s/sbin/condor_init\n"%CONDOR_BASE_PATH)
         fd.write("# copy Quill writer passwd\n")
-        fd.write("cp -p $_CONDOR_LOCAL_DIR/../spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/\n")
+        fd.write("cp -p %s/spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/\n"%CONDOR_LOCAL_DIR)
     finally:
         fd.close()
     os.chmod("%s/init_schedd.sh"%CONDOR_BASE_PATH,
@@ -1540,20 +1709,6 @@ def create_secondary_schedd_support_files():
     finally:
         fd.close()
     os.chmod("%s/start_master_schedd.sh"%CONDOR_BASE_PATH,
-             stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
-
-    ##########################################
-    # Node wide startup file
-    # Will have only primary master for now
-    # All other must be added by someone else
-    fd=open("%s/start_condor.sh"%CONDOR_BASE_PATH,"w")
-    try:
-        fd.write("#!/bin/sh\n")
-        fd.write("%s/sbin/condor_master\n"%CONDOR_BASE_PATH)
-        fd.write("sleep 1\n")
-    finally:
-        fd.close()
-    os.chmod("%s/start_condor.sh"%CONDOR_BASE_PATH,
              stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
     SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=1
