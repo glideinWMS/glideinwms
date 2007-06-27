@@ -12,6 +12,7 @@ import md5
 import getpass
 import socket
 import stat
+import httplib
 
 #############################
 #
@@ -19,6 +20,12 @@ import stat
 #
 #############################
 
+# Where is the OSG VDT client installed
+VDT_BASE_PATH=None
+# What port does the HTTPd listening on
+HTTPD_PORT=None
+# Where is RRD installed
+RRD_BIN_PATH=None
 # CONDOR_BASE_PATH will point to the base condor directory when condor is installed
 CONDOR_BASE_PATH=None
 # Where is the OSG VDT client installed
@@ -35,8 +42,8 @@ QUILL_CONFIG_DONE=0
 # Has the secondary schedd support files been installed yet?
 SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=0
 
-# Was the condor pool collector installed on this machine?
-POOL_COLLECTOR_INSTALLED=0
+# Was a condor collector installed on this machine?
+COLLECTOR_INSTALLED=0
 
 ##########################################
 #
@@ -77,14 +84,14 @@ def installer(install_options):
 
 def main():
     install_options={"1":{"title":"glideinWMS Collector",
-                          "proc":wms_install,"order":11},
+                          "proc":wms_install,"order":13},
                      "2":{"title":"Glidein Factory",
-                          "proc":gfactory_install,"order":12},
-                     "3":{"title":"GCB","proc":gcb_install,"order":13},
+                          "proc":gfactory_install,"order":14},
+                     "3":{"title":"GCB","proc":gcb_install,"order":15},
                      "4":{"title":"pool Collector",
-                          "proc":collector_install,"order":14},
+                          "proc":collector_install,"order":11}, # must be before WMS collector
                      "5":{"title":"Schedd node",
-                          "proc":schedd_node_install,"order":15},
+                          "proc":schedd_node_install,"order":12},
                      "6":{"title":"Condor for VO Frontend",
                           "proc":condor_frontend_install,"order":16},
                      "7":{"title":"VO Frontend",
@@ -103,10 +110,14 @@ def main_install_components():
                           "proc":install_condor,"order":2}}
 
     if os.getuid()==0:
-        install_options['c']={"title":"PostgreSQL database",
-                              "proc":install_postgresql,"order":3}
-        install_options['d']={"title":"Quill-specific PostgreSQL database",
-                              "proc":query_quill_db,"order":4}
+        install_options['c']={"title":"Web server",
+                              "proc":install_httpd,"order":3}
+        install_options['d']={"title":"rrdtool graphics package",
+                              "proc":install_rrd,"order":4}
+        install_options['e']={"title":"PostgreSQL database",
+                              "proc":install_postgresql,"order":5}
+        install_options['f']={"title":"Quill-specific PostgreSQL database",
+                              "proc":query_quill_db,"order":6}
 
                      
     return installer(install_options)
@@ -121,7 +132,7 @@ def collector_install():
     global VDT_BASE_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
-    global POOL_COLLECTOR_INSTALLED
+    global COLLECTOR_INSTALLED
 
     print "Installing pool collector"
     print
@@ -161,7 +172,7 @@ def collector_install():
     print "Pool collector installation succeeded"
     print "**************************************************"
     print
-    POOL_COLLECTOR_INSTALLED=1
+    COLLECTOR_INSTALLED=1
     
     return
 
@@ -169,8 +180,9 @@ def schedd_node_install():
     global VDT_BASE_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
-    global POSTGRESQL_PORT
-    
+    global QUILL_CONFIG_DONE
+    global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
+    global COLLECTOR_INSTALLED
 
     print "Installing user submit schedds"
     print
@@ -190,7 +202,7 @@ def schedd_node_install():
     ################################################
     # configure list of daemons
     # and if needed, where is the collector node
-    if not POOL_COLLECTOR_INSTALLED:
+    if not COLLECTOR_INSTALLED:
         # the collector is running on another node, ask which one
         while 1:
             pool_node=raw_input("What node is the collector running (i.e. CONDOR_HOST)?: ")
@@ -333,14 +345,14 @@ def schedd_node_install():
     return
 
 def wms_install():
-    print "WMS collector installation only partially implemented"
-    yn=raw_input("Do you want to try?: (y/n) ")
-    if yn!="y":
-        return
-
     global VDT_BASE_PATH
+    global HTTPD_PORT
+    global RRD_BIN_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
+    global QUILL_CONFIG_DONE
+    global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
+    global COLLECTOR_INSTALLED
 
     print "Installing WMS collector"
     print
@@ -348,11 +360,120 @@ def wms_install():
     if VDT_BASE_PATH==None:
         query_vdt()
 
+    if HTTPD_PORT==None:
+        query_httpd()
+
+    #################################
+    # Create the web dir owned by the
+    # gfactory user
+    while 1:
+        default_gfactory_user='gfactory'
+        gfactory_user=raw_input("Under which user will the Glidein Factory deamons run?: [%s] "%default_gfactory_user)
+        if gfactory_user=="":
+            gfactory_user=default_gfactory_user
+        try:
+            gfactory_pwd=pwd.getpwnam(gfactory_user)
+        except KeyError:
+            print "'%s' is not a valid user!"%gfactory_user
+            continue
+        #found and verified
+        break
+
+    default_web_dir='/var/www/html/glidefactory'
+    web_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_dir)
+    os.chown(web_dir,gfactory_pwd[2],gfactory_pwd[3])
+    if web_dir!=default_web_dir:
+        # if not the default, make a symlink to that location
+        if os.path.islink(default_web_dir):
+            os.unlink(default_web_dir) # remove the old symlink
+        elif os.path.exists(default_web_dir):
+            # an old dir exists, rename
+            os.rename(default_web_dir,default_web_dir+".old_"+time.strftime("%Y%m%d.%H%M"))
+
+        os.symlink(web_dir,default_web_dir)
+
+    ####################################
+    # Create an empty top level page
+    if not os.path.exists('/var/www/html/index.html'):
+        fd=open('/var/www/html/index.html',"w")
+        try:
+            fd.write('<html>\n')
+            fd.write('<body>\n')
+            fd.write('</body>\n')
+            fd.write('</html>\n')
+        finally:
+            fd.close()
+    
+    if RRD_BIN_PATH==None:
+        query_rrd()
+
     if CONDOR_BASE_PATH==None:
         install_condor()
 
     if not GSI_SECURITY_CONFIGURED:
         configure_gsi_security()
+
+    if not QUILL_CONFIG_DONE:
+        setup_quill()
+
+    ################################
+    # List needed daemons
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## This is both a Collector and a Schedd machine\n")
+        config_fd.write("######################################################\n")
+        config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR, SCHEDD, QUILL\n\n")
+    finally:
+        config_fd.close()
+
+    ################################
+    # Set optimized Condor-G values
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## Condor-G tuning\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)\n")
+        config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=2000\n")
+        config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=20\n")
+        config_fd.write("MAX_JOBS_RUNNING        = 2000\n\n")
+    finally:
+        config_fd.close()
+
+    ##################################
+    # configure secondary schedds
+    if not SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED:
+        create_secondary_schedd_support_files()
+    
+    while 1:
+        nr_schedds_default=4
+        nr_schedds_str=raw_input("How many secondary schedds do you want?: [4] ")
+        if nr_schedds_str=="":
+            nr_schedds_str="%s"%nr_schedds_default
+        try:
+            nr_schedds=int(nr_schedds_str)
+        except:
+            print "'%s' is not a number!"%nr_schedds_str
+            continue
+        if nr_schedds<0:
+            print "You entered a negative number! (%i)"%nr_schedds
+            continue
+        if nr_schedds>99: # security check
+            print "You entered too big of a number! (%i)"%nr_schedds
+            continue
+
+        break # have the number of schedds
+
+    for i in range(nr_schedds):
+        schedd_name="glideins%i"%(i+1)
+        configure_secondary_schedd(schedd_name)
+
+    print "******************************************"
+    print "WMS collector successfully installed"
+    print "******************************************"
+    print
+    COLLECTOR_INSTALLED=1
 
     return
 
@@ -694,7 +815,7 @@ def install_condor():
 
         fd=open("/etc/profile.d/condor.csh","w")
         try:
-            fd.write("set path = ( %s/bin $path)\n"%user_condor_base_dir)
+            fd.write("set path = ( $path %s/bin )\n"%user_condor_base_dir)
         finally:
             fd.close()
         os.chmod("/etc/profile.d/condor.csh",
@@ -996,10 +1117,14 @@ def install_postgresql():
 
     print "You must manually download the proper PostgreSQL RPM from the"
     print "official site (http://www.postgresql.org/ftp/binary/)"
+    print "You will need the following files:"
+    print "  postgresql-*.rpm"
+    print "  postgresql-libs-*.rpm"
+    print "  postgresql-server-*.rpm"
     print "Version v8.2.4 has been tested, but you should always use the"
     print "latest stable version"
     while 1:
-        rpm_fname=raw_input("Where do you have the PostgreSQL RPM?: ")
+        rpm_fname=raw_input("What is the name of the base PostgreSQL RPM?: ")
         rpm_fname=os.path.abspath(rpm_fname)
         rpm_dir=os.path.dirname(rpm_fname)
         rpm_short_name=os.path.basename(rpm_fname)
@@ -1053,6 +1178,12 @@ def install_postgresql():
     # The RPM expects it in a standard location
     # Create a symlink is user asked for a different one
     if db_dir!=def_dir:
+        if os.path.islink(def_dir):
+            os.unlink(def_dir) # remove the old symlink
+        elif os.path.exists(def_dir):
+            # an old dir exists, rename
+            os.rename(def_dir,def_dir+".old_"+time.strftime("%Y%m%d.%H%M"))
+
         os.symlink(db_dir,def_dir)
 
     ##########################
@@ -1442,8 +1573,307 @@ def configure_secondary_schedd(schedd_name):
         fd.write("%s/start_master_schedd.sh %s\n"%(CONDOR_BASE_PATH,schedd_name))
     finally:
         fd.close()
-    
 
+# Ask the user if it has HTTPd installed
+# Install one else
+########################################
+def query_httpd():
+    global HTTPD_PORT
+
+    # TO DO
+    # Create glideinWMS directory
+
+    while 1:
+        yn=raw_input("Do you have already an HTTPd installed?: (y/n) ")
+        if (yn!="y") and (yn!="n"):
+            print "Please answer y or n"
+            continue 
+
+        if yn=="y":
+            default_port="80"
+            httpd_port=raw_input("What port do you want to use?: [%s] "%default_port)
+            if httpd_port=="":
+                httpd_port=default_port
+
+            try:
+                hc=httplib.HTTPConnection(socket.getfqdn(),httpd_port)
+                hc.connect()
+                hc.close()
+            except:
+                print "No httpd found on %s:%s!"%(socket.getfqdn(),httpd_port)
+                continue
+
+            # found and verified the installation
+            HTTPD_PORT=httpd_port
+            return
+        else:
+            yn=raw_input("Do you want to install a HTTPd?: (y/n) ")
+            if (yn!="y"):
+                continue # do not install, ask again 
+
+        #not found, try to install
+        break
+
+    # install httpd
+    install_httpd()
+
+
+# Install a HTTPd
+####################################
+def install_httpd():
+    global HTTPD_PORT
+
+    print
+    print "Installing a httpd"
+    print
+
+    default_port="80"
+    httpd_port=raw_input("What port do you want to use?: [%s] "%default_port)
+    if httpd_port=="":
+        httpd_port=default_port
+
+    print "Select install method:"
+    print " [1] using yum"
+    print " [2] using RPMs"
+
+    while 1:
+        option=raw_input("select: ")
+        if option=='1':
+            install_yum_httpd()
+            break
+        elif option=='2':
+            install_rpm_httpd()
+            break
+        else:
+            print "Invalid choice '%s'!"%option
+
+    #################################
+    # configure port
+    fd=open("/etc/httpd/conf/httpd.conf","r")
+    try:
+        lines=fd.readlines()
+    finally:
+        fd.close()
+
+    # comment old port and put the correct one
+    # also limit modules to the trusted ones
+    needed_modules=('access_module','include_module','log_config_module',
+                    'mime_magic_module','expires_module','deflate_module',
+                    'headers_module','setenvif_module','mime_module',
+                    'status_module','autoindex_module','negotiation_module',
+                    'dir_module','imap_module','alias_module','rewrite_module',
+                    'cache_module','file_cache_module','mem_cache_module')
+    
+    fd=open("/etc/httpd/conf/httpd.conf","w")
+    try:
+        for line in lines:
+            linearr=line.split()
+            if len(linearr)<1:
+                fd.write(line) #empty line
+            elif linearr[0].lower()=='listen':
+                fd.write("#%s"%line)
+                fd.write("Listen %s\n"%httpd_port)
+            elif linearr[0].lower()=='loadmodule':
+                if linearr[1] in needed_modules:
+                    fd.write(line)
+                else:
+                    fd.write("#%s"%line) # disable
+            else:
+                fd.write(line)
+    finally:
+        fd.close()
+
+    # disable also all the extensions in conf.d
+    fnames=os.listdir('/etc/httpd/conf.d')
+    for fname in fnames:
+        if fname[-5:]=='.conf':
+            os.rename("/etc/httpd/conf.d/%s"%fname,"/etc/httpd/conf.d/%s.org_%s"%(fname,time.strftime("%Y%m%d.%H%M")))
+
+    
+    ################################
+    # start httpd
+    err=os.system('/etc/init.d/httpd start')
+    if err!=0:
+        raise RuntimeError, "Failed to start httpd!"
+
+    print
+    print "HTTPd installed on port %s"%httpd_port
+    print
+    HTTPD_PORT=httpd_port
+    return
+
+def install_yum_httpd():
+    err=os.system('yum -y install httpd')
+    if err!=0:
+        raise RuntimeError, "Failed to install httpd via yum!"
+
+    # yum will not complain if it cannot find httpd
+    # verify it is installed
+    err=os.system('rpm -q --whatprovides httpd')
+    if err!=0:
+        raise RuntimeError, "HTTPd was not installed by yum!"
+
+    return
+
+def install_rpm_httpd():
+    while 1:
+        rpm_fname=raw_input("Where do you have the httpd RPM?: ")
+        if not os.path.isfile(rpm_fname):
+            print "File '%s' not found!"%rpm_fname
+            continue
+        err=os.system("rpm -qv -p %s"%rpm_fname)
+        if err!=0:
+            print "'%s' is not a valid RPM!"%rpm_fname
+            continue
+
+        # files found and verified
+        break
+
+    err=os.system('rpm -i %s'%rpm_fname)
+    if err!=0:
+        raise RuntimeError, "Failed to install httpd via rpm '%s'!"%rpm_fname
+
+    return
+
+# Look for a rrdtool in the path
+# Ask the user if there is none
+# Install one else
+########################################
+def query_rrd():
+    global RRD_BIN_PATH
+
+    #############################
+    # lokk if it is in the path
+    fd=os.popen("which rrdtool")
+    lines=fd.readlines()
+    err=fd.close()
+    if err==None: # found
+        RRD_BIN_PATH=lines[0][:-1]
+        return
+
+    #################################
+    # Ask user if it has it installed
+    while 1:
+        yn=raw_input("Do you have rrd installed?: (y/n) ")
+        if yn!="y":
+            yn=raw_input("Do you want to install it?: (y/n) ")
+            if yn=="y":
+                return install_rrd()
+            continue # get back to the first question
+        #else
+        rrd_path=raw_input("Where do you have the httpd RPM?: ")
+        rrd_path=os.path.abspath(rrd_path)
+
+        # Use which to verify the new path
+        fd=os.popen("export PATH=$PATH:%s;which rrdtool"%rrd_path)
+        lines=fd.readlines()
+        err=fd.close()
+        if err!=None: # not found
+            print "'%s' does not contain rrdtool!"%rrd_path
+            continue
+
+        print "rrdtool should be in the path for the glidein factory to properly work"
+        yn=raw_input("Do you want to do it now?: (y/n) ")
+        if yn=="y":
+            ##################################################
+            # Put rrd in path
+            if os.getuid()==0: # different if root or not
+                # as root
+
+                # put rrd binaries in system wide path
+                fd=open("/etc/profile.d/rrd.sh","w")
+                try:
+                    fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%rrd_path)
+                    fd.write("  PATH=${PATH}:%s/bin\n"%rrd_path)
+                    fd.write("fi\n")
+                finally:
+                    fd.close()
+                os.chmod("/etc/profile.d/rrd.sh",
+                         stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
+                fd=open("/etc/profile.d/rrd.csh","w")
+                try:
+                    fd.write("set path = ( $path %s/bin )\n"%rrd_path)
+                finally:
+                    fd.close()
+                os.chmod("/etc/profile.d/rrd.csh",
+                         stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+            else:
+                # as regular user
+
+                # put rrd path in .bashrc
+                fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+                try:
+                    fd.write("\n# rrd settings\n")
+                    fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%rrd_path)
+                    fd.write("  export PATH=${PATH}:%s/bin\n"%rrd_path)
+                    fd.write("fi\n\n")
+                finally:
+                    fd.close()
+        
+                # and in .cshrc
+                fd=open("%s/.cshrc"%os.environ['HOME'],"a")
+                try:
+                    fd.write("\n# Condor settings\n")
+                    fd.write("set path = ( $path %s/bin )\n"%rrd_path)
+                finally:
+                    fd.close()
+
+        else:
+            print
+            print "Remember to put '%s' in the path yourself!"%rrd_path
+            print
+
+        RRD_BIN_PATH=rrd_path
+        return
+    
 ##########################################
+def install_rrd():
+    global RRD_BIN_PATH
+
+    print
+    print "You will now need the rrdtool RPMs"
+    print "You can find them on http://dag.wieers.com/rpm/packages/rrdtool/"
+    print "You will need the following RPMs:"
+    print "  rrdtool-*.rpm"
+    print "  perl-rrdtool-*.rpm"
+    print "Version 1.2.18 has been tested, but you should always use the"
+    print "latest one"
+    while 1:
+        rpm_fname=raw_input("What is the name of the base rrd RPM?: ")
+        rpm_fname=os.path.abspath(rpm_fname)
+        rpm_dir=os.path.dirname(rpm_fname)
+        rpm_short_name=os.path.basename(rpm_fname)
+
+        rpm2_short_name="perl-"+rpm_short_name
+        rpm2_fname=os.path.join(rpm_dir,rpm2_short_name)
+
+
+        problems=0
+        for f in (rpm_fname,rpm2_fname):
+            if not os.path.isfile(f):
+                print "File '%s' not found!"%f
+                problems=1
+                break
+            err=os.system("rpm -qv -p %s"%f)
+            if err!=0:
+                print "'%s' is not a valid RPM!"%f
+                problems=1
+                break
+        if problems:
+            continue # ask again
+
+        # files found and verified
+        break
+        
+    ##########################
+    # Install the RPM
+    print "Installing the rrd RPM"
+    err=os.system("rpm -i %s %s"%(rpm_fname,rpm2_fname))
+    if err!=0:
+        raise RuntimeError, "Installation of the RPMs failed!"
+    print
+
+    return
    
 main()
