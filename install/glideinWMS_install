@@ -53,6 +53,7 @@ MAIN_SCHEDD_INSTALLED=0
 #
 ##########################################
 
+#-------------------------------------------------------------------------------
 def installer(install_options):
     print "What do you want to install?"
     print "(May select several options at one, using a , separated list)"
@@ -84,18 +85,19 @@ def installer(install_options):
         install_options[k]["proc"]()
     return
 
+#-------------------------------------------------------------------------------
 def main():
     install_options={"1":{"title":"glideinWMS Collector",
                           "proc":wms_install,"order":13},
                      "2":{"title":"Glidein Factory",
-                          "proc":gfactory_install,"order":14},
-                     "3":{"title":"GCB","proc":gcb_install,"order":15},
+                          "proc":gfactory_install,"order":16},
+                     "3":{"title":"GCB","proc":gcb_install,"order":15}, #must be after any other condor
                      "4":{"title":"pool Collector",
-                          "proc":collector_install,"order":11}, # must be before WMS collector
+                          "proc":collector_install,"order":11}, # must be before any schedd
                      "5":{"title":"Schedd node",
                           "proc":schedd_node_install,"order":12},
                      "6":{"title":"Condor for VO Frontend",
-                          "proc":condor_frontend_install,"order":16},
+                          "proc":condor_frontend_install,"order":14},
                      "7":{"title":"VO Frontend",
                           "proc":vofrontend_install,"order":17},
                      '8':{"title":"Components",
@@ -105,6 +107,7 @@ def main():
     print ""
     return installer(install_options)
 
+#-------------------------------------------------------------------------------
 def main_install_components():
     install_options={'a':{"title":"OSG VDT client",
                           "proc":install_vdt,"order":1},
@@ -130,6 +133,7 @@ def main_install_components():
 #
 ##########################################
 
+#-------------------------------------------------------------------------------
 def collector_install():
     global VDT_BASE_PATH
     global CONDOR_BASE_PATH
@@ -161,6 +165,7 @@ def collector_install():
     
     return
 
+#-------------------------------------------------------------------------------
 def schedd_node_install():
     global VDT_BASE_PATH
     global CONDOR_BASE_PATH
@@ -279,6 +284,7 @@ def schedd_node_install():
         
     return
 
+#-------------------------------------------------------------------------------
 def wms_install():
     global VDT_BASE_PATH
     global HTTPD_PORT
@@ -405,6 +411,7 @@ def wms_install():
 
     return
 
+#-------------------------------------------------------------------------------
 def condor_frontend_install():
     global CONDOR_BASE_PATH
 
@@ -453,14 +460,143 @@ def condor_frontend_install():
     print
     return
 
+#-------------------------------------------------------------------------------
 def gcb_install():
-    print "GCB installation not yet implemented"
+    global CONDOR_BASE_PATH
+    global COLLECTOR_INSTALLED
+    global MAIN_SCHEDD_INSTALLED
+    global QUILL_CONFIG_DONE
+    
+    if os.getuid()==0:
+        print
+        print "You are trying to install GCB as root"
+        print "While this is possible, it is not recommended."
+        print "For security reasons, it is better to install it as a non-priviledged user"
+        yn=raw_input("Do you want to continue?: (y/n) ")
+        if yn!='y':
+            print
+            print "Not installing GCB as root."
+            print "Remember to install it as a regular user"
+            print
+            return
+    print
+    print "Installing GCB"
+    print
+    if CONDOR_BASE_PATH==None:
+        install_condor()
+
+    ################################
+    # Configure GCB
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## GCB configuration\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("# Define the path to the broker binary for the master to spawn\n")
+        config_fd.write("GCB_BROKER = $(RELEASE_DIR)/libexec/gcb_broker\n\n")
+
+        config_fd.write("# Define the path to the release_server binary for the broker to use\n")
+        config_fd.write("GCB_RELAY = $(RELEASE_DIR)/libexec/gcb_relay_server\n\n")
+
+        config_fd.write("# Setup the gcb_broker's environment.  We use a macro to build up the\n")
+        config_fd.write("# environment we want in pieces, and then finally define\n")
+        config_fd.write("# GCB_BROKER_ENVIRONMENT, the setting that condor_master uses.\n\n")
+
+        config_fd.write("# Initialize an empty macro\n")
+        config_fd.write("GCB_BROKER_ENV =\n\n")
+
+        config_fd.write("# (recommended) Provide the full path to the gcb_relay_server\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_RELAY_SERVER=$(GCB_RELAY)\n\n")
+
+        config_fd.write("# (recommended) Tell GCB to write all log files into the Condor log\n")
+        config_fd.write("# directory (the directory used by the condor_master itself)\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_LOG_DIR=$(LOG)\n")
+        config_fd.write("# Or, you can specify a log file seperately for each GCB daemon:\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_BROKER_LOG=$(LOG)/GCB_Broker_Log;GCB_RELAY_SERVER_LOG=$(LOG)/GCB_RS_Log\n\n")
+
+        config_fd.write("# (optional -- only set if true) Tell the GCB broker that it can\n")
+        config_fd.write("# directly connect to machines in the private network which it is\n")
+        config_fd.write("# handling communication for.  This should only be enabled if the GCB\n")
+        config_fd.write("# broker is running directly on a network boundry and can open direct\n")
+        config_fd.write("# connections to the private nodes.\n")
+        config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);ACTIVE_TO_CLIENT=yes\n\n")
+
+        config_fd.write("# (optional) turn on verbose logging for all of GCB\n")
+        config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_DEBUG_LEVEL=fulldebug\n")
+        config_fd.write("# Or, you can turn this on seperately for each GCB daemon:\n")
+        config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_BROKER_DEBUG=fulldebug\n")
+        config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_RELAY_SERVER_DEBUG=fulldebug\n\n")
+
+        config_fd.write("# (optional) specify the maximum log file size (in bytes)\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_MAX_LOG=6400000\n")
+        config_fd.write("# Or, you can define this seperately for each GCB daemon:\n")
+        config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_BROKER_MAX_LOG=64000000\n")
+        config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_RELAY_SERVER_MAX_LOG=640000\n\n")
+
+        config_fd.write("# How many connections should it serve\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_MAX_RELAY_SERVERS=200\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_MAX_CLIENTS_PER_RELAY_SERVER=100\n\n")
+
+        config_fd.write("# How tolerant should it be to blocked connections\n")
+        config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_COMMAND_TIMEOUT=1.5\n\n")
+
+        config_fd.write("# Finally, set the value the condor_master really uses\n")
+        config_fd.write("GCB_BROKER_ENVIRONMENT = $(GCB_BROKER_ENV)\n\n")
+
+        config_fd.write("# If your Condor installation on this host already has a public\n")
+        config_fd.write("# interface as the default (either because it is the first interface\n")
+        config_fd.write("# listed in this machine's host entry, or because you've already\n")
+        config_fd.write("# defined NETWORK_INTERFACE), you can just use Condor's special macro\n")
+        config_fd.write("# that holds the IP address for this.\n")
+        config_fd.write("GCB_BROKER_IP = $(ip_address)\n")
+        config_fd.write("# Otherwise, you could define it yourself with your real public IP:\n")
+        config_fd.write("#GCB_BROKER_IP = 131.225.70.222\n\n")
+
+        config_fd.write("# (required) define the command-line arguments for the broker\n")
+        config_fd.write("GCB_BROKER_ARGS = -i $(GCB_BROKER_IP)\n")
+    finally:
+        config_fd.close()
+
+    
+    ################################
+    # Enable the GCB daemon
+    daemon_list="MASTER"
+
+    if COLLECTOR_INSTALLED:
+        daemon_list=daemon_list+", COLLECTOR, NEGOTIATOR" 
+    if MAIN_SCHEDD_INSTALLED:
+        daemon_list=daemon_list+", SCHEDD" 
+        if QUILL_CONFIG_DONE:
+            daemon_list=daemon_list+", QUILL" 
+
+    if (not COLLECTOR_INSTALLED) and (not MAIN_SCHEDD_INSTALLED):
+        # this is a fresh install, I need a private collector
+        daemon_list=daemon_list+", COLLECTOR"
+
+    ################################
+    # Configure GCB
+    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## Add GCB to the list of daemons\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("DAEMON_LIST = %s, GCB_BROKER\n\n"%daemon_list)
+    finally:
+        config_fd.close()
+
+    restart_condor()
+
+    print
+    print "GCB installed"
+    print
     return
 
+#-------------------------------------------------------------------------------
 def gfactory_install():
     print "Glidein Factory installation not yet implemented"
     return
 
+#-------------------------------------------------------------------------------
 def vofrontend_install():
     print "VO Frontend installation not yet implemented"
 
@@ -760,7 +896,26 @@ def install_condor():
         config_fd.write("##  Condor needs to create a few lock files to synchronize access to various log files\n")
         config_fd.write("##  Use the log directory so they are collocated\n")
         config_fd.write("LOCK = $(LOG)\n\n")
-        config_fd.write("##  Without security, the only secure connection is the local one\n")
+        config_fd.write("############################################################\n")
+        config_fd.write("## Security config\n")
+        config_fd.write("############################################################\n\n")
+        config_fd.write("############################\n")
+        config_fd.write("# Authentication settings\n")
+        config_fd.write("############################\n")
+        config_fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
+        config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS\n")
+        config_fd.write("SEC_READ_AUTHENTICATION = OPTIONAL\n")
+        config_fd.write("SEC_CLIENT_AUTHENTICATION = OPTIONAL\n\n")
+        config_fd.write("############################\n")
+        config_fd.write("# Privacy settings\n")
+        config_fd.write("############################\n")
+        config_fd.write("SEC_DEFAULT_ENCRYPTION = OPTIONAL\n")
+        config_fd.write("SEC_DEFAULT_INTEGRITY = REQUIRED\n")
+        config_fd.write("SEC_READ_INTEGRITY = OPTIONAL\n")
+        config_fd.write("SEC_CLIENT_INTEGRITY = OPTIONAL\n")
+        config_fd.write("SEC_READ_ENCRYPTION = OPTIONAL\n")
+        config_fd.write("SEC_CLIENT_ENCRYPTION = OPTIONAL\n\n")
+        config_fd.write("##  Without strong security, the only secure connection is the local one\n")
         config_fd.write("HOSTALLOW_WRITE = $(FULL_HOSTNAME)\n\n")
     finally:
         config_fd.close()
@@ -1060,26 +1215,14 @@ def configure_gsi_security():
     config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
     try:
         config_fd.write("############################################################\n")
-        config_fd.write("## Security config\n")
+        config_fd.write("## GSI Security config\n")
         config_fd.write("############################################################\n\n")
         config_fd.write("############################\n")
         config_fd.write("# Authentication settings\n")
         config_fd.write("############################\n")
-        config_fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
         config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
-        config_fd.write("SEC_READ_AUTHENTICATION = OPTIONAL\n")
-        config_fd.write("SEC_CLIENT_AUTHENTICATION = OPTIONAL\n\n")
         config_fd.write("# Grid Certificate directory\n")
         config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s/globus/TRUSTED_CA\n\n"%VDT_BASE_PATH)
-        config_fd.write("############################\n")
-        config_fd.write("# Privacy settings\n")
-        config_fd.write("############################\n")
-        config_fd.write("SEC_DEFAULT_ENCRYPTION = OPTIONAL\n")
-        config_fd.write("SEC_DEFAULT_INTEGRITY = REQUIRE\n")
-        config_fd.write("SEC_READ_INTEGRITY = OPTIONAL\n")
-        config_fd.write("SEC_CLIENT_INTEGRITY = OPTIONAL\n")
-        config_fd.write("SEC_READ_ENCRYPTION = OPTIONAL\n")
-        config_fd.write("SEC_CLIENT_ENCRYPTION = OPTIONAL\n\n")
         config_fd.write("############################\n")
         config_fd.write("# Set daemon cert location\n")
         config_fd.write("############################\n")
@@ -1102,9 +1245,9 @@ def configure_gsi_security():
         config_fd.write("############################\n")
         config_fd.write("GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile\n\n")
 
-        config_fd.write("############################\n")
-        config_fd.write("# do not use IP based controls\n")
-        config_fd.write("############################\n")
+        config_fd.write("#####################################################\n")
+        config_fd.write("# With strong security, do not use IP based controls\n")
+        config_fd.write("#####################################################\n")
         config_fd.write("HOSTALLOW_WRITE = *\n\n")
     finally:
         config_fd.close()
