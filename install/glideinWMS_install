@@ -414,9 +414,9 @@ def wms_install():
 #-------------------------------------------------------------------------------
 def condor_frontend_install():
     global CONDOR_BASE_PATH
+    global VDT_BASE_PATH
 
-
-    if CONDOR_BASE_PATH==None:
+    if (CONDOR_BASE_PATH==None) or (VDT_BASE_PATH==None):
         if os.getuid()==0:
             print
             print "You are trying to install Condor for the VO Frontend as root"
@@ -433,6 +433,10 @@ def condor_frontend_install():
     print
     print "Installing Condor for VO Frontend"
     print
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
     if CONDOR_BASE_PATH==None:
         install_condor()
 
@@ -598,7 +602,195 @@ def gfactory_install():
 
 #-------------------------------------------------------------------------------
 def vofrontend_install():
-    print "VO Frontend installation not yet implemented"
+    global VDT_BASE_PATH
+    if os.getuid()==0:
+        print
+        print "You are trying to install the VO Frontend as root"
+        print "While this is possible, it is not recommended."
+        print "For security reasons, it is better to install it as a non-priviledged user"
+        yn=raw_input("Do you want to continue?: (y/n) ")
+        if yn!='y':
+            print
+            print "Not installing the VO Frontend as root."
+            print "Remember to install it as a regular user"
+            print
+            return
+
+    print
+    print "Installing VO Frontend"
+    print
+
+
+    if VDT_BASE_PATH==None:
+        if not os.environ.has_key('OSG_VDT_BASE'):
+            raise "Cannot find the OSG VDT client! (OSG_VDT_BASE not defined)"
+        else:
+            VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
+
+    ###################################
+    # Ask about the proxy
+    print "To use the VO Frontend you need a valid GSI proxy."
+    while 1:
+        proxy_fname=raw_input("Where is your proxy located?: ")
+        proxy_fname=os.path.abspath(proxy_fname)
+
+        try:
+            my_dn=get_proxy_dn(proxy_fname)
+        except RuntimeError,e:
+            print e
+            continue
+            
+        break # proxy found
+
+    print
+    print "Using DN '%s'"%my_dn
+    print "Make sure this DN is in the WMS collector grid-mapfile"
+    print
+
+
+    #################################
+    # get config vals
+    full_host_name=socket.getfqdn()
+    fhn_arr=full_host_name.split(".")
+
+    # VO Frontend name
+    def_frontend_name="%s_%s"%(fhn_arr[-2],fhn_arr[0])
+    frontend_name=raw_input("Give a name to this VO Frontend?: [%s]"%def_frontend_name)
+    if frontend_name=="":
+        frontend_name=def_frontend_name
+
+    # WMS collector node
+    while 1:
+        pool_node=raw_input("What node is the WMS collector running?: ")
+        try:
+            socket.gethostbyname(pool_node)
+        except:
+            print "'%s' not a valid host name!"%pool_node
+            continue
+        #have a valid pool_node
+        break
+
+    # schedds
+    fd=os.popen("condor_status -schedd -format '%s\n' Name")
+    lines=fd.readlines()
+    err=fd.close()
+    if err!=None: # found
+        raise RuntimeError, "Failed to fetch list of schedds!"
+
+    default_schedds=[]
+    for line in lines:
+        line=line[:-1] #remove newline
+        if line!="":
+            default_schedds.append(line)
+
+    if len(default_schedds)==0:
+        raise RuntimeError, "No schedds in this pool!"
+
+    print "The following schedds have been found:"
+    for i in range(len(default_schedds)):
+        print " [%i] %s"%(i+1,default_schedds[i])
+    
+    while 1:
+        yn=raw_input("Do you want to monitor all of them?: (y/n) ")
+        if (yn!="y") and (yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+
+    if yn=="y":
+        schedds=default_schedds
+    else:
+        print "Select the schedd indexes you want to monitor"
+        print "Use a , separated list to monitor more than one"
+        while 1:
+            idxes=raw_input("Please select: ")
+            idx_arr=idxes.split(',')
+            problems=0
+            for i in range(len(idx_arr)):
+                try:
+                    nr=int(idx_arr[i])
+                    if (nr<1) or (nr>len(default_schedds)):
+                        print "Index %i out of range"%nr
+                        problems=1
+                        break
+                    idx_arr[i]=nr
+                except:
+                    print "'%s' is not an index!"%idx_arr[i]
+            if problems:
+                continue
+
+            schedds=[]
+            for idx in idx_arr:
+                schedds.append(default_schedds[idx-1])
+            
+            # got them
+            break
+    print "Using %s"%schedds
+    print
+
+
+    # job constraint
+    default_job_constraint="JobUniverse==5"
+    job_constraint=raw_input("What kind of jobs do you want to monitor?: [%s] "%default_job_constraint)
+    if job_constraint=="":
+        job_constraint=default_job_constraint
+                    
+    # match string
+    print "What expression do you want to use to match glideins to jobs?"
+    print "It is an arbitrary python boonea expression using the dictionaries"
+    print "  glidein and job"
+    print "A simple example expression would be:"
+    print '  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")'
+    print "If you want to match all (OK for simple setups),"
+    print "  just specify 1 (the default)"
+    
+    default_match_str="1"
+    match_str=raw_input("Match string: [%s] "%default_match_str)
+    if match_str=="":
+        match_str=default_match_str
+                    
+    #####################################
+    # create config files
+    config_dir=create_empty_dir("Where will you host your config and log files?: ","%s/myvofrontend1"%os.environ['HOME'])
+
+    os.mkdir("%s/log"%config_dir)
+    os.mkdir("%s/etc"%config_dir)
+
+    fd=open("%s/etc/vofrontend.cfg"%config_dir,"w")
+    try:
+        fd.write("# This is a Glidein Frontend config file\n\n")
+
+        fd.write("# How will it be known advertized as\n")
+        fd.write("frontend_name=%r\n\n"%frontend_name)
+
+        fd.write("# Where is the WMS collector\n")
+        fd.write("# Set to None if the same as for the jobs\n")
+        fd.write("factory_pool=%r\n\n"%pool_node)
+
+        fd.write("# List of schedds containing jobs\n")
+        fd.write("schedd_names=%r\n\n"%schedds) # this way I get the correct python formatting
+
+        fd.write("# If not all the jobs of the schedd has to be considered,\n")
+        fd.write("# specify the appropriate constraint\n")
+        fd.write("job_constraint=%r\n\n"%job_constraint)
+
+        fd.write("# String for matching jobs to glideins\n")
+        fd.write("match_string=%r\n\n"%match_str)
+
+        fd.write("# Glidein parameters\n")
+        fd.write("# At least GLIDEIN_Collector must be defined\n")
+        fd.write("glidein_params={'GLIDEIN_Collector':%r}\n\n"%pool_node)
+
+        fd.write("# Where to store log files\n")
+        fd.write("# Possibly put it in a dedicated directory\n")
+        fd.write("log_dir='%s/log'\n"%config_dir)
+    finally:
+        fd.close()
+
+    print
+    print "VO Frontend config file installed in %s/etc/vofrontend.cfg"%config_dir
+    print
+
 
     return
 
@@ -734,6 +926,48 @@ def install_vdt():
         err=os.system("cd %s;source setup.sh;vdt-control --on"%user_dir)
         if err!=0:
             raise RuntimeError,"Failed to initalize the OSG client!"
+        
+    if os.getuid()==0: # different if root or not
+        # as root
+
+        # put rrd binaries in system wide path
+        fd=open("/etc/profile.d/osg_vdt.sh","w")
+        try:
+            fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
+            fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
+        finally:
+            fd.close()
+        os.chmod("/etc/profile.d/osg_vdt.sh",
+                 stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
+        fd=open("/etc/profile.d/osg_vdt.csh","w")
+        try:
+            fd.write("setenv OSG_VDT_BASE %s\n"%user_dir)
+            fd.write("setenv X509_CERT_DIR $OSG_VDT_BASE/globus/TRUSTED_CA\n")
+        finally:
+            fd.close()
+        os.chmod("/etc/profile.d/osg_vdt.csh",
+                 stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+    else:
+        # as regular user
+        
+        # put rrd path in .bashrc
+        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+        try:
+            fd.write("\n# OSG vdt client settings\n")
+            fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
+            fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
+        finally:
+            fd.close()
+            
+        # and in .cshrc
+        fd=open("%s/.cshrc"%os.environ['HOME'],"a")
+        try:
+            fd.write("\n# OSG vdt client settings\n")
+            fd.write("setenv OSG_VDT_BASE %s\n"%user_dir)
+            fd.write("setenv X509_CERT_DIR $OSG_VDT_BASE/globus/TRUSTED_CA\n")
+        finally:
+            fd.close()
 
     # everything went well, register
     print
@@ -1094,6 +1328,47 @@ def restart_condor():
         raise RuntimeError, "Failed to start Condor"
     return
 
+# Extact x509 info
+################################
+def get_proxy_dn(proxy_fname):
+    if not os.path.isfile(proxy_fname):
+        raise RuntimeError,"Proxy '%s' not found"%proxy_fname
+
+    #extract DN
+    dn_fd=os.popen("source %s/setup.sh;grid-proxy-info -file %s"%(VDT_BASE_PATH,proxy_fname))
+    dn_blob=dn_fd.read()
+    err=dn_fd.close()
+    if err!=None:
+        raise RuntimeError,"Failed to extract DN from proxy '%s'!"%proxy_fname
+
+    i=dn_blob.find("identity : ")
+    if i<0:
+        raise RuntimeError,"Failed to extract Identity from proxy '%s'!"%proxy_fname
+
+    dn_blob=dn_blob[i+11:] # remove part before identity
+    my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
+            
+    return my_dn
+
+def get_cert_dn(cert_fname):
+    if not os.path.isfile(cert_fname):
+        raise RuntimeError,"Certificate '%s' not found"%cert_fname
+
+    #extract DN
+    dn_fd=os.popen("openssl x509 -subject -in %s"%cert_fname)
+    dn_blob=dn_fd.read()
+    err=dn_fd.close()
+    if err!=None:
+        raise RuntimeError,"Failed to extract DN from certificate '%s'!"%cert_fname
+
+    i=dn_blob.find("subject= ")
+    if i<0:
+        raise RuntimeError,"Failed to extract Subject from certificate '%s'!"%cert_fname
+
+    dn_blob=dn_blob[i+9:] # remove part before subject
+    my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
+
+    return my_dn
 
 # Update condor config with
 # GSI security
@@ -1124,25 +1399,14 @@ def configure_gsi_security():
         if pc=="proxy":
             proxy_fname=raw_input("Where is your proxy located?: ")
             proxy_fname=os.path.abspath(proxy_fname)
-            if not os.path.isfile(proxy_fname):
-                print "Proxy '%s' not found"%proxy_fname
-                continue
-
-            #extract DN
-            dn_fd=os.popen("source %s/setup.sh;grid-proxy-info -file %s"%(VDT_BASE_PATH,proxy_fname))
-            dn_blob=dn_fd.read()
-            err=dn_fd.close()
-            if err!=None:
-                print "Failed to extract DN from proxy '%s'!"%proxy_fname
-                continue
-            i=dn_blob.find("identity : ")
-            if i<0:
-                print "Failed to extract Identity from proxy '%s'!"%proxy_fname
-                continue
-            dn_blob=dn_blob[i+11:] # remove part before identity
-            my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
             
-            use_proxy=1
+            try:
+                my_dn=get_proxy_dn(proxy_fname)
+                use_proxy=1
+            except RuntimeError,e:
+                print e
+                continue
+            
             break # proxy found
         else:
             cert_fname=raw_input("Where is your certificate located?: ")
@@ -1156,21 +1420,13 @@ def configure_gsi_security():
                 print "Certificate key '%s' not found"%cert_keyname
                 continue
 
-            #extract DN
-            dn_fd=os.popen("openssl x509 -subject -in %s"%cert_fname)
-            dn_blob=dn_fd.read()
-            err=dn_fd.close()
-            if err!=None:
-                print "Failed to extract DN from certificate '%s'!"%cert_fname
+            try:
+                my_dn=get_cert_dn(cert_fname)
+                use_proxy=0
+            except RuntimeError,e:
+                print e
                 continue
-            i=dn_blob.find("subject= ")
-            if i<0:
-                print "Failed to extract Subject from certificate '%s'!"%cert_fname
-                continue
-            dn_blob=dn_blob[i+9:] # remove part before subject
-            my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
-            
-            use_proxy=0
+
             break # cert and key found
             
     print "My DN = '%s'"%my_dn
@@ -2112,7 +2368,7 @@ def query_rrd():
                 # and in .cshrc
                 fd=open("%s/.cshrc"%os.environ['HOME'],"a")
                 try:
-                    fd.write("\n# Condor settings\n")
+                    fd.write("\n# rrd settings\n")
                     fd.write("set path = ( $path %s/bin )\n"%rrd_path)
                 finally:
                     fd.close()
@@ -2125,6 +2381,7 @@ def query_rrd():
         RRD_BIN_PATH=rrd_path
         return
     
+# Install rrdtool
 ##########################################
 def install_rrd():
     global RRD_BIN_PATH
@@ -2174,4 +2431,6 @@ def install_rrd():
 
     return
    
+
+##########################################
 main()
