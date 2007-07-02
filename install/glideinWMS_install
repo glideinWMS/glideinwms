@@ -1,5 +1,6 @@
 #!/bin/env python
 
+import sys
 import os
 import os.path
 import shutil
@@ -196,43 +197,13 @@ def schedd_node_install():
 
     ###################################
     # configure the GCB routing tables
-    print "Please list all the GCB servers you will be using"
-    print "Use the aaa.bbb.ccc.ddd/BB format, like"
-    print "131.225.70.222/32"
-    print "Leave an empty line when finished"
-    gcb_list=[]
-    while 1:
-        gcb_entry=raw_input("GCB address range: ")
-        if gcb_entry=="":
-            break # EOF
-        
-        gcb_e_s=gcb_entry.split("/")
-        if len(gcb_e_s)!=2:
-            print "Not in aaa.bbb.ccc.ddd/BB format! (%s)"%gcb_entry
-            continue
-        try:
-            gcb_e_bits=int(gcb_e_s[1])
-        except:
-            print "BB (%s) not a number!"%gcb_e_s[1]
-            continue
-        if gcb_e_bits>32:
-            print "Trying to limit to more than 32  bits! (%i)"%gcb_e_bits
-            continue
-        if gcb_e_bits<16:
-            print "Trying to limit to less than 16  bits! Too insecure! (%i)"%gcb_e_bits
-            continue
-        try:
-            socket.inet_aton(gcb_e_s[0])
-        except:
-            print "Invalid IP number! (%s)"%gcb_e_s[0]
-        gcb_list.append(gcb_entry)
-
+    gcb_list=get_gcb_list()
 
     if len(gcb_list)>0: # do not need to configure if not using GCBs at all
         config_fd=open("%s/etc/gcb-routing-table "%CONDOR_BASE_PATH,"w")
         try:
             for gcb_entry in gcb_list:
-                config_fd.write("%s GCB\n"%gcb_entry)
+                config_fd.write("%s/32 GCB\n"%gcb_entry)
         finally:
             config_fd.close()
 
@@ -597,7 +568,271 @@ def gcb_install():
 
 #-------------------------------------------------------------------------------
 def gfactory_install():
-    print "Glidein Factory installation not yet implemented"
+    global VDT_BASE_PATH
+    global HTTPD_PORT
+    
+    if os.getuid()==0:
+        print
+        print "You are trying to install the Glidein Factory as root"
+        print "While this is possible, it is not recommended."
+        print "For security reasons, it is better to install it as a non-priviledged user"
+        yn=raw_input("Do you want to continue?: (y/n) ")
+        if yn!='y':
+            print
+            print "Not installing the Glidein Factory as root."
+            print "Remember to install it as a regular user"
+            print
+            return
+
+    print
+    print "Installing Glidein Factory"
+    print
+
+
+    glideinWMS_base_dir=os.path.dirname(os.path.dirname(sys.argv[0]))
+    if not os.path.isdir("%s/creation"%glideinWMS_base_dir):
+        raise RuntimeError,"Cannot find %s/creation"%glideinWMS_base_dir
+
+    if VDT_BASE_PATH==None:
+        if not os.environ.has_key('OSG_VDT_BASE'):
+            raise "Cannot find the OSG VDT client! (OSG_VDT_BASE not defined)"
+        else:
+            VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
+
+
+    ###################################
+    # Ask about the proxy
+    print "To use the Glidein Factory you need a valid GSI proxy."
+    while 1:
+        proxy_fname=raw_input("Where is your proxy located?: ")
+        proxy_fname=os.path.abspath(proxy_fname)
+
+        try:
+            my_dn=get_proxy_dn(proxy_fname)
+        except RuntimeError,e:
+            print e
+            continue
+            
+        break # proxy found
+
+    print
+    print "Using DN '%s'"%my_dn
+    print "Make sure this DN is in the grid-mapfiles of the WMS and pool collectors"
+    print "  as well as all the Condor schedds."
+    print
+
+    #################################
+    # get config vals
+    full_host_name=socket.getfqdn()
+    fhn_arr=full_host_name.split(".")
+
+    # Submit base directory
+    def_submit_base_dir="%s/glideinsubmit"%os.environ['HOME']
+    while 1:
+        submit_base_dir=raw_input("Where will you host your config and log files?: [%s]"%def_submit_base_dir)
+        if submit_base_dir=="":
+            submit_base_dir=def_submit_base_dir
+        if not os.path.isdir(submit_base_dir):
+            print "'%s' is not a directory!"
+            continue
+        # found it
+        break
+
+    # Web base directory
+    # always use default
+    web_base_dir="/var/www/html/glidefactory"
+
+    # Web URL
+    if HTTPD_PORT==None:
+        default_httpd_port="80"
+        while 1:
+            httpd_port=raw_input("What port does the Web server run on?: [%s] "%default_httpd_port)
+            if httpd_port=="":
+                httpd_port=default_httpd_port
+
+            try:
+                hc=httplib.HTTPConnection(full_host_name,httpd_port)
+                hc.connect()
+                hc.close()
+            except:
+                print "No httpd found on %s:%s!"%(full_host_name,httpd_port)
+                continue
+
+            # found and verified the installation
+            break
+    else:
+        httpd_port=HTTPD_PORT
+
+    web_base_url="http://%s:%s/glidefactory"%(full_host_name,httpd_port)
+
+    # Factory name
+    def_factory_name=fhn_arr[0]
+    factory_name=raw_input("Give a name to this Glidein Factory?: [%s]"%def_factory_name)
+    if factory_name=="":
+        factory_name=def_factory_name
+
+    # Glidein name
+    def_glidein_name="v1_0"
+    while 1:
+        glidein_name=raw_input("Give a name to this Glidein instance?: [%s]"%def_glidein_name)
+        if glidein_name=="":
+            glidein_name=def_glidein_name
+        # check if dir already exists
+        if os.path.exists('%s/%s'%(submit_base_dir,glidein_name)):
+            print "Glidein '%s' already exists!"%glidein_name
+
+        #have it
+        break
+
+    # Condor base dir
+    fd=os.popen("which condor_status")
+    lines=fd.readlines()
+    err=fd.close()
+    if err!=None: # found
+        raise RuntimeError, "Failed to detect condor installation!"
+    condor_base_dir=os.path.dirname(os.path.dirname(lines[0][:-1])) 
+
+    # schedds
+    fd=os.popen("condor_status -schedd -format '%s\n' Name")
+    lines=fd.readlines()
+    err=fd.close()
+    if err!=None: # found
+        raise RuntimeError, "Failed to fetch list of schedds!"
+
+    default_schedds=[]
+    for line in lines:
+        line=line[:-1] #remove newline
+        if line[:14]=="schedd_glidein":
+            default_schedds.append(line)
+
+    if len(default_schedds)==0:
+        raise RuntimeError, "No glidein schedds in this pool!"
+
+    print "The following glidein schedds have been found:"
+    for i in range(len(default_schedds)):
+        print " [%i] %s"%(i+1,default_schedds[i])
+    
+    while 1:
+        yn=raw_input("Do you want to use all of them?: (y/n) ")
+        if (yn!="y") and (yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+
+    if yn=="y":
+        schedds=default_schedds
+    else:
+        print "Select the schedd indexes you want to use"
+        print "Use a , separated list to use more than one"
+        while 1:
+            idxes=raw_input("Please select: ")
+            idx_arr=idxes.split(',')
+            problems=0
+            for i in range(len(idx_arr)):
+                try:
+                    nr=int(idx_arr[i])
+                    if (nr<1) or (nr>len(default_schedds)):
+                        print "Index %i out of range"%nr
+                        problems=1
+                        break
+                    idx_arr[i]=nr
+                except:
+                    print "'%s' is not an index!"%idx_arr[i]
+            if problems:
+                continue
+
+            schedds=[]
+            for idx in idx_arr:
+                schedds.append(default_schedds[idx-1])
+            
+            # got them
+            break
+    print "Using %s"%schedds
+    print
+
+    # GCBs
+    gcb_list=get_gcb_list()
+
+    # entries
+    entries_list={}
+    print "Please list all the glidein entry points,"
+    while 1:
+        entry_name=raw_input("Entry name (leave empty when finished): ")
+        if entry_name=="":
+            if len(entries_list.keys())<1:
+                print "You must instert at least one entry point"
+                continue
+            break
+
+        if entry_name in entries_list.keys():
+            print "You already insterted '%s'!"%entry_name
+            continue
+        gatekeeper_name=raw_input("Gatekeeper for '%s': "%entry_name)
+        work_dir=raw_input("Work dir for '%s': "%entry_name)
+        site_name=raw_input("Site name for '%s': [%s]"%(entry_name,entry_name))
+        if site_name=="":
+            site_name=entry_name
+        entries_list[entry_name]={'gatekeeper':gatekeeper_name,'gridtype':'gt2',
+                                  'work_dir':work_dir,'site_name':site_name}
+        
+
+    #####################################
+    # create config files
+    cfg_name="%s/gfactory_tmp_%s_%s.xml"%(os.environ['HOME'],os.getpid(),time.time())
+    fd=open(cfg_name,"w")
+    try:
+        try:
+            fd.write('<glidein factory_name="%s" glidein_name="%s"\n'%(factory_name,glidein_name))
+            fd.write('         schedd_name="%s">\n'%string.join(schedds,','))
+            fd.write('   <submit base_dir="%s"/>\n'%submit_base_dir)
+            fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
+            fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
+            fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
+            fd.write('   <attrs>\n')
+            if len(gcb_list)>0:
+                fd.write('      <attr name="GLIDEIN_UseGCB" const="True" parameter="False" glidein_publish="False" value="1" publish="True" job_publish="False" type="string"/>\n')
+                fd.write('      <attr name="GCB_LIST" const="True" type="string" glidein_publish="False" value="%s" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
+                fd.write('      <attr name="GCB_ORDER" const="False" type="string" glidein_publish="False" value="RANDOM" publish="True" job_publish="False" parameter="True"/>\n')
+            else:
+                fd.write('      <attr name="GLIDEIN_UseGCB" const="True" parameter="False" glidein_publish="False" value="0" publish="True" job_publish="False" type="string"/>\n')
+            fd.write('   </attrs>\n')
+            fd.write('   <entries>\n')
+            for entry_name in entries_list.keys():
+                entry_el=entries_list[entry_name]
+                fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],entry_el['work_dir']))
+                fd.write('         <attrs>\n')
+                fd.write('            <attr name="GLIDEIN_Site" const="True" type="string" glidein_publish="True" value="%s" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
+                fd.write('         </attrs>\n')
+                fd.write('      </entry>\n')
+            fd.write('   </entries>\n')
+            fd.write('   <files>\n')
+            fd.write('      <file executable="False" absfname="%s/certs/grid-mapfile" untar="False" const="False"/>\n'%condor_base_dir)
+            if len(gcb_list)>0: #not needed else
+                fd.write('      <file executable="True" absfname="web_base/gcb_setup.sh" untar="False" const="True"/>\n')
+            fd.write('   </files>\n')
+            fd.write('</glidein>\n')
+        finally:
+            fd.close()
+    except:
+        try:
+            os.unlink(cfg_name)
+        except:
+            pass #just protect
+        raise
+        
+    #####################################
+    # run create_glidein
+
+    err=os.system('cd %s/creation && ./create_glidein %s'%(glideinWMS_base_dir,cfg_name))
+    os.unlink(cfg_name)
+    if err!=0:
+        raise RuntimeError, "Failed to create glidein '%s'!"%glidein_name
+
+
+    print
+    print "Glidein Factory config file installed in %s/%s"%(submit_base_dir,glidein_name)
+    print
+
     return
 
 #-------------------------------------------------------------------------------
@@ -2439,6 +2674,29 @@ def install_rrd():
 
     return
    
+# Get list of GCBs
+##########################################
+def get_gcb_list():
+    print "Please list all the GCB servers you will be using"
+    print "Leave an empty line when finished"
+    gcb_list=[]
+    while 1:
+        gcb_entry=raw_input("GCB node: ")
+        if gcb_entry=="":
+            break # EOF
+
+        try:
+            gcb_ip=socket.gethostbyname(gcb_entry)
+        except:
+            print "'%s' not a valid host name!"%gcb_entry
+            continue
+
+        gcb_list.append(gcb_ip)
+
+    return gcb_list
+
+
+
 
 ##########################################
 main()
