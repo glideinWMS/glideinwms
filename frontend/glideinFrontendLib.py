@@ -40,6 +40,7 @@ def getRunningCondorQ(schedd_names,constraint=None):
 #  dictionary of glidein name
 #   where elements are number of idle jobs matching
 def countMatch(match_str,condorq_dict,glidein_dict):
+    match_obj=compile(match_str,"<string>","eval")
     out_glidein_counts={}
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
@@ -50,7 +51,7 @@ def countMatch(match_str,condorq_dict,glidein_dict):
             schedd_count=0
             for jid in condorq_data.keys():
                 job=condorq_data[jid]
-                if eval(match_str):
+                if eval(match_obj):
                     schedd_count+=1
                 pass
             glidein_count+=schedd_count
