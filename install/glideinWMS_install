@@ -678,7 +678,7 @@ def gfactory_install():
         if glidein_name=="":
             glidein_name=def_glidein_name
         # check if dir already exists
-        if os.path.exists('%s/%s'%(submit_base_dir,glidein_name)):
+        if os.path.exists('%s/glidein_%s'%(submit_base_dir,glidein_name)):
             print "Glidein '%s' already exists!"%glidein_name
 
         #have it
