@@ -154,6 +154,15 @@ def main(sleep_time,advertize_rate,config_file):
 ############################################################
 
 if __name__ == '__main__':
+    # check that the GSI environment is properly set
+    if not os.environ.has_key('X509_USER_PROXY'):
+        raise RuntimeError, "Need X509_USER_PROXY to work!"
+    if not os.environ.has_key('X509_CERT_DIR'):
+        raise RuntimeError, "Need X509_CERT_DIR to work!"
+
+    # make sure you use GSI for authentication
+    os.environ['_CONDOR_SEC_DEFAULT_AUTHENTICATION_METHODS']='GSI'
+
     signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
     signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
     main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
