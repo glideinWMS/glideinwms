@@ -49,7 +49,7 @@ def check_parent(parent_pid):
 def perform_work(factory_name,glidein_name,entry_name,
                  schedd_name,
                  client_name,client_int_name,client_int_req,
-                 idle_glideins,
+                 idle_glideins,max_running,
                  jobDescript,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_name]={"ClientName":client_int_name,"ReqName":client_int_req}
@@ -89,7 +89,7 @@ def perform_work(factory_name,glidein_name,entry_name,
         submit_attrs.append(jobDescript.data["ProxyURL"])
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,submit_attrs,params)
+    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,submit_attrs,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
@@ -136,9 +136,14 @@ def find_and_perform_work(glideinDescript,jobDescript,jobParams):
             client_int_req="DummyReq"
 
         if work[work_key]['requests'].has_key('IdleGlideins'):
+            idle_glideins=work[work_key]['requests']['IdleGlideins']
+            if work[work_key]['requests'].has_key('MaxRunningGlideins'):
+                max_running=work[work_key]['requests']['MaxRunningGlideins']
+            else:
+                max_running=None
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
-                                         work[work_key]['requests']['IdleGlideins'],
+                                         idle_glideins,max_running,
                                          jobDescript,params)
         #else, it is malformed and should be skipped
 
@@ -369,10 +374,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.22 2007/06/15 19:11:50 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.23 2007/07/03 19:46:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.23  2007/07/03 19:46:18  sfiligoi
+#  Add support for MaxRunningGlideins
+#
 #  Revision 1.22  2007/06/15 19:11:50  sfiligoi
 #  Fix typo
 #

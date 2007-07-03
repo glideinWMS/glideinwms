@@ -274,6 +274,7 @@ class condorQStats:
 
         At the moment, it looks only for
           'IdleGlideins'
+          'MaxRunningGlideins'
         """
         if self.data.has_key(client_name):
             t_el=self.data[client_name]
@@ -286,6 +287,8 @@ class condorQStats:
 
         if requests.has_key('IdleGlideins'):
             el['Idle']=requests['IdleGlideins']
+        if requests.has_key('MaxRunningGlideins'):
+            el['MaxRun']=requests['MaxRunningGlideins']
 
         el['Parameters']=copy.deepcopy(params)
 
@@ -419,6 +422,9 @@ class condorQStats:
             monitoringConfig.graph_rrds("%s/Running"%fe_dir,
                                         "Running glideins",
                                         [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
+            monitoringConfig.graph_rrds("%s/MaxRun"%fe_dir,
+                                        "Max running glideins requested",
+                                        [("MaxRun","%s/Requested_Attribute_MaxRun.rrd"%fe_dir,"AREA","008000")])
             monitoringConfig.graph_rrds("%s/Held"%fe_dir,
                                         "Held glideins",
                                         [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
@@ -465,6 +471,9 @@ class condorQStats:
                         for s in ['Idle','Running','Held']:
                             fd.write('<tr>')
                             fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            if s=='Running':
+                                s1='MaxRun'
+                                fd.write('<td><img src="%s.%s.%s.png"></td>'%(s1,period,size))
                             fd.write('</tr>\n')                            
                         fd.write("</table>")
                         fd.write("</body>\n</html>\n")
@@ -538,7 +547,7 @@ class condorQStats:
                     fd.write("</tr></table>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
-                              ('Running','Split_Status_Attribute_Running'),
+                              ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
                         for s in l:
@@ -854,10 +863,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.47 2007/05/24 16:34:17 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.48 2007/07/03 19:46:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.48  2007/07/03 19:46:19  sfiligoi
+#  Add support for MaxRunningGlideins
+#
 #  Revision 1.47  2007/05/24 16:34:17  sfiligoi
 #  Fix title in oLog and add a link to 0Status
 #

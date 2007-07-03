@@ -196,7 +196,7 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,submit_attrs,params):
+def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,submit_attrs,params):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -209,8 +209,19 @@ def keepIdleGlideins(condorq,min_nr_idle,submit_attrs,params):
         idle_glideins=qc_status[1]
     else:
         idle_glideins=0
-    if idle_glideins<min_nr_idle:
-        factoryConfig.logActivity("Need more glideins: min=%i, idle=%i"%(min_nr_idle,idle_glideins))
+    #   Idle==Jobstatus(2)
+    if qc_status.has_key(2):
+        running_glideins=qc_status[2]
+    else:
+        running_glideins=0
+
+    if ((idle_glideins<min_nr_idle) and
+        ((max_nr_running==None) or  #no max
+         (running_glideins<max_nr_running))):
+        stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
+        if max_nr_running!=None:
+            stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
+        factoryConfig.logActivity("Need more glideins: %s"%stat_str)
         submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
@@ -544,10 +555,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.20 2007/05/18 19:10:57 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.21 2007/07/03 19:46:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.21  2007/07/03 19:46:18  sfiligoi
+#  Add support for MaxRunningGlideins
+#
 #  Revision 1.20  2007/05/18 19:10:57  sfiligoi
 #  Add CVS tags
 #

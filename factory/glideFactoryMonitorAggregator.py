@@ -203,7 +203,7 @@ def create_status_history():
                     fd.write("</tr></table>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
-                              ('Running','Split_Status_Attribute_Running'),
+                              ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
                         for s in l:
@@ -235,10 +235,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.3 2007/05/24 14:34:51 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.4 2007/07/03 19:46:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.4  2007/07/03 19:46:18  sfiligoi
+#  Add support for MaxRunningGlideins
+#
 #  Revision 1.3  2007/05/24 14:34:51  sfiligoi
 #  Add links between pages
 #
