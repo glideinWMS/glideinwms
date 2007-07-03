@@ -172,7 +172,7 @@ def advertizeWork(factory_pool,
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
-            fd.write('ReqMaxRun = %i\n'%max_run_glideins)
+            fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
 
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,glidein_params),

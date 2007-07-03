@@ -52,7 +52,7 @@ def iterate_one(frontend_name,factory_pool,
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
-        glidein_max_run=int((idle_jobs+running_jobs)*(1+reserve_running_fraction)+1)
+        glidein_max_run=int((idle_jobs+running_jobs)*(0.99+reserve_running_fraction)+1)
 
         activity_log.write("Advertize %s %i"%(request_name,glidein_min_idle))
         try:
