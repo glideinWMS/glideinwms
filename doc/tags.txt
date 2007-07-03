@@ -1,3 +1,6 @@
+v_next	Significant speedup in the VO frontend matchmaking
+	Added MaxRunningGlideins request
+
 v0_8	Add support for multiple schedds
 	Add initial support for pseudo interactive monitoring
 	Inproved Web monitoring
