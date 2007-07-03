@@ -174,6 +174,12 @@ def main(sleep_time,advertize_rate,startup_dir):
 ############################################################
 
 if __name__ == '__main__':
+    # check that the GSI environment is properly set
+    if not os.environ.has_key('X509_USER_PROXY'):
+        raise RuntimeError, "Need X509_USER_PROXY to work!"
+    if not os.environ.has_key('X509_CERT_DIR'):
+        raise RuntimeError, "Need X509_CERT_DIR to work!"
+
     main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
  
 
@@ -181,10 +187,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.61 2007/06/15 18:53:44 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.62 2007/07/03 16:41:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.62  2007/07/03 16:41:46  sfiligoi
+#  Add few GSI checks
+#
 #  Revision 1.61  2007/06/15 18:53:44  sfiligoi
 #  Add parent pid to the list of entries, so that an entry can exit if parent dies
 #
