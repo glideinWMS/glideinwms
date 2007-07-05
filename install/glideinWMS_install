@@ -772,11 +772,12 @@ def gfactory_install():
             print "You already insterted '%s'!"%entry_name
             continue
         gatekeeper_name=raw_input("Gatekeeper for '%s': "%entry_name)
+        rsl_name=raw_input("RSL for '%s': "%entry_name)
         work_dir=raw_input("Work dir for '%s': "%entry_name)
         site_name=raw_input("Site name for '%s': [%s]"%(entry_name,entry_name))
         if site_name=="":
             site_name=entry_name
-        entries_list[entry_name]={'gatekeeper':gatekeeper_name,'gridtype':'gt2',
+        entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
                                   'work_dir':work_dir,'site_name':site_name}
         
 
@@ -803,7 +804,12 @@ def gfactory_install():
             fd.write('   <entries>\n')
             for entry_name in entries_list.keys():
                 entry_el=entries_list[entry_name]
-                fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],entry_el['work_dir']))
+                if entry_el['rsl']!="":
+                    rsl_str='rsl="%s"'%entry_el['rsl']
+                else:
+                    rsl_str=""
+                
+                fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" %s work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],rsl_str,entry_el['work_dir']))
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" const="True" type="string" glidein_publish="True" value="%s" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
                 fd.write('         </attrs>\n')
