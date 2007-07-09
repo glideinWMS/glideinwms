@@ -701,6 +701,15 @@ def gfactory_install():
         raise RuntimeError, "Failed to detect condor installation!"
     condor_base_dir=os.path.dirname(os.path.dirname(lines[0][:-1])) 
 
+    # Expose Grid Env
+    while 1:
+        gridenv_yn=raw_input("Do you want to expose the Grid env. to the user jobs?: (y/n) ")
+        if (gridenv_yn!="y") and (gridenv_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    
+
     # schedds
     fd=os.popen("condor_status -schedd -format '%s\n' Name")
     lines=fd.readlines()
@@ -764,7 +773,7 @@ def gfactory_install():
 
     # entries
     entries_list={}
-    yn=raw_input("Do you want to use the CRONUS?: (y/n) ")
+    yn=raw_input("Do you want to fetch entries from CRONUS?: (y/n) ")
     if yn=='y':
         try:
             vo=get_proxy_vo(proxy_fname)
@@ -808,6 +817,8 @@ def gfactory_install():
             fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
             fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   <attrs>\n')
+            if gridenv_yn=='y':
+                fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" const="True" parameter="False" glidein_publish="True" value="True" publish="True" job_publish="False" type="string"/>\n')
             if len(gcb_list)>0:
                 fd.write('      <attr name="GLIDEIN_UseGCB" const="True" parameter="False" glidein_publish="False" value="1" publish="True" job_publish="False" type="string"/>\n')
                 fd.write('      <attr name="GCB_LIST" const="True" type="string" glidein_publish="False" value="%s" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
