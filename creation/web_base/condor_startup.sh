@@ -101,8 +101,11 @@ function set_var {
     return 0
 }
 
-grep -v "^#" condor_vars.lst > condor_vars.lst.tmp 
-grep -v "^#" "entry_${entry_name}/condor_vars.lst" >> condor_vars.lst.tmp 
+condor_vars=`grep -i "^CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
+condor_vars_entry=`grep -i "^CONDOR_VARS_ENTRY_FILE " $config_file | awk '{print $2}'`
+
+grep -v "^#" "$condor_vars" > condor_vars.lst.tmp 
+grep -v "^#" "entry_${entry_name}/$condor_vars_entry" >> condor_vars.lst.tmp 
 while read line
 do
     set_var $line

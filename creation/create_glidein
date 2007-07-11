@@ -313,6 +313,12 @@ def main(params):
                # make a link from the submit dir to the monitor dir
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
+               # create basic description file(s)
+               create_description_file(params.stage_dir)
+               for entry_name in params.entries.keys():
+                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                   create_description_file(entry_stage_dir)
+
                # put user files in stage
                for file in params.files:
                    copy_file_unparsed(file,params.stage_dir,params.submit_dir)
@@ -338,14 +344,14 @@ def main(params):
                
                #put system files into stage
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
-               copy_file(os.path.join(params.src_dir,VARS_FILE),os.path.join(params.stage_dir,VARS_FILE)) # will be modified when attrs processed
+               copy_file(os.path.join(params.src_dir,'condor_vars.lst'),os.path.join(params.stage_dir,VARS_FILE)) # will be modified when attrs processed
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir)
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   copy_file(os.path.join(params.src_dir,VARS_FILE+".entry"),os.path.join(entry_stage_dir,VARS_FILE)) # will be modified when attrs processed
+                   copy_file(os.path.join(params.src_dir,'condor_vars.lst.entry'),os.path.join(entry_stage_dir,VARS_FILE)) # will be modified when attrs processed
                    copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,can_be_modified=1)
               
                # put user attributes into config files
@@ -367,6 +373,7 @@ def main(params):
 
                # this must be the last script in the list
                copy_script(CONDOR_STARTUP_FILE,params.stage_dir,params.src_dir)
+               add_description(params.stage_dir,CONDOR_STARTUP_FILE,"last_script")
 
                #
                # Stage is finished
@@ -415,11 +422,11 @@ def main(params):
                                        entry_el.work_dir,entry_el.proxy_url)
 
                # calculate signatures
-               add_file(VARS_FILE,params.stage_dir,0) # now I can finally register it
+               add_file(VARS_FILE,params.stage_dir,0,"condor_vars") # now I can finally register it
                sha1=finalize_sha1(params.stage_dir,params.submit_dir,"main")
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   add_file(VARS_FILE,entry_stage_dir,0) # now I can finally register it
+                   add_file(VARS_FILE,entry_stage_dir,0,"condor_vars") # now I can finally register it
                    esha1=finalize_sha1(entry_stage_dir,params.submit_dir,"entry_"+entry_name)
             except:
                shutil.rmtree(params.monitor_dir)
@@ -443,28 +450,45 @@ def main(params):
 # 
 ############################################################
 
-ATTRS_FILE="attributes.cfg"
-CONSTS_FILE="constants.cfg"
+start_time_tuple=time.localtime()
+TIMESTR=(string.printable[start_time_tuple[0]-2000]+ #year, will work until ~2060
+         string.printable[start_time_tuple[1]]+      #month
+         string.printable[start_time_tuple[2]]+      #day
+         string.printable[start_time_tuple[3]]+      #hour
+         string.digits[start_time_tuple[4]/10])      #first minute digit 
+del start_time_tuple
+
+# these two are in the submit dir, so they can be changed
 PARAMS_FILE="params.cfg"
 SUMMARY_SIGNATURE_FILE="signatures.sha1"
 
-FILE_LISTFILE="file_list.lst"
-SCRIPT_LISTFILE="script_list.lst"
-SUBSYSTEM_LISTFILE="subsystem_list.lst"
-SIGNATURE_FILE="signature.sha1"
+# these are in the stage dir, so they need to be renamed if changed
+DESCRIPTION_FILE="description.%s.cfg"%TIMESTR
+
+ATTRS_FILE="attributes.cfg"
+CONSTS_FILE="constants.%s.cfg"%TIMESTR
+
+FILE_LISTFILE="file_list.%s.lst"%TIMESTR
+SCRIPT_LISTFILE="script_list.%s.lst"%TIMESTR
+SUBSYSTEM_LISTFILE="subsystem_list.%s.lst"%TIMESTR
+SIGNATURE_FILE="signature.%s.sha1"%TIMESTR
 
 
-CONDOR_FILE="condor_bin.tgz"
+CONDOR_FILE="condor_bin.%s.tgz"%TIMESTR
 CONDOR_DIR="condor"
 CONDOR_ATTR="CONDOR_DIR"
-VARS_FILE="condor_vars.lst"
+VARS_FILE="condor_vars.%s.lst"%TIMESTR
 
+CONDOR_STARTUP_FILE="condor_startup.sh"
+
+
+# these are again in the submit dir
 STARTUP_FILE="glidein_startup.sh"
 GLIDEIN_FILE="glidein.descript"
 DESCRIPT_FILE="job.descript"
 SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
-CONDOR_STARTUP_FILE="condor_startup.sh"
+
 
 #####################
 # Simply create a dir
@@ -503,6 +527,11 @@ def add_line(filename,dir,line):
         fd.write("%s\n"%line)
     finally:
         fd.close()
+
+############################
+# Add a file description
+def add_description(stage_dir,fname,description):
+    add_line(DESCRIPTION_FILE,stage_dir,"%s \t%s"%(description,fname))
 
 ############################
 # Add a published attributed
@@ -557,12 +586,14 @@ def add_var(stage_dir,attr_name,is_string,do_glidein_publish,do_job_publish):
     
 #########################
 # Register a regular file
-def add_file(filename,stage_dir,can_be_modified=0):
+def add_file(filename,stage_dir,can_be_modified=0,description=None):
     if can_be_modified:
         add_line(FILE_LISTFILE,stage_dir,"%s nocache"%filename)
     else:
         add_sha1(filename,stage_dir)
         add_line(FILE_LISTFILE,stage_dir,filename)
+    if description!=None:
+        add_description(stage_dir,filename,description)
 
 ###################
 # Register a script
@@ -585,7 +616,7 @@ def add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out
 # Calculate SHA1 for the list files
 # Return the sha1sum of the signature file
 def finalize_sha1(stage_dir,submit_dir,title):
-    for f in (FILE_LISTFILE,SCRIPT_LISTFILE,SUBSYSTEM_LISTFILE):
+    for f in (FILE_LISTFILE,SCRIPT_LISTFILE,SUBSYSTEM_LISTFILE,DESCRIPTION_FILE):
         # touch the file, in case it does not exist
         filepath=os.path.join(stage_dir,f)
         try:
@@ -599,15 +630,24 @@ def finalize_sha1(stage_dir,submit_dir,title):
     add_line(SUMMARY_SIGNATURE_FILE,submit_dir,"%s  %s"%(sha1,title))
     return sha1
     
+##########################################
+# Calculate SHA1 for the list files
+# Return the sha1sum of the signature file
+def create_description_file(stage_dir):
+    add_description(stage_dir,SIGNATURE_FILE,"signature")
+    add_description(stage_dir,FILE_LISTFILE,"file_list")
+    add_description(stage_dir,SCRIPT_LISTFILE,"script_list")
+    add_description(stage_dir,SUBSYSTEM_LISTFILE,"subsystem_list")
+    
 #####################
 # Copy a regular file
-def copy_stage_file(filename,stage_dir,org_dir,can_be_modified=0,out_fname=None):
+def copy_stage_file(filename,stage_dir,org_dir,can_be_modified=0,out_fname=None,description=None):
     if out_fname==None:
         copy_file(os.path.join(org_dir,filename),stage_dir)
-        add_file(filename,stage_dir,can_be_modified)
+        add_file(filename,stage_dir,can_be_modified,description)
     else:
         copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
-        add_file(out_fname,stage_dir,can_be_modified)
+        add_file(out_fname,stage_dir,can_be_modified,description)
 
 ###############
 # Copy a script
@@ -662,7 +702,7 @@ def copy_file_unparsed(file,stage_dir,submit_dir):
         
         add_subsystem(relfname,stage_dir,submit_dir,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr)
     else: # not executable nor tarball => simple file
-        add_file(relfname,stage_dir,not is_const)
+        add_file(relfname,stage_dir,not is_const,None)
 
 
 #######################
@@ -712,7 +752,7 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
 # Register the files that host the attributes
 def add_attr_files(stage_dir,submit_dir):
     global ATTRS_FILE,CONSTS_FILE,PARAMS_FILE
-    for fname in (ATTRS_FILE,CONSTS_FILE):
+    for fname,description in ((ATTRS_FILE,"attrs_file"),(CONSTS_FILE,"consts_file")):
         # touch the file, in case it does not exist
         filepath=os.path.join(stage_dir,fname)
         try:
@@ -721,7 +761,7 @@ def add_attr_files(stage_dir,submit_dir):
             raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
         fd.close()
         # register it
-        add_file(fname,stage_dir,0)
+        add_file(fname,stage_dir,0,description)
     # also make sure that the params file exist
     filepath=os.path.join(submit_dir,PARAMS_FILE)
     try:
@@ -890,7 +930,8 @@ def create_submit(submit_dir,
         fd.write("Executable = %s\n"%STARTUP_FILE)
 
         fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry $ENV(GLIDEIN_ENTRY_NAME) -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%glidein_name)+
-                 ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY) -signtype sha1 -factory %s -consts %s -glidescript %s " % (web_base,factory_name,CONSTS_FILE,CONDOR_STARTUP_FILE))+
+                 ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY) -signtype sha1 -factory %s " % (web_base,factory_name))+
+                 "-descript $ENV(GLIDEIN_DESCRIPT) -descriptentry $ENV(GLIDEIN_DESCRIPTENTRY) " +
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
         fd.write('+GlideinFactory    = "%s"\n'%factory_name)
         fd.write('+GlideinName       = "%s"\n'%glidein_name)
@@ -934,6 +975,10 @@ def create_test_submit(submit_dir):
         fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
         fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%DESCRIPT_FILE)
         fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%DESCRIPT_FILE)
+        # Hardcode for now, should be dynamic
+        fd.write('export GLIDEIN_DESCRIPT=%s\n'%DESCRIPTION_FILE)
+        fd.write('export GLIDEIN_DESCRIPTENTRY=%s\n'%DESCRIPTION_FILE)
+        #
         fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(GLIDEIN_FILE,SUBMIT_FILE))
     finally:
         fd.close()
@@ -969,6 +1014,10 @@ def create_submit_wrapper(submit_dir):
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
         fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$/"\'{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
+        # Hardcode for now, should be dynamic
+        fd.write('export GLIDEIN_DESCRIPT=%s\n'%DESCRIPTION_FILE)
+        fd.write('export GLIDEIN_DESCRIPTENTRY=%s\n'%DESCRIPTION_FILE)
+        #
         fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s\n'%SUBMIT_FILE)
     finally:
         fd.close()
@@ -1085,10 +1134,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.77 2007/05/18 20:35:05 sfiligoi Exp $
+# $Id: create_glidein,v 1.78 2007/07/11 21:57:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.78  2007/07/11 21:57:31  sfiligoi
+#  Add inital support for several versions of files in the stage area
+#
 #  Revision 1.77  2007/05/18 20:35:05  sfiligoi
 #  Fix submit file to handle multiple schedds
 #

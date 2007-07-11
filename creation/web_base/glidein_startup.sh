@@ -19,8 +19,8 @@ function usage {
     echo "  -cluster <ClusterID>  : condorG ClusterId"
     echo "  -subcluster <ProcID>  : condorG ProcId"
     echo "  -schedd <name>        : condorG Schedd Name"
-    echo "  -consts <fname>       : constants file name"
-    echo "  -glidescript <fname>  : glidein startup file name"
+    echo "  -descript <fname>     : description file name"
+    echo "  -descriptentry <fname>: description file name for entry"
     echo "  -v <id>               : verbosity level (std and dbg supported)"
     echo "  -param_* <arg>        : user specified parameters"
     exit 1
@@ -45,8 +45,8 @@ do case "$1" in
     -cluster)    condorg_cluster="$2";;
     -subcluster) condorg_subcluster="$2";;
     -schedd)     condorg_schedd="$2";;
-    -consts)     consts_file="$2";;
-    -glidescript)   glidescript_file="$2";;
+    -descript)   descript_file="$2";;
+    -descriptentry)   descript_entry_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
@@ -131,8 +131,13 @@ if [ "$debug_mode" == "dbg" ]; then
  sleep_time=10
 fi
 
-if [ -z "$glidescript_file" ]; then
-    warn "Missing gliden startup script!" 1>&2
+if [ -z "$descript_file" ]; then
+    warn "Missing descript fname!" 1>&2
+    usage
+fi
+
+if [ -z "$descript_entry_file" ]; then
+    warn "Missing descript fname for entry!" 1>&2
     usage
 fi
 
@@ -179,7 +184,7 @@ else
 fi
     
 
-echo "Start glidein_startup.sh"
+echo "Starting glidein_startup.sh at" `date`
 echo "debug_mode        = '$debug_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
@@ -191,6 +196,8 @@ echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_sha1         = '$sign_sha1'"
 echo "proxy_url         = '$proxy_url'"
+echo "descript_fname    = '$descript_file'"
+echo "descript_entry_fname = '$descript_entry_file'"
 echo
 echo "Running on `uname -n`"
 echo "PID: $$"
@@ -340,6 +347,46 @@ else
 fi
 
 #####################
+# Check signature
+function check_file_signature {
+    fname="$1"
+    fetch_entry="$2"
+
+    if [ -z "$fetch_entry" ]; then
+	cfs_desc_fname="$fname"
+	cfs_signature="signature.sha1"
+    else
+	cfs_desc_fname="entry_$glidein_entry/$fname"
+	cfs_signature="$entry_dir/signature.sha1"
+    fi
+
+    if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
+	tmp_signname="${cfs_signature}_$$_`date +%s`_$RANDOM"
+	grep "$fname" "$cfs_signature" > $tmp_signname
+	if [ $? -ne 0 ]; then
+	    rm -f $tmp_signname
+	    echo "No signature for $cfs_desc_fname."
+	else
+	    if [ -z "$fetch_entry" ]; then
+		sha1sum -c $tmp_signname
+		cfs_rc=$?
+	    else
+		(cd $entry_dir; sha1sum -c $tmp_signname)
+		cfs_rc=$?
+	    fi
+	    if [ $cfs_rc -ne 0 ]; then
+		warn "File $cfs_desc_fname is corrupted!" 1>&2
+		rm -f $tmp_signname
+		return 1
+	    fi
+	    rm -f $tmp_signname
+	    echo "Signature OK for $cfs_desc_fname."
+	fi
+    fi
+    return 0
+}
+
+#####################
 # Fetch a single file
 function fetch_file {
     fetch_file_gen "$1" "$2" ""
@@ -395,30 +442,7 @@ function fetch_file_base {
 	    return 1
 	fi
     fi
-    if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
-	tmp_signname="${ffb_signature}_$$_`date +%s`"
-	grep "$fname" "$ffb_signature" > $tmp_signname
-	if [ $? -ne 0 ]; then
-	    rm -f $tmp_signname
-	    echo "No signature for $ffb_desc_fname."
-	else
-	    if [ -z "$fetch_entry" ]; then
-		sha1sum -c $tmp_signname
-		ffb_rc=$?
-	    else
-		(cd $entry_dir; sha1sum -c $tmp_signname)
-		ffb_rc=$?
-	    fi
-	    if [ $ffb_rc -ne 0 ]; then
-		warn "File $ffb_desc_fname is corrupted!" 1>&2
-		rm -f $tmp_signname
-		return 1
-	    fi
-	    rm -f $tmp_signname
-	    echo "Signature OK for $ffb_desc_fname."
-	fi
-    fi
-    return 0
+    check_file_signature "$fname" "$fetch_entry"
 }
 
 ###########################
@@ -502,51 +526,136 @@ function try_fetch_subsystem {
     fi
 }
 
-# disable signature check for the signature file itself
+#####################################
+# Fetch descript and signature files
+
+# disable signature check before I get the signature file itself
 # check_signature is global
 check_signature=0
 
+# Fetch description file
+fetch_file "$descript_file"
+signature_file_line=`grep "^signature " "$descript_file"`
+if [ $? -ne 0 ]; then
+    warn "No signature in description file!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+signature_file=`echo $signature_file_line|awk '{print $2}'`
+
 # Fetch signature file
-fetch_file "signature.sha1"
-echo "$sign_sha1  signature.sha1">signature.sha1.test
+fetch_file "$signature_file"
+echo "$sign_sha1  $signature_file">signature.sha1.test
 sha1sum -c signature.sha1.test
 if [ $? -ne 0 ]; then
-    warn "Corrupted signature file!" 1>&2
+    warn "Corrupted signature file '$signature_file'!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
+# for simplicity use a fixed name for signature file
+mv "$signature_file" "signature.sha1"
+
+# Fetch description file for entry
+fetch_entry_file "$descript_entry_file"
+signature_entry_file_line=`grep "^signature " "$entry_dir/$descript_entry_file"`
+if [ $? -ne 0 ]; then
+    warn "No signature in description file for entry!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+signature_entry_file=`echo $signature_entry_file_line|awk '{print $2}'`
 
 # Fetch entry signature file
-fetch_entry_file "signature.sha1"
-echo "$sign_entry_sha1  signature.sha1">"$entry_dir/signature.sha1.test"
+fetch_entry_file "$signature_entry_file"
+echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
 (cd $entry_dir; sha1sum -c signature.sha1.test)
 if [ $? -ne 0 ]; then
-    warn "Corrupted entry signature file!" 1>&2
+    warn "Corrupted entry signature file '$signature_entry_file'!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
 fi
+# for simplicity use a fixed name for signature file
+mv "$entry_dir/$signature_entry_file" "$entry_dir/signature.sha1"
 
 # re-enable for everything else
 check_signature=1
 
+# Now verify the description was not tampered with
+# doing it so late should be fine, since nobody should have been able
+# to fake the signature file, even if it faked its name in
+# the description file
+check_file_signature "$descript_file"
+if [ $? -ne 0 ]; then
+    warn "Corrupted description file!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+
+check_file_signature "$descript_entry_file" "entry"
+if [ $? -ne 0 ]; then
+    warn "Corrupted description file for entry!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+
+
+##############################################
+# Extract other infor from the descript files
+echo "# --- Files from description  ---" >> glidein_config
+
+for id in file_list script_list subsystem_list last_script consts_file condor_vars
+do
+  id_line=`grep "^$id " "$descript_file"`
+  if [ $? -ne 0 ]; then
+    warn "No '$id' in description file!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+  fi
+  id_val=`echo $id_line|awk '{print $2}'`
+  eval $id=$id_val
+done
+
+echo "CONDOR_VARS_FILE $condor_vars" >> glidein_config
+# Repeat for entry
+
+for id in file_list script_list subsystem_list consts_file condor_vars
+do
+  id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
+  if [ $? -ne 0 ]; then
+    warn "No '$id' in entry description file!" 1>&2
+    cd "$start_dir";rm -fR "$work_dir"
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+  fi
+  id_var="${id}_entry"
+  id_val=`echo $id_line|awk '{print $2}'`
+  eval $id_var=$id_val
+done
+echo "CONDOR_VARS_ENTRY_FILE $condor_vars_entry" >> glidein_config
+
 ##############################
 # Fetch list of support files
-fetch_file "file_list.lst"
-fetch_entry_file "file_list.lst"
+fetch_file "$file_list"
+fetch_entry_file "$file_list_entry"
 
 # Fetch files
 while read file
 do
     fetch_file $file
-done < file_list.lst
+done < "$file_list"
 
 # Fetch entry files
 while read file
 do
     fetch_entry_file $file
-done < "$entry_dir/file_list.lst"
+done < "$entry_dir/$file_list_entry"
 
 if [ -n "$consts_file" ]; then
     echo "# --- Provided constants  ---" >> glidein_config
@@ -557,38 +666,38 @@ if [ -n "$consts_file" ]; then
     done < "$consts_file"
 fi
 
-if [ -n "$entry_dir/$consts_file" ]; then
+if [ -n "$entry_dir/$consts_file_entry" ]; then
     echo "# --- Provided entry constants  ---" >> glidein_config
     # merge constants
     while read line
     do
 	add_config_line $line
-    done < "$entry_dir/$consts_file"
+    done < "$entry_dir/$consts_file_entry"
 fi
 
 ##############################
 # Fetch list of support files
-fetch_file "subsystem_list.lst"
-fetch_entry_file "subsystem_list.lst"
+fetch_file "$subsystem_list"
+fetch_entry_file "$subsystem_list_entry"
 
 echo "# --- Subsystem values  ---" >> glidein_config
 # Try fetching the subsystems
 while read subsys
 do
     try_fetch_subsystem "" glidein_config $subsys
-done < subsystem_list.lst
+done < "$subsystem_list"
 
 echo "# --- Entry subsystem values  ---" >> glidein_config
 # Try fetching the entry subsystems
 while read subsys
 do
     try_fetch_subsystem entry glidein_config $subsys
-done < "$entry_dir/subsystem_list.lst"
+done < "$entry_dir/$subsystem_list_entry"
 
 ##############################
 # Fetch list of scripts
-fetch_file "script_list.lst"
-fetch_entry_file "script_list.lst"
+fetch_file "$script_list"
+fetch_entry_file "$script_list_entry"
 
 echo "# --- Script values ---" >> glidein_config
 # Fetch and execute scripts
@@ -602,7 +711,7 @@ do
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
     fi
-    if [ "$script" != "$glidescript_file" ]; then
+    if [ "$script" != "$last_script" ]; then
 	"./$script" glidein_config
 	ret=$?
 	if [ $ret -ne 0 ]; then
@@ -612,9 +721,9 @@ do
 	    exit 1
 	fi
     else
-      echo "Skipping glidescript $glidescript_file"
-    fi # glidescript must be the last to run
-done < script_list.lst
+      echo "Skipping last script $last_script"
+    fi 
+done < "$script_list"
 
 echo "# --- Entry script values ---" >> glidein_config
 # Fetch and execute scripts
@@ -637,12 +746,12 @@ do
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
     fi
-done < "$entry_dir/script_list.lst"
+done < "$entry_dir/$script_list_entry"
 
 ###############################
 # Start the glidein main script
-echo "# --- Glinein Script values ---" >> glidein_config
-"./$glidescript_file" glidein_config
+echo "# --- Last Script values ---" >> glidein_config
+"./$last_script" glidein_config
 ret=$?
 if [ $ret -ne 0 ]; then
   warn "Error running '$glidescript_file'" 1>&2
