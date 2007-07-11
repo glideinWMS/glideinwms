@@ -485,7 +485,7 @@ CONDOR_STARTUP_FILE="condor_startup.sh"
 # these are again in the submit dir
 STARTUP_FILE="glidein_startup.sh"
 GLIDEIN_FILE="glidein.descript"
-DESCRIPT_FILE="job.descript"
+JOB_DESCRIPT_FILE="job.descript"
 SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
 
@@ -894,8 +894,8 @@ def create_job_descript(submit_dir,
                         gridtype,gatekeeper,rsl,
                         schedd_name,
                         startup_dir,proxy_id):
-    global DESCRIPT_FILE
-    filepath=os.path.join(submit_dir,DESCRIPT_FILE)
+    global JOB_DESCRIPT_FILE
+    filepath=os.path.join(submit_dir,JOB_DESCRIPT_FILE)
     try:
         fd=open(filepath,"w+")
     except IOError,e:
@@ -957,7 +957,7 @@ def create_submit(submit_dir,
 ############################
 # Create a test shell script
 def create_test_submit(submit_dir):
-    global SUBMIT_FILE,GLIDEIN_FILE,DESCRIPT_FILE
+    global SUBMIT_FILE,GLIDEIN_FILE,JOB_DESCRIPT_FILE
     filepath=os.path.join(submit_dir,"job_test.sh")
     try:
         fd=open(filepath,"w+")
@@ -973,8 +973,8 @@ def create_test_submit(submit_dir):
         fd.write("export GLIDEIN_ENTRY_NAME=test\n")
         fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
         fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%DESCRIPT_FILE)
-        fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%DESCRIPT_FILE)
+        fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%JOB_DESCRIPT_FILE)
+        fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%JOB_DESCRIPT_FILE)
         # Hardcode for now, should be dynamic
         fd.write('export GLIDEIN_DESCRIPT=%s\n'%DESCRIPTION_FILE)
         fd.write('export GLIDEIN_DESCRIPTENTRY=%s\n'%DESCRIPTION_FILE)
@@ -1134,10 +1134,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.78 2007/07/11 21:57:31 sfiligoi Exp $
+# $Id: create_glidein,v 1.79 2007/07/11 22:55:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.79  2007/07/11 22:55:19  sfiligoi
+#  Rename DESCRIPT_FILE into JOB_DESCRIPT_FILE to prevent confision with the new DESCRIPTION_FILE
+#
 #  Revision 1.78  2007/07/11 21:57:31  sfiligoi
 #  Add inital support for several versions of files in the stage area
 #
