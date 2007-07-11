@@ -627,7 +627,7 @@ def finalize_sha1(stage_dir,submit_dir,title):
         # calc sha1
         add_sha1(f,stage_dir)
     sha1=calc_sha1(SIGNATURE_FILE,stage_dir)
-    add_line(SUMMARY_SIGNATURE_FILE,submit_dir,"%s  %s"%(sha1,title))
+    add_line(SUMMARY_SIGNATURE_FILE,submit_dir,"%s  %s  %s"%(sha1,DESCRIPTION_FILE,title))
     return sha1
     
 ##########################################
@@ -972,13 +972,11 @@ def create_test_submit(submit_dir):
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("export GLIDEIN_ENTRY_NAME=test\n")
         fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
+        fd.write("export GLIDEIN_DESCRIPT=`awk '/ main$/{print $2}' %s`\n"%SUMMARY_SIGNATURE_FILE)
         fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
+        fd.write('export GLIDEIN_DESCRIPTENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $2}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
         fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%JOB_DESCRIPT_FILE)
         fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%JOB_DESCRIPT_FILE)
-        # Hardcode for now, should be dynamic
-        fd.write('export GLIDEIN_DESCRIPT=%s\n'%DESCRIPTION_FILE)
-        fd.write('export GLIDEIN_DESCRIPTENTRY=%s\n'%DESCRIPTION_FILE)
-        #
         fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(GLIDEIN_FILE,SUBMIT_FILE))
     finally:
         fd.close()
@@ -1013,11 +1011,9 @@ def create_submit_wrapper(submit_dir):
         fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
+        fd.write("export GLIDEIN_DESCRIPT=`awk '/ main$/{print $2}' %s`\n"%SUMMARY_SIGNATURE_FILE)
         fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$/"\'{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        # Hardcode for now, should be dynamic
-        fd.write('export GLIDEIN_DESCRIPT=%s\n'%DESCRIPTION_FILE)
-        fd.write('export GLIDEIN_DESCRIPTENTRY=%s\n'%DESCRIPTION_FILE)
-        #
+        fd.write('export GLIDEIN_DESCRIPTENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $2}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
         fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s\n'%SUBMIT_FILE)
     finally:
         fd.close()
@@ -1134,10 +1130,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.79 2007/07/11 22:55:19 sfiligoi Exp $
+# $Id: create_glidein,v 1.80 2007/07/11 23:46:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.80  2007/07/11 23:46:32  sfiligoi
+#  Put description_file name into signatures.cfg
+#
 #  Revision 1.79  2007/07/11 22:55:19  sfiligoi
 #  Rename DESCRIPT_FILE into JOB_DESCRIPT_FILE to prevent confision with the new DESCRIPTION_FILE
 #
