@@ -262,7 +262,15 @@ def iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
                                        glideinDescript,jobDescript,jobAttributes,jobParams)
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
-            write_stats()
+            try:
+                write_stats()
+            except KeyboardInterrupt:
+                raise # this is an exit signal, pass through
+            except:
+                # never fail for stats reasons!
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -374,10 +382,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.23 2007/07/03 19:46:18 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.24 2007/07/11 17:40:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.24  2007/07/11 17:40:30  sfiligoi
+#  never fail for stats reasons
+#
 #  Revision 1.23  2007/07/03 19:46:18  sfiligoi
 #  Add support for MaxRunningGlideins
 #
