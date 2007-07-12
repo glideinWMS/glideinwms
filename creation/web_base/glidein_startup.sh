@@ -200,6 +200,7 @@ echo "descript_fname    = '$descript_file'"
 echo "descript_entry_fname = '$descript_entry_file'"
 echo
 echo "Running on `uname -n`"
+id
 echo "PID: $$"
 echo
 
@@ -327,6 +328,9 @@ echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
+echo "PROXY_URL $proxy_url" >> glidein_config
+echo "DESCRIPTION_FILE $descript_file" >> glidein_config
+echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 params2file $params
 
