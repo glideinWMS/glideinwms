@@ -205,9 +205,9 @@ echo "PID: $$"
 echo
 
 if [ $set_debug -eq 1 ]; then
-  echo "------- Initial environment ---------------"
-  env
-  echo "------- =================== ---------------"
+  echo "------- Initial environment ---------------"  1>&2
+  env 1>&2
+  echo "------- =================== ---------------" 1>&2
 fi
 
 ########################################
@@ -369,10 +369,10 @@ function check_file_signature {
 	grep "$fname" "$cfs_signature" > $tmp_signname
 	if [ $? -ne 0 ]; then
 	    rm -f $tmp_signname
-	    echo "No signature for $cfs_desc_fname."
+	    echo "No signature for $cfs_desc_fname." 1>&2
 	else
 	    if [ -z "$fetch_entry" ]; then
-		sha1sum -c $tmp_signname
+		sha1sum -c $tmp_signname 1>&2
 		cfs_rc=$?
 	    else
 		(cd $entry_dir; sha1sum -c $tmp_signname)
@@ -384,7 +384,7 @@ function check_file_signature {
 		return 1
 	    fi
 	    rm -f $tmp_signname
-	    echo "Signature OK for $cfs_desc_fname."
+	    echo "Signature OK for $cfs_desc_fname." 1>&2
 	fi
     fi
     return 0

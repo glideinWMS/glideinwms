@@ -12,9 +12,9 @@ config_file=$1
 debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
 if [ "$debug_mode" == "1" ]; then
-    echo "-------- $config_file in condor_startup.sh ----------"
-    cat $config_file
-    echo "-----------------------------------------------------"
+    echo "-------- $config_file in condor_startup.sh ----------" 1>&2
+    cat $config_file 1>&2
+    echo "-----------------------------------------------------" 1>&2
 fi
 
 entry_name=`grep -i "^GLIDEIN_Entry_Name " $config_file | awk '{print $2}'`
@@ -155,13 +155,16 @@ if [ "$debug_mode" == "1" ]; then
   #env 1>&2
 fi
 
+start_time=`date +%s`
 echo === Condor starting `date` ===
 
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
 $CONDOR_DIR/sbin/condor_master -r $retmins -dyn -f 
 ret=$?
 
-echo === Condor ended `date` ===
+end_time=`date +%s`
+let elapsed_time=$end_time-$start_time
+echo === Condor ended `date` after $elapsed_time ===
 echo
 
 echo ===   Stats of vm2   ===
