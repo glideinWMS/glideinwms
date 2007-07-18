@@ -343,6 +343,7 @@ def main(params):
                    create_condor_tar(params.stage_dir,params.submit_dir,params.condor.base_dir)
                
                #put system files into stage
+               copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir)
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
                copy_file(os.path.join(params.src_dir,'condor_vars.lst'),os.path.join(params.stage_dir,VARS_FILE)) # will be modified when attrs processed
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
@@ -1130,10 +1131,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.80 2007/07/11 23:46:32 sfiligoi Exp $
+# $Id: create_glidein,v 1.81 2007/07/18 22:38:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.81  2007/07/18 22:38:30  sfiligoi
+#  Add printout from parsing Condor StarterLog
+#
 #  Revision 1.80  2007/07/11 23:46:32  sfiligoi
 #  Put description_file name into signatures.cfg
 #

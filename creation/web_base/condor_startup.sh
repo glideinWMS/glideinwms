@@ -146,13 +146,13 @@ if [ $? -ne 0 ]; then
 fi
 
 if [ "$debug_mode" == "1" ]; then
-  echo "--- condor_config ---"
-  cat $CONDOR_CONFIG
-  echo "--- ============= ---"
-  env
-  echo "--- ============= ---"
-  echo
-  #env
+  echo "--- condor_config ---" 1>&2
+  cat $CONDOR_CONFIG 1>&2
+  echo "--- ============= ---" 1>&2
+  env 1>&2
+  echo "--- ============= ---" 1>&2
+  echo 1>&2
+  #env 1>&2
 fi
 
 echo === Condor starting `date` ===
@@ -164,27 +164,31 @@ ret=$?
 echo === Condor ended `date` ===
 echo
 
+echo ===   Stats of vm2   ===
+awk -f parse_starterlog.awk log*/StarterLog.vm2
+echo === End Stats of vm2 ===
+
 if [ "$debug_mode" == "1" ]; then
-    ls -l log*/* 2>/dev/null
-    echo "MasterLog"
-    echo "=================================================="
-    cat log*/MasterLog 2>/dev/null
-    echo "--------------------------------------------------"
-    echo
-    echo "StartdLog"
-    echo "=================================================="
-    cat log*/StartdLog 2>/dev/null
-    echo "--------------------------------------------------"
-    echo
-    echo "StarterLog.vm2"
-    echo "=================================================="
-    cat log*/StarterLog.vm2 2>/dev/null
-    echo "--------------------------------------------------"
-    echo
-    echo "StarterLog.vm1"
-    echo "=================================================="
-    cat log*/StarterLog.vm1 2>/dev/null
-    echo "--------------------------------------------------"
+    ls -l log*/* 1>&2
+    echo "MasterLog" 1>&2
+    echo "==================================================" 1>&2
+    cat log*/MasterLog  1>&2
+    echo "--------------------------------------------------" 1>&2
+    echo 1>&2
+    echo "StartdLog" 1>&2
+    echo "==================================================" 1>&2
+    cat log*/StartdLog  1>&2
+    echo "--------------------------------------------------" 1>&2
+    echo 1>&2
+    echo "StarterLog.vm2" 1>&2
+    echo "==================================================" 1>&2
+    cat log*/StarterLog.vm2  1>&2
+    echo "--------------------------------------------------"  1>&2
+    echo 1>&2
+    echo "StarterLog.vm1"  1>&2
+    echo "=================================================="  1>&2
+    cat log*/StarterLog.vm1  1>&2
+    echo "--------------------------------------------------" 1>&2
     echo
 fi
 
