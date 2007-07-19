@@ -90,7 +90,6 @@ BenchmarkTimer = (CurrentTime - LastBenchmark)
 RunBenchmarks : (LastBenchmark == 0 ) || ($(BenchmarkTimer) >= (4 * $(HOUR)))
 
 GSI_DAEMON_DIRECTORY=$(LOCAL_DIR)
-GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile
 SEC_DEFAULT_AUTHENTICATION = REQUIRED
 SEC_DEFAULT_AUTHENTICATION_METHODS = GSI 
 

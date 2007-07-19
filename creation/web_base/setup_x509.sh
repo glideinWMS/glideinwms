@@ -80,6 +80,8 @@ function check_x509_proxy {
     return 0
 }
 
+# add the current DN to the list of allowed DNs
+# create a new file if none exist
 function create_gridmapfile {
     id=`grid-proxy-info -identity`
     if [ $? -ne 0 ]; then
@@ -97,14 +99,19 @@ function create_gridmapfile {
 	exit 1
     fi
 
-    touch grid-mapfile
-    echo "\"$idp\"" condor >> grid-mapfile
+    touch $X509_GRIDMAP
+    echo "\"$idp\"" condor >> $X509_GRIDMAP
     if [ $? -ne 0 ]; then
-	echo "Cannot add user identity to grid-mapfile!" 1>&2
+	echo "Cannot add user identity to $X509_GRIDMAP!" 1>&2
 	exit 1
     fi
 
     return 0
+}
+
+
+function extract_gridmap_DNs {
+    awk -F '"' '/CN/{dn=$2;if (dns=="") {dns=dn;} else {dns=dns "," dn}}END{print dns}' $X509_GRIDMAP
 }
 
 # returns the expiration time of the proxy
@@ -140,10 +147,12 @@ function get_x509_expiration {
 
 # Assume all functions exit on error
 config_file=$1
+X509_GRIDMAP=$PWD/grid-mapfile
 
 check_x509_certs
 check_x509_proxy
 create_gridmapfile
+X509_GRIDMAP_DNS=`extract_gridmap_DNs`
 
 # get X509 expiration time and store it into the config file
 X509_EXPIRE=`get_x509_expiration`
@@ -151,6 +160,8 @@ cat >> "$config_file" <<EOF
 X509_EXPIRE       $X509_EXPIRE
 X509_CERT_DIR     $X509_CERT_DIR
 X509_USER_PROXY   $X509_USER_PROXY
+X509_GRIDMAP      $X509_GRIDMAP
+X509_GRIDMAP_DNS  $X509_GRIDMAP_DNS
 EOF
 
 exit 0
