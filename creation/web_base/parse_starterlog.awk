@@ -1,5 +1,6 @@
 BEGIN {
   year=strftime("%Y");
+  starttime=0;
   ended_jobs=0;
   total_used=0;
   goodputZ=0;
@@ -41,10 +42,10 @@ function percent(a,b) {
     }    
   }
   shadow=$(changenr+3);
-  shadow=substr(shadow,3,length(shadow)-4)
+  shadow=substr(shadow,2,length(shadow)-2)
   #print  $1,$2,"Shadow:",shadow
 }
-/ Starting .* job with ID /{
+/ Starting .* job with ID: /{
   # 7/17 10:42:21 (pid:26855) Starting a VANILLA universe job with ID: 40.0
   # 
   for (i=1; i<NF; i++) {
@@ -92,8 +93,14 @@ function percent(a,b) {
   if (ended<starttime) { # around new year
     ended=convert_date(year+1,$1,$2);
   }
-  joblength=ended-starttime;
-  
+
+  if (starttime>0) {
+    joblength=ended-starttime;
+  } else {
+    # protect from incomplete data
+    joblength=0;
+  }
+
   ended_jobs++;
   total_used+=joblength;
 
@@ -117,6 +124,7 @@ function percent(a,b) {
   # cleanup, so it is not reused by accident
   jid="";
   shadow="";
+  starttime=0;
 }
 
 ########################################################################  
