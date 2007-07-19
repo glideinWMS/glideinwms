@@ -375,7 +375,7 @@ function check_file_signature {
 		sha1sum -c $tmp_signname 1>&2
 		cfs_rc=$?
 	    else
-		(cd $entry_dir; sha1sum -c $tmp_signname)
+		(cd $entry_dir; sha1sum -c $tmp_signname) 1>&2
 		cfs_rc=$?
 	    fi
 	    if [ $cfs_rc -ne 0 ]; then
@@ -551,7 +551,7 @@ signature_file=`echo $signature_file_line|awk '{print $2}'`
 # Fetch signature file
 fetch_file "$signature_file"
 echo "$sign_sha1  $signature_file">signature.sha1.test
-sha1sum -c signature.sha1.test
+sha1sum -c signature.sha1.test 1>&2
 if [ $? -ne 0 ]; then
     warn "Corrupted signature file '$signature_file'!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
@@ -575,7 +575,7 @@ signature_entry_file=`echo $signature_entry_file_line|awk '{print $2}'`
 # Fetch entry signature file
 fetch_entry_file "$signature_entry_file"
 echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
-(cd $entry_dir; sha1sum -c signature.sha1.test)
+(cd $entry_dir; sha1sum -c signature.sha1.test) 1>&2
 if [ $? -ne 0 ]; then
     warn "Corrupted entry signature file '$signature_entry_file'!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
@@ -725,7 +725,7 @@ do
 	    exit 1
 	fi
     else
-      echo "Skipping last script $last_script"
+      echo "Skipping last script $last_script" 1>&2
     fi 
 done < "$script_list"
 
