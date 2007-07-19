@@ -372,6 +372,9 @@ def wms_install():
 
         break # have the number of schedds
 
+    for i in range(nr_schedds):
+        schedd_name="glideins%i"%(i+1)
+        configure_secondary_schedd(schedd_name)
 
     restart_condor()
 
