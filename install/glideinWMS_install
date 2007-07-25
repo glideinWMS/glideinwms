@@ -304,6 +304,13 @@ def wms_install():
 
         os.symlink(web_dir,default_web_dir)
 
+    # create stage and monitor subdirs
+    os.mkdir("%s/stage"%web_dir)
+    os.chown("%s/stage"%web_dir,gfactory_pwd[2],gfactory_pwd[3])
+    os.mkdir("%s/monitor"%web_dir)
+    os.chown("%s/monitor"%web_dir,gfactory_pwd[2],gfactory_pwd[3])
+
+
     ####################################
     # Create an empty top level page
     if not os.path.exists('/var/www/html/index.html'):
@@ -645,7 +652,7 @@ def gfactory_install():
         if submit_base_dir=="":
             submit_base_dir=def_submit_base_dir
         if not os.path.isdir(submit_base_dir):
-            print "'%s' is not a directory!"
+            print "'%s' is not a directory!"%submit_base_dir
             continue
         # found it
         break
