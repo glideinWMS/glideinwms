@@ -533,7 +533,9 @@ def parseSubmitLogFastRaw(fname):
             if status in ('020','026','022','10'): # connection lost
                 jobs[jobid]=str(int(jobs[jobid][0])+1)+jobs[jobid][1:]
             else:
-                jobs[jobid]=str(int(jobs[jobid][0])-1)+jobs[jobid][1:]
+                if jobs[jobid][0]!="0": # may have already fixed it, out of order
+                    jobs[jobid]=str(int(jobs[jobid][0])-1)+jobs[jobid][1:]
+
         elif status in ('003','006','008'):
             pass # do nothing, that was just informational
         else:
