@@ -1978,10 +1978,10 @@ def query_postgresql():
             try:
                 # install postgreSQL server
                 install_postgresql()
-                return
             except RuntimeError,e:
                 print e
                 continue
+            return
 
 # Install PostgreSQL server
 ################################
@@ -2483,13 +2483,12 @@ def query_httpd():
             yn=raw_input("Do you want to install a HTTPd?: (y/n) ")
             if (yn!="y"):
                 continue # do not install, ask again 
-
-        #not found, try to install
-        break
-
-    # install httpd
-    install_httpd()
-
+            try:
+                install_httpd()
+            except RuntimeError, e:
+                print e
+                continue
+            return
 
 # Install a HTTPd
 ####################################
@@ -2508,6 +2507,7 @@ def install_httpd():
     print "Select install method:"
     print " [1] using yum"
     print " [2] using RPMs"
+    print " [3] changed my mind, do not install"
 
     while 1:
         option=raw_input("select: ")
@@ -2517,6 +2517,8 @@ def install_httpd():
         elif option=='2':
             install_rpm_httpd()
             break
+        elif option=='3':
+            raise RuntimeError,"User cancelled the httpd installation"
         else:
             print "Invalid choice '%s'!"%option
 
