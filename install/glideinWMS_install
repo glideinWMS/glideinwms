@@ -1975,12 +1975,13 @@ def query_postgresql():
             if os.getuid()!=0:
                 print "I can only install postgresql as root!"
                 continue
-                
-        #not found, try to install
-        break
-
-    # install postgreSQL server
-    install_postgresql()
+            try:
+                # install postgreSQL server
+                install_postgresql()
+                return
+            except RuntimeError,e:
+                print e
+                continue
 
 # Install PostgreSQL server
 ################################
