@@ -846,7 +846,7 @@ def create_rrd(rrd_obj,rrdfname,
 
 def update_rrd(rrd_obj,rrdfname,
                time,val):
-    rrd_obj.update(str('%s'),'%li:%i'%(time,val))
+    rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
     return
 
 #
@@ -902,10 +902,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.52 2007/09/26 20:05:18 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.53 2007/09/26 20:15:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.53  2007/09/26 20:15:30  sfiligoi
+#  Fix typo
+#
 #  Revision 1.52  2007/09/26 20:05:18  sfiligoi
 #  Fix typo
 #
