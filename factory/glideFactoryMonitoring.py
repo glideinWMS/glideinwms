@@ -837,7 +837,7 @@ def create_rrd(rrd_obj,rrdfname,
                rrd_ds):
     start_time=(long(time.time()-1)/rrd_step)*rrd_step # make the start time to be aligned on the rrd_step boundary - needed for optimal resoultion selection 
     #print (rrdfname,start_time,rrd_step)+rrd_ds
-    args=[rrdfname,'-b','%li'%start_time,'-s','%i'%rrd_step,'DS:%s:%s:%i:%s:%s'%+rrd_ds]
+    args=['%s'%rrdfname,'-b','%li'%start_time,'-s','%i'%rrd_step,'DS:%s:%s:%i:%s:%s'%rrd_ds]
     for archive in rrd_archives:
         args.append("RRA:%s:%g:%i:%i"%archive)
 
@@ -846,7 +846,7 @@ def create_rrd(rrd_obj,rrdfname,
 
 def update_rrd(rrd_obj,rrdfname,
                time,val):
-    rrd_obj.update(rrdfname,'%li:%i'%(time,val))
+    rrd_obj.update('%s'%rrdfname,'%li:%i'%(time,val))
     return
 
 #
@@ -880,7 +880,7 @@ def rrd2graph(rrd_obj,fname,
     now=long(time.time())
     start=((now-period)/rrd_step)*rrd_step
     end=((now-1)/rrd_step)*rrd_step
-    args=[fname,'-s','%li'%sstart,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat','PNG','--title',title]
+    args=['%s'%fname,'-s','%li'%sstart,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat','PNG','--title','%s'%title]
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_fname=rrd_file[1]
@@ -902,10 +902,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.49 2007/09/26 19:33:06 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.50 2007/09/26 19:45:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.50  2007/09/26 19:45:37  sfiligoi
+#  Fix type converion
+#
 #  Revision 1.49  2007/09/26 19:33:06  sfiligoi
 #  Use python-rrdtool if present
 #
