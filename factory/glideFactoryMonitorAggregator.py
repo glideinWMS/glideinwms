@@ -127,9 +127,10 @@ def aggregateStatus():
 def create_status_history():
     # create history XML files for RRDs
     attr_rrds=glideFactoryMonitoring.monitoringConfig.find_disk_attributes("total")
-    for fname,tp,a in attr_rrds:
-        glideFactoryMonitoring.monitoringConfig.report_rrds("total/%s"%fname,
-                                                            [(a,"total/%s.rrd"%fname)])
+    # Temporarely DEPRECATE
+    #for fname,tp,a in attr_rrds:
+    #    glideFactoryMonitoring.monitoringConfig.report_rrds("total/%s"%fname,
+    #                                                        [(a,"total/%s.rrd"%fname)])
 
     # create graphs for RRDs
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Idle",
@@ -235,10 +236,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.4 2007/07/03 19:46:18 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.5 2007/09/26 20:04:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.5  2007/09/26 20:04:21  sfiligoi
+#  Disable history XMLs
+#
 #  Revision 1.4  2007/07/03 19:46:18  sfiligoi
 #  Add support for MaxRunningGlideins
 #
