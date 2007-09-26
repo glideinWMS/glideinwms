@@ -12,6 +12,32 @@ import re,time,copy,string
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
+def string_quote_join(arglist):
+    l2=[]
+    for e in arglist:
+        l2.append('"%s"'%e)
+    return string,join(l2)
+
+class rrdtool_exe:
+    def __init__(self):
+        self.rrd_bin=iexe_cmd("which rrdtool")[0][:-1]
+
+    def create(self,*args):
+        cmdline='%s create %s'%(self.rrd_bin,string_quote_join(args))
+        outstr=iexe_cmd(cmdline)
+        return
+
+    def update(self,*args):
+        cmdline='%s update %s'%(self.rrd_bin,string_quote_join(args))
+        outstr=iexe_cmd(cmdline)
+        return
+
+    def graph(self,*args):
+        cmdline='%s graph %s'%(self.rrd_bin,string_quote_join(args))
+        outstr=iexe_cmd(cmdline)
+        return
+      
+
 ############################################################
 #
 # Configuration
@@ -49,9 +75,16 @@ class MonitoringConfig:
         self.monitor_dir="monitor/"
 
         try:
-            self.rrd_bin=iexe_cmd("which rrdtool")[0][:-1]
-        except ExeError,e:
-            self.rrd_bin=None # not found
+            import rrdtool
+            self.rrd_obj=rrdtool
+            print "Using rrdtool module"
+        except ImportError,e:
+            try:
+                self.rrd_obj=rrdtool_exe()
+                print "Using rrdtool executable"
+            except:
+                self.rrd_obj=None
+                print "Not using rrdtool at all"
 
         self.attribute_rrd_recmp=re.compile("^(?P<tp>[a-zA-Z]+)_Attribute_(?P<attr>[a-zA-Z]+)\.rrd$")
 
@@ -97,7 +130,7 @@ class MonitoringConfig:
         """
         Create a RRD file, using rrdtool.
         """
-        if self.rrd_bin==None:
+        if self.rrd_obj==None:
             return # nothing to do, no rrd bin no rrd creation
         
         for tp in ((".rrd",self.rrd_archives),(".small.rrd",self.rrd_archives_small)):
@@ -111,67 +144,69 @@ class MonitoringConfig:
                     min='U'
                 if max==None:
                     max='U'
-                create_rrd(self.rrd_bin,fname,
+                create_rrd(self.rrd_obj,fname,
                            self.rrd_step,rrd_archives,
                            (self.rrd_ds_name,ds_type,self.rrd_heartbeat,min,max))
 
             #print "Updating RRD "+fname
-            update_rrd(self.rrd_bin,fname,time,val)
+            update_rrd(self.rrd_obj,fname,time,val)
         return
     
     #############################################################################
 
-    def rrd2xml(self,relative_fname,archive_id,freq,
-                period,relative_rrd_files):
-        """
-        Convert one or more RRDs into an XML file using
-        rrdtool xport.
-
-        rrd_files is a list of (rrd_id,rrd_fname)
-        """
-
-        if self.rrd_bin==None:
-            return # nothing to do, no rrd bin no rrd conversion
-        
-        rrd_archive=self.rrd_archives[archive_id]
-
-        fname=os.path.join(self.monitor_dir,relative_fname)      
-        try:
-            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]):
-                return # file to new to see any benefit from an update
-        except OSError:
-            pass # file does not exist -> create
-
-        #print "Converting RRD into "+fname
-
-        # convert relative fnames to absolute ones
-        rrd_files=[]
-        for rrd_file in relative_rrd_files:
-            rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1])))
-
-        rrd2xml(self.rrd_bin,fname+".tmp",
-                self.rrd_step*rrd_archive[2], # step in seconds
-                self.rrd_ds_name,
-                rrd_archive[0], #ds_type
-                period,rrd_files)
-        tmp2final(fname)
-        return
-
-    def report_rrds(self,base_fname,
-                    relative_rrd_files):
-        """
-        Create default XML files out of the RRD files
-        """
-
-        for r in self.rrd_reports:
-            pname,period,idx,freq=r
-            try:
-                self.rrd2xml(base_fname+".%s.xml"%pname,idx,freq,
-                             period,relative_rrd_files)
-            except ExeError,e:
-                print "WARNING- XML %s.%s creation failed: %s"%(base_fname,pname,e)
-                
-        return
+    # Temporarely deprecate the creation of historical XML files
+    #
+    #def rrd2xml(self,relative_fname,archive_id,freq,
+    #            period,relative_rrd_files):
+    #    """
+    #    Convert one or more RRDs into an XML file using
+    #    rrdtool xport.
+    #
+    #    rrd_files is a list of (rrd_id,rrd_fname)
+    #    """
+    #
+    #    if self.rrd_obj==None:
+    #        return # nothing to do, no rrd bin no rrd conversion
+    #    
+    #    rrd_archive=self.rrd_archives[archive_id]
+    #
+    #    fname=os.path.join(self.monitor_dir,relative_fname)      
+    #    try:
+    #        if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]):
+    #            return # file to new to see any benefit from an update
+    #    except OSError:
+    #        pass # file does not exist -> create
+    #
+    #    #print "Converting RRD into "+fname
+    #
+    #    # convert relative fnames to absolute ones
+    #    rrd_files=[]
+    #    for rrd_file in relative_rrd_files:
+    #        rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1])))
+    #
+    #    rrd2xml(self.rrd_obj,fname+".tmp",
+    #            self.rrd_step*rrd_archive[2], # step in seconds
+    #            self.rrd_ds_name,
+    #            rrd_archive[0], #ds_type
+    #            period,rrd_files)
+    #    tmp2final(fname)
+    #    return
+    #
+    #def report_rrds(self,base_fname,
+    #                relative_rrd_files):
+    #    """
+    #    Create default XML files out of the RRD files
+    #    """
+    #
+    #    for r in self.rrd_reports:
+    #        pname,period,idx,freq=r
+    #        try:
+    #            self.rrd2xml(base_fname+".%s.xml"%pname,idx,freq,
+    #                         period,relative_rrd_files)
+    #        except ExeError,e:
+    #            print "WARNING- XML %s.%s creation failed: %s"%(base_fname,pname,e)
+    #            
+    #    return
 
     #############################################################################
 
@@ -185,7 +220,7 @@ class MonitoringConfig:
         rrd_files is a list of (rrd_id,rrd_fname,graph_style,color,description)
         """
 
-        if self.rrd_bin==None:
+        if self.rrd_obj==None:
             return # nothing to do, no rrd bin no rrd conversion
         
         rrd_archive=self.rrd_archives[archive_id]
@@ -204,7 +239,7 @@ class MonitoringConfig:
         for rrd_file in relative_rrd_files:
             rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1]),rrd_file[2],rrd_file[3]))
 
-        rrd2graph(self.rrd_bin,fname+".tmp",
+        rrd2graph(self.rrd_obj,fname+".tmp",
                   self.rrd_step*rrd_archive[2], # step in seconds
                   self.rrd_ds_name,
                   rrd_archive[0], #ds_type
@@ -407,12 +442,13 @@ class condorQStats:
                 fe_el=self.data[fe]
 
             # create history XML files for RRDs
-            for tp in fe_el.keys():
-                # type - status or requested
-                for a in fe_el[tp].keys():
-                    if type(fe_el[tp][a])!=type({}): # ignore subdictionaries
-                        monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
-                                                     [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
+            # DEPRECATED FOR NOW
+            #for tp in fe_el.keys():
+            #    # type - status or requested
+            #    for a in fe_el[tp].keys():
+            #        if type(fe_el[tp][a])!=type({}): # ignore subdictionaries
+            #            monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
+            #                                         [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
 
             # create graphs for RRDs
             monitoringConfig.graph_rrds("%s/Idle"%fe_dir,
@@ -655,18 +691,19 @@ class condorLogSummary:
     def create_support_history(self):
         global monitoringConfig
         # create history XML files for RRDs
-        for client_name in [None]+self.stats_diff.keys():
-            if client_name==None:
-                fe_dir="total"
-            else:
-                fe_dir="frontend_"+client_name
-
-            for s in self.job_statuses:
-                report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s))]
-                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-                    report_rrds.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s)))
-                    report_rrds.append(('Count',"%s/Log_%s_Count.rrd"%(fe_dir,s)))
-                monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
+        # DEPRECATE FOR NOW
+        #for client_name in [None]+self.stats_diff.keys():
+        #    if client_name==None:
+        #        fe_dir="total"
+        #    else:
+        #        fe_dir="frontend_"+client_name
+        #
+        #    for s in self.job_statuses:
+        #        report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s))]
+        #        if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+        #            report_rrds.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s)))
+        #            report_rrds.append(('Count',"%s/Log_%s_Count.rrd"%(fe_dir,s)))
+        #        monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
@@ -795,67 +832,69 @@ def tmp2final(fname):
     os.rename(fname+".tmp",fname)
     return
 
-def create_rrd(rrdbin,rrdfname,
+def create_rrd(rrd_obj,rrdfname,
                rrd_step,rrd_archives,
                rrd_ds):
     start_time=(long(time.time()-1)/rrd_step)*rrd_step # make the start time to be aligned on the rrd_step boundary - needed for optimal resoultion selection 
-    #print (rrdbin,rrdfname,start_time,rrd_step)+rrd_ds
-    cmdline='%s create %s -b %li -s %i DS:%s:%s:%i:%s:%s'%((rrdbin,rrdfname,start_time,rrd_step)+rrd_ds)
+    #print (rrdfname,start_time,rrd_step)+rrd_ds
+    args=[rrdfname,'-b','%li'%start_time,'-s','%i'%rrd_step,'DS:%s:%s:%i:%s:%s'%+rrd_ds]
     for archive in rrd_archives:
-        cmdline=cmdline+" RRA:%s:%g:%i:%i"%archive
+        args.append("RRA:%s:%g:%i:%i"%archive)
 
-    outstr=iexe_cmd(cmdline)
+    rrd_obj.create(*args)
     return
 
-def update_rrd(rrdbin,rrdfname,
+def update_rrd(rrd_obj,rrdfname,
                time,val):
-    cmdline='%s update %s %li:%i'%(rrdbin,rrdfname,time,val)
-    outstr=iexe_cmd(cmdline)
+    rrd_obj.update(rrdfname,'%li:%i'%(time,val))
     return
 
-def rrd2xml(rrdbin,xmlfname,
-            rrd_step,ds_name,ds_type,
-            period,rrd_files):
-    now=long(time.time())
-    start=((now-period)/rrd_step)*rrd_step
-    end=((now-1)/rrd_step)*rrd_step
-    cmdline='%s xport -s %li -e %li --step %i' % (rrdbin,start,end,rrd_step)
-    for rrd_file in rrd_files:
-        cmdline=cmdline+" DEF:%s=%s:%s:%s"%(rrd_file+(ds_name,ds_type))
+#
+# Deprecate for the moment, until we find a proper way
+# to manage history XML files
+#
+#def rrd2xml(rrdbin,xmlfname,
+#            rrd_step,ds_name,ds_type,
+#            period,rrd_files):
+#    now=long(time.time())
+#    start=((now-period)/rrd_step)*rrd_step
+#    end=((now-1)/rrd_step)*rrd_step
+#    cmdline='%s xport -s %li -e %li --step %i' % (rrdbin,start,end,rrd_step)
+#    for rrd_file in rrd_files:
+#        cmdline=cmdline+" DEF:%s=%s:%s:%s"%(rrd_file+(ds_name,ds_type))
+#
+#    for rrd_file in rrd_files:
+#        ds_id=rrd_file[0]
+#        cmdline=cmdline+" XPORT:%s:%s"%(ds_id,ds_id)
+#
+#    cmdline=cmdline+" >%s"%xmlfname
+#
+#    #print cmdline
+#    outstr=iexe_cmd(cmdline)
+#    return
 
-    for rrd_file in rrd_files:
-        ds_id=rrd_file[0]
-        cmdline=cmdline+" XPORT:%s:%s"%(ds_id,ds_id)
-
-    cmdline=cmdline+" >%s"%xmlfname
-
-    #print cmdline
-    outstr=iexe_cmd(cmdline)
-    return
-
-def rrd2graph(rrdbin,fname,
+def rrd2graph(rrd_obj,fname,
               rrd_step,ds_name,ds_type,
               period,width,height,
               title,rrd_files):
     now=long(time.time())
     start=((now-period)/rrd_step)*rrd_step
     end=((now-1)/rrd_step)*rrd_step
-    cmdline='%s graph %s -s %li -e %li --step %i -l 0 -w %i -h %i --imgformat PNG --title "%s"' % (rrdbin,fname,start,end,rrd_step,width,height,title)
+    args=[fname,'-s','%li'%sstart,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat','PNG','--title',title]
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_fname=rrd_file[1]
-        cmdline=cmdline+" DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)
+        args.append("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type))
 
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_graph_type=rrd_file[2]
         ds_color=rrd_file[3]
-        cmdline=cmdline+' "%s:%s#%s:%s"'%(ds_graph_type,ds_id,ds_color,ds_id)
+        args.append("%s:%s#%s:%s"%(ds_graph_type,ds_id,ds_color,ds_id))
 
-    cmdline=cmdline+' "COMMENT:Created on %s"'%time.strftime("%b %d %H\:%M\:%S %Z %Y")
+    args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
 
-    #print cmdline
-    outstr=iexe_cmd(cmdline)
+    rrd_obj.graph(*args)
     return
 
 
@@ -863,10 +902,13 @@ def rrd2graph(rrdbin,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.48 2007/07/03 19:46:19 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.49 2007/09/26 19:33:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.49  2007/09/26 19:33:06  sfiligoi
+#  Use python-rrdtool if present
+#
 #  Revision 1.48  2007/07/03 19:46:19  sfiligoi
 #  Add support for MaxRunningGlideins
 #
