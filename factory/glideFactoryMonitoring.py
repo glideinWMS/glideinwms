@@ -913,7 +913,7 @@ def rrd2graph(rrd_obj,fname,
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_fname=rrd_file[1]
-        args.append("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type))
+        args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
 
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
@@ -931,10 +931,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.55 2007/09/26 21:37:07 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.56 2007/09/26 21:53:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.56  2007/09/26 21:53:36  sfiligoi
+#  Strings
+#
 #  Revision 1.55  2007/09/26 21:37:07  sfiligoi
 #  Prevent useless updates
 #
