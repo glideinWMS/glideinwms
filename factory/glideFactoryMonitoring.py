@@ -880,7 +880,7 @@ def rrd2graph(rrd_obj,fname,
     now=long(time.time())
     start=((now-period)/rrd_step)*rrd_step
     end=((now-1)/rrd_step)*rrd_step
-    args=[str(fname),'-s','%li'%sstart,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat','PNG','--title',str(title)]
+    args=[str(fname),'-s','%li'%start,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat','PNG','--title',str(title)]
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_fname=rrd_file[1]
@@ -902,10 +902,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.51 2007/09/26 20:02:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.52 2007/09/26 20:05:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.52  2007/09/26 20:05:18  sfiligoi
+#  Fix typo
+#
 #  Revision 1.51  2007/09/26 20:02:50  sfiligoi
 #  Fix type conversion
 #
