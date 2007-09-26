@@ -283,6 +283,8 @@ class condorQStats:
         self.data={}
         self.updated=time.time()
 
+        self.files_updated=None
+
     def logSchedd(self,client_name,qc_status):
         """
         qc_status is a dictionary of condor_status:nr_jobs
@@ -402,6 +404,12 @@ class condorQStats:
 
     def write_file(self):
         global monitoringConfig
+
+        if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
+            # files updated recently, no need to redo it
+            return 
+        
+
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<glideFactoryEntryQStats>\n'+
@@ -428,6 +436,7 @@ class condorQStats:
                         monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
                                                    "GAUGE",self.updated,a_el)
 
+        self.files_updated=self.updated        
         return
     
     def create_support_history(self):
@@ -607,6 +616,9 @@ class condorLogSummary:
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Wait','Idle','Running','Held','Completed','Removed') #const
 
+        self.files_updated=None
+        self.history_files_updated=None
+
     def reset(self):
         # reserve only those that has been around this time
         new_stats_data={}
@@ -656,6 +668,11 @@ class condorLogSummary:
 
     def write_file(self):
         global monitoringConfig
+
+        if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
+            # files updated recently, no need to redo it
+            return 
+        
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -689,10 +706,17 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # Always 0 for them
                     monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
                                                "ABSOLUTE",self.updated,exited)
+
+        self.files_updated=self.updated
         return
     
     def create_support_history(self):
         global monitoringConfig
+
+        if (self.history_files_updated!=None) and ((self.files_updated-self.history_files_updated)<30):
+            # history files updated recently, no need to redo it
+            return 
+
         # create history XML files for RRDs
         # DEPRECATE FOR NOW
         #for client_name in [None]+self.stats_diff.keys():
@@ -817,6 +841,8 @@ class condorLogSummary:
                     pass # for sz
                 pass # for rp
             pass # for client_name
+
+        self.history_files_updated=self.files_updated
         return
 
 ############### P R I V A T E ################
@@ -905,10 +931,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.54 2007/09/26 20:28:55 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.55 2007/09/26 21:37:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.55  2007/09/26 21:37:07  sfiligoi
+#  Prevent useless updates
+#
 #  Revision 1.54  2007/09/26 20:28:55  sfiligoi
 #  Add protection from update problems
 #
