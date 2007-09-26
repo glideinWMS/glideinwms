@@ -149,7 +149,10 @@ class MonitoringConfig:
                            (self.rrd_ds_name,ds_type,self.rrd_heartbeat,min,max))
 
             #print "Updating RRD "+fname
-            update_rrd(self.rrd_obj,fname,time,val)
+            try:
+                update_rrd(self.rrd_obj,fname,time,val)
+            except Exception,e:
+                print "Failed to update %s"%fname
         return
     
     #############################################################################
@@ -902,10 +905,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.53 2007/09/26 20:15:30 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.54 2007/09/26 20:28:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.54  2007/09/26 20:28:55  sfiligoi
+#  Add protection from update problems
+#
 #  Revision 1.53  2007/09/26 20:15:30  sfiligoi
 #  Fix typo
 #
