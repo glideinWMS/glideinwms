@@ -501,6 +501,27 @@ class dirCounts(cacheDirClass):
 # 0XX - No Flag
 # YXX - Y is number of flags set
 
+# will return the status to register to the job
+def get_new_status(old_status,new_status):
+    # keep the old status unless you really want to change
+    status=old_status
+
+    if new_status in ('019','020','025','026','022','023','010','011'):
+        # these are intermediate states, so just flip a bit
+        if new_status in ('020','026','022','10'): # connection lost
+            status=str(int(old_status[0])+1)+old_status[1:]
+        else:
+            if old_status[0]!="0": # may have already fixed it, out of order
+                status=str(int(old_status[0])-1)+old_status[1:]
+            # else keep the old one
+    elif old_status in ('003','006','008'):
+        pass # do nothing, that was just informational
+    else:
+        # a significant status found, use it
+        status=new_status
+        
+    return status
+
 # read a condor submit log
 # return a dictionary of jobStrings each having the last statusString
 # for example {'1583.004': '000', '3616.008': '009'}
@@ -528,18 +549,11 @@ def parseSubmitLogFastRaw(fname):
         jobid=buf[idx:i1-4]
         idx=i1+1
 
-        if status in ('019','020','025','026','022','023','010','011'):
-            # these are intermediate states, so just flip a bit
-            if status in ('020','026','022','10'): # connection lost
-                jobs[jobid]=str(int(jobs[jobid][0])+1)+jobs[jobid][1:]
-            else:
-                if jobs[jobid][0]!="0": # may have already fixed it, out of order
-                    jobs[jobid]=str(int(jobs[jobid][0])-1)+jobs[jobid][1:]
-
-        elif status in ('003','006','008'):
-            pass # do nothing, that was just informational
+        if jobs.has_key(jobid):
+            jobs[jobid]=get_new_status(jobs[jobid],status)
         else:
             jobs[jobid]=status
+
         i1=buf.find("...",idx)
         if i1<0:
             break
@@ -549,6 +563,64 @@ def parseSubmitLogFastRaw(fname):
     fd.close()
     return jobs
 
+# read a condor submit log
+# return a dictionary of jobStrings
+#  each having (the last statusString,firstTime,runningTime,lastTime)
+# plus the first and last date in the file
+# for example {'9568.001':('000', '09/28 01:38:53', '', '09/28 01:38:53'),'9868.003':('005', '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53')},'09/28 01:38:53','09/28 20:31:53'
+def parseSubmitLogFastRawTimings(fname):
+    jobs={}
+
+    first_time=None
+    last_time=None
+    
+    size = os.path.getsize(fname)
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+
+    count=0
+    idx=0
+
+    while (idx+5)<size: # else we are at the end of the file
+        # format
+        # 023 (123.2332.000) MM/DD HH:MM:SS
+        
+        # first 3 chars are status
+        status=buf[idx:idx+3]
+        idx+=5
+        # extract job id 
+        i1=buf.find(")",idx)
+        if i1<0:
+            break
+        jobid=buf[idx:i1-4]
+        idx=i1+2
+        #extract time
+        line_time=buf[idx:idx+14]
+        idx+=16
+
+        if first_time==None:
+            first_time=line_time
+        last_time=line_time
+            
+
+        if jobs.has_key(jobid):
+            if status=='001':
+                running_time=line_time
+            else:
+                running_time=jobs[jobid][2]
+            jobs[jobid]=(get_new_status(jobs[jobid],status),jobs[jobid][1],running_time,line_time) #start time never changes
+        else:
+            jobs[jobid]=(status,line_time,'',line_time)
+
+        i1=buf.find("...",idx)
+        if i1<0:
+            break
+        idx=i1+4 #the 3 dots plus newline
+
+    buf.close()
+    fd.close()
+    return jobs,first_time,last_time
+
 # convert the log representation into (ClusterId,ProcessId)
 # Return (-1,-1) in case of error
 def rawJobId2Nr(str):
@@ -557,6 +629,37 @@ def rawJobId2Nr(str):
         return (int(arr[0]),int(arr[1]))
     else:
         return (-1,-1) #invalid
+
+
+# get two condor time strings and compute the difference
+# the fist must be before the end one
+def diffTimes(start_time,end_time,year):
+    try:
+        start_ctime=time.mktime((year,int(start_time[0:2]),int(start_time[3:5]),int(start_time[6:8]),int(start_time[9:11]),int(start_time[12:14]),0,0,-1))
+        end_ctime=time.mktime((year,int(end_time[0:2]),int(end_time[3:5]),int(end_time[6:8]),int(end_time[9:11]),int(end_time[12:14]),0,0,-1))
+    except ValueError:
+        return -1 #invalid
+    
+    return int(end_ctime)-int(start_ctime)
+
+# get two condor time strings and compute the difference
+# the fist must be before the end one
+def diffTimeswWrap(start_time,end_time,year,wrap_time):
+    try:
+        if start_time>wrap_time:
+            start_year=year
+        else:
+            start_time=year+1
+        start_ctime=time.mktime((year,int(start_time[0:2]),int(start_time[3:5]),int(start_time[6:8]),int(start_time[9:11]),int(start_time[12:14]),0,0,-1))
+        if end_time>wrap_time:
+            end_year=year
+        else:
+            end_time=year+1
+        end_ctime=time.mktime((year,int(end_time[0:2]),int(end_time[3:5]),int(end_time[6:8]),int(end_time[9:11]),int(end_time[12:14]),0,0,-1))
+    except ValueError:
+        return -1 #invalid
+    
+    return int(end_ctime)-int(start_ctime)
 
 # reduce the syayus to either Wait, Idle, Running, Held, Completed or Removed
 def interpretStatus(status):
@@ -633,6 +736,44 @@ def parseSubmitLogFast(fname):
     jobs={}
     for k in jobs_raw.keys():
         jobs[rawJobId2Nr(k)]=int(jobs_raw[k])
+    return jobs
+
+# read a condor submit log
+# return a dictionary of jobIds
+#  each having (the last status, seconds in queue, if status==5, seconds running)
+# for example {(1583,4)': (0,345,None), (3616,8): (5,7777,4532)}
+def parseSubmitLogFastTimings(fname,year=None): # if no year, then use the current one
+    jobs_raw,first_time,last_time=parseSubmitLogFastRawTimings(fname)
+
+    if year==None:
+        year=time.localtime()[0]
+
+    # it wrapped over, dates really in previous year
+    year_wrap=(first_time>last_time)
+    
+    jobs={}
+    if year_wrap:
+        year1=year-1
+        for k in jobs_raw.keys():
+            el=jobs_raw[k]
+            status=int(el[0])
+            diff_time=diffTimeswWrap(el[1],el[3],year1,first_time)
+            if status==5:
+                running_time=diffTimeswWrap(el[2],el[3],year1,first_time)
+            else:
+                running_time=None
+            jobs[rawJobId2Nr(k)]=(status,diff_time,running_time)
+    else:
+        for k in jobs_raw.keys():
+            el=jobs_raw[k]
+            status=int(el[0])
+            diff_time=diffTimes(el[1],el[3],year)
+            if status==5:
+                running_time=diffTimes(el[2],el[3],year)
+            else:
+                running_time=None
+            jobs[rawJobId2Nr(k)]=(status,diff_time,running_time)
+        
     return jobs
 
 ################################
