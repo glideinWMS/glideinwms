@@ -85,6 +85,7 @@ class cachedLogClass:
 # this class will keep track of:
 #  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
+# for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummary(cachedLogClass):
     def __init__(self,logname):
         self.clInit(logname,".cstpk")
@@ -164,6 +165,7 @@ class logSummary(cachedLogClass):
 #  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
 #  - list of completed jobs
 # These data is available in self.data dictionary
+#   for example self.data={'completed_jobs':['123.002','555.001'],'counts':{'Idle': 1145, 'Completed': 2}}
 class logCompleted(cachedLogClass):
     def __init__(self,logname):
         self.clInit(logname,".clspk")
@@ -260,6 +262,7 @@ class logCompleted(cachedLogClass):
 # this class will keep track of
 #  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
+#   for example self.data={'Idle': 1145, 'Completed': 2}
 class logCounts(cachedLogClass):
     def __init__(self,logname):
         self.logname=logname
@@ -427,6 +430,7 @@ class cacheDirClass:
 # this class will keep track of:
 #  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
+# for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class dirSummary(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,          # if ==None, will be reloaded from cache
@@ -438,6 +442,7 @@ class dirSummary(cacheDirClass):
 #  - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
 #  - list of completed jobs
 # These data is available in self.data dictionary
+#   for example self.data={'completed_jobs':['123.002','555.001'],'counts':{'Idle': 1145, 'Completed': 2}}
 class dirCompleted(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
@@ -448,6 +453,7 @@ class dirCompleted(cacheDirClass):
 # this class will keep track of
 #  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
+#   for example self.data={'Idle': 1145, 'Completed': 2}
 class dirCounts(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
