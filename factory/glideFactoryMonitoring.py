@@ -631,7 +631,7 @@ class condorLogSummary:
         # and flush out the differences
         self.stats_diff={}
 
-    def diffTimes(self,endstr,startstr):
+    def diffTimes(self,end_time,start_time):
         year=self.updated_year
         try:
             start_list=[year,int(start_time[0:2]),int(start_time[3:5]),int(start_time[6:8]),int(start_time[9:11]),int(start_time[12:14]),0,0,-1]
@@ -991,10 +991,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.57 2007/10/04 18:58:22 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.58 2007/10/04 19:42:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.58  2007/10/04 19:42:53  sfiligoi
+#  Fix typo
+#
 #  Revision 1.57  2007/10/04 18:58:22  sfiligoi
 #  Use Timings
 #
