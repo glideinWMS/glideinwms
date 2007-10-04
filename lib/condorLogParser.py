@@ -721,7 +721,7 @@ def parseSubmitLogFastRawTimings(fname):
                 running_time=line_time
             else:
                 running_time=jobs[jobid][2]
-            jobs[jobid]=(get_new_status(jobs[jobid],status),jobs[jobid][1],running_time,line_time) #start time never changes
+            jobs[jobid]=(get_new_status(jobs[jobid][0],status),jobs[jobid][1],running_time,line_time) #start time never changes
         else:
             jobs[jobid]=(status,line_time,'',line_time)
 
@@ -743,14 +743,22 @@ def rawJobId2Nr(str):
     else:
         return (-1,-1) #invalid
 
+# convert the log representation into ctime
+# Return -1 in case of error
+def rawTime2cTime(str,year):
+    try:
+        start_ctime=time.mktime((year,int(str[0:2]),int(str[3:5]),int(str[6:8]),int(str[9:11]),int(str[12:14]),0,0,-1))
+    except ValueError:
+        return -1 #invalid
+    return start_ctime
+
 
 # get two condor time strings and compute the difference
 # the fist must be before the end one
 def diffTimes(start_time,end_time,year):
-    try:
-        start_ctime=time.mktime((year,int(start_time[0:2]),int(start_time[3:5]),int(start_time[6:8]),int(start_time[9:11]),int(start_time[12:14]),0,0,-1))
-        end_ctime=time.mktime((year,int(end_time[0:2]),int(end_time[3:5]),int(end_time[6:8]),int(end_time[9:11]),int(end_time[12:14]),0,0,-1))
-    except ValueError:
+    start_ctime=rawTime2cTime(start_time,year)
+    end_ctime=rawTime2cTime(end_time,year)
+    if (start_time<0) or (end_time<0):
         return -1 #invalid
     
     return int(end_ctime)-int(start_ctime)
@@ -758,20 +766,21 @@ def diffTimes(start_time,end_time,year):
 # get two condor time strings and compute the difference
 # the fist must be before the end one
 def diffTimeswWrap(start_time,end_time,year,wrap_time):
-    try:
-        if start_time>wrap_time:
-            start_year=year
-        else:
-            start_time=year+1
-        start_ctime=time.mktime((year,int(start_time[0:2]),int(start_time[3:5]),int(start_time[6:8]),int(start_time[9:11]),int(start_time[12:14]),0,0,-1))
-        if end_time>wrap_time:
-            end_year=year
-        else:
-            end_time=year+1
-        end_ctime=time.mktime((year,int(end_time[0:2]),int(end_time[3:5]),int(end_time[6:8]),int(end_time[9:11]),int(end_time[12:14]),0,0,-1))
-    except ValueError:
-        return -1 #invalid
+    if start_time>wrap_time:
+        start_year=year
+    else:
+        start_year=year+1
+    start_ctime=rawTime2cTime(start_time,start_year)
+
+    if end_time>wrap_time:
+        end_year=year
+    else:
+        end_year=year+1
+    end_ctime=rawTime2cTime(end_time,end_year)
     
+    if (start_time<0) or (end_time<0):
+        return -1 #invalid
+
     return int(end_ctime)-int(start_ctime)
 
 # reduce the syayus to either Wait, Idle, Running, Held, Completed or Removed
