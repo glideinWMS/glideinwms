@@ -645,8 +645,8 @@ class condorLogSummary:
         except TypeError:
             return -1 #invalid
 
-        if start_time<=end_time:
-            return end_time-start_time
+        if start_ctime<=end_ctime:
+            return end_ctime-start_ctime
 
         # else must have gone over the year boundary
         start_list[0]-=1 #decrease start year
@@ -655,7 +655,7 @@ class condorLogSummary:
         except TypeError:
             return -1 #invalid
 
-        return end_time-start_time
+        return end_ctime-start_ctime
 
         
 
@@ -991,10 +991,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.58 2007/10/04 19:42:53 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.59 2007/10/04 19:49:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.59  2007/10/04 19:49:40  sfiligoi
+#  Fix typo
+#
 #  Revision 1.58  2007/10/04 19:42:53  sfiligoi
 #  Fix typo
 #
