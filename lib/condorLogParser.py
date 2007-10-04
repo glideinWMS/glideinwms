@@ -92,7 +92,7 @@ class logSummary(cachedLogClass):
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
-        self.data = listAndInterpretRawStatuses(jobs)
+        self.data = listAndInterpretRawStatuses(jobs,listStatuses)
         return
 
     def isActive(self):
@@ -173,7 +173,7 @@ class logCompleted(cachedLogClass):
     def loadFromLog(self):
         tmpdata={}
         jobs = parseSubmitLogFastRaw(self.logname)
-        status  = listAndInterpretRawStatuses(jobs)
+        status  = listAndInterpretRawStatuses(jobs,listStatuses)
         counts={}
         for s in status.keys():
             counts[s]=len(status[s])
@@ -332,6 +332,103 @@ class logCounts(cachedLogClass):
 
             return outdata
 
+# this class will keep track of:
+#  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
+# These data is available in self.data dictionary
+# for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
+class logSummaryTimings(cachedLogClass):
+    def __init__(self,logname):
+        self.clInit(logname,".ctstpk")
+
+    def loadFromLog(self):
+        jobs,self.startTime,self.endTime = parseSubmitLogFastRawTimings(self.logname)
+        self.data = listAndInterpretRawStatuses(jobs,listStatusesTimings)
+        return
+
+    def isActive(self):
+        active=False
+        for k in self.data.keys():
+            if not (k in ['Completed','Removed']):
+                if len(self.data[k])>0:
+                    active=True # it is enought that at least one non Completed/removed job exist
+        return active
+
+    # merge self data with other info
+    # return merged data, may modify other
+    def merge(self,other):
+        if other==None:
+            return self.data
+        else:
+            for k in self.data.keys():
+                try:
+                    other[k]+=self.data[k]
+                except: # missing key
+                    other[k]=self.data[k]
+                pass
+            return other
+
+    # diff self data with other info
+    # return data[status]['Entered'|'Exited'] - list of jobs
+    def diff(self,other):
+        if other==None:
+            outdata={}
+            if self.data!=None:
+                for k in self.data.keys():
+                    outdata[k]={'Exited':[],'Entered':self.data[k]}
+            return outdata
+        elif self.data==None:
+            outdata={}
+            for k in other.keys():
+                outdata[k]={'Entered':[],'Exited':other[k]}
+            return outdata
+        else:
+            outdata={}
+            
+            keys={} # keys will contain the merge of the two lists
+            
+            for s in (self.data.keys()+other.keys()):
+                keys[s]=None
+
+            for s in keys.keys():
+                sel=[]
+                if self.data.has_key(s):
+                    for sel_e in self.data[s]:
+                        sel.append(sel_e[0])
+
+                oel=[]
+                if other.has_key(s):
+                    for oel_e in other[s]:
+                        oel.append(oel_e[0])
+
+
+                #################
+                # Need to finish
+
+                outdata_s={'Entered':[],'Exited':[]}
+                outdata[s]=outdata_s
+
+                sset=sets.Set(sel)
+                oset=sets.Set(oel)
+
+                entered_set=sset.difference(oset)
+                entered=[]
+                if self.data.has_key(s):
+                    for sel_e in self.data[s]:
+                        if sel_e[0] in entered_set:
+                            entered.append(sel_e)
+
+                exited_set=oset.difference(sset)
+                exited=[]
+                if other.has_key(s):
+                    for oel_e in other[s]:
+                        if oel_e[0] in exited_set:
+                            exited.append(oel_e)
+
+
+                outdata_s['Entered']=entered
+                outdata_s['Exited']=exited
+            return outdata
+            
 # -------------- Multiple Log classes ------------------------
 
 # this is a generic class
@@ -459,6 +556,16 @@ class dirCounts(cacheDirClass):
                  inactive_files=None,         # if ==None, will be reloaded from cache
                  inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
         self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
+
+# this class will keep track of:
+#  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
+# These data is available in self.data dictionary
+# for example self.data={'Idle':[('123.003','09/28 01:38:53', '09/28 01:42:23', '09/28 08:06:33'),('123.004','09/28 02:38:53', '09/28 02:42:23', '09/28 09:06:33')],'Running':[('123.001','09/28 01:32:53', '09/28 01:43:23', '09/28 08:07:33'),('123.002','09/28 02:38:53', '09/28 03:42:23', '09/28 06:06:33')]}
+class dirSummaryTimings(cacheDirClass):
+    def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None,          # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+        self.cdInit(logSummaryTimings,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
 
 
 
@@ -716,16 +823,29 @@ def listStatuses(jobs):
     for k,e in jobs.items():
         try:
             status[e].append(k)
-        except: # there are only a few possible values, so using exceptions is faster
+        except: # there are only a few possible values, so using exceptions for initialization is faster
             status[e]=[k]
     return status
 
-# given a dictionary of job statuses (like the one got from parseSubmitLogFastRaw)
-# will return a dictionary of jobs in each status
-# for example: {'Completed': ["2.003","5.001"], 'Removed': ["41.001"], 'Running': ["408.003"]}
-def listAndInterpretRawStatuses(jobs_raw):
+# given a dictionary of job statuses + timings (like the one got from parseSubmitLogFastRawTimings)
+# will return a dictionary of jobs +timings in each status
+# for example: {'009': [("1.003",'09/28 01:38:53', '', '09/28 01:38:53'),("2.001",'09/28 03:38:53', '', '09/28 04:38:53')], '005': [("1503.001", '09/28 01:48:52', '09/28 16:11:23', '09/28 20:31:53'),("1555.002", '09/28 02:48:52', '09/28 18:11:23', '09/28 23:31:53')]}
+def listStatusesTimings(jobs):
+    status={}
+    for k,e in jobs.items():
+        try:
+            status[e[0]].append((k,)+e[1:])
+        except: # there are only a few possible values, so using exceptions for initialization is faster
+            status[e[0]]=[(k,)+e[1:]]
+    return status
+
+# given a dictionary of job statuses (whatever the invert_function recognises)
+# will return a dictionary of jobs in each status (syntax depends on the invert_function)
+# for example with linvert_funtion==istStatuses:
+#   {'Completed': ["2.003","5.001"], 'Removed': ["41.001"], 'Running': ["408.003"]}
+def listAndInterpretRawStatuses(jobs_raw,invert_function):
     outc={}
-    tmpc=listStatuses(jobs_raw)
+    tmpc=invert_function(jobs_raw)
     for s in tmpc.keys():
         i_s=interpretStatus(int(s[1:])) #ignore flags
         try:
