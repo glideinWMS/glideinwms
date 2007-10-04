@@ -8,7 +8,7 @@
 #
 
 import os,os.path
-import re,time,copy,string
+import re,time,copy,string,math
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
@@ -612,6 +612,7 @@ class condorLogSummary:
     def __init__(self):
         self.data={}
         self.updated=time.time()
+        self.updated_year=time.localtime(self.updated)[0]
         self.current_stats_data={}     # will contain dictionary client->dirSummary.data
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Wait','Idle','Running','Held','Completed','Removed') #const
@@ -629,11 +630,52 @@ class condorLogSummary:
 
         # and flush out the differences
         self.stats_diff={}
+
+    def diffTimes(self,endstr,startstr):
+        year=self.updated_year
+        try:
+            start_list=[year,int(start_time[0:2]),int(start_time[3:5]),int(start_time[6:8]),int(start_time[9:11]),int(start_time[12:14]),0,0,-1]
+            end_list=[year,int(end_time[0:2]),int(end_time[3:5]),int(end_time[6:8]),int(end_time[9:11]),int(end_time[12:14]),0,0,-1]
+        except ValueError:
+            return -1 #invalid
+
+        try:
+            start_ctime=time.mktime(start_list)
+            end_ctime=time.mktime(end_list)
+        except TypeError:
+            return -1 #invalid
+
+        if start_time<=end_time:
+            return end_time-start_time
+
+        # else must have gone over the year boundary
+        start_list[0]-=1 #decrease start year
+        try:
+            start_ctime=time.mktime(start_list)
+        except TypeError:
+            return -1 #invalid
+
+        return end_time-start_time
+
         
+
+    def getTimeRange(self,absval):
+        if absval<1:
+            return 'Unknown'
+        logval=int(math.log(absval,2)+0.49)
+        if logval<8:
+            return 'TooShort' # group together anything smaller than 5 mins
+        else:
+            level=math.pow(2,logval)
+            if level<3600:
+                return "%imins"%(int(level/60+0.49))
+            else:
+                return "%ihours"%(int(level/3600+0.49))
+            
 
     def logSummary(self,client_name,stats):
         """
-         stats - glideFactoryLogParser.dirSummary
+         stats - glideFactoryLogParser.dirSummaryTimings
         """
         if self.current_stats_data.has_key(client_name):
             self.stats_diff[client_name]=stats.diff(self.current_stats_data[client_name])
@@ -642,6 +684,7 @@ class condorLogSummary:
         
         self.current_stats_data[client_name]=stats.data
         self.updated=time.time()
+        self.updated_year=time.localtime(self.updated)[0]
 
     def get_stats_total(self):
         total={'Wait':None,'Idle':None,'Running':None,'Held':None}
@@ -695,9 +738,11 @@ class condorLogSummary:
                                                "GAUGE",self.updated,count)
 
                 if ((sdiff!=None) and (s in sdiff.keys())):
-                    entered=len(sdiff[s]['Entered'])
+                    entered_list=sdiff[s]['Entered']
+                    entered=len(entered_list)
                     exited=-len(sdiff[s]['Exited'])
                 else:
+                    entered_list=[]
                     entered=0
                     exited=0
                     
@@ -706,7 +751,22 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # Always 0 for them
                     monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
                                                "ABSOLUTE",self.updated,exited)
+                elif s=='Completed': # get run times
+                    count_entered_times={}
+                    for enle in entered_list:
+                        enle_running_time=enle[2]
+                        enle_last_time=enle[3]
+                        enle_difftime=self.diffTimes(enle_last_time,enle_running_time)
+                        enle_timerange=self.getTimeRange(enle_difftime)
+                        try:
+                            count_entered_times[enle_timerange]+=1
+                        except:
+                            count_entered_times[enle_timerange]=1
 
+                    for timerange in count_entered_times.keys():
+                        monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
+                                                   "ABSOLUTE",self.updated,count_entered_times[timerange])
+                            
         self.files_updated=self.updated
         return
     
@@ -931,10 +991,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.56 2007/09/26 21:53:36 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.57 2007/10/04 18:58:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.57  2007/10/04 18:58:22  sfiligoi
+#  Use Timings
+#
 #  Revision 1.56  2007/09/26 21:53:36  sfiligoi
 #  Strings
 #

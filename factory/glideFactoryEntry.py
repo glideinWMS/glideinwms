@@ -64,7 +64,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
     condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
-    log_stats=glideFactoryLogParser.dirSummary("entry_%s/log"%entry_name,client_name)
+    log_stats=glideFactoryLogParser.dirSummaryTimings("entry_%s/log"%entry_name,client_name)
     log_stats.load()
 
     glideFactoryLib.logStats(condorQ,condorStatus)
@@ -382,10 +382,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.24 2007/07/11 17:40:30 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.25 2007/10/04 18:58:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.25  2007/10/04 18:58:22  sfiligoi
+#  Use Timings
+#
 #  Revision 1.24  2007/07/11 17:40:30  sfiligoi
 #  never fail for stats reasons
 #
