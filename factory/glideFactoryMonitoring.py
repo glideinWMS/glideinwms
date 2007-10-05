@@ -764,7 +764,7 @@ class condorLogSummary:
                     count_entered_times={}
                     count_validation_failed=0
                     count_waste_mill={'validation':{},
-                                 'idle':{}
+                                 'idle':{},
                                  'nosucces':{}, #i.e. everything but jobs terminating with 0
                                  'badput':={}} #i.e. everything but jobs terminating
                     # should also add abs waste
@@ -1066,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.62 2007/10/05 22:57:17 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.63 2007/10/05 22:58:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.63  2007/10/05 22:58:11  sfiligoi
+#  Fix typo
+#
 #  Revision 1.62  2007/10/05 22:57:17  sfiligoi
 #  Fix typo
 #
