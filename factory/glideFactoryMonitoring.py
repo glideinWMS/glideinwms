@@ -830,7 +830,7 @@ class condorLogSummary:
                         monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
                                                    "ABSOLUTE",self.updated,count_entered_times[timerange])
                     # save failures
-                    monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s,timerange),
+                    monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s),
                                                "ABSOLUTE",self.updated,count_validation_failed)
 
                     # save waste_mill
@@ -1066,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.64 2007/10/05 22:58:59 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.65 2007/10/05 23:09:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.65  2007/10/05 23:09:28  sfiligoi
+#  Fix typo
+#
 #  Revision 1.64  2007/10/05 22:58:59  sfiligoi
 #  Fix typo
 #

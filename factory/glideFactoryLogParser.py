@@ -23,7 +23,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         self.clInit(logname,".ftstpk")
         self.dirname=os.path.dirname(logname)
         self.now=time.time()
-        self.year=time.localtime(now)[0]
+        self.year=time.localtime(self.now)[0]
 
     def loadFromLog(self):
         condorLogParser.logSummaryTimings.loadFromLog(self)
