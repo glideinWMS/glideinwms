@@ -837,7 +837,7 @@ class condorLogSummary:
                     for w in count_waste_mill.keys():
                         count_waste_mill_w=count_waste_mill[w]
                         for p in count_waste_mill_w.keys():
-                            monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,timerange),
+                            monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
                                                        "ABSOLUTE",self.updated,w,count_waste_mill_w[p])
                             
 
@@ -1066,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.65 2007/10/05 23:09:28 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.66 2007/10/05 23:13:02 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.66  2007/10/05 23:13:02  sfiligoi
+#  Fix typo
+#
 #  Revision 1.65  2007/10/05 23:09:28  sfiligoi
 #  Fix typo
 #
