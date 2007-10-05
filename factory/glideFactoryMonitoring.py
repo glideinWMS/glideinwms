@@ -676,7 +676,7 @@ class condorLogSummary:
         if absval<0.5:
             return '0m'
         # make sure 1000 gets back to 1000
-        logval=int(math.log(absval*1.00343.0,2)+0.49)
+        logval=int(math.log(absval*1.00343,2)+0.49)
         level=int(math.pow(2,logval)/1.00343)
         return "%im"%level
             
@@ -1066,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.61 2007/10/05 22:53:06 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.62 2007/10/05 22:57:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.62  2007/10/05 22:57:17  sfiligoi
+#  Fix typo
+#
 #  Revision 1.61  2007/10/05 22:53:06  sfiligoi
 #  Add ouptpu log parsing and waste reporting
 #
