@@ -672,10 +672,18 @@ class condorLogSummary:
         else:
             return "%ihours"%(int(level/3600+0.49))
             
+    def getMillRange(self,absval):
+        if absval<0.5:
+            return '0m'
+        # make sure 1000 gets back to 1000
+        logval=int(math.log(absval*1.00343.0,2)+0.49)
+        level=int(math.pow(2,logval)/1.00343)
+        return "%im"%level
+            
 
     def logSummary(self,client_name,stats):
         """
-         stats - glideFactoryLogParser.dirSummaryTimings
+         stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
         if self.current_stats_data.has_key(client_name):
             self.stats_diff[client_name]=stats.diff(self.current_stats_data[client_name])
@@ -751,22 +759,89 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # Always 0 for them
                     monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
                                                "ABSOLUTE",self.updated,exited)
-                elif s=='Completed': # get run times
+                elif s=='Completed':
+                    # summarize completed data
                     count_entered_times={}
+                    count_validation_failed=0
+                    count_waste_mill={'validation':{},
+                                 'idle':{}
+                                 'nosucces':{}, #i.e. everything but jobs terminating with 0
+                                 'badput':={}} #i.e. everything but jobs terminating
+                    # should also add abs waste
+
                     for enle in entered_list:
                         enle_running_time=enle[2]
                         enle_last_time=enle[3]
                         enle_difftime=self.diffTimes(enle_last_time,enle_running_time)
+
+                        # find and save taime range
                         enle_timerange=self.getTimeRange(enle_difftime)
                         try:
                             count_entered_times[enle_timerange]+=1
-                        except:
+                        except: # easy initialization way
                             count_entered_times[enle_timerange]=1
+                        
 
+                        # get stats
+                        enle_stats=enle[4]
+                        enle_condor_started=0
+                        if enle_stats!=None:
+                            enle_condor_started=enle_stats['condor_started']
+                        if not enle_condor_started:
+                            count_validation_failed+=1
+                            # 100% waste_mill
+                            enle_waste_mill={'validation':1000,
+                                        'idle':0,
+                                        'nosucces':1000,
+                                        'badput':1000}
+                        else:
+                            #get waste_mill
+                            enle_condor_duration=enle_stats['condor_duration']
+                            if enle_condor_duration==None:
+                                enle_condor_duration=0 # assume failed
+
+                            # get wate numbers, in permill
+                            if (enle_condor_duration<5): # very short means 100% loss
+                                enle_waste_mill={'validation':1000,
+                                            'idle':0,
+                                            'nosucces':1000,
+                                            'badput':1000}
+                            else:
+                                enle_condor_stats=enle_stats['stats']
+                                enle_waste_mill={'validation':1000.0*(enle_difftime-enle_condor_duration)/enle_difftime,
+                                            'idle':1000.0*(enle_condor_duration-enle_condor_stats['Total']['secs'])/enle_difftime}
+                                enle_goodput=enle_condor_stats['goodZ']['secs']
+                                enle_waste_mill['nosucces']=1000.0*(enle_difftime-goodput)/enle_difftime
+                                enle_goodput+=enle_condor_stats['goodNZ']['secs']
+                                enle_waste_mill['badput']=1000.0*(enle_difftime-goodput)/enle_difftime
+
+                        for w in enle_waste_mill.keys():
+                            count_waste_mill_w=count_waste_mill[w]
+                            # find and save taime range
+                            enle_waste_mill_w_range=self.getMillRange(enle_waste_mill[w])
+                            try:
+                                count_waste_mill_w[enle_waste_mill_w_range]+=1
+                            except: # easy initialization way
+                                count_waste_mill_w[enle_waste_mill_w_range]=1
+
+
+                    # save run times
                     for timerange in count_entered_times.keys():
                         monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
                                                    "ABSOLUTE",self.updated,count_entered_times[timerange])
+                    # save failures
+                    monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s,timerange),
+                                               "ABSOLUTE",self.updated,count_validation_failed)
+
+                    # save waste_mill
+                    for w in count_waste_mill.keys():
+                        count_waste_mill_w=count_waste_mill[w]
+                        for p in count_waste_mill_w.keys():
+                            monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,timerange),
+                                                       "ABSOLUTE",self.updated,w,count_waste_mill_w[p])
                             
+
+
         self.files_updated=self.updated
         return
     
@@ -991,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.60 2007/10/04 20:22:04 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.61 2007/10/05 22:53:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.61  2007/10/05 22:53:06  sfiligoi
+#  Add ouptpu log parsing and waste reporting
+#
 #  Revision 1.60  2007/10/04 20:22:04  sfiligoi
 #  Make time steps in multiples of 5
 #
