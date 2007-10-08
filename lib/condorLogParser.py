@@ -520,7 +520,7 @@ class cacheDirClass:
 
     # diff self data with other info
     def diff(self,other):
-        dummyobj=self.logClass("/dummy/dummy")
+        dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'))
         dummyobj.data=self.data # a little rough but works
         return  dummyobj.diff(other) 
         
