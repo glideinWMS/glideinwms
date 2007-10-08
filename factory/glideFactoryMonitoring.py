@@ -664,9 +664,9 @@ class condorLogSummary:
             return 'Unknown'
         if absval<240:
             return 'TooShort'
-        # start with 5 min, and than exp2
-        logval=int(math.log(absval/300.0,2)+0.49)
-        level=math.pow(2,logval)*300.0
+        # start with 7.5 min, and than exp2
+        logval=int(math.log(absval/450.0,2)+0.49)
+        level=math.pow(2,logval)*450.0
         if level<3600:
             return "%imins"%(int(level/60+0.49))
         else:
@@ -1066,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.66 2007/10/05 23:13:02 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.67 2007/10/08 19:25:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.67  2007/10/08 19:25:55  sfiligoi
+#  Change TimeRange Log to be rounded on the hour
+#
 #  Revision 1.66  2007/10/05 23:13:02  sfiligoi
 #  Fix typo
 #
