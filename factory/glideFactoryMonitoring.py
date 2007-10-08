@@ -811,9 +811,9 @@ class condorLogSummary:
                                 enle_waste_mill={'validation':1000.0*(enle_difftime-enle_condor_duration)/enle_difftime,
                                             'idle':1000.0*(enle_condor_duration-enle_condor_stats['Total']['secs'])/enle_difftime}
                                 enle_goodput=enle_condor_stats['goodZ']['secs']
-                                enle_waste_mill['nosucces']=1000.0*(enle_difftime-goodput)/enle_difftime
+                                enle_waste_mill['nosucces']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
                                 enle_goodput+=enle_condor_stats['goodNZ']['secs']
-                                enle_waste_mill['badput']=1000.0*(enle_difftime-goodput)/enle_difftime
+                                enle_waste_mill['badput']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
 
                         for w in enle_waste_mill.keys():
                             count_waste_mill_w=count_waste_mill[w]
@@ -1066,10 +1066,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.68 2007/10/08 19:30:55 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.69 2007/10/08 22:25:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.69  2007/10/08 22:25:12  sfiligoi
+#  Fix waste calculations
+#
 #  Revision 1.68  2007/10/08 19:30:55  sfiligoi
 #  Change MillRange Log to be rounded on 1000
 #

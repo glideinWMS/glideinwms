@@ -8,7 +8,7 @@
 #
 
 
-import os, os.path,time,stat
+import os, os.path,time,stat,sets
 import mmap,re
 import condorLogParser
 
@@ -45,28 +45,104 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 ftime=statinfo[stat.ST_MTIME]
                 fsize=statinfo[stat.ST_SIZE]
 
-                file_ok=((fsize>0) and        # log files are ==0 only before Condor_G transfers them back
-                         (ftime>end_time) and # same here
-                         (ftime<(now-5)))       # make sure it is not being written into
+                file_ok=((fsize>0) and              # log files are ==0 only before Condor_G transfers them back
+                         (ftime>(end_time-300)) and # same here
+                         (ftime<(now-5)))           # make sure it is not being written into
             except OSError:
                 #no file, report invalid
                 file_ok=0
 
             if file_ok:
-                try:
-                    fdata=extractLogData(job_fullname)
-                except:
-                    fdata=None # just protect
-                new_completed.append(el+(fdata,))
+                #try:
+                #    fdata=extractLogData(job_fullname)
+                #except:
+                #    fdata=None # just protect
+                new_completed.append(el)
             else:
                 if (now-end_time)<3600: # give him 1 hour to return the log files
                     new_waitout.append(el)
                 else:
-                    new_completed.append(el+(None,))
+                    new_completed.append(el)
                 
         self.data['CompletedNoOut']=new_waitout
         self.data['Completed']=new_completed
         return
+
+    # diff self data with other info
+    # add glidein log data to Entered/Completed
+    # return data[status]['Entered'|'Exited'] - list of jobs
+    def diff(self,other):
+        if other==None:
+            outdata={}
+            if self.data!=None:
+                for k in self.data.keys():
+                    outdata[k]={'Exited':[],'Entered':self.data[k]}
+            return outdata
+        elif self.data==None:
+            outdata={}
+            for k in other.keys():
+                outdata[k]={'Entered':[],'Exited':other[k]}
+            return outdata
+        else:
+            outdata={}
+            
+            keys={} # keys will contain the merge of the two lists
+            
+            for s in (self.data.keys()+other.keys()):
+                keys[s]=None
+
+            for s in keys.keys():
+                sel=[]
+                if self.data.has_key(s):
+                    for sel_e in self.data[s]:
+                        sel.append(sel_e[0])
+
+                oel=[]
+                if other.has_key(s):
+                    for oel_e in other[s]:
+                        oel.append(oel_e[0])
+
+
+                #################
+                # Need to finish
+
+                outdata_s={'Entered':[],'Exited':[]}
+                outdata[s]=outdata_s
+
+                sset=sets.Set(sel)
+                oset=sets.Set(oel)
+
+                entered_set=sset.difference(oset)
+                entered=[]
+                if self.data.has_key(s):
+                    for sel_e in self.data[s]:
+                        if sel_e[0] in entered_set:
+                            if s=="Completed":
+                                job_id=rawJobId2Nr(sel_e[0])
+                                job_fname='job.%i.%i.out'%job_id
+                                job_fullname=os.path.join(self.dirname,job_fname)
+                                
+                                try:
+                                    fdata=extractLogData(job_fullname)
+                                except:
+                                    fdata=None # just protect
+                                    
+                                entered.append(sel_e+(fdata,))
+                            else:
+                                entered.append(sel_e)
+
+                exited_set=oset.difference(sset)
+                exited=[]
+                if other.has_key(s):
+                    for oel_e in other[s]:
+                        if oel_e[0] in exited_set:
+                            exited.append(oel_e)
+
+
+                outdata_s['Entered']=entered
+                outdata_s['Exited']=exited
+            return outdata
+
 
 # for now it is just a constructor wrapper
 # Further on it will need to implement glidein exit code checks
