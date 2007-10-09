@@ -841,7 +841,7 @@ class condorLogSummary:
                         count_waste_mill_w=count_waste_mill[w]
                         for p in count_waste_mill_w.keys():
                             monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
-                                                       "ABSOLUTE",self.updated,w,count_waste_mill_w[p])
+                                                       "ABSOLUTE",self.updated,count_waste_mill_w[p])
                             
 
 
@@ -890,6 +890,30 @@ class condorLogSummary:
                     monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
                                                 s,
                                                 [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
+                elif s=="Completed":
+                    # create graphs for Lasted and Waste
+                    client_dir=os.listdir(fe_dir)
+                    for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+                        # get sorted list of rrds
+                        t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
+                        t_keys={}
+                        for d in client_dir:
+                            t_re_m=t_re.match(d)
+                            if t_re_m!=None:
+                                t_keys[t_re_m.groups()]=1
+                        t_keys=t_keys.keys()
+                        t_keys.sort(cmpPairs)
+
+                        # Create graph out of it
+                        t_rrds=[]
+                        idx=0
+                        for t_k in t_keys:
+                            t_rrds.append(("%s%s"%t_k,"%s/Log_Completed_Entry_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1]),"AREA",colors[idx%len(colors)]))
+                            idx+=1
+                        monitoringConfig.graph_rrds("%s/Log_Completed_Entry_%s.rrd"%(fe_dir,t),
+                                                    t,t_rrds)
+
+                                
 
         # Crate split graphs for total
         frontend_list=monitoringConfig.find_disk_frontends()
@@ -985,6 +1009,38 @@ class condorLogSummary:
 
 ############### P R I V A T E ################
 
+def getUnitVal(u):
+    if u=="TooShort":
+        return 0
+    if u=="m":
+        return 1
+    if u=="mins":
+        return 2
+    if u=="hours":
+        return 3
+    return 100 # just for protection
+
+# compare (nr,unit) pairs
+def cmpPairs(e1,e2):
+    # first compare units
+    u1=getUnitVal(e1[1])
+    u2=getUnitVal(e2[1])
+    ucmp=cmp(u1,u2)
+    if ucmp!=0:
+        return ucmp
+
+    # units equal, compare numbers
+    try:
+        n1=int(e1[0])
+    except:
+        n1=10000
+    try:
+        n2=int(e2[0])
+    except:
+        n2=10000
+    return cmp(n1,n2)
+
+
 def tmp2final(fname):
     try:
         os.remove(fname+"~")
@@ -1069,10 +1125,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.70 2007/10/09 15:25:57 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.71 2007/10/09 18:38:00 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.71  2007/10/09 18:38:00  sfiligoi
+#  Add graph creation for lasted and waste
+#
 #  Revision 1.70  2007/10/09 15:25:57  sfiligoi
 #  Protect from Condor-G latencies
 #
