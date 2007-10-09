@@ -971,18 +971,27 @@ class condorLogSummary:
                         fd.write("</head>\n<body>\n")
                         fd.write("<h1>%s over last %s</h1>\n"%(client_name,period));
                         fd.write('<p>[<a href="0Status.%s.%s.html">Status</a>]</p>\n'%(period,size)) 
-                        fd.write("<table>")
+                        fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
                                 for w in ['Count','Diff']:
                                     fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
-                                if s=='Running':
-                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff',period,size))
-                                elif s=='Held':
-                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
                                 fd.write('</tr>\n')                            
-                        fd.write("</table>")
+                        fd.write("</table>\n</p>\n")
+                        fd.write("<p>\n<table>\n")
+                        for s_arr in (('Diff','Entered_Lasted'),
+                                      ('Entered_Waste_validation','Entered_Waste_idle'),
+                                      ('Entered_Waste_nosuccess','Entered_Waste_badput')):
+                            fd.write('<tr valign="top">')
+                            for s in s_arr:
+                                fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s_arr,period,size))
+                            fd.write('</tr>\n')
+                        
+                        fd.write('<tr valign="top">')
+                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
 
                         if client_name==None:
                             # total has also the split graphs
@@ -1131,10 +1140,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.83 2007/10/09 21:47:36 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.84 2007/10/09 22:12:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.84  2007/10/09 22:12:36  sfiligoi
+#  Put new graphs into index file
+#
 #  Revision 1.83  2007/10/09 21:47:36  sfiligoi
 #  Fix typo
 #
