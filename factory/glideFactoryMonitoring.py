@@ -903,16 +903,19 @@ class condorLogSummary:
                             if t_re_m!=None:
                                 t_keys[t_re_m.groups()]=1
                         t_keys=t_keys.keys()
-                        t_keys.sort(cmpPairs)
 
-                        # Create graph out of it
-                        t_rrds=[]
-                        idx=0
-                        for t_k in t_keys:
-                            t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"AREA",r_colors[idx%len(r_colors)]))
-                            idx+=1
-                        monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s.rrd"%(fe_dir,t),
-                                                    t,t_rrds)
+                        if len(t_keys)>0:
+                            t_keys.sort(cmpPairs)
+                            
+                            
+                            # Create graph out of it
+                            t_rrds=[]
+                            idx=0
+                            for t_k in t_keys:
+                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"AREA",r_colors[idx%len(r_colors)]))
+                                idx+=1
+                            monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s.rrd"%(fe_dir,t),
+                                                        t,t_rrds)
 
                                 
 
@@ -1126,10 +1129,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.75 2007/10/09 19:26:31 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.76 2007/10/09 19:52:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.76  2007/10/09 19:52:26  sfiligoi
+#  Fix bug
+#
 #  Revision 1.75  2007/10/09 19:26:31  sfiligoi
 #  Handle UINICODE properly
 #
