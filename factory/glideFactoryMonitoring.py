@@ -774,14 +774,6 @@ class condorLogSummary:
                         enle_last_time=enle[3]
                         enle_difftime=self.diffTimes(enle_last_time,enle_running_time)
 
-                        # find and save taime range
-                        enle_timerange=self.getTimeRange(enle_difftime)
-                        try:
-                            count_entered_times[enle_timerange]+=1
-                        except: # easy initialization way
-                            count_entered_times[enle_timerange]=1
-                        
-
                         # get stats
                         enle_stats=enle[4]
                         enle_condor_started=0
@@ -800,6 +792,9 @@ class condorLogSummary:
                             if enle_condor_duration==None:
                                 enle_condor_duration=0 # assume failed
 
+                            if enle_condor_duration>enle_difftime: # can happen... Condor-G has its delays
+                                enle_difftime=enle_condor_duration
+
                             # get wate numbers, in permill
                             if (enle_condor_duration<5): # very short means 100% loss
                                 enle_waste_mill={'validation':1000,
@@ -815,6 +810,14 @@ class condorLogSummary:
                                 enle_goodput+=enle_condor_stats['goodNZ']['secs']
                                 enle_waste_mill['badput']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
 
+                        # find and save time range
+                        enle_timerange=self.getTimeRange(enle_difftime)                        
+                        try:
+                            count_entered_times[enle_timerange]+=1
+                        except: # easy initialization way
+                            count_entered_times[enle_timerange]=1
+
+                        # find and save waste range
                         for w in enle_waste_mill.keys():
                             count_waste_mill_w=count_waste_mill[w]
                             # find and save taime range
@@ -1066,10 +1069,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.69 2007/10/08 22:25:12 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.70 2007/10/09 15:25:57 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.70  2007/10/09 15:25:57  sfiligoi
+#  Protect from Condor-G latencies
+#
 #  Revision 1.69  2007/10/08 22:25:12  sfiligoi
 #  Fix waste calculations
 #
