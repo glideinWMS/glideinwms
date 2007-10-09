@@ -1109,7 +1109,8 @@ def rrd2graph(rrd_obj,fname,
 
     if rrd_file[0][2]=="STACK":
         # add an invisible baseline to stack upon
-        args.append("CDEF:baseline=0 LINE:baseline")
+        args.append("CDEF:baseline=0")
+        args.append("LINE:baseline")
         
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
@@ -1127,10 +1128,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.78 2007/10/09 20:05:55 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.79 2007/10/09 20:20:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.79  2007/10/09 20:20:01  sfiligoi
+#  Fix typo
+#
 #  Revision 1.78  2007/10/09 20:05:55  sfiligoi
 #  Improve stacking
 #
