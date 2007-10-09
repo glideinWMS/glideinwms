@@ -985,7 +985,7 @@ class condorLogSummary:
                                       ('Entered_Waste_nosuccess','Entered_Waste_badput')):
                             fd.write('<tr valign="top">')
                             for s in s_arr:
-                                fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s_arr,period,size))
+                                fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         
                         fd.write('<tr valign="top">')
@@ -1140,10 +1140,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.84 2007/10/09 22:12:36 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.85 2007/10/09 22:15:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.85  2007/10/09 22:15:31  sfiligoi
+#  Fix typo
+#
 #  Revision 1.84  2007/10/09 22:12:36  sfiligoi
 #  Put new graphs into index file
 #
