@@ -872,6 +872,7 @@ class condorLogSummary:
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
+        r_colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -908,7 +909,7 @@ class condorLogSummary:
                         t_rrds=[]
                         idx=0
                         for t_k in t_keys:
-                            t_rrds.append(("%s%s"%t_k,"%s/Log_Completed_Entry_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1]),"AREA",colors[idx%len(colors)]))
+                            t_rrds.append(("%s%s"%t_k,"%s/Log_Completed_Entry_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1]),"AREA",r_colors[idx%len(r_colors)]))
                             idx+=1
                         monitoringConfig.graph_rrds("%s/Log_Completed_Entry_%s.rrd"%(fe_dir,t),
                                                     t,t_rrds)
@@ -1125,10 +1126,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.72 2007/10/09 18:42:02 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.73 2007/10/09 18:57:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.73  2007/10/09 18:57:26  sfiligoi
+#  Fix bug
+#
 #  Revision 1.72  2007/10/09 18:42:02  sfiligoi
 #  Fix bug
 #
