@@ -52,7 +52,7 @@ def perform_work(factory_name,glidein_name,entry_name,
                  idle_glideins,max_running,
                  jobDescript,
                  params):
-    glideFactoryLib.factoryConfig.client_internals[client_name]={"ClientName":client_int_name,"ReqName":client_int_req}
+    glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
@@ -225,7 +225,7 @@ def advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams):
             if p in params.keys(): # can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
         try:
-            glideFactoryInterface.advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_name,client_internals["ClientName"],client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
+            glideFactoryInterface.advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
         except:
             glideFactoryLib.factoryConfig.warning_log.write("Advertize of '%s' failed"%client_name)
         
@@ -382,10 +382,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.27 2007/10/09 16:15:42 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.28 2007/10/09 16:24:15 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.28  2007/10/09 16:24:15  sfiligoi
+#  Use short client name
+#
 #  Revision 1.27  2007/10/09 16:15:42  sfiligoi
 #  Use short client name
 #
