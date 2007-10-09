@@ -892,7 +892,7 @@ class condorLogSummary:
                                                 [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
                 elif s=="Completed":
                     # create graphs for Lasted and Waste
-                    client_dir=os.listdir(fe_dir)
+                    client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
                     for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
                         # get sorted list of rrds
                         t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
@@ -1125,10 +1125,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.71 2007/10/09 18:38:00 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.72 2007/10/09 18:42:02 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.72  2007/10/09 18:42:02  sfiligoi
+#  Fix bug
+#
 #  Revision 1.71  2007/10/09 18:38:00  sfiligoi
 #  Add graph creation for lasted and waste
 #
