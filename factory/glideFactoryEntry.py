@@ -67,8 +67,8 @@ def perform_work(factory_name,glidein_name,entry_name,
     log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
     log_stats.load()
 
-    glideFactoryLib.logStats(condorQ,condorStatus)
-    glideFactoryLib.factoryConfig.log_stats.logSummary(client_name,log_stats)
+    glideFactoryLib.logStats(condorQ,condorStatus,client_int_name)
+    glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
 
 
     submit_attrs=[]
@@ -382,10 +382,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.26 2007/10/05 22:53:06 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.27 2007/10/09 16:15:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.27  2007/10/09 16:15:42  sfiligoi
+#  Use short client name
+#
 #  Revision 1.26  2007/10/05 22:53:06  sfiligoi
 #  Add ouptpu log parsing and waste reporting
 #

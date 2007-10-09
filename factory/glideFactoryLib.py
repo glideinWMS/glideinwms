@@ -281,7 +281,7 @@ def sanitizeGlideins(condorq,status):
 
     return
 
-def logStats(condorq,condorstatus):
+def logStats(condorq,condorstatus,client_int_name):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -290,18 +290,18 @@ def logStats(condorq,condorstatus):
     # Count glideins by status
     qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
     s_running=len(condorstatus.fetchStored().keys())
-    factoryConfig.logActivity("Client '%s', schedd status %s, collector running %i"%(condorq.client_name,qc_status,s_running))
+    factoryConfig.logActivity("Client '%s', schedd status %s, collector running %i"%(client_int_name,qc_status,s_running))
     if factoryConfig.qc_stats!=None:
-        factoryConfig.qc_stats.logSchedd(condorq.client_name,qc_status)
+        factoryConfig.qc_stats.logSchedd(client_int_name,qc_status)
     
     return
 
 def logWorkRequests(work):
     for work_key in work.keys():
         if work[work_key]['requests'].has_key('IdleGlideins'):
-            factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work_key,work[work_key]['requests']['IdleGlideins']))
+            factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
             factoryConfig.logActivity("  Params: %s"%work[work_key]['params'])
-            factoryConfig.qc_stats.logRequest(work_key,work[work_key]['requests'],work[work_key]['params'])
+            factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
 
 
 ############################################################
@@ -555,10 +555,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.21 2007/07/03 19:46:18 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.22 2007/10/09 16:15:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.22  2007/10/09 16:15:42  sfiligoi
+#  Use short client name
+#
 #  Revision 1.21  2007/07/03 19:46:18  sfiligoi
 #  Add support for MaxRunningGlideins
 #
