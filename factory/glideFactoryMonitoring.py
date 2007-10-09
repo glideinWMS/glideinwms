@@ -979,7 +979,7 @@ class condorLogSummary:
                                     fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
                                 fd.write('</tr>\n')                            
                         fd.write("</table>\n</p>\n")
-                        fd.write("<p>\n<table>\n")
+                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s_arr in (('Diff','Entered_Lasted'),
                                       ('Entered_Waste_validation','Entered_Waste_idle'),
                                       ('Entered_Waste_nosuccess','Entered_Waste_badput')):
@@ -1140,10 +1140,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.85 2007/10/09 22:15:31 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.86 2007/10/09 22:17:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.86  2007/10/09 22:17:32  sfiligoi
+#  Add title
+#
 #  Revision 1.85  2007/10/09 22:15:31  sfiligoi
 #  Fix typo
 #
