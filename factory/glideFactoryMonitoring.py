@@ -912,7 +912,7 @@ class condorLogSummary:
                             t_rrds=[]
                             idx=0
                             for t_k in t_keys:
-                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"AREA",r_colors[idx%len(r_colors)]))
+                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",r_colors[idx%len(r_colors)]))
                                 idx+=1
                             monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s.rrd"%(fe_dir,t),
                                                         t,t_rrds)
@@ -930,22 +930,16 @@ class condorLogSummary:
 
             idx=0
             for fe in frontend_list:
-                area_name="STACK"
-                if idx==0:
-                    area_name="AREA"
                 fe_dir="frontend_"+fe
-                diff_rrd_files.append(['Entered_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Entered.rrd"%(fe_dir,s),area_name,colors[idx%len(colors)]])
+                diff_rrd_files.append(['Entered_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                 idx=idx+1
 
             if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                 idx=0
                 for fe in frontend_list:
-                    area_name="STACK"
-                    if idx==0:
-                        area_name="AREA"
                     fe_dir="frontend_"+fe
-                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_name,string.replace(colors[idx%len(colors)],'f','c')])
-                    count_rrd_files.append([string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Count.rrd"%(fe_dir,s),area_name,colors[idx%len(colors)]])
+                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),"STACK",string.replace(colors[idx%len(colors)],'f','c')])
+                    count_rrd_files.append([string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
                                             s,count_rrd_files)
@@ -1113,6 +1107,10 @@ def rrd2graph(rrd_obj,fname,
         ds_fname=rrd_file[1]
         args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
 
+    if rrd_file[0][2]=="STACK":
+        # add an invisible baseline to stack upon
+        args.append("CDEF:baseline=0 LINE:baseline")
+        
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_graph_type=rrd_file[2]
@@ -1129,10 +1127,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.77 2007/10/09 19:59:46 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.78 2007/10/09 20:05:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.78  2007/10/09 20:05:55  sfiligoi
+#  Improve stacking
+#
 #  Revision 1.77  2007/10/09 19:59:46  sfiligoi
 #  Fix typo
 #
