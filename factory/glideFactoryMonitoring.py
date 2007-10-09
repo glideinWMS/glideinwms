@@ -872,7 +872,7 @@ class condorLogSummary:
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-        r_colors=['ff0000','ffff00','ff0080','8000ff','0000ff','0080ff','00ff80','00ff00']
+        r_colors=['ff0000','ffc000','ffd090','ffff00','00ffff','90b0ff','00ff00','00c000','000000','c00000']
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -1131,10 +1131,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.81 2007/10/09 20:59:40 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.82 2007/10/09 21:28:23 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.82  2007/10/09 21:28:23  sfiligoi
+#  Improve colors
+#
 #  Revision 1.81  2007/10/09 20:59:40  sfiligoi
 #  Improve graphing
 #
