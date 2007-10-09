@@ -765,7 +765,7 @@ class condorLogSummary:
                     count_validation_failed=0
                     count_waste_mill={'validation':{},
                                  'idle':{},
-                                 'nosucces':{}, #i.e. everything but jobs terminating with 0
+                                 'nosuccess':{}, #i.e. everything but jobs terminating with 0
                                  'badput':{}} #i.e. everything but jobs terminating
                     # should also add abs waste
 
@@ -784,7 +784,7 @@ class condorLogSummary:
                             # 100% waste_mill
                             enle_waste_mill={'validation':1000,
                                         'idle':0,
-                                        'nosucces':1000,
+                                        'nosuccess':1000,
                                         'badput':1000}
                         else:
                             #get waste_mill
@@ -799,14 +799,14 @@ class condorLogSummary:
                             if (enle_condor_duration<5): # very short means 100% loss
                                 enle_waste_mill={'validation':1000,
                                             'idle':0,
-                                            'nosucces':1000,
+                                            'nosuccess':1000,
                                             'badput':1000}
                             else:
                                 enle_condor_stats=enle_stats['stats']
                                 enle_waste_mill={'validation':1000.0*(enle_difftime-enle_condor_duration)/enle_difftime,
                                             'idle':1000.0*(enle_condor_duration-enle_condor_stats['Total']['secs'])/enle_difftime}
                                 enle_goodput=enle_condor_stats['goodZ']['secs']
-                                enle_waste_mill['nosucces']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
+                                enle_waste_mill['nosuccess']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
                                 enle_goodput+=enle_condor_stats['goodNZ']['secs']
                                 enle_waste_mill['badput']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
 
@@ -1129,10 +1129,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.76 2007/10/09 19:52:26 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.77 2007/10/09 19:59:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.77  2007/10/09 19:59:46  sfiligoi
+#  Fix typo
+#
 #  Revision 1.76  2007/10/09 19:52:26  sfiligoi
 #  Fix bug
 #
