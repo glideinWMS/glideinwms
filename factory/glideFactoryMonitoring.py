@@ -918,7 +918,7 @@ class condorLogSummary:
                             for t_k in t_keys:
                                 t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",r_colors[idx%len(r_colors)]))
                                 idx+=1
-                            monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s.rrd"%(fe_dir,t),
+                            monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                         t,t_rrds)
 
                                 
@@ -1131,10 +1131,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.82 2007/10/09 21:28:23 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.83 2007/10/09 21:47:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.83  2007/10/09 21:47:36  sfiligoi
+#  Fix typo
+#
 #  Revision 1.82  2007/10/09 21:28:23  sfiligoi
 #  Improve colors
 #
