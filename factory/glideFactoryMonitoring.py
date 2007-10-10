@@ -259,6 +259,9 @@ class MonitoringConfig:
         Create default XML files out of the RRD files
         """
 
+        if len(relative_rrd_files)<1:
+            return # nothing to be done
+
         for r in self.rrd_reports:
             pname,period,idx,freq=r
             title=relative_title+" - last "+pname
@@ -1143,10 +1146,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.87 2007/10/10 19:26:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.88 2007/10/10 19:29:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.88  2007/10/10 19:29:31  sfiligoi
+#  Check for files before graphing
+#
 #  Revision 1.87  2007/10/10 19:26:50  sfiligoi
 #  Check for files before graphing
 #
