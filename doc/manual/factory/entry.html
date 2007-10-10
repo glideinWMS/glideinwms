@@ -439,7 +439,7 @@ problems, and still keep all the advantages.<br>
 
 <br>
 
-To enable gLExec support&nbsp;, you need to specify:<br>
+To enable gLExec support, you need to specify:<br>
 
 <div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">glidein</span>&gt;<br>
 
@@ -461,30 +461,44 @@ name</span>="</span><span style="font-family: monospace;"><span style="font-weig
 
 For most current gLExec installation this comes down to:<br>
 
-<div style="margin-left: 40px;"><span style="font-family: monospace;">-const&nbsp;GLEXEC_BIN=/opt/glite/sbin/glexec</span><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">attr name</span>="</span><span style="font-family: monospace;"><span style="font-weight: bold;">GLEXEC_BIN</span>" <span style="font-weight: bold;">value</span>=<span style="font-weight: bold;">"/opt/glite/sbin/glexec" publish</span>="<span style="font-weight: bold;">False</span>" <span style="font-weight: bold;">parameter</span>="<span style="font-weight: bold;">True</span>"/&gt;</span>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">attr name</span>="</span><span style="font-family: monospace;"><span style="font-weight: bold;">GLEXEC_BIN</span>" <span style="font-weight: bold;">value</span>=<span style="font-weight: bold;">"/opt/glite/sbin/glexec" publish</span>="<span style="font-weight: bold;">False</span>" <span style="font-weight: bold;">parameter</span>="<span style="font-weight: bold;">True</span>"/&gt;</span>
 </div>
 
-More details about scripts in general can be found in the <a href="#custom_code">"custom code"</a> section.<br>
+More details about scripts in general can be found in the <a href="#custom_code">"custom code"</a> section.
+
+<p>
+You will also need to properly configure the <b>shadow config files</b>, by adding:
+<div style="margin-left: 40px;"><span style="font-family: monospace;">
+GLEXEC_STARTER = True<br>
+GLEXEC = /bin/false
+</span></div>
+to the condor_config.<p>
+
 
 <h4 style="margin-left: 40px;"><a name="glexec_troubleshooting"></a>Troubleshooting</h4>
 
 <div style="margin-left: 40px;">gLExec installations on at
 least one site had problems with delegated proxies. If in doubt, try to
-disable the delegation by setting:<br>
+disable the delegation.<p>
+
+To disable delegation, add
+<div style="margin-left: 40px;"><span style="font-family: monospace;">
+DELEGATE_JOB_GSI_CREDENTIALS=False<br>
+SEC_DEFAULT_ENCRYPTION=PREFERRED
+</span></div>
+to the <b>shadow configuration file</b>
+<p>
+and set in the glidein creation file:<br>
 
 </div>
 
 <div style="margin-left: 80px;"><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">glidein</span>&gt;<br>
 
-&nbsp;[entries&gt;&lt;entry&gt;]<br>
+&nbsp;[&lt;entries&gt;&lt;entry&gt;]<br>
 
 &nbsp; </span><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">attrs</span>&gt;
 </span><span style="font-family: monospace;">&nbsp;
 <br>
-
-&nbsp; &nbsp;&lt;<span style="font-weight: bold;">attr
-name</span>=</span><span style="font-family: monospace;">"<span style="font-weight: bold;">DELEGATE_JOB_GSI_CREDENTIALS</span>"
-<span style="font-weight: bold;">value</span>="<span style="font-weight: bold;">False</span>" <span style="font-weight: bold;">publish</span>="<span style="font-weight: bold;">False</span>" <span style="font-weight: bold;">parameter</span>="<span style="font-weight: bold;">True</span>"/&gt;<br>
 
 </span><span style="font-family: monospace;"></span><span style="font-family: monospace;">&nbsp; &nbsp;&lt;<span style="font-weight: bold;">attr name</span>="</span><span style="font-family: monospace;"><span style="font-weight: bold;">SEC_DEFAULT_ENCRYPTION</span>"
 <span style="font-weight: bold;">value</span>="<span style="font-weight: bold;">REQUIRED</span>" <span style="font-weight: bold;">publish</span>="<span style="font-weight: bold;">False</span>" <span style="font-weight: bold;">parameter</span>="<span style="font-weight: bold;">True</span>"/&gt;</span><span style="font-family: monospace;"></span><br>
