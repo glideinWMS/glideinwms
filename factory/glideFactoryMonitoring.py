@@ -231,7 +231,7 @@ class MonitoringConfig:
         fname=os.path.join(self.monitor_dir,relative_fname)      
         try:
             if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq):
-                return # file to new to see any benefit from an update
+                return # file too new to see any benefit from an update
         except OSError:
             pass # file does not exist -> create
 
@@ -240,7 +240,10 @@ class MonitoringConfig:
         # convert relative fnames to absolute ones
         rrd_files=[]
         for rrd_file in relative_rrd_files:
-            rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1]),rrd_file[2],rrd_file[3]))
+            abs_rrd_fname=os.path.join(self.monitor_dir,rrd_file[1])
+            if not os.path.isfile(abs_rrd_fname):
+                return # at least one file missing, file creation would fail
+            rrd_files.append((rrd_file[0],abs_rrd_fname,rrd_file[2],rrd_file[3]))
 
         rrd2graph(self.rrd_obj,fname+".tmp",
                   self.rrd_step*rrd_archive[2], # step in seconds
@@ -872,7 +875,7 @@ class condorLogSummary:
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-        r_colors=['ff0000','ffc000','ffd090','ffff00','00ffff','90b0ff','00ff00','00c000','000000','c00000']
+        r_colors=['c00000','ff0000','ffc000','ffd090','ffff00','00ffff','90b0ff','00ff00','00c000','000000']
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -1140,10 +1143,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.86 2007/10/09 22:17:32 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.87 2007/10/10 19:26:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.87  2007/10/10 19:26:50  sfiligoi
+#  Check for files before graphing
+#
 #  Revision 1.86  2007/10/09 22:17:32  sfiligoi
 #  Add title
 #
