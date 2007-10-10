@@ -27,6 +27,8 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
     def loadFromLog(self):
         condorLogParser.logSummaryTimings.loadFromLog(self)
+        if not self.data.has_key('Completed'):
+            return # nothing else to fo
         org_completed=self.data['Completed']
         new_completed=[]
         new_waitout=[]
