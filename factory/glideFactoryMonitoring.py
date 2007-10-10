@@ -878,7 +878,8 @@ class condorLogSummary:
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-        r_colors=['c00000','ff0000','ffc000','ffd090','ffff00','00ffff','90b0ff','00ff00','00c000','000000']
+        r_colors=('c00000','ff0000','ffc000','ffd090','ffff00','e0e0a0','a0e0e0','00ffff','90b0ff','a0ffa0','00ff00','00c000')
+        r_colors_len=len(r_colors)
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -909,8 +910,9 @@ class condorLogSummary:
                             if t_re_m!=None:
                                 t_keys[t_re_m.groups()]=1
                         t_keys=t_keys.keys()
+                        t_keys_len=len(t_keys)
 
-                        if len(t_keys)>0:
+                        if t_keys_len>0:
                             if t=="Lasted":
                                 t_keys.sort(cmpPairs)
                             else:
@@ -922,7 +924,7 @@ class condorLogSummary:
                             t_rrds=[]
                             idx=0
                             for t_k in t_keys:
-                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",r_colors[idx%len(r_colors)]))
+                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",r_colors[int(1.*r_colors_len*idx/(t_keys_len-1)+0.49)]))
                                 idx+=1
                             monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                         t,t_rrds)
@@ -1146,10 +1148,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.88 2007/10/10 19:29:31 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.89 2007/10/10 20:03:57 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.89  2007/10/10 20:03:57  sfiligoi
+#  Better collors
+#
 #  Revision 1.88  2007/10/10 19:29:31  sfiligoi
 #  Check for files before graphing
 #
