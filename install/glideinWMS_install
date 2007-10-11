@@ -810,7 +810,7 @@ def gfactory_install():
         site_name=raw_input("Site name for '%s': [%s] "%(entry_name,entry_name))
         if site_name=="":
             site_name=entry_name
-        entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
+        entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl_name,'gridtype':'gt2',
                                   'work_dir':work_dir,'site_name':site_name}
         
 
