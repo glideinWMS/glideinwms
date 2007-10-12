@@ -49,16 +49,20 @@ GLIDEIN_FILE="glidein.descript"
 JOB_DESCRIPT_FILE="job.descript"
 SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
+XML_CONFIG_FILE="glideinWMS.xml"
 
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.2 2007/10/12 21:02:24 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.3 2007/10/12 21:56:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.3  2007/10/12 21:56:24  sfiligoi
+#  Add glideinWMS.cfg in the list of constants
+#
 #  Revision 1.2  2007/10/12 21:02:24  sfiligoi
 #  Add missing import
 #

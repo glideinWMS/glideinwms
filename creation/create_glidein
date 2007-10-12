@@ -135,7 +135,7 @@ def main(params):
                cgWCreate.create_submit_wrapper(params.submit_dir)
                cgWCreate.create_test_submit(params.submit_dir)
 
-               params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.xml"))
+               params.save_into_file(os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE))
 
                global_schedd_names=string.split(params.schedd_name,',')
                global_schedd_idx=0
@@ -529,10 +529,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.89 2007/10/12 21:41:45 sfiligoi Exp $
+# $Id: create_glidein,v 1.90 2007/10/12 21:56:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.90  2007/10/12 21:56:24  sfiligoi
+#  Add glideinWMS.cfg in the list of constants
+#
 #  Revision 1.89  2007/10/12 21:41:45  sfiligoi
 #  Proper error message handling
 #
