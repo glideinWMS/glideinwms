@@ -67,8 +67,7 @@ class MonitoringConfig:
                           ('year',3600*24*365,1,12)   # a week worth of data, low resolution, update one a day
                           ]
         self.graph_sizes=[('small',200,75),
-                          ('medium',400,150),
-                          ('large',800,300)
+                          ('large',400,150),
                           ]
         
         # The name of the attribute that identifies the glidein
@@ -1148,10 +1147,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.90 2007/10/10 20:06:23 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.91 2007/10/12 14:46:29 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.91  2007/10/12 14:46:29  sfiligoi
+#  Get rid of large images and rename medium to large
+#
 #  Revision 1.90  2007/10/10 20:06:23  sfiligoi
 #  Fix bug
 #
