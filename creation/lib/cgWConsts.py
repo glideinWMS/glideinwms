@@ -9,6 +9,7 @@
 ####################################
 
 import time
+import string
 
 start_time_tuple=time.localtime()
 TIMESTR=(string.printable[start_time_tuple[0]-2000]+ #year, will work until ~2060
@@ -54,10 +55,13 @@ SUBMIT_WRAPPER="job_submit.sh"
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.1 2007/10/12 20:20:26 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.2 2007/10/12 21:02:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.2  2007/10/12 21:02:24  sfiligoi
+#  Add missing import
+#
 #  Revision 1.1  2007/10/12 20:20:26  sfiligoi
 #  Put constants into a dedicated module
 #
