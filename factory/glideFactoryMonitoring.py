@@ -8,7 +8,7 @@
 #
 
 import os,os.path
-import re,time,copy,string,math
+import re,time,copy,string,math,random
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
@@ -175,7 +175,7 @@ class MonitoringConfig:
     #
     #    fname=os.path.join(self.monitor_dir,relative_fname)      
     #    try:
-    #        if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]):
+    #        if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq*(1.0-(random.random()*0.1-0.05))):
     #            return # file to new to see any benefit from an update
     #    except OSError:
     #        pass # file does not exist -> create
@@ -230,7 +230,7 @@ class MonitoringConfig:
 
         fname=os.path.join(self.monitor_dir,relative_fname)      
         try:
-            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq):
+            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq*(1.0-(random.random()*0.1-0.05))):
                 return # file too new to see any benefit from an update
         except OSError:
             pass # file does not exist -> create
@@ -1148,10 +1148,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.93 2007/10/12 16:09:34 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.94 2007/10/12 16:16:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.94  2007/10/12 16:16:31  sfiligoi
+#  Add a 5% random distribution to the graph renewal
+#
 #  Revision 1.93  2007/10/12 16:09:34  sfiligoi
 #  Reduce graph creation frequency
 #
