@@ -521,7 +521,7 @@ if __name__ == '__main__':
     try:
         main(params)
     except RuntimeError, e:
-        params.usage()
+        print params.usage()
         print ""
         print e
 
@@ -529,18 +529,15 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.88 2007/10/12 21:24:11 sfiligoi Exp $
+# $Id: create_glidein,v 1.89 2007/10/12 21:41:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
-#  Revision 1.88  2007/10/12 21:24:11  sfiligoi
-#  Proper exit on error
+#  Revision 1.89  2007/10/12 21:41:45  sfiligoi
+#  Proper error message handling
 #
 #  Revision 1.87  2007/10/12 21:22:56  sfiligoi
 #  Remove the use of sys.exit
-#
-#  Revision 1.86  2007/10/12 21:08:01  sfiligoi
-#  Fix typo
 #
 #  Revision 1.85  2007/10/12 21:01:17  sfiligoi
 #  Moved consts and creation funcs into dedicated modules

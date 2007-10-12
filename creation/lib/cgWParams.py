@@ -257,7 +257,7 @@ class Params:
         return self.subparams.__getattr__(name)
 
     def usage(self):
-        print "Usage: create_glidein cfg_fname|-help"
+        return "Usage: create_glidein cfg_fname|-help"
 
     #save into a file
     #The file should be usable for reload
@@ -379,10 +379,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.2 2007/10/12 21:22:56 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.3 2007/10/12 21:41:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.3  2007/10/12 21:41:45  sfiligoi
+#  Proper error message handling
+#
 #  Revision 1.2  2007/10/12 21:22:56  sfiligoi
 #  Remove the use of sys.exit
 #
