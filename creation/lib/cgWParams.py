@@ -185,20 +185,13 @@ class Params:
                 raise RuntimeError, "Missing config file"
 
             if argv[1]=="-help":
-                self.usage()
-                print "\nA config file will contain:"
-                print self.get_description("  ")
-                print "\nThe config file will be in XML format."
-                sys.exit(1)
+                raise RuntimeError,"\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  ")
                 
             self.load_file(argv[1])
             # create derived values
             self.derive()
         except RuntimeError, e:
-            self.usage()
-            print ""
-            print e
-            sys.exit(1)
+            raise RuntimeError,"%s\n\n%s"%(self.usage(),e)
         pass
 
     def derive(self):
@@ -386,10 +379,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.1 2007/10/12 19:25:11 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.2 2007/10/12 21:22:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.2  2007/10/12 21:22:56  sfiligoi
+#  Remove the use of sys.exit
+#
 #  Revision 1.1  2007/10/12 19:25:11  sfiligoi
 #  Moved to the lib subdir
 #
