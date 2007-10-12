@@ -9,6 +9,7 @@ sys.path.append("../lib")
 import xmlParse
 import xml.parsers.expat
 import xmlFormat
+import condorExe
 
 class SubParams:
     def __init__(self,data):
@@ -373,14 +374,25 @@ def defdict2string(defaults,indent,width=80):
                 outstrarr.append(col_wrap("%s%s(%s) - %s [%s]"%(indent,k,ktype,txt,defvalue),width,wrap_indent))
     return string.join(outstrarr,"\n")
     
+#####################################
+# try to find out the base condor dir
+def find_condor_base_dir():
+    if condorExe.condor_bin_path==None:
+        return None
+    else:
+        return os.path.dirname(condorExe.condor_bin_path)
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.2 2007/10/12 19:08:24 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.3 2007/10/12 19:18:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.3  2007/10/12 19:18:48  sfiligoi
+#  Move find_condor_base_dir to the right place
+#
 #  Revision 1.2  2007/10/12 19:08:24  sfiligoi
 #  Add log
 #

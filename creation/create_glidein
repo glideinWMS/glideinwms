@@ -563,38 +563,6 @@ def link_attributes(submit_dir,stage_dir,do_softlink):
         # Make it read only
         os.chmod(filepath,0444)
 
-#####################################
-# try to find out the base condor dir
-def find_condor_base_dir():
-    condor_base_path=None
-    # try using condor commands to find it out
-    try:
-        condor_base_path=exe_cmd("condor_config_val RELEASE_DIR")[0][:-1] # remove trailing newline
-    except RuntimeError,e:
-        # try to find the SBIN, and append go one down
-        try:
-            release_path=exe_cmd("condor_config_val SBIN")
-            condor_base_path=os.path.join(release_path[0][:-1],"..")
-        except RuntimeError,e:
-            # look for condor_config in /etc
-            if os.environ.has_key("CONDOR_CONFIG"):
-                condor_config=os.environ["CONDOR_CONFIG"]
-            else:
-                condor_config="/etc/condor/condor_config"
-                
-            try:
-                # BIN = <path>
-                bin_def=exe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
-                condor_base_path=string.split(bin_def[0][:-1])[2]
-            except RuntimeError, e:
-                try:
-                    # RELEASE_DIR = <path>
-                    release_def=exe_cmd('grep "^ *SBIN" %s'%condor_config)
-                    condor_base_path=os.path.join(string.split(release_def[0][:-1])[2],"..")
-                except RuntimeError, e:
-                    pass # don't know what else to try
-    return condor_base_path
-
 #####################
 # Copy a regular file
 def copy_submit_file(filename,submit_dir,org_dir):
@@ -772,10 +740,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.82 2007/10/12 19:11:12 sfiligoi Exp $
+# $Id: create_glidein,v 1.83 2007/10/12 19:18:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.83  2007/10/12 19:18:48  sfiligoi
+#  Move find_condor_base_dir to the right place
+#
 #  Revision 1.82  2007/10/12 19:11:12  sfiligoi
 #  Put config file parsing in a separate module
 #
