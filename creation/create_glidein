@@ -10,6 +10,7 @@ import string
 import shutil
 import socket
 import traceback
+sys.path.append("lib")
 import cgWParams
 
 
@@ -740,10 +741,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.83 2007/10/12 19:18:48 sfiligoi Exp $
+# $Id: create_glidein,v 1.84 2007/10/12 19:27:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.84  2007/10/12 19:27:04  sfiligoi
+#  Moved cgWParams to lib subdir
+#
 #  Revision 1.83  2007/10/12 19:18:48  sfiligoi
 #  Move find_condor_base_dir to the right place
 #
