@@ -377,6 +377,12 @@ def defdict2string(defaults,indent,width=80):
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.1 2007/10/12 19:07:09 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.2 2007/10/12 19:08:24 sfiligoi Exp $
+#
+# Log:
+#  $Log: cgWParams.py,v $
+#  Revision 1.2  2007/10/12 19:08:24  sfiligoi
+#  Add log
+#
 #
 ###########################################################
