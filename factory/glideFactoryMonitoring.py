@@ -62,9 +62,9 @@ class MonitoringConfig:
 
         self.rrd_reports=[('hour',3600,0,1),          # an hour worth of data, max resolution, update at every slot
                           ('day',3600*24,0,6),        # a day worth of data, still high resolution, update as if it was medium res
-                          ('week',3600*24*7,1,1),     # a week worth of data, medium resolution, update at every slot
-                          ('month',3600*24*31,1,8),   # a month worth of data, medium resolution, update as if it was low res
-                          ('year',3600*24*365,1,12)   # a week worth of data, low resolution, update one a day
+                          ('week',3600*24*7,1,4),     # a week worth of data, medium resolution, update every 2 hours
+                          ('month',3600*24*31,1,12),   # a month worth of data, medium resolution, update once a day
+                          ('year',3600*24*365,1,7*12)   # a week worth of data, low resolution, update one a week
                           ]
         self.graph_sizes=[('small',200,75),
                           ('large',400,150),
@@ -1148,10 +1148,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.92 2007/10/12 14:48:11 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.93 2007/10/12 16:09:34 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.93  2007/10/12 16:09:34  sfiligoi
+#  Reduce graph creation frequency
+#
 #  Revision 1.92  2007/10/12 14:48:11  sfiligoi
 #  Get rid of the small rrds
 #
