@@ -5,13 +5,13 @@ import os
 import copy
 import sys
 import os.path
-import time
 import string
 import shutil
-import socket
 import traceback
 sys.path.append("lib")
 import cgWParams
+import cgWConsts
+import cgWCreate
 
 
 ################################################################################
@@ -65,12 +65,12 @@ def main(params):
                #put condor tarball into stage
                if params.condor.tar_file!=None: # condor tarball available
                    condor_uf=cgWParams.SubParams({"absfname":params.condor.tar_file,
-                                                  "relfname":CONDOR_FILE,
+                                                  "relfname":cgWConsts.CONDOR_FILE,
                                                   "const":"True",
                                                   "untar":"True",
                                                   "untar_options":{"cond_attr":None,
-                                                                   "dir":CONDOR_DIR,
-                                                                   "absdir_outattr":CONDOR_ATTR}})
+                                                                   "dir":cgWConsts.CONDOR_DIR,
+                                                                   "absdir_outattr":cgWConsts.CONDOR_ATTR}})
                    copy_file_unparsed(condor_uf,params.stage_dir,params.submit_dir)
                else: # create a new tarball
                    create_condor_tar(params.stage_dir,params.submit_dir,params.condor.base_dir)
@@ -78,14 +78,14 @@ def main(params):
                #put system files into stage
                copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir)
                copy_stage_file("condor_config",params.stage_dir,params.src_dir)
-               copy_file(os.path.join(params.src_dir,'condor_vars.lst'),os.path.join(params.stage_dir,VARS_FILE)) # will be modified when attrs processed
+               copy_file(os.path.join(params.src_dir,'condor_vars.lst'),os.path.join(params.stage_dir,cgWConsts.VARS_FILE)) # will be modified when attrs processed
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir)
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   copy_file(os.path.join(params.src_dir,'condor_vars.lst.entry'),os.path.join(entry_stage_dir,VARS_FILE)) # will be modified when attrs processed
+                   copy_file(os.path.join(params.src_dir,'condor_vars.lst.entry'),os.path.join(entry_stage_dir,cgWConsts.VARS_FILE)) # will be modified when attrs processed
                    copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,can_be_modified=1)
               
                # put user attributes into config files
@@ -106,8 +106,8 @@ def main(params):
                    add_attr_files(entry_stage_dir,entry_submit_dir)
 
                # this must be the last script in the list
-               copy_script(CONDOR_STARTUP_FILE,params.stage_dir,params.src_dir)
-               add_description(params.stage_dir,CONDOR_STARTUP_FILE,"last_script")
+               copy_script(cgWConsts.CONDOR_STARTUP_FILE,params.stage_dir,params.src_dir)
+               add_description(params.stage_dir,cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
                #
                # Stage is finished
@@ -115,7 +115,7 @@ def main(params):
                #
 
                # copy the startup file
-               copy_submit_file(STARTUP_FILE,params.submit_dir,params.src_dir)
+               copy_submit_file(cgWConsts.STARTUP_FILE,params.submit_dir,params.src_dir)
 
                link_attributes(params.submit_dir,params.stage_dir,bool(params.stage.use_symlink))
                for entry_name in params.entries.keys():
@@ -123,17 +123,17 @@ def main(params):
                    entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
-               create_glidein_descript(params.submit_dir,
+               cgWCreate.create_glidein_descript(params.submit_dir,
+                                                 params.factory_name,params.glidein_name,
+                                                 params.web_url,
+                                                 params.entries.keys())
+
+               cgWCreate.create_submit(params.submit_dir,
                                        params.factory_name,params.glidein_name,
-                                       params.web_url,
-                                       params.entries.keys())
+                                       params.web_url)
 
-               create_submit(params.submit_dir,
-                             params.factory_name,params.glidein_name,
-                             params.web_url)
-
-               create_submit_wrapper(params.submit_dir)
-               create_test_submit(params.submit_dir)
+               cgWCreate.create_submit_wrapper(params.submit_dir)
+               cgWCreate.create_test_submit(params.submit_dir)
 
                params.save_into_file(os.path.join(params.submit_dir,"glideinWMS.xml"))
 
@@ -150,17 +150,17 @@ def main(params):
                        schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
                        global_schedd_idx=global_schedd_idx+1
                    
-                   create_job_descript(entry_submit_dir,entry_name,
-                                       entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
-                                       schedd_name,
-                                       entry_el.work_dir,entry_el.proxy_url)
+                   cgWCreate.create_job_descript(entry_submit_dir,entry_name,
+                                                 entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
+                                                 schedd_name,
+                                                 entry_el.work_dir,entry_el.proxy_url)
 
                # calculate signatures
-               add_file(VARS_FILE,params.stage_dir,0,"condor_vars") # now I can finally register it
+               add_file(cgWConsts.VARS_FILE,params.stage_dir,0,"condor_vars") # now I can finally register it
                sha1=finalize_sha1(params.stage_dir,params.submit_dir,"main")
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   add_file(VARS_FILE,entry_stage_dir,0,"condor_vars") # now I can finally register it
+                   add_file(cgWConsts.VARS_FILE,entry_stage_dir,0,"condor_vars") # now I can finally register it
                    esha1=finalize_sha1(entry_stage_dir,params.submit_dir,"entry_"+entry_name)
             except:
                shutil.rmtree(params.monitor_dir)
@@ -183,46 +183,6 @@ def main(params):
 # P R I V A T E - Do not use
 # 
 ############################################################
-
-start_time_tuple=time.localtime()
-TIMESTR=(string.printable[start_time_tuple[0]-2000]+ #year, will work until ~2060
-         string.printable[start_time_tuple[1]]+      #month
-         string.printable[start_time_tuple[2]]+      #day
-         string.printable[start_time_tuple[3]]+      #hour
-         string.digits[start_time_tuple[4]/10])      #first minute digit 
-del start_time_tuple
-
-# these two are in the submit dir, so they can be changed
-PARAMS_FILE="params.cfg"
-SUMMARY_SIGNATURE_FILE="signatures.sha1"
-
-# these are in the stage dir, so they need to be renamed if changed
-DESCRIPTION_FILE="description.%s.cfg"%TIMESTR
-
-ATTRS_FILE="attributes.cfg"
-CONSTS_FILE="constants.%s.cfg"%TIMESTR
-
-FILE_LISTFILE="file_list.%s.lst"%TIMESTR
-SCRIPT_LISTFILE="script_list.%s.lst"%TIMESTR
-SUBSYSTEM_LISTFILE="subsystem_list.%s.lst"%TIMESTR
-SIGNATURE_FILE="signature.%s.sha1"%TIMESTR
-
-
-CONDOR_FILE="condor_bin.%s.tgz"%TIMESTR
-CONDOR_DIR="condor"
-CONDOR_ATTR="CONDOR_DIR"
-VARS_FILE="condor_vars.%s.lst"%TIMESTR
-
-CONDOR_STARTUP_FILE="condor_startup.sh"
-
-
-# these are again in the submit dir
-STARTUP_FILE="glidein_startup.sh"
-GLIDEIN_FILE="glidein.descript"
-JOB_DESCRIPT_FILE="job.descript"
-SUBMIT_FILE="job.condor"
-SUBMIT_WRAPPER="job_submit.sh"
-
 
 #####################
 # Simply create a dir
@@ -265,7 +225,7 @@ def add_line(filename,dir,line):
 ############################
 # Add a file description
 def add_description(stage_dir,fname,description):
-    add_line(DESCRIPTION_FILE,stage_dir,"%s \t%s"%(description,fname))
+    add_line(cgWConsts.DESCRIPTION_FILE,stage_dir,"%s \t%s"%(description,fname))
 
 ############################
 # Add a published attributed
@@ -275,12 +235,12 @@ def add_attr(stage_dir,attr_name,attr_val,is_string):
     else:
         attr_val=repr(int(attr_val))
 
-    add_line(ATTRS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
+    add_line(cgWConsts.ATTRS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
 
 ############################
 # Add a constant attribute
 def add_const(stage_dir,attr_name,attr_val):
-    add_line(CONSTS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
+    add_line(cgWConsts.CONSTS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
 
 ########################
 # Add a parameter
@@ -290,7 +250,7 @@ def add_param(submit_dir,param_name,param_defval,is_string):
     else:
         param_defval=repr(int(param_defval))
 
-    add_line(PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,param_defval))
+    add_line(cgWConsts.PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,param_defval))
 
 #################################
 # Calculate SHA1 for the file
@@ -307,7 +267,7 @@ def calc_sha1(filename,stage_dir):
 # put it into the signature file
 def add_sha1(filename,stage_dir):
     sha1=calc_sha1(filename,stage_dir)
-    add_line(SIGNATURE_FILE,stage_dir,"%s  %s"%(sha1,filename))
+    add_line(cgWConsts.SIGNATURE_FILE,stage_dir,"%s  %s"%(sha1,filename))
 
 #################################
 # Add a new variable to VARS_FILE
@@ -315,17 +275,17 @@ def add_var(stage_dir,attr_name,is_string,do_glidein_publish,do_job_publish):
     type_str={True:"S",False:"I"}
     glide_str={True:"Y",False:"N"}
     job_str={True:"+",False:"-"}
-    add_line(VARS_FILE,stage_dir,
+    add_line(cgWConsts.VARS_FILE,stage_dir,
              "%s\t%s\t-\t+\tN\t%s\t%s"%(attr_name,type_str[is_string],glide_str[do_glidein_publish],job_str[do_job_publish]))
     
 #########################
 # Register a regular file
 def add_file(filename,stage_dir,can_be_modified=0,description=None):
     if can_be_modified:
-        add_line(FILE_LISTFILE,stage_dir,"%s nocache"%filename)
+        add_line(cgWConsts.FILE_LISTFILE,stage_dir,"%s nocache"%filename)
     else:
         add_sha1(filename,stage_dir)
-        add_line(FILE_LISTFILE,stage_dir,filename)
+        add_line(cgWConsts.FILE_LISTFILE,stage_dir,filename)
     if description!=None:
         add_description(stage_dir,filename,description)
 
@@ -333,7 +293,7 @@ def add_file(filename,stage_dir,can_be_modified=0,description=None):
 # Register a script
 def add_script(filename,stage_dir):
     add_sha1(filename,stage_dir)
-    add_line(SCRIPT_LISTFILE,stage_dir,filename)
+    add_line(cgWConsts.SCRIPT_LISTFILE,stage_dir,filename)
 
 ######################
 # Register a subsystem
@@ -341,7 +301,7 @@ def add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out
     if config_check==None:
         config_check="TRUE" #TRUE has a special meaning for the glidein
     add_sha1(filename,stage_dir)
-    add_line(SUBSYSTEM_LISTFILE,stage_dir,"%s %s %s %s"%(config_check,wnsubdir,filename,config_out))
+    add_line(cgWConsts.SUBSYSTEM_LISTFILE,stage_dir,"%s %s %s %s"%(config_check,wnsubdir,filename,config_out))
     if config_check!="TRUE":
         # TRUE is not a real parameter, so no need to log it
         add_param(submit_dir,config_check,0,is_string=False) # if it is optional, default==0
@@ -350,7 +310,7 @@ def add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out
 # Calculate SHA1 for the list files
 # Return the sha1sum of the signature file
 def finalize_sha1(stage_dir,submit_dir,title):
-    for f in (FILE_LISTFILE,SCRIPT_LISTFILE,SUBSYSTEM_LISTFILE,DESCRIPTION_FILE):
+    for f in (cgWConsts.FILE_LISTFILE,cgWConsts.SCRIPT_LISTFILE,cgWConsts.SUBSYSTEM_LISTFILE,cgWConsts.DESCRIPTION_FILE):
         # touch the file, in case it does not exist
         filepath=os.path.join(stage_dir,f)
         try:
@@ -360,18 +320,18 @@ def finalize_sha1(stage_dir,submit_dir,title):
         fd.close()
         # calc sha1
         add_sha1(f,stage_dir)
-    sha1=calc_sha1(SIGNATURE_FILE,stage_dir)
-    add_line(SUMMARY_SIGNATURE_FILE,submit_dir,"%s  %s  %s"%(sha1,DESCRIPTION_FILE,title))
+    sha1=calc_sha1(cgWConsts.SIGNATURE_FILE,stage_dir)
+    add_line(cgWConsts.SUMMARY_cgWConsts.SIGNATURE_FILE,submit_dir,"%s  %s  %s"%(sha1,cgWConsts.DESCRIPTION_FILE,title))
     return sha1
     
 ##########################################
 # Calculate SHA1 for the list files
 # Return the sha1sum of the signature file
 def create_description_file(stage_dir):
-    add_description(stage_dir,SIGNATURE_FILE,"signature")
-    add_description(stage_dir,FILE_LISTFILE,"file_list")
-    add_description(stage_dir,SCRIPT_LISTFILE,"script_list")
-    add_description(stage_dir,SUBSYSTEM_LISTFILE,"subsystem_list")
+    add_description(stage_dir,cgWConsts.SIGNATURE_FILE,"signature")
+    add_description(stage_dir,cgWConsts.FILE_LISTFILE,"file_list")
+    add_description(stage_dir,cgWConsts.SCRIPT_LISTFILE,"script_list")
+    add_description(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE,"subsystem_list")
     
 #####################
 # Copy a regular file
@@ -485,8 +445,7 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
 #############################################
 # Register the files that host the attributes
 def add_attr_files(stage_dir,submit_dir):
-    global ATTRS_FILE,CONSTS_FILE,PARAMS_FILE
-    for fname,description in ((ATTRS_FILE,"attrs_file"),(CONSTS_FILE,"consts_file")):
+    for fname,description in ((cgWConsts.ATTRS_FILE,"attrs_file"),(cgWConsts.CONSTS_FILE,"consts_file")):
         # touch the file, in case it does not exist
         filepath=os.path.join(stage_dir,fname)
         try:
@@ -497,7 +456,7 @@ def add_attr_files(stage_dir,submit_dir):
         # register it
         add_file(fname,stage_dir,0,description)
     # also make sure that the params file exist
-    filepath=os.path.join(submit_dir,PARAMS_FILE)
+    filepath=os.path.join(submit_dir,cgWConsts.PARAMS_FILE)
     try:
         fd=open(filepath,"a+")
     except IOError,e:
@@ -523,39 +482,16 @@ def exe_cmd(cmd):
 # Create condor tarball and
 # add it to the list of subsaystems
 def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
-    global CONDOR_FILE,CONDOR_DIR,CONDOR_ATTR
-    tgz_name=CONDOR_FILE
-    outtar_name=os.path.join(stage_dir,tgz_name)
-    try:
-        condor_bins=['sbin/condor_master','sbin/condor_startd','sbin/condor_starter']
-
-        # check that dir and files exist
-        if not os.path.isdir(condor_base_dir):
-            raise RuntimeError, "%s is not a directory"%condor_base_dir
-        for f in condor_bins:
-            if not os.path.isfile(os.path.join(condor_base_dir,f)):
-                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
-
-        # check if optional binaries exist, if they do, include
-        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh']:
-            if os.path.isfile(os.path.join(condor_base_dir,f)):
-                condor_bins.append(f)
-        
-        # tar
-        exe_cmd('cd "%s"; tar -czf "%s" %s'%(condor_base_dir,outtar_name,string.join(condor_bins," ")))
-        
-        add_subsystem(tgz_name,stage_dir,submit_dir,None,CONDOR_DIR,CONDOR_ATTR)
-    except RuntimeError, e:
-        raise RuntimeError, "Error creating condor tgz: %s"%e
+    cgWCreate.create_condor_tar(stage_dir,submit_dir,condor_base_dir)
+    add_subsystem(cgWConsts.CONDOR_FILE,stage_dir,submit_dir,None,cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR)
 
 
 ###################################
 # Create a copy or a link in the
 # submit dir
 def link_attributes(submit_dir,stage_dir,do_softlink):
-    global ATTRS_FILE
-    submit_filepath=os.path.join(submit_dir,ATTRS_FILE)
-    stage_filepath=os.path.join(stage_dir,ATTRS_FILE)
+    submit_filepath=os.path.join(submit_dir,cgWConsts.ATTRS_FILE)
+    stage_filepath=os.path.join(stage_dir,cgWConsts.ATTRS_FILE)
 
     if do_softlink:
         symlink_file(stage_filepath,submit_filepath)
@@ -569,159 +505,7 @@ def link_attributes(submit_dir,stage_dir,do_softlink):
 def copy_submit_file(filename,submit_dir,org_dir):
     copy_file(os.path.join(org_dir,filename),submit_dir)
 
-#################################
-# Create glidein description file
-def create_glidein_descript(submit_dir,
-                            factory_name,glidein_name,
-                            web_base,
-                            entries):
-    global GLIDEIN_FILE
-    filepath=os.path.join(submit_dir,GLIDEIN_FILE)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("FactoryName   %s\n"%factory_name)
-        fd.write("GlideinName   %s\n"%glidein_name)
-        fd.write("WebURL        %s\n"%web_base)
-        fd.write("Entries       %s\n"%string.join(entries,","))
-    finally:
-        fd.close()
     
-#################################
-# Create glidein description file
-def create_job_descript(submit_dir,
-                        entry_name,
-                        gridtype,gatekeeper,rsl,
-                        schedd_name,
-                        startup_dir,proxy_id):
-    global JOB_DESCRIPT_FILE
-    filepath=os.path.join(submit_dir,JOB_DESCRIPT_FILE)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("EntryName     %s\n"%entry_name)
-        fd.write("GridType      %s\n"%gridtype)
-        fd.write("Gatekeeper    %s\n"%gatekeeper)
-        if rsl!=None:
-            fd.write("GlobusRSL     %s\n"%rsl)
-        fd.write("Schedd        %s\n"%schedd_name)
-        fd.write("StartupDir    %s\n"%startup_dir)
-        if proxy_id!=None:
-            fd.write("ProxyURL      %s\n"%proxy_id)
-    finally:
-        fd.close()
-    
-###########################
-# Create Condor submit file
-def create_submit(submit_dir,
-                  factory_name,glidein_name,
-                  web_base):
-    global SUBMIT_FILE
-    filepath=os.path.join(submit_dir,SUBMIT_FILE)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("Universe = grid\n")
-        fd.write("Grid_Resource = $ENV(GLIDEIN_GRIDTYPE) $ENV(GLIDEIN_GATEKEEPER)\n")
-        fd.write("Executable = %s\n"%STARTUP_FILE)
-
-        fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry $ENV(GLIDEIN_ENTRY_NAME) -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%glidein_name)+
-                 ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY) -signtype sha1 -factory %s " % (web_base,factory_name))+
-                 "-descript $ENV(GLIDEIN_DESCRIPT) -descriptentry $ENV(GLIDEIN_DESCRIPTENTRY) " +
-                 "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
-        fd.write('+GlideinFactory    = "%s"\n'%factory_name)
-        fd.write('+GlideinName       = "%s"\n'%glidein_name)
-        fd.write('+GlideinEntryName  = "$ENV(GLIDEIN_ENTRY_NAME)"\n')
-        fd.write('+GlideinClient     = "$ENV(GLIDEIN_CLIENT)"\n')
-
-        
-        fd.write("\nTransfer_Executable   = True\n")
-        fd.write("transfer_Input_files  =\n")
-        fd.write("transfer_Output_files =\n")
-        fd.write("WhenToTransferOutput  = ON_EXIT\n")
-        fd.write("\nNotification = Never\n")
-        fd.write("\n+Owner = undefined\n")
-        fd.write("\nLog = entry_$ENV(GLIDEIN_ENTRY_NAME)/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log\n")
-        fd.write("Output = entry_$ENV(GLIDEIN_ENTRY_NAME)/log/job.$(Cluster).$(Process).out\n")
-        fd.write("Error = entry_$ENV(GLIDEIN_ENTRY_NAME)/log/job.$(Cluster).$(Process).err\n")
-        fd.write("stream_output = False\n")
-        fd.write("stream_error  = False\n")
-        fd.write("\nQueue $ENV(GLIDEIN_COUNT)\n")
-    finally:
-        fd.close()
-    
-############################
-# Create a test shell script
-def create_test_submit(submit_dir):
-    global SUBMIT_FILE,GLIDEIN_FILE,JOB_DESCRIPT_FILE
-    filepath=os.path.join(submit_dir,"job_test.sh")
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("#!/bin/bash\n")
-        fd.write("export GLIDEIN_CLIENT=test\n")
-        fd.write("export GLIDEIN_COUNT=1\n")
-        fd.write("export GLIDEIN_VERBOSITY=dbg\n")
-        fd.write('export GLIDEIN_PARAMS="-param_GLIDEIN_Collector $HOSTNAME"\n')
-        fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write("export GLIDEIN_ENTRY_NAME=test\n")
-        fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
-        fd.write("export GLIDEIN_DESCRIPT=`awk '/ main$/{print $2}' %s`\n"%SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_DESCRIPTENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $2}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%JOB_DESCRIPT_FILE)
-        fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%JOB_DESCRIPT_FILE)
-        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(GLIDEIN_FILE,SUBMIT_FILE))
-    finally:
-        fd.close()
-    # Make it executable
-    os.chmod(filepath,0755)
-    
-############################
-# Create a submit wrapper 
-def create_submit_wrapper(submit_dir):
-    global SUBMIT_WRAPPER,SUBMIT_FILE
-    filepath=os.path.join(submit_dir,SUBMIT_WRAPPER)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("#!/bin/bash\n\n")
-        fd.write("if [ $# -lt 8 ]; then\n")
-        fd.write(' echo "At least 8 args expected!" 1>&2\n echo "Usage: %s entry_name schedd client count mode gridtype gatekeeper gridopts [params]*"\n 1>&2\n'%SUBMIT_WRAPPER)
-        fd.write(" exit 1\n")
-        fd.write("fi\n")
-        fd.write('export GLIDEIN_ENTRY_NAME="$1"\nshift\n')
-        fd.write("export GLIDEIN_SCHEDD=$1\nshift\n")
-        fd.write('export GLIDEIN_CLIENT="$1"\nshift\n')
-        fd.write("export GLIDEIN_COUNT=$1\nshift\n")
-        fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
-        fd.write("export GLIDEIN_GRIDTYPE=$1\nshift\n")
-        fd.write('export GLIDEIN_GATEKEEPER="$1"\nshift\n')
-        fd.write('GLIDEIN_GRIDOPTS="$1"\nshift\n')
-        fd.write('GLIDEIN_PARAMS=""\n')
-        fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
-        fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
-        fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%SUMMARY_SIGNATURE_FILE)
-        fd.write("export GLIDEIN_DESCRIPT=`awk '/ main$/{print $2}' %s`\n"%SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$/"\'{print $1}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_DESCRIPTENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $2}\' %s`\n'%SUMMARY_SIGNATURE_FILE)
-        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s\n'%SUBMIT_FILE)
-    finally:
-        fd.close()
-    # Make it executable
-    os.chmod(filepath,0755)
-
 ############################################################
 #
 # S T A R T U P
@@ -741,10 +525,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.84 2007/10/12 19:27:04 sfiligoi Exp $
+# $Id: create_glidein,v 1.85 2007/10/12 21:01:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.85  2007/10/12 21:01:17  sfiligoi
+#  Moved consts and creation funcs into dedicated modules
+#
 #  Revision 1.84  2007/10/12 19:27:04  sfiligoi
 #  Moved cgWParams to lib subdir
 #
