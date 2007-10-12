@@ -517,6 +517,7 @@ if __name__ == '__main__':
         params=cgWParams.Params(sys.argv)
     except RuntimeError,e:
         print e
+        sys.exit(1)
     try:
         main(params)
     except RuntimeError, e:
@@ -528,10 +529,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.87 2007/10/12 21:22:56 sfiligoi Exp $
+# $Id: create_glidein,v 1.88 2007/10/12 21:24:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.88  2007/10/12 21:24:11  sfiligoi
+#  Proper exit on error
+#
 #  Revision 1.87  2007/10/12 21:22:56  sfiligoi
 #  Remove the use of sys.exit
 #
