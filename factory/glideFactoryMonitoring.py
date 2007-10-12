@@ -132,7 +132,8 @@ class MonitoringConfig:
         if self.rrd_obj==None:
             return # nothing to do, no rrd bin no rrd creation
         
-        for tp in ((".rrd",self.rrd_archives),(".small.rrd",self.rrd_archives_small)):
+        #for tp in ((".rrd",self.rrd_archives),(".small.rrd",self.rrd_archives_small)): # disable for now
+        for tp in ((".rrd",self.rrd_archives),):
             rrd_ext,rrd_archives=tp
             fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
             #print "Writing RRD "+fname
@@ -1147,10 +1148,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.91 2007/10/12 14:46:29 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.92 2007/10/12 14:48:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.92  2007/10/12 14:48:11  sfiligoi
+#  Get rid of the small rrds
+#
 #  Revision 1.91  2007/10/12 14:46:29  sfiligoi
 #  Get rid of large images and rename medium to large
 #
