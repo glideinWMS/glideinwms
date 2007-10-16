@@ -355,12 +355,12 @@ def copy_subsystem(filename,stage_dir,submit_dir,org_dir,config_check,wnsubdir,c
     copy_file(os.path.join(org_dir,filename),stage_dir)
     add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out)
 
-#####################
-# Copy a user file
+##########################################
+# Copy a user file and add it to the list
 # file as described by Params.file_defaults
 def copy_file_unparsed(file,stage_dir,submit_dir):
     if file.absfname==None:
-        raise RuntimeError, "Found a file element without a absname: %s"%file
+        raise RuntimeError, "Found a file element without an absname: %s"%file
     
     relfname=file.relfname
     if relfname==None:
@@ -369,7 +369,21 @@ def copy_file_unparsed(file,stage_dir,submit_dir):
         raise RuntimeError, "Found a file element with an empty relfname: %s"%file
 
     copy_file(file.absfname,os.path.join(stage_dir,relfname))
+
+    return add_file_unparsed(file,stage_dir,submit_dir)
     
+#############################################
+# Add a user file residing in the stage area
+# file as described by Params.file_defaults
+def add_file_unparsed(file,stage_dir,submit_dir):
+    relfname=file.relfname
+    if relfname==None:
+        if file.absfname==None:
+            raise RuntimeError, "Found a file element without either a relname or an absname: %s"%file
+        relfname=os.path.basename(file.absfname) # defualt is the final part of absfname
+    if len(relfname)<1:
+        raise RuntimeError, "Found a file element with an empty relfname: %s"%file
+
     is_const=eval(file.const,{},{})
     is_executable=eval(file.executable,{},{})
     do_untar=eval(file.untar,{},{})
@@ -529,10 +543,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.90 2007/10/12 21:56:24 sfiligoi Exp $
+# $Id: create_glidein,v 1.91 2007/10/16 15:50:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.91  2007/10/16 15:50:59  sfiligoi
+#  Split file addition from file copying
+#
 #  Revision 1.90  2007/10/12 21:56:24  sfiligoi
 #  Add glideinWMS.cfg in the list of constants
 #
