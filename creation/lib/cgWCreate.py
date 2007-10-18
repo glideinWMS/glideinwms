@@ -17,7 +17,7 @@ import cgWConsts
 
 ##############################
 # Create condor tarball and
-def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
+def create_condor_tar(stage_dir,condor_base_dir):
     tgz_name=cgWConsts.CONDOR_FILE
     outtar_name=os.path.join(stage_dir,tgz_name)
     try:
@@ -196,10 +196,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.1 2007/10/12 20:25:40 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.2 2007/10/18 19:04:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.2  2007/10/18 19:04:06  sfiligoi
+#  Remove useless parameter
+#
 #  Revision 1.1  2007/10/12 20:25:40  sfiligoi
 #  Add creation of dynamic files into a different module
 #
