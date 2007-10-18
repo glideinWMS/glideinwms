@@ -46,21 +46,44 @@ def main(params):
                # make a link from the submit dir to the monitor dir
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
-               # create basic description file(s)
-               create_description_file(params.stage_dir)
+               # create dictionary variables
+               main_dicts={'summary_signature':SummarySHA1DictFile(params.submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE),
+                           'attrs':DictFile(params.stage_dir,cgWConsts.ATTRS_FILE),
+                           'description':DescriptionDictFile(params.stage_dir,cgWConsts.DESCRIPTION_FILE),
+                           'consts':DictFile(params.stage_dir,cgWConsts.CONSTS_FILE),
+                           'params':DictFile(params.submit_dir,cgWConsts.PARAMS_FILE),
+                           'vars':VarsDictFile(params.stage_dir,cgWConsts.VARS_FILE),
+                           'file_list':FileDictFile(params.stage_dir,cgWConsts.FILE_LISTFILE),
+                           'script_list':FileDictFile(params.stage_dir,cgWConsts.SCRIPT_LISTFILE),
+                           'subsystem_list':SubsystemDictFile(params.stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
+                           "signature":SHA1DictFile(params.stage_dir,cgWConsts.SIGNATURE_FILE)}
+               entry_dicts={}
                for entry_name in params.entries.keys():
+                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   create_description_file(entry_stage_dir)
+                   entry_dicts[entry_name]={'attrs':DictFile(entry_stage_dir,cgWConsts.ATTRS_FILE),
+                                            'description':DescriptionDictFile(entry_stage_dir,cgWConsts.DESCRIPTION_FILE),
+                                            'consts':DictFile(entry_stage_dir,cgWConsts.CONSTS_FILE),
+                                            'params':DictFile(entry_submit_dir,cgWConsts.PARAMS_FILE),
+                                            'vars':VarsDictFile(entry_stage_dir,cgWConsts.VARS_FILE),
+                                            'file_list':FileDictFile(entry_stage_dir,cgWConsts.FILE_LISTFILE),
+                                            'script_list':FileDictFile(entry_stage_dir,cgWConsts.SCRIPT_LISTFILE),
+                                            'subsystem_list':SubsystemDictFile(entry_stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
+                                            "signature":SHA1DictFile(entry_stage_dir,cgWConsts.SIGNATURE_FILE)}
+
+               # create basic description file(s)
+               create_description_file(main_dicts)
+               for entry_name in params.entries.keys():
+                   create_description_file(entry_dicts[entry_name])
 
                # put user files in stage
                for file in params.files:
-                   copy_file_unparsed(file,params.stage_dir,params.submit_dir)
+                   copy_file_unparsed(file,params.stage_dir,main_dicts)
                ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    for file in params.entries[entry_name].files:
-                       copy_file_unparsed(file,entry_stage_dir,entry_submit_dir)
+                       copy_file_unparsed(file,entry_stage_dir,entry_dicts[entry_name])
 
                #put condor tarball into stage
                if params.condor.tar_file!=None: # condor tarball available
@@ -71,43 +94,45 @@ def main(params):
                                                   "untar_options":{"cond_attr":None,
                                                                    "dir":cgWConsts.CONDOR_DIR,
                                                                    "absdir_outattr":cgWConsts.CONDOR_ATTR}})
-                   copy_file_unparsed(condor_uf,params.stage_dir,params.submit_dir)
+                   copy_file_unparsed(condor_uf,params.stage_dir,main_dicts)
                else: # create a new tarball
-                   create_condor_tar(params.stage_dir,params.submit_dir,params.condor.base_dir)
+                   create_condor_tar(params.stage_dir,main_dicts,params.condor.base_dir)
                
                #put system files into stage
-               copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir)
-               copy_stage_file("condor_config",params.stage_dir,params.src_dir)
-               copy_file(os.path.join(params.src_dir,'condor_vars.lst'),os.path.join(params.stage_dir,cgWConsts.VARS_FILE)) # will be modified when attrs processed
-               copy_script("setup_x509.sh",params.stage_dir,params.src_dir)
-               copy_script("validate_node.sh",params.stage_dir,params.src_dir)
+               copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir,main_dicts)
+               copy_stage_file("condor_config",params.stage_dir,params.src_dir,main_dicts)
+               main_dicts['vars'].load(params.src_dir,'condor_vars.lst') # will be modified when attrs processed
+               copy_script("setup_x509.sh",params.stage_dir,params.src_dir,main_dicts)
+               copy_script("validate_node.sh",params.stage_dir,params.src_dir,main_dicts)
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   copy_file(os.path.join(params.src_dir,'condor_vars.lst.entry'),os.path.join(entry_stage_dir,cgWConsts.VARS_FILE)) # will be modified when attrs processed
-                   copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,can_be_modified=1)
+                   entry_dicts[entry_name]['vars'].load(params.src_dir,'condor_vars.lst.entry') # will be modified when attrs processed
+                   copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,entry_dicts[entry_name],can_be_modified=1)
               
                # put user attributes into config files
                for attr_name in params.attrs.keys():
-                   add_attr_unparsed(attr_name, params.attrs[attr_name],params.stage_dir,params.submit_dir)
+                   add_attr_unparsed(attr_name, params.attrs[attr_name],main_dicts,"main")
 
                # add the basic standard params
-               add_param(params.submit_dir,"GLIDEIN_Collector",'Fake',is_string=True)
+               add_param(main_dicts,"GLIDEIN_Collector",'Fake',is_string=True)
+
+               # this must be the last script in the list
+               copy_script(cgWConsts.CONDOR_STARTUP_FILE,params.stage_dir,params.src_dir,main_dicts)
+               main_dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
+
                # finalize
-               add_attr_files(params.stage_dir,params.submit_dir)
+               save_dict_files(main_dicts,"main")
 
                ## repeat for all the entries
                for entry_name in params.entries.keys():
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
                    for attr_name in params.entries[entry_name].attrs.keys():
-                       add_attr_unparsed(attr_name, params.entries[entry_name].attrs[attr_name],entry_stage_dir,entry_submit_dir)
-                   add_attr_files(entry_stage_dir,entry_submit_dir)
+                       add_attr_unparsed(attr_name, params.entries[entry_name].attrs[attr_name],entry_dicts[entry_name],"entry_"+entry_name)
+                   save_dict_files(entry_dicts[entry_name],"entry_"+entry_name)
 
-               # this must be the last script in the list
-               copy_script(cgWConsts.CONDOR_STARTUP_FILE,params.stage_dir,params.src_dir)
-               add_description(params.stage_dir,cgWConsts.CONDOR_STARTUP_FILE,"last_script")
+               # calculate signatures
+               finalize_sha1(main_dicts,entry_dicts)
 
                #
                # Stage is finished
@@ -155,13 +180,6 @@ def main(params):
                                                  schedd_name,
                                                  entry_el.work_dir,entry_el.proxy_url)
 
-               # calculate signatures
-               add_file(cgWConsts.VARS_FILE,params.stage_dir,0,"condor_vars") # now I can finally register it
-               sha1=finalize_sha1(params.stage_dir,params.submit_dir,"main")
-               for entry_name in params.entries.keys():
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   add_file(cgWConsts.VARS_FILE,entry_stage_dir,0,"condor_vars") # now I can finally register it
-                   esha1=finalize_sha1(entry_stage_dir,params.submit_dir,"entry_"+entry_name)
             except:
                shutil.rmtree(params.monitor_dir)
                raise
@@ -183,6 +201,282 @@ def main(params):
 # P R I V A T E - Do not use
 # 
 ############################################################
+
+class DictFile:
+    def __init__(self,dir,fname,sort_keys=0):
+        self.dir=dir
+        self.fname=fname
+        self.sort_keys=sort_keys
+
+        self.is_readonly=False
+        
+        self.keys=[]
+        self.vals={}
+
+    def has_key(self,key):
+        return key in self.keys
+
+    def __getitem__(self,key):
+        return self.vals[key]
+
+    def get_fname(self):
+        return self.fname
+
+    def get_dir(self):
+        return self.dir
+
+    def erase(self):
+        self.keys=[]
+        self.vals={}
+        
+    def set_readonly(self,readonly=True):
+        self.is_readonly=readonly
+
+
+    def add(self,key,val,allow_overwrite=False):
+        if self.is_readonly:
+            raise RuntimeError, "Trying to modify a readonly object!"
+        
+        if key in self.keys:
+            if not allow_overwrite:
+                raise RuntimeError, "Key '%s' already exists"%key
+            elif not self.is_compatible(self.vals[key],val):
+                raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,self.vals[key])
+        else:
+            self.keys.append(key)
+        self.vals[key]=val
+
+    def save(self, dir=None, fname=None,sort_keys=None): # if dir and/or fname are not specified, use the defaults specified in __init__
+        if dir==None:
+            dir=self.dir
+        if fname==None:
+            fname=self.fname
+        if sort_keys==None:
+            sort_keys=self.sort_keys
+
+
+        filepath=os.path.join(dir,fname)
+        try:
+            fd=open(filepath,"w")
+        except IOError,e:
+            raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+        try:
+            header=self.file_header()
+            if header!=None:
+                fd.write("%s\n"%header)
+            if sort_keys:
+                keys=self.keys[0:]
+                keys.sort()
+            else:
+                keys=self.keys
+            for k in keys:
+                fd.write("%s\n"%self.format_val(k))
+        finally:
+            fd.close()
+        return
+
+    def load(self, dir=None, fname=None): # if dir and/or fname are not specified, use the defaults specified in __init__
+        if dir==None:
+            dir=self.dir
+        if fname==None:
+            fname=self.fname
+
+        filepath=os.path.join(dir,fname)
+        try:
+            fd=open(filepath,"r")
+        except IOError,e:
+            raise RuntimeError, "Error opening %s: %s"%(filepath,e)
+        try:
+            lines=fd.readlines()
+        finally:
+            fd.close()
+
+        idx=0
+        for line in lines:
+            idx+=1
+            if line[-1]=='\n':
+                # strip newline
+                line=line[:-1]
+            try:
+                self.parse_val(line)
+            except RuntimeError, e:
+                raise RuntimeError, "File %s, line %i:%s"%(filepath,idx,str(e))
+        return
+
+    # PRIVATE
+    def is_compatible(self,old_val,new_val):
+        return True # everything is compatible
+    
+    def file_header(self):
+        return None # no header
+    
+    def format_val(self,key):
+        return "%s \t%s"%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,1)
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        key=arr[0]
+        if len(arr)==1:
+            val=''
+        else:
+            val=arr[1]
+        return self.add(key,val)
+
+# signatures
+class DescriptionDictFile(DictFile):
+    def format_val(self,key):
+        return "%s \t%s"%(self.vals[key],key)
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,1)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=2:
+            raise RuntimeError,"Not a valid description line: '%s'"%line
+
+        return self.add(arr[1],arr[0])
+    
+# signatures
+class SHA1DictFile(DictFile):
+    def format_val(self,key):
+        return "%s  %s"%(self.vals[key],key)
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,1)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=2:
+            raise RuntimeError,"Not a valid SHA1 line: '%s'"%line
+
+        return self.add(arr[1],arr[0])
+    
+# summary signatures
+# values are (sha1,fname)
+class SummarySHA1DictFile(DictFile):
+    def add(self,key,val,allow_overwrite=False):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=2:
+            raise RuntimeError, "Values '%s' not (sha1,fname)"%val
+        return DictFile.add(self,key,val,allow_overwrite)
+
+    def format_val(self,key):
+        return "%s  %s  %s"%(self.vals[key][0],self.vals[key][1],key)
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,2)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=3:
+            raise RuntimeError,"Not a valid summary signature line (expected 4, found %i elements): '%s'"%(len(arr),line)
+
+        key=arr[2]
+        return self.add(key,(arr[0],arr[1]))
+
+# file_list
+class FileDictFile(DictFile):
+    def format_val(self,key):
+        if self.vals[key]!=None:
+            return "%s %s"%(key,self.vals[key])
+        else:
+            return key
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,1)
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        key=arr[0]
+        if len(arr)==1:
+            val=None
+        else:
+            val=arr[1]
+        return self.add(key,val)
+
+# subsystem
+# values are (config_check,wnsubdir,config_out)
+class SubsystemDictFile(DictFile):
+    def add(self,key,val,allow_overwrite=False):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=3:
+            raise RuntimeError, "Values '%s' not (config_check,wnsubdir,config_out)"%val
+        return DictFile.add(self,key,val,allow_overwrite)
+
+    def format_val(self,key):
+        return "%s %s %s %s"%(self.vals[key][0],self.vals[key][1],key,self.vals[key][2])# condor_vars
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,3)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=4:
+            raise RuntimeError,"Not a valid subsystem line (expected 4, found %i elements): '%s'"%(len(arr),line)
+
+        key=arr[2]
+        return self.add(key,(arr[0],arr[1],arr[3]))
+
+# values are (Type,Default,CondorName,Required,Export,UserName)
+class VarsDictFile(DictFile):
+    def is_compatible(self,old_val,new_val):
+        return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
+    
+    def file_header(self):
+        return ("# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
+                "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
+                "#                                                                                                + = Use VarName   \n"+
+                "#                                                                                                @ = Use CondorName\n"
+                "###################################################################################################################")
+
+    def add(self,key,val,allow_overwrite=0):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=6:
+            raise RuntimeError, "Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%val
+        if not (val[0] in ('C','S','I')):
+            raise RuntimeError,"Invalid var type '%s', should be either C, S or I in val: %s"%(val[1],val)
+        for i,t in ((3,"Required"),(4,"Export")):
+            if not (val[i] in ('Y','N')):
+                raise RuntimeError,"Invalid var %s '%s', should be either Y or N in val: %s"%(t,val[i],val)
+
+        return DictFile.add(self,key,val,allow_overwrite)
+
+    def format_val(self,key):
+        return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4],self.vals[key][5])
+        
+
+    def parse_val(self,line):
+        if len(line)==0:
+            return #ignore emoty lines
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,6)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=7:
+            raise RuntimeError,"Not a valid var line (expected 7, found %i elements): '%s'"%(len(arr),line)
+
+        key=arr[0]
+        return self.add(key,arr[1:])
 
 #####################
 # Simply create a dir
@@ -223,34 +517,30 @@ def add_line(filename,dir,line):
         fd.close()
 
 ############################
-# Add a file description
-def add_description(stage_dir,fname,description):
-    add_line(cgWConsts.DESCRIPTION_FILE,stage_dir,"%s \t%s"%(description,fname))
-
-############################
 # Add a published attributed
-def add_attr(stage_dir,attr_name,attr_val,is_string):
+def add_attr(dicts,attr_name,attr_val,is_string):
     if is_string:
         attr_val=repr(attr_val)
     else:
         attr_val=repr(int(attr_val))
 
-    add_line(cgWConsts.ATTRS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
+    dicts['attrs'].add(attr_name,attr_val)
+
 
 ############################
 # Add a constant attribute
-def add_const(stage_dir,attr_name,attr_val):
-    add_line(cgWConsts.CONSTS_FILE,stage_dir,"%s \t%s"%(attr_name,attr_val))
+def add_const(dicts,attr_name,attr_val):
+    dicts['consts'].add(attr_name,attr_val)
 
 ########################
 # Add a parameter
-def add_param(submit_dir,param_name,param_defval,is_string):
+def add_param(dicts,param_name,param_defval,is_string):
     if is_string:
         param_defval=repr(param_defval)
     else:
         param_defval=repr(int(param_defval))
 
-    add_line(cgWConsts.PARAMS_FILE,submit_dir,"%s \t%s"%(param_name,param_defval))
+    dicts['params'].add(param_name,param_defval)
 
 #################################
 # Calculate SHA1 for the file
@@ -265,89 +555,86 @@ def calc_sha1(filename,stage_dir):
 #################################
 # Calculate SHA1 for the file and
 # put it into the signature file
-def add_sha1(filename,stage_dir):
+def add_sha1(filename,stage_dir,dicts):
     sha1=calc_sha1(filename,stage_dir)
-    add_line(cgWConsts.SIGNATURE_FILE,stage_dir,"%s  %s"%(sha1,filename))
+    dicts['signature'].add(filename,sha1)
 
 #################################
 # Add a new variable to VARS_FILE
-def add_var(stage_dir,attr_name,is_string,do_glidein_publish,do_job_publish):
+def add_var(dicts,attr_name,is_string,do_glidein_publish,do_job_publish):
     type_str={True:"S",False:"I"}
     glide_str={True:"Y",False:"N"}
     job_str={True:"+",False:"-"}
-    add_line(cgWConsts.VARS_FILE,stage_dir,
-             "%s\t%s\t-\t+\tN\t%s\t%s"%(attr_name,type_str[is_string],glide_str[do_glidein_publish],job_str[do_job_publish]))
+    dicts['vars'].add(attr_name,(type_str[is_string],'-','+','N',glide_str[do_glidein_publish],job_str[do_job_publish]))
     
 #########################
 # Register a regular file
-def add_file(filename,stage_dir,can_be_modified=0,description=None):
+def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None):
     if can_be_modified:
-        add_line(cgWConsts.FILE_LISTFILE,stage_dir,"%s nocache"%filename)
+        dicts['file_list'].add(filename,'nocache')
     else:
-        add_sha1(filename,stage_dir)
-        add_line(cgWConsts.FILE_LISTFILE,stage_dir,filename)
+        add_sha1(filename,stage_dir,dicts)
+        dicts['file_list'].add(filename,None)
     if description!=None:
-        add_description(stage_dir,filename,description)
+        dicts['description'].add(filename,description)
+
 
 ###################
 # Register a script
-def add_script(filename,stage_dir):
-    add_sha1(filename,stage_dir)
-    add_line(cgWConsts.SCRIPT_LISTFILE,stage_dir,filename)
+def add_script(filename,stage_dir,dicts):
+    add_sha1(filename,stage_dir,dicts)
+    dicts['script_list'].add(filename,None)
 
 ######################
 # Register a subsystem
-def add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out):
+def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out):
     if config_check==None:
         config_check="TRUE" #TRUE has a special meaning for the glidein
-    add_sha1(filename,stage_dir)
-    add_line(cgWConsts.SUBSYSTEM_LISTFILE,stage_dir,"%s %s %s %s"%(config_check,wnsubdir,filename,config_out))
+    add_sha1(filename,stage_dir,dicts)
+    dicts['subsystem_list'].add(filename,(config_check,wnsubdir,config_out))
     if config_check!="TRUE":
         # TRUE is not a real parameter, so no need to log it
-        add_param(submit_dir,config_check,0,is_string=False) # if it is optional, default==0
+        add_param(dicts,config_check,0,is_string=False) # if it is optional, default==0
 
 ##########################################
-# Calculate SHA1 for the list files
-# Return the sha1sum of the signature file
-def finalize_sha1(stage_dir,submit_dir,title):
-    for f in (cgWConsts.FILE_LISTFILE,cgWConsts.SCRIPT_LISTFILE,cgWConsts.SUBSYSTEM_LISTFILE,cgWConsts.DESCRIPTION_FILE):
-        # touch the file, in case it does not exist
-        filepath=os.path.join(stage_dir,f)
-        try:
-            fd=open(filepath,"a+")
-        except IOError,e:
-            raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
-        fd.close()
-        # calc sha1
-        add_sha1(f,stage_dir)
-    sha1=calc_sha1(cgWConsts.SIGNATURE_FILE,stage_dir)
-    add_line(cgWConsts.SUMMARY_SIGNATURE_FILE,submit_dir,"%s  %s  %s"%(sha1,cgWConsts.DESCRIPTION_FILE,title))
-    return sha1
+# Creates the summary_signature file
+def finalize_sha1(dicts,entry_dicts):
+    sha1=calc_sha1(dicts['signature'].get_fname(),dicts['signature'].get_dir())
+    dicts['summary_signature'].add('main',(sha1,dicts['description'].get_fname()))
+    for entry_name in entry_dicts.keys():
+        e_dicts=entry_dicts[entry_name]
+        sha1=calc_sha1(e_dicts['signature'].get_fname(),e_dicts['signature'].get_dir())
+        dicts['summary_signature'].add("entry_"+entry_name,(sha1,e_dicts['description'].get_fname()))
+
+    dicts['summary_signature'].save()
+    dicts['summary_signature'].set_readonly()
+    return
     
 ##########################################
-# Calculate SHA1 for the list files
-# Return the sha1sum of the signature file
-def create_description_file(stage_dir):
-    add_description(stage_dir,cgWConsts.SIGNATURE_FILE,"signature")
-    add_description(stage_dir,cgWConsts.FILE_LISTFILE,"file_list")
-    add_description(stage_dir,cgWConsts.SCRIPT_LISTFILE,"script_list")
-    add_description(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE,"subsystem_list")
+# Create description file
+def create_description_file(dicts):
+    description_dict=dicts['description']
+    description_dict.add(cgWConsts.SIGNATURE_FILE,"signature")
+    description_dict.add(cgWConsts.FILE_LISTFILE,"file_list")
+    description_dict.add(cgWConsts.SCRIPT_LISTFILE,"script_list")
+    description_dict.add(cgWConsts.SUBSYSTEM_LISTFILE,"subsystem_list")
+    
     
 #####################
 # Copy a regular file
-def copy_stage_file(filename,stage_dir,org_dir,can_be_modified=0,out_fname=None,description=None):
+def copy_stage_file(filename,stage_dir,org_dir,dicts,can_be_modified=0,out_fname=None,description=None):
     if out_fname==None:
         copy_file(os.path.join(org_dir,filename),stage_dir)
-        add_file(filename,stage_dir,can_be_modified,description)
+        add_file(filename,stage_dir,dicts,can_be_modified,description)
     else:
         copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
-        add_file(out_fname,stage_dir,can_be_modified,description)
+        add_file(out_fname,stage_dir,dicts,can_be_modified,description)
 
 ###############
 # Copy a script
-def copy_script(filename,stage_dir,org_dir):
+def copy_script(filename,stage_dir,org_dir,dicts):
     copy_file(os.path.join(org_dir,filename),stage_dir)
-    add_script(filename,stage_dir)
+    add_script(filename,stage_dir,dicts)
 
 ######################
 # Copy a subsystem
@@ -358,7 +645,7 @@ def copy_subsystem(filename,stage_dir,submit_dir,org_dir,config_check,wnsubdir,c
 ##########################################
 # Copy a user file and add it to the list
 # file as described by Params.file_defaults
-def copy_file_unparsed(file,stage_dir,submit_dir):
+def copy_file_unparsed(file,stage_dir,dicts):
     if file.absfname==None:
         raise RuntimeError, "Found a file element without an absname: %s"%file
     
@@ -370,12 +657,12 @@ def copy_file_unparsed(file,stage_dir,submit_dir):
 
     copy_file(file.absfname,os.path.join(stage_dir,relfname))
 
-    return add_file_unparsed(file,stage_dir,submit_dir)
+    return add_file_unparsed(file,stage_dir,dicts)
     
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
-def add_file_unparsed(file,stage_dir,submit_dir):
+def add_file_unparsed(file,stage_dir,dicts):
     relfname=file.relfname
     if relfname==None:
         if file.absfname==None:
@@ -395,7 +682,7 @@ def add_file_unparsed(file,stage_dir,submit_dir):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
-        add_script(relfname,stage_dir)
+        add_script(relfname,stage_dir,dicts)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -408,15 +695,21 @@ def add_file_unparsed(file,stage_dir,submit_dir):
         if file.untar_options.absdir_outattr==None:
             raise RuntimeError, 'Currently untar_options.absdir_outattr must be defined: %s'%file
         
-        add_subsystem(relfname,stage_dir,submit_dir,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr)
+        add_subsystem(relfname,stage_dir,dicts,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr)
     else: # not executable nor tarball => simple file
-        add_file(relfname,stage_dir,not is_const,None)
+        add_file(relfname,stage_dir,dicts,not is_const,None)
 
 
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
-def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
+def add_attr_unparsed(attr_name,attr_obj,dicts,description):
+    try:
+        add_attr_unparsed_real(attr_name,attr_obj,dicts)
+    except RuntimeError,e:
+        raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr_name,str(e))
+
+def add_attr_unparsed_real(attr_name,attr_obj,dicts):
     if attr_obj.value==None:
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
     
@@ -430,19 +723,19 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
     if do_publish: # publish in factory ClassAd
         if is_parameter: # but also push to glidein
             if is_const:
-                add_attr(stage_dir,attr_name,attr_obj.value,attr_obj.type=="string")
-                add_const(stage_dir,attr_name,attr_obj.value)
+                add_attr(dicts,attr_name,attr_obj.value,attr_obj.type=="string")
+                add_const(dicts,attr_name,attr_obj.value)
             else:
-                add_param(submit_dir,attr_name,attr_obj.value,attr_obj.type=="string")
+                add_param(dicts,attr_name,attr_obj.value,attr_obj.type=="string")
         else: # only publish
             if (not is_const):
                 raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
             
-            add_attr(stage_dir,attr_name,attr_obj.value,attr_obj.type=="string")
+            add_attr(dicts,attr_name,attr_obj.value,attr_obj.type=="string")
     else: # do not publish, only to glidein
         if is_parameter:
             if is_const:
-                add_const(stage_dir,attr_name,attr_obj.value)
+                add_const(dicts,attr_name,attr_obj.value)
             else:
                 raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
         else:
@@ -454,29 +747,41 @@ def add_attr_unparsed(attr_name,attr_obj,stage_dir,submit_dir):
 
         if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
-            add_var(stage_dir,attr_name,attr_obj.type=="string",do_glidein_publish,do_job_publish)
+            if dicts['vars'].has_key(attr_name):
+                # already in the var file, check if compatible
+                attr_var_el=dicts['vars'][attr_name]
+                attr_var_type=attr_var_el[0]
+                if (((attr_obj.type=="int") and (attr_var_type!='I')) or
+                    ((attr_obj.type=="string") and (attr_var_type=='I'))):
+                    raise RuntimeError, "Types not compatible (%s,%s)"%(attr_obj.type,attr_var_type)
+                attr_var_export=attr_var_el[4]
+                if do_glidein_publish and (attr_var_export=='N'):
+                    raise RuntimeError, "Cannot force glidein publishing"
+                attr_var_job_publish=attr_var_el[5]
+                if do_job_publish and (attr_var_job_publish=='-'):
+                    raise RuntimeError, "Cannot force job publishing"
+            else:
+                add_var(dicts,attr_name,attr_obj.type=="string",do_glidein_publish,do_job_publish)
 
 #############################################
-# Register the files that host the attributes
-def add_attr_files(stage_dir,submit_dir):
-    for fname,description in ((cgWConsts.ATTRS_FILE,"attrs_file"),(cgWConsts.CONSTS_FILE,"consts_file")):
-        # touch the file, in case it does not exist
-        filepath=os.path.join(stage_dir,fname)
-        try:
-            fd=open(filepath,"a+")
-        except IOError,e:
-            raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
-        fd.close()
+# Save most of the files, but the signatures
+def save_dict_files(dicts,description):
+    # save files that need description
+    for k,description in (('attrs','attrs_file'),('consts','consts_file'),('vars','condor_vars')):
+        # save file
+        dicts[k].save()
+        dicts[k].set_readonly(1) # prevent changes after it was saved
         # register it
-        add_file(fname,stage_dir,0,description)
-    # also make sure that the params file exist
-    filepath=os.path.join(submit_dir,cgWConsts.PARAMS_FILE)
-    try:
-        fd=open(filepath,"a+")
-    except IOError,e:
-        raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
-    fd.close()
-
+        add_file(dicts[k].get_fname(),dicts[k].get_dir(),dicts,0,description)
+    # save other non-changable files
+    for k in ('description','file_list','script_list','subsystem_list'):
+        dicts[k].save()
+        dicts[k].set_readonly(1) # prevent changes after it was saved
+        add_sha1(dicts[k].get_fname(),dicts[k].get_dir(),dicts)
+    # finally save the signature and submit-dir files
+    for k in ('signature','params'):
+        dicts[k].save()
+        dicts[k].set_readonly(1) # prevent changes after it was saved
      
 ##############################
 # Execute a command in a shell
@@ -495,9 +800,9 @@ def exe_cmd(cmd):
 ##############################
 # Create condor tarball and
 # add it to the list of subsaystems
-def create_condor_tar(stage_dir,submit_dir,condor_base_dir):
-    cgWCreate.create_condor_tar(stage_dir,submit_dir,condor_base_dir)
-    add_subsystem(cgWConsts.CONDOR_FILE,stage_dir,submit_dir,None,cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR)
+def create_condor_tar(stage_dir,dicts,condor_base_dir):
+    cgWCreate.create_condor_tar(stage_dir,condor_base_dir)
+    add_subsystem(cgWConsts.CONDOR_FILE,stage_dir,dicts,None,cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR)
 
 
 ###################################
@@ -543,10 +848,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.91 2007/10/16 15:50:59 sfiligoi Exp $
+# $Id: create_glidein,v 1.92 2007/10/18 19:06:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.92  2007/10/18 19:06:26  sfiligoi
+#  Mayor restructuring to get all the file creation more structured
+#
 #  Revision 1.91  2007/10/16 15:50:59  sfiligoi
 #  Split file addition from file copying
 #
