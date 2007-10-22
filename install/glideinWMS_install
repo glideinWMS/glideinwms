@@ -1918,7 +1918,7 @@ def setup_main_schedd():
         config_fd.write("\n######################################################\n")
         config_fd.write("## Schedd tuning\n")
         config_fd.write("######################################################\n\n")
-        config_fd.write("# Allow up to 2k concurrent running jobs\n")
+        config_fd.write("# Allow up to 6k concurrent running jobs\n")
         config_fd.write("MAX_JOBS_RUNNING        = 6000\n")
         config_fd.write("# Start 10 jobs every 2 seconds\n")
         config_fd.write("JOB_START_DELAY = 2\n")
