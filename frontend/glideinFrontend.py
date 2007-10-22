@@ -45,21 +45,22 @@ def iterate_one(frontend_name,factory_pool,
         running_jobs=count_glideins_running[glidename]
 
         if idle_jobs>0:
-            glidein_min_idle=idle_jobs+reserve_idle # add a little safety margin
+            glidein_min_idle=(idle_jobs/3)+reserve_idle # since it takes a few cycles to stabilize, ask for only one third
             if glidein_min_idle>max_idle:
-                glidein_min_idle=max_idle # but never go above max
+                glidein_min_idle=max_idle # and never go above max
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((idle_jobs+running_jobs)*(0.99+reserve_running_fraction)+1)
 
-        activity_log.write("Advertize %s %i"%(request_name,glidein_min_idle))
+        activity_log.write("For %s Idle %i Running %i"%(glidename,idle_jobs,running_jobs))
+        activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
         try:
           glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
           glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
-          warning_log.write("Advertize %s %i failed"%(request_name,glidein_min_idle))
+          warning_log.write("Advertize %s failed"%request_name)
 
     return
 
