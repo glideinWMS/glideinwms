@@ -350,8 +350,9 @@ def wms_install():
         config_fd.write("## Condor-G tuning\n")
         config_fd.write("######################################################\n\n")
         config_fd.write("GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)\n")
-        config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=2000\n")
-        config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=20\n")
+        config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000\n")
+        config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=500\n")
+        config_fd.write("GRIDMANAGER_MAX_PENDING_REQUESTS=500\n")
     finally:
         config_fd.close()
 
@@ -1918,10 +1919,10 @@ def setup_main_schedd():
         config_fd.write("## Schedd tuning\n")
         config_fd.write("######################################################\n\n")
         config_fd.write("# Allow up to 2k concurrent running jobs\n")
-        config_fd.write("MAX_JOBS_RUNNING        = 2000\n")
-        config_fd.write("# Start 8 jobs every 2 seconds\n")
+        config_fd.write("MAX_JOBS_RUNNING        = 6000\n")
+        config_fd.write("# Start 10 jobs every 2 seconds\n")
         config_fd.write("JOB_START_DELAY = 2\n")
-        config_fd.write("JOB_START_COUNT = 8\n")
+        config_fd.write("JOB_START_COUNT = 10\n")
         config_fd.write("# Prevent checking on ImageSize\n")
         config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
     finally:
