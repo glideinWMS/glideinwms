@@ -1925,6 +1925,9 @@ def setup_main_schedd():
         config_fd.write("JOB_START_COUNT = 10\n")
         config_fd.write("# Prevent checking on ImageSize\n")
         config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
+        config_fd.write("# Prevent preemption\n")
+        config_fd.write("MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7\n")
+        config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
     finally:
         config_fd.close()
 
