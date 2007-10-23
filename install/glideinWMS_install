@@ -1855,6 +1855,8 @@ def setup_collector(default_poolname):
         config_fd.write("## Negotiator tuning\n")
         config_fd.write("############################################################\n")
         config_fd.write("NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom\n")
+        config_fd.write("# Prevent preemption\n")
+        config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
     finally:
         config_fd.close()
 
@@ -1927,7 +1929,6 @@ def setup_main_schedd():
         config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
         config_fd.write("# Prevent preemption\n")
         config_fd.write("MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7\n")
-        config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
     finally:
         config_fd.close()
 
