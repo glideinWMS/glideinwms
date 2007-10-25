@@ -56,7 +56,11 @@ WANT_VACATE = False
 WANT_SUSPEND = True
 SUSPEND_VANILLA = False
 WANT_SUSPEND_VANILLA = True
-KILL = False
+
+# if it ever enters the Preempting/Vacating state, get out of it in 5 minutes
+# should never happen, but it is a good precaution
+KILL = (CurrentTime-EnteredCurrentActivity>300)
+
 IS_GLIDEIN = True
 HAS_MONITOR_VM = True
 MASTER_ATTRS = IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_Expire, DaemonStopTime, $(GLIDEIN_VARIABLES)
