@@ -2718,6 +2718,7 @@ def install_rrd():
     print "You will need the following RPMs:"
     print "  rrdtool-*.rpm"
     print "  perl-rrdtool-*.rpm"
+    print "  python-rrdtool-*.rpm"
     print "Version 1.2.18 has been tested, but you should always use the"
     print "latest one"
     while 1:
@@ -2729,9 +2730,12 @@ def install_rrd():
         rpm2_short_name="perl-"+rpm_short_name
         rpm2_fname=os.path.join(rpm_dir,rpm2_short_name)
 
+        rpm3_short_name="python-"+rpm_short_name
+        rpm3_fname=os.path.join(rpm_dir,rpm3_short_name)
+
 
         problems=0
-        for f in (rpm_fname,rpm2_fname):
+        for f in (rpm_fname,rpm2_fname,rpm3_fname):
             if not os.path.isfile(f):
                 print "File '%s' not found!"%f
                 problems=1
