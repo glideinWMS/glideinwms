@@ -2797,7 +2797,7 @@ def get_cronus_glidein_entries(vo,            #vo can be None
         select_reqs=default_reqs
 
     # Get gatekeepers from CRONUS
-    fd=os.popen("condor_status -pool cronus.cern.ch -constraint '%s' -format '%%s ' GlueClusterName -format '%%s ' gatekeeper_url -format '(queue=%%s)(jobtype=single) ' Queue -format '%%s' MY_SITE -format '\n' Name"%select_reqs)
+    fd=os.popen("condor_status -pool cronus.cern.ch -constraint '%s' -format '%%s ' GlueClusterName -format '%%s ' gatekeeper_url -format '(queue=%%s)(jobtype=single) ' Queue -format '%%s' MY_SITE -format '%%s' GlueSiteName -format '\n' Name"%select_reqs)
     lines=fd.readlines()
     err=fd.close()
     if err!=None: # found
@@ -2807,18 +2807,19 @@ def get_cronus_glidein_entries(vo,            #vo can be None
     cronus_entries={}
     for line in lines:
         line_arr=line.split()
-        if len(line_arr)!=4:
+        if len(line_arr)!=5:
             continue #ignore
         cluster_name=line_arr[0]
         gatekeeper_name=line_arr[1]
         rsl=line_arr[2]
         site_type=line_arr[3]
+        site_name=line_arr[4]
 
         cluster_arr=cluster_name.split('.')
         if len(cluster_arr)<2:
             continue # something is wrong here, at least a.b expected
     
-        cluster_id="%s_%s"%(cluster_arr[-1],cluster_arr[-2])
+        cluster_id=site_name
         count=1
         if cluster_count.has_key(cluster_id):
             count=cluster_count[cluster_id]+1
