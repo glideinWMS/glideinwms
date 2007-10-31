@@ -2797,7 +2797,7 @@ def get_cronus_glidein_entries(vo,            #vo can be None
         select_reqs=default_reqs
 
     # Get gatekeepers from CRONUS
-    fd=os.popen("condor_status -pool cronus.cern.ch -constraint '%s' -format '%%s ' GlueClusterName -format '%%s ' gatekeeper_url -format '(queue=%%s)(jobtype=single) ' Queue -format '%%s' MY_SITE -format '%%s' GlueSiteName -format '\n' Name"%select_reqs)
+    fd=os.popen("condor_status -pool cronus.cern.ch -constraint '%s' -format '%%s ' GlueClusterName -format '%%s ' gatekeeper_url -format '(queue=%%s)(jobtype=single) ' Queue -format '%%s ' MY_SITE -format '%%s' GlueSiteName -format '\\n' Name"%select_reqs)
     lines=fd.readlines()
     err=fd.close()
     if err!=None: # found
