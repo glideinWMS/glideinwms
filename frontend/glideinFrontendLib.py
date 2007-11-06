@@ -7,7 +7,7 @@
 #   Igor Sfiligoi (Sept 19th 2006)
 #
 
-import condorMonitor
+import condorMonitor,condorExe
 
 #
 # Return a dictionary of schedds containing idle jobs
@@ -82,7 +82,10 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None):
         if constraint!=None:
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
-        condorq.load(full_constraint)
+        try:
+            condorq.load(full_constraint)
+        except condorExe.ExeError:
+            continue # if schedd not found it is equivalent to no jobs in the queue
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
     return out_condorq_dict
