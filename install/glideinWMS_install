@@ -1178,12 +1178,14 @@ def query_vdt():
             yn=raw_input("Do you want to install the OSG VDT client?: (y/n) ")
             if (yn!="y"):
                 continue # do not install, ask again 
-
-        #not found, try to install
-        break
-
-    # install OSG VDT client
-    install_vdt()
+            else:
+              # install OSG VDT client
+              try:
+                install_vdt()
+              except RuntimeError,e:
+                print "%s"%e
+                continue # ask again
+              return
 
 # Install OSG client
 ################################
