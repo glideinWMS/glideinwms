@@ -2555,7 +2555,8 @@ def install_httpd():
                     'headers_module','setenvif_module','mime_module',
                     'status_module','autoindex_module','negotiation_module',
                     'dir_module','imap_module','alias_module','rewrite_module',
-                    'cache_module','file_cache_module','mem_cache_module')
+                    'cache_module','file_cache_module','mem_cache_module',
+                    'authz_host_module','authz_default_module')
     
     fd=open("/etc/httpd/conf/httpd.conf","w")
     try:
