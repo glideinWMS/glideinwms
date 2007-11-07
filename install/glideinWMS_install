@@ -1558,6 +1558,10 @@ def install_condor():
         fd=open("/etc/init.d/condor","w")
         try:
             fd.write("#!/bin/bash\n")
+            fd.write("# condor   This is the Condor batch system\n")
+            fd.write("# chkconfig: 35 90 30\n")
+            fd.write("# description: Starts and stops Condor\n\n")
+
             fd.write("# Source function library.\n")
             fd.write("if [ -f /etc/init.d/functions ] ; then\n")
             fd.write("        . /etc/init.d/functions\n")
