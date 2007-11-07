@@ -1193,7 +1193,7 @@ def install_vdt():
     user_dir=create_empty_dir("Where do you want the OSG VDT installed?: ",def_vdt_base_path)
     
     # install pacman
-    err=os.system("cd %s&&wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.19.tar.gz&&tar --no-same-owner -xzvf pacman-3.19.tar.gz&&rm -f  pacman-3.19.tar.gz"%user_dir)
+    err=os.system("cd %s&&wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.21.tar.gz&&tar --no-same-owner -xzvf pacman-3.21.tar.gz&&rm -f  pacman-3.21.tar.gz"%user_dir)
     if err!=0:
         raise RuntimeError,"Failed to install pacman!"
     print
@@ -1218,14 +1218,14 @@ def install_vdt():
     print
 
     # install the OSG client
-    err=os.system("cd %s/pacman-3.19;source setup.sh;cd %s&&pacman -trust-all-caches -pretend-platform %s -get OSG:client"%(user_dir,user_dir,platform))
+    err=os.system("cd %s/pacman-3.21;source setup.sh;cd %s&&pacman -trust-all-caches -pretend-platform %s -get OSG:client"%(user_dir,user_dir,platform))
     if err!=0:
         raise RuntimeError,"Failed to install the OSG client!"
 
     
     # remove the condor component
     # ignore any error
-    os.system("cd %s/pacman-3.19;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,user_dir))
+    os.system("cd %s/pacman-3.21;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,user_dir))
 
     # initialize the OSG client (only if root)
     if os.getuid()==0:
