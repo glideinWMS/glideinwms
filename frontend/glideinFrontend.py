@@ -27,7 +27,8 @@ import logSupport
 ############################################################
 def iterate_one(frontend_name,factory_pool,
                 schedd_names,job_constraint,match_str,
-                max_idle,reserve_idle,reserve_running_fraction,
+                max_idle,reserve_idle,
+                max_running,reserve_running_fraction,
                 glidein_params):
     global activity_log
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
@@ -38,24 +39,36 @@ def iterate_one(frontend_name,factory_pool,
     count_glideins_idle=glideinFrontendLib.countMatch(match_str,condorq_dict_idle,glidein_dict)
     count_glideins_running=glideinFrontendLib.countMatch(match_str,condorq_dict_running,glidein_dict)
 
+    total_running=0
+    for schedd in condorq_dict_running.keys():
+        condorq=condorq_dict_running[schedd]
+        condorq_data=condorq.fetchStored()
+        total_running+=len(condorq_data.keys())
+    activity_log.write("Total running %i limit %i"%(total_running,max_running))
+        
     for glidename in count_glideins_idle.keys():
         request_name=glidename
 
         idle_jobs=count_glideins_idle[glidename]
         running_jobs=count_glideins_running[glidename]
 
-        if idle_jobs>0:
+        if total_running>=max_running:
+            # have all the running jobs I wanted
+            glidein_min_idle=0
+        elif idle_jobs>0:
             glidein_min_idle=(idle_jobs/3)+reserve_idle # since it takes a few cycles to stabilize, ask for only one third
             if glidein_min_idle>max_idle:
-                glidein_min_idle=max_idle # and never go above max
+                glidein_min_idle=max_idle # but never go above max
+            if glidein_min_idle>(max_running-total_running+reserve_idle):
+                glidein_min_idle=(max_running-total_running+reserve_idle) # don't go over the max_running
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((idle_jobs+running_jobs)*(0.99+reserve_running_fraction)+1)
-
         activity_log.write("For %s Idle %i Running %i"%(glidename,idle_jobs,running_jobs))
         activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
+
         try:
           glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
           glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
@@ -68,7 +81,8 @@ def iterate_one(frontend_name,factory_pool,
 def iterate(log_dir,sleep_time,
             frontend_name,factory_pool,
             schedd_names,job_constraint,match_str,
-            max_idle,reserve_idle,reserve_running_fraction,
+            max_idle,reserve_idle,
+            max_running,reserve_running_fraction,
             glidein_params):
     global activity_log,warning_log
     startup_time=time.time()
@@ -104,7 +118,10 @@ def iterate(log_dir,sleep_time,
                 while 1:
                     activity_log.write("Iteration at %s" % time.ctime())
                     try:
-                        done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,max_idle,reserve_idle,reserve_running_fraction,glidein_params)
+                        done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,
+                                                   max_idle,reserve_idle,
+                                                   max_running,reserve_running_fraction,
+                                                   glidein_params)
                     except KeyboardInterrupt:
                         raise # this is an exit signal, pass trough
                     except:
@@ -145,7 +162,8 @@ def main(sleep_time,advertize_rate,config_file):
     iterate(config_dict['log_dir'],sleep_time,
             config_dict['frontend_name'],config_dict['factory_pool'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],
-            100, 5,0.05,
+            config_dict['max_idle_glideins_per_entry'], 5,
+            config_dict['max_running_jobs'], 0.05,
             config_dict['glidein_params'])
 
 ############################################################
