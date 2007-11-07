@@ -1075,6 +1075,13 @@ def vofrontend_install():
         fd.write("# String for matching jobs to glideins\n")
         fd.write("match_string=%r\n\n"%match_str)
 
+        fd.write("# How much pressure should I apply to the entry points\n")
+        fd.write("max_idle_glideins_per_entry=100\n\n")
+        
+        fd.write("# What is the max number of running jobs I want to get to\n")
+        fd.write("max_running_jobs=10000 \n\n")
+
+
         fd.write("# Glidein parameters\n")
         fd.write("# At least GLIDEIN_Collector must be defined\n")
         fd.write("glidein_params={'GLIDEIN_Collector':%r}\n\n"%local_collector)
