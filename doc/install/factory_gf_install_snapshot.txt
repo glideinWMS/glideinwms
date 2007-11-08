@@ -36,10 +36,10 @@ Give a name to this Glidein Factory?: [localhost]
 Give a name to this Glidein instance?: [v1_0]
 Do you want to expose the Grid env. to the user jobs?: (y/n) y
 The following glidein schedds have been found:
- [1] schedd_glideins1@localhost.localdomain
- [2] schedd_glideins2@localhost.localdomain
- [3] schedd_glideins3@localhost.localdomain
- [4] schedd_glideins4@localhost.localdomain
+ [1] schedd_glideins1@node1.my.company.org
+ [2] schedd_glideins2@node1.my.company.org
+ [3] schedd_glideins3@node1.my.company.org
+ [4] schedd_glideins4@node1.my.company.org
 Do you want to use all of them?: (y/n) y
 Using ['schedd_glideins1@node1.my.company.org', 'schedd_glideins2@node1.my.company.org', 'schedd_glideins3@node1.my.company.org', 'schedd_glideins4@node1.my.company.org']
 
