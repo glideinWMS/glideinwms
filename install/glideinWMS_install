@@ -1323,6 +1323,12 @@ def install_condor():
     # and verify it
 
     while 1:
+        print
+        print "You will now need the Condor tarball"
+        print "You can find it on http://www.cs.wisc.edu/condor/"
+        print "Versions v6.9.6 and v6.9.2 has been tested, but you"
+        print "should always use the latest one"
+        print
         condor_tarball=raw_input("Where do you have the Condor tarball? ")
         if not os.path.isfile(condor_tarball):
             print "File '%s' not found!"%condor_tarball
@@ -2735,6 +2741,7 @@ def install_rrd():
     print "  python-rrdtool-*.rpm"
     print "Version 1.2.18 has been tested, but you should always use the"
     print "latest one"
+    print
     while 1:
         rpm_fname=raw_input("What is the name of the base rrd RPM?: ")
         rpm_fname=os.path.abspath(rpm_fname)
