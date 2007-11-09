@@ -113,8 +113,8 @@ done < condor_vars.lst.tmp
 
 #let "max_job_time=$job_max_hours * 3600"
 
-#now=`date +%s`
-#let "max_proxy_time=$X509_EXPIRE - $now - 1"
+now=`date +%s`
+let "x509_duration=$X509_EXPIRE - $now - 1"
 
 #if [ $max_proxy_time -lt $max_job_time ]; then
 #    max_job_time=$max_proxy_time
@@ -125,18 +125,25 @@ done < condor_vars.lst.tmp
 
 #let "glidein_toretire=$now + $glidein_retire_time"
 
+# put some safety margin
+let "session_duration=$x509_duration + 300"
+
 cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of condor_startup fixed part ----
+
+SEC_DEFAULT_SESSION_DURATION = $session_duration
 
 LOCAL_DIR = $PWD
 
 #GLIDEIN_EXPIRE = $glidein_expire
 #GLIDEIN_TORETIRE = $glidein_toretire
+GLIDEIN_START_TIME = $now
 
 STARTER_JOB_ENVIRONMENT = $job_env
 GLIDEIN_VARIABLES = $glidein_variables
 
 MASTER_NAME = ${GLIDEIN_Site}_$$
+
 
 EOF
 # ##################################
