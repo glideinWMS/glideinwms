@@ -125,10 +125,10 @@ function params2file {
 ################
 # Parse arguments
 set_debug=0
-sleep_time=300
+sleep_time=1200
 if [ "$debug_mode" == "dbg" ]; then
  set_debug=1
- sleep_time=10
+ sleep_time=150
 fi
 
 if [ -z "$descript_file" ]; then
