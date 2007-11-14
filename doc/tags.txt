@@ -1,5 +1,11 @@
-v_next	Significant speedup in the VO frontend matchmaking
+v0_9	Significant speedup in the VO frontend matchmaking
 	Added MaxRunningGlideins request
+        Use human readable dates in logs
+        Factory will use python rrd module if present
+        Reduced graphing load of the factory
+        Frontend will work even if some of the schedd are down
+        Improved installation scripts.
+        NOT BACKWARD COMPATIBLE: Need to recreate both frontend and factory entries
 
 v0_8	Add support for multiple schedds
 	Add initial support for pseudo interactive monitoring
