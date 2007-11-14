@@ -200,7 +200,7 @@ def schedd_node_install():
     gcb_list=get_gcb_list()
 
     if len(gcb_list)>0: # do not need to configure if not using GCBs at all
-        config_fd=open("%s/etc/gcb-routing-table "%CONDOR_BASE_PATH,"w")
+        config_fd=open("%s/etc/gcb-routing-table"%CONDOR_BASE_PATH,"w")
         try:
             for gcb_entry in gcb_list:
                 config_fd.write("%s/32 GCB\n"%gcb_entry)
