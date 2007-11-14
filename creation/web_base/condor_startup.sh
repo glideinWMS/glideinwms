@@ -143,7 +143,7 @@ STARTER_JOB_ENVIRONMENT = $job_env
 GLIDEIN_VARIABLES = $glidein_variables
 
 MASTER_NAME = ${GLIDEIN_Site}_$$
-
+GLIDEIN_MASTER_NAME = "${GLIDEIN_Site}_$$"
 
 EOF
 # ##################################
