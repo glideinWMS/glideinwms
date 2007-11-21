@@ -1426,7 +1426,7 @@ def install_condor():
         config_fd.write("\n########################################################\n")
         config_fd.write("# will use etc/condor_config.local \n")
         config_fd.write("########################################################\n")
-        config_fd.write("LOCAL_CONFIG_FILE = CONDOR_UPD_CONFIG_FILE\n")
+        config_fd.write("LOCAL_CONFIG_FILE = %s\n"%CONDOR_UPD_CONFIG_FILE)
       finally:
         config_fd.close()
     else: # else always update the main one
