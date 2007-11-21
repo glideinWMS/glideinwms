@@ -1,3 +1,5 @@
+v_next	Quill is now optional
+
 v0_9	Significant speedup in the VO frontend matchmaking
 	Added MaxRunningGlideins request
         Use human readable dates in logs
