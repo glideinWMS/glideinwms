@@ -29,6 +29,8 @@ HTTPD_PORT=None
 RRD_BIN_PATH=None
 # CONDOR_BASE_PATH will point to the base condor directory when condor is installed
 CONDOR_BASE_PATH=None
+# Where should the changes to Condor go
+CONDOR_UPD_CONFIG_FILE=None
 # Where is the OSG VDT client installed
 VDT_BASE_PATH=None
 # Has the GSI securtiy been configured
@@ -175,6 +177,7 @@ def schedd_node_install():
     global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
     global COLLECTOR_INSTALLED
     global MAIN_SCHEDD_INSTALLED
+    global CONDOR_UPD_CONFIG_FILE
 
     print "Installing user submit schedds"
     print
@@ -209,7 +212,7 @@ def schedd_node_install():
         finally:
             config_fd.close()
 
-        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("#####################################\n")
             config_fd.write("# Tell schedd daemons where is GCB\n")
@@ -267,6 +270,7 @@ def wms_install():
     global QUILL_CONFIG_DONE
     global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
     global COLLECTOR_INSTALLED
+    global CONDOR_UPD_CONFIG_FILE
 
     print "Installing WMS collector"
     print
@@ -348,7 +352,7 @@ def wms_install():
 
     ################################
     # Set optimized Condor-G values
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("## Condor-G tuning\n")
@@ -401,6 +405,7 @@ def wms_install():
 def condor_frontend_install():
     global CONDOR_BASE_PATH
     global VDT_BASE_PATH
+    global CONDOR_UPD_CONFIG_FILE
 
     if (CONDOR_BASE_PATH==None) or (VDT_BASE_PATH==None):
         if os.getuid()==0:
@@ -430,7 +435,7 @@ def condor_frontend_install():
         
         ####################################################
         # If used only for the VO frontend, disable daemons
-        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("\n######################################################\n")
             config_fd.write("## The client needs GSI authentication\n")
@@ -460,6 +465,7 @@ def gcb_install():
     global COLLECTOR_INSTALLED
     global MAIN_SCHEDD_INSTALLED
     global QUILL_CONFIG_DONE
+    global CONDOR_UPD_CONFIG_FILE
     
     if os.getuid()==0:
         print
@@ -481,7 +487,7 @@ def gcb_install():
 
     ################################
     # Configure GCB
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("## GCB configuration\n")
@@ -569,7 +575,7 @@ def gcb_install():
 
     ################################
     # Configure GCB
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("## Add GCB to the list of daemons\n")
@@ -1297,6 +1303,7 @@ def install_condor():
     global CONDOR_BASE_PATH
     global CONDOR_USER
     global CONDOR_LOCAL_DIR
+    global CONDOR_UPD_CONFIG_FILE
 
     print "Installing condor"
     print
@@ -1411,6 +1418,28 @@ def install_condor():
         # installation files not needed anymore
         shutil.rmtree("%s/tar"%user_condor_base_dir)
 
+    yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [n]")
+    if yn=='y':
+      CONDOR_UPD_CONFIG_FILE="%s/etc/condor_config.local"%user_condor_base_dir
+      config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
+      try:
+        config_fd.write("\n########################################################\n")
+        config_fd.write("# will use etc/condor_config.local \n")
+        config_fd.write("########################################################\n\")
+        config_fd.write("LOCAL_CONFIG_FILE = CONDOR_UPD_CONFIG_FILE\n")
+      finally:
+        config_fd.close()
+    else: # else always update the main one
+      CONDOR_UPD_CONFIG_FILE="%s/etc/condor_config"%user_condor_base_dir
+      try:
+        config_fd.write("\n########################################################\n")
+        config_fd.write("# disable additional config files \n")
+        config_fd.write("########################################################\n\")
+        config_fd.write("LOCAL_CONFIG_FILE = \n")
+      finally:
+        config_fd.close()
+
+
     ##################################################
     # Append condor_config.local to main condor_config
     # leave condor_config.local empty
@@ -1421,7 +1450,7 @@ def install_condor():
     finally:
         local_fd.close()
 
-    config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n########################################################\n")
         config_fd.write("# Whatever condor_configure put into condor_config.local\n")
@@ -1430,13 +1459,14 @@ def install_condor():
     finally:
         config_fd.close()
 
-    # empty condor_config.local
+    # empty official condor_config.local
     local_fd=open("%s/condor_local/condor_config.local"%user_condor_base_dir,"w")
+    local_fd.write("\n### Not Used ###\n")
     local_fd.close()
 
     ##################################################
     # Configure values condor_configure does not
-    config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("# Base configuration values for glideinWMS\n")
@@ -1719,6 +1749,7 @@ def configure_gsi_security():
     global CONDOR_BASE_PATH
     global VDT_BASE_PATH
     global GSI_SECURITY_CONFIGURED
+    global CONDOR_UPD_CONFIG_FILE
 
     print "Configuring GSI security"
     print
@@ -1810,7 +1841,7 @@ def configure_gsi_security():
 
     #################################
     # do the config
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("############################################################\n")
         config_fd.write("## GSI Security config\n")
@@ -1862,12 +1893,13 @@ def configure_gsi_security():
 def setup_collector(default_poolname):
     global CONDOR_BASE_PATH
     global COLLECTOR_INSTALLED
+    global CONDOR_UPD_CONFIG_FILE
     
     a_poolname=raw_input("What name would you like to use for this pool?: [%s] "%default_poolname)
     if a_poolname=="":
         a_poolname=default_poolname
 
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("## This is a Collector machine, limit deamons\n")
@@ -1895,6 +1927,7 @@ def setup_main_schedd():
     global COLLECTOR_INSTALLED
     global MAIN_SCHEDD_INSTALLED
     global QUILL_CONFIG_DONE
+    global CONDOR_UPD_CONFIG_FILE
 
     # not all the use cases need Quill
     if QUILL_CONFIG_DONE:
@@ -1914,7 +1947,7 @@ def setup_main_schedd():
             #have a valid pool_node
             break
         
-        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("\n######################################################\n")
             config_fd.write("## Point to the collector node\n")
@@ -1927,7 +1960,7 @@ def setup_main_schedd():
         finally:
             config_fd.close()
     else:
-        config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("######################################################\n")
             config_fd.write("## This is both a Collector and a Schedd machine\n")
@@ -1938,7 +1971,7 @@ def setup_main_schedd():
 
     ################################
     # Set optimized schedd values
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("## Schedd tuning\n")
@@ -2357,13 +2390,14 @@ def setup_quill():
     global POSTGRESQL_PORT
     global QUILL_CONFIG_DONE
     global CONDOR_USER
+    global CONDOR_UPD_CONFIG_FILE
 
     if QUILL_DB_PASSWDS==None:
         query_quill_db()
 
     ################################
     # configure condor parameters
-    config_fd=open("%s/etc/condor_config"%CONDOR_BASE_PATH,"a")
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n#############################\n")
         config_fd.write("# Quill settings\n")
