@@ -2710,7 +2710,7 @@ def query_rrd():
                   print "%s"%e
             continue # get back to the first question
         #else
-        rrd_path=raw_input("Where do you have the rrd RPM?: ")
+        rrd_path=raw_input("In what directory do you have the rrd binary?: ")
         rrd_path=os.path.abspath(rrd_path)
 
         # Use which to verify the new path
