@@ -2477,8 +2477,9 @@ def create_secondary_schedd_support_files():
         fd.write("# add whatever other config you need\n")
         fd.write("# create needed directories\n")
         fd.write("%s/sbin/condor_init\n"%CONDOR_BASE_PATH)
-        fd.write("# copy Quill writer passwd\n")
-        fd.write("cp -p %s/spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/\n"%CONDOR_LOCAL_DIR)
+        if QUILL_CONFIG_DONE:
+            fd.write("# copy Quill writer passwd\n")
+            fd.write("cp -p %s/spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/\n"%CONDOR_LOCAL_DIR)
     finally:
         fd.close()
     os.chmod("%s/init_schedd.sh"%CONDOR_BASE_PATH,
