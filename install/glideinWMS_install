@@ -1434,7 +1434,7 @@ def install_condor():
       try:
         config_fd.write("\n########################################################\n")
         config_fd.write("# disable additional config files \n")
-        config_fd.write("########################################################\n\")
+        config_fd.write("########################################################\n")
         config_fd.write("LOCAL_CONFIG_FILE = \n")
       finally:
         config_fd.close()
