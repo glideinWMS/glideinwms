@@ -856,7 +856,11 @@ def listAndInterpretRawStatuses(jobs_raw,invert_function):
     outc={}
     tmpc=invert_function(jobs_raw)
     for s in tmpc.keys():
-        i_s=interpretStatus(int(s[1:])) #ignore flags
+        try:
+          i_s=interpretStatus(int(s[1:])) #ignore flags
+        except: # file corrupted, protect
+         #print "lairs: Unexpect line: %s"%s
+         continue
         try:
             outc[i_s]+=tmpc[s]
         except:  # there are only a few possible values, so using exceptions is faster
