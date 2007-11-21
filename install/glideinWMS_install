@@ -190,7 +190,9 @@ def schedd_node_install():
         configure_gsi_security()
 
     if not QUILL_CONFIG_DONE:
-        setup_quill()
+        yn=raw_input("Do you want to Use Quill?: (y/n) [n]")
+        if yn=='y':
+            setup_quill()
 
     if not MAIN_SCHEDD_INSTALLED:
         setup_main_schedd()
@@ -334,7 +336,9 @@ def wms_install():
         configure_gsi_security()
 
     if not QUILL_CONFIG_DONE:
-        setup_quill()
+        yn=raw_input("Do you want to Use Quill?: (y/n) [n]")
+        if yn=='y':
+            setup_quill()
 
     if not COLLECTOR_INSTALLED:
         setup_collector('My glideinWMS pool')
@@ -2393,6 +2397,7 @@ def setup_quill():
 def create_secondary_schedd_support_files():
     global CONDOR_BASE_PATH
     global CONDOR_LOCAL_DIR
+    global QUILL_CONFIG_DONE
     global SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED
 
     ##############################
@@ -2406,19 +2411,24 @@ def create_secondary_schedd_support_files():
         fd.write("fi\n\n")
         
         fd.write("LD=%s\n"%CONDOR_LOCAL_DIR)
-        fd.write("QDB=quill\n\n")
+        if QUILL_CONFIG_DONE:
+            fd.write("QDB=quill\n\n")
 
         fd.write("export _CONDOR_SCHEDD_NAME=schedd_$1\n")
         fd.write("export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}\n")
         fd.write("# SCHEDD and MASTER names MUST be the same (Condor requirement)\n")
-        fd.write("export _CONDOR_QUILL_NAME=quill_$1@`uname -n`\n")
-        fd.write("export _CONDOR_QUILL_DB_NAME=${QDB}_$1\n")
-        fd.write('export _CONDOR_DAEMON_LIST="MASTER,SCHEDD,QUILL"\n')
+        if QUILL_CONFIG_DONE:
+            fd.write("export _CONDOR_QUILL_NAME=quill_$1@`uname -n`\n")
+            fd.write("export _CONDOR_QUILL_DB_NAME=${QDB}_$1\n")
+            fd.write('export _CONDOR_DAEMON_LIST="MASTER,SCHEDD,QUILL"\n')
+        else:
+            fd.write('export _CONDOR_DAEMON_LIST="MASTER,SCHEDD"\n')
         fd.write("export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME\n")
         fd.write("export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock\n\n")
 
         fd.write("unset LD\n")
-        fd.write("unset QDB\n")
+        if QUILL_CONFIG_DONE:
+            fd.write("unset QDB\n")
     finally:
         fd.close()
     os.chmod("%s/new_schedd_setup.sh"%CONDOR_BASE_PATH,
