@@ -2824,7 +2824,7 @@ def install_rrd():
     ##########################
     # Install the RPM
     print "Installing the rrd RPM"
-    err=os.system("rpm -i %s %s"%(rpm_fname,rpm2_fname))
+    err=os.system("rpm -i %s %s %s"%(rpm_fname,rpm2_fname,rpm3_fname))
     if err!=0:
         raise RuntimeError, "Installation of the RPMs failed!"
     print
