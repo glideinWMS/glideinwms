@@ -2704,10 +2704,13 @@ def query_rrd():
         if yn!="y":
             yn=raw_input("Do you want to install it?: (y/n) ")
             if yn=="y":
-                return install_rrd()
+                try:
+                  return install_rrd()
+                except RuntimeError, e:
+                  print "%s"%e
             continue # get back to the first question
         #else
-        rrd_path=raw_input("Where do you have the httpd RPM?: ")
+        rrd_path=raw_input("Where do you have the rrd RPM?: ")
         rrd_path=os.path.abspath(rrd_path)
 
         # Use which to verify the new path
