@@ -1431,6 +1431,7 @@ def install_condor():
         config_fd.close()
     else: # else always update the main one
       CONDOR_UPD_CONFIG_FILE="%s/etc/condor_config"%user_condor_base_dir
+      config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
       try:
         config_fd.write("\n########################################################\n")
         config_fd.write("# disable additional config files \n")
