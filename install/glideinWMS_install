@@ -862,7 +862,7 @@ def gfactory_install():
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname="%s/certs/grid-mapfile" untar="False" const="False"/>\n'%condor_base_dir)
+            fd.write('      <file executable="False" absfname="%s/certs/grid-mapfile" untar="False" const="False" relfname="grid-mapfile"/>\n'%condor_base_dir)
             if len(gcb_list)>0: #not needed else
                 fd.write('      <file executable="True" absfname="web_base/gcb_setup.sh" untar="False" const="True"/>\n')
             fd.write('   </files>\n')
