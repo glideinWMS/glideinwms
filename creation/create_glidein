@@ -26,7 +26,7 @@ def main(params):
 
         # create entry dirs, including internal log dirs
         for entry_name in params.entries.keys():
-            entry_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+            entry_dir=cgWConsts.get_entry_submit_dir(params.submit_dir,entry_name)
             create_dir(entry_dir)
             create_dir(os.path.join(entry_dir,"log"))
         
@@ -34,7 +34,7 @@ def main(params):
         try:
             # create entry dirs
             for entry_name in params.entries.keys():
-                entry_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                entry_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
                 create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
 
             create_dir(params.monitor_dir)
@@ -48,29 +48,11 @@ def main(params):
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
                # create dictionary variables
-               main_dicts={'summary_signature':cgWDictFile.SummarySHA1DictFile(params.submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE),
-                           'attrs':cgWDictFile.DictFile(params.stage_dir,cgWConsts.ATTRS_FILE),
-                           'description':cgWDictFile.DescriptionDictFile(params.stage_dir,cgWConsts.DESCRIPTION_FILE),
-                           'consts':cgWDictFile.DictFile(params.stage_dir,cgWConsts.CONSTS_FILE),
-                           'params':cgWDictFile.DictFile(params.submit_dir,cgWConsts.PARAMS_FILE),
-                           'vars':cgWDictFile.VarsDictFile(params.stage_dir,cgWConsts.VARS_FILE),
-                           'file_list':cgWDictFile.FileDictFile(params.stage_dir,cgWConsts.FILE_LISTFILE),
-                           'script_list':cgWDictFile.FileDictFile(params.stage_dir,cgWConsts.SCRIPT_LISTFILE),
-                           'subsystem_list':cgWDictFile.SubsystemDictFile(params.stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
-                           "signature":cgWDictFile.SHA1DictFile(params.stage_dir,cgWConsts.SIGNATURE_FILE)}
+               main_dicts=cgWDictFile.get_main_dicts(params.submit_dir,params.stage_dir)
                entry_dicts={}
                for entry_name in params.entries.keys():
-                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   entry_dicts[entry_name]={'attrs':cgWDictFile.DictFile(entry_stage_dir,cgWConsts.ATTRS_FILE),
-                                            'description':cgWDictFile.DescriptionDictFile(entry_stage_dir,cgWConsts.DESCRIPTION_FILE),
-                                            'consts':cgWDictFile.DictFile(entry_stage_dir,cgWConsts.CONSTS_FILE),
-                                            'params':cgWDictFile.DictFile(entry_submit_dir,cgWConsts.PARAMS_FILE),
-                                            'vars':cgWDictFile.VarsDictFile(entry_stage_dir,cgWConsts.VARS_FILE),
-                                            'file_list':cgWDictFile.FileDictFile(entry_stage_dir,cgWConsts.FILE_LISTFILE),
-                                            'script_list':cgWDictFile.FileDictFile(entry_stage_dir,cgWConsts.SCRIPT_LISTFILE),
-                                            'subsystem_list':cgWDictFile.SubsystemDictFile(entry_stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
-                                            "signature":cgWDictFile.SHA1DictFile(entry_stage_dir,cgWConsts.SIGNATURE_FILE)}
+                   entry_dicts[entry_name]=cgWDictFile.get_entry_dicts(params.submit_dir,params.stage_dir,entry_name)
+
 
                # create basic description file(s)
                create_description_file(main_dicts)
@@ -82,7 +64,7 @@ def main(params):
                    copy_file_unparsed(file,params.stage_dir,main_dicts)
                ## repeat for all the entries
                for entry_name in params.entries.keys():
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
                    for file in params.entries[entry_name].files:
                        copy_file_unparsed(file,entry_stage_dir,entry_dicts[entry_name])
 
@@ -108,7 +90,7 @@ def main(params):
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
                    entry_dicts[entry_name]['vars'].load(params.src_dir,'condor_vars.lst.entry') # will be modified when attrs processed
                    copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,entry_dicts[entry_name],can_be_modified=1)
               
@@ -145,8 +127,8 @@ def main(params):
 
                link_attributes(params.submit_dir,params.stage_dir,bool(params.stage.use_symlink))
                for entry_name in params.entries.keys():
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
+                   entry_submit_dir=cgWConsts.get_entry_submit_dir(params.submit_dir,entry_name)
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
                cgWCreate.create_glidein_descript(params.submit_dir,
@@ -166,8 +148,8 @@ def main(params):
                global_schedd_names=string.split(params.schedd_name,',')
                global_schedd_idx=0
                for entry_name in params.entries.keys():
-                   entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
-                   entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
+                   entry_submit_dir=cgWConsts.get_entry_submit_dir(params.submit_dir,entry_name)
                    entry_el=params.entries[entry_name]
 
                    schedd_name=entry_el.schedd_name
@@ -574,10 +556,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.93 2007/10/25 22:30:27 sfiligoi Exp $
+# $Id: create_glidein,v 1.94 2007/11/27 19:58:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.94  2007/11/27 19:58:51  sfiligoi
+#  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
+#
 #  Revision 1.93  2007/10/25 22:30:27  sfiligoi
 #  Use cgWDictFile
 #

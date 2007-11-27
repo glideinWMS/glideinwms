@@ -10,6 +10,7 @@
 
 import time
 import string
+import os.path
 
 start_time_tuple=time.localtime()
 TIMESTR=(string.printable[start_time_tuple[0]-2000]+ #year, will work until ~2060
@@ -51,15 +52,34 @@ SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
 XML_CONFIG_FILE="glideinWMS.xml"
 
+###################################################
+#
+# These functions append constant parts to strings
+#
+###################################################
+
+def get_entry_submit_dir(submit_dir,entry_name):
+    entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+    return entry_submit_dir
+
+def get_entry_stage_dir(stage_dir,entry_name):
+    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+    return entry_stage_dir
+
+
+
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.3 2007/10/12 21:56:24 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.4 2007/11/27 19:58:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.4  2007/11/27 19:58:51  sfiligoi
+#  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
+#
 #  Revision 1.3  2007/10/12 21:56:24  sfiligoi
 #  Add glideinWMS.cfg in the list of constants
 #

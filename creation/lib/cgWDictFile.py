@@ -1,10 +1,18 @@
+#######################################################
+#
+# Glidein creation module
+# Classes and functions needed to handle dictionary files
+#
+#######################################################
+
+import os.path
+import cgWConsts
+
 ########################################
 #
 # File dictionary classes
 #
 ########################################
-
-import os.path
 
 class DictFile:
     def __init__(self,dir,fname,sort_keys=0):
@@ -282,14 +290,51 @@ class VarsDictFile(DictFile):
         key=arr[0]
         return self.add(key,arr[1:])
 
+
+################################################
+#
+# Functions that create default dictionaries
+#
+################################################
+
+def get_main_dicts(submit_dir,stage_dir):
+    main_dicts={'summary_signature':SummarySHA1DictFile(submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE),
+                'attrs':DictFile(stage_dir,cgWConsts.ATTRS_FILE),
+                'description':DescriptionDictFile(stage_dir,cgWConsts.DESCRIPTION_FILE),
+                'consts':DictFile(stage_dir,cgWConsts.CONSTS_FILE),
+                'params':DictFile(submit_dir,cgWConsts.PARAMS_FILE),
+                'vars':VarsDictFile(stage_dir,cgWConsts.VARS_FILE),
+                'file_list':FileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
+                'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
+                'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
+                "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
+    return main_dicts
+
+def get_entry_dicts(submit_dir,stage_dir,entry_name):
+    entry_submit_dir=cgWConsts.get_entry_submit_dir(submit_dir,entry_name)
+    entry_stage_dir=cgWConsts.get_entry_stage_dir(stage_dir,entry_name)
+    entry_dicts={'attrs':DictFile(entry_stage_dir,cgWConsts.ATTRS_FILE),
+                 'description':DescriptionDictFile(entry_stage_dir,cgWConsts.DESCRIPTION_FILE),
+                 'consts':DictFile(entry_stage_dir,cgWConsts.CONSTS_FILE),
+                 'params':DictFile(entry_submit_dir,cgWConsts.PARAMS_FILE),
+                 'vars':VarsDictFile(entry_stage_dir,cgWConsts.VARS_FILE),
+                 'file_list':FileDictFile(entry_stage_dir,cgWConsts.FILE_LISTFILE),
+                 'script_list':FileDictFile(entry_stage_dir,cgWConsts.SCRIPT_LISTFILE),
+                 'subsystem_list':SubsystemDictFile(entry_stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
+                 "signature":SHA1DictFile(entry_stage_dir,cgWConsts.SIGNATURE_FILE)}
+    return entry_dicts
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.1 2007/10/25 22:28:27 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.2 2007/11/27 19:58:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.2  2007/11/27 19:58:51  sfiligoi
+#  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
+#
 #  Revision 1.1  2007/10/25 22:28:27  sfiligoi
 #  FIle dictionary classes
 #
