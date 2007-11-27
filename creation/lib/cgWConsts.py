@@ -59,11 +59,11 @@ XML_CONFIG_FILE="glideinWMS.xml"
 ###################################################
 
 def get_entry_submit_dir(submit_dir,entry_name):
-    entry_submit_dir=os.path.join(params.submit_dir,"entry_"+entry_name)
+    entry_submit_dir=os.path.join(submit_dir,"entry_"+entry_name)
     return entry_submit_dir
 
 def get_entry_stage_dir(stage_dir,entry_name):
-    entry_stage_dir=os.path.join(params.stage_dir,"entry_"+entry_name)
+    entry_stage_dir=os.path.join(stage_dir,"entry_"+entry_name)
     return entry_stage_dir
 
 
@@ -73,10 +73,13 @@ def get_entry_stage_dir(stage_dir,entry_name):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.4 2007/11/27 19:58:51 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.5 2007/11/27 20:29:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.5  2007/11/27 20:29:27  sfiligoi
+#  Fix typo
+#
 #  Revision 1.4  2007/11/27 19:58:51  sfiligoi
 #  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
 #
