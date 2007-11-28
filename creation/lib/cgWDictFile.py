@@ -394,7 +394,7 @@ def load_entry_dicts(entry_dicts,entry_name,summary_signature): # update in plac
     # first submit dir ones (mutable)
     entry_dicts['params'].load()
     # load the description (name from summary_signature)
-    entry_dicts['description'].load(fname=summary_signature[entry_name][1])
+    entry_dicts['description'].load(fname=summary_signature[cgWConsts.get_entry_stage_dir("",entry_name)][1])
     # all others are keyed in the description
     entry_dicts['signature'].load(fname=entry_dicts['description'].vals2['signature'])
     entry_dicts['attrs'].load(fname=entry_dicts['description'].vals2['attrs_file'])
@@ -405,14 +405,127 @@ def load_entry_dicts(entry_dicts,entry_name,summary_signature): # update in plac
     entry_dicts['subsystem_list'].load(fname=entry_dicts['description'].vals2['subsystem_list'])
     
 
+################################################
+#
+# Handle discts as Classes
+#
+################################################
+
+class glideinMainDicts:
+    def __init__(self,submit_dir,stage_dir):
+        self.submit_dir=submit_dir
+        self.stage_dir=stage_dir
+        self.dicts=get_main_dicts(submit_dir,stage_dir)
+
+    def has_key(self,key):
+        return self.dicts.has_key(key)
+
+    def __getitem__(self,key):
+        return self.dicts[key]        
+
+    def get_summary_signature(self): # you can discover most of the other things from this
+        return self.dicts['summary_signature']
+
+    def set_readonly(self,readonly=True):
+        for el in self.dicts.values():
+            el.set_readonly(readonly)
+
+    def erase(self):
+        self.dicts=get_main_dicts(self.submit_dir,self.stage_dir)
+    
+    def load(self):
+        load_main_dicts(self.dicts)
+
+    def save(self):
+        pass # to be defined
+
+class glideinEntryDicts:
+    def __init__(self,
+                 glidein_main_dicts, # must be an instance of glideinMainDicts
+                 entry_name):
+        self.entry_name=entry_name
+        self.glidein_main_dicts=glidein_main_dicts
+        self.submit_dir=glidein_main_dicts.submit_dir
+        self.stage_dir=glidein_main_dicts.stage_dir
+        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,entry_name)
+
+    def has_key(self,key):
+        return self.dicts.has_key(key)
+
+    def __getitem__(self,key):
+        return self.dicts[key]        
+
+    def set_readonly(self,readonly=True):
+        for el in self.dicts.values():
+            el.set_readonly(readonly)
+
+    def erase(self):
+        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,self.entry_name)
+    
+    def load(self): #will use glidein_main_dicts data, so it must be loaded first
+        load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
+
+    def save(self):
+        pass # to be defined
+
+################################################
+#
+# This Class contains coth the main and
+# the entry dicts
+#
+################################################
+
+class glideinDicts:
+    def __init__(self,submit_dir,stage_dir,entry_list):
+        self.submit_dir=submit_dir
+        self.stage_dir=stage_dir
+        self.main_dicts=glideinMainDicts(self.submit_dir,self.stage_dir)
+        self.entry_dicts={}
+        for entry_name in entry_list:
+            self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
+        return
+
+    def set_readonly(self,readonly=True):
+        self.main_dicts.set_readonly(readonly)
+        for el in self.entry_dicts.values():
+            el.set_readonly(readonly)
+
+    def erase(self,destroy_old_entries=True): # if false, the entry names will be preserved
+        self.main_dicts=glideinMainDicts(self.submit_dir,self.stage_dir)
+        if destroy_old_entries:
+            self.entry_dicts={}
+        else:
+            for entry_name in self.entry_dicts.keys():
+                self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
+        return
+
+    def load(self,destroy_old_entries=True): # if false, overwrite the entries you load, but leave the others as they are
+        self.main_dicts.load()
+        if destroy_old_entries:
+            self.entry_dicts={}
+        # else just leave as it is, will rewrite just the loaded ones
+
+        for sign_key in self.main_dicts.get_summary_signature().keys:
+            if sign_key!='main': # main is special, not an entry
+                entry_name=cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
+                self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
+                self.load()
+
+    def save(self):
+        pass # to be defined
+   
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.5 2007/11/28 19:59:47 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.6 2007/11/28 21:13:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.6  2007/11/28 21:13:27  sfiligoi
+#  Add glideinDicts (also fixed load_entry_dicts)
+#
 #  Revision 1.5  2007/11/28 19:59:47  sfiligoi
 #  Fix typo
 #
