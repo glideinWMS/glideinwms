@@ -729,7 +729,17 @@ def gfactory_install():
     err=fd.close()
     if err!=None: # found
         raise RuntimeError, "Failed to detect condor installation!"
-    condor_base_dir=os.path.dirname(os.path.dirname(lines[0][:-1])) 
+    def_condor_base_dir=os.path.dirname(os.path.dirname(lines[0][:-1])) 
+    while 1:
+        condor_base_dir=raw_input("What is the Condor base directory?: [%s]"%def_condor_base_dir)
+        if condor_base_dir=="":
+            condor_base_dir=def_condor_base_dir
+        condor_startd_bin=os.path.join(condor_base_dir,'sbin/condor_startd')
+        if not os.path.exists(condor_startd_bin):
+            print "%s does not exist!"%condor_startd_bin
+            continue
+        # found and verified
+        break
 
     # Expose Grid Env
     while 1:
