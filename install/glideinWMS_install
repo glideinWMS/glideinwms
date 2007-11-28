@@ -741,15 +741,6 @@ def gfactory_install():
         # found and verified
         break
 
-    # Expose Grid Env
-    while 1:
-        gridenv_yn=raw_input("Do you want to expose the Grid env. to the user jobs?: (y/n) ")
-        if (gridenv_yn!="y") and (gridenv_yn!="n"):
-            print "Please answer y or n"
-            continue 
-        break
-    
-
     # schedds
     fd=os.popen("condor_status -schedd -format '%s\n' Name")
     lines=fd.readlines()
@@ -843,6 +834,15 @@ def gfactory_install():
         entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl_name,'gridtype':'gt2',
                                   'work_dir':work_dir,'site_name':site_name}
         
+
+    # Expose Grid Env
+    while 1:
+        gridenv_yn=raw_input("Do you want to expose the Grid env. to the user jobs?: (y/n) ")
+        if (gridenv_yn!="y") and (gridenv_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    
 
     #####################################
     # create config files
