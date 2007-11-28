@@ -802,6 +802,18 @@ def gfactory_install():
     # GCBs
     gcb_list=get_gcb_list()
 
+    # grid-mapfile
+    def_grid_mapfile="%s/certs/grid-mapfile"%def_condor_base_dir
+    while 1:
+        grid_mapfile=raw_input("Where is the grid-mapfile?: [%s]"%def_grid_mapfile)
+        if grid_mapfile=="":
+            grid_mapfile=def_grid_mapfile
+        if not os.path.exists(grid_mapfile):
+            print "%s does not exist!"%grid_mapfile
+            continue
+        # found and verified
+        break
+
     # entries
     entries_list={}
     yn=raw_input("Do you want to fetch entries from CRONUS?: (y/n) ")
@@ -880,7 +892,7 @@ def gfactory_install():
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname="%s/certs/grid-mapfile" untar="False" const="False" relfname="grid-mapfile"/>\n'%condor_base_dir)
+            fd.write('      <file executable="False" absfname="%s" untar="False" const="False" relfname="grid-mapfile"/>\n'%grid_mapfile)
             if len(gcb_list)>0: #not needed else
                 fd.write('      <file executable="True" absfname="web_base/gcb_setup.sh" untar="False" const="True"/>\n')
             fd.write('   </files>\n')
