@@ -696,7 +696,7 @@ def gfactory_install():
             web_url_type="ftp"
             web_base_url_noproto=web_base_url[6:]
         else:
-            tmp=web_url_type.split(':',1)
+            tmp=web_base_url.split(':',1)
             print "Unknown protocol %s (http, https and ftp supported)!"%tmp
             continue
 
