@@ -417,6 +417,9 @@ class glideinMainDicts:
         self.stage_dir=stage_dir
         self.dicts=get_main_dicts(submit_dir,stage_dir)
 
+    def keys(self):
+        return self.dicts.keys()
+
     def has_key(self,key):
         return self.dicts.has_key(key)
 
@@ -448,6 +451,9 @@ class glideinEntryDicts:
         self.submit_dir=glidein_main_dicts.submit_dir
         self.stage_dir=glidein_main_dicts.stage_dir
         self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,entry_name)
+
+    def keys(self):
+        return self.dicts.keys()
 
     def has_key(self,key):
         return self.dicts.has_key(key)
@@ -519,18 +525,15 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.7 2007/11/28 21:17:31 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.8 2007/11/28 21:27:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
-#  Revision 1.7  2007/11/28 21:17:31  sfiligoi
-#  Fix typo
+#  Revision 1.8  2007/11/28 21:27:06  sfiligoi
+#  Add keys function to glideinMainDicts and glideinEntryDicts
 #
 #  Revision 1.6  2007/11/28 21:13:27  sfiligoi
 #  Add glideinDicts (also fixed load_entry_dicts)
-#
-#  Revision 1.5  2007/11/28 19:59:47  sfiligoi
-#  Fix typo
 #
 #  Revision 1.4  2007/11/28 19:54:50  sfiligoi
 #  Add load_entry_dicts
