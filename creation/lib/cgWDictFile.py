@@ -374,9 +374,13 @@ def get_entry_dicts(submit_dir,stage_dir,entry_name):
 ################################################
 
 def load_main_dicts(main_dicts): # update in place
+    # first submit dir ones (mutable)
     main_dicts['params'].load()
+    # summary_signature has keys for description
     main_dicts['summary_signature'].load()
+    # load the description
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
+    # all others are keyed in the description
     main_dicts['signature'].load(fname=main_dicts['description'].vals2['signature'])
     main_dicts['attrs'].load(fname=main_dicts['description'].vals2['attrs_file'])
     main_dicts['consts'].load(fname=main_dicts['description'].vals2['consts_file'])
@@ -386,14 +390,32 @@ def load_main_dicts(main_dicts): # update in place
     main_dicts['subsystem_list'].load(fname=main_dicts['description'].vals2['subsystem_list'])
     
 
+def load_entry_dicts(entry_dicts,entry_name,summary_signature): # update in place
+    # first submit dir ones (mutable)
+    entry_dicts['params'].load()
+    # load the description (name from summary_signature)
+    entry_dicts['description'].load(summary_signature[entry_name][1])
+    # all others are keyed in the description
+    entry_dicts['signature'].load(fname=entry_dicts['description'].vals2['signature'])
+    entry_dicts['attrs'].load(fname=entry_dicts['description'].vals2['attrs_file'])
+    entry_dicts['consts'].load(fname=entry_dicts['description'].vals2['consts_file'])
+    entry_dicts['vars'].load(fname=entry_dicts['description'].vals2['condor_vars'])
+    entry_dicts['file_list'].load(fname=entry_dicts['description'].vals2['file_list'])
+    entry_dicts['script_list'].load(fname=entry_dicts['description'].vals2['script_list'])
+    entry_dicts['subsystem_list'].load(fname=entry_dicts['description'].vals2['subsystem_list'])
+    
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.3 2007/11/28 19:45:19 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.4 2007/11/28 19:54:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.4  2007/11/28 19:54:50  sfiligoi
+#  Add load_entry_dicts
+#
 #  Revision 1.3  2007/11/28 19:45:19  sfiligoi
 #  Add load_main_dicts
 #
