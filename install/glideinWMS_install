@@ -857,8 +857,7 @@ def gfactory_install():
             fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
             fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   <attrs>\n')
-            if gridenv_yn=='y':
-                fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" const="True" parameter="False" glidein_publish="True" value="True" publish="True" job_publish="False" type="string"/>\n')
+            fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" const="True" parameter="False" glidein_publish="True" value="%s" publish="True" job_publish="False" type="string"/>\n'%(gridenv_yn=='y'))
             if len(gcb_list)>0:
                 fd.write('      <attr name="GLIDEIN_UseGCB" const="True" parameter="False" glidein_publish="False" value="1" publish="True" job_publish="False" type="string"/>\n')
                 fd.write('      <attr name="GCB_LIST" const="True" type="string" glidein_publish="False" value="%s" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
