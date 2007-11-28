@@ -668,10 +668,6 @@ def gfactory_install():
         # found it
         break
 
-    # Web base directory
-    # always use default
-    web_base_dir="/var/www/html/glidefactory"
-
     # Web URL
     if HTTPD_PORT==None:
         default_httpd_port="80"
@@ -694,6 +690,19 @@ def gfactory_install():
         httpd_port=HTTPD_PORT
 
     web_base_url="http://%s:%s/glidefactory"%(full_host_name,httpd_port)
+
+    # Web base directory
+    # always use default
+    def_web_base_dir="/var/www/html/glidefactory"
+    while 1:
+        web_base_dir=raw_input("What is the Web base directory?: [%s]"%def_web_base_dir)
+        if web_base_dir=="":
+            web_base_dir=def_web_base_dir
+        if not os.path.exists(web_base_dir):
+            print "Directory %s does not exist!"%web_base_dir
+            continue
+        # found and verified
+        break
 
     # Factory name
     def_factory_name=fhn_arr[0]
