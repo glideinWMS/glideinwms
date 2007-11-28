@@ -15,10 +15,13 @@ import cgWConsts
 ########################################
 
 class DictFile:
-    def __init__(self,dir,fname,sort_keys=False):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False):
         self.dir=dir
         self.fname=fname
+        if sort_keys and order_matters:
+            raise RuntimeError,"Cannot preserve the order and sort the keys" 
         self.sort_keys=sort_keys
+        self.order_matters=order_matters
 
         self.is_readonly=False
         
@@ -118,6 +121,20 @@ class DictFile:
         self.fname=fname
         return
 
+    def is_equal(self,other,         # other must be of the same class
+                 compare_dir=False,compare_fname=False,
+                 compare_keys=None): # if None, use order_matters
+        if compare_dir and (self.dir!=other.dir):
+            return False
+        if compare_fname and (self.fname!=other.fname):
+            return False
+        if compare_keys==None:
+            compare_keys=self.order_matters
+        if compare_keys and (self.keys!=other.keys):
+            return False
+        res=(self.vals==other.vals)
+        return res
+
     # PRIVATE
     def is_compatible(self,old_val,new_val):
         return True # everything is compatible
@@ -145,8 +162,8 @@ class DictFile:
         return self.add(key,val)
 
 class DictFileTwoKeys(DictFile): # both key and val are keys
-    def __init__(self,dir,fname,sort_keys=False):
-        DictFile.__init__(self,dir,fname,sort_keys)
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False):
+        DictFile.__init__(self,dir,fname,sort_keys,order_matters)
         self.keys2=[]
         self.vals2={}
 
@@ -179,6 +196,20 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
         self.vals[key]=val
         self.vals2[val]=key
     
+    def is_equal(self,other,         # other must be of the same class
+                 compare_dir=False,compare_fname=False,
+                 compare_keys=None): # if None, use order_matters
+        if compare_dir and (self.dir!=other.dir):
+            return False
+        if compare_fname and (self.fname!=other.fname):
+            return False
+        if compare_keys==None:
+            compare_keys=self.order_matters
+        if compare_key_order and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
+            return False
+        res=(self.vals==other.vals)
+        return res
+        
     # PRIVATE
     def is_compatible2(self,old_val2,new_val2):
         return True # everything is compatible
@@ -442,6 +473,18 @@ class glideinMainDicts:
     def save(self):
         pass # to be defined
 
+    def is_equal(self,other,             # other must be of the same class
+                 compare_submit_dir=False,compare_stage_dir=False,
+                 compare_fnames=False): 
+        if compare_submit_dir and (self.submit_dir!=other.submit_dir):
+            return False
+        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
+            return False
+        for k in self.dicts.keys():
+            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
+                return False
+        return True
+        
 class glideinEntryDicts:
     def __init__(self,
                  glidein_main_dicts, # must be an instance of glideinMainDicts
@@ -473,6 +516,19 @@ class glideinEntryDicts:
 
     def save(self):
         pass # to be defined
+
+    def is_equal(self,other,             # other must be of the same class
+                 compare_entry_name=False,
+                 compare_glidein_main_dicts=False, # if set to True, will do a complete check on the related objects
+                 compare_fnames=False): 
+        if compare_entry_name and (self.entry_name!=other.entry_name):
+            return False
+        if compare_glidein_main_dicts and (self.glidein_main_dicts.is_equal(other.glidein_main_dicts,compare_submit_dir=True,compare_stage_dir=True,compare_fnames=compare_fnames)):
+            return False
+        for k in self.dicts.keys():
+            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
+                return False
+        return True
 
 ################################################
 #
@@ -520,15 +576,42 @@ class glideinDicts:
     def save(self):
         pass # to be defined
    
+    def is_equal(self,other,             # other must be of the same class
+                 compare_submit_dir=False,compare_stage_dir=False,
+                 compare_fnames=False): 
+        if compare_submit_dir and (self.submit_dir!=other.submit_dir):
+            return False
+        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
+            return False
+        if not self.main_dicts.is_equal(other.main_dicts,compare_submit_dir=False,compare_stage_dir=False,compare_fnames=compare_fnames):
+            return False
+        my_entries=self.entry_dicts.keys()
+        other_entries=other.entry_dicts.keys()
+        if len(my_entries)!=len(other_entries):
+            return False
+
+        my_entries.sort()
+        other_entries.sort()
+        if my_entries!=other_entries: # need to be in the same order to make a comparison
+            return False
+        
+        for k in my_entries:
+            if not self.entry_dicts[k].is_equal(other.entry_dicts[k],compare_entry_name=False,
+                                                compare_glidein_main_dicts=False,compare_fname=compare_fnames):
+                return False
+        return True
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.8 2007/11/28 21:27:06 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.9 2007/11/28 22:20:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.9  2007/11/28 22:20:58  sfiligoi
+#  Add is_equal to all classes
+#
 #  Revision 1.8  2007/11/28 21:27:06  sfiligoi
 #  Add keys function to glideinMainDicts and glideinEntryDicts
 #
