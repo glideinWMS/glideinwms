@@ -476,7 +476,7 @@ class glideinEntryDicts:
 ################################################
 
 class glideinDicts:
-    def __init__(self,submit_dir,stage_dir,entry_list):
+    def __init__(self,submit_dir,stage_dir,entry_list=[]):
         self.submit_dir=submit_dir
         self.stage_dir=stage_dir
         self.main_dicts=glideinMainDicts(self.submit_dir,self.stage_dir)
@@ -509,7 +509,7 @@ class glideinDicts:
             if sign_key!='main': # main is special, not an entry
                 entry_name=cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
                 self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
-                self.load()
+                self.entry_dicts[entry_name].load()
 
     def save(self):
         pass # to be defined
@@ -519,10 +519,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.6 2007/11/28 21:13:27 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.7 2007/11/28 21:17:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.7  2007/11/28 21:17:31  sfiligoi
+#  Fix typo
+#
 #  Revision 1.6  2007/11/28 21:13:27  sfiligoi
 #  Add glideinDicts (also fixed load_entry_dicts)
 #
