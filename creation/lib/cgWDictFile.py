@@ -205,7 +205,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
             return False
         if compare_keys==None:
             compare_keys=self.order_matters
-        if compare_key_order and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
+        if compare_keys and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
             return False
         res=(self.vals==other.vals)
         return res
@@ -605,10 +605,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.9 2007/11/28 22:20:58 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.10 2007/11/28 22:22:49 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.10  2007/11/28 22:22:49  sfiligoi
+#  Fix typo
+#
 #  Revision 1.9  2007/11/28 22:20:58  sfiligoi
 #  Add is_equal to all classes
 #
