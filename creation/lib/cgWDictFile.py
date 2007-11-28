@@ -15,7 +15,7 @@ import cgWConsts
 ########################################
 
 class DictFile:
-    def __init__(self,dir,fname,sort_keys=0):
+    def __init__(self,dir,fname,sort_keys=False):
         self.dir=dir
         self.fname=fname
         self.sort_keys=sort_keys
@@ -87,7 +87,7 @@ class DictFile:
             fd.close()
         return
 
-    def load(self, dir=None, fname=None): # if dir and/or fname are not specified, use the defaults specified in __init__
+    def load(self, dir=None, fname=None): # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, change the self.
         if dir==None:
             dir=self.dir
         if fname==None:
@@ -113,6 +113,9 @@ class DictFile:
                 self.parse_val(line)
             except RuntimeError, e:
                 raise RuntimeError, "File %s, line %i:%s"%(filepath,idx,str(e))
+
+        self.dir=dir
+        self.fname=fname
         return
 
     # PRIVATE
@@ -141,8 +144,48 @@ class DictFile:
             val=arr[1]
         return self.add(key,val)
 
-# signatures
-class DescriptionDictFile(DictFile):
+class DictFileTwoKeys(DictFile): # both key and val are keys
+    def __init__(self,dir,fname,sort_keys=False):
+        DictFile.__init__(self,dir,fname,sort_keys)
+        self.keys2=[]
+        self.vals2={}
+
+    def has_key2(self,key):
+        return key in self.keys2
+
+    def get_val2(self,key):
+        return self.vals2[key]
+
+    def add(self,key,val,allow_overwrite=False):
+        if self.is_readonly:
+            raise RuntimeError, "Trying to modify a readonly object!"
+        
+        if key in self.keys:
+            if not allow_overwrite:
+                raise RuntimeError, "Key '%s' already exists"%key
+            elif not self.is_compatible(self.vals[key],val):
+                raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,self.vals[key])
+        else:
+            self.keys.append(key)
+
+        if val in self.keys2:
+            if not allow_overwrite:
+                raise RuntimeError, "Value '%s' already exists"%val
+            elif not self.is_compatible2(self.vals2[val],key):
+                raise RuntimeError, "Value '%s': Key %s not compatible with old key %s"%(val,key,self.vals2[val])
+        else:
+            self.keys2.append(val)
+
+        self.vals[key]=val
+        self.vals2[val]=key
+    
+    # PRIVATE
+    def is_compatible2(self,old_val2,new_val2):
+        return True # everything is compatible
+
+
+# descriptions
+class DescriptionDictFile(DictFileTwoKeys):
     def format_val(self,key):
         return "%s \t%s"%(self.vals[key],key)
 
@@ -324,14 +367,36 @@ def get_entry_dicts(submit_dir,stage_dir,entry_name):
                  "signature":SHA1DictFile(entry_stage_dir,cgWConsts.SIGNATURE_FILE)}
     return entry_dicts
 
+################################################
+#
+# Functions that load dictionaries
+#
+################################################
+
+def load_main_dicts(main_dicts): # update in place
+    main_dicts['params'].load()
+    main_dicts['summary_signature'].load()
+    main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
+    main_dicts['signature'].load(fname=main_dicts['description'].vals2['signature'])
+    main_dicts['attrs'].load(fname=main_dicts['description'].vals2['attrs_file'])
+    main_dicts['consts'].load(fname=main_dicts['description'].vals2['consts_file'])
+    main_dicts['vars'].load(fname=main_dicts['description'].vals2['condor_vars'])
+    main_dicts['file_list'].load(fname=main_dicts['description'].vals2['file_list'])
+    main_dicts['script_list'].load(fname=main_dicts['description'].vals2['script_list'])
+    main_dicts['subsystem_list'].load(fname=main_dicts['description'].vals2['subsystem_list'])
+    
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.2 2007/11/27 19:58:51 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.3 2007/11/28 19:45:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.3  2007/11/28 19:45:19  sfiligoi
+#  Add load_main_dicts
+#
 #  Revision 1.2  2007/11/27 19:58:51  sfiligoi
 #  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
 #
