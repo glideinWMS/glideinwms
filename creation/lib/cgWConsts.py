@@ -66,23 +66,44 @@ def get_entry_submit_dir(submit_dir,entry_name):
     entry_submit_dir=os.path.join(submit_dir,"entry_"+entry_name)
     return entry_submit_dir
 
+def get_entry_name_from_entry_submit_dir(entry_submit_dir):
+    entry_name_arr=os.path.basename(entry_submit_dir).split('_',1)
+    if entry_name_arr[0]!='entry':
+        raise ValueError('%s not a entry_submit_dir'%entry_submit_dir)
+    return entry_name_arr[1]
+
 def get_entry_stage_dir(stage_dir,entry_name):
     entry_stage_dir=os.path.join(stage_dir,"entry_"+entry_name)
     return entry_stage_dir
 
+def get_entry_name_from_entry_stage_dir(entry_stage_dir):
+    entry_name_arr=os.path.basename(entry_stage_dir).split('_',1)
+    if entry_name_arr[0]!='entry':
+        raise ValueError('%s not a entry_stage_dir'%entry_stage_dir)
+    return entry_name_arr[1]
+
 def get_entry_monitor_dir(monitor_dir,entry_name):
     entry_monitor_dir=os.path.join(monitor_dir,"entry_"+entry_name)
     return entry_monitor_dir
+
+def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
+    entry_name_arr=os.path.basename(entry_monitor_dir).split('_',1)
+    if entry_name_arr[0]!='entry':
+        raise ValueError('%s not a entry_monitor_dir'%entry_monitor_dir)
+    return entry_name_arr[1]
 
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.6 2007/11/28 20:51:48 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.7 2007/11/28 21:02:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.7  2007/11/28 21:02:30  sfiligoi
+#  Add inverse entry functions
+#
 #  Revision 1.6  2007/11/28 20:51:48  sfiligoi
 #  Add get_timestra and get_entry_monitor_dir
 #
