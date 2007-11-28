@@ -14,6 +14,7 @@ import getpass
 import socket
 import stat
 import httplib
+import ftplib
 
 #############################
 #
@@ -670,32 +671,87 @@ def gfactory_install():
 
     # Web URL
     if HTTPD_PORT==None:
-        default_httpd_port="80"
-        while 1:
-            httpd_port=raw_input("What port does the Web server run on?: [%s] "%default_httpd_port)
-            if httpd_port=="":
-                httpd_port=default_httpd_port
+        default_web_base_url="http://%s/glidefactory"%full_host_name
+    else:
+        default_web_base_url="http://%s:%s/glidefactory"%(full_host_name,HTTPD_PORT)
+
+    while 1:
+        web_base_url=raw_input("What Web URL will you use?: [%s] "%default_web_base_url)
+        if web_base_url=="":
+            web_base_url=default_web_base_url
+
+        if web_base_url[:7]=="http://":
+            web_url_type="http"
+            web_base_url_noproto=web_base_url[7:]
+        elif web_base_url[:8]=="https://":
+            yn=raw_input("HTTPS is quite expensive and cannot be cached?\nAre you sure you want to use it? : (y/n) ")
+            if yn!="y":
+                continue
+            web_url_type="https"
+            web_base_url_noproto=web_base_url[8:]
+        elif web_base_url[:6]=="ftp://":
+            yn=raw_input("FTP will usually not be cached?\nAre you sure you want to use it? : (y/n) ")
+            if yn!="y":
+                continue
+            web_url_type="ftp"
+            web_base_url_noproto=web_base_url[6:]
+        else:
+            tmp=web_url_type.split(':',1)
+            print "Unknown protocol %s (http, https and ftp supported)!"%tmp
+            continue
+
+        web_base_url_noproto_arr=web_base_url_noproto.split('/',1)
+        if len(web_base_url_noproto_arr)!=2:
+            print "Invalid URL: %s"%web_base_url
+            continue
+
+        web_base_url_host=web_base_url_noproto_arr[0]
+        web_base_url_path=web_base_url_noproto_arr[1]
+
+        if web_url_type=="ftp":
+            try:
+                fc=ftplist.FTP(web_base_url_host)
+                rc=fc.login()
+                rc=fc.cwd(web_base_url_path)
+                fc.close()
+            except:
+                print "Failed connecting to: %s"%web_base_url
+                continue
+        else:
+            web_base_url_host_arr=web_base_url_host.split(':',1)
+            web_base_url_host_name=web_base_url_host_arr[0]
+            if len(web_base_url_host_arr)>1:
+                try:
+                    web_base_url_host_port=int(web_base_url_host_arr[1])
+                except:
+                    print "Invalid port number in URL: %s"%web_base_url
+                    continue
+            else:
+                web_base_url_host_port=None
 
             try:
-                hc=httplib.HTTPConnection(full_host_name,httpd_port)
+                if web_url_type=='http':
+                    hc=httplib.HTTPConnection(web_base_url_host_name,web_base_url_host_port)
+                else:
+                    hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
                 hc.connect()
+                hc.request("GET", "/"+web_base_url_path)
+                rc = hc.getresponse()
                 hc.close()
+                if rc.status!=200:
+                    raise RuntimError,"http failed %i"%rc.status
             except:
-                print "No httpd found on %s:%s!"%(full_host_name,httpd_port)
+                print "Failed connecting to: %s"%web_base_url
                 continue
 
-            # found and verified the installation
-            break
-    else:
-        httpd_port=HTTPD_PORT
-
-    web_base_url="http://%s:%s/glidefactory"%(full_host_name,httpd_port)
+        # found and verified the installation
+        break
 
     # Web base directory
     # always use default
     def_web_base_dir="/var/www/html/glidefactory"
     while 1:
-        web_base_dir=raw_input("What is the Web base directory?: [%s]"%def_web_base_dir)
+        web_base_dir=raw_input("What is the Web base directory?: [%s] "%def_web_base_dir)
         if web_base_dir=="":
             web_base_dir=def_web_base_dir
         if not os.path.exists(web_base_dir):
@@ -706,14 +762,14 @@ def gfactory_install():
 
     # Factory name
     def_factory_name=fhn_arr[0]
-    factory_name=raw_input("Give a name to this Glidein Factory?: [%s]"%def_factory_name)
+    factory_name=raw_input("Give a name to this Glidein Factory?: [%s] "%def_factory_name)
     if factory_name=="":
         factory_name=def_factory_name
 
     # Glidein name
     def_glidein_name="v1_0"
     while 1:
-        glidein_name=raw_input("Give a name to this Glidein instance?: [%s]"%def_glidein_name)
+        glidein_name=raw_input("Give a name to this Glidein instance?: [%s] "%def_glidein_name)
         if glidein_name=="":
             glidein_name=def_glidein_name
         # check if dir already exists
@@ -731,7 +787,7 @@ def gfactory_install():
         raise RuntimeError, "Failed to detect condor installation!"
     def_condor_base_dir=os.path.dirname(os.path.dirname(lines[0][:-1])) 
     while 1:
-        condor_base_dir=raw_input("What is the Condor base directory?: [%s]"%def_condor_base_dir)
+        condor_base_dir=raw_input("What is the Condor base directory?: [%s] "%def_condor_base_dir)
         if condor_base_dir=="":
             condor_base_dir=def_condor_base_dir
         condor_startd_bin=os.path.join(condor_base_dir,'sbin/condor_startd')
@@ -805,7 +861,7 @@ def gfactory_install():
     # grid-mapfile
     def_grid_mapfile="%s/certs/grid-mapfile"%def_condor_base_dir
     while 1:
-        grid_mapfile=raw_input("Where is the grid-mapfile?: [%s]"%def_grid_mapfile)
+        grid_mapfile=raw_input("Where is the grid-mapfile?: [%s] "%def_grid_mapfile)
         if grid_mapfile=="":
             grid_mapfile=def_grid_mapfile
         if not os.path.exists(grid_mapfile):
@@ -982,7 +1038,7 @@ def vofrontend_install():
 
     # VO Frontend name
     def_frontend_name="%s_%s"%(fhn_arr[-2],fhn_arr[0])
-    frontend_name=raw_input("Give a name to this VO Frontend?: [%s]"%def_frontend_name)
+    frontend_name=raw_input("Give a name to this VO Frontend?: [%s] "%def_frontend_name)
     if frontend_name=="":
         frontend_name=def_frontend_name
 
@@ -1448,7 +1504,7 @@ def install_condor():
         # installation files not needed anymore
         shutil.rmtree("%s/tar"%user_condor_base_dir)
 
-    yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [n]")
+    yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [n] ")
     if yn=='y':
       CONDOR_UPD_CONFIG_FILE="%s/etc/condor_config.local"%user_condor_base_dir
       config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
@@ -1851,7 +1907,7 @@ def configure_gsi_security():
         if a_dn=="":
             break # done
         default_uid="condor%03i"%len(dns.keys())
-        a_uid=raw_input("nickname: [%s]"%default_uid)
+        a_uid=raw_input("nickname: [%s] "%default_uid)
         if a_uid=="":
             a_uid=default_uid
         if a_uid.find(" ")>=0:
@@ -2957,7 +3013,7 @@ def get_cronus_glidein_entries(vo,            #vo can be None
     
     print "This is the list of entries found in CRONUS:"
     for key in cronus_keys:
-        print string.ljust("[%s]"%key,20),cronus_entries[key]['gatekeeper']
+        print string.ljust("[%s] "%key,20),cronus_entries[key]['gatekeeper']
 
     print "Select the indexes you want to include"
     print "Use a , separated list to include more than one"
