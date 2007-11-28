@@ -394,7 +394,7 @@ def load_entry_dicts(entry_dicts,entry_name,summary_signature): # update in plac
     # first submit dir ones (mutable)
     entry_dicts['params'].load()
     # load the description (name from summary_signature)
-    entry_dicts['description'].load(summary_signature[entry_name][1])
+    entry_dicts['description'].load(fname=summary_signature[entry_name][1])
     # all others are keyed in the description
     entry_dicts['signature'].load(fname=entry_dicts['description'].vals2['signature'])
     entry_dicts['attrs'].load(fname=entry_dicts['description'].vals2['attrs_file'])
@@ -409,10 +409,13 @@ def load_entry_dicts(entry_dicts,entry_name,summary_signature): # update in plac
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.4 2007/11/28 19:54:50 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.5 2007/11/28 19:59:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.5  2007/11/28 19:59:47  sfiligoi
+#  Fix typo
+#
 #  Revision 1.4  2007/11/28 19:54:50  sfiligoi
 #  Add load_entry_dicts
 #
