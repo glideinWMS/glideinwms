@@ -12,14 +12,18 @@ import time
 import string
 import os.path
 
-start_time_tuple=time.localtime()
-TIMESTR=(string.printable[start_time_tuple[0]-2000]+ #year, will work until ~2060
-         string.printable[start_time_tuple[1]]+      #month
-         string.printable[start_time_tuple[2]]+      #day
-         string.printable[start_time_tuple[3]]+      #hour
-         string.digits[start_time_tuple[4]/10])      #first minute digit 
-del start_time_tuple
 
+def get_timestr(when=time.time()):
+    start_time_tuple=time.localtime(when)
+    timestr=(string.printable[start_time_tuple[0]-2000]+ #year, will work until ~2060
+             string.printable[start_time_tuple[1]]+      #month
+             string.printable[start_time_tuple[2]]+      #day
+             string.printable[start_time_tuple[3]]+      #hour
+             string.digits[start_time_tuple[4]/10])      #first minute digit 
+    return timestr
+
+TIMESTR=get_timestr()
+    
 # these two are in the submit dir, so they can be changed
 PARAMS_FILE="params.cfg"
 SUMMARY_SIGNATURE_FILE="signatures.sha1"
@@ -66,17 +70,22 @@ def get_entry_stage_dir(stage_dir,entry_name):
     entry_stage_dir=os.path.join(stage_dir,"entry_"+entry_name)
     return entry_stage_dir
 
-
+def get_entry_monitor_dir(monitor_dir,entry_name):
+    entry_monitor_dir=os.path.join(monitor_dir,"entry_"+entry_name)
+    return entry_monitor_dir
 
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.5 2007/11/27 20:29:27 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.6 2007/11/28 20:51:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.6  2007/11/28 20:51:48  sfiligoi
+#  Add get_timestra and get_entry_monitor_dir
+#
 #  Revision 1.5  2007/11/27 20:29:27  sfiligoi
 #  Fix typo
 #
