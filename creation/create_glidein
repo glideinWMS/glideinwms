@@ -41,7 +41,7 @@ def main(params):
             try:
                # create entry dirs
                for entry_name in params.entries.keys():
-                   entry_dir=os.path.join(params.monitor_dir,"entry_"+entry_name)
+                   entry_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,entry_name)
                    create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
                     
                # make a link from the submit dir to the monitor dir
@@ -556,10 +556,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.94 2007/11/27 19:58:51 sfiligoi Exp $
+# $Id: create_glidein,v 1.95 2007/11/28 20:52:23 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.95  2007/11/28 20:52:23  sfiligoi
+#  Use get_entry_monitor_dir
+#
 #  Revision 1.94  2007/11/27 19:58:51  sfiligoi
 #  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
 #
