@@ -48,11 +48,10 @@ def main(params):
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
                # create dictionary variables
-               main_dicts=cgWDictFile.get_main_dicts(params.submit_dir,params.stage_dir)
-               entry_dicts={}
-               for entry_name in params.entries.keys():
-                   entry_dicts[entry_name]=cgWDictFile.get_entry_dicts(params.submit_dir,params.stage_dir,entry_name)
-
+               glidein_dicts_obj=cgWDictFile.glideinDicts(params.submit_dir,params.stage_dir,params.entries.keys())
+               ## keep separate variables for now (legacy code)
+               main_dicts=glidein_dicts_obj.main_dicts
+               entry_dicts=glidein_dicts_obj.entry_dicts
 
                # create basic description file(s)
                create_description_file(main_dicts)
@@ -556,10 +555,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.95 2007/11/28 20:52:23 sfiligoi Exp $
+# $Id: create_glidein,v 1.96 2007/11/28 21:28:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.96  2007/11/28 21:28:58  sfiligoi
+#  Use cgWDictFile.glideinDicts
+#
 #  Revision 1.95  2007/11/28 20:52:23  sfiligoi
 #  Use get_entry_monitor_dir
 #
