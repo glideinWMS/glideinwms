@@ -148,9 +148,16 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
 # for now it is just a constructor wrapper
 # Further on it will need to implement glidein exit code checks
+
+# One client_name
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     def __init__(self,dirname,client_name,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(logSummaryTimingsOut,dirname,"condor_activity_","_%s.log"%client_name,".cifpk",inactive_files,inactive_timeout)
+
+# All clients
+class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
+    def __init__(self,dirname,inactive_files=None,inactive_timeout=24*3600):
+        self.cdInit(logSummaryTimingsOut,dirname,"condor_activity_",".log",".cifpk",inactive_files,inactive_timeout)
 
 
 #########################################################
