@@ -2,7 +2,7 @@
 # factory/tool specific condorLogs helper
 #
 
-import time,os.path,mmap
+import time,os.path,mmap,re
 import glideFactoryLogParser
 import condorLogParser
 
