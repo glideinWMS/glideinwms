@@ -90,7 +90,7 @@ class DictFile:
             fd.close()
         return
 
-    def load(self, dir=None, fname=None): # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, change the self.
+    def load(self, dir=None, fname=None, change_self=True): # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, change the self.
         if dir==None:
             dir=self.dir
         if fname==None:
@@ -117,8 +117,9 @@ class DictFile:
             except RuntimeError, e:
                 raise RuntimeError, "File %s, line %i:%s"%(filepath,idx,str(e))
 
-        self.dir=dir
-        self.fname=fname
+        if change_self:
+            self.dir=dir
+            self.fname=fname
         return
 
     def is_equal(self,other,         # other must be of the same class
@@ -605,10 +606,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.10 2007/11/28 22:22:49 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.11 2007/11/30 22:49:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.11  2007/11/30 22:49:06  sfiligoi
+#  Make changing of self optional in load
+#
 #  Revision 1.10  2007/11/28 22:22:49  sfiligoi
 #  Fix typo
 #

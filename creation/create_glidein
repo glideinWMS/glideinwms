@@ -83,14 +83,14 @@ def main(params):
                #put system files into stage
                copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir,main_dicts)
                copy_stage_file("condor_config",params.stage_dir,params.src_dir,main_dicts)
-               main_dicts['vars'].load(params.src_dir,'condor_vars.lst') # will be modified when attrs processed
+               main_dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False) # will be modified when attrs processed
                copy_script("setup_x509.sh",params.stage_dir,params.src_dir,main_dicts)
                copy_script("validate_node.sh",params.stage_dir,params.src_dir,main_dicts)
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
-                   entry_dicts[entry_name]['vars'].load(params.src_dir,'condor_vars.lst.entry') # will be modified when attrs processed
+                   entry_dicts[entry_name]['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False) # will be modified when attrs processed
                    copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,entry_dicts[entry_name],can_be_modified=1)
               
                # put user attributes into config files
@@ -555,10 +555,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.96 2007/11/28 21:28:58 sfiligoi Exp $
+# $Id: create_glidein,v 1.97 2007/11/30 22:49:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.97  2007/11/30 22:49:06  sfiligoi
+#  Make changing of self optional in load
+#
 #  Revision 1.96  2007/11/28 21:28:58  sfiligoi
 #  Use cgWDictFile.glideinDicts
 #
