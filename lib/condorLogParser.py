@@ -747,11 +747,23 @@ def rawJobId2Nr(str):
 # Return -1 in case of error
 def rawTime2cTime(str,year):
     try:
-        start_ctime=time.mktime((year,int(str[0:2]),int(str[3:5]),int(str[6:8]),int(str[9:11]),int(str[12:14]),0,0,-1))
+        ctime=time.mktime((year,int(str[0:2]),int(str[3:5]),int(str[6:8]),int(str[9:11]),int(str[12:14]),0,0,-1))
     except ValueError:
         return -1 #invalid
-    return start_ctime
+    return ctime
 
+# convert the log representation into ctime
+# works only for the past year
+# Return -1 in case of error
+def rawTime2cTimeLastYear(str):
+    now=time.time()
+    current_year=time.localtime(now)[0]
+    ctime=rawTime2cTime(str,current_year)
+    if ctime<=now:
+        return ctime
+    else: # cannot be in the future... it must have been in the past year
+        ctime=rawTime2cTime(str,current_year-1)
+        return ctime
 
 # get two condor time strings and compute the difference
 # the fist must be before the end one
