@@ -2,7 +2,7 @@
 # factory/tool specific condorLogs helper
 #
 
-import time,os.path
+import time,os.path,mmap
 import glideFactoryLogParser
 import condorLogParser
 
@@ -51,3 +51,29 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
         log_list+=entry_log_list
 
     return log_list
+
+SL_START_RE=re.compile("^StartdLog\n==============================*===================\n",re.M|re.DOTALL)
+
+# extract the StartdLog from a glidein log file
+def get_StartdLog(log_fname):
+    size = os.path.getsize(log_fname)
+    fd=open(log_fname)
+    try:
+        buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+        try:
+            # first find the header that delimits the log in the file
+            start_re=SL_START_RE.search(buf,0)
+            if start_re==None:
+                return "" #no StartLog section
+            log_start_idx=start_re.end()
+
+            # find where it ends
+            log_end_idx=buf.find("------------------------------------------------",log_start_idx)
+            if log_end_idx<0: # up to the end of the file
+                return buf[log_start_idx:]
+            else:
+                return buf[log_start_idx:log_end_idx]
+        finally:
+            buf.close()
+    finally:
+        fd.close()
