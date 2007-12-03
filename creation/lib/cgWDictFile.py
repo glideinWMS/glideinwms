@@ -40,6 +40,9 @@ class DictFile:
     def get_dir(self):
         return self.dir
 
+    def get_filepath(self):
+        return os.path.join(self.dir,self.fname)
+
     def erase(self):
         self.keys=[]
         self.vals={}
@@ -184,22 +187,33 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
             raise RuntimeError, "Trying to modify a readonly object!"
         
         if key in self.keys:
+            old_val=self.vals[key]
             if not allow_overwrite:
                 raise RuntimeError, "Key '%s' already exists"%key
-            elif not self.is_compatible(self.vals[key],val):
-                raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,self.vals[key])
+            elif not self.is_compatible(old_val,val):
+                raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,old_val)
+            if old_val==val:
+                return # nothing to be changed
+            # the second key changed, need to delete the old one
+            self.keys2.remove(old_val)
+            del self.vals2[old_val]
         else:
             self.keys.append(key)
+        self.vals[key]=val
 
         if val in self.keys2:
+            old_key=self.vals2[val]
             if not allow_overwrite:
                 raise RuntimeError, "Value '%s' already exists"%val
-            elif not self.is_compatible2(self.vals2[val],key):
-                raise RuntimeError, "Value '%s': Key %s not compatible with old key %s"%(val,key,self.vals2[val])
+            elif not self.is_compatible2(old_key,key):
+                raise RuntimeError, "Value '%s': Key %s not compatible with old key %s"%(val,key,old_key)
+            #if old_key==key: # no need to change again, would have hit the check above
+            #    return # nothing to be changed
+            # the first key changed, need to delete the old one
+            self.keys.remove(old_key)
+            del self.vals[old_key]
         else:
             self.keys2.append(val)
-
-        self.vals[key]=val
         self.vals2[val]=key
     
     def is_equal(self,other,         # other must be of the same class
@@ -455,6 +469,70 @@ def refresh_description(dicts): # update in place
     description_dict.add(dicts['script_list'].get_fname(),"script_list",allow_overwrite=True)
     description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
 
+##############################
+# Execute a command in a shell
+def exe_cmd(cmd):
+    childout, childin, childerr = popen2.popen3(cmd)
+    childin.close()
+    tempOut = childout.readlines()
+    childout.close()
+    tempErr = childerr.readlines()
+    childerr.close()
+    if (len(tempErr)!=0):
+        raise RuntimeError, "Error running '%s'\n%s"%(cmd,tempErr)
+    return tempOut
+
+#################################
+# Calculate SHA1 for the file
+def calc_sha1(filepath):
+    # older versions of python don't support sha1 natively :(
+    try:
+        sha1=string.split(exe_cmd("sha1sum %s"%filepath)[0])[0]
+    except RuntimeError, e:
+        raise RuntimeError, "Error calculating SHA1 for %s: %s"%(filepath,e)
+    return sha1
+
+# dictionaries must have been written to disk before using this
+def refresh_signature(dicts): # update in place
+    signature_dict=dicts['signature']
+    for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
+        signature_dict.add(dicts[k].get_fname(),calc_sha1(dicts[k].get_filepath()),allow_overwrite=True)
+    
+
+################################################
+#
+# Functions that save dictionaries
+#
+################################################
+
+
+# internal, do not use from outside the module
+def save_common_dicts(dicts): # will update in place, too
+    # make sure decription is up to date
+    refresh_description(dicts)
+    # save the immutable ones
+    for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
+        dicts[k].save()
+    # calc and save the signatues
+    refresh_signature(dicts)
+    dicts['signature'].save()
+
+    #finally save the mutable one(s)
+    dicts['params'].save()
+
+# must be invoked after all the entries have been saved
+def save_main_dicts(main_dicts): # will update in place, too
+    save_common_dicts(main_dicts)
+    summary_signature=main_dicts['summary_signature']
+    summary_signature.add("main",(main_dicts['summary'].get_fname(),calc_sha1(main_dicts['summary'].get_filepath())),allow_overwrite=True)
+    summary_signature.save()
+
+
+def save_entry_dicts(entry_dicts,                   # will update in place, too
+                     entry_name,summary_signature): # update in place
+    save_common_dicts(entry_dicts)
+    summary_signature.add(cgWConsts.get_entry_stage_dir("",entry_name),(entry_dicts['summary'].get_fname(),calc_sha1(entry_dicts['summary'].get_filepath())),allow_overwrite=True)
+
 ################################################
 #
 # Handle dicts as Classes
@@ -497,7 +575,7 @@ class glideinMainDicts(glideinDicts):
         load_main_dicts(self.dicts)
 
     def save(self):
-        pass # to be defined
+        save_main_dicts(self.dicts)
 
     def is_equal(self,other,             # other must be of the same class
                  compare_submit_dir=False,compare_stage_dir=False,
@@ -528,7 +606,7 @@ class glideinEntryDicts(glideinDicts):
         load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
 
     def save(self):
-        pass # to be defined
+        save_entry_dicts(self.dictss,self.entry_name,self.glidein_main_dicts.get_summary_signature())
 
     def is_equal(self,other,             # other must be of the same class
                  compare_entry_name=False,
@@ -587,7 +665,9 @@ class glideinDicts:
                 self.entry_dicts[entry_name].load()
 
     def save(self):
-        pass # to be defined
+        for entry_name in self.entry_dicts.keys():
+            self.entry_dicts[entry_name].save()
+        self.main_dicts.save()
    
     def is_equal(self,other,             # other must be of the same class
                  compare_submit_dir=False,compare_stage_dir=False,
@@ -618,10 +698,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.14 2007/12/03 20:15:00 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.15 2007/12/03 21:41:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.15  2007/12/03 21:41:40  sfiligoi
+#  Implement the save methods, add sha1 calculation and fix DictFileTwoKeys.add
+#
 #  Revision 1.14  2007/12/03 20:15:00  sfiligoi
 #  Change create_description in refresh_description and use it
 #
