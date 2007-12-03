@@ -174,6 +174,11 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
     def get_val2(self,key):
         return self.vals2[key]
 
+    def erase(self):
+        DictFile.erase(self)
+        self.keys2=[]
+        self.vals2={}
+
     def add(self,key,val,allow_overwrite=False):
         if self.is_readonly:
             raise RuntimeError, "Trying to modify a readonly object!"
@@ -431,18 +436,35 @@ def load_entry_dicts(entry_dicts,                   # update in place
     # all others are keyed in the description
     load_common_dicts(entry_dicts,entry_dicts['description'])
 
+############################################################
+#
+# Functions that create data out of the existing dictionary
+#
+############################################################
+
+def create_description(dicts): # update in place
+    description_dict=entry_dicts['description']
+    description_dict.erase()
+    description_dict.add(dicts['signature'].get_fname(),"signature")
+    description_dict.add(dicts['attrs'].get_fname(),"attrs_file")
+    description_dict.add(dicts['consts'].get_fname(),"consts_file")
+    description_dict.add(dicts['vars'].get_fname(),"condor_vars")
+    description_dict.add(dicts['file_list'].get_fname(),"file_list")
+    description_dict.add(dicts['script_list'].get_fname(),"script_list")
+    description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list")
+
 ################################################
 #
 # Handle discts as Classes
 #
 ################################################
 
-class glideinMainDicts:
-    def __init__(self,submit_dir,stage_dir):
-        self.submit_dir=submit_dir
-        self.stage_dir=stage_dir
-        self.dicts=get_main_dicts(submit_dir,stage_dir)
-
+# internal, do not use directly from outside the module
+class glideinDicts:
+    def __init__(self):
+        self.dicts=None
+        raise RuntimeError, "glideinDicts should never be directly used"
+        
     def keys(self):
         return self.dicts.keys()
 
@@ -452,12 +474,19 @@ class glideinMainDicts:
     def __getitem__(self,key):
         return self.dicts[key]        
 
-    def get_summary_signature(self): # you can discover most of the other things from this
-        return self.dicts['summary_signature']
-
     def set_readonly(self,readonly=True):
         for el in self.dicts.values():
             el.set_readonly(readonly)
+
+
+class glideinMainDicts(glideinDicts):
+    def __init__(self,submit_dir,stage_dir):
+        self.submit_dir=submit_dir
+        self.stage_dir=stage_dir
+        self.dicts=get_main_dicts(submit_dir,stage_dir)
+
+    def get_summary_signature(self): # you can discover most of the other things from this
+        return self.dicts['summary_signature']
 
     def erase(self):
         self.dicts=get_main_dicts(self.submit_dir,self.stage_dir)
@@ -480,7 +509,7 @@ class glideinMainDicts:
                 return False
         return True
         
-class glideinEntryDicts:
+class glideinEntryDicts(glideinDicts):
     def __init__(self,
                  glidein_main_dicts, # must be an instance of glideinMainDicts
                  entry_name):
@@ -489,19 +518,6 @@ class glideinEntryDicts:
         self.submit_dir=glidein_main_dicts.submit_dir
         self.stage_dir=glidein_main_dicts.stage_dir
         self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,entry_name)
-
-    def keys(self):
-        return self.dicts.keys()
-
-    def has_key(self,key):
-        return self.dicts.has_key(key)
-
-    def __getitem__(self,key):
-        return self.dicts[key]        
-
-    def set_readonly(self,readonly=True):
-        for el in self.dicts.values():
-            el.set_readonly(readonly)
 
     def erase(self):
         self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,self.entry_name)
@@ -600,10 +616,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.12 2007/12/03 19:23:56 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.13 2007/12/03 19:49:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.13  2007/12/03 19:49:20  sfiligoi
+#  Added create_description, plus a little bit of cleanup
+#
 #  Revision 1.12  2007/12/03 19:23:56  sfiligoi
 #  Get rid of duplicates
 #
