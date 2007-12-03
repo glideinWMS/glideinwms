@@ -251,8 +251,36 @@ class DescriptionDictFile(DictFileTwoKeys):
 
         return self.add(arr[1],arr[0])
     
+##############################
+# Execute a command in a shell
+def exe_cmd(cmd):
+    childout, childin, childerr = popen2.popen3(cmd)
+    childin.close()
+    tempOut = childout.readlines()
+    childout.close()
+    tempErr = childerr.readlines()
+    childerr.close()
+    if (len(tempErr)!=0):
+        raise RuntimeError, "Error running '%s'\n%s"%(cmd,tempErr)
+    return tempOut
+#################################
+# Calculate SHA1 for the file
+def calc_sha1(filepath):
+    # older versions of python don't support sha1 natively :(
+    try:
+        sha1=string.split(exe_cmd("sha1sum %s"%filepath)[0])[0]
+    except RuntimeError, e:
+        raise RuntimeError, "Error calculating SHA1 for %s: %s"%(filepath,e)
+    return sha1
+##################################
+
 # signatures
 class SHA1DictFile(DictFile):
+    def add_from_file(self,filepath,allow_overwrite=False):
+        sha1=calc_sha1(filepath)
+        fname=os.path.basename(filepath)
+        self.add(fname,sha1,allow_overwrite)
+
     def format_val(self,key):
         return "%s  %s"%(self.vals[key],key)
 
@@ -276,6 +304,11 @@ class SummarySHA1DictFile(DictFile):
         if len(val)!=2:
             raise RuntimeError, "Values '%s' not (sha1,fname)"%val
         return DictFile.add(self,key,val,allow_overwrite)
+
+    def add_from_file(self,key,filepath,allow_overwrite=False):
+        sha1=calc_sha1(filepath)
+        fname=os.path.basename(filepath)
+        DictFile.add(self,key,(sha1,fname),allow_overwrite)
 
     def format_val(self,key):
         return "%s  %s  %s"%(self.vals[key][0],self.vals[key][1],key)
@@ -469,34 +502,11 @@ def refresh_description(dicts): # update in place
     description_dict.add(dicts['script_list'].get_fname(),"script_list",allow_overwrite=True)
     description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
 
-##############################
-# Execute a command in a shell
-def exe_cmd(cmd):
-    childout, childin, childerr = popen2.popen3(cmd)
-    childin.close()
-    tempOut = childout.readlines()
-    childout.close()
-    tempErr = childerr.readlines()
-    childerr.close()
-    if (len(tempErr)!=0):
-        raise RuntimeError, "Error running '%s'\n%s"%(cmd,tempErr)
-    return tempOut
-
-#################################
-# Calculate SHA1 for the file
-def calc_sha1(filepath):
-    # older versions of python don't support sha1 natively :(
-    try:
-        sha1=string.split(exe_cmd("sha1sum %s"%filepath)[0])[0]
-    except RuntimeError, e:
-        raise RuntimeError, "Error calculating SHA1 for %s: %s"%(filepath,e)
-    return sha1
-
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
     for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
-        signature_dict.add(dicts[k].get_fname(),calc_sha1(dicts[k].get_filepath()),allow_overwrite=True)
+        signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     
 
 ################################################
@@ -524,14 +534,14 @@ def save_common_dicts(dicts): # will update in place, too
 def save_main_dicts(main_dicts): # will update in place, too
     save_common_dicts(main_dicts)
     summary_signature=main_dicts['summary_signature']
-    summary_signature.add("main",(main_dicts['summary'].get_fname(),calc_sha1(main_dicts['summary'].get_filepath())),allow_overwrite=True)
+    summary_signature.add_from_file("main",main_dicts['summary'].get_filepath(),allow_overwrite=True)
     summary_signature.save()
 
 
 def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature): # update in place
     save_common_dicts(entry_dicts)
-    summary_signature.add(cgWConsts.get_entry_stage_dir("",entry_name),(entry_dicts['summary'].get_fname(),calc_sha1(entry_dicts['summary'].get_filepath())),allow_overwrite=True)
+    summary_signature.add(cgWConsts.get_entry_stage_dir("",entry_name),entry_dicts['summary'].get_filepath(),allow_overwrite=True)
 
 ################################################
 #
@@ -698,10 +708,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.15 2007/12/03 21:41:40 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.16 2007/12/03 21:52:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.16  2007/12/03 21:52:13  sfiligoi
+#  Move sha1 calculations into ...SHA1DictFile.add_from_file
+#
 #  Revision 1.15  2007/12/03 21:41:40  sfiligoi
 #  Implement the save methods, add sha1 calculation and fix DictFileTwoKeys.add
 #
