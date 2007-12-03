@@ -459,15 +459,8 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 #############################################
 # Save most of the files, but the signatures
 def save_dict_files(dicts,description):
-    # save files that need description
-    for k,description in (('attrs','attrs_file'),('consts','consts_file'),('vars','condor_vars')):
-        # save file
-        dicts[k].save()
-        dicts[k].set_readonly(1) # prevent changes after it was saved
-        # register it
-        add_file(dicts[k].get_fname(),dicts[k].get_dir(),dicts,0,description)
-    # save other non-changable files
-    for k in ('description','file_list','script_list','subsystem_list'):
+    # save non-changable files
+    for k in ('attrs','vars','condor_vars','description','file_list','script_list','subsystem_list'):
         dicts[k].save()
         dicts[k].set_readonly(1) # prevent changes after it was saved
         add_sha1(dicts[k].get_fname(),dicts[k].get_dir(),dicts)
@@ -541,10 +534,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.98 2007/12/03 20:15:53 sfiligoi Exp $
+# $Id: create_glidein,v 1.99 2007/12/03 20:21:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.99  2007/12/03 20:21:22  sfiligoi
+#  Update save_dict_files to account for the auto description setup
+#
 #  Revision 1.98  2007/12/03 20:15:53  sfiligoi
 #  Get rid of create_description_file as it is not needed anymore
 #
