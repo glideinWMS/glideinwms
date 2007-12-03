@@ -90,7 +90,7 @@ class DictFile:
             fd.close()
         return
 
-    def load(self, dir=None, fname=None, change_self=True): # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, change the self.
+    def load(self, dir=None, fname=None, change_self=True): # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
         if dir==None:
             dir=self.dir
         if fname==None:
@@ -388,6 +388,7 @@ def get_common_dicts(submit_dir,stage_dir):
                   'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
                   'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
                   "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
+    refresh_description(common_dicts)
     return common_dicts
 
 def get_main_dicts(submit_dir,stage_dir):
@@ -424,14 +425,16 @@ def load_common_dicts(dicts,           # update in place
 def load_main_dicts(main_dicts): # update in place
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
-    # load the description
+    # load the description (need to erase first, as it is always non-empty)
+    main_dicts['description'].erase()
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
     load_common_dicts(main_dicts,main_dicts['description'])
 
 def load_entry_dicts(entry_dicts,                   # update in place
                      entry_name,summary_signature): 
-    # load the description (name from summary_signature)
+    # load the description (name from summary_signature, need to erase it first, as it is always non-empty)
+    entry_dicts['description'].erase()
     entry_dicts['description'].load(fname=summary_signature[cgWConsts.get_entry_stage_dir("",entry_name)][1])
     # all others are keyed in the description
     load_common_dicts(entry_dicts,entry_dicts['description'])
@@ -442,20 +445,19 @@ def load_entry_dicts(entry_dicts,                   # update in place
 #
 ############################################################
 
-def create_description(dicts): # update in place
+def refresh_description(dicts): # update in place
     description_dict=entry_dicts['description']
-    description_dict.erase()
-    description_dict.add(dicts['signature'].get_fname(),"signature")
-    description_dict.add(dicts['attrs'].get_fname(),"attrs_file")
-    description_dict.add(dicts['consts'].get_fname(),"consts_file")
-    description_dict.add(dicts['vars'].get_fname(),"condor_vars")
-    description_dict.add(dicts['file_list'].get_fname(),"file_list")
-    description_dict.add(dicts['script_list'].get_fname(),"script_list")
-    description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list")
+    description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
+    description_dict.add(dicts['attrs'].get_fname(),"attrs_file",allow_overwrite=True)
+    description_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
+    description_dict.add(dicts['vars'].get_fname(),"condor_vars",allow_overwrite=True)
+    description_dict.add(dicts['file_list'].get_fname(),"file_list",allow_overwrite=True)
+    description_dict.add(dicts['script_list'].get_fname(),"script_list",allow_overwrite=True)
+    description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
 
 ################################################
 #
-# Handle discts as Classes
+# Handle dicts as Classes
 #
 ################################################
 
@@ -616,10 +618,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.13 2007/12/03 19:49:20 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.14 2007/12/03 20:15:00 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.14  2007/12/03 20:15:00  sfiligoi
+#  Change create_description in refresh_description and use it
+#
 #  Revision 1.13  2007/12/03 19:49:20  sfiligoi
 #  Added create_description, plus a little bit of cleanup
 #
