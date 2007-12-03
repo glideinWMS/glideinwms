@@ -276,10 +276,12 @@ def calc_sha1(filepath):
 
 # signatures
 class SHA1DictFile(DictFile):
-    def add_from_file(self,filepath,allow_overwrite=False):
+    def add_from_file(self,filepath,allow_overwrite=False,
+                      key=None): # if key==None, use basefname
         sha1=calc_sha1(filepath)
-        fname=os.path.basename(filepath)
-        self.add(fname,sha1,allow_overwrite)
+        if key==None:
+            key=os.path.basename(filepath)
+        self.add(key,sha1,allow_overwrite)
 
     def format_val(self,key):
         return "%s  %s"%(self.vals[key],key)
@@ -296,7 +298,7 @@ class SHA1DictFile(DictFile):
         return self.add(arr[1],arr[0])
     
 # summary signatures
-# values are (sha1,fname)
+# values are (sha1,fname2)
 class SummarySHA1DictFile(DictFile):
     def add(self,key,val,allow_overwrite=False):
         if not (type(val) in (type(()),type([]))):
@@ -305,10 +307,16 @@ class SummarySHA1DictFile(DictFile):
             raise RuntimeError, "Values '%s' not (sha1,fname)"%val
         return DictFile.add(self,key,val,allow_overwrite)
 
-    def add_from_file(self,key,filepath,allow_overwrite=False):
+    def add_from_file(self,filepath,
+                      fname2=None, # if fname2==None, use basefname
+                      allow_overwrite=False,
+                      key=None):   # if key==None, use basefname
         sha1=calc_sha1(filepath)
-        fname=os.path.basename(filepath)
-        DictFile.add(self,key,(sha1,fname),allow_overwrite)
+        if key==None:
+            key=os.path.basename(filepath)        
+        if fname2==None:
+            fname2=os.path.basename(filepath)        
+        DictFile.add(self,key,(sha1,fname2),allow_overwrite)
 
     def format_val(self,key):
         return "%s  %s  %s"%(self.vals[key][0],self.vals[key][1],key)
@@ -534,14 +542,14 @@ def save_common_dicts(dicts): # will update in place, too
 def save_main_dicts(main_dicts): # will update in place, too
     save_common_dicts(main_dicts)
     summary_signature=main_dicts['summary_signature']
-    summary_signature.add_from_file("main",main_dicts['description'].get_filepath(),allow_overwrite=True)
+    summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
     summary_signature.save()
 
 
 def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature): # update in place
     save_common_dicts(entry_dicts)
-    summary_signature.add_from_file(cgWConsts.get_entry_stage_dir("",entry_name),entry_dicts['description'].get_filepath(),allow_overwrite=True)
+    summary_signature.add_from_file(key=cgWConsts.get_entry_stage_dir("",entry_name),filepath=entry_dicts['signature'].get_filepath(),fname2=entry_dicts['description'].get_fname(),allow_overwrite=True)
 
 ################################################
 #
@@ -708,10 +716,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.18 2007/12/03 22:49:30 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.19 2007/12/03 23:27:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.19  2007/12/03 23:27:19  sfiligoi
+#  Fix bug
+#
 #  Revision 1.18  2007/12/03 22:49:30  sfiligoi
 #  Fix typo
 #
