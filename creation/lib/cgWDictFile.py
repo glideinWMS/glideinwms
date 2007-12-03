@@ -93,11 +93,16 @@ class DictFile:
             fd.close()
         return
 
-    def load(self, dir=None, fname=None, change_self=True): # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
+    def load(self, dir=None, fname=None,
+             change_self=True, # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
+             erase_first=True): # if True, delete old content first
         if dir==None:
             dir=self.dir
         if fname==None:
             fname=self.fname
+
+        if erase_first:
+            self.erase()
 
         filepath=os.path.join(dir,fname)
         try:
@@ -444,6 +449,7 @@ def get_common_dicts(submit_dir,stage_dir):
                   'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
                   "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
     refresh_description(common_dicts)
+    refresh_file_list(common_dicts)
     return common_dicts
 
 def get_main_dicts(submit_dir,stage_dir):
@@ -480,16 +486,14 @@ def load_common_dicts(dicts,           # update in place
 def load_main_dicts(main_dicts): # update in place
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
-    # load the description (need to erase first, as it is always non-empty)
-    main_dicts['description'].erase()
+    # load the description
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
     load_common_dicts(main_dicts,main_dicts['description'])
 
 def load_entry_dicts(entry_dicts,                   # update in place
                      entry_name,summary_signature): 
-    # load the description (name from summary_signature, need to erase it first, as it is always non-empty)
-    entry_dicts['description'].erase()
+    # load the description (name from summary_signature)
     entry_dicts['description'].load(fname=summary_signature[cgWConsts.get_entry_stage_dir("",entry_name)][1])
     # all others are keyed in the description
     load_common_dicts(entry_dicts,entry_dicts['description'])
@@ -509,6 +513,12 @@ def refresh_description(dicts): # update in place
     description_dict.add(dicts['file_list'].get_fname(),"file_list",allow_overwrite=True)
     description_dict.add(dicts['script_list'].get_fname(),"script_list",allow_overwrite=True)
     description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
+
+def refresh_file_list(dicts): # update in place
+    file_dict=dicts['file_list']
+    file_dict.add(dicts['attrs'].get_fname(),"attrs_file",allow_overwrite=True)
+    file_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
+    file_dict.add(dicts['vars'].get_fname(),"condor_vars",allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
@@ -716,10 +726,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.19 2007/12/03 23:27:19 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.20 2007/12/03 23:57:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.20  2007/12/03 23:57:27  sfiligoi
+#  Properly initialize file_list
+#
 #  Revision 1.19  2007/12/03 23:27:19  sfiligoi
 #  Fix bug
 #
