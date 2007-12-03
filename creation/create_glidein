@@ -53,11 +53,6 @@ def main(params):
                main_dicts=glidein_dicts_obj.main_dicts
                entry_dicts=glidein_dicts_obj.entry_dicts
 
-               # create basic description file(s)
-               create_description_file(main_dicts)
-               for entry_name in params.entries.keys():
-                   create_description_file(entry_dicts[entry_name])
-
                # put user files in stage
                for file in params.files:
                    copy_file_unparsed(file,params.stage_dir,main_dicts)
@@ -317,15 +312,6 @@ def finalize_sha1(dicts,entry_dicts):
     dicts['summary_signature'].set_readonly()
     return
     
-##########################################
-# Create description file
-def create_description_file(dicts):
-    description_dict=dicts['description']
-    description_dict.add(cgWConsts.SIGNATURE_FILE,"signature")
-    description_dict.add(cgWConsts.FILE_LISTFILE,"file_list")
-    description_dict.add(cgWConsts.SCRIPT_LISTFILE,"script_list")
-    description_dict.add(cgWConsts.SUBSYSTEM_LISTFILE,"subsystem_list")
-    
     
 #####################
 # Copy a regular file
@@ -555,10 +541,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.97 2007/11/30 22:49:06 sfiligoi Exp $
+# $Id: create_glidein,v 1.98 2007/12/03 20:15:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.98  2007/12/03 20:15:53  sfiligoi
+#  Get rid of create_description_file as it is not needed anymore
+#
 #  Revision 1.97  2007/11/30 22:49:06  sfiligoi
 #  Make changing of self optional in load
 #
