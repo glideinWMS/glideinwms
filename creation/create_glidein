@@ -100,16 +100,8 @@ def main(params):
                main_dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
                # finalize
-               save_dict_files(main_dicts,"main")
-
-               ## repeat for all the entries
-               for entry_name in params.entries.keys():
-                   for attr_name in params.entries[entry_name].attrs.keys():
-                       add_attr_unparsed(attr_name, params.entries[entry_name].attrs[attr_name],entry_dicts[entry_name],"entry_"+entry_name)
-                   save_dict_files(entry_dicts[entry_name],"entry_"+entry_name)
-
-               # calculate signatures
-               finalize_sha1(main_dicts,entry_dicts)
+               glidein_dicts_obj.save()
+               glidein_dicts_obj.set_readonly(True)
 
                #
                # Stage is finished
@@ -245,21 +237,11 @@ def add_param(dicts,param_name,param_defval,is_string):
     dicts['params'].add(param_name,param_defval)
 
 #################################
-# Calculate SHA1 for the file
-def calc_sha1(filename,stage_dir):
-    filepath=os.path.join(stage_dir,filename)
-    try:
-        sha1=string.split(exe_cmd("sha1sum %s"%filepath)[0])[0]
-    except RuntimeError, e:
-        raise RuntimeError, "Error calculating SHA1 for %s: %s"%(filepath,e)
-    return sha1
-
-#################################
 # Calculate SHA1 for the file and
 # put it into the signature file
 def add_sha1(filename,stage_dir,dicts):
-    sha1=calc_sha1(filename,stage_dir)
-    dicts['signature'].add(filename,sha1)
+    filepath=os.path.join(stage_dir,filename)
+    dicts['signature'].add_from_file(filepath)
 
 #################################
 # Add a new variable to VARS_FILE
@@ -298,20 +280,6 @@ def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out):
         # TRUE is not a real parameter, so no need to log it
         add_param(dicts,config_check,0,is_string=False) # if it is optional, default==0
 
-##########################################
-# Creates the summary_signature file
-def finalize_sha1(dicts,entry_dicts):
-    sha1=calc_sha1(dicts['signature'].get_fname(),dicts['signature'].get_dir())
-    dicts['summary_signature'].add('main',(sha1,dicts['description'].get_fname()))
-    for entry_name in entry_dicts.keys():
-        e_dicts=entry_dicts[entry_name]
-        sha1=calc_sha1(e_dicts['signature'].get_fname(),e_dicts['signature'].get_dir())
-        dicts['summary_signature'].add("entry_"+entry_name,(sha1,e_dicts['description'].get_fname()))
-
-    dicts['summary_signature'].save()
-    dicts['summary_signature'].set_readonly()
-    return
-    
     
 #####################
 # Copy a regular file
@@ -456,32 +424,6 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
             else:
                 add_var(dicts,attr_name,attr_obj.type=="string",do_glidein_publish,do_job_publish)
 
-#############################################
-# Save most of the files, but the signatures
-def save_dict_files(dicts,description):
-    # save non-changable files
-    for k in ('attrs','vars','condor_vars','description','file_list','script_list','subsystem_list'):
-        dicts[k].save()
-        dicts[k].set_readonly(1) # prevent changes after it was saved
-        add_sha1(dicts[k].get_fname(),dicts[k].get_dir(),dicts)
-    # finally save the signature and submit-dir files
-    for k in ('signature','params'):
-        dicts[k].save()
-        dicts[k].set_readonly(1) # prevent changes after it was saved
-     
-##############################
-# Execute a command in a shell
-def exe_cmd(cmd):
-    childout, childin, childerr = popen2.popen3(cmd)
-    childin.close()
-    tempOut = childout.readlines()
-    childout.close()
-    tempErr = childerr.readlines()
-    childerr.close()
-    if (len(tempErr)!=0):
-        raise RuntimeError, "Error running '%s'\n%s"%(cmd,tempErr)
-    return tempOut
-
 
 ##############################
 # Create condor tarball and
@@ -534,10 +476,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.99 2007/12/03 20:21:22 sfiligoi Exp $
+# $Id: create_glidein,v 1.100 2007/12/03 21:56:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.100  2007/12/03 21:56:48  sfiligoi
+#  Use the cgWDictFile save method
+#
 #  Revision 1.99  2007/12/03 20:21:22  sfiligoi
 #  Update save_dict_files to account for the auto description setup
 #
