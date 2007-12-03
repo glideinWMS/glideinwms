@@ -534,14 +534,14 @@ def save_common_dicts(dicts): # will update in place, too
 def save_main_dicts(main_dicts): # will update in place, too
     save_common_dicts(main_dicts)
     summary_signature=main_dicts['summary_signature']
-    summary_signature.add_from_file("main",main_dicts['signature'].get_filepath(),allow_overwrite=True)
+    summary_signature.add_from_file("main",main_dicts['description'].get_filepath(),allow_overwrite=True)
     summary_signature.save()
 
 
 def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature): # update in place
     save_common_dicts(entry_dicts)
-    summary_signature.add_from_file(cgWConsts.get_entry_stage_dir("",entry_name),entry_dicts['signature'].get_filepath(),allow_overwrite=True)
+    summary_signature.add_from_file(cgWConsts.get_entry_stage_dir("",entry_name),entry_dicts['description'].get_filepath(),allow_overwrite=True)
 
 ################################################
 #
@@ -708,10 +708,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.17 2007/12/03 22:33:26 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.18 2007/12/03 22:49:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.18  2007/12/03 22:49:30  sfiligoi
+#  Fix typo
+#
 #  Revision 1.17  2007/12/03 22:33:26  sfiligoi
 #  Fix typos
 #
