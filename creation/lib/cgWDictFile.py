@@ -372,31 +372,28 @@ class VarsDictFile(DictFile):
 #
 ################################################
 
+# internal, do not use from outside the module
+def get_common_dicts(submit_dir,stage_dir):
+    common_dicts={'attrs':DictFile(stage_dir,cgWConsts.ATTRS_FILE),
+                  'description':DescriptionDictFile(stage_dir,cgWConsts.DESCRIPTION_FILE),
+                  'consts':DictFile(stage_dir,cgWConsts.CONSTS_FILE),
+                  'params':DictFile(submit_dir,cgWConsts.PARAMS_FILE),
+                  'vars':VarsDictFile(stage_dir,cgWConsts.VARS_FILE),
+                  'file_list':FileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
+                  'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
+                  'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
+                  "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
+    return common_dicts
+
 def get_main_dicts(submit_dir,stage_dir):
-    main_dicts={'summary_signature':SummarySHA1DictFile(submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE),
-                'attrs':DictFile(stage_dir,cgWConsts.ATTRS_FILE),
-                'description':DescriptionDictFile(stage_dir,cgWConsts.DESCRIPTION_FILE),
-                'consts':DictFile(stage_dir,cgWConsts.CONSTS_FILE),
-                'params':DictFile(submit_dir,cgWConsts.PARAMS_FILE),
-                'vars':VarsDictFile(stage_dir,cgWConsts.VARS_FILE),
-                'file_list':FileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
-                'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
-                'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
-                "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
+    main_dicts=get_common_dicts(submit_dir,stage_dir)
+    main_dicts['summary_signature']=SummarySHA1DictFile(submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE)
     return main_dicts
 
 def get_entry_dicts(submit_dir,stage_dir,entry_name):
     entry_submit_dir=cgWConsts.get_entry_submit_dir(submit_dir,entry_name)
     entry_stage_dir=cgWConsts.get_entry_stage_dir(stage_dir,entry_name)
-    entry_dicts={'attrs':DictFile(entry_stage_dir,cgWConsts.ATTRS_FILE),
-                 'description':DescriptionDictFile(entry_stage_dir,cgWConsts.DESCRIPTION_FILE),
-                 'consts':DictFile(entry_stage_dir,cgWConsts.CONSTS_FILE),
-                 'params':DictFile(entry_submit_dir,cgWConsts.PARAMS_FILE),
-                 'vars':VarsDictFile(entry_stage_dir,cgWConsts.VARS_FILE),
-                 'file_list':FileDictFile(entry_stage_dir,cgWConsts.FILE_LISTFILE),
-                 'script_list':FileDictFile(entry_stage_dir,cgWConsts.SCRIPT_LISTFILE),
-                 'subsystem_list':SubsystemDictFile(entry_stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
-                 "signature":SHA1DictFile(entry_stage_dir,cgWConsts.SIGNATURE_FILE)}
+    entry_dicts=get_common_dicts(entry_submit_dir,entry_stage_dir)
     return entry_dicts
 
 ################################################
@@ -405,37 +402,34 @@ def get_entry_dicts(submit_dir,stage_dir,entry_name):
 #
 ################################################
 
-def load_main_dicts(main_dicts): # update in place
+# internal, do not use from outside the module
+def load_common_dicts(dicts,           # update in place
+                      description_el):
     # first submit dir ones (mutable)
-    main_dicts['params'].load()
+    dicts['params'].load()
+    # all others are keyed in the description
+    dicts['signature'].load(fname=description_el.vals2['signature'])
+    dicts['attrs'].load(fname=description_el.vals2['attrs_file'])
+    dicts['consts'].load(fname=description_el.vals2['consts_file'])
+    dicts['vars'].load(fname=description_el.vals2['condor_vars'])
+    dicts['file_list'].load(fname=description_el.vals2['file_list'])
+    dicts['script_list'].load(fname=description_el.vals2['script_list'])
+    dicts['subsystem_list'].load(fname=description_el.vals2['subsystem_list'])
+
+def load_main_dicts(main_dicts): # update in place
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
-    main_dicts['signature'].load(fname=main_dicts['description'].vals2['signature'])
-    main_dicts['attrs'].load(fname=main_dicts['description'].vals2['attrs_file'])
-    main_dicts['consts'].load(fname=main_dicts['description'].vals2['consts_file'])
-    main_dicts['vars'].load(fname=main_dicts['description'].vals2['condor_vars'])
-    main_dicts['file_list'].load(fname=main_dicts['description'].vals2['file_list'])
-    main_dicts['script_list'].load(fname=main_dicts['description'].vals2['script_list'])
-    main_dicts['subsystem_list'].load(fname=main_dicts['description'].vals2['subsystem_list'])
-    
+    load_common_dicts(main_dicts,main_dicts['description'])
 
-def load_entry_dicts(entry_dicts,entry_name,summary_signature): # update in place
-    # first submit dir ones (mutable)
-    entry_dicts['params'].load()
+def load_entry_dicts(entry_dicts,                   # update in place
+                     entry_name,summary_signature): 
     # load the description (name from summary_signature)
     entry_dicts['description'].load(fname=summary_signature[cgWConsts.get_entry_stage_dir("",entry_name)][1])
     # all others are keyed in the description
-    entry_dicts['signature'].load(fname=entry_dicts['description'].vals2['signature'])
-    entry_dicts['attrs'].load(fname=entry_dicts['description'].vals2['attrs_file'])
-    entry_dicts['consts'].load(fname=entry_dicts['description'].vals2['consts_file'])
-    entry_dicts['vars'].load(fname=entry_dicts['description'].vals2['condor_vars'])
-    entry_dicts['file_list'].load(fname=entry_dicts['description'].vals2['file_list'])
-    entry_dicts['script_list'].load(fname=entry_dicts['description'].vals2['script_list'])
-    entry_dicts['subsystem_list'].load(fname=entry_dicts['description'].vals2['subsystem_list'])
-    
+    load_common_dicts(entry_dicts,entry_dicts['description'])
 
 ################################################
 #
@@ -606,10 +600,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.11 2007/11/30 22:49:06 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.12 2007/12/03 19:23:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.12  2007/12/03 19:23:56  sfiligoi
+#  Get rid of duplicates
+#
 #  Revision 1.11  2007/11/30 22:49:06  sfiligoi
 #  Make changing of self optional in load
 #
