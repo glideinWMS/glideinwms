@@ -5,7 +5,7 @@
 #
 #######################################################
 
-import os.path
+import os.path,string,popen2
 import cgWConsts
 
 ########################################
@@ -493,7 +493,7 @@ def load_entry_dicts(entry_dicts,                   # update in place
 ############################################################
 
 def refresh_description(dicts): # update in place
-    description_dict=entry_dicts['description']
+    description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
     description_dict.add(dicts['attrs'].get_fname(),"attrs_file",allow_overwrite=True)
     description_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
@@ -534,14 +534,14 @@ def save_common_dicts(dicts): # will update in place, too
 def save_main_dicts(main_dicts): # will update in place, too
     save_common_dicts(main_dicts)
     summary_signature=main_dicts['summary_signature']
-    summary_signature.add_from_file("main",main_dicts['summary'].get_filepath(),allow_overwrite=True)
+    summary_signature.add_from_file("main",main_dicts['signature'].get_filepath(),allow_overwrite=True)
     summary_signature.save()
 
 
 def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature): # update in place
     save_common_dicts(entry_dicts)
-    summary_signature.add(cgWConsts.get_entry_stage_dir("",entry_name),entry_dicts['summary'].get_filepath(),allow_overwrite=True)
+    summary_signature.add_from_file(cgWConsts.get_entry_stage_dir("",entry_name),entry_dicts['signature'].get_filepath(),allow_overwrite=True)
 
 ################################################
 #
@@ -616,7 +616,7 @@ class glideinEntryDicts(glideinDicts):
         load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
 
     def save(self):
-        save_entry_dicts(self.dictss,self.entry_name,self.glidein_main_dicts.get_summary_signature())
+        save_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
 
     def is_equal(self,other,             # other must be of the same class
                  compare_entry_name=False,
@@ -708,10 +708,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.16 2007/12/03 21:52:13 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.17 2007/12/03 22:33:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.17  2007/12/03 22:33:26  sfiligoi
+#  Fix typos
+#
 #  Revision 1.16  2007/12/03 21:52:13  sfiligoi
 #  Move sha1 calculations into ...SHA1DictFile.add_from_file
 #
