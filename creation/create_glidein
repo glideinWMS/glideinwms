@@ -53,6 +53,11 @@ def main(params):
                main_dicts=glidein_dicts_obj.main_dicts
                entry_dicts=glidein_dicts_obj.entry_dicts
 
+               # Put initial system scripts into stage
+               # These should be executed before the other scripts
+               copy_script("setup_x509.sh",params.stage_dir,params.src_dir,main_dicts)
+               copy_script("validate_node.sh",params.stage_dir,params.src_dir,main_dicts)
+
                # put user files in stage
                for file in params.files:
                    copy_file_unparsed(file,params.stage_dir,main_dicts)
@@ -79,8 +84,6 @@ def main(params):
                copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir,main_dicts)
                copy_stage_file("condor_config",params.stage_dir,params.src_dir,main_dicts)
                main_dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False) # will be modified when attrs processed
-               copy_script("setup_x509.sh",params.stage_dir,params.src_dir,main_dicts)
-               copy_script("validate_node.sh",params.stage_dir,params.src_dir,main_dicts)
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
@@ -476,10 +479,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.100 2007/12/03 21:56:48 sfiligoi Exp $
+# $Id: create_glidein,v 1.101 2007/12/04 23:58:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.101  2007/12/04 23:58:13  sfiligoi
+#  Move setup_x509.sh and validate_node.sh before the other scripts
+#
 #  Revision 1.100  2007/12/03 21:56:48  sfiligoi
 #  Use the cgWDictFile save method
 #
