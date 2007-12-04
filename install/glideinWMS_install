@@ -881,6 +881,15 @@ def gfactory_install():
             
         get_cronus_glidein_entries(vo,entries_list)
 
+    yn=raw_input("Do you want to fetch entries from RESS?: (y/n) ")
+    if yn=='y':
+        try:
+            vo=get_proxy_vo(proxy_fname)
+        except RuntimeError:
+            vo=None # VOMS extensions are not required
+            
+        get_ress_glidein_entries(vo,entries_list)
+
     print "Please list all additional glidein entry points,"
     while 1:
         entry_name=raw_input("Entry name (leave empty when finished): ")
@@ -2939,7 +2948,7 @@ def get_gcb_list():
     return gcb_list
 
 
-# Get list of entry point from Cronus
+# Get list of entry point from CRONUS
 ##########################################
 def get_cronus_glidein_entries(vo,            #vo can be None
                                entries_list): # disctionary, will add to this
@@ -3045,6 +3054,124 @@ def get_cronus_glidein_entries(vo,            #vo can be None
 
     for idx in idx_arr:
         entries_list[idx]=cronus_entries[idx]
+
+    return
+
+
+# Get list of entry point from RESS
+##########################################
+def get_ress_glidein_entries(vo,            #vo can be None
+                             entries_list): # disctionary, will add to this
+    while 1:
+        default_ress_url='osg-ress-1.fnal.gov'
+        ress_url=raw_input("Which RESS server should I use?: [%s] "%default_ress_url)
+        if ress_url=="":
+            ress_url=default_ress_url
+        try:
+            ress_ip=socket.gethostbyname(ress_url)
+        except KeyError:
+            print "'%s' is not a valid host name!"%ress_url
+            continue
+        #found and verified
+        break
+
+    default_reqs="((GlueCEPolicyMaxCPUTime==0) || (GlueCEPolicyMaxCPUTime>(72*60)))"
+    if vo!=None:
+        default_reqs='%s && StringlistMember("VO:%s",GlueCEAccessControlBaseRule)'%(default_reqs,vo)
+
+    
+    select_reqs=raw_input("Select constraint: [%s] "%default_reqs)
+    if select_reqs=="":
+        select_reqs=default_reqs
+
+    # Get gatekeepers from RESS
+    fd=os.popen("condor_status -pool %s -constraint '%s' -format '%%s ' GlueClusterName -format '%%s ' GlueCEInfoContactString -format '(queue=%%s)(jobtype=single) ' GlueCEName -format '%%s' GlueSiteName -format '\\n' Name"%(ress_url,select_reqs))
+    lines=fd.readlines()
+    err=fd.close()
+    if err!=None: # found
+        raise RuntimeError, "Failed to fetch info from RESS at %s!"%ress_url
+
+    cluster_count={}
+    ress_entries={}
+    for line in lines:
+        line_arr=line.split()
+        if len(line_arr)!=4:
+            continue #ignore
+        cluster_name=line_arr[0]
+        gatekeeper_name=line_arr[1]
+        rsl=line_arr[2]
+        site_name=line_arr[3]
+
+        cluster_arr=cluster_name.split('.')
+        if len(cluster_arr)<2:
+            continue # something is wrong here, at least a.b expected
+    
+        cluster_id=site_name
+        count=1
+        if cluster_count.has_key(cluster_id):
+            count=cluster_count[cluster_id]+1
+        cluster_count[cluster_id]=count
+
+        if count==1:
+            key_name=cluster_id
+        else:
+            key_name="%s_%i"%(cluster_id,count)
+
+            if count==2: # rename id -> id_1
+                key_name_tmp="%s_1"%cluster_id
+                ress_entries[key_name_tmp]=ress_entries[cluster_id]
+                del ress_entries[cluster_id]
+
+        work_dir="OSG"
+        ress_entries[key_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
+                                  'work_dir':work_dir,'site_name':cluster_id}
+
+
+    ress_keys=ress_entries.keys()
+    ress_keys.sort()
+
+    print "Found %i entries"%len(ress_keys)
+    yn=raw_input("Do you want to use them all?: (y/n) ")
+    if yn=="y":
+        # simply copy all of them
+        for key in ress_keys:
+            entries_list[key]=ress_entries[key]
+        return
+    
+    print "This is the list of entries found in RESS:"
+    for key in ress_keys:
+        print string.ljust("[%s] "%key,20),ress_entries[key]['gatekeeper']
+
+    print "Select the indexes you want to include"
+    print "Use a , separated list to include more than one"
+    while 1:
+        idxes=raw_input("Please select: ")
+        idx_arr=idxes.split(',')
+        problems=0
+        for idx in idx_arr:
+            if not (idx in ress_keys):
+                print "'%s' is not a valid index!"%idx
+                problems=1
+                break
+        if problems:
+            continue
+
+        # got them
+        break
+
+    yn=raw_input("Do you want to customize them?: (y/n) ")
+    if yn=="y":
+        # customize them
+        for idx in idx_arr:
+            work_dir=raw_input("Work dir for '%s': [%s] "%(idx,ress_entries[idx]['work_dir']))
+            if work_dir!="":
+                ress_entries[idx]['work_dir']=work_dir
+            site_name=raw_input("Site name for '%s': [%s] "%(idx,ress_entries[idx]['site_name']))
+            if site_name!="":
+                ress_entries[idx]['site_name']=site_name
+
+    for idx in idx_arr:
+        entries_list[idx]=ress_entries[idx]
 
     return
 
