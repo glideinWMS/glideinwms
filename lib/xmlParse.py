@@ -6,13 +6,69 @@
 #
 
 import xml.dom.minidom
+from UserDict import UserDict
+
+# This Class was obtained from
+# http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/107747
+class OrderedDict(UserDict):
+    def __init__(self, dict = None):
+        self._keys = []
+        UserDict.__init__(self, dict)
+
+    def __delitem__(self, key):
+        UserDict.__delitem__(self, key)
+        self._keys.remove(key)
+
+    def __setitem__(self, key, item):
+        UserDict.__setitem__(self, key, item)
+        if key not in self._keys: self._keys.append(key)
+
+    def clear(self):
+        UserDict.clear(self)
+        self._keys = []
+
+    def copy(self):
+        dict = UserDict.copy(self)
+        dict._keys = self._keys[:]
+        return dict
+
+    def items(self):
+        return zip(self._keys, self.values())
+
+    def keys(self):
+        return self._keys
+
+    def popitem(self):
+        try:
+            key = self._keys[-1]
+        except IndexError:
+            raise KeyError('dictionary is empty')
+
+        val = self[key]
+        del self[key]
+
+        return (key, val)
+
+    def setdefault(self, key, failobj = None):
+        UserDict.setdefault(self, key, failobj)
+        if key not in self._keys: self._keys.append(key)
+
+    def update(self, dict):
+        UserDict.update(self, dict)
+        for key in dict.keys():
+            if key not in self._keys: self._keys.append(key)
+
+    def values(self):
+        return map(self.get, self._keys)
+    
 
 # convert a XML file into a dictionary
 # ignore text sections
-def xmlfile2dict(fname):
+def xmlfile2dict(fname,
+                 use_ord_dict=False): # if true, return OrderedDict instead of a regular dictionary
     doc=xml.dom.minidom.parse(fname)
 
-    data=domel2dict(doc.documentElement)
+    data=domel2dict(doc.documentElement,use_ord_dict)
 
     return data
 
@@ -42,10 +98,11 @@ def xmlfile2dict(fname):
 #                    u'F': u'100'}
 #  }
 #  
-def xmlstring2dict(str):
+def xmlstring2dict(str,
+                   use_ord_dict=False): # if true, return OrderedDict instead of a regular dictionary
     doc=xml.dom.minidom.parseString(str)
 
-    data=domel2dict(doc.documentElement)
+    data=domel2dict(doc.documentElement,use_ord_dict)
 
     return data
 
@@ -68,10 +125,13 @@ def getXMLElements(element):
 
     return els
 
-def getXMLAttributes(element):
+def getXMLAttributes(element,use_ord_dict):
     ael=element.attributes
     
-    attrs={}
+    if use_ord_dict:
+        attrs=OrderedDict()
+    else:
+        attrs={}
     attr_len=ael.length
     for i in range(attr_len):
         attr=ael.item(i)
@@ -91,9 +151,9 @@ def is_singular_of(mysin,myplu):
     # else, no luck
     return False
 
-def domel2dict(doc):
+def domel2dict(doc,use_ord_dict=False):
     myname=doc.nodeName
-    data=getXMLAttributes(doc) # first insert attributes
+    data=getXMLAttributes(doc,use_ord_dict) # first insert attributes
 
     # insert all the subelements
     els=getXMLElements(doc)
@@ -118,5 +178,5 @@ def domel2dict(doc):
     return data
 
 
-#x=xmlfile2dict("../create/config_examples/simple_test1.xml")
+#x=xmlfile2dict("../creation/config_examples/simple_test1.xml")
 #print x
