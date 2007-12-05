@@ -4,6 +4,7 @@ import sys
 import os.path
 import string
 import socket
+import types
 import traceback
 sys.path.append("../lib")
 import xmlParse
@@ -245,7 +246,11 @@ class Params:
         # these are used internally, do not need to be ordered
         xmlFormat.DEFAULT_LISTS_PARAMS={'files':{'el_name':'file','subtypes_params':{'class':{}}}}
         xmlFormat.DEFAULT_DICTS_PARAMS={'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'entries':{'el_name':'entry','subtypes_params':{'class':{}}}}
+        # hack needed to make xmlFormat to properly do the formating
+        old_DictType=types.DictType
+        types.DictType=type(xmlParse.OrderedDict())
         out=xmlFormat.class2string(self.data,'glidein')
+        types.DictType=old_DictType
         xmlFormat.DEFAULT_IGNORE_NONES=old_default_ignore_nones
         xmlFormat.DEFAULT_LISTS_PARAMS=old_default_lists_params
         xmlFormat.DEFAULT_DICTS_PARAMS=old_default_dicts_params
@@ -395,10 +400,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.5 2007/12/05 21:02:26 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.6 2007/12/05 21:48:09 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.6  2007/12/05 21:48:09  sfiligoi
+#  Temporary hack to make xmlFormat to work with OrderedDict
+#
 #  Revision 1.5  2007/12/05 21:02:26  sfiligoi
 #  Fix type comparisons
 #
