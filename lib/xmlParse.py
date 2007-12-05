@@ -118,13 +118,5 @@ def domel2dict(doc):
     return data
 
 
-def xmlfile2dict(fname):
-    doc=xml.dom.minidom.parse(fname)
-
-    data=domel2dict(doc.documentElement)
-
-    return data
-
-
 #x=xmlfile2dict("../create/config_examples/simple_test1.xml")
 #print x
