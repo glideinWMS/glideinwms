@@ -160,7 +160,7 @@ def domel2dict(doc,use_ord_dict=False):
     for el in els:
         tag = el.tagName
         #print tag
-        eldata=domel2dict(el)
+        eldata=domel2dict(el,use_ord_dict)
         if is_singular_of(tag,myname): # subelements, like "param" - "params"
             if eldata.has_key("name"):
                 data[eldata['name']]=eldata
