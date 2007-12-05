@@ -44,21 +44,21 @@ class SubParams:
             else:
                 # verify subelements, if any
                 defel=base[k]
-                if type(defel)==type(xmlParse.OrderedDict):
+                if isinstance(defel,xmlParse.OrderedDict):
                     # subdictionary
                     self[k].validate(defel,"%s.%s"%(path_text,k))
                 else:
                     # final element
                     defvalue,ktype,txt,subdef=defel
 
-                    if type(defvalue)==type(xmlParse.OrderedDict):
+                    if isinstance(defvalue,xmlParse.OrderedDict):
                         # dictionary el elements
                         data_el=self[k]
                         for data_subkey in data_el.keys():
                             data_el[data_subkey].validate(subdef,"%s.%s.%s"%(path_text,k,data_subkey))
                     elif type(defvalue)==type([]):
                         # list of elements
-                        if type(self.data[k])==type(xmlParse.OrderedDict):
+                        if isinstance(self.data[k],xmlParse.OrderedDict):
                             if len(self.data[k].keys())==0:
                                 self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
 
@@ -75,7 +75,7 @@ class SubParams:
     def use_defaults(self,defaults):
         for k in defaults.keys():
             defel=defaults[k]
-            if type(defel)==type(xmlParse.OrderedDict):
+            if isinstance(defel,xmlParse.OrderedDict):
                 # subdictionary
                 if not self.data.has_key(k):
                     self.data[k]=xmlParse.OrderedDict() # first create empty, if does not exist
@@ -86,7 +86,7 @@ class SubParams:
                 # final element
                 defvalue,ktype,txt,subdef=defel
 
-                if type(defvalue)==type(xmlParse.OrderedDict):
+                if isinstance(defvalue,xmlParse.OrderedDict):
                     # dictionary el elements
                     if not self.data.has_key(k):
                         self.data[k]=xmlParse.OrderedDict() # no elements yet, set and empty dictionary
@@ -117,12 +117,12 @@ class SubParams:
     #
     def get_el(self,name):
         el=self.data[name]
-        if type(el)==type(xmlParse.OrderedDict):
+        if isinstance(el,xmlParse.OrderedDict):
             return SubParams(el)
         elif type(el)==type([]):
             outlst=[]
             for k in el:
-                if type(k)==type(xmlParse.OrderedDict):
+                if isinstance(k,xmlParse.OrderedDict):
                     outlst.append(SubParams(k))
                 else:
                     outlst.append(k)
@@ -350,14 +350,14 @@ def defdict2string(defaults,indent,width=80):
     # put simple elements first
     for k in keys:
         el=defaults[k]
-        if type(el)!=type(xmlParse.OrderedDict):
+        if not isinstance(el,xmlParse.OrderedDict):
             defvalue,ktype,txt,subdef=el
             if subdef==None:
                 final_keys.append(k)
     # put simple elements first
     for k in keys:
         el=defaults[k]
-        if type(el)==type(xmlParse.OrderedDict):
+        if isinstance(el,xmlParse.OrderedDict):
             final_keys.append(k)
         else:
             defvalue,ktype,txt,subdef=el
@@ -366,14 +366,14 @@ def defdict2string(defaults,indent,width=80):
 
     for k in final_keys:
         el=defaults[k]
-        if type(el)==type(xmlParse.OrderedDict):  #sub-dictionary
+        if isinstance(el,xmlParse.OrderedDict):  #sub-dictionary
             outstrarr.append("%s%s:"%(indent,k)+"\n"+defdict2string(el,indent+"\t",width))
         else:
             #print el
             defvalue,ktype,txt,subdef=el
             wrap_indent=indent+string.ljust("",len("%s(%s) - "%(k,ktype)))
             if subdef!=None:
-                if type(defvalue)==type(xmlParse.OrderedDict):
+                if isinstance(defvalue,xmlParse.OrderedDict):
                     dict_subdef=copy.deepcopy(subdef)
                     dict_subdef["name"]=(None,"name","Name",None)
                     outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(dict_subdef,indent+"\t",width))
@@ -395,10 +395,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.4 2007/12/05 20:38:00 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.5 2007/12/05 21:02:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.5  2007/12/05 21:02:26  sfiligoi
+#  Fix type comparisons
+#
 #  Revision 1.4  2007/12/05 20:38:00  sfiligoi
 #  User OrderedDict
 #
