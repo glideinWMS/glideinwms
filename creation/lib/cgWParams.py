@@ -44,21 +44,21 @@ class SubParams:
             else:
                 # verify subelements, if any
                 defel=base[k]
-                if type(defel)==type({}):
+                if type(defel)==type(xmlParse.OrderedDict):
                     # subdictionary
                     self[k].validate(defel,"%s.%s"%(path_text,k))
                 else:
                     # final element
                     defvalue,ktype,txt,subdef=defel
 
-                    if type(defvalue)==type({}):
+                    if type(defvalue)==type(xmlParse.OrderedDict):
                         # dictionary el elements
                         data_el=self[k]
                         for data_subkey in data_el.keys():
                             data_el[data_subkey].validate(subdef,"%s.%s.%s"%(path_text,k,data_subkey))
                     elif type(defvalue)==type([]):
                         # list of elements
-                        if type(self.data[k])==type({}):
+                        if type(self.data[k])==type(xmlParse.OrderedDict):
                             if len(self.data[k].keys())==0:
                                 self.data[k]=[]  #XML does not know if an empty list is a dictionary or not.. fix this
 
@@ -75,10 +75,10 @@ class SubParams:
     def use_defaults(self,defaults):
         for k in defaults.keys():
             defel=defaults[k]
-            if type(defel)==type({}):
+            if type(defel)==type(xmlParse.OrderedDict):
                 # subdictionary
                 if not self.data.has_key(k):
-                    self.data[k]={} # first create empty, if does not exist
+                    self.data[k]=xmlParse.OrderedDict() # first create empty, if does not exist
 
                 # then, set defaults on all elements of subdictionary
                 self[k].use_defaults(defel)
@@ -86,10 +86,10 @@ class SubParams:
                 # final element
                 defvalue,ktype,txt,subdef=defel
 
-                if type(defvalue)==type({}):
+                if type(defvalue)==type(xmlParse.OrderedDict):
                     # dictionary el elements
                     if not self.data.has_key(k):
-                        self.data[k]={} # no elements yet, set and empty dictionary
+                        self.data[k]=xmlParse.OrderedDict() # no elements yet, set and empty dictionary
                     else:
                         # need to set defaults on all elements in the dictionary
                         data_el=self[k]
@@ -117,12 +117,12 @@ class SubParams:
     #
     def get_el(self,name):
         el=self.data[name]
-        if type(el)==type({}):
+        if type(el)==type(xmlParse.OrderedDict):
             return SubParams(el)
         elif type(el)==type([]):
             outlst=[]
             for k in el:
-                if type(k)==type({}):
+                if type(k)==type(xmlParse.OrderedDict):
                     outlst.append(SubParams(k))
                 else:
                     outlst.append(k)
@@ -133,48 +133,63 @@ class SubParams:
 
 class Params:
     def __init__(self,argv):
-        self.attr_defaults={"value":(None,"Value","Value of the attribute (string)",None),
-                            "publish":("True","Bool","Should it be published by the factory?",None),
-                            "parameter":("True","Bool","Should it be a parameter for the glidein?",None),
-                            "glidein_publish":("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None),
-                            "job_publish":("False","Bool","Should the glidein publish it to the job? (Used only if parameter is True.)",None),
-                            "const":("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None),
-                            "type":("string","string|int","What kind on data is value.",None)}
+        self.attr_defaults=xmlParse.OrderedDict()
+        self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
+        self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
+        self.attr_defaults["parameter"]=("True","Bool","Should it be a parameter for the glidein?",None)
+        self.attr_defaults["glidein_publish"]=("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None)
+        self.attr_defaults["job_publish"]=("False","Bool","Should the glidein publish it to the job? (Used only if parameter is True.)",None)
+        self.attr_defaults["const"]=("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None)
+        self.attr_defaults["type"]=("string","string|int","What kind on data is value.",None)
 
-        self.file_defaults={"absfname":(None,"fname","File name on the local disk.",None),
-                            "relfname":(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None),
-                            "const":("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None),
-                            "executable":("False",'Bool','Is this an executable that needs to be run in the glidein?',None),
-                            "untar":("False",'Bool','Do I need to untar it? ',None),
-                            "untar_options":{"cond_attr":(None,"attrname","If defined, the attribute name used at runtime to determine if the file should be untarred or not.",None),
-                                             "dir":(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None),
-                                             "absdir_outattr":(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)}}
+        self.file_defaults=xmlParse.OrderedDict()
+        self.file_defaults["absfname"]=(None,"fname","File name on the local disk.",None)
+        self.file_defaults["relfname"]=(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None)
+        self.file_defaults["const"]=("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None)
+        self.file_defaults["executable"]=("False",'Bool','Is this an executable that needs to be run in the glidein?',None)
+        self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
+
+        untar_defaults=xmlParse.OrderedDict()
+        untar_defaults["cond_attr"]=(None,"attrname","If defined, the attribute name used at runtime to determine if the file should be untarred or not.",None)
+        untar_defaults["dir"]=(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None)
+        untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
+        self.file_defaults["untar_options"]=untar_defaults
         
-        
-        sub_defaults={'attrs':({},'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
+
+        # not exported and order does not matter, can stay a regular dictionary
+        sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
                       'files':([],'List of files',"Each file entry contains",self.file_defaults)}
-        self.entry_defaults={"gatekeeper":(None,'gatekeeper', 'Grid gatekeeper/resource',None),
-                             "gridtype":('gt2','grid_type','Condor Grid type',None),
-                             "rsl":(None,'RSL','Globus RSL option',None),
-                             'schedd_name':(None,"ScheddName","Which schedd to use (Overrides the global one if specified)",None),
-                             "work_dir":(".",".|Condor|OSG","Where to start glidein",None),
-                             'proxy_url':(None,'proxy_url',"Squid cache to use",None),
-                             "attrs":sub_defaults['attrs'],
-                             "files":sub_defaults['files']}
         
-        self.defaults={"factory_name":(socket.gethostname(),'ID', 'Factory name',None),
-                       "glidein_name":(None,'ID', 'Glidein name',None),
-                       'schedd_name':("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None),
-                       "submit":{"base_dir":(os.environ["HOME"],"base_dir","Submit base dir",None)},
-                       "stage":{"base_dir":("/var/www/html/glidefactory/stage","base_dir","Stage base dir",None),
-                                "web_base_url":("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL',None),
-                                "use_symlink":("True","Bool","Can I symlink stage dir from submit dir?",None)},
-                       "monitor":{"base_dir":("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)},
-                       "condor":{"tar_file":(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None),
-                                 "base_dir":(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)},
-                       "attrs":sub_defaults['attrs'],
-                       "files":sub_defaults['files'],
-                       "entries":({},"Dictionary of entries","Each entry contains",self.entry_defaults)}
+        self.entry_defaults=xmlParse.OrderedDict()
+        self.entry_defaults["gatekeeper"]=(None,'gatekeeper', 'Grid gatekeeper/resource',None)
+        self.entry_defaults["gridtype"]=('gt2','grid_type','Condor Grid type',None)
+        self.entry_defaults["rsl"]=(None,'RSL','Globus RSL option',None)
+        self.entry_defaults['schedd_name']=(None,"ScheddName","Which schedd to use (Overrides the global one if specified)",None)
+        self.entry_defaults["work_dir"]=(".",".|Condor|OSG","Where to start glidein",None)
+        self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
+        self.entry_defaults["attrs"]=sub_defaults['attrs']
+        self.entry_defaults["files"]=sub_defaults['files']
+        
+        self.defaults=xmlParse.OrderedDict()
+        self.defaults["factory_name"]=(socket.gethostname(),'ID', 'Factory name',None)
+        self.defaults["glidein_name"]=(None,'ID', 'Glidein name',None)
+        self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
+        self.defaults["submit"]=xmlParse.OrderedDict({"base_dir":(os.environ["HOME"],"base_dir","Submit base dir",None)})
+
+        stage_defaults=xmlParse.OrderedDict()
+        stage_defaults["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Stage base dir",None)
+        stage_defaults["web_base_url"]=("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL',None)
+        stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
+        self.defaults["stage"]=stage_defaults
+        self.defaults["monitor"]=xmlParse.OrderedDict({"base_dir":("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)})
+        
+        condor_defaults=xmlParse.OrderedDict()
+        condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
+        condor_defaults["base_dir"]=(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
+        self.defaults["condor"]=condor_defaults
+        self.defaults["attrs"]=sub_defaults['attrs']
+        self.defaults["files"]=sub_defaults['files']
+        self.defaults["entries"]=(xmlParse.OrderedDict(),"Dictionary of entries","Each entry contains",self.entry_defaults)
                        
                        
         # support dir
@@ -227,6 +242,7 @@ class Params:
         old_default_lists_params=xmlFormat.DEFAULT_LISTS_PARAMS
         old_default_dicts_params=xmlFormat.DEFAULT_DICTS_PARAMS
         xmlFormat.DEFAULT_IGNORE_NONES=True
+        # these are used internally, do not need to be ordered
         xmlFormat.DEFAULT_LISTS_PARAMS={'files':{'el_name':'file','subtypes_params':{'class':{}}}}
         xmlFormat.DEFAULT_DICTS_PARAMS={'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'entries':{'el_name':'entry','subtypes_params':{'class':{}}}}
         out=xmlFormat.class2string(self.data,'glidein')
@@ -247,7 +263,7 @@ class Params:
         if fname=="-":
             fname=sys.stdin
         try:
-            self.data=xmlParse.xmlfile2dict(fname)
+            self.data=xmlParse.xmlfile2dict(fname,use_ord_dict=True)
         except xml.parsers.expat.ExpatError, e:
             raise RuntimeError, "XML error parsing config file: %s"%e
         self.subparams=SubParams(self.data)
@@ -334,14 +350,14 @@ def defdict2string(defaults,indent,width=80):
     # put simple elements first
     for k in keys:
         el=defaults[k]
-        if type(el)!=type({}):
+        if type(el)!=type(xmlParse.OrderedDict):
             defvalue,ktype,txt,subdef=el
             if subdef==None:
                 final_keys.append(k)
     # put simple elements first
     for k in keys:
         el=defaults[k]
-        if type(el)==type({}):
+        if type(el)==type(xmlParse.OrderedDict):
             final_keys.append(k)
         else:
             defvalue,ktype,txt,subdef=el
@@ -350,14 +366,14 @@ def defdict2string(defaults,indent,width=80):
 
     for k in final_keys:
         el=defaults[k]
-        if type(el)==type({}):  #sub-dictionary
+        if type(el)==type(xmlParse.OrderedDict):  #sub-dictionary
             outstrarr.append("%s%s:"%(indent,k)+"\n"+defdict2string(el,indent+"\t",width))
         else:
             #print el
             defvalue,ktype,txt,subdef=el
             wrap_indent=indent+string.ljust("",len("%s(%s) - "%(k,ktype)))
             if subdef!=None:
-                if type(defvalue)==type({}):
+                if type(defvalue)==type(xmlParse.OrderedDict):
                     dict_subdef=copy.deepcopy(subdef)
                     dict_subdef["name"]=(None,"name","Name",None)
                     outstrarr.append(col_wrap("%s%s(%s) - %s:"%(indent,k,ktype,txt),width,wrap_indent)+"\n"+defdict2string(dict_subdef,indent+"\t",width))
@@ -379,10 +395,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.3 2007/10/12 21:41:45 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.4 2007/12/05 20:38:00 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.4  2007/12/05 20:38:00  sfiligoi
+#  User OrderedDict
+#
 #  Revision 1.3  2007/10/12 21:41:45  sfiligoi
 #  Proper error message handling
 #
