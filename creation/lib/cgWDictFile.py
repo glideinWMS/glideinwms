@@ -338,9 +338,12 @@ class SummarySHA1DictFile(DictFile):
         key=arr[2]
         return self.add(key,(arr[0],arr[1]))
 
-# file_list
+# file list
 # also hold the content of the file as the last entry in vals
 class FileDictFile(DictFile):
+    def get_immutable_files(self):
+        return self.keys # keys are files, and all are immutable in this implementation
+
     def add(self,key, # key is filename in this case
             val,allow_overwrite=False):
         return self.add_from_file(key,val,os.path.join(self.dir,key),allow_overwrite)
@@ -365,7 +368,7 @@ class FileDictFile(DictFile):
             fd.close()
 
     def format_val(self,key):
-        if self.vals[key]!=None:
+        if self.vals[key][0]!=None:
             return "%s %s"%(key,self.vals[key][0])
         else:
             return key
@@ -404,6 +407,16 @@ class FileDictFile(DictFile):
             finally:
                 fd.close()
             
+# mutable file list, nocache is the special keyword 
+class MutableFileDictFile(FileDictFile):
+    def get_immutable_files(self):
+        mkeys=[]
+        for k in self.keys:
+            val=self.vals[k][0]
+            if (val!="nocache"):
+                mkeys.append(k)
+            
+        return mkeys
 
 # subsystem
 # values are (config_check,wnsubdir,config_out)
@@ -491,7 +504,7 @@ def get_common_dicts(submit_dir,stage_dir):
                   'consts':DictFile(stage_dir,cgWConsts.CONSTS_FILE),
                   'params':DictFile(submit_dir,cgWConsts.PARAMS_FILE),
                   'vars':VarsDictFile(stage_dir,cgWConsts.VARS_FILE),
-                  'file_list':FileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
+                  'file_list':MutableFileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
                   'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
                   'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
                   "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
@@ -571,6 +584,11 @@ def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
     for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
         signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
+    # add signatures of all the files linked in the lists
+    for k in ('file_list','script_list','subsystem_list'):
+        filedict=dicts[k]
+        for fname in filedict.get_immutable_files():
+            signature_dict.add_from_file(os.path.join(filedict.dir,fname),allow_overwrite=True)
     
 
 ################################################
@@ -777,10 +795,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.22 2007/12/10 19:47:06 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.23 2007/12/10 21:23:15 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.23  2007/12/10 21:23:15  sfiligoi
+#  Move sha1 calculations at the final stage
+#
 #  Revision 1.22  2007/12/10 19:47:06  sfiligoi
 #  Move file list maintenance to the proper place
 #

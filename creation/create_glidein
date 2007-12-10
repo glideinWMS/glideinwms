@@ -263,7 +263,9 @@ def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None,filepat
         else:
             dicts['file_list'].add_from_file(filename,'nocache',filepath)
     else:
-        add_sha1(filename,stage_dir,dicts)
+        # not needed anymore
+        #add_sha1(filename,stage_dir,dicts)
+        
         if filepath==None:
             dicts['file_list'].add(filename,None)
         else:
@@ -275,7 +277,9 @@ def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None,filepat
 ###################
 # Register a script
 def add_script(filename,stage_dir,dicts,filepath=None):
-    add_sha1(filename,stage_dir,dicts)
+    #not needed anymore
+    #add_sha1(filename,stage_dir,dicts)
+
     if filepath==None:
         dicts['script_list'].add(filename,None)
     else:
@@ -286,7 +290,9 @@ def add_script(filename,stage_dir,dicts,filepath=None):
 def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out,filepath=None):
     if config_check==None:
         config_check="TRUE" #TRUE has a special meaning for the glidein
-    add_sha1(filename,stage_dir,dicts)
+    #not needed anymore
+    #add_sha1(filename,stage_dir,dicts)
+
     if filepath==None:
         dicts['subsystem_list'].add(filename,(config_check,wnsubdir,config_out))
     else:
@@ -500,10 +506,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.102 2007/12/10 19:38:18 sfiligoi Exp $
+# $Id: create_glidein,v 1.103 2007/12/10 21:23:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.103  2007/12/10 21:23:14  sfiligoi
+#  Move sha1 calculations at the final stage
+#
 #  Revision 1.102  2007/12/10 19:38:18  sfiligoi
 #  Put file handling in cgWDictFile
 #
