@@ -602,13 +602,16 @@ def refresh_signature(dicts): # update in place
 def save_common_dicts(dicts): # will update in place, too
     # make sure decription is up to date
     refresh_description(dicts)
-    # make sure we have all the files in the file list
-    refresh_file_list(dicts)
     # save files in the file lists
     for k in ('file_list','script_list','subsystem_list'):
         dicts[k].save_files()
     # save the immutable ones
-    for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
+    for k in ('attrs','consts','vars','description'):
+        dicts[k].save()
+    # make sure we have all the files in the file list
+    refresh_file_list(dicts)
+    # then save the lists
+    for k in ('file_list','script_list','subsystem_list'):
         dicts[k].save()
     # calc and save the signatues
     refresh_signature(dicts)
@@ -795,10 +798,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.24 2007/12/10 21:32:26 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.25 2007/12/10 21:35:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.25  2007/12/10 21:35:11  sfiligoi
+#  Fix bug
+#
 #  Revision 1.24  2007/12/10 21:32:26  sfiligoi
 #  Fix typo
 #
