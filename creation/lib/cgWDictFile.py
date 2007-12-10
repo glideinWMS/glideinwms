@@ -496,7 +496,6 @@ def get_common_dicts(submit_dir,stage_dir):
                   'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
                   "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
     refresh_description(common_dicts)
-    refresh_file_list(common_dicts)
     return common_dicts
 
 def get_main_dicts(submit_dir,stage_dir):
@@ -585,6 +584,8 @@ def refresh_signature(dicts): # update in place
 def save_common_dicts(dicts): # will update in place, too
     # make sure decription is up to date
     refresh_description(dicts)
+    # make sure we have all the files in the file list
+    refresh_file_list(common_dicts)
     # save files in the file lists
     for k in ('file_list','script_list','subsystem_list'):
         dicts[k].save_files()
@@ -776,10 +777,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.21 2007/12/10 19:38:18 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.22 2007/12/10 19:47:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.22  2007/12/10 19:47:06  sfiligoi
+#  Move file list maintenance to the proper place
+#
 #  Revision 1.21  2007/12/10 19:38:18  sfiligoi
 #  Put file handling in cgWDictFile
 #
