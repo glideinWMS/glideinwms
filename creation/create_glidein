@@ -269,7 +269,7 @@ def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None,filepat
         if filepath==None:
             dicts['file_list'].add(filename,None)
         else:
-            dicts['file_list'].add(filename,None,filepath)
+            dicts['file_list'].add_from_file(filename,None,filepath)
     if description!=None:
         dicts['description'].add(filename,description)
 
@@ -506,10 +506,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.103 2007/12/10 21:23:14 sfiligoi Exp $
+# $Id: create_glidein,v 1.104 2007/12/10 21:31:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.104  2007/12/10 21:31:41  sfiligoi
+#  Fix typo
+#
 #  Revision 1.103  2007/12/10 21:23:14  sfiligoi
 #  Move sha1 calculations at the final stage
 #

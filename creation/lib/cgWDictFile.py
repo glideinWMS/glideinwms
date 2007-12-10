@@ -603,7 +603,7 @@ def save_common_dicts(dicts): # will update in place, too
     # make sure decription is up to date
     refresh_description(dicts)
     # make sure we have all the files in the file list
-    refresh_file_list(common_dicts)
+    refresh_file_list(dicts)
     # save files in the file lists
     for k in ('file_list','script_list','subsystem_list'):
         dicts[k].save_files()
@@ -795,10 +795,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.23 2007/12/10 21:23:15 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.24 2007/12/10 21:32:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.24  2007/12/10 21:32:26  sfiligoi
+#  Fix typo
+#
 #  Revision 1.23  2007/12/10 21:23:15  sfiligoi
 #  Move sha1 calculations at the final stage
 #
