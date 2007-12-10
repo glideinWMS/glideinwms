@@ -339,10 +339,34 @@ class SummarySHA1DictFile(DictFile):
         return self.add(key,(arr[0],arr[1]))
 
 # file_list
+# also hold the content of the file as the last entry in vals
 class FileDictFile(DictFile):
+    def add(self,key, # key is filename in this case
+            val,allow_overwrite=False):
+        return self.add_from_file(key,val,os.path.join(self.dir,key),allow_overwrite)
+
+    def add_from_fd(self,key,val,
+                    fd, # open file object that has a read() method
+                    allow_overwrite=False):
+        data=fd.read()
+        DictFile.add(self,key,(val,data),allow_overwrite)
+
+    def add_from_file(self,key,val,
+                      filepath,
+                      allow_overwrite=False):
+        try:
+            fd=open(filepath,"r")
+        except IOError,e:
+            raise RuntimeError,"Could not open file %s"%filepath
+        try:
+            data=fd.read()
+            self.add_from_fd(key,val,fd,allow_overwrite)
+        finally:
+            fd.close()
+
     def format_val(self,key):
         if self.vals[key]!=None:
-            return "%s %s"%(key,self.vals[key])
+            return "%s %s"%(key,self.vals[key][0])
         else:
             return key
 
@@ -362,18 +386,41 @@ class FileDictFile(DictFile):
             val=arr[1]
         return self.add(key,val)
 
+    def save_files(self,allow_overwrite=False):
+        for fname in self.keys:
+            fdata=self.vals[fname][-1]
+            filepath=os.path.join(self.dir,fname)
+            if (not allow_overwrite) and os.path.exists(filepath):
+                raise RuntimeError,"File %s already exists"%filepath
+            try:
+                fd=open(filepath,"w")
+            except IOError,e:
+                raise RuntimeError,"Could not create file %s"%filepath
+            try:
+                try:
+                    fd.write(fdata)
+                except IOError,e:
+                    raise RuntimeError,"Error writing into file %s"%filepath
+            finally:
+                fd.close()
+            
+
 # subsystem
 # values are (config_check,wnsubdir,config_out)
-class SubsystemDictFile(DictFile):
-    def add(self,key,val,allow_overwrite=False):
+class SubsystemDictFile(FileDictFile):
+    def add_from_fd(self,key,val,
+                    fd, # open file object that has a read() method
+                    allow_overwrite=False):
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
         if len(val)!=3:
             raise RuntimeError, "Values '%s' not (config_check,wnsubdir,config_out)"%val
-        return DictFile.add(self,key,val,allow_overwrite)
+
+        data=fd.read()
+        DictFile.add(self,key,tuple(val)+(data,),allow_overwrite)
 
     def format_val(self,key):
-        return "%s %s %s %s"%(self.vals[key][0],self.vals[key][1],key,self.vals[key][2])# condor_vars
+        return "%s %s %s %s"%(self.vals[key][0],self.vals[key][1],key,self.vals[key][2])
 
     def parse_val(self,line):
         if line[0]=='#':
@@ -538,6 +585,9 @@ def refresh_signature(dicts): # update in place
 def save_common_dicts(dicts): # will update in place, too
     # make sure decription is up to date
     refresh_description(dicts)
+    # save files in the file lists
+    for k in ('file_list','script_list','subsystem_list'):
+        dicts[k].save_files()
     # save the immutable ones
     for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
         dicts[k].save()
@@ -726,10 +776,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.20 2007/12/03 23:57:27 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.21 2007/12/10 19:38:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.21  2007/12/10 19:38:18  sfiligoi
+#  Put file handling in cgWDictFile
+#
 #  Revision 1.20  2007/12/03 23:57:27  sfiligoi
 #  Properly initialize file_list
 #

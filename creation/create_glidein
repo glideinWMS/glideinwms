@@ -256,29 +256,41 @@ def add_var(dicts,attr_name,is_string,do_glidein_publish,do_job_publish):
     
 #########################
 # Register a regular file
-def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None):
+def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None,filepath=None):
     if can_be_modified:
-        dicts['file_list'].add(filename,'nocache')
+        if filepath==None:
+            dicts['file_list'].add(filename,'nocache')
+        else:
+            dicts['file_list'].add_from_file(filename,'nocache',filepath)
     else:
         add_sha1(filename,stage_dir,dicts)
-        dicts['file_list'].add(filename,None)
+        if filepath==None:
+            dicts['file_list'].add(filename,None)
+        else:
+            dicts['file_list'].add(filename,None,filepath)
     if description!=None:
         dicts['description'].add(filename,description)
 
 
 ###################
 # Register a script
-def add_script(filename,stage_dir,dicts):
+def add_script(filename,stage_dir,dicts,filepath=None):
     add_sha1(filename,stage_dir,dicts)
-    dicts['script_list'].add(filename,None)
+    if filepath==None:
+        dicts['script_list'].add(filename,None)
+    else:
+        dicts['script_list'].add_from_file(filename,None,filepath)
 
 ######################
 # Register a subsystem
-def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out):
+def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out,filepath=None):
     if config_check==None:
         config_check="TRUE" #TRUE has a special meaning for the glidein
     add_sha1(filename,stage_dir,dicts)
-    dicts['subsystem_list'].add(filename,(config_check,wnsubdir,config_out))
+    if filepath==None:
+        dicts['subsystem_list'].add(filename,(config_check,wnsubdir,config_out))
+    else:
+        dicts['subsystem_list'].add_from_file(filename,(config_check,wnsubdir,config_out),filepath)
     if config_check!="TRUE":
         # TRUE is not a real parameter, so no need to log it
         add_param(dicts,config_check,0,is_string=False) # if it is optional, default==0
@@ -288,23 +300,31 @@ def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out):
 # Copy a regular file
 def copy_stage_file(filename,stage_dir,org_dir,dicts,can_be_modified=0,out_fname=None,description=None):
     if out_fname==None:
-        copy_file(os.path.join(org_dir,filename),stage_dir)
-        add_file(filename,stage_dir,dicts,can_be_modified,description)
+        # not needed anymore
+        #copy_file(os.path.join(org_dir,filename),stage_dir)
+        
+        add_file(filename,stage_dir,dicts,can_be_modified,description,os.path.join(org_dir,filename))
     else:
-        copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
-        add_file(out_fname,stage_dir,dicts,can_be_modified,description)
+        # not needed anymore
+        #copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
+        
+        add_file(out_fname,stage_dir,dicts,can_be_modified,description,os.path.join(org_dir,filename))
 
 ###############
 # Copy a script
 def copy_script(filename,stage_dir,org_dir,dicts):
-    copy_file(os.path.join(org_dir,filename),stage_dir)
-    add_script(filename,stage_dir,dicts)
+    # not needed anymore
+    #copy_file(os.path.join(org_dir,filename),stage_dir)
+
+    add_script(filename,stage_dir,dicts,os.path.join(org_dir,filename))
 
 ######################
 # Copy a subsystem
 def copy_subsystem(filename,stage_dir,submit_dir,org_dir,config_check,wnsubdir,config_out):
-    copy_file(os.path.join(org_dir,filename),stage_dir)
-    add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out)
+    # not needed anymore
+    #copy_file(os.path.join(org_dir,filename),stage_dir)
+    
+    add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out,os.path.join(org_dir,filename))
 
 ##########################################
 # Copy a user file and add it to the list
@@ -319,14 +339,15 @@ def copy_file_unparsed(file,stage_dir,dicts):
     if len(relfname)<1:
         raise RuntimeError, "Found a file element with an empty relfname: %s"%file
 
-    copy_file(file.absfname,os.path.join(stage_dir,relfname))
+    # not needed anymore
+    #copy_file(file.absfname,os.path.join(stage_dir,relfname))
 
-    return add_file_unparsed(file,stage_dir,dicts)
+    return add_file_unparsed(file,stage_dir,dicts,file.absfname)
     
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
-def add_file_unparsed(file,stage_dir,dicts):
+def add_file_unparsed(file,stage_dir,dicts,filepath=None):
     relfname=file.relfname
     if relfname==None:
         if file.absfname==None:
@@ -346,7 +367,7 @@ def add_file_unparsed(file,stage_dir,dicts):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
-        add_script(relfname,stage_dir,dicts)
+        add_script(relfname,stage_dir,dicts,filepath)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -359,9 +380,9 @@ def add_file_unparsed(file,stage_dir,dicts):
         if file.untar_options.absdir_outattr==None:
             raise RuntimeError, 'Currently untar_options.absdir_outattr must be defined: %s'%file
         
-        add_subsystem(relfname,stage_dir,dicts,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr)
+        add_subsystem(relfname,stage_dir,dicts,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr,filepath)
     else: # not executable nor tarball => simple file
-        add_file(relfname,stage_dir,dicts,not is_const,None)
+        add_file(relfname,stage_dir,dicts,not is_const,None,filepath)
 
 
 #######################
@@ -479,10 +500,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.101 2007/12/04 23:58:13 sfiligoi Exp $
+# $Id: create_glidein,v 1.102 2007/12/10 19:38:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.102  2007/12/10 19:38:18  sfiligoi
+#  Put file handling in cgWDictFile
+#
 #  Revision 1.101  2007/12/04 23:58:13  sfiligoi
 #  Move setup_x509.sh and validate_node.sh before the other scripts
 #
