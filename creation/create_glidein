@@ -56,7 +56,7 @@ def main(params):
                # Load initial system scripts
                # These should be executed before the other scripts
                for script_name in ('setup_x509.sh',"validate_node.sh"):
-                   dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
+                   main_dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
                    
 
                # put user files in stage
@@ -83,7 +83,7 @@ def main(params):
                
                #load system files
                for file_name in ('parse_starterlog.awk',"condor_config"):
-                   dicts['file_list'].add_from_file(file_name,None,os.path.join(params.src_dir,file_name))
+                   main_dicts['file_list'].add_from_file(file_name,None,os.path.join(params.src_dir,file_name))
                main_dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False) # will be modified when attrs processed
                
                 ## repeat for all the entries
@@ -102,7 +102,7 @@ def main(params):
 
                # this must be the last script in the list
                for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-                   dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
+                   main_dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
                main_dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
                # finalize
@@ -416,10 +416,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.106 2007/12/11 17:39:01 sfiligoi Exp $
+# $Id: create_glidein,v 1.107 2007/12/11 17:41:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.107  2007/12/11 17:41:06  sfiligoi
+#  Fix typo
+#
 #  Revision 1.106  2007/12/11 17:39:01  sfiligoi
 #  Simplify file management
 #
