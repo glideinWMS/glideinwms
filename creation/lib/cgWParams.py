@@ -151,7 +151,7 @@ class Params:
         self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
 
         untar_defaults=xmlParse.OrderedDict()
-        untar_defaults["cond_attr"]=(None,"attrname","If defined, the attribute name used at runtime to determine if the file should be untarred or not.",None)
+        untar_defaults["cond_attr"]=("TRUE","attrname","If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",None)
         untar_defaults["dir"]=(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None)
         untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
         self.file_defaults["untar_options"]=untar_defaults
@@ -400,10 +400,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.6 2007/12/05 21:48:09 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.7 2007/12/11 18:07:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.7  2007/12/11 18:07:30  sfiligoi
+#  Use the special value as the default for cond_attr
+#
 #  Revision 1.6  2007/12/05 21:48:09  sfiligoi
 #  Temporary hack to make xmlFormat to work with OrderedDict
 #
