@@ -446,6 +446,32 @@ class SubsystemDictFile(FileDictFile):
         key=arr[2]
         return self.add(key,(arr[0],arr[1],arr[3]))
 
+# will convert values into python format before writing them out
+class ReprDictFile(DictFile):
+    def format_val(self,key):
+        return "%s \t%s"%(key,repr(self.vals[key]))
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,1)
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        key=arr[0]
+        if len(arr)==1:
+            val=''
+        else:
+            val=arr[1]
+        return self.add(key,eval(val))
+
+# will hold only strings
+class StrDictFile(DictFile):
+    def add(self,key,val,allow_overwrite=False):
+        DictFile.add(self,key,str(val),allow_overwrite)
+
 # values are (Type,Default,CondorName,Required,Export,UserName)
 class VarsDictFile(DictFile):
     def is_compatible(self,old_val,new_val):
@@ -471,6 +497,43 @@ class VarsDictFile(DictFile):
 
         return DictFile.add(self,key,val,allow_overwrite)
 
+    def add_extended(self,key,
+                     is_string,
+                     val_default, # None or False==No default (i.e. -)
+                     condor_name, # if None or false, Varname (i.e. +)
+                     required,
+                     export_condor,
+                     user_name,   # If None or false, do not export (i.e. -)
+                                  # if True, set to VarName (i.e. +)
+                     allow_overwrite=0):
+        if is_string:
+            type_str='S'
+        else:
+            type_str='I'
+            
+        if (val_default==None) or (val_default==False):
+            val_default='-'
+            
+        if (condor_name==None) or (condor_name==False):
+            condor_name="+"
+            
+        if required:
+            req_str='Y'
+        else:
+            req_str='N'
+            
+        if export_condor:
+            export_condor_str='Y'
+        else:
+            export_condor_str='N'
+
+        if (user_name==None) or (user_name==False):
+            user_name='-'
+        elif user_name==True:
+            user_name='+'
+            
+        self.add(key,(type_str,val_default,req_str,export_condor_str,user_name),allow_overwrite)
+        
     def format_val(self,key):
         return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4],self.vals[key][5])
         
@@ -498,10 +561,10 @@ class VarsDictFile(DictFile):
 
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir,stage_dir):
-    common_dicts={'attrs':DictFile(stage_dir,cgWConsts.ATTRS_FILE),
+    common_dicts={'attrs':ReprDictFile(stage_dir,cgWConsts.ATTRS_FILE),
                   'description':DescriptionDictFile(stage_dir,cgWConsts.DESCRIPTION_FILE),
-                  'consts':DictFile(stage_dir,cgWConsts.CONSTS_FILE),
-                  'params':DictFile(submit_dir,cgWConsts.PARAMS_FILE),
+                  'consts':StrDictFile(stage_dir,cgWConsts.CONSTS_FILE),
+                  'params':ReprDictFile(submit_dir,cgWConsts.PARAMS_FILE),
                   'vars':VarsDictFile(stage_dir,cgWConsts.VARS_FILE),
                   'file_list':MutableFileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
                   'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
@@ -797,10 +860,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.26 2007/12/11 16:05:59 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.27 2007/12/11 19:16:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.27  2007/12/11 19:16:06  sfiligoi
+#  Simplify attribute handling
+#
 #  Revision 1.26  2007/12/11 16:05:59  sfiligoi
 #  Fix typo
 #

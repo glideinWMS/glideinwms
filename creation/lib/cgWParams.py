@@ -291,6 +291,17 @@ class Params:
         return
     
 
+# return attribute value in the proper python format
+def extract_attr_val(attr_obj):
+    if (not attr_obj.type in ("string","int")):
+        raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
+
+    if attr_obj.type=="string":
+        return str(attr_obj.value)
+    else:
+        return int(attr_obj.value)
+
+
 ############################################################
 #
 # P R I V A T E - Do not use
@@ -400,10 +411,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.7 2007/12/11 18:07:30 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.8 2007/12/11 19:16:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.8  2007/12/11 19:16:06  sfiligoi
+#  Simplify attribute handling
+#
 #  Revision 1.7  2007/12/11 18:07:30  sfiligoi
 #  Use the special value as the default for cond_attr
 #

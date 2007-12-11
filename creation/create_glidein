@@ -93,7 +93,7 @@ def main(params):
                    add_attr_unparsed(attr_name, params.attrs[attr_name],main_dicts,"main")
 
                # add the basic standard params
-               add_param(main_dicts,"GLIDEIN_Collector",'Fake',is_string=True)
+               main_dicts['params'].add("GLIDEIN_Collector",'Fake')
 
                # this must be the last script in the list
                for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
@@ -198,40 +198,6 @@ def symlink_file(infile,outfile):
         raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
         
 
-############################
-# Add a published attributed
-def add_attr(dicts,attr_name,attr_val,is_string):
-    if is_string:
-        attr_val=repr(attr_val)
-    else:
-        attr_val=repr(int(attr_val))
-
-    dicts['attrs'].add(attr_name,attr_val)
-
-
-############################
-# Add a constant attribute
-def add_const(dicts,attr_name,attr_val):
-    dicts['consts'].add(attr_name,attr_val)
-
-########################
-# Add a parameter
-def add_param(dicts,param_name,param_defval,is_string):
-    if is_string:
-        param_defval=repr(param_defval)
-    else:
-        param_defval=repr(int(param_defval))
-
-    dicts['params'].add(param_name,param_defval)
-
-#################################
-# Add a new variable to VARS_FILE
-def add_var(dicts,attr_name,is_string,do_glidein_publish,do_job_publish):
-    type_str={True:"S",False:"I"}
-    glide_str={True:"Y",False:"N"}
-    job_str={True:"+",False:"-"}
-    dicts['vars'].add(attr_name,(type_str[is_string],'-','+','N',glide_str[do_glidein_publish],job_str[do_job_publish]))
-    
 #############################################
 # Add a user file residing in the stage area
 # file as described by Params.file_defaults
@@ -273,7 +239,7 @@ def add_file_unparsed(file,dicts):
         cond_attr=file.untar_options.cond_attr
         dicts['subsystem_list'].add_from_file(relfname,(cond_attr,wnsubdir,file.untar_options.absdir_outattr),absfname)
         if cond_attr!="TRUE":
-            dicts['params'].add(cond_attr,repr(0))
+            dicts['params'].add(cond_attr,0)
     else: # not executable nor tarball => simple file
         if is_const:
             val=None
@@ -298,26 +264,24 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
     do_publish=eval(attr_obj.publish,{},{})
     is_parameter=eval(attr_obj.parameter,{},{})
     is_const=eval(attr_obj.const,{},{})
-
-    if (not attr_obj.type in ("string","int")):
-        raise RuntimeError, "Wrong type '%s' for attribute '%s', must be either 'int' or 'string'"%(attr_obj.type,attr_name)
+    attr_val=cgWParams.extract_attr_val(attr_obj)
     
     if do_publish: # publish in factory ClassAd
         if is_parameter: # but also push to glidein
             if is_const:
-                add_attr(dicts,attr_name,attr_obj.value,attr_obj.type=="string")
-                add_const(dicts,attr_name,attr_obj.value)
+                dicts['attrs'].add(attr_name,attr_val)
+                dicts['consts'].add(attr_name,attr_val)
             else:
-                add_param(dicts,attr_name,attr_obj.value,attr_obj.type=="string")
+                dicts['params'].add(attr_name,attr_val)
         else: # only publish
             if (not is_const):
                 raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
             
-            add_attr(dicts,attr_name,attr_obj.value,attr_obj.type=="string")
+            dicts['attrs'].add(attr_name,attr_val)
     else: # do not publish, only to glidein
         if is_parameter:
             if is_const:
-                add_const(dicts,attr_name,attr_obj.value)
+                dicts['consts'].add(attr_name,attr_val)
             else:
                 raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
         else:
@@ -343,7 +307,8 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
                 if do_job_publish and (attr_var_job_publish=='-'):
                     raise RuntimeError, "Cannot force job publishing"
             else:
-                add_var(dicts,attr_name,attr_obj.type=="string",do_glidein_publish,do_job_publish)
+                dicts['vars'].add(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
+
 
 ###################################
 # Create a copy or a link in the
@@ -388,10 +353,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.109 2007/12/11 18:12:21 sfiligoi Exp $
+# $Id: create_glidein,v 1.110 2007/12/11 19:16:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.110  2007/12/11 19:16:06  sfiligoi
+#  Simplify attribute handling
+#
 #  Revision 1.109  2007/12/11 18:12:21  sfiligoi
 #  Remove unused function
 #
