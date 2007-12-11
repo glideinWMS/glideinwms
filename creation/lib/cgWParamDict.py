@@ -15,6 +15,7 @@ import cgWConsts
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params):
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir)
+        self.monitor_dir=params.monitor_dir
         self.params=params
 
     def populate(self,params=None):
@@ -61,6 +62,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                  glidein_main_dicts, # must be an instance of glideinMainDicts
                  entry_name):
         cgWDictFile.glideinEntryDicts.__init__(self,glidein_main_dicts,entry_name)
+        self.monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,entry_name)
         self.params=glidein_main_dicts.params
 
 
@@ -228,10 +230,13 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.2 2007/12/11 23:13:26 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.3 2007/12/11 23:52:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.3  2007/12/11 23:52:40  sfiligoi
+#  Create monitor_dir in a single place
+#
 #  Revision 1.2  2007/12/11 23:13:26  sfiligoi
 #  Fix typo
 #
