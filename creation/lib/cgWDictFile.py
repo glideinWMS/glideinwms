@@ -578,9 +578,7 @@ def get_main_dicts(submit_dir,stage_dir):
     main_dicts['summary_signature']=SummarySHA1DictFile(submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE)
     return main_dicts
 
-def get_entry_dicts(submit_dir,stage_dir,entry_name):
-    entry_submit_dir=cgWConsts.get_entry_submit_dir(submit_dir,entry_name)
-    entry_stage_dir=cgWConsts.get_entry_stage_dir(stage_dir,entry_name)
+def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
     entry_dicts=get_common_dicts(entry_submit_dir,entry_stage_dir)
     return entry_dicts
 
@@ -759,10 +757,12 @@ class glideinEntryDicts(glideinDicts):
         self.glidein_main_dicts=glidein_main_dicts
         self.submit_dir=glidein_main_dicts.submit_dir
         self.stage_dir=glidein_main_dicts.stage_dir
-        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,entry_name)
+        self.entry_submit_dir=cgWConsts.get_entry_submit_dir(self.submit_dir,entry_name)
+        self.entry_stage_dir=cgWConsts.get_entry_stage_dir(self.stage_dir,entry_name)
+        self.dicts=get_entry_dicts(self.entry_submit_dir,self.entry_stage_dir,entry_name)
 
     def erase(self):
-        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,self.entry_name)
+        self.dicts=get_entry_dicts(self.entry_submit_dir,self.entry_stage_dir,self.entry_name)
     
     def load(self): #will use glidein_main_dicts data, so it must be loaded first
         load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
@@ -865,10 +865,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.28 2007/12/11 23:03:01 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.29 2007/12/11 23:31:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.29  2007/12/11 23:31:47  sfiligoi
+#  Create entry_dirs in a single place
+#
 #  Revision 1.28  2007/12/11 23:03:01  sfiligoi
 #  Add entry order in glideins and make erase more general
 #

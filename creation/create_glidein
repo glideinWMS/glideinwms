@@ -30,7 +30,7 @@ def main(params):
 
         # create entry dirs, including internal log dirs
         for entry_name in params.entries.keys():
-            entry_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
+            entry_dir=glidein_dicts_obj.entry_dicts[entry_name].entry_submit_dir
             create_dir(entry_dir)
             create_dir(os.path.join(entry_dir,"log"))
         
@@ -38,7 +38,7 @@ def main(params):
         try:
             # create entry dirs
             for entry_name in params.entries.keys():
-                entry_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
+                entry_dir=glidein_dicts_obj.entry_dicts[entry_name].entry_stage_dir
                 create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
 
             create_dir(params.monitor_dir)
@@ -65,8 +65,8 @@ def main(params):
 
                link_attributes(params.submit_dir,params.stage_dir,bool(params.stage.use_symlink))
                for entry_name in params.entries.keys():
-                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
-                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
+                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].entry_stage_dir
+                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].entry_submit_dir
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
                cgWCreate.create_glidein_descript(params.submit_dir,
@@ -86,8 +86,8 @@ def main(params):
                global_schedd_names=string.split(params.schedd_name,',')
                global_schedd_idx=0
                for entry_name in params.entries.keys():
-                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
-                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
+                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].entry_stage_dir
+                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].entry_submit_dir
                    entry_el=params.entries[entry_name]
 
                    schedd_name=entry_el.schedd_name
@@ -192,10 +192,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.113 2007/12/11 23:26:25 sfiligoi Exp $
+# $Id: create_glidein,v 1.114 2007/12/11 23:31:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.114  2007/12/11 23:31:46  sfiligoi
+#  Create entry_dirs in a single place
+#
 #  Revision 1.113  2007/12/11 23:26:25  sfiligoi
 #  Consistently use entry_dirs
 #
