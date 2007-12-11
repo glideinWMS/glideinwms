@@ -53,19 +53,20 @@ def main(params):
                main_dicts=glidein_dicts_obj.main_dicts
                entry_dicts=glidein_dicts_obj.entry_dicts
 
-               # Put initial system scripts into stage
+               # Load initial system scripts
                # These should be executed before the other scripts
-               copy_script("setup_x509.sh",params.stage_dir,params.src_dir,main_dicts)
-               copy_script("validate_node.sh",params.stage_dir,params.src_dir,main_dicts)
+               for script_name in ('setup_x509.sh',"validate_node.sh"):
+                   dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
+                   
 
                # put user files in stage
                for file in params.files:
-                   copy_file_unparsed(file,params.stage_dir,main_dicts)
+                   add_file_unparsed(file,main_dicts)
                ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
                    for file in params.entries[entry_name].files:
-                       copy_file_unparsed(file,entry_stage_dir,entry_dicts[entry_name])
+                       add_file_unparsed(file,entry_dicts[entry_name])
 
                #put condor tarball into stage
                if params.condor.tar_file!=None: # condor tarball available
@@ -76,20 +77,21 @@ def main(params):
                                                   "untar_options":{"cond_attr":None,
                                                                    "dir":cgWConsts.CONDOR_DIR,
                                                                    "absdir_outattr":cgWConsts.CONDOR_ATTR}})
-                   copy_file_unparsed(condor_uf,params.stage_dir,main_dicts)
+                   add_file_unparsed(condor_uf,main_dicts)
                else: # create a new tarball
                    create_condor_tar(params.stage_dir,main_dicts,params.condor.base_dir)
                
-               #put system files into stage
-               copy_stage_file("parse_starterlog.awk",params.stage_dir,params.src_dir,main_dicts)
-               copy_stage_file("condor_config",params.stage_dir,params.src_dir,main_dicts)
+               #load system files
+               for file_name in ('parse_starterlog.awk',"condor_config"):
+                   dicts['file_list'].add_from_file(file_name,None,os.path.join(params.src_dir,file_name))
                main_dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False) # will be modified when attrs processed
                
                 ## repeat for all the entries
                for entry_name in params.entries.keys():
                    entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
                    entry_dicts[entry_name]['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False) # will be modified when attrs processed
-                   copy_stage_file("nodes.blacklist",entry_stage_dir,params.src_dir,entry_dicts[entry_name],can_be_modified=1)
+                   for file_name in ("nodes.blacklist",):
+                       entry_dicts[entry_name]['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
               
                # put user attributes into config files
                for attr_name in params.attrs.keys():
@@ -99,7 +101,8 @@ def main(params):
                add_param(main_dicts,"GLIDEIN_Collector",'Fake',is_string=True)
 
                # this must be the last script in the list
-               copy_script(cgWConsts.CONDOR_STARTUP_FILE,params.stage_dir,params.src_dir,main_dicts)
+               for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
+                   dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
                main_dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
                # finalize
@@ -240,13 +243,6 @@ def add_param(dicts,param_name,param_defval,is_string):
     dicts['params'].add(param_name,param_defval)
 
 #################################
-# Calculate SHA1 for the file and
-# put it into the signature file
-def add_sha1(filename,stage_dir,dicts):
-    filepath=os.path.join(stage_dir,filename)
-    dicts['signature'].add_from_file(filepath)
-
-#################################
 # Add a new variable to VARS_FILE
 def add_var(dicts,attr_name,is_string,do_glidein_publish,do_job_publish):
     type_str={True:"S",False:"I"}
@@ -254,111 +250,17 @@ def add_var(dicts,attr_name,is_string,do_glidein_publish,do_job_publish):
     job_str={True:"+",False:"-"}
     dicts['vars'].add(attr_name,(type_str[is_string],'-','+','N',glide_str[do_glidein_publish],job_str[do_job_publish]))
     
-#########################
-# Register a regular file
-def add_file(filename,stage_dir,dicts,can_be_modified=0,description=None,filepath=None):
-    if can_be_modified:
-        if filepath==None:
-            dicts['file_list'].add(filename,'nocache')
-        else:
-            dicts['file_list'].add_from_file(filename,'nocache',filepath)
-    else:
-        # not needed anymore
-        #add_sha1(filename,stage_dir,dicts)
-        
-        if filepath==None:
-            dicts['file_list'].add(filename,None)
-        else:
-            dicts['file_list'].add_from_file(filename,None,filepath)
-    if description!=None:
-        dicts['description'].add(filename,description)
-
-
-###################
-# Register a script
-def add_script(filename,stage_dir,dicts,filepath=None):
-    #not needed anymore
-    #add_sha1(filename,stage_dir,dicts)
-
-    if filepath==None:
-        dicts['script_list'].add(filename,None)
-    else:
-        dicts['script_list'].add_from_file(filename,None,filepath)
-
-######################
-# Register a subsystem
-def add_subsystem(filename,stage_dir,dicts,config_check,wnsubdir,config_out,filepath=None):
-    if config_check==None:
-        config_check="TRUE" #TRUE has a special meaning for the glidein
-    #not needed anymore
-    #add_sha1(filename,stage_dir,dicts)
-
-    if filepath==None:
-        dicts['subsystem_list'].add(filename,(config_check,wnsubdir,config_out))
-    else:
-        dicts['subsystem_list'].add_from_file(filename,(config_check,wnsubdir,config_out),filepath)
-    if config_check!="TRUE":
-        # TRUE is not a real parameter, so no need to log it
-        add_param(dicts,config_check,0,is_string=False) # if it is optional, default==0
-
-    
-#####################
-# Copy a regular file
-def copy_stage_file(filename,stage_dir,org_dir,dicts,can_be_modified=0,out_fname=None,description=None):
-    if out_fname==None:
-        # not needed anymore
-        #copy_file(os.path.join(org_dir,filename),stage_dir)
-        
-        add_file(filename,stage_dir,dicts,can_be_modified,description,os.path.join(org_dir,filename))
-    else:
-        # not needed anymore
-        #copy_file(os.path.join(org_dir,filename),os.path.join(stage_dir,out_fname))
-        
-        add_file(out_fname,stage_dir,dicts,can_be_modified,description,os.path.join(org_dir,filename))
-
-###############
-# Copy a script
-def copy_script(filename,stage_dir,org_dir,dicts):
-    # not needed anymore
-    #copy_file(os.path.join(org_dir,filename),stage_dir)
-
-    add_script(filename,stage_dir,dicts,os.path.join(org_dir,filename))
-
-######################
-# Copy a subsystem
-def copy_subsystem(filename,stage_dir,submit_dir,org_dir,config_check,wnsubdir,config_out):
-    # not needed anymore
-    #copy_file(os.path.join(org_dir,filename),stage_dir)
-    
-    add_subsystem(filename,stage_dir,submit_dir,config_check,wnsubdir,config_out,os.path.join(org_dir,filename))
-
-##########################################
-# Copy a user file and add it to the list
+#############################################
+# Add a user file residing in the stage area
 # file as described by Params.file_defaults
-def copy_file_unparsed(file,stage_dir,dicts):
-    if file.absfname==None:
+def add_file_unparsed(file,dicts):
+    absfname=file.absfname
+    if absfname==None:
         raise RuntimeError, "Found a file element without an absname: %s"%file
     
     relfname=file.relfname
     if relfname==None:
-        relfname=os.path.basename(file.absfname) # defualt is the final part of absfname
-    if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%file
-
-    # not needed anymore
-    #copy_file(file.absfname,os.path.join(stage_dir,relfname))
-
-    return add_file_unparsed(file,stage_dir,dicts,file.absfname)
-    
-#############################################
-# Add a user file residing in the stage area
-# file as described by Params.file_defaults
-def add_file_unparsed(file,stage_dir,dicts,filepath=None):
-    relfname=file.relfname
-    if relfname==None:
-        if file.absfname==None:
-            raise RuntimeError, "Found a file element without either a relname or an absname: %s"%file
-        relfname=os.path.basename(file.absfname) # defualt is the final part of absfname
+        relfname=os.path.basename(absfname) # defualt is the final part of absfname
     if len(relfname)<1:
         raise RuntimeError, "Found a file element with an empty relfname: %s"%file
 
@@ -373,7 +275,7 @@ def add_file_unparsed(file,stage_dir,dicts,filepath=None):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
-        add_script(relfname,stage_dir,dicts,filepath)
+        dicts['script_list'].add_from_file(relfname,None,absfname)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -386,9 +288,16 @@ def add_file_unparsed(file,stage_dir,dicts,filepath=None):
         if file.untar_options.absdir_outattr==None:
             raise RuntimeError, 'Currently untar_options.absdir_outattr must be defined: %s'%file
         
-        add_subsystem(relfname,stage_dir,dicts,file.untar_options.cond_attr,wnsubdir,file.untar_options.absdir_outattr,filepath)
+        cond_attr=file.untar_options.cond_attr
+        dicts['subsystem_list'].add_from_file(relfname,(cond_attr,wnsubdir,file.untar_options.absdir_outattr),absfname)
+        if cond_attr!="TRUE":
+            dicts['params'].add(cond_attr,repr(0))
     else: # not executable nor tarball => simple file
-        add_file(relfname,stage_dir,dicts,not is_const,None,filepath)
+        if is_const:
+            val=None
+        else:
+            val='nocache'
+        dicts['file_list'].add_from_file(relfname,val,absfname)
 
 
 #######################
@@ -507,10 +416,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.105 2007/12/11 15:35:34 sfiligoi Exp $
+# $Id: create_glidein,v 1.106 2007/12/11 17:39:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.106  2007/12/11 17:39:01  sfiligoi
+#  Simplify file management
+#
 #  Revision 1.105  2007/12/11 15:35:34  sfiligoi
 #  Make condor in memory
 #
