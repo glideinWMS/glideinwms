@@ -68,18 +68,13 @@ def main(params):
                    for file in params.entries[entry_name].files:
                        add_file_unparsed(file,entry_dicts[entry_name])
 
-               #put condor tarball into stage
+               #load condor tarball
                if params.condor.tar_file!=None: # condor tarball available
-                   condor_uf=cgWParams.SubParams({"absfname":params.condor.tar_file,
-                                                  "relfname":cgWConsts.CONDOR_FILE,
-                                                  "const":"True",
-                                                  "untar":"True",
-                                                  "untar_options":{"cond_attr":None,
-                                                                   "dir":cgWConsts.CONDOR_DIR,
-                                                                   "absdir_outattr":cgWConsts.CONDOR_ATTR}})
-                   add_file_unparsed(condor_uf,main_dicts)
+                   main_dicts['subsystem_list'].add_from_file(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),params.condor.tar_file)
                else: # create a new tarball
-                   create_condor_tar(params.stage_dir,main_dicts,params.condor.base_dir)
+                   condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
+                   main_dicts['subsystem_list'].add_from_fd(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),condor_fd)
+                   condor_fd.close()
                
                #load system files
                for file_name in ('parse_starterlog.awk',"condor_config"):
@@ -363,16 +358,6 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
             else:
                 add_var(dicts,attr_name,attr_obj.type=="string",do_glidein_publish,do_job_publish)
 
-
-##############################
-# Create condor tarball and
-# add it to the list of subsaystems
-def create_condor_tar(stage_dir,dicts,condor_base_dir):
-    condor_fd=cgWCreate.create_condor_tar_fd(condor_base_dir)
-    dicts['subsystem_list'].add_from_fd(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),condor_fd)
-    condor_fd.close()
-
-
 ###################################
 # Create a copy or a link in the
 # submit dir
@@ -416,21 +401,18 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.107 2007/12/11 17:41:06 sfiligoi Exp $
+# $Id: create_glidein,v 1.108 2007/12/11 18:08:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
-#  Revision 1.107  2007/12/11 17:41:06  sfiligoi
-#  Fix typo
+#  Revision 1.108  2007/12/11 18:08:44  sfiligoi
+#  Simplify condor tgz handling
 #
 #  Revision 1.106  2007/12/11 17:39:01  sfiligoi
 #  Simplify file management
 #
 #  Revision 1.105  2007/12/11 15:35:34  sfiligoi
 #  Make condor in memory
-#
-#  Revision 1.104  2007/12/10 21:31:41  sfiligoi
-#  Fix typo
 #
 #  Revision 1.103  2007/12/10 21:23:14  sfiligoi
 #  Move sha1 calculations at the final stage
