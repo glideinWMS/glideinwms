@@ -198,19 +198,6 @@ def symlink_file(infile,outfile):
         raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
         
 
-########################
-# Write a line in a file
-def add_line(filename,dir,line):
-    filepath=os.path.join(dir,filename)
-    try:
-        fd=open(filepath,"a+")
-    except IOError,e:
-        raise RuntimeError, "Error appending to %s: %s"%(filepath,e)
-    try:
-        fd.write("%s\n"%line)
-    finally:
-        fd.close()
-
 ############################
 # Add a published attributed
 def add_attr(dicts,attr_name,attr_val,is_string):
@@ -401,10 +388,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.108 2007/12/11 18:08:44 sfiligoi Exp $
+# $Id: create_glidein,v 1.109 2007/12/11 18:12:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.109  2007/12/11 18:12:21  sfiligoi
+#  Remove unused function
+#
 #  Revision 1.108  2007/12/11 18:08:44  sfiligoi
 #  Simplify condor tgz handling
 #
