@@ -362,7 +362,6 @@ class FileDictFile(DictFile):
         except IOError,e:
             raise RuntimeError,"Could not open file %s"%filepath
         try:
-            data=fd.read()
             self.add_from_fd(key,val,fd,allow_overwrite)
         finally:
             fd.close()
@@ -798,10 +797,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.25 2007/12/10 21:35:11 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.26 2007/12/11 16:05:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.26  2007/12/11 16:05:59  sfiligoi
+#  Fix typo
+#
 #  Revision 1.25  2007/12/10 21:35:11  sfiligoi
 #  Fix bug
 #
