@@ -20,6 +20,9 @@ import cgWParamDict
 
 def main(params):
     #print params.__dict__
+    glidein_dicts_obj=cgWParamDict.glideinDicts(params)
+    glidein_dicts_obj.populate()
+
     create_dir(params.submit_dir)
     try:
         # create log submit subdir
@@ -27,7 +30,7 @@ def main(params):
 
         # create entry dirs, including internal log dirs
         for entry_name in params.entries.keys():
-            entry_dir=cgWConsts.get_entry_submit_dir(params.submit_dir,entry_name)
+            entry_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
             create_dir(entry_dir)
             create_dir(os.path.join(entry_dir,"log"))
         
@@ -35,7 +38,7 @@ def main(params):
         try:
             # create entry dirs
             for entry_name in params.entries.keys():
-                entry_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
+                entry_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
                 create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
 
             create_dir(params.monitor_dir)
@@ -48,9 +51,7 @@ def main(params):
                # make a link from the submit dir to the monitor dir
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
-               # create dictionary variables
-               glidein_dicts_obj=cgWParamDict.glideinDicts(params)
-               glidein_dicts_obj.populate()
+               # save files in dictionaries
                glidein_dicts_obj.save()
                glidein_dicts_obj.set_readonly(True)
 
@@ -64,8 +65,8 @@ def main(params):
 
                link_attributes(params.submit_dir,params.stage_dir,bool(params.stage.use_symlink))
                for entry_name in params.entries.keys():
-                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
-                   entry_submit_dir=cgWConsts.get_entry_submit_dir(params.submit_dir,entry_name)
+                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
+                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
                cgWCreate.create_glidein_descript(params.submit_dir,
@@ -85,8 +86,8 @@ def main(params):
                global_schedd_names=string.split(params.schedd_name,',')
                global_schedd_idx=0
                for entry_name in params.entries.keys():
-                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
-                   entry_submit_dir=cgWConsts.get_entry_submit_dir(params.submit_dir,entry_name)
+                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
+                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
                    entry_el=params.entries[entry_name]
 
                    schedd_name=entry_el.schedd_name
@@ -191,10 +192,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.112 2007/12/11 23:11:08 sfiligoi Exp $
+# $Id: create_glidein,v 1.113 2007/12/11 23:26:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.113  2007/12/11 23:26:25  sfiligoi
+#  Consistently use entry_dirs
+#
 #  Revision 1.112  2007/12/11 23:11:08  sfiligoi
 #  Fix typo
 #
