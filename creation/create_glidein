@@ -459,8 +459,9 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 # Create condor tarball and
 # add it to the list of subsaystems
 def create_condor_tar(stage_dir,dicts,condor_base_dir):
-    cgWCreate.create_condor_tar(stage_dir,condor_base_dir)
-    add_subsystem(cgWConsts.CONDOR_FILE,stage_dir,dicts,None,cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR)
+    condor_fd=cgWCreate.create_condor_tar_fd(condor_base_dir)
+    dicts['subsystem_list'].add_from_fd(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),condor_fd)
+    condor_fd.close()
 
 
 ###################################
@@ -506,10 +507,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.104 2007/12/10 21:31:41 sfiligoi Exp $
+# $Id: create_glidein,v 1.105 2007/12/11 15:35:34 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.105  2007/12/11 15:35:34  sfiligoi
+#  Make condor in memory
+#
 #  Revision 1.104  2007/12/10 21:31:41  sfiligoi
 #  Fix typo
 #

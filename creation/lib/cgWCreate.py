@@ -13,6 +13,7 @@ import os.path
 import string
 import traceback
 import tarfile
+import cStringIO
 import cgWConsts
 
 ##############################
@@ -42,6 +43,37 @@ def create_condor_tar(stage_dir,condor_base_dir):
         tf.close()
     except RuntimeError, e:
         raise RuntimeError, "Error creating condor tgz: %s"%e
+
+
+##############################
+# Create condor tarball and store it into a StringIO
+def create_condor_tar_fd(condor_base_dir):
+    try:
+        condor_bins=['sbin/condor_master','sbin/condor_startd','sbin/condor_starter']
+
+        # check that dir and files exist
+        if not os.path.isdir(condor_base_dir):
+            raise RuntimeError, "%s is not a directory"%condor_base_dir
+        for f in condor_bins:
+            if not os.path.isfile(os.path.join(condor_base_dir,f)):
+                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
+
+        # check if optional binaries exist, if they do, include
+        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh']:
+            if os.path.isfile(os.path.join(condor_base_dir,f)):
+                condor_bins.append(f)
+        
+        # tar
+        fd=cStringIO.StringIO()
+        tf=tarfile.open(None,'w:gz',fd)
+        for f in condor_bins:
+            tf.add(os.path.join(condor_base_dir,f),f)
+        tf.close()
+        # rewind the file to the beginning
+        fd.seek(0)
+    except RuntimeError, e:
+        raise RuntimeError, "Error creating condor tgz: %s"%e
+    return fd
 
 
 #################################
@@ -196,10 +228,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.2 2007/10/18 19:04:06 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.3 2007/12/11 15:35:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.3  2007/12/11 15:35:35  sfiligoi
+#  Make condor in memory
+#
 #  Revision 1.2  2007/10/18 19:04:06  sfiligoi
 #  Remove useless parameter
 #
