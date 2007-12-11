@@ -49,7 +49,7 @@ def main(params):
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
                # create dictionary variables
-               glidein_dicts_obj=cgWParamsDict.glideinDicts(params)
+               glidein_dicts_obj=cgWParamDict.glideinDicts(params)
                glidein_dicts_obj.populate()
                glidein_dicts_obj.save()
                glidein_dicts_obj.set_readonly(True)
@@ -191,10 +191,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.111 2007/12/11 23:09:54 sfiligoi Exp $
+# $Id: create_glidein,v 1.112 2007/12/11 23:11:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.112  2007/12/11 23:11:08  sfiligoi
+#  Fix typo
+#
 #  Revision 1.111  2007/12/11 23:09:54  sfiligoi
 #  Move the population of dictionaries into cgWParamDict
 #

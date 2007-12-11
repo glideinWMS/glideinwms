@@ -6,9 +6,11 @@
 #
 #######################################################
 
+import os
 import cgWParams
 import cgWDictFile
 import cgWCreate
+import cgWConsts
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params):
@@ -226,10 +228,13 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.1 2007/12/11 23:09:54 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.2 2007/12/11 23:13:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.2  2007/12/11 23:13:26  sfiligoi
+#  Fix typo
+#
 #  Revision 1.1  2007/12/11 23:09:54  sfiligoi
 #  Move the population of dictionaries into cgWParamDict
 #
