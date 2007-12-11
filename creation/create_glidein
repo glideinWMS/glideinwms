@@ -13,6 +13,7 @@ import cgWParams
 import cgWDictFile
 import cgWConsts
 import cgWCreate
+import cgWParamDict
 
 
 ################################################################################
@@ -48,59 +49,8 @@ def main(params):
                symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
 
                # create dictionary variables
-               glidein_dicts_obj=cgWDictFile.glideinDicts(params.submit_dir,params.stage_dir,params.entries.keys())
-               ## keep separate variables for now (legacy code)
-               main_dicts=glidein_dicts_obj.main_dicts
-               entry_dicts=glidein_dicts_obj.entry_dicts
-
-               # Load initial system scripts
-               # These should be executed before the other scripts
-               for script_name in ('setup_x509.sh',"validate_node.sh"):
-                   main_dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
-                   
-
-               # put user files in stage
-               for file in params.files:
-                   add_file_unparsed(file,main_dicts)
-               ## repeat for all the entries
-               for entry_name in params.entries.keys():
-                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
-                   for file in params.entries[entry_name].files:
-                       add_file_unparsed(file,entry_dicts[entry_name])
-
-               #load condor tarball
-               if params.condor.tar_file!=None: # condor tarball available
-                   main_dicts['subsystem_list'].add_from_file(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),params.condor.tar_file)
-               else: # create a new tarball
-                   condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
-                   main_dicts['subsystem_list'].add_from_fd(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),condor_fd)
-                   condor_fd.close()
-               
-               #load system files
-               for file_name in ('parse_starterlog.awk',"condor_config"):
-                   main_dicts['file_list'].add_from_file(file_name,None,os.path.join(params.src_dir,file_name))
-               main_dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False) # will be modified when attrs processed
-               
-                ## repeat for all the entries
-               for entry_name in params.entries.keys():
-                   entry_stage_dir=cgWConsts.get_entry_stage_dir(params.stage_dir,entry_name)
-                   entry_dicts[entry_name]['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False) # will be modified when attrs processed
-                   for file_name in ("nodes.blacklist",):
-                       entry_dicts[entry_name]['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
-              
-               # put user attributes into config files
-               for attr_name in params.attrs.keys():
-                   add_attr_unparsed(attr_name, params.attrs[attr_name],main_dicts,"main")
-
-               # add the basic standard params
-               main_dicts['params'].add("GLIDEIN_Collector",'Fake')
-
-               # this must be the last script in the list
-               for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-                   main_dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
-               main_dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
-
-               # finalize
+               glidein_dicts_obj=cgWParamsDict.glideinDicts(params)
+               glidein_dicts_obj.populate()
                glidein_dicts_obj.save()
                glidein_dicts_obj.set_readonly(True)
 
@@ -198,118 +148,6 @@ def symlink_file(infile,outfile):
         raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
         
 
-#############################################
-# Add a user file residing in the stage area
-# file as described by Params.file_defaults
-def add_file_unparsed(file,dicts):
-    absfname=file.absfname
-    if absfname==None:
-        raise RuntimeError, "Found a file element without an absname: %s"%file
-    
-    relfname=file.relfname
-    if relfname==None:
-        relfname=os.path.basename(absfname) # defualt is the final part of absfname
-    if len(relfname)<1:
-        raise RuntimeError, "Found a file element with an empty relfname: %s"%file
-
-    is_const=eval(file.const,{},{})
-    is_executable=eval(file.executable,{},{})
-    do_untar=eval(file.untar,{},{})
-
-    if is_executable: # a script
-        if not is_const:
-            raise RuntimeError, "A file cannot be executable if it is not constant: %s"%file
-    
-        if do_untar:
-            raise RuntimeError, "A tar file cannot be executable: %s"%file
-
-        dicts['script_list'].add_from_file(relfname,None,absfname)
-    elif do_untar: # a tarball
-        if not is_const:
-            raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
-
-        wnsubdir=file.untar_options.dir
-        if wnsubdir==None:
-            wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
-
-        #temporary, should be fixed in future versions
-        if file.untar_options.absdir_outattr==None:
-            raise RuntimeError, 'Currently untar_options.absdir_outattr must be defined: %s'%file
-        
-        cond_attr=file.untar_options.cond_attr
-        dicts['subsystem_list'].add_from_file(relfname,(cond_attr,wnsubdir,file.untar_options.absdir_outattr),absfname)
-        if cond_attr!="TRUE":
-            dicts['params'].add(cond_attr,0)
-    else: # not executable nor tarball => simple file
-        if is_const:
-            val=None
-        else:
-            val='nocache'
-        dicts['file_list'].add_from_file(relfname,val,absfname)
-
-
-#######################
-# Register an attribute
-# attr_obj as described by Params.attr_defaults
-def add_attr_unparsed(attr_name,attr_obj,dicts,description):
-    try:
-        add_attr_unparsed_real(attr_name,attr_obj,dicts)
-    except RuntimeError,e:
-        raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr_name,str(e))
-
-def add_attr_unparsed_real(attr_name,attr_obj,dicts):
-    if attr_obj.value==None:
-        raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
-    
-    do_publish=eval(attr_obj.publish,{},{})
-    is_parameter=eval(attr_obj.parameter,{},{})
-    is_const=eval(attr_obj.const,{},{})
-    attr_val=cgWParams.extract_attr_val(attr_obj)
-    
-    if do_publish: # publish in factory ClassAd
-        if is_parameter: # but also push to glidein
-            if is_const:
-                dicts['attrs'].add(attr_name,attr_val)
-                dicts['consts'].add(attr_name,attr_val)
-            else:
-                dicts['params'].add(attr_name,attr_val)
-        else: # only publish
-            if (not is_const):
-                raise RuntimeError, "Published attribute '%s' must be either a parameter or constant: %s"%(attr_name,attr_obj)
-            
-            dicts['attrs'].add(attr_name,attr_val)
-    else: # do not publish, only to glidein
-        if is_parameter:
-            if is_const:
-                dicts['consts'].add(attr_name,attr_val)
-            else:
-                raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
-        else:
-            raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
-
-    if is_parameter:
-        do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
-        do_job_publish=eval(attr_obj.job_publish,{},{})
-
-        if do_glidein_publish or do_job_publish:
-            # need to add a line only if will be published
-            if dicts['vars'].has_key(attr_name):
-                # already in the var file, check if compatible
-                attr_var_el=dicts['vars'][attr_name]
-                attr_var_type=attr_var_el[0]
-                if (((attr_obj.type=="int") and (attr_var_type!='I')) or
-                    ((attr_obj.type=="string") and (attr_var_type=='I'))):
-                    raise RuntimeError, "Types not compatible (%s,%s)"%(attr_obj.type,attr_var_type)
-                attr_var_export=attr_var_el[4]
-                if do_glidein_publish and (attr_var_export=='N'):
-                    raise RuntimeError, "Cannot force glidein publishing"
-                attr_var_job_publish=attr_var_el[5]
-                if do_job_publish and (attr_var_job_publish=='-'):
-                    raise RuntimeError, "Cannot force job publishing"
-            else:
-                dicts['vars'].add(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
-
-
 ###################################
 # Create a copy or a link in the
 # submit dir
@@ -353,105 +191,12 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.110 2007/12/11 19:16:06 sfiligoi Exp $
+# $Id: create_glidein,v 1.111 2007/12/11 23:09:54 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
-#  Revision 1.110  2007/12/11 19:16:06  sfiligoi
-#  Simplify attribute handling
-#
-#  Revision 1.109  2007/12/11 18:12:21  sfiligoi
-#  Remove unused function
-#
-#  Revision 1.108  2007/12/11 18:08:44  sfiligoi
-#  Simplify condor tgz handling
-#
-#  Revision 1.106  2007/12/11 17:39:01  sfiligoi
-#  Simplify file management
-#
-#  Revision 1.105  2007/12/11 15:35:34  sfiligoi
-#  Make condor in memory
-#
-#  Revision 1.103  2007/12/10 21:23:14  sfiligoi
-#  Move sha1 calculations at the final stage
-#
-#  Revision 1.102  2007/12/10 19:38:18  sfiligoi
-#  Put file handling in cgWDictFile
-#
-#  Revision 1.101  2007/12/04 23:58:13  sfiligoi
-#  Move setup_x509.sh and validate_node.sh before the other scripts
-#
-#  Revision 1.100  2007/12/03 21:56:48  sfiligoi
-#  Use the cgWDictFile save method
-#
-#  Revision 1.99  2007/12/03 20:21:22  sfiligoi
-#  Update save_dict_files to account for the auto description setup
-#
-#  Revision 1.98  2007/12/03 20:15:53  sfiligoi
-#  Get rid of create_description_file as it is not needed anymore
-#
-#  Revision 1.97  2007/11/30 22:49:06  sfiligoi
-#  Make changing of self optional in load
-#
-#  Revision 1.96  2007/11/28 21:28:58  sfiligoi
-#  Use cgWDictFile.glideinDicts
-#
-#  Revision 1.95  2007/11/28 20:52:23  sfiligoi
-#  Use get_entry_monitor_dir
-#
-#  Revision 1.94  2007/11/27 19:58:51  sfiligoi
-#  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
-#
-#  Revision 1.93  2007/10/25 22:30:27  sfiligoi
-#  Use cgWDictFile
-#
-#  Revision 1.92  2007/10/18 19:06:26  sfiligoi
-#  Mayor restructuring to get all the file creation more structured
-#
-#  Revision 1.91  2007/10/16 15:50:59  sfiligoi
-#  Split file addition from file copying
-#
-#  Revision 1.90  2007/10/12 21:56:24  sfiligoi
-#  Add glideinWMS.cfg in the list of constants
-#
-#  Revision 1.89  2007/10/12 21:41:45  sfiligoi
-#  Proper error message handling
-#
-#  Revision 1.87  2007/10/12 21:22:56  sfiligoi
-#  Remove the use of sys.exit
-#
-#  Revision 1.85  2007/10/12 21:01:17  sfiligoi
-#  Moved consts and creation funcs into dedicated modules
-#
-#  Revision 1.84  2007/10/12 19:27:04  sfiligoi
-#  Moved cgWParams to lib subdir
-#
-#  Revision 1.83  2007/10/12 19:18:48  sfiligoi
-#  Move find_condor_base_dir to the right place
-#
-#  Revision 1.82  2007/10/12 19:11:12  sfiligoi
-#  Put config file parsing in a separate module
-#
-#  Revision 1.81  2007/07/18 22:38:30  sfiligoi
-#  Add printout from parsing Condor StarterLog
-#
-#  Revision 1.80  2007/07/11 23:46:32  sfiligoi
-#  Put description_file name into signatures.cfg
-#
-#  Revision 1.79  2007/07/11 22:55:19  sfiligoi
-#  Rename DESCRIPT_FILE into JOB_DESCRIPT_FILE to prevent confision with the new DESCRIPTION_FILE
-#
-#  Revision 1.78  2007/07/11 21:57:31  sfiligoi
-#  Add inital support for several versions of files in the stage area
-#
-#  Revision 1.77  2007/05/18 20:35:05  sfiligoi
-#  Fix submit file to handle multiple schedds
-#
-#  Revision 1.76  2007/05/18 19:57:32  sfiligoi
-#  Add support for listds of schedds
-#
-#  Revision 1.75  2007/05/18 19:36:21  sfiligoi
-#  Add support for entry-specific schedd_names
+#  Revision 1.111  2007/12/11 23:09:54  sfiligoi
+#  Move the population of dictionaries into cgWParamDict
 #
 #  Revision 1.74  2007/05/18 19:07:18  sfiligoi
 #  Add CVS tags
