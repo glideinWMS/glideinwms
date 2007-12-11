@@ -795,6 +795,7 @@ class glideinDicts:
         self.submit_dir=submit_dir
         self.stage_dir=stage_dir
         self.main_dicts=glideinMainDicts(self.submit_dir,self.stage_dir)
+        self.entry_list=entry_list[:]
         self.entry_dicts={}
         for entry_name in entry_list:
             self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
@@ -806,28 +807,32 @@ class glideinDicts:
             el.set_readonly(readonly)
 
     def erase(self,destroy_old_entries=True): # if false, the entry names will be preserved
-        self.main_dicts=glideinMainDicts(self.submit_dir,self.stage_dir)
+        self.main_dicts.erase()
         if destroy_old_entries:
+            self.entry_list=[]
             self.entry_dicts={}
         else:
-            for entry_name in self.entry_dicts.keys():
-                self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
+            for entry_name in self.entry_list:
+                self.entry_dicts[entry_name].erase()
         return
 
     def load(self,destroy_old_entries=True): # if false, overwrite the entries you load, but leave the others as they are
         self.main_dicts.load()
         if destroy_old_entries:
+            self.entry_list=[]
             self.entry_dicts={}
         # else just leave as it is, will rewrite just the loaded ones
 
         for sign_key in self.main_dicts.get_summary_signature().keys:
             if sign_key!='main': # main is special, not an entry
                 entry_name=cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
+                if not(entry_name in self.entry_list):
+                    self.entry_list.append(entry_name)
                 self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
                 self.entry_dicts[entry_name].load()
 
     def save(self):
-        for entry_name in self.entry_dicts.keys():
+        for entry_name in self.entry_list:
             self.entry_dicts[entry_name].save()
         self.main_dicts.save()
    
@@ -840,8 +845,8 @@ class glideinDicts:
             return False
         if not self.main_dicts.is_equal(other.main_dicts,compare_submit_dir=False,compare_stage_dir=False,compare_fnames=compare_fnames):
             return False
-        my_entries=self.entry_dicts.keys()
-        other_entries=other.entry_dicts.keys()
+        my_entries=self.entry_list[:]
+        other_entries=other.entry_list[:]
         if len(my_entries)!=len(other_entries):
             return False
 
@@ -860,10 +865,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.27 2007/12/11 19:16:06 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.28 2007/12/11 23:03:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.28  2007/12/11 23:03:01  sfiligoi
+#  Add entry order in glideins and make erase more general
+#
 #  Revision 1.27  2007/12/11 19:16:06  sfiligoi
 #  Simplify attribute handling
 #
