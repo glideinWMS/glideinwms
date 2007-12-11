@@ -755,14 +755,12 @@ class glideinEntryDicts(glideinDicts):
                  entry_name):
         self.entry_name=entry_name
         self.glidein_main_dicts=glidein_main_dicts
-        self.submit_dir=glidein_main_dicts.submit_dir
-        self.stage_dir=glidein_main_dicts.stage_dir
-        self.entry_submit_dir=cgWConsts.get_entry_submit_dir(self.submit_dir,entry_name)
-        self.entry_stage_dir=cgWConsts.get_entry_stage_dir(self.stage_dir,entry_name)
-        self.dicts=get_entry_dicts(self.entry_submit_dir,self.entry_stage_dir,entry_name)
+        self.submit_dir=cgWConsts.get_entry_submit_dir(glidein_main_dicts.submit_dir,entry_name)
+        self.stage_dir=cgWConsts.get_entry_stage_dir(glidein_main_dicts.stage_dir,entry_name)
+        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,entry_name)
 
     def erase(self):
-        self.dicts=get_entry_dicts(self.entry_submit_dir,self.entry_stage_dir,self.entry_name)
+        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,self.entry_name)
     
     def load(self): #will use glidein_main_dicts data, so it must be loaded first
         load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
@@ -865,10 +863,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.29 2007/12/11 23:31:47 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.30 2007/12/11 23:47:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.30  2007/12/11 23:47:52  sfiligoi
+#  Rename entry_dirs to have local scope
+#
 #  Revision 1.29  2007/12/11 23:31:47  sfiligoi
 #  Create entry_dirs in a single place
 #
