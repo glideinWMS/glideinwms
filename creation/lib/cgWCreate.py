@@ -65,7 +65,7 @@ def create_condor_tar_fd(condor_base_dir):
         
         # tar
         fd=cStringIO.StringIO()
-        tf=tarfile.open(None,'w:gz',fd)
+        tf=tarfile.open("dummy.tgz",'w:gz',fd)
         for f in condor_bins:
             tf.add(os.path.join(condor_base_dir,f),f)
         tf.close()
@@ -228,10 +228,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.3 2007/12/11 15:35:35 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.4 2007/12/11 15:36:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.4  2007/12/11 15:36:47  sfiligoi
+#  Fix typo
+#
 #  Revision 1.3  2007/12/11 15:35:35  sfiligoi
 #  Make condor in memory
 #
