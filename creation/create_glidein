@@ -23,33 +23,33 @@ def main(params):
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
     glidein_dicts_obj.populate()
 
-    create_dir(params.submit_dir)
+    create_dir(glidein_dicts_obj.main_dicts.submit_dir)
     try:
         # create log submit subdir
-        create_dir(os.path.join(params.submit_dir,"log")) # no try/except needed, will be deleted by external except if needed
+        create_dir(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,"log")) # no try/except needed, will be deleted by external except if needed
 
         # create entry dirs, including internal log dirs
-        for entry_name in params.entries.keys():
+        for entry_name in glidein_dicts_obj.entry_list:
             entry_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
             create_dir(entry_dir)
             create_dir(os.path.join(entry_dir,"log"))
         
-        create_dir(params.stage_dir)
+        create_dir(glidein_dicts_obj.main_dicts.stage_dir)
         try:
             # create entry dirs
-            for entry_name in params.entries.keys():
+            for entry_name in glidein_dicts_obj.entry_list:
                 entry_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
                 create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
 
-            create_dir(params.monitor_dir)
+            create_dir(glidein_dicts_obj.main_dicts.monitor_dir)
             try:
                # create entry dirs
-               for entry_name in params.entries.keys():
+               for entry_name in glidein_dicts_obj.entry_list:
                    entry_dir=glidein_dicts_obj.entry_dicts[entry_name].monitor_dir
                    create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
                     
                # make a link from the submit dir to the monitor dir
-               symlink_file(params.monitor_dir,os.path.join(params.submit_dir)+"/monitor")
+               symlink_file(glidein_dicts_obj.main_dicts.monitor_dir,os.path.join(glidein_dicts_obj.main_dicts.submit_dir)+"/monitor")
 
                # save files in dictionaries
                glidein_dicts_obj.save()
@@ -61,31 +61,31 @@ def main(params):
                #
 
                # copy the startup file
-               copy_submit_file(cgWConsts.STARTUP_FILE,params.submit_dir,params.src_dir)
+               copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
-               link_attributes(params.submit_dir,params.stage_dir,bool(params.stage.use_symlink))
-               for entry_name in params.entries.keys():
+               link_attributes(glidein_dicts_obj.main_dicts.submit_dir,glidein_dicts_obj.main_dicts.stage_dir,bool(params.stage.use_symlink))
+               for entry_name in glidein_dicts_obj.entry_list:
                    entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
                    entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
-               cgWCreate.create_glidein_descript(params.submit_dir,
+               cgWCreate.create_glidein_descript(glidein_dicts_obj.main_dicts.submit_dir,
                                                  params.factory_name,params.glidein_name,
                                                  params.web_url,
-                                                 params.entries.keys())
+                                                 glidein_dicts_obj.entry_list)
 
-               cgWCreate.create_submit(params.submit_dir,
+               cgWCreate.create_submit(glidein_dicts_obj.main_dicts.submit_dir,
                                        params.factory_name,params.glidein_name,
                                        params.web_url)
 
-               cgWCreate.create_submit_wrapper(params.submit_dir)
-               cgWCreate.create_test_submit(params.submit_dir)
+               cgWCreate.create_submit_wrapper(glidein_dicts_obj.main_dicts.submit_dir)
+               cgWCreate.create_test_submit(glidein_dicts_obj.main_dicts.submit_dir)
 
-               params.save_into_file(os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE))
+               params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
 
                global_schedd_names=string.split(params.schedd_name,',')
                global_schedd_idx=0
-               for entry_name in params.entries.keys():
+               for entry_name in glidein_dicts_obj.entry_list:
                    entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
                    entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
                    entry_el=params.entries[entry_name]
@@ -102,19 +102,19 @@ def main(params):
                                                  entry_el.work_dir,entry_el.proxy_url)
 
             except:
-               shutil.rmtree(params.monitor_dir)
+               shutil.rmtree(glidein_dicts_obj.main_dicts.monitor_dir)
                raise
         except:
-            shutil.rmtree(params.stage_dir)
+            shutil.rmtree(glidein_dicts_obj.main_dicts.stage_dir)
             raise
     except:
-        shutil.rmtree(params.submit_dir)
+        shutil.rmtree(glidein_dicts_obj.main_dicts.submit_dir)
         raise
 
     print "Created glidein '%s'"%params.glidein_name
-    print "Submit files can be found in %s"%params.submit_dir
-    print "Support files are in %s"%params.stage_dir
-    print "Monitoring files are in %s"%params.monitor_dir
+    print "Submit files can be found in %s"%glidein_dicts_obj.main_dicts.submit_dir
+    print "Support files are in %s"%glidein_dicts_obj.main_dicts.stage_dir
+    print "Monitoring files are in %s"%glidein_dicts_obj.main_dicts.monitor_dir
 
 
 ############################################################
@@ -192,10 +192,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.116 2007/12/11 23:52:40 sfiligoi Exp $
+# $Id: create_glidein,v 1.117 2007/12/11 23:57:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.117  2007/12/11 23:57:11  sfiligoi
+#  Get directories always from glidein_dicts_obj
+#
 #  Revision 1.116  2007/12/11 23:52:40  sfiligoi
 #  Create monitor_dir in a single place
 #
