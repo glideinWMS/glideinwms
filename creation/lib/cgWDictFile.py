@@ -581,7 +581,7 @@ def get_main_dicts(submit_dir,stage_dir):
 
 def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
     entry_dicts=get_common_dicts(entry_submit_dir,entry_stage_dir)
-    main_dicts['job_descript']=StrDictFile(entry_submit_dir,cgWConsts.JOB_DESCRIPT_FILE)
+    entry_dicts['job_descript']=StrDictFile(entry_submit_dir,cgWConsts.JOB_DESCRIPT_FILE)
     return entry_dicts
 
 ################################################
@@ -869,10 +869,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.31 2007/12/12 00:07:30 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.32 2007/12/12 00:37:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.32  2007/12/12 00:37:58  sfiligoi
+#  Fix typo
+#
 #  Revision 1.31  2007/12/12 00:07:30  sfiligoi
 #  Add glidein and job_descript dictionaries
 #

@@ -80,7 +80,7 @@ def create_condor_tar_fd(condor_base_dir):
 # Create Condor submit file
 def create_submit(submit_dir,
                   factory_name,glidein_name,
-                  web_base): params.entries[entry_name].schedd_name
+                  web_base): 
     filepath=os.path.join(submit_dir,cgWConsts.SUBMIT_FILE)
     try:
         fd=open(filepath,"w+")
@@ -184,10 +184,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.5 2007/12/12 00:35:36 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.6 2007/12/12 00:37:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.6  2007/12/12 00:37:11  sfiligoi
+#  Fix typo
+#
 #  Revision 1.5  2007/12/12 00:35:36  sfiligoi
 #  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
 #
