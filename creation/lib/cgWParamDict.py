@@ -141,7 +141,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
                 params.entries[entry_name].schedd_name=schedd_name
 
         for entry_name in self.entry_list:
-            entry_dicts.populate(params)
+            self.entry_dicts[entry_name].populate(params)
 
 
 ############################################################
@@ -265,10 +265,13 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.5 2007/12/12 00:53:44 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.6 2007/12/12 00:54:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.6  2007/12/12 00:54:42  sfiligoi
+#  Fix typo
+#
 #  Revision 1.5  2007/12/12 00:53:44  sfiligoi
 #  Fix typo
 #
