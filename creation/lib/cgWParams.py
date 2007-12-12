@@ -16,6 +16,13 @@ class SubParams:
     def __init__(self,data):
         self.data=data
 
+    def __eq__(self,other):
+        if other==None:
+            return False
+        if not isinstance(other,SubParams):
+            return False
+        return self.data==other.data
+
     # make data elements look like class attributes
     def __getattr__(self,name):
         return self.get_el(name)
@@ -274,6 +281,13 @@ class Params:
         self.subparams=SubParams(self.data)
         return
 
+    def __eq__(self,other):
+        if other==None:
+            return False
+        if not isinstance(other,Params):
+            return False
+        return self.subparams==other.subparams
+
     def __getattr__(self,name):
         return self.subparams.__getattr__(name)
 
@@ -411,10 +425,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.8 2007/12/11 19:16:06 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.9 2007/12/12 00:51:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.9  2007/12/12 00:51:27  sfiligoi
+#  Implement equality method
+#
 #  Revision 1.8  2007/12/11 19:16:06  sfiligoi
 #  Simplify attribute handling
 #
