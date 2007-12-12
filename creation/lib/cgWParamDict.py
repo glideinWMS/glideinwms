@@ -6,7 +6,7 @@
 #
 #######################################################
 
-import os
+import os,string
 import cgWParams
 import cgWDictFile
 import cgWCreate
@@ -127,7 +127,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             params=self.params
         
         self.main_dicts.populate(params)
-        self.main_dicts.dicts['glidein'].add('Entries',string.join(self.params.entry_list,','))
+        self.main_dicts.dicts['glidein'].add('Entries',string.join(self.entry_list,','))
 
         # make sure all the schedds are defined
         # if not, define them, in place, so thet it get recorded
@@ -265,10 +265,13 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.4 2007/12/12 00:35:36 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.5 2007/12/12 00:53:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.5  2007/12/12 00:53:44  sfiligoi
+#  Fix typo
+#
 #  Revision 1.4  2007/12/12 00:35:36  sfiligoi
 #  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
 #
