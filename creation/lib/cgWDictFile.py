@@ -576,10 +576,12 @@ def get_common_dicts(submit_dir,stage_dir):
 def get_main_dicts(submit_dir,stage_dir):
     main_dicts=get_common_dicts(submit_dir,stage_dir)
     main_dicts['summary_signature']=SummarySHA1DictFile(submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE)
+    main_dicts['glidein']=StrDictFile(submit_dir,cgWConsts.GLIDEIN_FILE)
     return main_dicts
 
 def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
     entry_dicts=get_common_dicts(entry_submit_dir,entry_stage_dir)
+    main_dicts['job_descript']=StrDictFile(entry_submit_dir,cgWConsts.JOB_DESCRIPT_FILE)
     return entry_dicts
 
 ################################################
@@ -603,6 +605,7 @@ def load_common_dicts(dicts,           # update in place
     dicts['subsystem_list'].load(fname=description_el.vals2['subsystem_list'])
 
 def load_main_dicts(main_dicts): # update in place
+    main_dicts['glidein'].load()
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
@@ -612,6 +615,7 @@ def load_main_dicts(main_dicts): # update in place
 
 def load_entry_dicts(entry_dicts,                   # update in place
                      entry_name,summary_signature): 
+    entry_dicts['job_descript'].load()
     # load the description (name from summary_signature)
     entry_dicts['description'].load(fname=summary_signature[cgWConsts.get_entry_stage_dir("",entry_name)][1])
     # all others are keyed in the description
@@ -682,6 +686,7 @@ def save_common_dicts(dicts): # will update in place, too
 
 # must be invoked after all the entries have been saved
 def save_main_dicts(main_dicts): # will update in place, too
+    main_dicts['glidein'].save()
     save_common_dicts(main_dicts)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
@@ -690,6 +695,7 @@ def save_main_dicts(main_dicts): # will update in place, too
 
 def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature): # update in place
+    entry_dicts['job_descript'].save()
     save_common_dicts(entry_dicts)
     summary_signature.add_from_file(key=cgWConsts.get_entry_stage_dir("",entry_name),filepath=entry_dicts['signature'].get_filepath(),fname2=entry_dicts['description'].get_fname(),allow_overwrite=True)
 
@@ -863,10 +869,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.30 2007/12/11 23:47:52 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.31 2007/12/12 00:07:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.31  2007/12/12 00:07:30  sfiligoi
+#  Add glidein and job_descript dictionaries
+#
 #  Revision 1.30  2007/12/11 23:47:52  sfiligoi
 #  Rename entry_dirs to have local scope
 #
