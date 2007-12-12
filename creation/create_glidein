@@ -55,11 +55,6 @@ def main(params):
                glidein_dicts_obj.save()
                glidein_dicts_obj.set_readonly(True)
 
-               #
-               # Stage is finished
-               # Populate submit dir
-               #
-
                # copy the startup file
                copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
@@ -69,11 +64,6 @@ def main(params):
                    entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
 
-               cgWCreate.create_glidein_descript(glidein_dicts_obj.main_dicts.submit_dir,
-                                                 params.factory_name,params.glidein_name,
-                                                 params.web_url,
-                                                 glidein_dicts_obj.entry_list)
-
                cgWCreate.create_submit(glidein_dicts_obj.main_dicts.submit_dir,
                                        params.factory_name,params.glidein_name,
                                        params.web_url)
@@ -82,25 +72,6 @@ def main(params):
                cgWCreate.create_test_submit(glidein_dicts_obj.main_dicts.submit_dir)
 
                params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
-
-               global_schedd_names=string.split(params.schedd_name,',')
-               global_schedd_idx=0
-               for entry_name in glidein_dicts_obj.entry_list:
-                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
-                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
-                   entry_el=params.entries[entry_name]
-
-                   schedd_name=entry_el.schedd_name
-                   if schedd_name==None:
-                       # use one of the global ones if specific not provided
-                       schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
-                       global_schedd_idx=global_schedd_idx+1
-                   
-                   cgWCreate.create_job_descript(entry_submit_dir,entry_name,
-                                                 entry_el.gridtype,entry_el.gatekeeper,entry_el.rsl,
-                                                 schedd_name,
-                                                 entry_el.work_dir,entry_el.proxy_url)
-
             except:
                shutil.rmtree(glidein_dicts_obj.main_dicts.monitor_dir)
                raise
@@ -192,10 +163,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.117 2007/12/11 23:57:11 sfiligoi Exp $
+# $Id: create_glidein,v 1.118 2007/12/12 00:35:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.118  2007/12/12 00:35:36  sfiligoi
+#  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
+#
 #  Revision 1.117  2007/12/11 23:57:11  sfiligoi
 #  Get directories always from glidein_dicts_obj
 #

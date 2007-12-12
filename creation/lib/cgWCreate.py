@@ -76,55 +76,11 @@ def create_condor_tar_fd(condor_base_dir):
     return fd
 
 
-#################################
-# Create glidein description file
-def create_glidein_descript(submit_dir,
-                            factory_name,glidein_name,
-                            web_base,
-                            entries):
-    filepath=os.path.join(submit_dir,cgWConsts.GLIDEIN_FILE)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("FactoryName   %s\n"%factory_name)
-        fd.write("GlideinName   %s\n"%glidein_name)
-        fd.write("WebURL        %s\n"%web_base)
-        fd.write("Entries       %s\n"%string.join(entries,","))
-    finally:
-        fd.close()
-    
-#################################
-# Create glidein description file
-def create_job_descript(submit_dir,
-                        entry_name,
-                        gridtype,gatekeeper,rsl,
-                        schedd_name,
-                        startup_dir,proxy_id):
-    filepath=os.path.join(submit_dir,cgWConsts.JOB_DESCRIPT_FILE)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("EntryName     %s\n"%entry_name)
-        fd.write("GridType      %s\n"%gridtype)
-        fd.write("Gatekeeper    %s\n"%gatekeeper)
-        if rsl!=None:
-            fd.write("GlobusRSL     %s\n"%rsl)
-        fd.write("Schedd        %s\n"%schedd_name)
-        fd.write("StartupDir    %s\n"%startup_dir)
-        if proxy_id!=None:
-            fd.write("ProxyURL      %s\n"%proxy_id)
-    finally:
-        fd.close()
-    
 ###########################
 # Create Condor submit file
 def create_submit(submit_dir,
                   factory_name,glidein_name,
-                  web_base):
+                  web_base): params.entries[entry_name].schedd_name
     filepath=os.path.join(submit_dir,cgWConsts.SUBMIT_FILE)
     try:
         fd=open(filepath,"w+")
@@ -228,10 +184,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.4 2007/12/11 15:36:47 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.5 2007/12/12 00:35:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.5  2007/12/12 00:35:36  sfiligoi
+#  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
+#
 #  Revision 1.4  2007/12/11 15:36:47  sfiligoi
 #  Fix typo
 #

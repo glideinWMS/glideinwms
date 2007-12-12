@@ -56,6 +56,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
+        # populate the glidein file
+        glidein_dict=self.dicts['glidein']
+        glidein_dict.add('FactoryName',params.factory_name)
+        glidein_dict.add('GlideinName',params.glidein_name)
+        glidein_dict.add('WebURL',params.web_url)
 
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self,
@@ -66,12 +71,14 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.params=glidein_main_dicts.params
 
 
-    def populate(self,params=None):
+    def populate(self,schedd_name,params=None):
         if params==None:
             params=self.params
 
+        entry_params=params.entries[self.entry_name]
+
         # put user files in stage
-        for file in params.entries[self.entry_name].files:
+        for file in entry_params.files:
             add_file_unparsed(file,self.dicts)
 
         #load system files
@@ -79,6 +86,17 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for file_name in ("nodes.blacklist",):
             self.dicts['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
         
+        # populate the job descript file
+        job_descript_dict=self.dicts['job_descript']
+        job_descript_dict.add('EntryName',self.entry_name)
+        job_descript_dict.add('GridType',entry_params.gridtype)
+        job_descript_dict.add('Gatekeeper',entry_params.gatekeeper)
+        if entry_params.rsl!=None:
+            job_descript_dict.add('GlobusRSL',entry_params.rsl)
+        job_descript_dict.add('Schedd',entry_params.schedd_name)
+        job_descript_dict.add('StartupDir',entry_params.work_dir)
+        if entry_params.proxy_url!=None:
+            job_descript_dict.add('ProxyURL',entry_params.proxy_url)
         
 ################################################
 #
@@ -104,10 +122,27 @@ class glideinDicts(cgWDictFile.glideinDicts):
             self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
         return
 
-    def populate(self,params=None):
+    def populate(self,params=None): # will update params (or self.params)
+        if params==None:
+            params=self.params
+        
         self.main_dicts.populate(params)
+        self.main_dicts.dicts['glidein'].add('Entries',string.join(self.params.entry_list,','))
+
+        # make sure all the schedds are defined
+        # if not, define them, in place, so thet it get recorded
+        global_schedd_names=string.split(params.schedd_name,',')
+        global_schedd_idx=0
         for entry_name in self.entry_list:
-            self.entry_dicts[entry_name].populate(params)
+            if params.entries[entry_name].schedd_name==None:
+                # use one of the global ones if specific not provided
+                schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
+                global_schedd_idx=global_schedd_idx+1
+                params.entries[entry_name].schedd_name=schedd_name
+
+        for entry_name in self.entry_list:
+            entry_dicts.populate(params)
+
 
 ############################################################
 #
@@ -230,10 +265,13 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.3 2007/12/11 23:52:40 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.4 2007/12/12 00:35:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.4  2007/12/12 00:35:36  sfiligoi
+#  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
+#
 #  Revision 1.3  2007/12/11 23:52:40  sfiligoi
 #  Create monitor_dir in a single place
 #
