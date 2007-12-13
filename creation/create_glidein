@@ -1,4 +1,4 @@
-!/bin/env python
+#!/bin/env python
 
 import popen2
 import os
@@ -159,10 +159,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.119 2007/12/13 20:19:45 sfiligoi Exp $
+# $Id: create_glidein,v 1.120 2007/12/13 20:22:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.120  2007/12/13 20:22:04  sfiligoi
+#  Fix typo
+#
 #  Revision 1.119  2007/12/13 20:19:45  sfiligoi
 #  Move condor jdl into entry subdir, and implement it via a dictionary
 #

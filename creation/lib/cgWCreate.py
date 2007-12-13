@@ -84,9 +84,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  exe_fname,
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
-                 web_base,
-                 sign,entry_sign,
-                 descript,entry_descript): 
+                 web_base):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
@@ -94,10 +92,6 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Executable",exe_fname)
 
         self.add("Arguments","-fail") # just a placeholder for now
-                 ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(glidein_name,entry_name))+
-                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(sign,entry_sign,web_base,factory_name))+
-                 ("-descript %s -descriptentry %s "%(descript,entry_descript)) +
-                 "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)")
         self.add('+GlideinFactory','"%s"'%factory_name)
         self.add('+GlideinName','"%s"'%glidein_name)
         self.add('+GlideinEntryName','"%s"'%entry_name)
@@ -188,10 +182,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.7 2007/12/13 20:19:45 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.10 2007/12/13 20:26:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.10  2007/12/13 20:26:40  sfiligoi
+#  Fix typo
+#
 #  Revision 1.7  2007/12/13 20:19:45  sfiligoi
 #  Move condor jdl into entry subdir, and implement it via a dictionary
 #

@@ -571,7 +571,7 @@ class CondorJDLDictFile(DictFile):
         if self.jobs_in_cluster==None:
             return "Queue"
         else:
-            return "Queue %i"%self.jobs_in_cluster
+            return "Queue %s"%self.jobs_in_cluster
 
     def format_val(self,key):
         return "%s = %s"%(key,self.vals[key])
@@ -927,10 +927,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.33 2007/12/13 20:18:15 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.34 2007/12/13 20:27:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.34  2007/12/13 20:27:26  sfiligoi
+#  Fix typo
+#
 #  Revision 1.33  2007/12/13 20:18:15  sfiligoi
 #  Add CondorJDLDictFile class, add set_readonly to save, and add glideinEntryDicts.save_final
 #
