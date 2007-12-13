@@ -102,6 +102,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for file_name in ("nodes.blacklist",):
             self.dicts['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
         
+        # put user attributes into config files
+        for attr_name in entry_params.attrs.keys():
+            add_attr_unparsed(attr_name, entry_params.attrs[attr_name],self.dicts,self.entry_name)
+
         # populate complex files
         populate_job_descript(self.dicts['job_descript'],
                               self.entry_name,entry_params)
@@ -290,12 +294,12 @@ def populate_job_descript(job_descript_dict,        # will be modified
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.12 2007/12/13 22:37:16 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.13 2007/12/13 23:54:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
-#  Revision 1.12  2007/12/13 22:37:16  sfiligoi
-#  Fix typo
+#  Revision 1.13  2007/12/13 23:54:51  sfiligoi
+#  Fix entry attr processing
 #
 #  Revision 1.11  2007/12/13 22:35:10  sfiligoi
 #  Move entry specific arguments into the creation stage
