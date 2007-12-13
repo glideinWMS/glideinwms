@@ -70,7 +70,23 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,entry_name)
         self.params=glidein_main_dicts.params
 
+    def erase(self):
+        cgWDictFile.glideinEntryDicts.erase(self)
+        self.dicts['condor_jdl']=cgWCreate.GlideinSubmitDictFile(self.submit_dir,cgWConsts.SUBMIT_FILE)
+        
+    def load(self): #will use glidein_main_dicts data, so it must be loaded first
+        cgWDictFile.glideinEntryDicts.load(self)
+        self.dicts['condor_jdl'].load()
 
+    def save_final(self,set_readonly=True):
+        summary_signature=self.glidein_main_dicts['summary_signature']
+        entry_stage_dir=cgWConsts.get_entry_stage_dir("",self.entry_name)
+        
+        self.dicts['condor_jdl'].finalize(summary_signature['main'][0],summary_signature[entry_stage_dir][0],
+                                          summary_signature['main'][1],summary_signature[entry_stage_dir][1])
+        self.dicts['condor_jdl'].save(set_readonly=set_readonly)
+        
+    
     def populate(self,schedd_name,params=None):
         if params==None:
             params=self.params
@@ -86,17 +102,16 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for file_name in ("nodes.blacklist",):
             self.dicts['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
         
-        # populate the job descript file
-        job_descript_dict=self.dicts['job_descript']
-        job_descript_dict.add('EntryName',self.entry_name)
-        job_descript_dict.add('GridType',entry_params.gridtype)
-        job_descript_dict.add('Gatekeeper',entry_params.gatekeeper)
-        if entry_params.rsl!=None:
-            job_descript_dict.add('GlobusRSL',entry_params.rsl)
-        job_descript_dict.add('Schedd',entry_params.schedd_name)
-        job_descript_dict.add('StartupDir',entry_params.work_dir)
-        if entry_params.proxy_url!=None:
-            job_descript_dict.add('ProxyURL',entry_params.proxy_url)
+        # populate complex files
+        populate_job_descript(self.dicts['job_descript'],
+                              self.entry_name,entry_params)
+
+        self.dict['condor_jdl'].populate(self.dicts['condor_jdl'],
+                                         cgWConsts.STARTUP_FILE,
+                                         params.factory_name,params.glidein_name,self.entry_name,
+                                         entry_params.gridtype,entry_params.gatekeeper,entry_params.rsl,
+                                         params.web_url)
+
         
 ################################################
 #
@@ -142,7 +157,6 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         for entry_name in self.entry_list:
             self.entry_dicts[entry_name].populate(params)
-
 
 ############################################################
 #
@@ -260,32 +274,35 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
             else:
                 dicts['vars'].add(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
 
+def populate_job_descript(job_descript_dict,        # will be modified
+                          entry_name,entry_params):
+    job_descript_dict.add('EntryName',entry_name)
+    job_descript_dict.add('GridType',entry_params.gridtype)
+    job_descript_dict.add('Gatekeeper',entry_params.gatekeeper)
+    if entry_params.rsl!=None:
+        job_descript_dict.add('GlobusRSL',entry_params.rsl)
+    job_descript_dict.add('Schedd',entry_params.schedd_name)
+    job_descript_dict.add('StartupDir',entry_params.work_dir)
+    if entry_params.proxy_url!=None:
+        job_descript_dict.add('ProxyURL',entry_params.proxy_url)
 
+    
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.7 2007/12/12 01:10:51 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.8 2007/12/13 20:19:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
-#  Revision 1.7  2007/12/12 01:10:51  sfiligoi
-#  Fix params update
-#
-#  Revision 1.6  2007/12/12 00:54:42  sfiligoi
-#  Fix typo
-#
-#  Revision 1.5  2007/12/12 00:53:44  sfiligoi
-#  Fix typo
+#  Revision 1.8  2007/12/13 20:19:46  sfiligoi
+#  Move condor jdl into entry subdir, and implement it via a dictionary
 #
 #  Revision 1.4  2007/12/12 00:35:36  sfiligoi
 #  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
 #
 #  Revision 1.3  2007/12/11 23:52:40  sfiligoi
 #  Create monitor_dir in a single place
-#
-#  Revision 1.2  2007/12/11 23:13:26  sfiligoi
-#  Fix typo
 #
 #  Revision 1.1  2007/12/11 23:09:54  sfiligoi
 #  Move the population of dictionaries into cgWParamDict

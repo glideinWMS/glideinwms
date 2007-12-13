@@ -1,4 +1,4 @@
-#!/bin/env python
+!/bin/env python
 
 import popen2
 import os
@@ -63,10 +63,6 @@ def main(params):
                    entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
                    entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
                    link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
-
-               cgWCreate.create_submit(glidein_dicts_obj.main_dicts.submit_dir,
-                                       params.factory_name,params.glidein_name,
-                                       params.web_url)
 
                cgWCreate.create_submit_wrapper(glidein_dicts_obj.main_dicts.submit_dir)
                cgWCreate.create_test_submit(glidein_dicts_obj.main_dicts.submit_dir)
@@ -163,10 +159,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.118 2007/12/12 00:35:36 sfiligoi Exp $
+# $Id: create_glidein,v 1.119 2007/12/13 20:19:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.119  2007/12/13 20:19:45  sfiligoi
+#  Move condor jdl into entry subdir, and implement it via a dictionary
+#
 #  Revision 1.118  2007/12/12 00:35:36  sfiligoi
 #  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
 #

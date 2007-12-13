@@ -15,6 +15,7 @@ import traceback
 import tarfile
 import cStringIO
 import cgWConsts
+import cgWDictFile
 
 ##############################
 # Create condor tarball and
@@ -76,46 +77,57 @@ def create_condor_tar_fd(condor_base_dir):
     return fd
 
 
-###########################
-# Create Condor submit file
-def create_submit(submit_dir,
-                  factory_name,glidein_name,
-                  web_base): 
-    filepath=os.path.join(submit_dir,cgWConsts.SUBMIT_FILE)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("Universe = grid\n")
-        fd.write("Grid_Resource = $ENV(GLIDEIN_GRIDTYPE) $ENV(GLIDEIN_GATEKEEPER)\n")
-        fd.write("Executable = %s\n"%cgWConsts.STARTUP_FILE)
+##########################################
+# Condor submit file dictionary
+class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
+    def populate(self,
+                 exe_fname,
+                 factory_name,glidein_name,entry_name,
+                 gridtype,gatekeeper,rsl,
+                 web_base,
+                 sign,entry_sign,
+                 descript,entry_descript): 
+        self.add("Universe","grid")
+        self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
+        if rsl!=None:
+            self.add("globus_rsl",rsl)
+        self.add("Executable",exe_fname)
 
-        fd.write(("Arguments = -v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry $ENV(GLIDEIN_ENTRY_NAME) -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%glidein_name)+
-                 ("-web %s -sign $ENV(GLIDEIN_SIGN) -signentry $ENV(GLIDEIN_SIGNENTRY) -signtype sha1 -factory %s " % (web_base,factory_name))+
-                 "-descript $ENV(GLIDEIN_DESCRIPT) -descriptentry $ENV(GLIDEIN_DESCRIPTENTRY) " +
-                 "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)\n")
-        fd.write('+GlideinFactory    = "%s"\n'%factory_name)
-        fd.write('+GlideinName       = "%s"\n'%glidein_name)
-        fd.write('+GlideinEntryName  = "$ENV(GLIDEIN_ENTRY_NAME)"\n')
-        fd.write('+GlideinClient     = "$ENV(GLIDEIN_CLIENT)"\n')
-
+        self.add("Arguments","-fail") # just a placeholder for now
+                 ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(glidein_name,entry_name))+
+                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(sign,entry_sign,web_base,factory_name))+
+                 ("-descript %s -descriptentry %s "%(descript,entry_descript)) +
+                 "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)")
+        self.add('+GlideinFactory','"%s"'%factory_name)
+        self.add('+GlideinName','"%s"'%glidein_name)
+        self.add('+GlideinEntryName','"%s"'%entry_name)
+        self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
+        self.add('+GlideinWebBase','"%s"'%web_base)
+        self.add('+GlideinLogNr','"$ENV(GLIDEIN_LOGNR)"')
         
-        fd.write("\nTransfer_Executable   = True\n")
-        fd.write("transfer_Input_files  =\n")
-        fd.write("transfer_Output_files =\n")
-        fd.write("WhenToTransferOutput  = ON_EXIT\n")
-        fd.write("\nNotification = Never\n")
-        fd.write("\n+Owner = undefined\n")
-        fd.write("\nLog = entry_$ENV(GLIDEIN_ENTRY_NAME)/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log\n")
-        fd.write("Output = entry_$ENV(GLIDEIN_ENTRY_NAME)/log/job.$(Cluster).$(Process).out\n")
-        fd.write("Error = entry_$ENV(GLIDEIN_ENTRY_NAME)/log/job.$(Cluster).$(Process).err\n")
-        fd.write("stream_output = False\n")
-        fd.write("stream_error  = False\n")
-        fd.write("\nQueue $ENV(GLIDEIN_COUNT)\n")
-    finally:
-        fd.close()
-    
+        self.add("Transfer_Executable","True")
+        self.add("transfer_Input_files","")
+        self.add("transfer_Output_files","")
+        self.add("WhenToTransferOutput ","ON_EXIT")
+        self.add("Notification","Never")
+        self.add("+Owner","undefined")
+        self.add("Log","%s/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%entry_name)
+        self.add("Output","%s/log/job.$(Cluster).$(Process).out"%entry_name)
+        self.add("Error","%s/log/job.$(Cluster).$(Process).err"%entry_name)
+        self.add("stream_output","False")
+        self.add("stream_error ","False")
+        self.jobs_in_cluster="$ENV(GLIDEIN_COUNT)"
+
+    def finalize(self,
+                 sign,entry_sign,
+                 descript,entry_descript): 
+        self.add("Arguments",
+                 ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(self['+GlideinName'],self['+GlideinEntryName']))+
+                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(sign,entry_sign,self['+GlideinWebBase'],self['+GlideinFactory']))+
+                 ("-descript %s -descriptentry %s "%(descript,entry_descript)) +
+                 "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)",
+                 allow_overwrite=True)
+
 ############################
 # Create a test shell script
 def create_test_submit(submit_dir):
@@ -132,13 +144,9 @@ def create_test_submit(submit_dir):
         fd.write('export GLIDEIN_PARAMS="-param_GLIDEIN_Collector $HOSTNAME"\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
         fd.write("export GLIDEIN_ENTRY_NAME=test\n")
-        fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write("export GLIDEIN_DESCRIPT=`awk '/ main$/{print $2}' %s`\n"%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $1}\' %s`\n'%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_DESCRIPTENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $2}\' %s`\n'%cgWConsts.SUMMARY_SIGNATURE_FILE)
         fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%cgWConsts.JOB_DESCRIPT_FILE)
         fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%cgWConsts.JOB_DESCRIPT_FILE)
-        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s\n"%(cgWConsts.GLIDEIN_FILE,cgWConsts.SUBMIT_FILE))
+        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` ${GLIDEIN_ENTRY_NAME}/%s\n"%(cgWConsts.GLIDEIN_FILE,cgWConsts.SUBMIT_FILE))
     finally:
         fd.close()
     # Make it executable
@@ -158,23 +166,19 @@ def create_submit_wrapper(submit_dir):
         fd.write(' echo "At least 8 args expected!" 1>&2\n echo "Usage: %s entry_name schedd client count mode gridtype gatekeeper gridopts [params]*"\n 1>&2\n'%cgWConsts.SUBMIT_WRAPPER)
         fd.write(" exit 1\n")
         fd.write("fi\n")
-        fd.write('export GLIDEIN_ENTRY_NAME="$1"\nshift\n')
+        fd.write('GLIDEIN_ENTRY_NAME="$1"\nshift\n')
         fd.write("export GLIDEIN_SCHEDD=$1\nshift\n")
         fd.write('export GLIDEIN_CLIENT="$1"\nshift\n')
         fd.write("export GLIDEIN_COUNT=$1\nshift\n")
         fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
-        fd.write("export GLIDEIN_GRIDTYPE=$1\nshift\n")
-        fd.write('export GLIDEIN_GATEKEEPER="$1"\nshift\n')
+        fd.write("GLIDEIN_GRIDTYPE=$1\nshift\n")
+        fd.write('GLIDEIN_GATEKEEPER="$1"\nshift\n')
         fd.write('GLIDEIN_GRIDOPTS="$1"\nshift\n')
         fd.write('GLIDEIN_PARAMS=""\n')
         fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
         fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write("export GLIDEIN_SIGN=`awk '/ main$/{print $1}' %s`\n"%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write("export GLIDEIN_DESCRIPT=`awk '/ main$/{print $2}' %s`\n"%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_SIGNENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$/"\'{print $1}\' %s`\n'%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write('export GLIDEIN_DESCRIPTENTRY=`awk "/ entry_$GLIDEIN_ENTRY_NAME\$"\'/{print $2}\' %s`\n'%cgWConsts.SUMMARY_SIGNATURE_FILE)
-        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s\n'%cgWConsts.SUBMIT_FILE)
+        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD entry_${GLIDEIN_ENTRY_NAME}/%s\n'%cgWConsts.SUBMIT_FILE)
     finally:
         fd.close()
     # Make it executable
@@ -184,18 +188,15 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.6 2007/12/12 00:37:11 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.7 2007/12/13 20:19:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
-#  Revision 1.6  2007/12/12 00:37:11  sfiligoi
-#  Fix typo
+#  Revision 1.7  2007/12/13 20:19:45  sfiligoi
+#  Move condor jdl into entry subdir, and implement it via a dictionary
 #
 #  Revision 1.5  2007/12/12 00:35:36  sfiligoi
 #  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
-#
-#  Revision 1.4  2007/12/11 15:36:47  sfiligoi
-#  Fix typo
 #
 #  Revision 1.3  2007/12/11 15:35:35  sfiligoi
 #  Make condor in memory
