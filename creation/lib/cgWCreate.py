@@ -84,9 +84,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  exe_fname,
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
-                 web_base,
-                 sign,entry_sign,
-                 descript,entry_descript): 
+                 web_base)
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
@@ -184,10 +182,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.8 2007/12/13 20:23:22 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.9 2007/12/13 20:26:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.9  2007/12/13 20:26:04  sfiligoi
+#  Fix typo
+#
 #  Revision 1.8  2007/12/13 20:23:22  sfiligoi
 #  Fix typo
 #
