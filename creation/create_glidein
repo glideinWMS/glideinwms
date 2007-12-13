@@ -59,8 +59,6 @@ def main(params):
                copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
                copy_submit_file(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
-               cgWCreate.create_submit_wrapper(glidein_dicts_obj.main_dicts.submit_dir)
-
                params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
             except:
                shutil.rmtree(glidein_dicts_obj.main_dicts.monitor_dir)
@@ -139,10 +137,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.121 2007/12/13 23:26:20 sfiligoi Exp $
+# $Id: create_glidein,v 1.122 2007/12/13 23:27:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.122  2007/12/13 23:27:26  sfiligoi
+#  Fix typo
+#
 #  Revision 1.121  2007/12/13 23:26:20  sfiligoi
 #  Get attributes out of stage and only into submit
 #
