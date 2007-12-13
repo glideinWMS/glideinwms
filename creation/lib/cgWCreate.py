@@ -119,7 +119,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  descript,entry_descript): 
         self.add("Arguments",
                  ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(self['+GlideinName'][1:-1],self['+GlideinEntryName'][1:-1]))+
-                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(sign,entry_sign,self['+GlideinWebBase'][1:-1],self['+GlideinFactory'][1:-1]))+
+                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(self['+GlideinWebBase'][1:-1],sign,entry_sign,self['+GlideinFactory'][1:-1]))+
                  ("-descript %s -descriptentry %s "%(descript,entry_descript)) +
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)",
                  allow_overwrite=True)
@@ -184,10 +184,13 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.11 2007/12/13 20:34:53 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.12 2007/12/13 20:37:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.12  2007/12/13 20:37:06  sfiligoi
+#  Fix typo
+#
 #  Revision 1.11  2007/12/13 20:34:53  sfiligoi
 #  Fix dir
 #
