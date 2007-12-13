@@ -84,7 +84,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  exe_fname,
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
-                 web_base)
+                 web_base):
+        entry_submit_dir=cgWConsts.get_entry_submit_dir("",entry_name)
+        
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
@@ -105,9 +107,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("WhenToTransferOutput ","ON_EXIT")
         self.add("Notification","Never")
         self.add("+Owner","undefined")
-        self.add("Log","%s/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%entry_name)
-        self.add("Output","%s/log/job.$(Cluster).$(Process).out"%entry_name)
-        self.add("Error","%s/log/job.$(Cluster).$(Process).err"%entry_name)
+        self.add("Log","%s/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%entry_submit_dir)
+        self.add("Output","%s/log/job.$(Cluster).$(Process).out"%entry_submit_dir)
+        self.add("Error","%s/log/job.$(Cluster).$(Process).err"%entry_submit_dir)
         self.add("stream_output","False")
         self.add("stream_error ","False")
         self.jobs_in_cluster="$ENV(GLIDEIN_COUNT)"
@@ -116,8 +118,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  sign,entry_sign,
                  descript,entry_descript): 
         self.add("Arguments",
-                 ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(self['+GlideinName'],self['+GlideinEntryName']))+
-                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(sign,entry_sign,self['+GlideinWebBase'],self['+GlideinFactory']))+
+                 ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(self['+GlideinName'][1:-1],self['+GlideinEntryName'][1:-1]))+
+                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(sign,entry_sign,self['+GlideinWebBase'][1:-1],self['+GlideinFactory'][1:-1]))+
                  ("-descript %s -descriptentry %s "%(descript,entry_descript)) +
                  "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)",
                  allow_overwrite=True)
@@ -140,7 +142,7 @@ def create_test_submit(submit_dir):
         fd.write("export GLIDEIN_ENTRY_NAME=test\n")
         fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%cgWConsts.JOB_DESCRIPT_FILE)
         fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%cgWConsts.JOB_DESCRIPT_FILE)
-        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` ${GLIDEIN_ENTRY_NAME}/%s\n"%(cgWConsts.GLIDEIN_FILE,cgWConsts.SUBMIT_FILE))
+        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s/%s\n"%(cgWConsts.GLIDEIN_FILE,cgWConsts.get_entry_submit_dir("",'${GLIDEIN_ENTRY_NAME}'),cgWConsts.SUBMIT_FILE))
     finally:
         fd.close()
     # Make it executable
@@ -172,7 +174,7 @@ def create_submit_wrapper(submit_dir):
         fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
         fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
         fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD entry_${GLIDEIN_ENTRY_NAME}/%s\n'%cgWConsts.SUBMIT_FILE)
+        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s/%s\n'%(cgWConsts.get_entry_submit_dir("",'${GLIDEIN_ENTRY_NAME}'),cgWConsts.SUBMIT_FILE))
     finally:
         fd.close()
     # Make it executable
@@ -182,15 +184,12 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.9 2007/12/13 20:26:04 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.11 2007/12/13 20:34:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
-#  Revision 1.9  2007/12/13 20:26:04  sfiligoi
-#  Fix typo
-#
-#  Revision 1.8  2007/12/13 20:23:22  sfiligoi
-#  Fix typo
+#  Revision 1.11  2007/12/13 20:34:53  sfiligoi
+#  Fix dir
 #
 #  Revision 1.7  2007/12/13 20:19:45  sfiligoi
 #  Move condor jdl into entry subdir, and implement it via a dictionary
