@@ -84,7 +84,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  exe_fname,
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
-                 web_base):
+                 web_base,proxy_url,
+                 work_dir):
         entry_submit_dir=cgWConsts.get_entry_submit_dir("",entry_name)
         
         self.add("Universe","grid")
@@ -99,7 +100,10 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinEntryName','"%s"'%entry_name)
         self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinWebBase','"%s"'%web_base)
+        if proxy_url!=None:
+            self.add('+GlideinProxyURL','"%s"'%proxy_url)
         self.add('+GlideinLogNr','"$ENV(GLIDEIN_LOGNR)"')
+        self.add('+GlideinWorkDir','"%s"'%work_dir)
         
         self.add("Transfer_Executable","True")
         self.add("transfer_Input_files","")
@@ -116,13 +120,16 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
     def finalize(self,
                  sign,entry_sign,
-                 descript,entry_descript): 
-        self.add("Arguments",
-                 ("-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD) "%(self['+GlideinName'][1:-1],self['+GlideinEntryName'][1:-1]))+
-                 ("-web %s -sign %s -signentry %s -signtype sha1 -factory %s "%(self['+GlideinWebBase'][1:-1],sign,entry_sign,self['+GlideinFactory'][1:-1]))+
-                 ("-descript %s -descriptentry %s "%(descript,entry_descript)) +
-                 "-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)",
-                 allow_overwrite=True)
+                 descript,entry_descript):
+        arg_str="-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD)  -factory %s "%(self['+GlideinName'][1:-1],self['+GlideinEntryName'][1:-1],self['+GlideinFactory'][1:-1])
+        arg_str+="-web %s "%self['+GlideinWebBase'][1:-1]
+        if self.has_key('+GlideinProxyURL'):
+            arg_str+="-proxy %s "%self['+GlideinProxyURL'][1:-1]
+        arg_str+="-sign %s -signentry %s -signtype sha1 "%(sign,entry_sign)
+        arg_str+="-descript %s -descriptentry %s "%(descript,entry_descript) 
+        arg_str+="-dir %s "%self['+GlideinWorkDir'][1:-1]
+        arg_str+="-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)"
+        self.add("Arguments",arg_str,allow_overwrite=True)
 
 ############################
 # Create a test shell script
@@ -159,7 +166,7 @@ def create_submit_wrapper(submit_dir):
     try:
         fd.write("#!/bin/bash\n\n")
         fd.write("if [ $# -lt 8 ]; then\n")
-        fd.write(' echo "At least 8 args expected!" 1>&2\n echo "Usage: %s entry_name schedd client count mode gridtype gatekeeper gridopts [params]*"\n 1>&2\n'%cgWConsts.SUBMIT_WRAPPER)
+        fd.write(' echo "At least 5 args expected!" 1>&2\n echo "Usage: %s entry_name schedd client count mode [params]*"\n 1>&2\n'%cgWConsts.SUBMIT_WRAPPER)
         fd.write(" exit 1\n")
         fd.write("fi\n")
         fd.write('GLIDEIN_ENTRY_NAME="$1"\nshift\n')
@@ -167,9 +174,6 @@ def create_submit_wrapper(submit_dir):
         fd.write('export GLIDEIN_CLIENT="$1"\nshift\n')
         fd.write("export GLIDEIN_COUNT=$1\nshift\n")
         fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
-        fd.write("GLIDEIN_GRIDTYPE=$1\nshift\n")
-        fd.write('GLIDEIN_GATEKEEPER="$1"\nshift\n')
-        fd.write('GLIDEIN_GRIDOPTS="$1"\nshift\n')
         fd.write('GLIDEIN_PARAMS=""\n')
         fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
         fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
@@ -184,15 +188,12 @@ def create_submit_wrapper(submit_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.12 2007/12/13 20:37:06 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.13 2007/12/13 22:35:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
-#  Revision 1.12  2007/12/13 20:37:06  sfiligoi
-#  Fix typo
-#
-#  Revision 1.11  2007/12/13 20:34:53  sfiligoi
-#  Fix dir
+#  Revision 1.13  2007/12/13 22:35:10  sfiligoi
+#  Move entry specific arguments into the creation stage
 #
 #  Revision 1.7  2007/12/13 20:19:45  sfiligoi
 #  Move condor jdl into entry subdir, and implement it via a dictionary

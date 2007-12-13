@@ -73,21 +73,6 @@ def perform_work(factory_name,glidein_name,entry_name,
 
     submit_attrs=[]
 
-    submit_attrs.append(jobDescript.data["GridType"])
-    submit_attrs.append(jobDescript.data["Gatekeeper"])
-
-    if jobDescript.data.has_key("GlobusRSL"):
-        submit_attrs.append("globus_rsl = %s"%jobDescript.data["GlobusRSL"])
-    else:
-        submit_attrs.append("") #something is needed, empty string is fine
-        
-    submit_attrs.append("-dir")
-    submit_attrs.append(jobDescript.data["StartupDir"])
-
-    if jobDescript.data.has_key("ProxyURL"):
-        submit_attrs.apeend("-proxy")
-        submit_attrs.append(jobDescript.data["ProxyURL"])
-
     # use the extended params for submission
     nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,submit_attrs,params)
     if nr_submitted>0:
@@ -382,14 +367,14 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.28 2007/10/09 16:24:15 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.29 2007/12/13 22:34:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
-#  Revision 1.28  2007/10/09 16:24:15  sfiligoi
-#  Use short client name
+#  Revision 1.29  2007/12/13 22:34:45  sfiligoi
+#  Move entry specific arguments into the creation stage
 #
-#  Revision 1.27  2007/10/09 16:15:42  sfiligoi
+#  Revision 1.28  2007/10/09 16:24:15  sfiligoi
 #  Use short client name
 #
 #  Revision 1.26  2007/10/05 22:53:06  sfiligoi
@@ -403,9 +388,6 @@ if __name__ == '__main__':
 #
 #  Revision 1.23  2007/07/03 19:46:18  sfiligoi
 #  Add support for MaxRunningGlideins
-#
-#  Revision 1.22  2007/06/15 19:11:50  sfiligoi
-#  Fix typo
 #
 #  Revision 1.21  2007/06/15 18:53:44  sfiligoi
 #  Add parent pid to the list of entries, so that an entry can exit if parent dies
