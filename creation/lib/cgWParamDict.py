@@ -109,7 +109,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
                                           params.factory_name,params.glidein_name,self.entry_name,
                                           entry_params.gridtype,entry_params.gatekeeper,entry_params.rsl,
-                                          params.web_url,entry_params.proxy_url,entry_params.work_url)
+                                          params.web_url,entry_params.proxy_url,entry_params.work_dir)
 
         
 ################################################
@@ -290,10 +290,13 @@ def populate_job_descript(job_descript_dict,        # will be modified
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.11 2007/12/13 22:35:10 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.12 2007/12/13 22:37:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.12  2007/12/13 22:37:16  sfiligoi
+#  Fix typo
+#
 #  Revision 1.11  2007/12/13 22:35:10  sfiligoi
 #  Move entry specific arguments into the creation stage
 #
