@@ -55,17 +55,11 @@ def main(params):
                glidein_dicts_obj.save()
                glidein_dicts_obj.set_readonly(True)
 
-               # copy the startup file
+               # copy the submit files
                copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
-
-               link_attributes(glidein_dicts_obj.main_dicts.submit_dir,glidein_dicts_obj.main_dicts.stage_dir,bool(params.stage.use_symlink))
-               for entry_name in glidein_dicts_obj.entry_list:
-                   entry_stage_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
-                   entry_submit_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
-                   link_attributes(entry_submit_dir,entry_stage_dir,bool(params.stage.use_symlink))
+               copy_submit_file(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
                cgWCreate.create_submit_wrapper(glidein_dicts_obj.main_dicts.submit_dir)
-               cgWCreate.create_test_submit(glidein_dicts_obj.main_dicts.submit_dir)
 
                params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
             except:
@@ -116,20 +110,6 @@ def symlink_file(infile,outfile):
         raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
         
 
-###################################
-# Create a copy or a link in the
-# submit dir
-def link_attributes(submit_dir,stage_dir,do_softlink):
-    submit_filepath=os.path.join(submit_dir,cgWConsts.ATTRS_FILE)
-    stage_filepath=os.path.join(stage_dir,cgWConsts.ATTRS_FILE)
-
-    if do_softlink:
-        symlink_file(stage_filepath,submit_filepath)
-    else:
-        copy_file(stage_filepath,submit_filepath)
-        # Make it read only
-        os.chmod(filepath,0444)
-
 #####################
 # Copy a regular file
 def copy_submit_file(filename,submit_dir,org_dir):
@@ -159,12 +139,12 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.120 2007/12/13 20:22:04 sfiligoi Exp $
+# $Id: create_glidein,v 1.121 2007/12/13 23:26:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
-#  Revision 1.120  2007/12/13 20:22:04  sfiligoi
-#  Fix typo
+#  Revision 1.121  2007/12/13 23:26:20  sfiligoi
+#  Get attributes out of stage and only into submit
 #
 #  Revision 1.119  2007/12/13 20:19:45  sfiligoi
 #  Move condor jdl into entry subdir, and implement it via a dictionary
@@ -186,9 +166,6 @@ if __name__ == '__main__':
 #
 #  Revision 1.113  2007/12/11 23:26:25  sfiligoi
 #  Consistently use entry_dirs
-#
-#  Revision 1.112  2007/12/11 23:11:08  sfiligoi
-#  Fix typo
 #
 #  Revision 1.111  2007/12/11 23:09:54  sfiligoi
 #  Move the population of dictionaries into cgWParamDict

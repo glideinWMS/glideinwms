@@ -7,9 +7,7 @@
 #
 ####################################
 
-import os
-import copy
-import os.path
+import os,os.path
 import string
 import traceback
 import tarfile
@@ -131,67 +129,17 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         arg_str+="-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)"
         self.add("Arguments",arg_str,allow_overwrite=True)
 
-############################
-# Create a test shell script
-def create_test_submit(submit_dir):
-    filepath=os.path.join(submit_dir,"job_test.sh")
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("#!/bin/bash\n")
-        fd.write("export GLIDEIN_CLIENT=test\n")
-        fd.write("export GLIDEIN_COUNT=1\n")
-        fd.write("export GLIDEIN_VERBOSITY=dbg\n")
-        fd.write('export GLIDEIN_PARAMS="-param_GLIDEIN_Collector $HOSTNAME"\n')
-        fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write("export GLIDEIN_ENTRY_NAME=test\n")
-        fd.write("export GLIDEIN_GRIDTYPE `grep '^GridType' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%cgWConsts.JOB_DESCRIPT_FILE)
-        fd.write("export GLIDEIN_GATEKEEPER `grep '^Gatekeeper' entry_$GLIDEIN_ENTRY_NAME/%s|awk '{print $2}'`\n"%cgWConsts.JOB_DESCRIPT_FILE)
-        fd.write("condor_submit -name `grep '^Schedd' %s|awk '{print $2}'` %s/%s\n"%(cgWConsts.GLIDEIN_FILE,cgWConsts.get_entry_submit_dir("",'${GLIDEIN_ENTRY_NAME}'),cgWConsts.SUBMIT_FILE))
-    finally:
-        fd.close()
-    # Make it executable
-    os.chmod(filepath,0755)
-    
-############################
-# Create a submit wrapper 
-def create_submit_wrapper(submit_dir):
-    filepath=os.path.join(submit_dir,cgWConsts.SUBMIT_WRAPPER)
-    try:
-        fd=open(filepath,"w+")
-    except IOError,e:
-        raise RuntimeError, "Error creating %s: %s"%(filepath,e)
-    try:
-        fd.write("#!/bin/bash\n\n")
-        fd.write("if [ $# -lt 8 ]; then\n")
-        fd.write(' echo "At least 5 args expected!" 1>&2\n echo "Usage: %s entry_name schedd client count mode [params]*"\n 1>&2\n'%cgWConsts.SUBMIT_WRAPPER)
-        fd.write(" exit 1\n")
-        fd.write("fi\n")
-        fd.write('GLIDEIN_ENTRY_NAME="$1"\nshift\n')
-        fd.write("export GLIDEIN_SCHEDD=$1\nshift\n")
-        fd.write('export GLIDEIN_CLIENT="$1"\nshift\n')
-        fd.write("export GLIDEIN_COUNT=$1\nshift\n")
-        fd.write("export GLIDEIN_VERBOSITY=$1\nshift\n")
-        fd.write('GLIDEIN_PARAMS=""\n')
-        fd.write('while [ "$1" != "--" ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS $1"\n shift\ndone\nshift # remove --\n')
-        fd.write('while [ $# -ge 2 ]; do\n GLIDEIN_PARAMS="$GLIDEIN_PARAMS -param_$1 $2"\n shift\n shift\ndone\nexport GLIDEIN_PARAMS\n')
-        fd.write('export GLIDEIN_LOGNR=`date +%Y%m%d`\n')
-        fd.write('condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD %s/%s\n'%(cgWConsts.get_entry_submit_dir("",'${GLIDEIN_ENTRY_NAME}'),cgWConsts.SUBMIT_FILE))
-    finally:
-        fd.close()
-    # Make it executable
-    os.chmod(filepath,0755)
-
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.13 2007/12/13 22:35:10 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.14 2007/12/13 23:26:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.14  2007/12/13 23:26:20  sfiligoi
+#  Get attributes out of stage and only into submit
+#
 #  Revision 1.13  2007/12/13 22:35:10  sfiligoi
 #  Move entry specific arguments into the creation stage
 #

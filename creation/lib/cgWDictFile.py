@@ -611,7 +611,7 @@ class CondorJDLDictFile(DictFile):
 
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir,stage_dir):
-    common_dicts={'attrs':ReprDictFile(stage_dir,cgWConsts.ATTRS_FILE),
+    common_dicts={'attrs':ReprDictFile(submit_dir,cgWConsts.ATTRS_FILE),
                   'description':DescriptionDictFile(stage_dir,cgWConsts.DESCRIPTION_FILE),
                   'consts':StrDictFile(stage_dir,cgWConsts.CONSTS_FILE),
                   'params':ReprDictFile(submit_dir,cgWConsts.PARAMS_FILE),
@@ -645,9 +645,9 @@ def load_common_dicts(dicts,           # update in place
                       description_el):
     # first submit dir ones (mutable)
     dicts['params'].load()
+    dicts['attrs'].load()
     # all others are keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
-    dicts['attrs'].load(fname=description_el.vals2['attrs_file'])
     dicts['consts'].load(fname=description_el.vals2['consts_file'])
     dicts['vars'].load(fname=description_el.vals2['condor_vars'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
@@ -680,7 +680,6 @@ def load_entry_dicts(entry_dicts,                   # update in place
 def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
-    description_dict.add(dicts['attrs'].get_fname(),"attrs_file",allow_overwrite=True)
     description_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
     description_dict.add(dicts['vars'].get_fname(),"condor_vars",allow_overwrite=True)
     description_dict.add(dicts['file_list'].get_fname(),"file_list",allow_overwrite=True)
@@ -689,14 +688,13 @@ def refresh_description(dicts): # update in place
 
 def refresh_file_list(dicts): # update in place
     file_dict=dicts['file_list']
-    file_dict.add(dicts['attrs'].get_fname(),"attrs_file",allow_overwrite=True)
     file_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
     file_dict.add(dicts['vars'].get_fname(),"condor_vars",allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('attrs','consts','vars','file_list','script_list','subsystem_list','description'):
+    for k in ('consts','vars','file_list','script_list','subsystem_list','description'):
         signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
     for k in ('file_list','script_list','subsystem_list'):
@@ -721,7 +719,7 @@ def save_common_dicts(dicts,     # will update in place, too
     for k in ('file_list','script_list','subsystem_list'):
         dicts[k].save_files()
     # save the immutable ones
-    for k in ('attrs','consts','vars','description'):
+    for k in ('consts','vars','description'):
         dicts[k].save(set_readonly=set_readonly)
     # make sure we have all the files in the file list
     refresh_file_list(dicts)
@@ -734,6 +732,7 @@ def save_common_dicts(dicts,     # will update in place, too
 
     #finally save the mutable one(s)
     dicts['params'].save(set_readonly=set_readonly)
+    dicts['attrs'].save(set_readonly=set_readonly)
 
 # must be invoked after all the entries have been saved
 def save_main_dicts(main_dicts, # will update in place, too
@@ -927,18 +926,15 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.34 2007/12/13 20:27:26 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.35 2007/12/13 23:26:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
-#  Revision 1.34  2007/12/13 20:27:26  sfiligoi
-#  Fix typo
+#  Revision 1.35  2007/12/13 23:26:20  sfiligoi
+#  Get attributes out of stage and only into submit
 #
 #  Revision 1.33  2007/12/13 20:18:15  sfiligoi
 #  Add CondorJDLDictFile class, add set_readonly to save, and add glideinEntryDicts.save_final
-#
-#  Revision 1.32  2007/12/12 00:37:58  sfiligoi
-#  Fix typo
 #
 #  Revision 1.31  2007/12/12 00:07:30  sfiligoi
 #  Add glidein and job_descript dictionaries
@@ -955,15 +951,6 @@ class glideinDicts:
 #  Revision 1.27  2007/12/11 19:16:06  sfiligoi
 #  Simplify attribute handling
 #
-#  Revision 1.26  2007/12/11 16:05:59  sfiligoi
-#  Fix typo
-#
-#  Revision 1.25  2007/12/10 21:35:11  sfiligoi
-#  Fix bug
-#
-#  Revision 1.24  2007/12/10 21:32:26  sfiligoi
-#  Fix typo
-#
 #  Revision 1.23  2007/12/10 21:23:15  sfiligoi
 #  Move sha1 calculations at the final stage
 #
@@ -975,15 +962,6 @@ class glideinDicts:
 #
 #  Revision 1.20  2007/12/03 23:57:27  sfiligoi
 #  Properly initialize file_list
-#
-#  Revision 1.19  2007/12/03 23:27:19  sfiligoi
-#  Fix bug
-#
-#  Revision 1.18  2007/12/03 22:49:30  sfiligoi
-#  Fix typo
-#
-#  Revision 1.17  2007/12/03 22:33:26  sfiligoi
-#  Fix typos
 #
 #  Revision 1.16  2007/12/03 21:52:13  sfiligoi
 #  Move sha1 calculations into ...SHA1DictFile.add_from_file
@@ -1002,9 +980,6 @@ class glideinDicts:
 #
 #  Revision 1.11  2007/11/30 22:49:06  sfiligoi
 #  Make changing of self optional in load
-#
-#  Revision 1.10  2007/11/28 22:22:49  sfiligoi
-#  Fix typo
 #
 #  Revision 1.9  2007/11/28 22:20:58  sfiligoi
 #  Add is_equal to all classes
