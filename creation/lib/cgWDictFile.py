@@ -64,7 +64,7 @@ class DictFile:
             self.keys.append(key)
         self.vals[key]=val
 
-    def save(self, dir=None, fname=None,sort_keys=None): # if dir and/or fname are not specified, use the defaults specified in __init__
+    def save(self, dir=None, fname=None,sort_keys=None,set_readonly=True): # if dir and/or fname are not specified, use the defaults specified in __init__
         if dir==None:
             dir=self.dir
         if fname==None:
@@ -89,8 +89,14 @@ class DictFile:
                 keys=self.keys
             for k in keys:
                 fd.write("%s\n"%self.format_val(k))
+            footer=self.file_footer()
+            if footer!=None:
+                fd.write("%s\n"%footer)
         finally:
             fd.close()
+
+        if set_readonly:
+            self.set_readonly(True)
         return
 
     def load(self, dir=None, fname=None,
@@ -150,6 +156,9 @@ class DictFile:
     
     def file_header(self):
         return None # no header
+    
+    def file_footer(self):
+        return None # no footer
     
     def format_val(self,key):
         return "%s \t%s"%(key,self.vals[key])
@@ -553,6 +562,47 @@ class VarsDictFile(DictFile):
         return self.add(key,arr[1:])
 
 
+class CondorJDLDictFile(DictFile):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,jobs_in_cluster=None):
+        DictFile.__init__(self,dir,fname,sort_keys,order_matters)
+        self.jobs_in_cluster=jobs_in_cluster
+
+    def file_footer(self):
+        if self.jobs_in_cluster==None:
+            return "Queue"
+        else:
+            return "Queue %i"%self.jobs_in_cluster
+
+    def format_val(self,key):
+        return "%s = %s"%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,2)
+        if len(arr)==0:
+            return # empty line
+
+        if arr[0]=='Queue':
+            # this is the final line
+            if len(arr)==1:
+                # default
+                self.jobs_in_cluster=None
+            else:
+                self.jobs_in_cluster=arr[1]
+            return
+            
+        # should be a regular line
+        if len(arr)<2:
+            raise RuntimeError,"Not a valid Condor JDL line, too short: '%s'"%line
+        if arr[1]!='=':
+            raise RuntimeError,"Not a valid Condor JDL line, no =: '%s'"%line
+        
+        if len(arr)==2:
+            return self.add(arr[0],"") # key = <empty>
+        else:
+            return self.add(arr[0],arr[2])
+
 ################################################
 #
 # Functions that create default dictionaries
@@ -663,7 +713,8 @@ def refresh_signature(dicts): # update in place
 
 
 # internal, do not use from outside the module
-def save_common_dicts(dicts): # will update in place, too
+def save_common_dicts(dicts,     # will update in place, too
+                     set_readonly=True):
     # make sure decription is up to date
     refresh_description(dicts)
     # save files in the file lists
@@ -671,32 +722,34 @@ def save_common_dicts(dicts): # will update in place, too
         dicts[k].save_files()
     # save the immutable ones
     for k in ('attrs','consts','vars','description'):
-        dicts[k].save()
+        dicts[k].save(set_readonly=set_readonly)
     # make sure we have all the files in the file list
     refresh_file_list(dicts)
     # then save the lists
     for k in ('file_list','script_list','subsystem_list'):
-        dicts[k].save()
+        dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
     refresh_signature(dicts)
-    dicts['signature'].save()
+    dicts['signature'].save(set_readonly=set_readonly)
 
     #finally save the mutable one(s)
-    dicts['params'].save()
+    dicts['params'].save(set_readonly=set_readonly)
 
 # must be invoked after all the entries have been saved
-def save_main_dicts(main_dicts): # will update in place, too
-    main_dicts['glidein'].save()
-    save_common_dicts(main_dicts)
+def save_main_dicts(main_dicts, # will update in place, too
+                    set_readonly=True):
+    main_dicts['glidein'].save(set_readonly=set_readonly)
+    save_common_dicts(main_dicts,set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
-    summary_signature.save()
+    summary_signature.save(set_readonly=set_readonly)
 
 
 def save_entry_dicts(entry_dicts,                   # will update in place, too
-                     entry_name,summary_signature): # update in place
-    entry_dicts['job_descript'].save()
-    save_common_dicts(entry_dicts)
+                     entry_name,summary_signature,  # update in place
+                     set_readonly=True):
+    entry_dicts['job_descript'].save(set_readonly=set_readonly)
+    save_common_dicts(entry_dicts,set_readonly=set_readonly)
     summary_signature.add_from_file(key=cgWConsts.get_entry_stage_dir("",entry_name),filepath=entry_dicts['signature'].get_filepath(),fname2=entry_dicts['description'].get_fname(),allow_overwrite=True)
 
 ################################################
@@ -729,7 +782,7 @@ class glideinMainDicts(glideinDicts):
     def __init__(self,submit_dir,stage_dir):
         self.submit_dir=submit_dir
         self.stage_dir=stage_dir
-        self.dicts=get_main_dicts(submit_dir,stage_dir)
+        self.erase()
 
     def get_summary_signature(self): # you can discover most of the other things from this
         return self.dicts['summary_signature']
@@ -740,8 +793,8 @@ class glideinMainDicts(glideinDicts):
     def load(self):
         load_main_dicts(self.dicts)
 
-    def save(self):
-        save_main_dicts(self.dicts)
+    def save(self,set_readonly=True):
+        save_main_dicts(self.dicts,set_readonly=set_readonly)
 
     def is_equal(self,other,             # other must be of the same class
                  compare_submit_dir=False,compare_stage_dir=False,
@@ -763,7 +816,7 @@ class glideinEntryDicts(glideinDicts):
         self.glidein_main_dicts=glidein_main_dicts
         self.submit_dir=cgWConsts.get_entry_submit_dir(glidein_main_dicts.submit_dir,entry_name)
         self.stage_dir=cgWConsts.get_entry_stage_dir(glidein_main_dicts.stage_dir,entry_name)
-        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,entry_name)
+        self.erase()
 
     def erase(self):
         self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,self.entry_name)
@@ -771,9 +824,12 @@ class glideinEntryDicts(glideinDicts):
     def load(self): #will use glidein_main_dicts data, so it must be loaded first
         load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
 
-    def save(self):
-        save_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
+    def save(self,set_readonly=True):
+        save_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature(),set_readonly=set_readonly)
 
+    def save_final(self,set_readonly=True):
+        pass # not needed here, but may be needed by children
+    
     def is_equal(self,other,             # other must be of the same class
                  compare_entry_name=False,
                  compare_glidein_main_dicts=False, # if set to True, will do a complete check on the related objects
@@ -835,10 +891,12 @@ class glideinDicts:
                 self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
                 self.entry_dicts[entry_name].load()
 
-    def save(self):
+    def save(self,set_readonly=True):
         for entry_name in self.entry_list:
-            self.entry_dicts[entry_name].save()
-        self.main_dicts.save()
+            self.entry_dicts[entry_name].save(set_readonly=set_readonly)
+        self.main_dicts.save(set_readonly=set_readonly)
+        for entry_name in self.entry_list:
+            self.entry_dicts[entry_name].save_final(set_readonly=set_readonly)
    
     def is_equal(self,other,             # other must be of the same class
                  compare_submit_dir=False,compare_stage_dir=False,
@@ -869,10 +927,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.32 2007/12/12 00:37:58 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.33 2007/12/13 20:18:15 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.33  2007/12/13 20:18:15  sfiligoi
+#  Add CondorJDLDictFile class, add set_readonly to save, and add glideinEntryDicts.save_final
+#
 #  Revision 1.32  2007/12/12 00:37:58  sfiligoi
 #  Fix typo
 #
