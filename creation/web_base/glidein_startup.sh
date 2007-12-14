@@ -309,7 +309,8 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-entry_dir="${work_dir}/entry_${glidein_entry}"
+short_entry_dir=entry_${glidein_entry}
+entry_dir="${work_dir}/${short_entry_dir}"
 mkdir "$entry_dir"
 if [ $? -ne 0 ]; then
     warn "Cannot create '$entry_dir'" 1>&2
@@ -353,29 +354,29 @@ fi
 #####################
 # Check signature
 function check_file_signature {
-    fname="$1"
-    fetch_entry="$2"
+    cfs_entry_dir="$1"
+    cfs_fname="$2"
 
-    if [ -z "$fetch_entry" ]; then
-	cfs_desc_fname="$fname"
+    if [ "$cfs_entry_dir" == "main" ]; then
+	cfs_desc_fname="$cfs_fname"
 	cfs_signature="signature.sha1"
     else
-	cfs_desc_fname="entry_$glidein_entry/$fname"
-	cfs_signature="$entry_dir/signature.sha1"
+	cfs_desc_fname="$cfs_entry_dir/$cfs_fname"
+	cfs_signature="$cfs_entry_dir/signature.sha1"
     fi
 
     if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
 	tmp_signname="${cfs_signature}_$$_`date +%s`_$RANDOM"
-	grep "$fname" "$cfs_signature" > $tmp_signname
+	grep "$cfs_fname" "$cfs_signature" > $tmp_signname
 	if [ $? -ne 0 ]; then
 	    rm -f $tmp_signname
 	    echo "No signature for $cfs_desc_fname." 1>&2
 	else
-	    if [ -z "$fetch_entry" ]; then
+	    if [ "$cfs_entry_dir" == "main" ]; then
 		sha1sum -c $tmp_signname 1>&2
 		cfs_rc=$?
 	    else
-		(cd $entry_dir; sha1sum -c $tmp_signname) 1>&2
+		(cd $cfs_entry_dir=; sha1sum -c $tmp_signname) 1>&2
 		cfs_rc=$?
 	    fi
 	    if [ $cfs_rc -ne 0 ]; then
@@ -392,16 +393,19 @@ function check_file_signature {
 
 #####################
 # Fetch a single file
+function fetch_file_regular {
+    fetch_file "$1" "$2" "$2" "regular" "TRUE" "FALSE"
+}
+
 function fetch_file {
-    fetch_file_gen "$1" "$2" ""
-}
+    if [ $# -ne 6 ]; then
+	warn "Not enough arguments in fetch_file $@" 1>&2
+	cd "$start_dir";rm -fR "$work_dir"
+	sleep $sleep_time # wait a bit, to reduce lost glideins
+	exit 1
+    fi
 
-function fetch_entry_file {
-    fetch_file_gen "$1" "$2" "entry"
-}
-
-function fetch_file_gen {
-    fetch_file_base "$1" "$2" "$3"
+    fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6"
     if [ $? -ne 0 ]; then
 	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
@@ -410,43 +414,99 @@ function fetch_file_gen {
     return 0
 }
 
-function fetch_file_base {
-    fname="$1"
-    avoid_cache="$2"
-    fetch_entry="$3"
+function fetch_file_try {
+    fft_entry_dir="$1"
+    fft_target_fname="$2"
+    fft_real_fname="$3"
+    fft_file_type="$4"
+    fft_config_check="$5"
+    fft_config_out="$6"
 
-    if [ -z "$fetch_entry" ]; then
+    if [ "$fft_config_check" == "TRUE" ]; then
+	# TRUE is a special case
+	fft_get_ss=1
+    else
+	fft_get_ss=`grep -i "^$fft_config_check" glidein_config | awk '{print $2}'`
+    fi
+
+    if [ "$fft_get_ss" == "1" ]; then
+       fetch_file_base "$fft_entry_dir" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$ttf_config_out"
+       fft_rc=$?
+    fi
+
+    return $fft_rc
+}
+
+function fetch_file_base {
+    ffb_entry_dir="$1"
+    ffb_target_fname="$2"
+    ffb_real_fname="$3"
+    ffb_file_type="$4"
+    ffb_config_out="$5"
+
+    if [ "$entry_dir" == "main" ]; then
 	ffb_repository="$repository_url"
-	ffb_outname="$fname"
+	ffb_outname="$ffb_target_fname"
 	ffb_desc_fname="$fname"
 	ffb_signature="signature.sha1"
     else
-	ffb_repository="$repository_url/entry_$glidein_entry"
-	ffb_outname="$entry_dir/$fname"
-	ffb_desc_fname="entry_$glidein_entry/$fname"
-	ffb_signature="$entry_dir/signature.sha1"
+	ffb_repository="$repository_url/$ffb_entry_dir"
+	ffb_outname="$ffb_entry_dir/$ffb_target_name"
+	ffb_desc_fname="$ffb_entry_dir/$fname"
+	ffb_signature="$ffb_entry_dir/signature.sha1"
     fi
 
-    if [ "$proxy_url" == "None" ]; then # no Squid defined
+    ffb_nocache_str=""
+    if [ "$ffb_file_type" == "nocache" ]; then
+          ffb_nocache_str="$wget_nocache_flag"
+    fi
 
-	wget -q  -O "$ffb_outname" "$ffb_repository/$fname"
+    # download file
+    if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
+	wget $ffb_nocache_str -q  -O "$ffb_outname" "$ffb_repository/$ffb_real_fname"
 	if [ $? -ne 0 ]; then
-	    warn "Failed to load file '$fname' from '$ffb_repository'" 1>&2
+	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
 	    return 1
 	fi
     else  # I have a Squid
-        avoid_cache_str=""
-        if [ "$avoid_cache" == "nocache" ]; then
-          avoid_cache_str="$wget_nocache_flag"
-        fi
-	env http_proxy=$proxy_url wget $avoid_cache_str -q  -O "$ffb_outname" "$ffb_repository/$fname" 
+	env http_proxy=$proxy_url wget  $ffb_nocache_str -q  -O "$ffb_outname" "$ffb_repository/$ffb_real_fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
-	    warn "Failed to load file '$fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
+	    warn "Failed to load file '$ffb_real_fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
 	    return 1
 	fi
     fi
-    check_file_signature "$fname" "$fetch_entry"
+
+    # check signature
+    check_file_signature "$ffb_entry_dir" "$ffb_target_fname"
+    if [ $? -ne 0 ]; then
+      return 1
+    fi
+
+    if [ "$ffb_config_out" != "FALSE" ]; then
+	add_config_line "$ffb_config_out" "$ffb_outname"
+    fi
+
+    # if executable, execute
+    if [ "$ffb_file_type" == "exec" ]; then
+	chmod u+x "$ffb_outname"
+	if [ $? -ne 0 ]; then
+	    warn "Error making '$ffb_outname' executable" 1>&2
+	    return 1
+	fi
+	if [ "$ffb_outname" != "$last_script" ]; then # last_script global for simplicity
+	    "./$ffb_outname" glidein_config "$ffb_entry_dir"
+	    ret=$?
+	    if [ $ret -ne 0 ]; then
+		warn "Error running '$ffb_outname'" 1>&2
+		return 1
+	    fi
+	else
+	    echo "Skipping last script $last_script" 1>&2
+	fi
+    fi
+
+    return 0
 }
 
 ###########################
@@ -469,10 +529,10 @@ function fetch_subsystem_base {
     fetch_entry="$4"
 
     if [ -z "$fetch_entry" ]; then
-	fetch_file "$in_tgz"
+	fetch_file_regular "main" "$in_tgz"
 	in_tgz_path="$work_dir/$in_tgz"
     else
-	fetch_entry_file "$in_tgz"
+	fetch_entry_regular "$short_entry_dir" "$in_tgz"
 	in_tgz_path="$entry_dir/$in_tgz"	
     fi
     
@@ -495,7 +555,7 @@ function fetch_subsystem_base {
     fi
     rm -f "$in_tgz_path"
     cd $work_dir
-    add_config_line "$config_out $ss_dir"
+    add_config_line "$config_out" "$ss_dir"
     return 0
 }
 
@@ -538,7 +598,7 @@ function try_fetch_subsystem {
 check_signature=0
 
 # Fetch description file
-fetch_file "$descript_file"
+fetch_file_regular "main" "$descript_file"
 signature_file_line=`grep "^signature " "$descript_file"`
 if [ $? -ne 0 ]; then
     warn "No signature in description file!" 1>&2
@@ -549,7 +609,7 @@ fi
 signature_file=`echo $signature_file_line|awk '{print $2}'`
 
 # Fetch signature file
-fetch_file "$signature_file"
+fetch_file_regular "main" "$signature_file"
 echo "$sign_sha1  $signature_file">signature.sha1.test
 sha1sum -c signature.sha1.test 1>&2
 if [ $? -ne 0 ]; then
@@ -562,7 +622,7 @@ fi
 mv "$signature_file" "signature.sha1"
 
 # Fetch description file for entry
-fetch_entry_file "$descript_entry_file"
+fetch_file_regular "$short_entry_dir" "$descript_entry_file"
 signature_entry_file_line=`grep "^signature " "$entry_dir/$descript_entry_file"`
 if [ $? -ne 0 ]; then
     warn "No signature in description file for entry!" 1>&2
@@ -573,7 +633,7 @@ fi
 signature_entry_file=`echo $signature_entry_file_line|awk '{print $2}'`
 
 # Fetch entry signature file
-fetch_entry_file "$signature_entry_file"
+fetch_file_regular "$short_entry_dir" "$signature_entry_file"
 echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
 (cd $entry_dir; sha1sum -c signature.sha1.test) 1>&2
 if [ $? -ne 0 ]; then
@@ -592,7 +652,7 @@ check_signature=1
 # doing it so late should be fine, since nobody should have been able
 # to fake the signature file, even if it faked its name in
 # the description file
-check_file_signature "$descript_file"
+check_file_signature "main" "$descript_file"
 if [ $? -ne 0 ]; then
     warn "Corrupted description file!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
@@ -600,7 +660,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-check_file_signature "$descript_entry_file" "entry"
+check_file_signature "$short_entry_dir" "$descript_entry_file"
 if [ $? -ne 0 ]; then
     warn "Corrupted description file for entry!" 1>&2
     cd "$start_dir";rm -fR "$work_dir"
@@ -611,9 +671,7 @@ fi
 
 ##############################################
 # Extract other infor from the descript files
-echo "# --- Files from description  ---" >> glidein_config
-
-for id in file_list script_list subsystem_list last_script consts_file condor_vars
+for id in file_list subsystem_list last_script
 do
   id_line=`grep "^$id " "$descript_file"`
   if [ $? -ne 0 ]; then
@@ -626,10 +684,9 @@ do
   eval $id=$id_val
 done
 
-echo "CONDOR_VARS_FILE $condor_vars" >> glidein_config
 # Repeat for entry
 
-for id in file_list script_list subsystem_list consts_file condor_vars
+for id in file_list subsystem_list
 do
   id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
   if [ $? -ne 0 ]; then
@@ -642,42 +699,25 @@ do
   id_val=`echo $id_line|awk '{print $2}'`
   eval $id_var=$id_val
 done
-echo "CONDOR_VARS_ENTRY_FILE $condor_vars_entry" >> glidein_config
 
 ##############################
 # Fetch list of support files
-fetch_file "$file_list"
-fetch_entry_file "$file_list_entry"
+fetch_file_regular "main" "$file_list"
+fetch_file_regular "$short_entry_dir" "$file_list_entry"
 
 # Fetch files
 while read file
 do
-    fetch_file $file
+    fetch_file "main" $file
 done < "$file_list"
+
+echo "MAIN_FILES_LOADED 1" >> glidein_config
 
 # Fetch entry files
 while read file
 do
-    fetch_entry_file $file
+    fetch_file "$short_entry_dir" $file
 done < "$entry_dir/$file_list_entry"
-
-if [ -n "$consts_file" ]; then
-    echo "# --- Provided constants  ---" >> glidein_config
-    # merge constants
-    while read line
-    do
-	add_config_line $line
-    done < "$consts_file"
-fi
-
-if [ -n "$entry_dir/$consts_file_entry" ]; then
-    echo "# --- Provided entry constants  ---" >> glidein_config
-    # merge constants
-    while read line
-    do
-	add_config_line $line
-    done < "$entry_dir/$consts_file_entry"
-fi
 
 ##############################
 # Fetch list of support files
@@ -698,67 +738,13 @@ do
     try_fetch_subsystem entry glidein_config $subsys
 done < "$entry_dir/$subsystem_list_entry"
 
-##############################
-# Fetch list of scripts
-fetch_file "$script_list"
-fetch_entry_file "$script_list_entry"
-
-echo "# --- Script values ---" >> glidein_config
-# Fetch and execute scripts
-while read script
-do
-    fetch_file "$script"
-    chmod u+x "$script"
-    if [ $? -ne 0 ]; then
-	warn "Error making '$script' executable" 1>&2
-	cd "$start_dir";rm -fR "$work_dir"
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	exit 1
-    fi
-    if [ "$script" != "$last_script" ]; then
-	"./$script" glidein_config
-	ret=$?
-	if [ $ret -ne 0 ]; then
-	    warn "Error running '$script'" 1>&2
-	    cd "$start_dir";rm -fR "$work_dir"
-	    sleep $sleep_time # wait a bit, to reduce lost glideins
-	    exit 1
-	fi
-    else
-      echo "Skipping last script $last_script" 1>&2
-    fi 
-done < "$script_list"
-
-echo "# --- Entry script values ---" >> glidein_config
-# Fetch and execute scripts
-while read script
-do
-    fetch_entry_file "$script"
-    mv "$entry_dir/$script" "$script"
-    chmod u+x "$script"
-    if [ $? -ne 0 ]; then
-	warn "Error making '$script' executable" 1>&2
-	cd "$start_dir";rm -fR "$work_dir"
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	exit 1
-    fi
-    "./$script" glidein_config
-    ret=$?
-    if [ $ret -ne 0 ]; then
-	warn "Error running '$script'" 1>&2
-	cd "$start_dir";rm -fR "$work_dir"
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	exit 1
-    fi
-done < "$entry_dir/$script_list_entry"
-
 ###############################
 # Start the glidein main script
 echo "# --- Last Script values ---" >> glidein_config
 "./$last_script" glidein_config
 ret=$?
 if [ $ret -ne 0 ]; then
-  warn "Error running '$glidescript_file'" 1>&2
+  warn "Error running '$last_script'" 1>&2
   cd "$start_dir";rm -fR "$work_dir"
   sleep $sleep_time # wait a bit, to reduce lost glideins
   exit 1

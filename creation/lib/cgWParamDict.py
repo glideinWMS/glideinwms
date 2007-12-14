@@ -42,11 +42,14 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
     def populate(self,params=None):
         if params==None:
             params=self.params
+
+        # put default files in place first
+        cgWDictFile.refresh_file_list(self.dicts,True)
         
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('setup_x509.sh',"validate_node.sh"):
-            self.dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
+        for script_name in ('cat_consts.sh','setup_x509.sh',"validate_node.sh"):
+            self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
         for file in params.files:
@@ -62,7 +65,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
 
         #load system files
         for file_name in ('parse_starterlog.awk',"condor_config"):
-            self.dicts['file_list'].add_from_file(file_name,None,os.path.join(params.src_dir,file_name))
+            self.dicts['file_list'].add_from_file(file_name,(file_name,"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user attributes into config files
@@ -74,7 +77,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         
         # this must be the last script in the list
         for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-            self.dicts['script_list'].add_from_file(script_name,None,os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
         # populate the glidein file
@@ -114,14 +117,22 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
         entry_params=params.entries[self.entry_name]
 
+        # Load initial system scripts
+        # These should be executed before the other scripts
+        for script_name in ('cat_consts.sh',):
+            self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+
+        # put default files in place first
+        cgWDictFile.refresh_file_list(self.dicts,False)
+
         # put user files in stage
         for file in entry_params.files:
             add_file_unparsed(file,self.dicts)
 
         #load system files
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
-        for file_name in ("nodes.blacklist",):
-            self.dicts['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
+        file_name="nodes.blacklist"
+        self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
         
         # put user attributes into config files
         for attr_name in entry_params.attrs.keys():
@@ -213,7 +224,7 @@ def add_file_unparsed(file,dicts):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
-        dicts['script_list'].add_from_file(relfname,None,absfname)
+        dicts['file_list'].add_from_file(relfname,(relfname,"exec","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -232,10 +243,10 @@ def add_file_unparsed(file,dicts):
             dicts['params'].add(cond_attr,0)
     else: # not executable nor tarball => simple file
         if is_const:
-            val=None
+            val='regular'
         else:
             val='nocache'
-        dicts['file_list'].add_from_file(relfname,val,absfname)
+        dicts['file_list'].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname)
 
 #######################
 # Register an attribute
@@ -323,10 +334,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.19 2007/12/14 16:56:55 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.20 2007/12/14 22:28:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.20  2007/12/14 22:28:08  sfiligoi
+#  Change file_list format and remove script_list (merged into file_list now)
+#
 #  Revision 1.19  2007/12/14 16:56:55  sfiligoi
 #  Fix typo
 #

@@ -366,7 +366,7 @@ class SummarySHA1DictFile(DictFile):
 
 # file list
 # also hold the content of the file as the last entry in vals
-class FileDictFile(DictFile):
+class SimpleFileDictFile(DictFile):
     def get_immutable_files(self):
         return self.keys # keys are files, and all are immutable in this implementation
 
@@ -378,7 +378,11 @@ class FileDictFile(DictFile):
                     fd, # open file object that has a read() method
                     allow_overwrite=False):
         data=fd.read()
-        DictFile.add(self,key,(val,data),allow_overwrite)
+        # make it generic for use by children
+        if not (type(val) in (type(()),type([]))):
+            DictFile.add(self,key,(val,data),allow_overwrite)
+        else:
+            DictFile.add(self,key,tuple(val)+(data,),allow_overwrite)
 
     def add_from_file(self,key,val,
                       filepath,
@@ -415,8 +419,9 @@ class FileDictFile(DictFile):
         return self.add(key,val)
 
     def save_files(self,allow_overwrite=False):
-        for fname in self.keys:
-            fdata=self.vals[fname][-1]
+        for key in self.keys:
+            fname=self.get_file_fname(key)
+            fdata=self.vals[key][-1]
             filepath=os.path.join(self.dir,fname)
             if (not allow_overwrite) and os.path.exists(filepath):
                 raise RuntimeError,"File %s already exists"%filepath
@@ -431,6 +436,9 @@ class FileDictFile(DictFile):
                     raise RuntimeError,"Error writing into file %s"%filepath
             finally:
                 fd.close()
+
+    def get_file_fname(self,key):
+        return key
 
     def reuse(self,other,
               compare_dir=False,compare_fname=False,
@@ -450,12 +458,44 @@ class FileDictFile(DictFile):
         
         return
             
-# mutable file list, nocache is the special keyword 
-class MutableFileDictFile(FileDictFile):
+# file list
+# This one contains (real_fname,cache/exec,cond_download,config_out)
+# cache/exec should be one of: regular, nocache, exec
+# cond_download has a special value of TRUE
+# config_out has a special value of FALSE
+class FileDictFile(SimpleFileDictFile):
+    def add(self,key,val,              # will load from val[0]
+            allow_overwrite=False):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=4:
+            raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
+        return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
+
+    def format_val(self,key):
+        return "%s %s %s %s %s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,3)
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        if len(arr)!=5:
+            raise RuntimeError,"Not a valid file line (expected 5, found %i elements): '%s'"%(len(arr),line)
+
+        return self.add(arr[0],arr[1:])
+
+    def get_file_fname(self,key):
+        return self.vals[key][0]
+
     def get_immutable_files(self):
         mkeys=[]
         for k in self.keys:
-            val=self.vals[k][0]
+            val=self.vals[k][1]
             if (val!="nocache"):
                 mkeys.append(k)
             
@@ -655,14 +695,13 @@ class CondorJDLDictFile(DictFile):
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir,stage_dir):
     common_dicts={'attrs':ReprDictFile(submit_dir,cgWConsts.ATTRS_FILE),
-                  'description':DescriptionDictFile(stage_dir,cgWConsts.DESCRIPTION_FILE),
-                  'consts':StrDictFile(stage_dir,cgWConsts.CONSTS_FILE),
+                  'description':DescriptionDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.DESCRIPTION_FILE)),
+                  'consts':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.CONSTS_FILE)),
                   'params':ReprDictFile(submit_dir,cgWConsts.PARAMS_FILE),
-                  'vars':VarsDictFile(stage_dir,cgWConsts.VARS_FILE),
-                  'file_list':MutableFileDictFile(stage_dir,cgWConsts.FILE_LISTFILE),
-                  'script_list':FileDictFile(stage_dir,cgWConsts.SCRIPT_LISTFILE),
-                  'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.SUBSYSTEM_LISTFILE),
-                  "signature":SHA1DictFile(stage_dir,cgWConsts.SIGNATURE_FILE)}
+                  'vars':VarsDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.VARS_FILE)),
+                  'file_list':FileDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.FILE_LISTFILE)),
+                  'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SUBSYSTEM_LISTFILE)),
+                  "signature":SHA1DictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SIGNATURE_FILE))}
     refresh_description(common_dicts)
     return common_dicts
 
@@ -694,7 +733,6 @@ def load_common_dicts(dicts,           # update in place
     dicts['consts'].load(fname=description_el.vals2['consts_file'])
     dicts['vars'].load(fname=description_el.vals2['condor_vars'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
-    dicts['script_list'].load(fname=description_el.vals2['script_list'])
     dicts['subsystem_list'].load(fname=description_el.vals2['subsystem_list'])
 
 def load_main_dicts(main_dicts): # update in place
@@ -723,24 +761,24 @@ def load_entry_dicts(entry_dicts,                   # update in place
 def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
-    description_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
-    description_dict.add(dicts['vars'].get_fname(),"condor_vars",allow_overwrite=True)
     description_dict.add(dicts['file_list'].get_fname(),"file_list",allow_overwrite=True)
-    description_dict.add(dicts['script_list'].get_fname(),"script_list",allow_overwrite=True)
     description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
 
-def refresh_file_list(dicts): # update in place
+def refresh_file_list(dicts,is_main): # update in place
+    entry_str="_STR"
+    if is_main:
+        entry_str=""
     file_dict=dicts['file_list']
-    file_dict.add(dicts['consts'].get_fname(),"consts_file",allow_overwrite=True)
-    file_dict.add(dicts['vars'].get_fname(),"condor_vars",allow_overwrite=True)
+    file_dict.add(cgWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str),allow_overwrite=True)
+    file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('consts','vars','file_list','script_list','subsystem_list','description'):
+    for k in ('consts','vars','file_list','subsystem_list','description'):
         signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
-    for k in ('file_list','script_list','subsystem_list'):
+    for k in ('file_list','subsystem_list'):
         filedict=dicts[k]
         for fname in filedict.get_immutable_files():
             signature_dict.add_from_file(os.path.join(filedict.dir,fname),allow_overwrite=True)
@@ -755,19 +793,20 @@ def refresh_signature(dicts): # update in place
 
 # internal, do not use from outside the module
 def save_common_dicts(dicts,     # will update in place, too
+                      is_main,
                      set_readonly=True):
     # make sure decription is up to date
     refresh_description(dicts)
     # save files in the file lists
-    for k in ('file_list','script_list','subsystem_list'):
+    for k in ('file_list','subsystem_list'):
         dicts[k].save_files()
     # save the immutable ones
     for k in ('consts','vars','description'):
         dicts[k].save(set_readonly=set_readonly)
     # make sure we have all the files in the file list
-    refresh_file_list(dicts)
+    refresh_file_list(dicts,is_main)
     # then save the lists
-    for k in ('file_list','script_list','subsystem_list'):
+    for k in ('file_list','subsystem_list'):
         dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
     refresh_signature(dicts)
@@ -781,7 +820,7 @@ def save_common_dicts(dicts,     # will update in place, too
 def save_main_dicts(main_dicts, # will update in place, too
                     set_readonly=True):
     main_dicts['glidein'].save(set_readonly=set_readonly)
-    save_common_dicts(main_dicts,set_readonly=set_readonly)
+    save_common_dicts(main_dicts,True,set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
     summary_signature.save(set_readonly=set_readonly)
@@ -791,7 +830,7 @@ def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature,  # update in place
                      set_readonly=True):
     entry_dicts['job_descript'].save(set_readonly=set_readonly)
-    save_common_dicts(entry_dicts,set_readonly=set_readonly)
+    save_common_dicts(entry_dicts,False,set_readonly=set_readonly)
     summary_signature.add_from_file(key=cgWConsts.get_entry_stage_dir("",entry_name),filepath=entry_dicts['signature'].get_filepath(),fname2=entry_dicts['description'].get_fname(),allow_overwrite=True)
 
 ################################################
@@ -817,7 +856,7 @@ def reuse_common_dicts(dicts, other_dicts):
     for k in ('consts','vars','attrs','params'):
         reuse_simple_dict(dicts,other_dicts,k)
     # check file-based dictionaries
-    for k in ('file_list','script_list','subsystem_list'):
+    for k in ('file_list','subsystem_list'):
         reuse_file_dict(dicts,other_dicts,k)
 
     pass
@@ -1055,10 +1094,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.41 2007/12/14 18:35:43 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.42 2007/12/14 22:28:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.42  2007/12/14 22:28:08  sfiligoi
+#  Change file_list format and remove script_list (merged into file_list now)
+#
 #  Revision 1.41  2007/12/14 18:35:43  sfiligoi
 #  First steps toward reuse, and fixed CondorJDLDictFile.is_equal
 #

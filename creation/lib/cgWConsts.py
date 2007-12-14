@@ -23,27 +23,32 @@ def get_timestr(when=time.time()):
     return timestr
 
 TIMESTR=get_timestr()
+
+# insert timestr just before the last .
+def insert_timestr(str):
+    arr=string.split(str,'.')
+    arr.insert(-1,TIMESTR)
+    return string.join(arr,'.')
     
 # these two are in the submit dir, so they can be changed
 PARAMS_FILE="params.cfg"
+ATTRS_FILE="attributes.cfg"
 SUMMARY_SIGNATURE_FILE="signatures.sha1"
 
 # these are in the stage dir, so they need to be renamed if changed
-DESCRIPTION_FILE="description.%s.cfg"%TIMESTR
+DESCRIPTION_FILE="description.cfg"
 
-ATTRS_FILE="attributes.cfg"
-CONSTS_FILE="constants.%s.cfg"%TIMESTR
+CONSTS_FILE_BASE="constants.cfg"
 
-FILE_LISTFILE="file_list.%s.lst"%TIMESTR
-SCRIPT_LISTFILE="script_list.%s.lst"%TIMESTR
-SUBSYSTEM_LISTFILE="subsystem_list.%s.lst"%TIMESTR
-SIGNATURE_FILE="signature.%s.sha1"%TIMESTR
+FILE_LISTFILE_BASE="file_list.lst"
+SUBSYSTEM_LISTFILE="subsystem_list.lst"
+SIGNATURE_FILE="signature.sha1"
 
 
-CONDOR_FILE="condor_bin.%s.tgz"%TIMESTR
+CONDOR_FILE="condor_bin.tgz"
 CONDOR_DIR="condor"
 CONDOR_ATTR="CONDOR_DIR"
-VARS_FILE="condor_vars.%s.lst"%TIMESTR
+VARS_FILE="condor_vars.lst"
 
 CONDOR_STARTUP_FILE="condor_startup.sh"
 
@@ -97,10 +102,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.7 2007/11/28 21:02:30 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.8 2007/12/14 22:28:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.8  2007/12/14 22:28:08  sfiligoi
+#  Change file_list format and remove script_list (merged into file_list now)
+#
 #  Revision 1.7  2007/11/28 21:02:30  sfiligoi
 #  Add inverse entry functions
 #
