@@ -16,35 +16,6 @@ import cgWConsts
 import cgWDictFile
 
 ##############################
-# Create condor tarball and
-def create_condor_tar(stage_dir,condor_base_dir):
-    tgz_name=cgWConsts.CONDOR_FILE
-    outtar_name=os.path.join(stage_dir,tgz_name)
-    try:
-        condor_bins=['sbin/condor_master','sbin/condor_startd','sbin/condor_starter']
-
-        # check that dir and files exist
-        if not os.path.isdir(condor_base_dir):
-            raise RuntimeError, "%s is not a directory"%condor_base_dir
-        for f in condor_bins:
-            if not os.path.isfile(os.path.join(condor_base_dir,f)):
-                raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
-
-        # check if optional binaries exist, if they do, include
-        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh']:
-            if os.path.isfile(os.path.join(condor_base_dir,f)):
-                condor_bins.append(f)
-        
-        # tar
-        tf=tarfile.open(outtar_name,'w:gz')
-        for f in condor_bins:
-            tf.add(os.path.join(condor_base_dir,f),f)
-        tf.close()
-    except RuntimeError, e:
-        raise RuntimeError, "Error creating condor tgz: %s"%e
-
-
-##############################
 # Create condor tarball and store it into a StringIO
 def create_condor_tar_fd(condor_base_dir):
     try:
@@ -133,10 +104,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.14 2007/12/13 23:26:20 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.15 2007/12/14 19:57:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.15  2007/12/14 19:57:26  sfiligoi
+#  Remove old create_condor_tar
+#
 #  Revision 1.14  2007/12/13 23:26:20  sfiligoi
 #  Get attributes out of stage and only into submit
 #
