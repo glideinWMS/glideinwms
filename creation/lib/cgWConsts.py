@@ -38,9 +38,9 @@ SUMMARY_SIGNATURE_FILE="signatures.sha1"
 # these are in the stage dir, so they need to be renamed if changed
 DESCRIPTION_FILE="description.cfg"
 
-CONSTS_FILE_BASE="constants.cfg"
+CONSTS_FILE="constants.cfg"
 
-FILE_LISTFILE_BASE="file_list.lst"
+FILE_LISTFILE="file_list.lst"
 SUBSYSTEM_LISTFILE="subsystem_list.lst"
 SIGNATURE_FILE="signature.sha1"
 
@@ -102,10 +102,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.8 2007/12/14 22:28:08 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.9 2007/12/14 22:29:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.9  2007/12/14 22:29:47  sfiligoi
+#  Fix typo
+#
 #  Revision 1.8  2007/12/14 22:28:08  sfiligoi
 #  Change file_list format and remove script_list (merged into file_list now)
 #
