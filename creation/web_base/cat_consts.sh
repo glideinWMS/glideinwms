@@ -28,29 +28,17 @@ function add_config_line {
 if [ "$entry_dir" == "main" ]; then 
     ###################################
     # Find file names
-    descript_fname=`grep "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
-    if [ -z "$descript_fname" ]; then
-	warn "Cannot find DESCRIPTION_FILE in $config_file!"
-	exit 1
-    fi
-
-    consts_file=`grep "^consts_file " $descript_fname | awk '{print $2}'`
+    consts_file=`grep "^CONSTS_FILE " $config_file | awk '{print $2}'`
     if [ -z "$consts_file" ]; then
-	warn "Cannot find consts_file in $descript_fname!"
+	warn "Cannot find CONSTS_FILE in $config_file!"
 	exit 1
     fi
 else:
     ###################################
     # Find file names
-    descript_fname=`grep "^DESCRIPTION_ENTRY_FILE " $config_file | awk '{print $2}'`
-    if [ -z "$descript_fname" ]; then
-	warn "Cannot find DESCRIPTION_ENTRY_FILE in $config_file!"
-	exit 1
-    fi
-
-    consts_file=`grep "^consts_file " $entry_dir/$descript_fname | awk '{print $2}'`
+    consts_file=`grep "^CONSTS_ENTRY_FILE " $config_file | awk '{print $2}'`
     if [ -z "$consts_file" ]; then
-	warn "Cannot find consts_file in $entry_dir/$descript_fname!"
+	warn "Cannot find CONSTS_ENTRY_FILE in $config_file!"
 	exit 1
     fi
     consts_file=$entry_dir/$consts_file
