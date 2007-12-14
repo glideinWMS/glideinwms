@@ -6,13 +6,34 @@
 #
 #######################################################
 
-import os,string
+import os,os.path,shutil,string
 import cgWParams
 import cgWDictFile
 import cgWCreate
 import cgWConsts
 
-class glideinMainDicts(cgWDictFile.glideinMainDicts):
+# internal, can only be used for multiple inheritance
+class glideinCommonDicts:
+    def create_dirs(self):
+        cgWDictFile.create_dirs(self)
+        try:
+            os.mkdir(self.monitor_dir)
+        except OSError,e:
+            cgWDictFile.delete_dirs(self)
+            return RuntimeError,"Failed to create dir: %s"%e
+
+        try:
+            os.symlink(slef.monitor_dir,os.path.join(self.submit_dir,"monitor"))
+        except OSError, e:
+            cgWDictFile.delete_dirs(self)
+            shutil.rmtree(self.monitor_dir)
+            raise RuntimeError,"Failed to create symlink %s: %s"%(os.path.join(self.submit_dir,"monitor"),e)
+
+    def delete_dirs(self):
+        cgWDictFile.delete_dirs(self)
+        shutil.rmtree(self.monitor_dir)
+
+class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
     def __init__(self,params):
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir)
         self.monitor_dir=params.monitor_dir
@@ -62,7 +83,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
 
-class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
+class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
     def __init__(self,
                  glidein_main_dicts, # must be an instance of glideinMainDicts
                  entry_name):
@@ -290,14 +311,25 @@ def populate_job_descript(job_descript_dict,        # will be modified
         job_descript_dict.add('ProxyURL',entry_params.proxy_url)
 
     
+#######################
+# Simply symlink a file
+def symlink_file(infile,outfile):
+    try:
+        os.symlink(infile,outfile)
+    except IOError, e:
+        raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.15 2007/12/14 14:36:11 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.16 2007/12/14 16:28:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.16  2007/12/14 16:28:53  sfiligoi
+#  Move directory creation into the Dict classes
+#
 #  Revision 1.15  2007/12/14 14:36:11  sfiligoi
 #  Make saving optional if the dictionary has not been changed
 #

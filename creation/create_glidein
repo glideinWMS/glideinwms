@@ -1,6 +1,5 @@
 #!/bin/env python
 
-import popen2
 import os
 import copy
 import sys
@@ -23,51 +22,19 @@ def main(params):
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
     glidein_dicts_obj.populate()
 
-    create_dir(glidein_dicts_obj.main_dicts.submit_dir)
+    glidein_dicts_obj.create_dirs()
     try:
-        # create log submit subdir
-        create_dir(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,"log")) # no try/except needed, will be deleted by external except if needed
+        # save files in dictionaries
+        glidein_dicts_obj.save()
+        glidein_dicts_obj.set_readonly(True)
 
-        # create entry dirs, including internal log dirs
-        for entry_name in glidein_dicts_obj.entry_list:
-            entry_dir=glidein_dicts_obj.entry_dicts[entry_name].submit_dir
-            create_dir(entry_dir)
-            create_dir(os.path.join(entry_dir,"log"))
-        
-        create_dir(glidein_dicts_obj.main_dicts.stage_dir)
-        try:
-            # create entry dirs
-            for entry_name in glidein_dicts_obj.entry_list:
-                entry_dir=glidein_dicts_obj.entry_dicts[entry_name].stage_dir
-                create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
+        # copy the submit files
+        copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
+        copy_submit_file(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
-            create_dir(glidein_dicts_obj.main_dicts.monitor_dir)
-            try:
-               # create entry dirs
-               for entry_name in glidein_dicts_obj.entry_list:
-                   entry_dir=glidein_dicts_obj.entry_dicts[entry_name].monitor_dir
-                   create_dir(entry_dir) # no try/except needed, will be deleted by external except if needed
-                    
-               # make a link from the submit dir to the monitor dir
-               symlink_file(glidein_dicts_obj.main_dicts.monitor_dir,os.path.join(glidein_dicts_obj.main_dicts.submit_dir)+"/monitor")
-
-               # save files in dictionaries
-               glidein_dicts_obj.save()
-               glidein_dicts_obj.set_readonly(True)
-
-               # copy the submit files
-               copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
-               copy_submit_file(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
-
-               params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
-            except:
-               shutil.rmtree(glidein_dicts_obj.main_dicts.monitor_dir)
-               raise
-        except:
-            shutil.rmtree(glidein_dicts_obj.main_dicts.stage_dir)
-            raise
+        params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
     except:
-        shutil.rmtree(glidein_dicts_obj.main_dicts.submit_dir)
+        glidein_dicts_obj.delete_dirs()
         raise
 
     print "Created glidein '%s'"%params.glidein_name
@@ -84,14 +51,6 @@ def main(params):
 
 
 #####################
-# Simply create a dir
-def create_dir(dirname):
-    try:
-        os.mkdir(dirname)
-    except OSError, e:
-        raise RuntimeError, "Cannot create dir %s: %s"%(dirname,e)
-
-#####################
 # Simply copy a file
 def copy_file(infile,outfile):
     try:
@@ -99,15 +58,6 @@ def copy_file(infile,outfile):
     except IOError, e:
         raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
         
-#######################
-# Simply symlink a file
-def symlink_file(infile,outfile):
-    try:
-        os.symlink(infile,outfile)
-    except IOError, e:
-        raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
-        
-
 #####################
 # Copy a regular file
 def copy_submit_file(filename,submit_dir,org_dir):
@@ -137,10 +87,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.122 2007/12/13 23:27:26 sfiligoi Exp $
+# $Id: create_glidein,v 1.123 2007/12/14 16:28:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.123  2007/12/14 16:28:53  sfiligoi
+#  Move directory creation into the Dict classes
+#
 #  Revision 1.122  2007/12/13 23:27:26  sfiligoi
 #  Fix typo
 #

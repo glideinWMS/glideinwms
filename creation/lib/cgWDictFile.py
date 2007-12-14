@@ -5,7 +5,7 @@
 #
 #######################################################
 
-import os.path,string,popen2
+import os,os.path,shutil,string,popen2
 import cgWConsts
 
 ########################################
@@ -775,10 +775,12 @@ def save_entry_dicts(entry_dicts,                   # will update in place, too
 ################################################
 
 # internal, do not use directly from outside the module
-class glideinDicts:
+class glideinCommonDicts:
     def __init__(self):
         self.dicts=None
-        raise RuntimeError, "glideinDicts should never be directly used"
+        self.submit_dir=None
+        self.stage_dir=None
+        raise RuntimeError, "glideinCommonDicts should never be directly used"
         
     def keys(self):
         return self.dicts.keys()
@@ -793,8 +795,24 @@ class glideinDicts:
         for el in self.dicts.values():
             el.set_readonly(readonly)
 
+    def create_dirs(self):
+        try:
+            os.mkdir(self.submit_dir)
+            try:
+                os.mkdir(os.path.join(self.submit_dir,'log'))
+                os.mkdir(self.stage_dir)
+            except:
+                shutil.rmtree(self.submit_dir)
+                raise
+        except OSError,e:
+            return RuntimeError,"Failed to create dir: %s"%e
 
-class glideinMainDicts(glideinDicts):
+    def delete_dirs(self):
+        shutil.rmtree(self.submit_dir)
+        shutil.rmtree(self.stage_dir)
+
+
+class glideinMainDicts(glideinCommonDicts):
     def __init__(self,submit_dir,stage_dir):
         self.submit_dir=submit_dir
         self.stage_dir=stage_dir
@@ -824,7 +842,7 @@ class glideinMainDicts(glideinDicts):
                 return False
         return True
         
-class glideinEntryDicts(glideinDicts):
+class glideinEntryDicts(glideinCommonDicts):
     def __init__(self,
                  glidein_main_dicts, # must be an instance of glideinMainDicts
                  entry_name):
@@ -914,6 +932,18 @@ class glideinDicts:
         for entry_name in self.entry_list:
             self.entry_dicts[entry_name].save_final(set_readonly=set_readonly)
    
+    def create_dirs(self):
+        self.main_dicts.create_dirs()
+        try:
+            for entry_name in self.entry_list:
+                self.entry_dicts[entry_name].create_dirs()
+        except:
+            self.main_dicts.delete_dirs() # this will clean up also any created entries
+            raise
+        
+    def delete_dirs(self):
+        self.main_dicts.delete_dirs() # this will clean up also all entries
+
     def is_equal(self,other,             # other must be of the same class
                  compare_submit_dir=False,compare_stage_dir=False,
                  compare_fnames=False): 
@@ -943,18 +973,15 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.38 2007/12/14 14:36:11 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.39 2007/12/14 16:28:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.39  2007/12/14 16:28:53  sfiligoi
+#  Move directory creation into the Dict classes
+#
 #  Revision 1.38  2007/12/14 14:36:11  sfiligoi
 #  Make saving optional if the dictionary has not been changed
-#
-#  Revision 1.37  2007/12/14 00:08:59  sfiligoi
-#  Fix typo
-#
-#  Revision 1.36  2007/12/14 00:06:04  sfiligoi
-#  Fix error message handling
 #
 #  Revision 1.35  2007/12/13 23:26:20  sfiligoi
 #  Get attributes out of stage and only into submit
