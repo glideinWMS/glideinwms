@@ -807,7 +807,7 @@ def save_common_dicts(dicts,     # will update in place, too
     refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('file_list','subsystem_list'):
-        dicts[k].save_files(,allow_overwrite=True)
+        dicts[k].save_files(allow_overwrite=True)
     # then save the lists
     for k in ('file_list','subsystem_list'):
         dicts[k].save(set_readonly=set_readonly)
@@ -1097,10 +1097,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.46 2007/12/14 22:46:33 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.47 2007/12/14 22:47:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.47  2007/12/14 22:47:04  sfiligoi
+#  Fix typo
+#
 #  Revision 1.46  2007/12/14 22:46:33  sfiligoi
 #  Temporary fix for special file handling
 #
