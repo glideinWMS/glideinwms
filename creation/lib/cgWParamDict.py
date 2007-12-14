@@ -42,7 +42,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #load system files
         for file_name in ('parse_starterlog.awk',"condor_config"):
             self.dicts['file_list'].add_from_file(file_name,None,os.path.join(params.src_dir,file_name))
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False) # will be modified when attrs processed
+        self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
@@ -98,7 +98,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             add_file_unparsed(file,self.dicts)
 
         #load system files
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False) # will be modified when attrs processed
+        self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
         for file_name in ("nodes.blacklist",):
             self.dicts['file_list'].add_from_file(file_name,"nocache",os.path.join(params.src_dir,file_name))
         
@@ -294,10 +294,13 @@ def populate_job_descript(job_descript_dict,        # will be modified
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.14 2007/12/14 00:04:36 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.15 2007/12/14 14:36:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.15  2007/12/14 14:36:11  sfiligoi
+#  Make saving optional if the dictionary has not been changed
+#
 #  Revision 1.14  2007/12/14 00:04:36  sfiligoi
 #  Fix typo
 #

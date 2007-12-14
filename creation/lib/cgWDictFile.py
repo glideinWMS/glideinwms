@@ -24,6 +24,7 @@ class DictFile:
         self.order_matters=order_matters
 
         self.is_readonly=False
+        self.changed=True
         
         self.keys=[]
         self.vals={}
@@ -46,6 +47,7 @@ class DictFile:
     def erase(self):
         self.keys=[]
         self.vals={}
+        self.changed=True
         
     def set_readonly(self,readonly=True):
         self.is_readonly=readonly
@@ -60,11 +62,19 @@ class DictFile:
                 raise RuntimeError, "Key '%s' already exists"%key
             elif not self.is_compatible(self.vals[key],val):
                 raise RuntimeError, "Key '%s': Value %s not compatible with old value %s"%(key,val,self.vals[key])
+            if self.vals[key]==val:
+                return # nothing to do
         else:
             self.keys.append(key)
         self.vals[key]=val
+        self.changed=True
+        
+    def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
+             sort_keys=None,set_readonly=True,
+             save_only_if_changed=True): 
+        if save_only_if_changed and (not self.changed):
+            return # no change -> don't save
 
-    def save(self, dir=None, fname=None,sort_keys=None,set_readonly=True): # if dir and/or fname are not specified, use the defaults specified in __init__
         if dir==None:
             dir=self.dir
         if fname==None:
@@ -97,11 +107,14 @@ class DictFile:
 
         if set_readonly:
             self.set_readonly(True)
+
+        self.changed=False
         return
 
     def load(self, dir=None, fname=None,
-             change_self=True, # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
-             erase_first=True): # if True, delete old content first
+             change_self=True,        # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
+             erase_first=True,        # if True, delete old content first
+             set_not_changed=True):   # if True, set self.changed to False
         if dir==None:
             dir=self.dir
         if fname==None:
@@ -134,6 +147,9 @@ class DictFile:
         if change_self:
             self.dir=dir
             self.fname=fname
+
+        if set_not_changed:
+            self.changed=False # the memory copy is now same as the one on disk
         return
 
     def is_equal(self,other,         # other must be of the same class
@@ -229,6 +245,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
         else:
             self.keys2.append(val)
         self.vals2[val]=key
+        self.changed=True
     
     def is_equal(self,other,         # other must be of the same class
                  compare_dir=False,compare_fname=False,
@@ -541,7 +558,7 @@ class VarsDictFile(DictFile):
         elif user_name==True:
             user_name='+'
             
-        self.add(key,(type_str,val_default,req_str,export_condor_str,user_name),allow_overwrite)
+        self.add(key,(type_str,val_default,condor_name,req_str,export_condor_str,user_name),allow_overwrite)
         
     def format_val(self,key):
         return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4],self.vals[key][5])
@@ -926,10 +943,16 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.36 2007/12/14 00:06:04 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.38 2007/12/14 14:36:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.38  2007/12/14 14:36:11  sfiligoi
+#  Make saving optional if the dictionary has not been changed
+#
+#  Revision 1.37  2007/12/14 00:08:59  sfiligoi
+#  Fix typo
+#
 #  Revision 1.36  2007/12/14 00:06:04  sfiligoi
 #  Fix error message handling
 #
