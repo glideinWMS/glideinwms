@@ -807,7 +807,7 @@ def save_common_dicts(dicts,     # will update in place, too
     refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('file_list','subsystem_list'):
-        dicts[k].save_files()
+        dicts[k].save_files(,allow_overwrite=True)
     # then save the lists
     for k in ('file_list','subsystem_list'):
         dicts[k].save(set_readonly=set_readonly)
@@ -1097,27 +1097,18 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.45 2007/12/14 22:42:26 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.46 2007/12/14 22:46:33 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
-#  Revision 1.45  2007/12/14 22:42:26  sfiligoi
-#  Fix special file handling
-#
-#  Revision 1.44  2007/12/14 22:40:50  sfiligoi
-#  Fix special file handling
-#
-#  Revision 1.43  2007/12/14 22:35:52  sfiligoi
-#  Fix special file handling
+#  Revision 1.46  2007/12/14 22:46:33  sfiligoi
+#  Temporary fix for special file handling
 #
 #  Revision 1.42  2007/12/14 22:28:08  sfiligoi
 #  Change file_list format and remove script_list (merged into file_list now)
 #
 #  Revision 1.41  2007/12/14 18:35:43  sfiligoi
 #  First steps toward reuse, and fixed CondorJDLDictFile.is_equal
-#
-#  Revision 1.40  2007/12/14 16:49:59  sfiligoi
-#  Fix typo
 #
 #  Revision 1.39  2007/12/14 16:28:53  sfiligoi
 #  Move directory creation into the Dict classes
