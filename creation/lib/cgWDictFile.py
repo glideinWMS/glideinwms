@@ -805,7 +805,7 @@ class glideinCommonDicts:
                 shutil.rmtree(self.submit_dir)
                 raise
         except OSError,e:
-            return RuntimeError,"Failed to create dir: %s"%e
+            raise RuntimeError,"Failed to create dir: %s"%e
 
     def delete_dirs(self):
         shutil.rmtree(self.submit_dir)
@@ -973,10 +973,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.39 2007/12/14 16:28:53 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.40 2007/12/14 16:49:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.40  2007/12/14 16:49:59  sfiligoi
+#  Fix typo
+#
 #  Revision 1.39  2007/12/14 16:28:53  sfiligoi
 #  Move directory creation into the Dict classes
 #

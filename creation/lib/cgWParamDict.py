@@ -20,7 +20,7 @@ class glideinCommonDicts:
             os.mkdir(self.monitor_dir)
         except OSError,e:
             cgWDictFile.glideinCommonDicts.delete_dirs(self)
-            return RuntimeError,"Failed to create dir: %s"%e
+            raise RuntimeError,"Failed to create dir: %s"%e
 
         try:
             os.symlink(slef.monitor_dir,os.path.join(self.submit_dir,"monitor"))
@@ -323,10 +323,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.17 2007/12/14 16:30:07 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.18 2007/12/14 16:53:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.18  2007/12/14 16:53:58  sfiligoi
+#  Fix typo
+#
 #  Revision 1.17  2007/12/14 16:30:07  sfiligoi
 #  Fix typo
 #
