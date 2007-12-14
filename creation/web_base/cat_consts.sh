@@ -28,9 +28,9 @@ function add_config_line {
 if [ "$entry_dir" == "main" ]; then 
     ###################################
     # Find file names
-    descript_fname=`grep "^descript_fname " $config_file | awk '{print $3}'`
+    descript_fname=`grep "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
     if [ -z "$descript_fname" ]; then
-	warn "Cannot find descript_fname in $config_file!"
+	warn "Cannot find DESCRIPTION_FILE in $config_file!"
 	exit 1
     fi
 
@@ -42,9 +42,9 @@ if [ "$entry_dir" == "main" ]; then
 else:
     ###################################
     # Find file names
-    descript_fname=`grep "^descript_entry_fname " $config_file | awk '{print $3}'`
+    descript_fname=`grep "^DESCRIPTION_ENTRY_FILE " $config_file | awk '{print $2}'`
     if [ -z "$descript_fname" ]; then
-	warn "Cannot find descript_entry_fname in $config_file!"
+	warn "Cannot find DESCRIPTION_ENTRY_FILE in $config_file!"
 	exit 1
     fi
 
