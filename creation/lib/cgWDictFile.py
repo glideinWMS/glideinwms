@@ -497,12 +497,12 @@ class VarsDictFile(DictFile):
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
         if len(val)!=6:
-            raise RuntimeError, "Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%val
+            raise RuntimeError, "Values '%s' not (Type,Default,CondorName,Required,Export,UserName)"%str(val)
         if not (val[0] in ('C','S','I')):
-            raise RuntimeError,"Invalid var type '%s', should be either C, S or I in val: %s"%(val[1],val)
+            raise RuntimeError,"Invalid var type '%s', should be either C, S or I in val: %s"%(val[1],str(val))
         for i,t in ((3,"Required"),(4,"Export")):
             if not (val[i] in ('Y','N')):
-                raise RuntimeError,"Invalid var %s '%s', should be either Y or N in val: %s"%(t,val[i],val)
+                raise RuntimeError,"Invalid var %s '%s', should be either Y or N in val: %s"%(t,val[i],str(val))
 
         return DictFile.add(self,key,val,allow_overwrite)
 
@@ -541,7 +541,7 @@ class VarsDictFile(DictFile):
         elif user_name==True:
             user_name='+'
             
-        self.add(key,(type_str,val_default,req_str,export_condor_str,user_name),allow_overwrite)
+        self.add(key,(type_str,val_default,condor_name,req_str,export_condor_str,user_name),allow_overwrite)
         
     def format_val(self,key):
         return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4],self.vals[key][5])
@@ -926,10 +926,16 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.35 2007/12/13 23:26:20 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.37 2007/12/14 00:08:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.37  2007/12/14 00:08:59  sfiligoi
+#  Fix typo
+#
+#  Revision 1.36  2007/12/14 00:06:04  sfiligoi
+#  Fix error message handling
+#
 #  Revision 1.35  2007/12/13 23:26:20  sfiligoi
 #  Get attributes out of stage and only into submit
 #

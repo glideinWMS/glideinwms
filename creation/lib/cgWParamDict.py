@@ -275,7 +275,7 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
                 if do_job_publish and (attr_var_job_publish=='-'):
                     raise RuntimeError, "Cannot force job publishing"
             else:
-                dicts['vars'].add(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
+                dicts['vars'].add_extended(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
 
 def populate_job_descript(job_descript_dict,        # will be modified
                           entry_name,entry_params):
@@ -294,10 +294,13 @@ def populate_job_descript(job_descript_dict,        # will be modified
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.13 2007/12/13 23:54:51 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.14 2007/12/14 00:04:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.14  2007/12/14 00:04:36  sfiligoi
+#  Fix typo
+#
 #  Revision 1.13  2007/12/13 23:54:51  sfiligoi
 #  Fix entry attr processing
 #
