@@ -464,6 +464,9 @@ class SimpleFileDictFile(DictFile):
 # cond_download has a special value of TRUE
 # config_out has a special value of FALSE
 class FileDictFile(SimpleFileDictFile):
+    def add_placeholder(self,key,allow_overwrite=False):
+        DictFile.add(self,key,("","","","",""),allow_overwrite)
+
     def add(self,key,val,              # will load from val[0]
             allow_overwrite=False):
         if not (type(val) in (type(()),type([]))):
@@ -1094,10 +1097,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.42 2007/12/14 22:28:08 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.43 2007/12/14 22:35:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.43  2007/12/14 22:35:52  sfiligoi
+#  Fix special file handling
+#
 #  Revision 1.42  2007/12/14 22:28:08  sfiligoi
 #  Change file_list format and remove script_list (merged into file_list now)
 #

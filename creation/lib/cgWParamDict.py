@@ -44,7 +44,8 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             params=self.params
 
         # put default files in place first
-        cgWDictFile.refresh_file_list(self.dicts,True)
+        self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
         
         # Load initial system scripts
         # These should be executed before the other scripts
@@ -117,13 +118,14 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
         entry_params=params.entries[self.entry_name]
 
+        # put default files in place first
+        self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
+
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',):
             self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
-
-        # put default files in place first
-        cgWDictFile.refresh_file_list(self.dicts,False)
 
         # put user files in stage
         for file in entry_params.files:
@@ -334,10 +336,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.20 2007/12/14 22:28:08 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.21 2007/12/14 22:35:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.21  2007/12/14 22:35:52  sfiligoi
+#  Fix special file handling
+#
 #  Revision 1.20  2007/12/14 22:28:08  sfiligoi
 #  Change file_list format and remove script_list (merged into file_list now)
 #
