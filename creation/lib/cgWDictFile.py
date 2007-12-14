@@ -800,14 +800,14 @@ def save_common_dicts(dicts,     # will update in place, too
                      set_readonly=True):
     # make sure decription is up to date
     refresh_description(dicts)
+    # make sure we have all the files in the file list
+    refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('file_list','subsystem_list'):
         dicts[k].save_files()
     # save the immutable ones
     for k in ('consts','vars','description'):
         dicts[k].save(set_readonly=set_readonly)
-    # make sure we have all the files in the file list
-    refresh_file_list(dicts,is_main)
     # then save the lists
     for k in ('file_list','subsystem_list'):
         dicts[k].save(set_readonly=set_readonly)
@@ -1097,10 +1097,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.43 2007/12/14 22:35:52 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.44 2007/12/14 22:40:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.44  2007/12/14 22:40:50  sfiligoi
+#  Fix special file handling
+#
 #  Revision 1.43  2007/12/14 22:35:52  sfiligoi
 #  Fix special file handling
 #
