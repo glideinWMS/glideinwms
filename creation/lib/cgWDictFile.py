@@ -431,6 +431,24 @@ class FileDictFile(DictFile):
                     raise RuntimeError,"Error writing into file %s"%filepath
             finally:
                 fd.close()
+
+    def reuse(self,other,
+              compare_dir=False,compare_fname=False,
+              compare_keys=None, # if None, use order_matters
+              compare_files_fname=False):
+        if compare_dir and (self.dir!=other.dir):
+            return # nothing to do, different dirs
+        if compare_fname and (self.fname!=other.fname):
+            return # nothing to do, different fnames
+        if compare_keys==None:
+            compare_keys=self.order_matters
+        if compare_keys and (self.keys!=other.keys):
+            return # nothing to do, different key order
+
+        # to be finished
+        raise RuntimeError, "Not yet implemented"
+        
+        return
             
 # mutable file list, nocache is the special keyword 
 class MutableFileDictFile(FileDictFile):
@@ -620,6 +638,14 @@ class CondorJDLDictFile(DictFile):
         else:
             return self.add(arr[0],arr[2])
 
+    def is_equal(self,other,         # other must be of the same class
+                 compare_dir=False,compare_fname=False,
+                 compare_keys=None): # if None, use order_matters
+        if self.jobs_in_cluster==other.jobs_in_cluster:
+            return DictFile.is_equal(other,compare_dir,compare_fname,compare_keys)
+        else:
+            return False
+
 ################################################
 #
 # Functions that create default dictionaries
@@ -770,6 +796,44 @@ def save_entry_dicts(entry_dicts,                   # will update in place, too
 
 ################################################
 #
+# Functions that reuse dictionaries
+#
+################################################
+
+def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
+    if dicts[key].is_equal(other_dicts[key],compare_dir=True,compare_fname=False,compare_keys=compare_keys):
+        # if equal, just use the old one, and mark it as unchanged and readonly
+        dicts[key]=copy.deepcopy(other_dicts[key])
+        dicts[key].changed=False
+        dicts[key].set_readonly(True)
+
+def reuse_file_dict(dicts,other_dicts,key):
+    dicts[k].reuse(other_dicts[k])
+    if dicts[key].changed==False:
+        dicts[key].set_readonly(True)
+
+def reuse_common_dicts(dicts, other_dicts):
+    # check simple dictionaries
+    for k in ('consts','vars','attrs','params'):
+        reuse_simple_dict(dicts,other_dicts,k)
+    # check file-based dictionaries
+    for k in ('file_list','script_list','subsystem_list'):
+        reuse_file_dict(dicts,other_dicts,k)
+
+    pass
+
+def reuse_main_dicts(main_dicts, other_main_dicts):
+    reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
+    reuse_common_dicts(main_dicts, other_main_dicts)
+    pass
+
+def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
+    reuse_simple_dict(entry_dicts, other_entry_dicts,'job_descript')
+    reuse_common_dicts(entry_dicts, other_entry_dicts)
+    pass
+
+################################################
+#
 # Handle dicts as Classes
 #
 ################################################
@@ -841,6 +905,15 @@ class glideinMainDicts(glideinCommonDicts):
             if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
                 return False
         return True
+
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.submit_dir!=other.submit_dir:
+            raise RuntimeError,"Cannot change submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
+        if self.stage_dir!=other.stage_dir:
+            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+
+        reuse_main_dicts(self.dicts,other.dicts)
         
 class glideinEntryDicts(glideinCommonDicts):
     def __init__(self,
@@ -877,6 +950,15 @@ class glideinEntryDicts(glideinCommonDicts):
                 return False
         return True
 
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.submit_dir!=other.submit_dir:
+            raise RuntimeError,"Cannot change entry submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
+        if self.stage_dir!=other.stage_dir:
+            raise RuntimeError,"Cannot change entry stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+
+        reuse_entry_dicts(self.dicts,other.dicts,self.entry_name)
+        
 ################################################
 #
 # This Class contains coth the main and
@@ -973,10 +1055,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.40 2007/12/14 16:49:59 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.41 2007/12/14 18:35:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.41  2007/12/14 18:35:43  sfiligoi
+#  First steps toward reuse, and fixed CondorJDLDictFile.is_equal
+#
 #  Revision 1.40  2007/12/14 16:49:59  sfiligoi
 #  Fix typo
 #
