@@ -15,22 +15,22 @@ import cgWConsts
 # internal, can only be used for multiple inheritance
 class glideinCommonDicts:
     def create_dirs(self):
-        cgWDictFile.create_dirs(self)
+        cgWDictFile.glideinCommonDicts.create_dirs(self)
         try:
             os.mkdir(self.monitor_dir)
         except OSError,e:
-            cgWDictFile.delete_dirs(self)
+            cgWDictFile.glideinCommonDicts.delete_dirs(self)
             return RuntimeError,"Failed to create dir: %s"%e
 
         try:
             os.symlink(slef.monitor_dir,os.path.join(self.submit_dir,"monitor"))
         except OSError, e:
-            cgWDictFile.delete_dirs(self)
+            cgWDictFile.glideinCommonDicts.delete_dirs(self)
             shutil.rmtree(self.monitor_dir)
             raise RuntimeError,"Failed to create symlink %s: %s"%(os.path.join(self.submit_dir,"monitor"),e)
 
     def delete_dirs(self):
-        cgWDictFile.delete_dirs(self)
+        cgWDictFile.glideinCommonDicts.delete_dirs(self)
         shutil.rmtree(self.monitor_dir)
 
 class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
@@ -323,10 +323,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.16 2007/12/14 16:28:53 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.17 2007/12/14 16:30:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.17  2007/12/14 16:30:07  sfiligoi
+#  Fix typo
+#
 #  Revision 1.16  2007/12/14 16:28:53  sfiligoi
 #  Move directory creation into the Dict classes
 #
