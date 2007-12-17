@@ -30,4 +30,4 @@ export GLIDEIN_PARAMS
 export GLIDEIN_SCHEDD=`grep -i "^Schedd "  entry_${GLIDEIN_ENTRY_NAME}/job.descript | awk '{print $2}'`
 
 export GLIDEIN_LOGNR=`date +%Y%m%d`
-condor_submit -append "$GLIDEIN_GRIDOPTS" -name $GLIDEIN_SCHEDD entry_${GLIDEIN_ENTRY_NAME}/job.condor
+condor_submit -name $GLIDEIN_SCHEDD entry_${GLIDEIN_ENTRY_NAME}/job.condor
