@@ -642,7 +642,7 @@ fi
 
 ##############################################
 # Extract other infor from the descript files
-for id in file_list subsystem_list last_script
+for id in file_list last_script
 do
   id_line=`grep "^$id " "$descript_file"`
   if [ $? -ne 0 ]; then
@@ -657,7 +657,7 @@ done
 
 # Repeat for entry
 
-for id in file_list subsystem_list
+for id in file_list 
 do
   id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
   if [ $? -ne 0 ]; then
