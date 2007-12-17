@@ -376,7 +376,7 @@ function check_file_signature {
 		sha1sum -c $tmp_signname 1>&2
 		cfs_rc=$?
 	    else
-		(cd $cfs_entry_dir; sha1sum -c $tmp_signname) 1>&2
+		(cd $cfs_entry_dir; sha1sum -c ../$tmp_signname) 1>&2
 		cfs_rc=$?
 	    fi
 	    if [ $cfs_rc -ne 0 ]; then
@@ -400,15 +400,15 @@ function fetch_file_regular {
 function fetch_file {
     if [ $# -ne 6 ]; then
 	warn "Not enough arguments in fetch_file $@" 1>&2
-	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
+	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
     fi
 
     fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6"
     if [ $? -ne 0 ]; then
-	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
+	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
     fi
     return 0
@@ -514,8 +514,8 @@ function fetch_file_base {
 function fetch_subsystem {
     fetch_subsystem_base "$1" "$2" "$3" "$4"
     if [ $? -ne 0 ]; then
-	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
+	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
     fi
     return 0
@@ -566,8 +566,8 @@ function fetch_subsystem_base {
 function try_fetch_subsystem {
     if [ $# -ne 6 ]; then
 	warn "Not enough arguments in try_fetch_subsystem $@" 1>&2
-	cd "$start_dir";rm -fR "$work_dir"
 	sleep $sleep_time # wait a bit, to reduce lost glideins
+	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
     fi
     
@@ -602,8 +602,8 @@ fetch_file_regular "main" "$descript_file"
 signature_file_line=`grep "^signature " "$descript_file"`
 if [ $? -ne 0 ]; then
     warn "No signature in description file!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
 fi
 signature_file=`echo $signature_file_line|awk '{print $2}'`
@@ -614,8 +614,8 @@ echo "$sign_sha1  $signature_file">signature.sha1.test
 sha1sum -c signature.sha1.test 1>&2
 if [ $? -ne 0 ]; then
     warn "Corrupted signature file '$signature_file'!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
 fi
 # for simplicity use a fixed name for signature file
@@ -626,8 +626,8 @@ fetch_file_regular "$short_entry_dir" "$descript_entry_file"
 signature_entry_file_line=`grep "^signature " "$entry_dir/$descript_entry_file"`
 if [ $? -ne 0 ]; then
     warn "No signature in description file for entry!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
 fi
 signature_entry_file=`echo $signature_entry_file_line|awk '{print $2}'`
@@ -638,8 +638,8 @@ echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
 (cd $entry_dir; sha1sum -c signature.sha1.test) 1>&2
 if [ $? -ne 0 ]; then
     warn "Corrupted entry signature file '$signature_entry_file'!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
 fi
 # for simplicity use a fixed name for signature file
@@ -655,16 +655,16 @@ check_signature=1
 check_file_signature "main" "$descript_file"
 if [ $? -ne 0 ]; then
     warn "Corrupted description file!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
 fi
 
 check_file_signature "$short_entry_dir" "$descript_entry_file"
 if [ $? -ne 0 ]; then
     warn "Corrupted description file for entry!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
 fi
 
@@ -676,8 +676,8 @@ do
   id_line=`grep "^$id " "$descript_file"`
   if [ $? -ne 0 ]; then
     warn "No '$id' in description file!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
   fi
   id_val=`echo $id_line|awk '{print $2}'`
@@ -691,8 +691,8 @@ do
   id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
   if [ $? -ne 0 ]; then
     warn "No '$id' in entry description file!" 1>&2
-    cd "$start_dir";rm -fR "$work_dir"
     sleep $sleep_time # wait a bit, to reduce lost glideins
+    cd "$start_dir";rm -fR "$work_dir"
     exit 1
   fi
   id_var="${id}_entry"
@@ -745,8 +745,8 @@ echo "# --- Last Script values ---" >> glidein_config
 ret=$?
 if [ $ret -ne 0 ]; then
   warn "Error running '$last_script'" 1>&2
-  cd "$start_dir";rm -fR "$work_dir"
   sleep $sleep_time # wait a bit, to reduce lost glideins
+  cd "$start_dir";rm -fR "$work_dir"
   exit 1
 fi
 
