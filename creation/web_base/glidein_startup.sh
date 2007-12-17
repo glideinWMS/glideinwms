@@ -430,7 +430,7 @@ function fetch_file_try {
     fi
 
     if [ "$fft_get_ss" == "1" ]; then
-       fetch_file_base "$fft_entry_dir" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$ttf_config_out"
+       fetch_file_base "$fft_entry_dir" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out"
        fft_rc=$?
     fi
 
@@ -446,11 +446,13 @@ function fetch_file_base {
 
     if [ "$ffb_entry_dir" == "main" ]; then
 	ffb_repository="$repository_url"
+	ffb_tmp_outname="$ffb_real_fname"
 	ffb_outname="$ffb_target_fname"
 	ffb_desc_fname="$fname"
 	ffb_signature="signature.sha1"
     else
 	ffb_repository="$repository_url/$ffb_entry_dir"
+	ffb_tmp_outname="$ffb_entry_dir/$ffb_real_fname"
 	ffb_outname="$ffb_entry_dir/$ffb_target_fname"
 	ffb_desc_fname="$ffb_entry_dir/$fname"
 	ffb_signature="$ffb_entry_dir/signature.sha1"
@@ -463,13 +465,13 @@ function fetch_file_base {
 
     # download file
     if [ "$proxy_url" == "None" ]; then # no Squid defined, use the defaults
-	wget $ffb_nocache_str -q  -O "$ffb_outname" "$ffb_repository/$ffb_real_fname"
+	wget $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname"
 	if [ $? -ne 0 ]; then
 	    warn "Failed to load file '$ffb_real_fname' from '$ffb_repository'" 1>&2
 	    return 1
 	fi
     else  # I have a Squid
-	env http_proxy=$proxy_url wget  $ffb_nocache_str -q  -O "$ffb_outname" "$ffb_repository/$ffb_real_fname" 
+	env http_proxy=$proxy_url wget  $ffb_nocache_str -q  -O "$ffb_tmp_outname" "$ffb_repository/$ffb_real_fname" 
 	if [ $? -ne 0 ]; then
 	    # if Squid fails exit, because real jobs can try to use it too
 	    warn "Failed to load file '$ffb_real_fname' from '$repository_url' using proxy '$proxy_url'" 1>&2
@@ -479,6 +481,12 @@ function fetch_file_base {
 
     # check signature
     check_file_signature "$ffb_entry_dir" "$ffb_target_fname"
+    if [ $? -ne 0 ]; then
+      return 1
+    fi
+
+    # rename it to the correct final name
+    mv "$ffb_tmp_outname=" "$ffb_outname="
     if [ $? -ne 0 ]; then
       return 1
     fi
