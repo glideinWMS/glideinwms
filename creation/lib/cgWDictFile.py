@@ -171,7 +171,7 @@ class DictFile:
         return True # everything is compatible
     
     def file_header(self):
-        return None # no header
+        return "# File: %s\n#"%self.fname
     
     def file_footer(self):
         return None # no footer
@@ -1097,12 +1097,12 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.49 2007/12/17 19:49:10 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.50 2007/12/17 20:32:02 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
-#  Revision 1.49  2007/12/17 19:49:10  sfiligoi
-#  Fix typo
+#  Revision 1.50  2007/12/17 20:32:02  sfiligoi
+#  Add a deafult header to all files, this way we don't have empty files
 #
 #  Revision 1.48  2007/12/17 15:57:39  sfiligoi
 #  Fix get_immutable_files
