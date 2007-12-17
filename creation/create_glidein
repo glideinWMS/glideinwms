@@ -63,7 +63,7 @@ def copy_file(infile,outfile):
 # Copy a regular file
 def copy_submit_exe(filename,submit_dir,org_dir):
     copy_file(os.path.join(org_dir,filename),submit_dir)
-    os.chmod(os.join.path(submit_dir,filename),0544)
+    os.chmod(os.path.join(submit_dir,filename),0544)
     
 ############################################################
 #
@@ -88,18 +88,18 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.124 2007/12/17 18:44:47 sfiligoi Exp $
+# $Id: create_glidein,v 1.125 2007/12/17 18:53:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.125  2007/12/17 18:53:45  sfiligoi
+#  Fix typo
+#
 #  Revision 1.124  2007/12/17 18:44:47  sfiligoi
 #  Add local start wrapper
 #
 #  Revision 1.123  2007/12/14 16:28:53  sfiligoi
 #  Move directory creation into the Dict classes
-#
-#  Revision 1.122  2007/12/13 23:27:26  sfiligoi
-#  Fix typo
 #
 #  Revision 1.121  2007/12/13 23:26:20  sfiligoi
 #  Get attributes out of stage and only into submit
