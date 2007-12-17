@@ -50,7 +50,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh','setup_x509.sh'):
-            self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
         for file in params.files:
@@ -58,15 +58,16 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
 
         #load condor tarball
         if params.condor.tar_file!=None: # condor tarball available
-            self.dicts['subsystem_list'].add_from_file(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),params.condor.tar_file)
+            self.dicts['file_list'].add_from_file(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),params.condor.tar_file)
         else: # create a new tarball
             condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
-            self.dicts['subsystem_list'].add_from_fd(cgWConsts.CONDOR_FILE,("TRUE",cgWConsts.CONDOR_DIR,cgWConsts.CONDOR_ATTR),condor_fd)
+            self.dicts['file_list'].add_from_fd(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),condor_fd)
             condor_fd.close()
+        dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
         for file_name in ('parse_starterlog.awk',"condor_config"):
-            self.dicts['file_list'].add_from_file(file_name,(file_name,"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
+            self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user attributes into config files
@@ -78,7 +79,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         
         # this must be the last script in the list
         for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-            self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
         # populate the glidein file
@@ -125,7 +126,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"validate_node.sh"):
-            self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
         for file in entry_params.files:
@@ -226,7 +227,7 @@ def add_file_unparsed(file,dicts):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
-        dicts['file_list'].add_from_file(relfname,(relfname,"exec","TRUE",'FALSE'),absfname)
+        dicts['file_list'].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -241,14 +242,15 @@ def add_file_unparsed(file,dicts):
         cond_attr=file.untar_options.cond_attr
 
 
-        dicts['file_list'].add_from_file(relfname,(relfname,"untar",cond_attr,config_out),absfname)
+        dicts['file_list'].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
         dicts['untar_cfg'].add(relfname,wnsubdir)
     else: # not executable nor tarball => simple file
         if is_const:
             val='regular'
+            dicts['file_list'].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
         else:
             val='nocache'
-        dicts['file_list'].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname)
+            dicts['file_list'].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
 
 #######################
 # Register an attribute
@@ -336,10 +338,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.23 2007/12/17 20:50:28 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.24 2007/12/17 21:00:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.24  2007/12/17 21:00:35  sfiligoi
+#  Fix condor tar handling and add timestamps to the user filenames
+#
 #  Revision 1.23  2007/12/17 20:50:28  sfiligoi
 #  Move subsystems into the file_list and add untar_cfg
 #
@@ -354,12 +359,6 @@ def symlink_file(infile,outfile):
 #
 #  Revision 1.15  2007/12/14 14:36:11  sfiligoi
 #  Make saving optional if the dictionary has not been changed
-#
-#  Revision 1.14  2007/12/14 00:04:36  sfiligoi
-#  Fix typo
-#
-#  Revision 1.13  2007/12/13 23:54:51  sfiligoi
-#  Fix entry attr processing
 #
 #  Revision 1.11  2007/12/13 22:35:10  sfiligoi
 #  Move entry specific arguments into the creation stage
