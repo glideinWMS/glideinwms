@@ -680,13 +680,13 @@ fetch_file_regular "$short_entry_dir" "$file_list_entry"
 while read file
 do
     fetch_file "main" $file
-done < "$file_list"
+done < `grep -v "^#" "$file_list"`
 
 # Fetch entry files
 while read file
 do
     fetch_file "$short_entry_dir" $file
-done < "$entry_dir/$file_list_entry"
+done < `grep -v "^#" "$entry_dir/$file_list_entry"`
 
 ###############################
 # Start the glidein main script
