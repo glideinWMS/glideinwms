@@ -557,9 +557,9 @@ function fetch_file_base {
     if [ "$ffb_config_out" != "FALSE" ]; then
 	if [ "$ffb_file_type" == "untar" ]; then
 	    # when untaring the original file is less interesting than the untar dir
-	    add_config_line "$ffb_config_out" "$ffb_untar_dir"
+	    add_config_line "$ffb_config_out" "$work_dir/$ffb_untar_dir"
 	else
-	    add_config_line "$ffb_config_out" "$ffb_outname"
+	    add_config_line "$ffb_config_out" "$work_dir/$ffb_outname"
 	fi
     fi
 
