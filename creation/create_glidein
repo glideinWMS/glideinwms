@@ -29,8 +29,9 @@ def main(params):
         glidein_dicts_obj.set_readonly(True)
 
         # copy the submit files
-        copy_submit_file(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
-        copy_submit_file(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
+        copy_submit_exe(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
+        copy_submit_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
+        copy_submit_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
         params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
     except:
@@ -60,9 +61,9 @@ def copy_file(infile,outfile):
         
 #####################
 # Copy a regular file
-def copy_submit_file(filename,submit_dir,org_dir):
+def copy_submit_exe(filename,submit_dir,org_dir):
     copy_file(os.path.join(org_dir,filename),submit_dir)
-
+    os.chmod(os.join.path(submit_dir,filename),0544)
     
 ############################################################
 #
@@ -87,10 +88,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.123 2007/12/14 16:28:53 sfiligoi Exp $
+# $Id: create_glidein,v 1.124 2007/12/17 18:44:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.124  2007/12/17 18:44:47  sfiligoi
+#  Add local start wrapper
+#
 #  Revision 1.123  2007/12/14 16:28:53  sfiligoi
 #  Move directory creation into the Dict classes
 #
