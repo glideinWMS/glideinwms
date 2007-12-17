@@ -486,7 +486,7 @@ function fetch_file_base {
     fi
 
     # rename it to the correct final name, if needed
-    if [ "$ffb_tmp_outname" != "$ffb_outname"]; then
+    if [ "$ffb_tmp_outname" != "$ffb_outname" ]; then
       mv "$ffb_tmp_outname" "$ffb_outname"
       if [ $? -ne 0 ]; then
         return 1

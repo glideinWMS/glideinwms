@@ -768,7 +768,7 @@ def refresh_description(dicts): # update in place
     description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
 
 def refresh_file_list(dicts,is_main): # update in place
-    entry_str="_STR"
+    entry_str="_ENTRY"
     if is_main:
         entry_str=""
     file_dict=dicts['file_list']
@@ -1097,15 +1097,15 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.48 2007/12/17 15:57:39 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.49 2007/12/17 19:49:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.49  2007/12/17 19:49:10  sfiligoi
+#  Fix typo
+#
 #  Revision 1.48  2007/12/17 15:57:39  sfiligoi
 #  Fix get_immutable_files
-#
-#  Revision 1.47  2007/12/14 22:47:04  sfiligoi
-#  Fix typo
 #
 #  Revision 1.46  2007/12/14 22:46:33  sfiligoi
 #  Temporary fix for special file handling
