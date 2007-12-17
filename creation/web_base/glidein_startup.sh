@@ -407,7 +407,7 @@ function get_untar_subdir {
 
     gus_config_file=`grep "^$gus_config_cfg " glidein_config | awk '{print $2}'`
     if [ -z "$gus_config_file" ]; then
-	warn "Error, cannot find '$gus_config_fname' in glidein_config!" 1>&2
+	warn "Error, cannot find '$gus_config_cfg' in glidein_config!" 1>&2
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
