@@ -460,7 +460,7 @@ class SimpleFileDictFile(DictFile):
             
 # file list
 # This one contains (real_fname,cache/exec,cond_download,config_out)
-# cache/exec should be one of: regular, nocache, exec
+# cache/exec should be one of: regular, nocache, exec, untar
 # cond_download has a special value of TRUE
 # config_out has a special value of FALSE
 class FileDictFile(SimpleFileDictFile):
@@ -503,35 +503,6 @@ class FileDictFile(SimpleFileDictFile):
                 mkeys.append(self.vals[k][0]) # file name is not the key, but the first entry
             
         return mkeys
-
-# subsystem
-# values are (config_check,wnsubdir,config_out)
-class SubsystemDictFile(FileDictFile):
-    def add_from_fd(self,key,val,
-                    fd, # open file object that has a read() method
-                    allow_overwrite=False):
-        if not (type(val) in (type(()),type([]))):
-            raise RuntimeError, "Values '%s' not a list or tuple"%val
-        if len(val)!=3:
-            raise RuntimeError, "Values '%s' not (config_check,wnsubdir,config_out)"%val
-
-        data=fd.read()
-        DictFile.add(self,key,tuple(val)+(data,),allow_overwrite)
-
-    def format_val(self,key):
-        return "%s %s %s %s"%(self.vals[key][0],self.vals[key][1],key,self.vals[key][2])
-
-    def parse_val(self,line):
-        if line[0]=='#':
-            return # ignore comments
-        arr=line.split(None,3)
-        if len(arr)==0:
-            return # empty line
-        if len(arr)!=4:
-            raise RuntimeError,"Not a valid subsystem line (expected 4, found %i elements): '%s'"%(len(arr),line)
-
-        key=arr[2]
-        return self.add(key,(arr[0],arr[1],arr[3]))
 
 # will convert values into python format before writing them out
 class ReprDictFile(DictFile):
@@ -702,8 +673,8 @@ def get_common_dicts(submit_dir,stage_dir):
                   'consts':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.CONSTS_FILE)),
                   'params':ReprDictFile(submit_dir,cgWConsts.PARAMS_FILE),
                   'vars':VarsDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.VARS_FILE)),
+                  'untar_cfg':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.UNTAR_CFG_FILE)),
                   'file_list':FileDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.FILE_LISTFILE)),
-                  'subsystem_list':SubsystemDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SUBSYSTEM_LISTFILE)),
                   "signature":SHA1DictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SIGNATURE_FILE))}
     refresh_description(common_dicts)
     return common_dicts
@@ -735,8 +706,8 @@ def load_common_dicts(dicts,           # update in place
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['consts'].load(fname=description_el.vals2['consts_file'])
     dicts['vars'].load(fname=description_el.vals2['condor_vars'])
+    dicts['untar_cfg'].load(fname=description_el.vals2['untar_cfg'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
-    dicts['subsystem_list'].load(fname=description_el.vals2['subsystem_list'])
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['glidein'].load()
@@ -765,7 +736,6 @@ def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
     description_dict.add(dicts['file_list'].get_fname(),"file_list",allow_overwrite=True)
-    description_dict.add(dicts['subsystem_list'].get_fname(),"subsystem_list",allow_overwrite=True)
 
 def refresh_file_list(dicts,is_main): # update in place
     entry_str="_ENTRY"
@@ -774,14 +744,16 @@ def refresh_file_list(dicts,is_main): # update in place
     file_dict=dicts['file_list']
     file_dict.add(cgWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str),allow_overwrite=True)
     file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str),allow_overwrite=True)
+    # this one must be loaded before any tarball
+    file_dict.add(cgWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('consts','vars','file_list','subsystem_list','description'):
+    for k in ('consts','vars','untar_cfg','file_list','description'):
         signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
-    for k in ('file_list','subsystem_list'):
+    for k in ('file_list',):
         filedict=dicts[k]
         for fname in filedict.get_immutable_files():
             signature_dict.add_from_file(os.path.join(filedict.dir,fname),allow_overwrite=True)
@@ -801,15 +773,15 @@ def save_common_dicts(dicts,     # will update in place, too
     # make sure decription is up to date
     refresh_description(dicts)
     # save the immutable ones
-    for k in ('consts','vars','description'):
+    for k in ('consts','untar_cfg','vars','description'):
         dicts[k].save(set_readonly=set_readonly)
     # make sure we have all the files in the file list
     refresh_file_list(dicts,is_main)
     # save files in the file lists
-    for k in ('file_list','subsystem_list'):
+    for k in ('file_list',):
         dicts[k].save_files(allow_overwrite=True)
     # then save the lists
-    for k in ('file_list','subsystem_list'):
+    for k in ('file_list',):
         dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
     refresh_signature(dicts)
@@ -856,10 +828,10 @@ def reuse_file_dict(dicts,other_dicts,key):
 
 def reuse_common_dicts(dicts, other_dicts):
     # check simple dictionaries
-    for k in ('consts','vars','attrs','params'):
+    for k in ('consts','untar_cfg','vars','attrs','params'):
         reuse_simple_dict(dicts,other_dicts,k)
     # check file-based dictionaries
-    for k in ('file_list','subsystem_list'):
+    for k in ('file_list',):
         reuse_file_dict(dicts,other_dicts,k)
 
     pass
@@ -1097,10 +1069,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.50 2007/12/17 20:32:02 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.51 2007/12/17 20:50:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.51  2007/12/17 20:50:28  sfiligoi
+#  Move subsystems into the file_list and add untar_cfg
+#
 #  Revision 1.50  2007/12/17 20:32:02  sfiligoi
 #  Add a deafult header to all files, this way we don't have empty files
 #

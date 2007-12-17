@@ -40,8 +40,9 @@ DESCRIPTION_FILE="description.cfg"
 
 CONSTS_FILE="constants.cfg"
 
+UNTAR_CFG_FILE="untar.cfg"
+
 FILE_LISTFILE="file_list.lst"
-SUBSYSTEM_LISTFILE="subsystem_list.lst"
 SIGNATURE_FILE="signature.sha1"
 
 
@@ -103,15 +104,15 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.10 2007/12/17 18:54:39 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.11 2007/12/17 20:50:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.11  2007/12/17 20:50:28  sfiligoi
+#  Move subsystems into the file_list and add untar_cfg
+#
 #  Revision 1.10  2007/12/17 18:54:39  sfiligoi
 #  Add local start wrapper
-#
-#  Revision 1.9  2007/12/14 22:29:47  sfiligoi
-#  Fix typo
 #
 #  Revision 1.8  2007/12/14 22:28:08  sfiligoi
 #  Change file_list format and remove script_list (merged into file_list now)
@@ -122,17 +123,11 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #  Revision 1.6  2007/11/28 20:51:48  sfiligoi
 #  Add get_timestra and get_entry_monitor_dir
 #
-#  Revision 1.5  2007/11/27 20:29:27  sfiligoi
-#  Fix typo
-#
 #  Revision 1.4  2007/11/27 19:58:51  sfiligoi
 #  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
 #
 #  Revision 1.3  2007/10/12 21:56:24  sfiligoi
 #  Add glideinWMS.cfg in the list of constants
-#
-#  Revision 1.2  2007/10/12 21:02:24  sfiligoi
-#  Add missing import
 #
 #  Revision 1.1  2007/10/12 20:20:26  sfiligoi
 #  Put constants into a dedicated module

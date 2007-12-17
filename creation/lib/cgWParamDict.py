@@ -235,14 +235,14 @@ def add_file_unparsed(file,dicts):
         if wnsubdir==None:
             wnsubdir=string.split(relfname,'.',1)[0] # deafult is relfname up to the first .
 
-        #temporary, should be fixed in future versions
-        if file.untar_options.absdir_outattr==None:
-            raise RuntimeError, 'Currently untar_options.absdir_outattr must be defined: %s'%file
-        
+        config_out=file.untar_options.absdir_outattr
+        if config_out==None:
+            config_out="FALSE"
         cond_attr=file.untar_options.cond_attr
-        dicts['subsystem_list'].add_from_file(relfname,(cond_attr,wnsubdir,file.untar_options.absdir_outattr),absfname)
-        if cond_attr!="TRUE":
-            dicts['params'].add(cond_attr,0)
+
+
+        dicts['file_list'].add_from_file(relfname,(relfname,"untar",cond_attr,config_out),absfname)
+        dicts['untar_cfg'].add(relfname,wnsubdir)
     else: # not executable nor tarball => simple file
         if is_const:
             val='regular'
@@ -336,27 +336,18 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.22 2007/12/17 20:19:38 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.23 2007/12/17 20:50:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.23  2007/12/17 20:50:28  sfiligoi
+#  Move subsystems into the file_list and add untar_cfg
+#
 #  Revision 1.22  2007/12/17 20:19:38  sfiligoi
 #  Move validate_node into the entry subdir
 #
-#  Revision 1.21  2007/12/14 22:35:52  sfiligoi
-#  Fix special file handling
-#
 #  Revision 1.20  2007/12/14 22:28:08  sfiligoi
 #  Change file_list format and remove script_list (merged into file_list now)
-#
-#  Revision 1.19  2007/12/14 16:56:55  sfiligoi
-#  Fix typo
-#
-#  Revision 1.18  2007/12/14 16:53:58  sfiligoi
-#  Fix typo
-#
-#  Revision 1.17  2007/12/14 16:30:07  sfiligoi
-#  Fix typo
 #
 #  Revision 1.16  2007/12/14 16:28:53  sfiligoi
 #  Move directory creation into the Dict classes
