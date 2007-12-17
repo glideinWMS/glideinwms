@@ -426,7 +426,7 @@ function fetch_file_try {
 	# TRUE is a special case
 	fft_get_ss=1
     else
-	fft_get_ss=`grep -i "^$fft_config_check" glidein_config | awk '{print $2}'`
+	fft_get_ss=`grep -i "^$fft_config_check " glidein_config | awk '{print $2}'`
     fi
 
     if [ "$fft_get_ss" == "1" ]; then
@@ -582,7 +582,7 @@ function try_fetch_subsystem {
 	# TRUE is a special case
 	get_ss=1
     else
-	get_ss=`grep -i "^$config_check" $config_file | awk '{print $2}'`
+	get_ss=`grep -i "^$config_check " $config_file | awk '{print $2}'`
     fi
 
     if [ "$get_ss" == "1" ]; then
