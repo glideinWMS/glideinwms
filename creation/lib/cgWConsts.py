@@ -59,6 +59,7 @@ GLIDEIN_FILE="glidein.descript"
 JOB_DESCRIPT_FILE="job.descript"
 SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
+LOCAL_START_WRAPPER="local_start.sh"
 XML_CONFIG_FILE="glideinWMS.xml"
 
 ###################################################
@@ -102,10 +103,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.9 2007/12/14 22:29:47 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.10 2007/12/17 18:54:39 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.10  2007/12/17 18:54:39  sfiligoi
+#  Add local start wrapper
+#
 #  Revision 1.9  2007/12/14 22:29:47  sfiligoi
 #  Fix typo
 #
