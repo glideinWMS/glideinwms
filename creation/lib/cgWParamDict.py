@@ -49,7 +49,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh','setup_x509.sh',"validate_node.sh"):
+        for script_name in ('cat_consts.sh','setup_x509.sh'):
             self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
@@ -124,7 +124,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',):
+        for script_name in ('cat_consts.sh',"validate_node.sh"):
             self.dicts['file_list'].add_from_file(script_name,(script_name,'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
@@ -336,10 +336,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.21 2007/12/14 22:35:52 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.22 2007/12/17 20:19:38 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.22  2007/12/17 20:19:38  sfiligoi
+#  Move validate_node into the entry subdir
+#
 #  Revision 1.21  2007/12/14 22:35:52  sfiligoi
 #  Fix special file handling
 #
