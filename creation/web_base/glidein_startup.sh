@@ -376,7 +376,7 @@ function check_file_signature {
 		sha1sum -c $tmp_signname 1>&2
 		cfs_rc=$?
 	    else
-		(cd $cfs_entry_dir=; sha1sum -c $tmp_signname) 1>&2
+		(cd $cfs_entry_dir; sha1sum -c $tmp_signname) 1>&2
 		cfs_rc=$?
 	    fi
 	    if [ $cfs_rc -ne 0 ]; then
