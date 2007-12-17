@@ -395,7 +395,7 @@ function check_file_signature {
 #####################
 # Untar support func
 
-def get_untar_subdir {
+function get_untar_subdir {
     gus_entry_dir="$1"
     gus_fname="$2"
 
