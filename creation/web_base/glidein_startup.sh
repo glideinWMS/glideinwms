@@ -480,7 +480,7 @@ function fetch_file_base {
     fi
 
     # check signature
-    check_file_signature "$ffb_entry_dir" "$ffb_target_fname"
+    check_file_signature "$ffb_entry_dir" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
       return 1
     fi
