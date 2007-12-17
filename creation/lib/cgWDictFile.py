@@ -500,7 +500,7 @@ class FileDictFile(SimpleFileDictFile):
         for k in self.keys:
             val=self.vals[k][1]
             if (val!="nocache"):
-                mkeys.append(k)
+                mkeys.append(self.vals[k][0]) # file name is not the key, but the first entry
             
         return mkeys
 
@@ -1097,10 +1097,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.47 2007/12/14 22:47:04 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.48 2007/12/17 15:57:39 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.48  2007/12/17 15:57:39  sfiligoi
+#  Fix get_immutable_files
+#
 #  Revision 1.47  2007/12/14 22:47:04  sfiligoi
 #  Fix typo
 #
