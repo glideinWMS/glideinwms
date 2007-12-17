@@ -744,7 +744,6 @@ def refresh_file_list(dicts,is_main): # update in place
     file_dict=dicts['file_list']
     file_dict.add(cgWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str),allow_overwrite=True)
     file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str),allow_overwrite=True)
-    # this one must be loaded before any tarball
     file_dict.add(cgWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
@@ -1069,10 +1068,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.51 2007/12/17 20:50:28 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.52 2007/12/17 21:50:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.52  2007/12/17 21:50:17  sfiligoi
+#  Fix untar cfg handling
+#
 #  Revision 1.51  2007/12/17 20:50:28  sfiligoi
 #  Move subsystems into the file_list and add untar_cfg
 #

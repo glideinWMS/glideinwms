@@ -46,6 +46,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder(cgWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
         
         # Load initial system scripts
         # These should be executed before the other scripts
@@ -122,6 +123,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder(cgWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
 
         # Load initial system scripts
         # These should be executed before the other scripts
@@ -338,15 +340,15 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.25 2007/12/17 21:01:30 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.26 2007/12/17 21:50:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
-#  Revision 1.25  2007/12/17 21:01:30  sfiligoi
-#  Fix typo
+#  Revision 1.26  2007/12/17 21:50:17  sfiligoi
+#  Fix untar cfg handling
 #
 #  Revision 1.24  2007/12/17 21:00:35  sfiligoi
-#  Fix condor tar handling and add timestamps to the user filenames
+#  Add timestamps to the user filenames
 #
 #  Revision 1.23  2007/12/17 20:50:28  sfiligoi
 #  Move subsystems into the file_list and add untar_cfg
