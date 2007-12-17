@@ -444,7 +444,7 @@ function fetch_file_base {
     ffb_file_type="$4"
     ffb_config_out="$5"
 
-    if [ "$entry_dir" == "main" ]; then
+    if [ "$ffb_entry_dir" == "main" ]; then
 	ffb_repository="$repository_url"
 	ffb_outname="$ffb_target_fname"
 	ffb_desc_fname="$fname"
