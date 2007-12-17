@@ -1,5 +1,7 @@
 v_next	Quill is now optional
         Condor config can be split into condor_config.local
+        Major restructuring of the code to allow updates on the fly
+        Added local_start.sh to ease testing.
 
 v0_9	Significant speedup in the VO frontend matchmaking
 	Added MaxRunningGlideins request
