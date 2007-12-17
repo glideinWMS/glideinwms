@@ -527,10 +527,6 @@ function fetch_file_base {
       fi
     fi
 
-    if [ "$ffb_config_out" != "FALSE" ]; then
-	add_config_line "$ffb_config_out" "$ffb_outname"
-    fi
-
     # if executable, execute
     if [ "$ffb_file_type" == "exec" ]; then
 	chmod u+x "$ffb_outname"
@@ -555,6 +551,15 @@ function fetch_file_base {
 	if [ $ret -ne 0 ]; then
 	    warn "Error untarring '$ffb_outname'" 1>&2
 	    return 1
+	fi
+    fi
+
+    if [ "$ffb_config_out" != "FALSE" ]; then
+	if [ "$ffb_file_type" == "untar" ]; then
+	    # when untaring the original file is less interesting than the untar dir
+	    add_config_line "$ffb_config_out" "$ffb_untar_dir"
+	else
+	    add_config_line "$ffb_config_out" "$ffb_outname"
 	fi
     fi
 
