@@ -63,7 +63,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
             self.dicts['file_list'].add_from_fd(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),condor_fd)
             condor_fd.close()
-        dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
+        self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
         for file_name in ('parse_starterlog.awk',"condor_config"):
@@ -338,10 +338,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.24 2007/12/17 21:00:35 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.25 2007/12/17 21:01:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.25  2007/12/17 21:01:30  sfiligoi
+#  Fix typo
+#
 #  Revision 1.24  2007/12/17 21:00:35  sfiligoi
 #  Fix condor tar handling and add timestamps to the user filenames
 #
