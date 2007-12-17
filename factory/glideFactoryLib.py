@@ -518,7 +518,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,p
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i "dbg" %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
+            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i "std" %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster,j))
@@ -555,10 +555,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.23 2007/12/17 16:30:06 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.24 2007/12/17 21:28:49 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.24  2007/12/17 21:28:49  sfiligoi
+#  Change verbosity to std; with the new glidein_submit this makes more sense
+#
 #  Revision 1.23  2007/12/17 16:30:06  sfiligoi
 #  Automatically extract the schedd name. Must be always the same, so it makes no sense to pass it as a parameter.
 #
