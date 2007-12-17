@@ -41,7 +41,6 @@ else
 	warn "Cannot find CONSTS_ENTRY_FILE in $config_file!"
 	exit 1
     fi
-    consts_file=$entry_dir/$consts_file
 fi
 
 ##################################
@@ -53,4 +52,5 @@ if [ -n "$consts_file" ]; then
     do
 	add_config_line $line
     done < "$consts_file"
+    echo "# --- End $entry_dir constants       ---" >> $config_file
 fi
