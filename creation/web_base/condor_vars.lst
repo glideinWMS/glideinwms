@@ -3,6 +3,7 @@
 #												+ = Use VarName
 #												@ = Use CondorName
 #################################################################################################################
+CONDOR_DIR		C	-		+				Y	N	-
 X509_USER_PROXY		C	-		GSI_DAEMON_PROXY		Y	N	-
 X509_EXPIRE		I	-		+				Y	N	-
 X509_CERT_DIR		C	-		GSI_DAEMON_TRUSTED_CA_DIR	Y	N	-
