@@ -124,10 +124,11 @@ function params2file {
 
 ################
 # Parse arguments
-set_debug=0
+set_debug=1
 sleep_time=1200
-if [ "$debug_mode" == "dbg" ]; then
- set_debug=1
+if [ "$debug_mode" == "nodebug" ]; then
+ set_debug=0
+elif [ "$debug_mode" == "fast" ]; then
  sleep_time=150
 fi
 
@@ -373,10 +374,10 @@ function check_file_signature {
 	    echo "No signature for $cfs_desc_fname." 1>&2
 	else
 	    if [ "$cfs_entry_dir" == "main" ]; then
-		sha1sum -c $tmp_signname 1>&2
+		sha1sum -c "$tmp_signname" 1>&2
 		cfs_rc=$?
 	    else
-		(cd $cfs_entry_dir; sha1sum -c ../$tmp_signname) 1>&2
+		(cd "$cfs_entry_dir" && sha1sum -c "../$tmp_signname") 1>&2
 		cfs_rc=$?
 	    fi
 	    if [ $cfs_rc -ne 0 ]; then
@@ -388,6 +389,39 @@ function check_file_signature {
 	    echo "Signature OK for $cfs_desc_fname." 1>&2
 	fi
     fi
+    return 0
+}
+
+#####################
+# Untar support func
+
+def get_untar_subdir {
+    gus_entry_dir="$1"
+    gus_fname="$2"
+
+    if [ "$gus_entry_dir" == "main" ]; then
+	gus_config_cfg="UNTAR_CFG_FILE"
+    else
+	gus_config_cfg="UNTAR_CFG_ENTRY_FILE"
+    fi
+
+    gus_config_file=`grep "^$gus_config_cfg " glidein_config | awk '{print $2}'`
+    if [ -z "$gus_config_file" ]; then
+	warn "Error, cannot find '$gus_config_fname' in glidein_config!" 1>&2
+	sleep $sleep_time # wait a bit, to reduce lost glideins
+	cd "$start_dir";rm -fR "$work_dir"
+	exit 1
+    fi
+
+    gus_dir=`grep -i "^$gus_fname " $gus_config_file | awk '{print $2}'`
+    if [ -z "$gus_dir" ]; then
+	warn "Error, untar dir for '$gus_fname' cannot be empty!" 1>&2
+	sleep $sleep_time # wait a bit, to reduce lost glideins
+	cd "$start_dir";rm -fR "$work_dir"
+	exit 1
+    fi
+
+    echo "$gus_dir"
     return 0
 }
 
@@ -514,90 +548,17 @@ function fetch_file_base {
 	else
 	    echo "Skipping last script $last_script" 1>&2
 	fi
+    elif [ "$ffb_file_type" == "untar" ]; then
+	ffb_untar_dir=`get_untar_subdir "$ffb_entry_dir" "$ffb_target_fname"`
+	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$work_dir/$ffb_outname") 1>&2
+	ret=$?
+	if [ $ret -ne 0 ]; then
+	    warn "Error untarring '$ffb_outname'" 1>&2
+	    return 1
+	fi
     fi
 
     return 0
-}
-
-###########################
-# Fetch a file and untar it
-function fetch_subsystem {
-    fetch_subsystem_base "$1" "$2" "$3" "$4"
-    if [ $? -ne 0 ]; then
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	cd "$start_dir";rm -fR "$work_dir"
-	exit 1
-    fi
-    return 0
-}
-
-# this one will return 1 on error
-function fetch_subsystem_base {
-    subsystem_dir="$1"
-    in_tgz="$2"
-    config_out="$3"
-    fetch_entry="$4"
-
-    if [ -z "$fetch_entry" ]; then
-	fetch_file_regular "main" "$in_tgz"
-	in_tgz_path="$work_dir/$in_tgz"
-    else
-	fetch_entry_regular "$short_entry_dir" "$in_tgz"
-	in_tgz_path="$entry_dir/$in_tgz"	
-    fi
-    
-    ss_dir="$work_dir/${subsystem_dir}"
-    mkdir "$ss_dir"
-    if [ $? -ne 0 ]; then
-	warn "Cannot create '$ss_dir'" 1>&2
-	return 1
-    fi
-    cd "$ss_dir"
-    if [ $? -ne 0 ]; then
-	warn "Could not change to '$ss_dir'" 1>&2
-	return 1
-    fi
-
-    tar -xmzf "$in_tgz_path"
-    if [ $? -ne 0 ]; then
-	warn "Failed untarring $in_tgz_path" 1>&2
-	return 1
-    fi
-    rm -f "$in_tgz_path"
-    cd $work_dir
-    add_config_line "$config_out" "$ss_dir"
-    return 0
-}
-
-
-##########################
-# Fetch subsytsem only if 
-# requested in config file
-function try_fetch_subsystem {
-    if [ $# -ne 6 ]; then
-	warn "Not enough arguments in try_fetch_subsystem $@" 1>&2
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	cd "$start_dir";rm -fR "$work_dir"
-	exit 1
-    fi
-    
-    fetch_entry="$1"
-    config_file="$2"
-    config_check="$3"
-    subsystem_dir="$4"
-    in_tgz="$5"
-    config_out="$6"
-
-    if [ "$config_check" == "TRUE" ]; then
-	# TRUE is a special case
-	get_ss=1
-    else
-	get_ss=`grep -i "^$config_check " $config_file | awk '{print $2}'`
-    fi
-
-    if [ "$get_ss" == "1" ]; then
-       fetch_subsystem "$subsystem_dir" "$in_tgz" "$config_out" "$fetch_entry"
-    fi
 }
 
 #####################################
@@ -721,32 +682,11 @@ do
     fetch_file "main" $file
 done < "$file_list"
 
-echo "MAIN_FILES_LOADED 1" >> glidein_config
-
 # Fetch entry files
 while read file
 do
     fetch_file "$short_entry_dir" $file
 done < "$entry_dir/$file_list_entry"
-
-##############################
-# Fetch list of support files
-fetch_file "$subsystem_list"
-fetch_entry_file "$subsystem_list_entry"
-
-echo "# --- Subsystem values  ---" >> glidein_config
-# Try fetching the subsystems
-while read subsys
-do
-    try_fetch_subsystem "" glidein_config $subsys
-done < "$subsystem_list"
-
-echo "# --- Entry subsystem values  ---" >> glidein_config
-# Try fetching the entry subsystems
-while read subsys
-do
-    try_fetch_subsystem entry glidein_config $subsys
-done < "$entry_dir/$subsystem_list_entry"
 
 ###############################
 # Start the glidein main script
