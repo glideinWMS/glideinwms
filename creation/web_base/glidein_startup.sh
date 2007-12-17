@@ -451,7 +451,7 @@ function fetch_file_base {
 	ffb_signature="signature.sha1"
     else
 	ffb_repository="$repository_url/$ffb_entry_dir"
-	ffb_outname="$ffb_entry_dir/$ffb_target_name"
+	ffb_outname="$ffb_entry_dir/$ffb_target_fname"
 	ffb_desc_fname="$ffb_entry_dir/$fname"
 	ffb_signature="$ffb_entry_dir/signature.sha1"
     fi
