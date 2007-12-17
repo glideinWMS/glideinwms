@@ -679,14 +679,18 @@ fetch_file_regular "$short_entry_dir" "$file_list_entry"
 # Fetch files
 while read file
 do
-    fetch_file "main" $file
-done < `grep -v "^#" "$file_list"`
+    if [ "${file:0:1}" != "#" ]; then
+	fetch_file "main" $file
+    fi
+done < "$file_list"
 
 # Fetch entry files
 while read file
 do
-    fetch_file "$short_entry_dir" $file
-done < `grep -v "^#" "$entry_dir/$file_list_entry"`
+    if [ "${file:0:1}" != "#" ]; then
+	fetch_file "$short_entry_dir" $file
+    fi
+done < "$entry_dir/$file_list_entry"
 
 ###############################
 # Start the glidein main script
