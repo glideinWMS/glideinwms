@@ -33,7 +33,7 @@ if [ "$entry_dir" == "main" ]; then
 	warn "Cannot find CONSTS_FILE in $config_file!"
 	exit 1
     fi
-else:
+else
     ###################################
     # Find file names
     consts_file=`grep "^CONSTS_ENTRY_FILE " $config_file | awk '{print $2}'`
