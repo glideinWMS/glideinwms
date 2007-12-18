@@ -924,7 +924,11 @@ class condorLogSummary:
                             t_rrds=[]
                             idx=0
                             for t_k in t_keys:
-                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]))
+                                if t_keys_len>1:
+                                  t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
+                                else:
+                                  t_k_color=r_colors[r_colors_len/2]
+                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
                                 idx+=1
                             monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                         t,t_rrds)
@@ -1071,7 +1075,10 @@ def tmp2final(fname):
     except:
         pass
 
-    os.rename(fname+".tmp",fname)
+    try:
+      os.rename(fname+".tmp",fname)
+    except:
+      print "Failed renaming %s.tmp into %s"%(fname,fname)
     return
 
 def create_rrd(rrd_obj,rrdfname,
@@ -1140,7 +1147,10 @@ def rrd2graph(rrd_obj,fname,
 
     args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
 
-    rrd_obj.graph(*args)
+    try:
+      rrd_obj.graph(*args)
+    except:
+      print "Failed graph: %s"%str(args)
     return
 
 
@@ -1148,10 +1158,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.94 2007/10/12 16:16:31 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.95 2007/12/18 18:08:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.95  2007/12/18 18:08:28  sfiligoi
+#  Better error handling
+#
 #  Revision 1.94  2007/10/12 16:16:31  sfiligoi
 #  Add a 5% random distribution to the graph renewal
 #
