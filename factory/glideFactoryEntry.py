@@ -139,7 +139,9 @@ def write_stats():
     global log_rrd_thread,qc_rrd_thread
     
     glideFactoryLib.factoryConfig.log_stats.write_file()
+    glideFactoryLib.factoryConfig.activity_log.write("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
+    glideFactoryLib.factoryConfig.activity_log.write("qc_stats written")
 
     # keep just one thread per monitoring type running at any given time
     # if the old one is still running, do nothing (lazy)
@@ -149,6 +151,7 @@ def write_stats():
     else:
         thread_alive=log_rrd_thread.isAlive()
         if not thread_alive:
+            glideFactoryLib.factoryConfig.activity_log.write("Waiting for thread")
             log_rrd_thread.join()
 
     if not thread_alive:
@@ -367,10 +370,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.29 2007/12/13 22:34:45 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.30 2007/12/18 18:03:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.30  2007/12/18 18:03:59  sfiligoi
+#  More logging
+#
 #  Revision 1.29  2007/12/13 22:34:45  sfiligoi
 #  Move entry specific arguments into the creation stage
 #
