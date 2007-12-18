@@ -125,6 +125,10 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
 
+        # follow by the blacklist file
+        file_name="nodes.blacklist"
+        self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
+
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"validate_node.sh"):
@@ -136,8 +140,6 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
         #load system files
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
-        file_name="nodes.blacklist"
-        self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
         
         # put user attributes into config files
         for attr_name in entry_params.attrs.keys():
@@ -340,10 +342,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.26 2007/12/17 21:50:17 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.27 2007/12/18 16:30:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.27  2007/12/18 16:30:50  sfiligoi
+#  Correct blacklist load order
+#
 #  Revision 1.26  2007/12/17 21:50:17  sfiligoi
 #  Fix untar cfg handling
 #
