@@ -1,5 +1,5 @@
 [root@cmswn732 ~]# export CVSROOT=:pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only
-[root@cmswn732 ~]# cvs co -r v0_9 glideinWMS
+[root@cmswn732 ~]# cvs co -r v1_0 glideinWMS
 cvs checkout: Updating glideinWMS
 U glideinWMS/LICENSE.txt
 cvs checkout: Updating glideinWMS/creation

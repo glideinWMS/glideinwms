@@ -1,5 +1,5 @@
 [root@node1 ~] export CVSROOT=:pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only
-[root@node1 ~] cvs co -r v0_9 glideinWMS
+[root@node1 ~] cvs co -r v1_0 glideinWMS
 [root@node1 ~] cd glideinWMS/install
 [root@node1 install]# ./glideinWMS_install
 Welcome to the glideinWMS Installation Helper
