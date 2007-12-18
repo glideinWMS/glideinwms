@@ -1,7 +1,9 @@
-v_next	Quill is now optional
-        Condor config can be split into condor_config.local
-        Major restructuring of the code to allow updates on the fly
+v1_0	During installation, Quill is now optional.
+        During installation, Condor config can be split into condor_config.local.
+        Files are now loaded in order specified.
         Added local_start.sh to ease testing.
+        Many bugs fixed.
+        NOT BACKWARD COMPATIBLE: Entry points need to be recreated.
 
 v0_9	Significant speedup in the VO frontend matchmaking
 	Added MaxRunningGlideins request
