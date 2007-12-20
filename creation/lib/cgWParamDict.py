@@ -89,6 +89,13 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
 
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.monitor_dir!=other.monitor_dir:
+            raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+        
+        return cgWDictFile.glideinMainDicts.glideinDicts(self,other)
+
 class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
     def __init__(self,
                  glidein_main_dicts, # must be an instance of glideinMainDicts
@@ -154,6 +161,13 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
                                           entry_params.gridtype,entry_params.gatekeeper,entry_params.rsl,
                                           params.web_url,entry_params.proxy_url,entry_params.work_dir)
 
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.monitor_dir!=other.monitor_dir:
+            raise RuntimeError,"Cannot change entry monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+        
+        return cgWDictFile.glideinEntryDicts.glideinDicts(self,other)
+
         
 ################################################
 #
@@ -171,6 +185,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.params=params
         self.submit_dir=params.submit_dir
         self.stage_dir=params.stage_dir
+        self.monitor_dir=params.monitor_dir
 
         self.main_dicts=glideinMainDicts(params)
         self.entry_list=entry_list[:]
@@ -199,6 +214,13 @@ class glideinDicts(cgWDictFile.glideinDicts):
 
         for entry_name in self.entry_list:
             self.entry_dicts[entry_name].populate(params)
+
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.monitor_dir!=other.monitor_dir:
+            raise RuntimeError,"Cannot change monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
+        
+        return cgWDictFile.glideinDicts(self,other)
 
 ############################################################
 #
@@ -342,10 +364,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.27 2007/12/18 16:30:50 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.28 2007/12/20 16:41:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.28  2007/12/20 16:41:48  sfiligoi
+#  Add reuse
+#
 #  Revision 1.27  2007/12/18 16:30:50  sfiligoi
 #  Correct blacklist load order
 #
