@@ -6,6 +6,7 @@
 #######################################################
 
 import os,os.path,shutil,string,popen2
+import sets
 import cgWConsts
 
 ########################################
@@ -922,9 +923,9 @@ class glideinMainDicts(glideinCommonDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.submit_dir!=other.submit_dir:
-            raise RuntimeError,"Cannot change submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
+            raise RuntimeError,"Cannot change main submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
         if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+            raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
 
         reuse_main_dicts(self.dicts,other.dicts)
         
@@ -974,7 +975,7 @@ class glideinEntryDicts(glideinCommonDicts):
         
 ################################################
 #
-# This Class contains coth the main and
+# This Class contains both the main and
 # the entry dicts
 #
 ################################################
@@ -1064,14 +1065,33 @@ class glideinDicts:
                 return False
         return True
 
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.submit_dir!=other.submit_dir:
+            raise RuntimeError,"Cannot change submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
+        if self.stage_dir!=other.stage_dir:
+            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+
+        # compare main dictionaires
+        self.main_dicts.reuse(other.main_dicts)
+
+        # compare entry dictionaires
+        for k in self.entry_list:
+            if k in other.entry_list:
+                self.entry_dicts[k].reuse(other.entry_dicts[k])
+           #else should check if the dir exist, but will do it another time
+        
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.52 2007/12/17 21:50:17 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.53 2007/12/20 16:42:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.53  2007/12/20 16:42:14  sfiligoi
+#  Update reuse
+#
 #  Revision 1.52  2007/12/17 21:50:17  sfiligoi
 #  Fix untar cfg handling
 #
