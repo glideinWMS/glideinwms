@@ -1,0 +1,72 @@
+#!/bin/env python
+
+import os
+import copy
+import sys
+import os.path
+import string
+import shutil
+import traceback
+sys.path.append("lib")
+import cgWParams
+import cgWDictFile
+import cgWConsts
+import cgWCreate
+import cgWParamDict
+
+
+################################################################################
+
+def main(params,old_params):
+    # load old files
+    old_glidein_dicts_obj=cgWParamDict.glideinDicts(old_params)
+    old_glidein_dicts_obj.load()
+
+    # create dictionaries for new params
+    glidein_dicts_obj=cgWParamDict.glideinDicts(params)
+    glidein_dicts_obj.populate()
+
+
+    print "Reconfigured glidein '%s'"%params.glidein_name
+    print "Submit files are in %s"%glidein_dicts_obj.main_dicts.submit_dir
+
+
+############################################################
+#
+# S T A R T U P
+# 
+############################################################
+
+if __name__ == '__main__':
+    try:
+        params=cgWParams.Params(sys.argv)
+    except RuntimeError,e:
+        print e
+        sys.exit(1)
+    try:
+        old_config_file=os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE)
+        if not os.path.exists(old_config_file):
+            try:
+                old_params=cgWParams.Params([sys.argv[0],old_config_file])
+            except RuntimeError, e:
+                raise RuntimeError,"Failed to load %s"%old_config_file
+        else:
+            raise RuntimeError,"Cannot find %s"%old_config_file
+        main(params,old_params)
+    except RuntimeError, e:
+        print params.usage()
+        print ""
+        print e
+
+###########################################################
+#
+# CVS info
+#
+# $Id: reconfig_glidein,v 1.1 2007/12/20 16:42:34 sfiligoi Exp $
+#
+# Log:
+#  $Log: reconfig_glidein,v $
+#  Revision 1.1  2007/12/20 16:42:34  sfiligoi
+#  First try
+#
+###########################################################
