@@ -139,7 +139,7 @@ class DictFile:
         try:
             try:
                 load_from_fd(fd,erase_first,set_not_changed)
-             except RuntimeError, e:
+            except RuntimeError, e:
                 raise RuntimeError, "File %s: %s"%(filepath,str(e))
         finally:
             fd.close()
@@ -1107,10 +1107,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.58 2007/12/21 18:46:33 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.59 2007/12/21 20:40:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.59  2007/12/21 20:40:24  sfiligoi
+#  Fix bug
+#
 #  Revision 1.58  2007/12/21 18:46:33  sfiligoi
 #  Add save_into_fd and load_from_fd
 #
