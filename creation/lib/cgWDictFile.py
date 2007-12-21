@@ -5,7 +5,7 @@
 #
 #######################################################
 
-import os,os.path,shutil,string,popen2
+import os,os.path,shutil,string,popen2,copy
 import sets
 import cgWConsts
 
@@ -1087,10 +1087,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.55 2007/12/21 12:16:46 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.56 2007/12/21 12:40:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.56  2007/12/21 12:40:06  sfiligoi
+#  Add missing import
+#
 #  Revision 1.55  2007/12/21 12:16:46  sfiligoi
 #  Fi file_list load
 #
