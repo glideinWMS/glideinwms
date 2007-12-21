@@ -482,7 +482,7 @@ class FileDictFile(SimpleFileDictFile):
     def parse_val(self,line):
         if line[0]=='#':
             return # ignore comments
-        arr=line.split(None,3)
+        arr=line.split(None,4)
         if len(arr)==0:
             return # empty line
         if len(arr[0])==0:
@@ -1087,10 +1087,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.54 2007/12/21 12:14:09 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.55 2007/12/21 12:16:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.55  2007/12/21 12:16:46  sfiligoi
+#  Fi file_list load
+#
 #  Revision 1.54  2007/12/21 12:14:09  sfiligoi
 #  Load now uses file_list
 #
