@@ -122,6 +122,15 @@ class DictFile:
             self.changed=False
         return
 
+    def save_into_str(self,
+                      sort_keys=None,set_readonly=True,reset_changed=True):
+        fd=cStringIO.StringIO()
+        self.save_into_fd(fd,sort_keys,set_readonly,reset_changed)
+        fd.seek(0)
+        data=fd.read()
+        fd.close()
+        return data
+    
     def load(self, dir=None, fname=None,
              change_self=True,        # if dir and/or fname are not specified, use the defaults specified in __init__, if they are, and change_self is True, change the self.
              erase_first=True,        # if True, delete old content first
@@ -173,6 +182,19 @@ class DictFile:
             self.changed=False # the memory copy is now same as the one on disk
         return
 
+    def load_from_str(self, data,
+                      erase_first=True,        # if True, delete old content first
+                      set_not_changed=True):   # if True, set self.changed to False
+        fd=cStringIO.StringIO()
+        fd.write(data)
+        fd.seek(0)
+        try:
+            self.load_from_fd(fd,erase_first,set_not_changed)
+        except RuntimeError, e:
+            raise RuntimeError, "Memory buffer: %s"%(filepath,str(e))
+        fd.close()
+        return        
+        
     def is_equal(self,other,         # other must be of the same class
                  compare_dir=False,compare_fname=False,
                  compare_keys=None): # if None, use order_matters
@@ -1107,10 +1129,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.60 2007/12/21 20:42:38 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.61 2007/12/21 21:06:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.61  2007/12/21 21:06:56  sfiligoi
+#  Add load_from_str and save_into_str
+#
 #  Revision 1.60  2007/12/21 20:42:38  sfiligoi
 #  Fix typo
 #
