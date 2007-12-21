@@ -94,7 +94,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
-        return cgWDictFile.glideinMainDicts.glideinDicts(self,other)
+        return cgWDictFile.glideinMainDicts.reuse(self,other)
 
 class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
     def __init__(self,
@@ -166,7 +166,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change entry monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
-        return cgWDictFile.glideinEntryDicts.glideinDicts(self,other)
+        return cgWDictFile.glideinEntryDicts.reuse(self,other)
 
         
 ################################################
@@ -220,7 +220,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
-        return cgWDictFile.glideinDicts(self,other)
+        return cgWDictFile.glideinDicts.reuse(self,other)
 
 ############################################################
 #
@@ -364,10 +364,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.28 2007/12/20 16:41:48 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.29 2007/12/21 12:37:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.29  2007/12/21 12:37:47  sfiligoi
+#  Fix reuse inheritance
+#
 #  Revision 1.28  2007/12/20 16:41:48  sfiligoi
 #  Add reuse
 #
