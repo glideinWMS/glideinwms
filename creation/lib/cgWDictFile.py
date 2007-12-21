@@ -90,7 +90,7 @@ class DictFile:
         except IOError,e:
             raise RuntimeError, "Error creating %s: %s"%(filepath,e)
         try:
-            save_into_fd(fd,sort_keys,set_readonly,reset_changed)
+            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed)
         finally:
             fd.close()
 
@@ -138,7 +138,7 @@ class DictFile:
             raise RuntimeError, "Error opening %s: %s"%(filepath,e)
         try:
             try:
-                load_from_fd(fd,erase_first,set_not_changed)
+                self.load_from_fd(fd,erase_first,set_not_changed)
             except RuntimeError, e:
                 raise RuntimeError, "File %s: %s"%(filepath,str(e))
         finally:
@@ -1107,24 +1107,15 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.59 2007/12/21 20:40:24 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.60 2007/12/21 20:42:38 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
-#  Revision 1.59  2007/12/21 20:40:24  sfiligoi
-#  Fix bug
+#  Revision 1.60  2007/12/21 20:42:38  sfiligoi
+#  Fix typo
 #
 #  Revision 1.58  2007/12/21 18:46:33  sfiligoi
 #  Add save_into_fd and load_from_fd
-#
-#  Revision 1.57  2007/12/21 12:41:32  sfiligoi
-#  Fix typo
-#
-#  Revision 1.56  2007/12/21 12:40:06  sfiligoi
-#  Add missing import
-#
-#  Revision 1.55  2007/12/21 12:16:46  sfiligoi
-#  Fi file_list load
 #
 #  Revision 1.54  2007/12/21 12:14:09  sfiligoi
 #  Load now uses file_list
