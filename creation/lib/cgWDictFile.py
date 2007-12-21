@@ -16,9 +16,14 @@ import cgWConsts
 ########################################
 
 class DictFile:
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
+                 fname_idx=None):      # if none, use fname
         self.dir=dir
         self.fname=fname
+        if fname_idx==None:
+            fname_idx=fname
+        self.fname_idx=fname_idx
+        
         if sort_keys and order_matters:
             raise RuntimeError,"Cannot preserve the order and sort the keys" 
         self.sort_keys=sort_keys
@@ -239,8 +244,9 @@ class DictFile:
         return self.add(key,val)
 
 class DictFileTwoKeys(DictFile): # both key and val are keys
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False):
-        DictFile.__init__(self,dir,fname,sort_keys,order_matters)
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,
+                 fname_idx=None):      # if none, use fname
+        DictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
         self.keys2=[]
         self.vals2={}
 
@@ -655,8 +661,9 @@ class VarsDictFile(DictFile):
 
 
 class CondorJDLDictFile(DictFile):
-    def __init__(self,dir,fname,sort_keys=False,order_matters=False,jobs_in_cluster=None):
-        DictFile.__init__(self,dir,fname,sort_keys,order_matters)
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,jobs_in_cluster=None,
+                 fname_idx=None):      # if none, use fname
+        DictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
         self.jobs_in_cluster=jobs_in_cluster
 
     def file_footer(self):
@@ -712,13 +719,13 @@ class CondorJDLDictFile(DictFile):
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir,stage_dir):
     common_dicts={'attrs':ReprDictFile(submit_dir,cgWConsts.ATTRS_FILE),
-                  'description':DescriptionDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.DESCRIPTION_FILE)),
-                  'consts':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.CONSTS_FILE)),
+                  'description':DescriptionDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.DESCRIPTION_FILE),fname_idx=cgWConsts.DESCRIPTION_FILE),
+                  'consts':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.CONSTS_FILE),fname_idx=cgWConsts.CONSTS_FILE),
                   'params':ReprDictFile(submit_dir,cgWConsts.PARAMS_FILE),
-                  'vars':VarsDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.VARS_FILE)),
-                  'untar_cfg':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.UNTAR_CFG_FILE)),
-                  'file_list':FileDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.FILE_LISTFILE)),
-                  "signature":SHA1DictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SIGNATURE_FILE))}
+                  'vars':VarsDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.VARS_FILE),fname_idx=cgWConsts.VARS_FILE),
+                  'untar_cfg':StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.UNTAR_CFG_FILE),fname_idx=cgWConsts.UNTAR_CFG_FILE),
+                  'file_list':FileDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.FILE_LISTFILE),fname_idx=cgWConsts.FILE_LISTFILE),
+                  "signature":SHA1DictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SIGNATURE_FILE),fname_idx=cgWConsts.SIGNATURE_FILE)}
     refresh_description(common_dicts)
     return common_dicts
 
@@ -1129,10 +1136,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.61 2007/12/21 21:06:56 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.62 2007/12/21 21:16:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.62  2007/12/21 21:16:04  sfiligoi
+#  Add fname_idx to Dict.__init__
+#
 #  Revision 1.61  2007/12/21 21:06:56  sfiligoi
 #  Add load_from_str and save_into_str
 #
