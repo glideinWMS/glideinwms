@@ -26,6 +26,10 @@ def main(params,old_params):
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
     glidein_dicts_obj.populate()
 
+    glidein_dicts_obj.reuse(old_glidein_dicts_obj)
+    glidein_dicts_obj.save()
+    glidein_dicts_obj.set_readonly(True)
+    
 
     print "Reconfigured glidein '%s'"%params.glidein_name
     print "Submit files are in %s"%glidein_dicts_obj.main_dicts.submit_dir
@@ -62,10 +66,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.1 2007/12/20 16:42:34 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.2 2007/12/21 11:29:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.2  2007/12/21 11:29:58  sfiligoi
+#  Try two
+#
 #  Revision 1.1  2007/12/20 16:42:34  sfiligoi
 #  First try
 #
