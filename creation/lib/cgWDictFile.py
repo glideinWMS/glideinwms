@@ -824,7 +824,7 @@ def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
         dicts[key].set_readonly(True)
 
 def reuse_file_dict(dicts,other_dicts,key):
-    dicts[k].reuse(other_dicts[k])
+    dicts[key].reuse(other_dicts[key])
     if dicts[key].changed==False:
         dicts[key].set_readonly(True)
 
@@ -1087,10 +1087,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.56 2007/12/21 12:40:06 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.57 2007/12/21 12:41:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.57  2007/12/21 12:41:32  sfiligoi
+#  Fix typo
+#
 #  Revision 1.56  2007/12/21 12:40:06  sfiligoi
 #  Add missing import
 #
