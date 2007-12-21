@@ -71,7 +71,7 @@ class DictFile:
         self.changed=True
         
     def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
-             sort_keys=None,set_readonly=True,
+             sort_keys=None,set_readonly=True,reset_changed=True,
              save_only_if_changed=True): 
         if save_only_if_changed and (not self.changed):
             return # no change -> don't save
@@ -90,26 +90,36 @@ class DictFile:
         except IOError,e:
             raise RuntimeError, "Error creating %s: %s"%(filepath,e)
         try:
-            header=self.file_header()
-            if header!=None:
-                fd.write("%s\n"%header)
-            if sort_keys:
-                keys=self.keys[0:]
-                keys.sort()
-            else:
-                keys=self.keys
-            for k in keys:
-                fd.write("%s\n"%self.format_val(k))
-            footer=self.file_footer()
-            if footer!=None:
-                fd.write("%s\n"%footer)
+            save_into_fd(fd,sort_keys,set_readonly,reset_changed)
         finally:
             fd.close()
+
+        return
+
+    def save_into_fd(self, fd,
+                     sort_keys=None,set_readonly=True,reset_changed=True):
+        if sort_keys==None:
+            sort_keys=self.sort_keys
+
+        header=self.file_header()
+        if header!=None:
+            fd.write("%s\n"%header)
+        if sort_keys:
+            keys=self.keys[0:]
+            keys.sort()
+        else:
+            keys=self.keys
+        for k in keys:
+            fd.write("%s\n"%self.format_val(k))
+        footer=self.file_footer()
+        if footer!=None:
+            fd.write("%s\n"%footer)
 
         if set_readonly:
             self.set_readonly(True)
 
-        self.changed=False
+        if reset_changed:
+            self.changed=False
         return
 
     def load(self, dir=None, fname=None,
@@ -121,18 +131,32 @@ class DictFile:
         if fname==None:
             fname=self.fname
 
-        if erase_first:
-            self.erase()
-
         filepath=os.path.join(dir,fname)
         try:
             fd=open(filepath,"r")
         except IOError,e:
             raise RuntimeError, "Error opening %s: %s"%(filepath,e)
         try:
-            lines=fd.readlines()
+            try:
+                load_from_fd(fd,erase_first,set_not_changed)
+             except RuntimeError, e:
+                raise RuntimeError, "File %s: %s"%(filepath,str(e))
         finally:
             fd.close()
+
+        if change_self:
+            self.dir=dir
+            self.fname=fname
+
+        return
+
+    def load_from_fd(self, fd,
+                     erase_first=True,        # if True, delete old content first
+                     set_not_changed=True):   # if True, set self.changed to False
+        if erase_first:
+            self.erase()
+
+        lines=fd.readlines()
 
         idx=0
         for line in lines:
@@ -143,11 +167,7 @@ class DictFile:
             try:
                 self.parse_val(line)
             except RuntimeError, e:
-                raise RuntimeError, "File %s, line %i:%s"%(filepath,idx,str(e))
-
-        if change_self:
-            self.dir=dir
-            self.fname=fname
+                raise RuntimeError, "Line %i: %s"%(idx,str(e))
 
         if set_not_changed:
             self.changed=False # the memory copy is now same as the one on disk
@@ -1087,10 +1107,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.57 2007/12/21 12:41:32 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.58 2007/12/21 18:46:33 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.58  2007/12/21 18:46:33  sfiligoi
+#  Add save_into_fd and load_from_fd
+#
 #  Revision 1.57  2007/12/21 12:41:32  sfiligoi
 #  Fix typo
 #
