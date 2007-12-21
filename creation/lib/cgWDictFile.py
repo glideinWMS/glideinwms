@@ -703,12 +703,14 @@ def load_common_dicts(dicts,           # update in place
     # first submit dir ones (mutable)
     dicts['params'].load()
     dicts['attrs'].load()
-    # all others are keyed in the description
+    # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
-    dicts['consts'].load(fname=description_el.vals2['consts_file'])
-    dicts['vars'].load(fname=description_el.vals2['condor_vars'])
-    dicts['untar_cfg'].load(fname=description_el.vals2['untar_cfg'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
+    file_el=dicts['file_list']
+    # all others are keyed in the file_list
+    dicts['consts'].load(fname=file_el[cgWConsts.CONSTS_FILE][0])
+    dicts['vars'].load(fname=file_el[cgWConsts.VARS_FILE][0])
+    dicts['untar_cfg'].load(fname=file_el[cgWConsts.UNTAR_CFG_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['glidein'].load()
@@ -1085,10 +1087,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.53 2007/12/20 16:42:14 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.54 2007/12/21 12:14:09 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.54  2007/12/21 12:14:09  sfiligoi
+#  Load now uses file_list
+#
 #  Revision 1.53  2007/12/20 16:42:14  sfiligoi
 #  Update reuse
 #
