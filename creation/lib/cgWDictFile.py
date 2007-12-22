@@ -423,15 +423,20 @@ class SimpleFileDictFile(DictFile):
             val,allow_overwrite=False):
         return self.add_from_file(key,val,os.path.join(self.dir,key),allow_overwrite)
 
-    def add_from_fd(self,key,val,
-                    fd, # open file object that has a read() method
+    def add_from_str(self,key,val,
+                    data, 
                     allow_overwrite=False):
-        data=fd.read()
         # make it generic for use by children
         if not (type(val) in (type(()),type([]))):
             DictFile.add(self,key,(val,data),allow_overwrite)
         else:
             DictFile.add(self,key,tuple(val)+(data,),allow_overwrite)
+
+    def add_from_fd(self,key,val,
+                    fd, # open file object that has a read() method
+                    allow_overwrite=False):
+        data=fd.read()
+        self.add_from_str(key,val,data,allow_overwrite)
 
     def add_from_file(self,key,val,
                       filepath,
@@ -516,13 +521,17 @@ class FileDictFile(SimpleFileDictFile):
     def add_placeholder(self,key,allow_overwrite=False):
         DictFile.add(self,key,("","","","",""),allow_overwrite)
 
-    def add(self,key,val,              # will load from val[0]
+    def add(self,key,
+            val,     # will if len(val)==5, use the last one as data, else load from val[0]
             allow_overwrite=False):
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
-        if len(val)!=4:
+        if len(val)==5:
+            return self.add_from_str(key,val[:4],val[4],allow_overwrite)
+        elif len(val)==4:
+            return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
+        else:
             raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
-        return self.add_from_file(key,val,os.path.join(self.dir,val[0]),allow_overwrite)
 
     def format_val(self,key):
         return "%s %s %s %s %s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
@@ -1136,18 +1145,18 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.62 2007/12/21 21:16:04 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.63 2007/12/22 20:33:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.63  2007/12/22 20:33:35  sfiligoi
+#  Add string load/save
+#
 #  Revision 1.62  2007/12/21 21:16:04  sfiligoi
 #  Add fname_idx to Dict.__init__
 #
 #  Revision 1.61  2007/12/21 21:06:56  sfiligoi
 #  Add load_from_str and save_into_str
-#
-#  Revision 1.60  2007/12/21 20:42:38  sfiligoi
-#  Fix typo
 #
 #  Revision 1.58  2007/12/21 18:46:33  sfiligoi
 #  Add save_into_fd and load_from_fd
@@ -1229,27 +1238,6 @@ class glideinDicts:
 #
 #  Revision 1.13  2007/12/03 19:49:20  sfiligoi
 #  Added create_description, plus a little bit of cleanup
-#
-#  Revision 1.12  2007/12/03 19:23:56  sfiligoi
-#  Get rid of duplicates
-#
-#  Revision 1.11  2007/11/30 22:49:06  sfiligoi
-#  Make changing of self optional in load
-#
-#  Revision 1.9  2007/11/28 22:20:58  sfiligoi
-#  Add is_equal to all classes
-#
-#  Revision 1.8  2007/11/28 21:27:06  sfiligoi
-#  Add keys function to glideinMainDicts and glideinEntryDicts
-#
-#  Revision 1.6  2007/11/28 21:13:27  sfiligoi
-#  Add glideinDicts (also fixed load_entry_dicts)
-#
-#  Revision 1.4  2007/11/28 19:54:50  sfiligoi
-#  Add load_entry_dicts
-#
-#  Revision 1.3  2007/11/28 19:45:19  sfiligoi
-#  Add load_main_dicts
 #
 #  Revision 1.2  2007/11/27 19:58:51  sfiligoi
 #  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
