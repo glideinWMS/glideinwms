@@ -798,14 +798,15 @@ def refresh_description(dicts): # update in place
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
     description_dict.add(dicts['file_list'].get_fname(),"file_list",allow_overwrite=True)
 
-def refresh_file_list(dicts,is_main): # update in place
+def refresh_file_list(dicts,is_main, # update in place
+                      files_set_readonly=True,files_reset_changed=True):
     entry_str="_ENTRY"
     if is_main:
         entry_str=""
     file_dict=dicts['file_list']
-    file_dict.add(cgWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str),allow_overwrite=True)
-    file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str),allow_overwrite=True)
-    file_dict.add(cgWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str),allow_overwrite=True)
+    file_dict.add(cgWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str,dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cgWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str,dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
@@ -833,9 +834,10 @@ def save_common_dicts(dicts,     # will update in place, too
     # make sure decription is up to date
     refresh_description(dicts)
     # save the immutable ones
-    for k in ('consts','untar_cfg','vars','description'):
+    for k in ('description',):
         dicts[k].save(set_readonly=set_readonly)
-    # make sure we have all the files in the file list
+    # Load files into the file list
+    # 'consts','untar_cfg','vars' will be loaded
     refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('file_list',):
@@ -1145,10 +1147,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.63 2007/12/22 20:33:35 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.64 2007/12/22 20:48:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.64  2007/12/22 20:48:14  sfiligoi
+#  consts, untar_cfg and vars dicts now get saved via file_list
+#
 #  Revision 1.63  2007/12/22 20:33:35  sfiligoi
 #  Add string load/save
 #
