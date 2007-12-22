@@ -27,7 +27,10 @@ TIMESTR=get_timestr()
 # insert timestr just before the last .
 def insert_timestr(str):
     arr=string.split(str,'.')
-    arr.insert(-1,TIMESTR)
+    if len(arr)==1:
+      arr.append(TIMESTR)
+    else:  
+      arr.insert(-1,TIMESTR)
     return string.join(arr,'.')
     
 # these two are in the submit dir, so they can be changed
@@ -104,10 +107,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.11 2007/12/17 20:50:28 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.12 2007/12/22 20:59:57 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.12  2007/12/22 20:59:57  sfiligoi
+#  Add timestr at the end if not . in the file name
+#
 #  Revision 1.11  2007/12/17 20:50:28  sfiligoi
 #  Move subsystems into the file_list and add untar_cfg
 #
