@@ -6,7 +6,7 @@
 #######################################################
 
 import os,os.path,shutil,string,popen2,copy
-import sets
+import sets,cStringIO
 import cgWConsts
 
 ########################################
@@ -1147,10 +1147,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.64 2007/12/22 20:48:14 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.65 2007/12/22 20:53:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.65  2007/12/22 20:53:20  sfiligoi
+#  Add missing module
+#
 #  Revision 1.64  2007/12/22 20:48:14  sfiligoi
 #  consts, untar_cfg and vars dicts now get saved via file_list
 #
