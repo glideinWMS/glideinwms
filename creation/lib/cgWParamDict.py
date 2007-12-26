@@ -53,10 +53,6 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         for script_name in ('cat_consts.sh','setup_x509.sh'):
             self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
-        # put user files in stage
-        for file in params.files:
-            add_file_unparsed(file,self.dicts)
-
         #load condor tarball
         if params.condor.tar_file!=None: # condor tarball available
             self.dicts['file_list'].add_from_file(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),params.condor.tar_file)
@@ -72,6 +68,10 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         for file_name in ('parse_starterlog.awk',"condor_config"):
             self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
+
+        # put user files in stage
+        for file in params.files:
+            add_file_unparsed(file,self.dicts)
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
@@ -143,13 +143,13 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         for script_name in ('cat_consts.sh',"validate_node.sh"):
             self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
+        #load system files
+        self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
+        
         # put user files in stage
         for file in entry_params.files:
             add_file_unparsed(file,self.dicts)
 
-        #load system files
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
-        
         # put user attributes into config files
         for attr_name in entry_params.attrs.keys():
             add_attr_unparsed(attr_name, entry_params.attrs[attr_name],self.dicts,self.entry_name)
@@ -374,27 +374,21 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.31 2007/12/26 16:22:47 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.32 2007/12/26 20:04:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.32  2007/12/26 20:04:41  sfiligoi
+#  Fix file order
+#
 #  Revision 1.31  2007/12/26 16:22:47  sfiligoi
 #  After creating the condor tarball, update the params
-#
-#  Revision 1.30  2007/12/26 09:37:47  sfiligoi
-#  Fix load
-#
-#  Revision 1.29  2007/12/21 12:37:47  sfiligoi
-#  Fix reuse inheritance
 #
 #  Revision 1.28  2007/12/20 16:41:48  sfiligoi
 #  Add reuse
 #
 #  Revision 1.27  2007/12/18 16:30:50  sfiligoi
 #  Correct blacklist load order
-#
-#  Revision 1.26  2007/12/17 21:50:17  sfiligoi
-#  Fix untar cfg handling
 #
 #  Revision 1.24  2007/12/17 21:00:35  sfiligoi
 #  Add timestamps to the user filenames
