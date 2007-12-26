@@ -60,6 +60,10 @@ class DictFile:
 
 
     def add(self,key,val,allow_overwrite=False):
+        if key in self.keys:
+            if self.vals[key]==val:
+                return # already exists, nothing to do
+
         if self.is_readonly:
             raise RuntimeError, "Trying to modify a readonly object!"
         
@@ -262,6 +266,10 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
         self.vals2={}
 
     def add(self,key,val,allow_overwrite=False):
+        if key in self.keys:
+            if self.vals[key]==val:
+                return # already exists, nothing to do
+
         if self.is_readonly:
             raise RuntimeError, "Trying to modify a readonly object!"
         
@@ -1162,10 +1170,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.69 2007/12/26 09:55:20 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.70 2007/12/26 10:06:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.70  2007/12/26 10:06:37  sfiligoi
+#  Allow updates with identical values on readonly objects
+#
 #  Revision 1.69  2007/12/26 09:55:20  sfiligoi
 #  Fix typo
 #
