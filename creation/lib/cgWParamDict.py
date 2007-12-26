@@ -222,6 +222,14 @@ class glideinDicts(cgWDictFile.glideinDicts):
         
         return cgWDictFile.glideinDicts.reuse(self,other)
 
+    ###########
+    # PRIVATE
+    ###########
+
+    # return a new entry object
+    def new_entry(self,entry_name):
+        return glideinEntryDicts(self.main_dicts,entry_name)
+    
 ############################################################
 #
 # P R I V A T E - Do not use
@@ -364,10 +372,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.29 2007/12/21 12:37:47 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.30 2007/12/26 09:37:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.30  2007/12/26 09:37:47  sfiligoi
+#  Fix load
+#
 #  Revision 1.29  2007/12/21 12:37:47  sfiligoi
 #  Fix reuse inheritance
 #

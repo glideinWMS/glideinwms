@@ -1085,8 +1085,10 @@ class glideinDicts:
                 entry_name=cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
                 if not(entry_name in self.entry_list):
                     self.entry_list.append(entry_name)
-                self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
+                self.entry_dicts[entry_name]=self.new_entry(entry_name)
                 self.entry_dicts[entry_name].load()
+
+
 
     def save(self,set_readonly=True):
         for entry_name in self.entry_list:
@@ -1147,15 +1149,26 @@ class glideinDicts:
             if k in other.entry_list:
                 self.entry_dicts[k].reuse(other.entry_dicts[k])
            #else should check if the dir exist, but will do it another time
-        
+
+    ###########
+    # PRIVATE
+    ###########
+
+    # return a new entry object
+    def new_entry(self,entry_name):
+        return glideinEntryDicts(self.main_dicts,entry_name)
+    
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.66 2007/12/26 09:16:51 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.67 2007/12/26 09:37:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.67  2007/12/26 09:37:47  sfiligoi
+#  Fix load
+#
 #  Revision 1.66  2007/12/26 09:16:51  sfiligoi
 #  Improve reuse
 #
