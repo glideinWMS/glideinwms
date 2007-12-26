@@ -62,8 +62,10 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),params.condor.tar_file)
         else: # create a new tarball
             condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
-            self.dicts['file_list'].add_from_fd(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),condor_fd)
+            condor_fname=cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE)
+            self.dicts['file_list'].add_from_fd(cgWConsts.CONDOR_FILE,(condor_fname,"untar","TRUE",cgWConsts.CONDOR_ATTR),condor_fd)
             condor_fd.close()
+            params.subparams.data['condor']['tar_file']=os.path.join(self.dicts['file_list'].dir,condor_fname)
         self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
@@ -372,10 +374,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.30 2007/12/26 09:37:47 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.31 2007/12/26 16:22:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.31  2007/12/26 16:22:47  sfiligoi
+#  After creating the condor tarball, update the params
+#
 #  Revision 1.30  2007/12/26 09:37:47  sfiligoi
 #  Fix load
 #
