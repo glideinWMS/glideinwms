@@ -889,7 +889,7 @@ def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
 
 def reuse_file_dict(dicts,other_dicts,key):
     dicts[key].reuse(other_dicts[key])
-    reuse_simple_dict(other_dicts,key)
+    reuse_simple_dict(dicts,other_dicts,key)
 
 def reuse_common_dicts(dicts, other_dicts,is_main):
     # check simple dictionaries
@@ -1162,10 +1162,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.68 2007/12/26 09:53:42 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.69 2007/12/26 09:55:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.69  2007/12/26 09:55:20  sfiligoi
+#  Fix typo
+#
 #  Revision 1.68  2007/12/26 09:53:42  sfiligoi
 #  Improve file_list reuse
 #
