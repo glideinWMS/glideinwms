@@ -30,6 +30,7 @@ def main(params,old_params):
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
     
+    params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
 
     print "Reconfigured glidein '%s'"%params.glidein_name
     print "Submit files are in %s"%glidein_dicts_obj.main_dicts.submit_dir
@@ -66,10 +67,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.3 2007/12/21 11:36:10 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.4 2007/12/26 15:54:38 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.4  2007/12/26 15:54:38  sfiligoi
+#  Save config file
+#
 #  Revision 1.3  2007/12/21 11:36:10  sfiligoi
 #  Fix bug
 #
