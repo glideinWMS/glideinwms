@@ -1165,7 +1165,9 @@ class glideinDicts:
         for k in self.entry_list:
             if k in other.entry_list:
                 self.entry_dicts[k].reuse(other.entry_dicts[k])
-           #else should check if the dir exist, but will do it another time
+            else:
+                # nothing to reuse, but must create dir
+                self.entry_dicts[k].create_dirs()
 
     ###########
     # PRIVATE
@@ -1179,20 +1181,17 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.74 2007/12/26 11:27:47 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.75 2007/12/26 15:31:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.75  2007/12/26 15:31:11  sfiligoi
+#  Add support for new entries in reuse
+#
 #  Revision 1.74  2007/12/26 11:27:47  sfiligoi
 #  Add want_comments
 #
-#  Revision 1.73  2007/12/26 11:24:19  sfiligoi
-#  Add want_comments
-#
-#  Revision 1.72  2007/12/26 11:13:25  sfiligoi
-#  Fix typo
-#
-#  Revision 1.71  2007/12/26 11:11:36  sfiligoi
+#  Revision 1.72  2007/12/26 11:11:36  sfiligoi
 #  Compare on saved string
 #
 #  Revision 1.70  2007/12/26 10:06:37  sfiligoi
