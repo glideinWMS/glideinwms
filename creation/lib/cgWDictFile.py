@@ -106,11 +106,12 @@ class DictFile:
         return
 
     def save_into_fd(self, fd,
-                     sort_keys=None,set_readonly=True,reset_changed=True):
+                     sort_keys=None,set_readonly=True,reset_changed=True,
+                     want_comments=True):
         if sort_keys==None:
             sort_keys=self.sort_keys
 
-        header=self.file_header()
+        header=self.file_header(want_comments)
         if header!=None:
             fd.write("%s\n"%header)
         if sort_keys:
@@ -119,8 +120,8 @@ class DictFile:
         else:
             keys=self.keys
         for k in keys:
-            fd.write("%s\n"%self.format_val(k))
-        footer=self.file_footer()
+            fd.write("%s\n"%self.format_val(k,want_comments))
+        footer=self.file_footer(want_comments)
         if footer!=None:
             fd.write("%s\n"%footer)
 
@@ -215,20 +216,23 @@ class DictFile:
             compare_keys=self.order_matters
         if compare_keys and (self.keys!=other.keys):
             return False
-        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False))
+        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False))
         return res
 
     # PRIVATE
     def is_compatible(self,old_val,new_val):
         return True # everything is compatible
     
-    def file_header(self):
-        return "# File: %s\n#"%self.fname
+    def file_header(self,want_comments):
+        if want_comments:
+            return "# File: %s\n#"%self.fname
+        else:
+            return None
     
-    def file_footer(self):
+    def file_footer(self,want_comments):
         return None # no footer
     
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s \t%s"%(key,self.vals[key])
 
     def parse_val(self,line):
@@ -315,7 +319,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
             compare_keys=self.order_matters
         if compare_keys and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
             return False
-        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False))
+        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False,want_comments=False))
         return res
         
     # PRIVATE
@@ -325,7 +329,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
 
 # descriptions
 class DescriptionDictFile(DictFileTwoKeys):
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s \t%s"%(self.vals[key],key)
 
     def parse_val(self,line):
@@ -371,7 +375,7 @@ class SHA1DictFile(DictFile):
             key=os.path.basename(filepath)
         self.add(key,sha1,allow_overwrite)
 
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s  %s"%(self.vals[key],key)
 
     def parse_val(self,line):
@@ -406,7 +410,7 @@ class SummarySHA1DictFile(DictFile):
             fname2=os.path.basename(filepath)        
         DictFile.add(self,key,(sha1,fname2),allow_overwrite)
 
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s  %s  %s"%(self.vals[key][0],self.vals[key][1],key)
 
     def parse_val(self,line):
@@ -458,7 +462,7 @@ class SimpleFileDictFile(DictFile):
         finally:
             fd.close()
 
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         if self.vals[key][0]!=None:
             return "%s %s"%(key,self.vals[key][0])
         else:
@@ -523,7 +527,7 @@ class FileDictFile(SimpleFileDictFile):
         else:
             raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
 
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s %s %s %s %s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
 
     def parse_val(self,line):
@@ -576,7 +580,7 @@ class FileDictFile(SimpleFileDictFile):
             
 # will convert values into python format before writing them out
 class ReprDictFile(DictFile):
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s \t%s"%(key,repr(self.vals[key]))
 
     def parse_val(self,line):
@@ -605,12 +609,15 @@ class VarsDictFile(DictFile):
     def is_compatible(self,old_val,new_val):
         return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
     
-    def file_header(self):
-        return ("# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
-                "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
-                "#                                                                                                + = Use VarName   \n"+
-                "#                                                                                                @ = Use CondorName\n"
-                "###################################################################################################################")
+    def file_header(self,want_comments):
+        if want_comments:
+            return ("# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
+                    "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
+                    "#                                                                                                + = Use VarName   \n"+
+                    "#                                                                                                @ = Use CondorName\n"
+                    "###################################################################################################################")
+        else:
+            return None
 
     def add(self,key,val,allow_overwrite=0):
         if not (type(val) in (type(()),type([]))):
@@ -662,7 +669,7 @@ class VarsDictFile(DictFile):
             
         self.add(key,(type_str,val_default,condor_name,req_str,export_condor_str,user_name),allow_overwrite)
         
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s \t%s \t%s \t\t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3],self.vals[key][4],self.vals[key][5])
         
 
@@ -687,13 +694,13 @@ class CondorJDLDictFile(DictFile):
         DictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
         self.jobs_in_cluster=jobs_in_cluster
 
-    def file_footer(self):
+    def file_footer(self,want_comments):
         if self.jobs_in_cluster==None:
             return "Queue"
         else:
             return "Queue %s"%self.jobs_in_cluster
 
-    def format_val(self,key):
+    def format_val(self,key,want_comments):
         return "%s = %s"%(key,self.vals[key])
 
     def parse_val(self,line):
@@ -1170,10 +1177,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.72 2007/12/26 11:13:25 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.73 2007/12/26 11:24:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.73  2007/12/26 11:24:19  sfiligoi
+#  Add want_comments
+#
 #  Revision 1.72  2007/12/26 11:13:25  sfiligoi
 #  Fix typo
 #
