@@ -215,7 +215,7 @@ class DictFile:
             compare_keys=self.order_matters
         if compare_keys and (self.keys!=other.keys):
             return False
-        res=(self.vals.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False)==other.vals.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False))
+        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False))
         return res
 
     # PRIVATE
@@ -315,7 +315,7 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
             compare_keys=self.order_matters
         if compare_keys and ((self.keys!=other.keys) or (self.keys2!=other.keys2)):
             return False
-        res=(self.vals.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False)==other.vals.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False))
+        res=(self.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False)==other.save_into_str(sort_keys=None,set_readonly=False,reset_changed=False))
         return res
         
     # PRIVATE
@@ -1170,24 +1170,21 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.71 2007/12/26 11:11:36 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.72 2007/12/26 11:13:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.72  2007/12/26 11:13:25  sfiligoi
+#  Fix typo
+#
 #  Revision 1.71  2007/12/26 11:11:36  sfiligoi
 #  Compare on saved string
 #
 #  Revision 1.70  2007/12/26 10:06:37  sfiligoi
 #  Allow updates with identical values on readonly objects
 #
-#  Revision 1.69  2007/12/26 09:55:20  sfiligoi
-#  Fix typo
-#
 #  Revision 1.68  2007/12/26 09:53:42  sfiligoi
 #  Improve file_list reuse
-#
-#  Revision 1.67  2007/12/26 09:37:47  sfiligoi
-#  Fix load
 #
 #  Revision 1.66  2007/12/26 09:16:51  sfiligoi
 #  Improve reuse
