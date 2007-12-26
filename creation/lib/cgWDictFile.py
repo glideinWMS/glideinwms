@@ -546,21 +546,24 @@ class FileDictFile(SimpleFileDictFile):
 
     def reuse(self,other,
               compare_dir=False,compare_fname=False,
-              compare_keys=None, # if None, use order_matters
               compare_files_fname=False):
         if compare_dir and (self.dir!=other.dir):
             return # nothing to do, different dirs
         if compare_fname and (self.fname!=other.fname):
             return # nothing to do, different fnames
-        if compare_keys==None:
-            compare_keys=self.order_matters
-        if compare_keys and (self.keys!=other.keys):
-            return # nothing to do, different key order
 
         for k in self.keys:
-            if self.vals[k][0]==other.vals[k][0]:
-                pass
-        
+            if k in other.keys:
+                # the other has the same key, check if they are the same
+                if compare_files_fname:
+                    is_equal=(self.vals[k]==other.vals[k])
+                else: # ignore file name (first element)
+                    is_equal=(self.vals[k][1:]==other.vals[k][1:])
+
+                if is_equal:
+                    self.vals[k]=copy.deepcopy(other.vals[k])
+                # else they are different and there is nothing to be done
+                    
         return
             
 # will convert values into python format before writing them out
@@ -886,8 +889,7 @@ def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
 
 def reuse_file_dict(dicts,other_dicts,key):
     dicts[key].reuse(other_dicts[key])
-    if dicts[key].changed==False:
-        dicts[key].set_readonly(True)
+    reuse_simple_dict(other_dicts,key)
 
 def reuse_common_dicts(dicts, other_dicts,is_main):
     # check simple dictionaries
@@ -897,9 +899,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main):
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
     for k in ('file_list',):
-        # for now, just a simple check, while I think about it
-        reuse_simple_dict(dicts,other_dicts,k)
-        #reuse_file_dict(dicts,other_dicts,k)
+        reuse_file_dict(dicts,other_dicts,k)
 
     pass
 
@@ -1162,10 +1162,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.67 2007/12/26 09:37:47 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.68 2007/12/26 09:53:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.68  2007/12/26 09:53:42  sfiligoi
+#  Improve file_list reuse
+#
 #  Revision 1.67  2007/12/26 09:37:47  sfiligoi
 #  Fix load
 #
