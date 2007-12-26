@@ -19,7 +19,8 @@ def get_timestr(when=time.time()):
              string.printable[start_time_tuple[1]]+      #month
              string.printable[start_time_tuple[2]]+      #day
              string.printable[start_time_tuple[3]]+      #hour
-             string.digits[start_time_tuple[4]/10])      #first minute digit 
+             string.printable[start_time_tuple[4]]+      #minute
+	     string.printable[start_time_tuple[5]])      #first minute digit 
     return timestr
 
 TIMESTR=get_timestr()
@@ -107,10 +108,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.12 2007/12/22 20:59:57 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.13 2007/12/26 11:44:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.13  2007/12/26 11:44:58  sfiligoi
+#  Increate time resolution to the second
+#
 #  Revision 1.12  2007/12/22 20:59:57  sfiligoi
 #  Add timestr at the end if not . in the file name
 #
