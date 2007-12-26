@@ -494,24 +494,6 @@ class SimpleFileDictFile(DictFile):
     def get_file_fname(self,key):
         return key
 
-    def reuse(self,other,
-              compare_dir=False,compare_fname=False,
-              compare_keys=None, # if None, use order_matters
-              compare_files_fname=False):
-        if compare_dir and (self.dir!=other.dir):
-            return # nothing to do, different dirs
-        if compare_fname and (self.fname!=other.fname):
-            return # nothing to do, different fnames
-        if compare_keys==None:
-            compare_keys=self.order_matters
-        if compare_keys and (self.keys!=other.keys):
-            return # nothing to do, different key order
-
-        # to be finished
-        raise RuntimeError, "Not yet implemented"
-        
-        return
-            
 # file list
 # This one contains (real_fname,cache/exec,cond_download,config_out)
 # cache/exec should be one of: regular, nocache, exec, untar
@@ -562,6 +544,25 @@ class FileDictFile(SimpleFileDictFile):
             
         return mkeys
 
+    def reuse(self,other,
+              compare_dir=False,compare_fname=False,
+              compare_keys=None, # if None, use order_matters
+              compare_files_fname=False):
+        if compare_dir and (self.dir!=other.dir):
+            return # nothing to do, different dirs
+        if compare_fname and (self.fname!=other.fname):
+            return # nothing to do, different fnames
+        if compare_keys==None:
+            compare_keys=self.order_matters
+        if compare_keys and (self.keys!=other.keys):
+            return # nothing to do, different key order
+
+        for k in self.keys:
+            if self.vals[k][0]==other.vals[k][0]:
+                pass
+        
+        return
+            
 # will convert values into python format before writing them out
 class ReprDictFile(DictFile):
     def format_val(self,key):
@@ -888,24 +889,28 @@ def reuse_file_dict(dicts,other_dicts,key):
     if dicts[key].changed==False:
         dicts[key].set_readonly(True)
 
-def reuse_common_dicts(dicts, other_dicts):
+def reuse_common_dicts(dicts, other_dicts,is_main):
     # check simple dictionaries
     for k in ('consts','untar_cfg','vars','attrs','params'):
         reuse_simple_dict(dicts,other_dicts,k)
+    # since the file names may have changed, refresh the file_list    
+    refresh_file_list(dicts,is_main)
     # check file-based dictionaries
     for k in ('file_list',):
-        reuse_file_dict(dicts,other_dicts,k)
+        # for now, just a simple check, while I think about it
+        reuse_simple_dict(dicts,other_dicts,k)
+        #reuse_file_dict(dicts,other_dicts,k)
 
     pass
 
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
-    reuse_common_dicts(main_dicts, other_main_dicts)
+    reuse_common_dicts(main_dicts, other_main_dicts,True)
     pass
 
 def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
     reuse_simple_dict(entry_dicts, other_entry_dicts,'job_descript')
-    reuse_common_dicts(entry_dicts, other_entry_dicts)
+    reuse_common_dicts(entry_dicts, other_entry_dicts,False)
     pass
 
 ################################################
@@ -1147,10 +1152,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.65 2007/12/22 20:53:20 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.66 2007/12/26 09:16:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.66  2007/12/26 09:16:51  sfiligoi
+#  Improve reuse
+#
 #  Revision 1.65  2007/12/22 20:53:20  sfiligoi
 #  Add missing module
 #
