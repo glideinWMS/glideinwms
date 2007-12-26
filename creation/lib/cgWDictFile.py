@@ -81,7 +81,8 @@ class DictFile:
         
     def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
              sort_keys=None,set_readonly=True,reset_changed=True,
-             save_only_if_changed=True): 
+             save_only_if_changed=True,
+             want_comments=True): 
         if save_only_if_changed and (not self.changed):
             return # no change -> don't save
 
@@ -99,7 +100,7 @@ class DictFile:
         except IOError,e:
             raise RuntimeError, "Error creating %s: %s"%(filepath,e)
         try:
-            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed)
+            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
         finally:
             fd.close()
 
@@ -133,9 +134,10 @@ class DictFile:
         return
 
     def save_into_str(self,
-                      sort_keys=None,set_readonly=True,reset_changed=True):
+                      sort_keys=None,set_readonly=True,reset_changed=True,
+                      want_comments=True):
         fd=cStringIO.StringIO()
-        self.save_into_fd(fd,sort_keys,set_readonly,reset_changed)
+        self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
         fd.seek(0)
         data=fd.read()
         fd.close()
@@ -1177,10 +1179,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.73 2007/12/26 11:24:19 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.74 2007/12/26 11:27:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.74  2007/12/26 11:27:47  sfiligoi
+#  Add want_comments
+#
 #  Revision 1.73  2007/12/26 11:24:19  sfiligoi
 #  Add want_comments
 #
