@@ -171,10 +171,11 @@ class Params:
         self.entry_defaults=xmlParse.OrderedDict()
         self.entry_defaults["gatekeeper"]=(None,'gatekeeper', 'Grid gatekeeper/resource',None)
         self.entry_defaults["gridtype"]=('gt2','grid_type','Condor Grid type',None)
-        self.entry_defaults["rsl"]=(None,'RSL','Globus RSL option',None)
+        self.entry_defaults["rsl"]=(None,'RSL','Globus gt2 RSL option',None)
         self.entry_defaults['schedd_name']=(None,"ScheddName","Which schedd to use (Overrides the global one if specified)",None)
         self.entry_defaults["work_dir"]=(".",".|Condor|OSG","Where to start glidein",None)
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
+        self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=sub_defaults['files']
         
@@ -425,10 +426,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.9 2007/12/12 00:51:27 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.10 2007/12/28 20:48:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.10  2007/12/28 20:48:20  sfiligoi
+#  Add enabled to entry and use it to tell the factory which entries to use.
+#
 #  Revision 1.9  2007/12/12 00:51:27  sfiligoi
 #  Implement equality method
 #

@@ -90,6 +90,11 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
+        active_entry_list=[]
+        for entry in params.entries.keys():
+            if eval(params.entries[entry].enabled,{},{}):
+                active_entry_list.append(entry)
+        glidein_dict.add('Entries',string.join(active_entry_list,','))
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -201,7 +206,6 @@ class glideinDicts(cgWDictFile.glideinDicts):
             params=self.params
         
         self.main_dicts.populate(params)
-        self.main_dicts.dicts['glidein'].add('Entries',string.join(self.entry_list,','))
 
         # make sure all the schedds are defined
         # if not, define them, in place, so thet it get recorded
@@ -349,6 +353,8 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
             else:
                 dicts['vars'].add_extended(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
 
+#######################
+# Populate job_descript
 def populate_job_descript(job_descript_dict,        # will be modified
                           entry_name,entry_params):
     job_descript_dict.add('EntryName',entry_name)
@@ -374,10 +380,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.32 2007/12/26 20:04:41 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.33 2007/12/28 20:48:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.33  2007/12/28 20:48:20  sfiligoi
+#  Add enabled to entry and use it to tell the factory which entries to use.
+#
 #  Revision 1.32  2007/12/26 20:04:41  sfiligoi
 #  Fix file order
 #
