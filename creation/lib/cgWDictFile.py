@@ -903,32 +903,49 @@ def reuse_simple_dict(dicts,other_dicts,key,compare_keys=None):
         dicts[key]=copy.deepcopy(other_dicts[key])
         dicts[key].changed=False
         dicts[key].set_readonly(True)
+        return True
+    else:
+        return False
 
 def reuse_file_dict(dicts,other_dicts,key):
     dicts[key].reuse(other_dicts[key])
-    reuse_simple_dict(dicts,other_dicts,key)
+    return reuse_simple_dict(dicts,other_dicts,key)
 
-def reuse_common_dicts(dicts, other_dicts,is_main):
+def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
+    # save the immutable ones
     # check simple dictionaries
-    for k in ('consts','untar_cfg','vars','attrs','params'):
-        reuse_simple_dict(dicts,other_dicts,k)
+    for k in ('consts','untar_cfg','vars'):
+        all_reused=all_reused and reuse_simple_dict(dicts,other_dicts,k)
     # since the file names may have changed, refresh the file_list    
-    refresh_file_list(dicts,is_main)
+    all_reused=all_reused and refresh_file_list(dicts,is_main)
     # check file-based dictionaries
-    for k in ('file_list',):
-        reuse_file_dict(dicts,other_dicts,k)
+    all_reused=all_reused and reuse_file_dict(dicts,other_dicts,'file_list')
 
-    pass
+    if all_reused:
+        # description and signature track other files
+        # so they change iff the others change
+        for k in ('description','signature'):
+            dicts[k]=copy.deepcopy(other_dicts[k])
+            dicts[k].changed=False
+            dicts[k].set_readonly(True)
+            
+    # check the mutable ones
+    for k in ('attrs','params'):
+        reuse_simple_dict(dicts,other_dicts,k)
+
+    return all_reused
 
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
-    reuse_common_dicts(main_dicts, other_main_dicts,True)
-    pass
+    all_reused=reuse_common_dicts(main_dicts, other_main_dicts,True,True)
+    # will not try to reuse the summary_signature... being in submit_dir
+    # can be rewritten and it is not worth the pain to try to prevent it
+    return all_reused
 
 def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
     reuse_simple_dict(entry_dicts, other_entry_dicts,'job_descript')
-    reuse_common_dicts(entry_dicts, other_entry_dicts,False)
-    pass
+    all_reused=reuse_common_dicts(entry_dicts, other_entry_dicts,False,True)
+    return all_reused
 
 ################################################
 #
@@ -1181,10 +1198,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.75 2007/12/26 15:31:11 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.76 2007/12/28 20:46:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.76  2007/12/28 20:46:21  sfiligoi
+#  Implement reuse of description and signature.
+#
 #  Revision 1.75  2007/12/26 15:31:11  sfiligoi
 #  Add support for new entries in reuse
 #
