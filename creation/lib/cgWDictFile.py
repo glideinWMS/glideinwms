@@ -917,7 +917,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     for k in ('consts','untar_cfg','vars'):
         all_reused=all_reused and reuse_simple_dict(dicts,other_dicts,k)
     # since the file names may have changed, refresh the file_list    
-    all_reused=all_reused and refresh_file_list(dicts,is_main)
+    refresh_file_list(dicts,is_main)
     # check file-based dictionaries
     all_reused=all_reused and reuse_file_dict(dicts,other_dicts,'file_list')
 
@@ -1198,10 +1198,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.76 2007/12/28 20:46:21 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.77 2007/12/31 15:33:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.77  2007/12/31 15:33:48  sfiligoi
+#  Fix bug
+#
 #  Revision 1.76  2007/12/28 20:46:21  sfiligoi
 #  Implement reuse of description and signature.
 #
