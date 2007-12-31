@@ -915,11 +915,11 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # save the immutable ones
     # check simple dictionaries
     for k in ('consts','untar_cfg','vars'):
-        all_reused=all_reused and reuse_simple_dict(dicts,other_dicts,k)
+        all_reused=reuse_simple_dict(dicts,other_dicts,k) and all_reused
     # since the file names may have changed, refresh the file_list    
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
-    all_reused=all_reused and reuse_file_dict(dicts,other_dicts,'file_list')
+    all_reused=reuse_file_dict(dicts,other_dicts,'file_list') and all_reused
 
     if all_reused:
         # description and signature track other files
@@ -1198,10 +1198,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.77 2007/12/31 15:33:48 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.78 2007/12/31 15:37:03 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.78  2007/12/31 15:37:03  sfiligoi
+#  Properly handle partial evaluation of booleans
+#
 #  Revision 1.77  2007/12/31 15:33:48  sfiligoi
 #  Fix bug
 #
