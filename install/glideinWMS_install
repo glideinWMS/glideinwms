@@ -2504,6 +2504,9 @@ def setup_quill():
         config_fd.write("QUILL_DB_QUERY_PASSWORD = %s\n"%QUILL_DB_PASSWDS['reader'])
         config_fd.write("QUILL_DB_IP_ADDR = $(HOSTNAME):%s\n"%POSTGRESQL_PORT)
         config_fd.write("QUILL_MANAGE_VACUUM = TRUE\n")
+        config_fd.write("# defaults are way to high\n")
+        config_fd.write("#in days\nQUILL_HISTORY_DURATION  = 7\n")
+        config_fd.write("#in hours\nQUILL_HISTORY_CLEANING_INTERVAL = 6\n")
     finally:
         config_fd.close()
 
