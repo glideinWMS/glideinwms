@@ -16,14 +16,14 @@
 <h2>Description</h2>
 
 To configure the Glidein Factory you need to create a directory with a
-set of files. This is done by the command line tool described below. A
+set of files. This is done by the command line tools described below. A
 set of configuration example is provided, too.<br>
 
 <h2>Index</h2>
 
 <ul>
 
-  <li><a href="#name">Command name</a></li>
+  <li><a href="#name">Command line tools</a></li>
 
   <li><a href="#args">The configuration file</a></li>
 
@@ -72,34 +72,33 @@ the glideins</a></li>
 
 </ul>
 
-<h2><a name="name"></a>Command name</h2>
+<h2><a name="name"></a>Command line tools</h2>
 
-The installation is performed using the command<br>
+To create a new directory, use the command:
+<div style="margin-left: 40px;"><span style="font-family: monospace;">create_glidein</span><br></div>
+<br>
+To update an existing directory, use:
+<div style="margin-left: 40px;"><span style="font-family: monospace;">reconfig_glidein</span><br></div>
+<br>
 
-<div style="margin-left: 40px;"><span style="font-family: monospace;">create_glidein</span><br>
-
-</div>
+Both are located in:
+<div style="margin-left: 40px;"><span style="font-family: monospace;">glideinWMS/creation</span><br>	</div>
 
 <br>
 
-located in<br>
-
-<div style="margin-left: 40px;"><span style="font-family: monospace;">glideinWMS/creation</span><br>
-
-</div>
+They will create all the needed directories and files needed by a <a href="index.html#glidein_daemons">Glidein Factory Daemon</a>.<br>
 
 <br>
 
-It will create all the needed directories and files needed by a <a href="index.html#glidein_daemons">Glidein Factory Daemon</a>.<br>
+Both commands has only one argument, and it is the configuration file to load:
+<div style="margin-left: 40px;"><span style="font-family: monospace;">
+./create_glidein &lt;xml file&gt;<br>
+./reconfig_glidein &lt;xml file&gt;<br>
+</span></div>
 
-<br>
-
-This command has only one argument, and it is the configuration file to
-load.&nbsp;
 <h2><a name="args"></a>The configuration file</h2>
 
 The configuration file is a XML document.<br>
-
 <br>
 
 It is composed of two parts:<br>
