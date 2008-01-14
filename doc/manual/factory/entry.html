@@ -371,11 +371,16 @@ Example attributes are:<br>
   <li><span style="font-family: monospace;"></span><span style="font-weight: bold; font-family: monospace;"></span><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">glidein</span>&gt;&lt;<span style="font-weight: bold;">entries</span>&gt;&lt;<span style="font-weight: bold;">entry name</span>="<span style="font-style: italic;">entry name</span>" <span style="font-weight: bold;"></span></span><span style="font-weight: bold; font-family: monospace;">schedd_name</span><span style="font-family: monospace;">="</span><span style="font-style: italic; font-family: monospace;">schedd
 name</span><span style="font-family: monospace;">"&gt;</span><br>
 If you have an entry that needs a dedicated schedd, you can set it here (to something like <span style="font-family: monospace;">"myveryspecialschedd@mymachine.mydomain")</span>&nbsp;
+  <br><br>
+  </li>
+
+  <li><span style="font-family: monospace;"></span><span style="font-weight: bold; font-family: monospace;"></span><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">glidein</span>&gt;&lt;<span style="font-weight: bold;">entries</span>&gt;&lt;<span style="font-weight: bold;">entry name</span>="<span style="font-style: italic;">entry name</span>" <span style="font-weight: bold;"></span></span><span style="font-weight: bold; font-family: monospace;">enabled</span><span style="font-family: monospace;">="</span><span style="font-style: italic; font-family: monospace;">True/False</span><span style="font-family: monospace;">"&gt;</span><br>
+You can define an entry point even if you do not plan to use it right away.<br>
+The entry point directory will be created independently of the <span style="font-weight: bold; font-family: monospace;">enabled</span> flag, but will only be used
+by the glidein factory if it is set to <span style="font-weight: bold; font-family: monospace;">True</span>. (Defaults to <span style="font-weight: bold; font-family: monospace;">True<span>).
   </li>
 
 </ul>
-
-<br>
 
 The other arguments are for advanced admins only, and are explained
 below.<br>
