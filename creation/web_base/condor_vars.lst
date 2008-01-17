@@ -11,6 +11,7 @@ X509_GRIDMAP		C	-		GRIDMAP				Y	N	-
 X509_GRIDMAP_DNS	S	-		GLIDEIN_X509_GRIDMAP_DNS	N	Y	-
 GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
+GLIDEIN_Signature	S	-		+				Y	Y	@
 GLIDEIN_Client		S	-		+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
 GLIDEIN_Start		C	1		+				N	N	-

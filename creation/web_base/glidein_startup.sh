@@ -199,6 +199,8 @@ echo "sign_sha1         = '$sign_sha1'"
 echo "proxy_url         = '$proxy_url'"
 echo "descript_fname    = '$descript_file'"
 echo "descript_entry_fname = '$descript_entry_file'"
+echo "sign_id           = '$sign_id'"
+echo "entry_sign_id     = '$entry_sign_id'"
 echo
 echo "Running on `uname -n`"
 id
@@ -333,6 +335,8 @@ echo "TMP_DIR $glide_tmp_dir" >> glidein_config
 echo "PROXY_URL $proxy_url" >> glidein_config
 echo "DESCRIPTION_FILE $descript_file" >> glidein_config
 echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
+echo "GLIDEIN_Signature $sign_id" >> glidein_config
+echo "GLIDEIN_Entry_Signature $entry_sign_id" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 params2file $params
 
