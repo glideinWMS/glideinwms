@@ -65,7 +65,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
-        for file_name in ('parse_starterlog.awk',"condor_config"):
+        for file_name in ('parse_starterlog.awk',"condor_config","condor_mapfile"):
             self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
@@ -380,10 +380,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.33 2007/12/28 20:48:20 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.34 2008/01/17 18:57:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.34  2008/01/17 18:57:06  sfiligoi
+#  Add CERTIFICATE_MAPFILE = condor_mapfile
+#
 #  Revision 1.33  2007/12/28 20:48:20  sfiligoi
 #  Add enabled to entry and use it to tell the factory which entries to use.
 #
