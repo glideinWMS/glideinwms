@@ -203,7 +203,11 @@ echo "sign_id           = '$sign_id'"
 echo "entry_sign_id     = '$entry_sign_id'"
 echo
 echo "Running on `uname -n`"
-id
+echo "System: `uname -a`"
+if [ -e '/etc/redhat-release' ]; then
+ echo "Release: `cat /etc/redhat-release 2>&1`"
+fi
+echo "As: `id`"
 echo "PID: $$"
 echo
 
