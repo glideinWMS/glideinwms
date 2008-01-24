@@ -45,11 +45,11 @@ append_config "GLEXEC_USER_DIR=$glide_tmp_dir"
 glexec_bin=`grep '^GLEXEC_BIN' $glidein_config | awk '{print $2}'`
 if [ -z "$glexec_bin" ]; then
     glexec_bin="OSG"
-    echo "GLEXEC_BIN not found, using default '$glexec_bin'"
+    echo "GLEXEC_BIN not found, using default '$glexec_bin'" 1>&2
 fi
 
 if [ "$glexec_bin" == "OSG" ]; then
-    echo "GLEXEC_BIN was OSG, expand to '$OSG_GLEXEC_LOCATION'"
+    echo "GLEXEC_BIN was OSG, expand to '$OSG_GLEXEC_LOCATION'" 1>&2
     glexec_bin="$OSG_GLEXEC_LOCATION"
 fi
 
