@@ -96,7 +96,11 @@ RunBenchmarks : (LastBenchmark == 0 ) || ($(BenchmarkTimer) >= (4 * $(HOUR)))
 GSI_DAEMON_DIRECTORY=$(LOCAL_DIR)
 SEC_DEFAULT_AUTHENTICATION = REQUIRED
 SEC_DEFAULT_AUTHENTICATION_METHODS = GSI 
-CERTIFICATE_MAPFILE = $(LOCAL_DIR)/condor_mapfile
+
+DENY_WRITE = anonymous@*
+DENY_ADMINISTRATOR = anonymous@*
+DENY_DAEMON = anonymous@*
+DENY_NEGOTIATOR = anonymous@*
 
 LOCAL_CONFIG_FILE       = 
 
