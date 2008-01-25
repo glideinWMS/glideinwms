@@ -79,6 +79,17 @@ class DictFile:
         self.vals[key]=val
         self.changed=True
         
+    def remove(self,key,fail_if_missing=False):
+        if not (key in self.keys):
+            if not fail_if_missing:
+                raise RuntimeError, "Key '%s' does not exist"%key
+            else:
+                return # nothing to do
+
+        self.keys.remove(key)
+        del self.vals[key]
+        self.changed=True
+
     def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
              sort_keys=None,set_readonly=True,reset_changed=True,
              save_only_if_changed=True,
@@ -310,6 +321,21 @@ class DictFileTwoKeys(DictFile): # both key and val are keys
         self.vals2[val]=key
         self.changed=True
     
+    def remove(self,key,fail_if_missing=False):
+        if not (key in self.keys):
+            if not fail_if_missing:
+                raise RuntimeError, "Key '%s' does not exist"%key
+            else:
+                return # nothing to do
+
+        val=self.vals[key]
+
+        self.keys.remove(key)
+        del self.vals[key]
+        self.keys2.remove(val)
+        del self.vals2[val]
+        self.changed=True
+
     def is_equal(self,other,         # other must be of the same class
                  compare_dir=False,compare_fname=False,
                  compare_keys=None): # if None, use order_matters
@@ -514,8 +540,11 @@ class SimpleFileDictFile(DictFile):
 # cond_download has a special value of TRUE
 # config_out has a special value of FALSE
 class FileDictFile(SimpleFileDictFile):
-    def add_placeholder(self,key,allow_overwrite=False):
+    def add_placeholder(self,key,allow_overwrite=True):
         DictFile.add(self,key,("","","","",""),allow_overwrite)
+
+    def is_placeholder(self,key):
+        return (self[key][0]=="") # empty real_fname can only be a placeholder
 
     def add(self,key,
             val,     # will if len(val)==5, use the last one as data, else load from val[0]
@@ -1198,10 +1227,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.78 2007/12/31 15:37:03 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.79 2008/01/25 21:45:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.79  2008/01/25 21:45:35  sfiligoi
+#  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
+#
 #  Revision 1.78  2007/12/31 15:37:03  sfiligoi
 #  Properly handle partial evaluation of booleans
 #

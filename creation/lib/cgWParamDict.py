@@ -47,6 +47,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['file_list'].add_placeholder(cgWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh
         
         # Load initial system scripts
         # These should be executed before the other scripts
@@ -76,6 +77,9 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         # put user attributes into config files
         for attr_name in params.attrs.keys():
             add_attr_unparsed(attr_name, params.attrs[attr_name],self.dicts,"main")
+
+        if self.dicts['file_list'].is_placeholder(cgWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
+            self.dicts['file_list'].remove(cgWConsts.GRIDMAP_FILE)
 
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
@@ -380,10 +384,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.35 2008/01/25 20:07:02 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.36 2008/01/25 21:45:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.36  2008/01/25 21:45:35  sfiligoi
+#  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
+#
 #  Revision 1.35  2008/01/25 20:07:02  sfiligoi
 #  Remove condor_mapfile, as it will be dynamically generated
 #

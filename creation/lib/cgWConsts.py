@@ -49,6 +49,7 @@ UNTAR_CFG_FILE="untar.cfg"
 FILE_LISTFILE="file_list.lst"
 SIGNATURE_FILE="signature.sha1"
 
+GRIDMAP_FILE='grid-mapfile'
 
 CONDOR_FILE="condor_bin.tgz"
 CONDOR_DIR="condor"
@@ -108,10 +109,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.13 2007/12/26 11:44:58 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.14 2008/01/25 21:45:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.14  2008/01/25 21:45:35  sfiligoi
+#  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
+#
 #  Revision 1.13  2007/12/26 11:44:58  sfiligoi
 #  Increate time resolution to the second
 #
