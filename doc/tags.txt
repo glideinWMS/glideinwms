@@ -1,4 +1,5 @@
-vnext	Entry points can now be updated by using reconfig_glidein 
+vnext	Entry points can now be updated by using reconfig_glidein
+        Add automatic OSG glexec discovery 
 
 v1_0	During installation, Quill is now optional.
         During installation, Condor config can be split into condor_config.local.
