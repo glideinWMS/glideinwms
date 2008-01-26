@@ -553,8 +553,9 @@ class FileDictFile(SimpleFileDictFile):
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
 
-        if self.is_placeholder(key) and allow_overwrite_placeholder:
-            allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
+        if self.has_key(key) and allow_overwrite_placeholder:
+            if self.is_placeholder(key):
+                allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
         
         if len(val)==5:
             return self.add_from_str(key,val[:4],val[4],allow_overwrite)
@@ -1232,10 +1233,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.80 2008/01/26 02:10:56 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.81 2008/01/26 02:13:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.81  2008/01/26 02:13:13  sfiligoi
+#  Allow overwrite of placeholders
+#
 #  Revision 1.80  2008/01/26 02:10:56  sfiligoi
 #  Allow overwrite of placeholders
 #
