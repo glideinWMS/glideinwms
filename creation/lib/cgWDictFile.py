@@ -546,6 +546,15 @@ class FileDictFile(SimpleFileDictFile):
     def is_placeholder(self,key):
         return (self[key][0]=="") # empty real_fname can only be a placeholder
 
+    def add_from_str(self,key,val,
+                     data, 
+                     allow_overwrite=False,
+                     allow_overwrite_placeholder=True):
+        if self.has_key(key) and allow_overwrite_placeholder:
+            if self.is_placeholder(key):
+                allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
+        return SimpleFileDictFile.add_from_str(self,key,val,data,allow_overwrite)
+
     def add(self,key,
             val,     # will if len(val)==5, use the last one as data, else load from val[0]
             allow_overwrite=False,
@@ -1233,10 +1242,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.81 2008/01/26 02:13:13 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.82 2008/01/26 02:20:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.82  2008/01/26 02:20:06  sfiligoi
+#  Allow overwrite of placeholders
+#
 #  Revision 1.81  2008/01/26 02:13:13  sfiligoi
 #  Allow overwrite of placeholders
 #
