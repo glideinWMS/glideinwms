@@ -548,9 +548,14 @@ class FileDictFile(SimpleFileDictFile):
 
     def add(self,key,
             val,     # will if len(val)==5, use the last one as data, else load from val[0]
-            allow_overwrite=False):
+            allow_overwrite=False,
+            allow_overwrite_placeholder=True):
         if not (type(val) in (type(()),type([]))):
             raise RuntimeError, "Values '%s' not a list or tuple"%val
+
+        if self.is_placeholder(key) and allow_overwrite_placeholder:
+            allow_overwrite=True # since the other functions know nothing about placeholders, need to force overwrite
+        
         if len(val)==5:
             return self.add_from_str(key,val[:4],val[4],allow_overwrite)
         elif len(val)==4:
@@ -1227,10 +1232,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.79 2008/01/25 21:45:35 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.80 2008/01/26 02:10:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.80  2008/01/26 02:10:56  sfiligoi
+#  Allow overwrite of placeholders
+#
 #  Revision 1.79  2008/01/25 21:45:35  sfiligoi
 #  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
 #
