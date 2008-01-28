@@ -648,7 +648,7 @@ def gfactory_install():
 
     print
     print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the grid-mapfiles of the WMS and pool collectors"
+    print "Make sure this DN is in the condor_mapfiles of the WMS and pool collectors"
     print "  as well as all the Condor schedds."
     print
 
@@ -859,20 +859,44 @@ def gfactory_install():
     # GCBs
     gcb_list=get_gcb_list()
 
-    # grid-mapfile
-    def_grid_mapfile="%s/certs/grid-mapfile"%def_condor_base_dir
+    #################################
+    # create grid-mapfile
+    # ask user for additional DNs
+    dns={"condor":my_dn}
+    print "You will most probably need other DNs in the grid mapfile"
+    print "Please add all the DNs that this glidein will connect to"
+    print "(usually the Pool Collector and the Submit nodes)"
+    print
+    print "Please insert all such DNs, together with a user nickname."
+    print "An empty DN entry means you are done."
     while 1:
-        grid_mapfile=raw_input("Where is the grid-mapfile?: [%s] "%def_grid_mapfile)
-        if grid_mapfile=="":
-            grid_mapfile=def_grid_mapfile
-        if not os.path.exists(grid_mapfile):
-            print "%s does not exist!"%grid_mapfile
+        a_dn=raw_input("DN: ")
+        if a_dn=="":
+            break # done
+        default_uid="condor%03i"%len(dns.keys())
+        a_uid=raw_input("nickname: [%s] "%default_uid)
+        if a_uid=="":
+            a_uid=default_uid
+        if a_uid.find(" ")>=0:
+            print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname."%a_uid
             continue
-        # found and verified
-        break
+        if a_uid in dns.keys():
+            print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
+            continue
+        dns[a_uid]=a_dn
+
+
+    grid_mapfile="%s/gfactory_tmp_%s_%s.grid-map"%(os.environ['HOME'],os.getpid(),time.time())
+    gridmap_fd=open(grid_mapfile,"w")
+    try:
+        for a_uid in dns.keys():
+            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
+    finally:
+        gridmap_fd.close()
 
     # entries
     entries_list={}
+
     yn=raw_input("Do you want to fetch entries from CRONUS?: (y/n) ")
     if yn=='y':
         try:
@@ -977,6 +1001,7 @@ def gfactory_install():
 
     err=os.system('cd %s/creation && ./create_glidein %s'%(glideinWMS_base_dir,cfg_name))
     os.unlink(cfg_name)
+    os.unlink(grid_mapfile)
     if err!=0:
         raise RuntimeError, "Failed to create glidein '%s'!"%glidein_name
 
@@ -1905,7 +1930,7 @@ def configure_gsi_security():
     print
 
     #################################
-    # create grid-mapfile
+    # create condor_mapfile
     # ask user for additional DNs
     dns={"condor":my_dn}
     print "You will most probably need other DNs in the condor grid mapfile"
