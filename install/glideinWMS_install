@@ -1908,7 +1908,7 @@ def configure_gsi_security():
     # create grid-mapfile
     # ask user for additional DNs
     dns={"condor":my_dn}
-    print "You will most probably need other DNs in the grid mapfile"
+    print "You will most probably need other DNs in the condor grid mapfile"
     print "Please add all the DNs that can be used to connect to the "
     print "Condor daemons running on this node"
     print
@@ -1930,11 +1930,14 @@ def configure_gsi_security():
             continue
         dns[a_uid]=a_dn
 
-    
-    gridmap_fd=open("%s/certs/grid-mapfile"%CONDOR_BASE_PATH,"w")
+
+    condor_mapfile="%s/certs/condor_mapfile"%CONDOR_BASE_PATH
+    gridmap_fd=open(condor_mapfile,"w")
     try:
         for a_uid in dns.keys():
-            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
+            gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid],a_uid))
+        gridmap_fd.write('GSI (.*) anonymous\n')
+        gridmap_fd.write('FS (.*) \1\n')
     finally:
         gridmap_fd.close()
 
@@ -1949,6 +1952,10 @@ def configure_gsi_security():
         config_fd.write("# Authentication settings\n")
         config_fd.write("############################\n")
         config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
+        config_fd.write("DENY_WRITE = anonymous@*\n")
+        config_fd.write("DENY_ADMINISTRATOR = anonymous@*\n")
+        config_fd.write("DENY_DAEMON = anonymous@*\n")
+        config_fd.write("DENY_NEGOTIATOR = anonymous@*\n")
         config_fd.write("# Grid Certificate directory\n")
         config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s/globus/TRUSTED_CA\n\n"%VDT_BASE_PATH)
         config_fd.write("############################\n")
@@ -1969,9 +1976,9 @@ def configure_gsi_security():
             config_fd.write("# If you ever decide to use a Proxy, see below\n")
             config_fd.write("#GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy\n\n")
         config_fd.write("############################\n")
-        config_fd.write("# Where to find DN->uid mappings\n")
+        config_fd.write("# Where to find ID->uid mappings\n")
         config_fd.write("############################\n")
-        config_fd.write("GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile\n\n")
+        config_fd.write("CERTIFICATE_MAPFILE=%s\n\n"%condor_mapfile)
 
         config_fd.write("#####################################################\n")
         config_fd.write("# With strong security, do not use IP based controls\n")
