@@ -1,6 +1,7 @@
 vnext	Entry points can now be updated by using reconfig_glidein
         Add automatic OSG glexec discovery 
         Use condor_mapfile for authorization
+        Installer now supports Condor v7 (without Quill)
 
 v1_0	During installation, Quill is now optional.
         During installation, Condor config can be split into condor_config.local.
