@@ -1269,9 +1269,6 @@ def query_vdt():
             if not os.path.isfile("%s/setup.sh"%user_dir):
                 print "Directory '%s' not a VDT area (does not contain setup.sh)"%user_dir
                 continue
-            if not os.path.isfile("%s/globus/TRUSTED_CA/INDEX.txt"%user_dir):
-                print "Directory '%s' not a OSG VDT area (does not contain globus/TRUSTED_CA/INDEX.txt)"%user_dir
-                continue
             if not os.path.isfile("%s/globus/bin/grid-proxy-info"%user_dir):
                 print "Directory '%s' not a OSG VDT area (does not contain globus/bin/grid-proxy-info)"%user_dir
                 continue
