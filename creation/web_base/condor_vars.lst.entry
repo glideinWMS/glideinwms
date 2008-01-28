@@ -8,4 +8,6 @@ GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
 CONDOR_DIR		C	-		+				Y	N	-
-
+GLEXEC_BIN		C	-		GLEXEC				N	N	-
+GLEXEC_USER_DIR		C	-		+				N	N	-
+ALTERNATIVE_SHELL	C	-		SH				N	N	-

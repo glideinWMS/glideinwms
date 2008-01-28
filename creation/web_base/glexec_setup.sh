@@ -7,6 +7,23 @@
 ############################################################
 
 glidein_config=$1
+tmp_fname=${glidein_config}.$$.tmp
+
+###################################
+# Add a line to the config file
+function add_config_line {
+    id=$1
+
+    rm -f $tmp_fname #just in case one was there
+    mv $glidein_config $tmp_fname
+    if [ $? -ne 0 ]; then
+	warn "Error renaming $glidein_config into $tmp_fname"
+	exit 1
+    fi
+    grep -v "^$id " $tmp_fname > $glidein_config
+    echo "$@" >> $glidein_config
+    rm -f $tmp_fname
+}
 
 function append_config {
     echo "$1" >> condor_config
@@ -24,7 +41,7 @@ if [ $? -ne 0 ]; then
     echo "Failed to copy /bin/sh to . ($PWD)" 1>&2
     exit 1
 fi
-append_config "SH=$PWD/sh" 
+add_config_line "ALTERNATIVE_SHELL $PWD/sh" 
 
 
 # --------------------------------------------------
@@ -36,13 +53,13 @@ if [ -z "$glide_tmp_dir" ]; then
     echo "TMP_DIR not found!" 1>&2
     exit 1
 fi
-append_config "GLEXEC_USER_DIR=$glide_tmp_dir"
+add_config_line "GLEXEC_USER_DIR $glide_tmp_dir"
 
 # --------------------------------------------------
 #
 # Tell Condor to actually use gLExec
 #
-glexec_bin=`grep '^GLEXEC_BIN' $glidein_config | awk '{print $2}'`
+glexec_bin=`grep '^GLEXEC_BIN ' $glidein_config | awk '{print $2}'`
 if [ -z "$glexec_bin" ]; then
     glexec_bin="OSG"
     echo "GLEXEC_BIN not found, using default '$glexec_bin'" 1>&2
@@ -62,7 +79,7 @@ else
     exit 1
 fi
 
-append_config "GLEXEC_STARTER = True"
-append_config "GLEXEC = $glexec_bin"
+add_config_line "GLEXEC_STARTER True"
+add_config_line "GLEXEC $glexec_bin"
 
 exit 0
