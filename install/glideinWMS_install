@@ -923,7 +923,7 @@ def gfactory_install():
         except RuntimeError:
             vo=None # VOMS extensions are not required
             
-        get_ress_glidein_entries(vo,entries_list)
+        get_ress_glidein_entries(vo,entries_list,glexec_yn=="y")
 
     print "Please list all additional glidein entry points,"
     while 1:
@@ -3125,8 +3125,9 @@ def get_cronus_glidein_entries(vo,            #vo can be None
 
 # Get list of entry point from RESS
 ##########################################
-def get_ress_glidein_entries(vo,            #vo can be None
-                             entries_list): # disctionary, will add to this
+def get_ress_glidein_entries(vo,             #vo can be None
+                             entries_list,   # disctionary, will add to this
+                             config_glexec): # bool, ask for glexec dir
     while 1:
         default_ress_url='osg-ress-1.fnal.gov'
         ress_url=raw_input("Which RESS server should I use?: [%s] "%default_ress_url)
@@ -3234,6 +3235,12 @@ def get_ress_glidein_entries(vo,            #vo can be None
             site_name=raw_input("Site name for '%s': [%s] "%(idx,ress_entries[idx]['site_name']))
             if site_name!="":
                 ress_entries[idx]['site_name']=site_name
+
+        if config_glexec:
+            glexec_path=raw_input("gLExec path for '%s': [%s] "%(idx,ress_entries[idx]['glexec_path']))
+            if glexec_path!="":
+                ress_entries[idx]['glexec_path']=glexec_path
+            
 
     for idx in idx_arr:
         entries_list[idx]=ress_entries[idx]
