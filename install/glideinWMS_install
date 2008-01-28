@@ -1964,7 +1964,7 @@ def configure_gsi_security():
         for a_uid in dns.keys():
             gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid],a_uid))
         gridmap_fd.write('GSI (.*) anonymous\n')
-        gridmap_fd.write('FS (.*) \1\n')
+        gridmap_fd.write('FS (.*) \\1\n')
     finally:
         gridmap_fd.close()
 
