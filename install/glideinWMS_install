@@ -894,6 +894,14 @@ def gfactory_install():
     finally:
         gridmap_fd.close()
 
+    # Use gLExec
+    while 1:
+        glexec_yn=raw_input("Do you want to use gLExec?: (y/n) ")
+        if (glexec_yn!="y") and (glexec_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    
     # entries
     entries_list={}
 
@@ -935,8 +943,15 @@ def gfactory_install():
         site_name=raw_input("Site name for '%s': [%s] "%(entry_name,entry_name))
         if site_name=="":
             site_name=entry_name
+        glexec_path=""
+        if glexec_yn=="y":
+            glexec_path=raw_input("gLExec path for '%s': [OSG] "%entry_name)
+            if glexec_path=="":
+                glexec_path='OSG'
+            
+            
         entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl_name,'gridtype':'gt2',
-                                  'work_dir':work_dir,'site_name':site_name}
+                                  'work_dir':work_dir,'site_name':site_name,'glexec_path':glexec_path}
         
 
     # Expose Grid Env
@@ -980,6 +995,8 @@ def gfactory_install():
                 fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" %s work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],rsl_str,entry_el['work_dir']))
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" const="True" type="string" glidein_publish="True" value="%s" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
+                if glexec_yn=="y":
+                    fd.write('            <attr name="GLEXEC_BIN" const="True" type="string" glidein_publish="False" value="%s" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 fd.write('         </attrs>\n')
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
@@ -987,6 +1004,8 @@ def gfactory_install():
             fd.write('      <file executable="False" absfname="%s" untar="False" const="False" relfname="grid-mapfile"/>\n'%grid_mapfile)
             if len(gcb_list)>0: #not needed else
                 fd.write('      <file executable="True" absfname="web_base/gcb_setup.sh" untar="False" const="True"/>\n')
+            if glexec_yn=="y":
+                fd.write('      <file executable="True" absfname="web_base/glexec_setup.sh" untar="False" const="True"/>\n')
             fd.write('   </files>\n')
             fd.write('</glidein>\n')
         finally:
@@ -3052,7 +3071,7 @@ def get_cronus_glidein_entries(vo,            #vo can be None
             work_dir="."
 
         cronus_entries[key_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
-                                  'work_dir':work_dir,'site_name':cluster_id}
+                                  'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG'}
 
 
     cronus_keys=cronus_entries.keys()
@@ -3170,7 +3189,7 @@ def get_ress_glidein_entries(vo,            #vo can be None
 
         work_dir="OSG"
         ress_entries[key_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
-                                  'work_dir':work_dir,'site_name':cluster_id}
+                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG'}
 
 
     ress_keys=ress_entries.keys()
