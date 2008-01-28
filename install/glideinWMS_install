@@ -1500,7 +1500,12 @@ def install_condor():
     
         print "Running condor_configure"
         CONDOR_LOCAL_DIR="%s/condor_local"%user_condor_base_dir
-        cmdline="cd %s/tar/condor-%s;./condor_configure --install=%s/tar/condor-%s/release.tar --install-dir=%s --local-dir=%s --install-log=%s/tar/condor_configure.log"%(user_condor_base_dir,condor_version,user_condor_base_dir,condor_version,user_condor_base_dir,CONDOR_LOCAL_DIR,user_condor_base_dir)
+        install_str="%s/tar/condor-%s/release.tar"%(user_condor_base_dir,condor_version)
+        if not os.path.isfile(install_str):
+            # Condor v7 changed the packaging
+            install_str="%s/tar/condor-%s"%(user_condor_base_dir,condor_version)
+
+        cmdline="cd %s/tar/condor-%s;./condor_configure --install=%s --install-dir=%s --local-dir=%s --install-log=%s/tar/condor_configure.log"%(user_condor_base_dir,condor_version,install_str,user_condor_base_dir,CONDOR_LOCAL_DIR,user_condor_base_dir)
         if os.getuid()==0:
             cmdline="%s  --owner=%s"%(cmdline,condor_user)
             
