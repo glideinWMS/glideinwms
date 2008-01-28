@@ -897,14 +897,16 @@ def gfactory_install():
     # entries
     entries_list={}
 
-    yn=raw_input("Do you want to fetch entries from CRONUS?: (y/n) ")
-    if yn=='y':
-        try:
-            vo=get_proxy_vo(proxy_fname)
-        except RuntimeError:
-            vo=None # VOMS extensions are not required
-            
-        get_cronus_glidein_entries(vo,entries_list)
+    # Comment out CRONUS as it seems to be offline
+    # Unless something changes, it will be removed in future versions
+    #yn=raw_input("Do you want to fetch entries from CRONUS?: (y/n) ")
+    #if yn=='y':
+    #    try:
+    #        vo=get_proxy_vo(proxy_fname)
+    #    except RuntimeError:
+    #        vo=None # VOMS extensions are not required
+    #        
+    #    get_cronus_glidein_entries(vo,entries_list)
 
     yn=raw_input("Do you want to fetch entries from RESS?: (y/n) ")
     if yn=='y':
