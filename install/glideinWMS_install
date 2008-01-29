@@ -1282,9 +1282,18 @@ def create_empty_dir(question, def_dir,empty_required=True):
                     print "Failed to create '%s'!"% user_dir
                     continue
         else:
-            if empty_required and (len(os.listdir(user_dir))!=0):
-                print "Directory '%s' not empty!"% user_dir
-                continue
+            if len(os.listdir(user_dir))!=0:
+                yn='n'
+                if not empty_required:
+                    while 1:
+                        yn=raw_input("Directory '%s' not empty.\nShould I use it anyhow?: (y/n) ")
+                        if (yn!="y") and (yn!="n"):
+                            print "Please answer y or n"
+                            continue 
+                        break
+                if empty_required or (yn!='y'):
+                    print "Directory '%s' not empty!"% user_dir
+                    continue
 
         try: # write a test file
             fd=open("%s/test.tst"%user_dir,"w")
