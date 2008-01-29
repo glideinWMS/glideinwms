@@ -501,7 +501,7 @@ Here is a prototype of the security config:
 
 
 The GSI authentication needs some other parameters to be enabled, too.
-See the <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_7Security.html#SECTION00473100000000000000">Condor
+See the <a href="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#SECTION00463100000000000000">Condor
 manual</a> for the full details.<br>
 
 
@@ -543,20 +543,36 @@ set:<br>
   <li>The first one is the so called Grid Mapfile; it must list
 all the
 DNs Condor will trust. If you use GSI just for the maintenance of the
-glidein pool, it should list only the trusted DNs mapped as user <span style="font-style: italic;">condor</span>.<br>
+glidein pool, it should list only the trusted DNs.<br>
 
 
 For example:<br>
-
-
     
-    <pre>[root@cmswmshead.fnal.gov] cat grid-mapfile <br>"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head" condor<br>"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1" condor<br>"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1" condor<br></pre>
+    <pre>
+[root@cmswmshead.fnal.gov] cat grid-mapfile 
+"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head" condor1
+"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1" condor2
+"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1" condor3
+</pre>
+
+<p>
+Recent condor versions provide also another, more flexible unified map file.
+It san be use in stead of the grid mapfile, and map users from all supported 
+authentication domains.<br>
+
+For example:<br>
+<pre>
+[root@cmswmshead.fnal.gov] cat condor_mapfile 
+GSI "/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head" condor1
+GSI "/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1" condor2
+GSI "/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1" condor3
+GSI (.*) anonymous
+FS (.*) \1
+</pre>
 
 
-If instead you use GSI for authenticating your users, too, make sure
-all of them are listed there.<br>
-
-
+Please notice that if you use GSI for authenticating your users, too, 
+you need to list all of them in the map use.
   </li>
 
 
