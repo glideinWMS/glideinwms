@@ -312,11 +312,11 @@ def wms_install():
         os.symlink(web_dir,default_web_dir)
 
     # create stage and monitor subdirs
-    os.mkdir("%s/stage"%web_dir)
-    os.chown("%s/stage"%web_dir,gfactory_pwd[2],gfactory_pwd[3])
-    os.mkdir("%s/monitor"%web_dir)
-    os.chown("%s/monitor"%web_dir,gfactory_pwd[2],gfactory_pwd[3])
-
+    for sdir_name in ("stage","monitor"):
+        sdir_fullpath=os.path.join(web_dir,sdir_name)
+        if not os.path.exists(sdir_fullpath):
+            os.mkdir(sdir_fullpath)
+        os.chown(sdir_fullpath,gfactory_pwd[2],gfactory_pwd[3])
 
     ####################################
     # Create an empty top level page
