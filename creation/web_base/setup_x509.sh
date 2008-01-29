@@ -180,11 +180,14 @@ create_condormapfile
 # get X509 expiration time and store it into the config file
 X509_EXPIRE=`get_x509_expiration`
 cat >> "$config_file" <<EOF
-X509_EXPIRE       $X509_EXPIRE
-X509_CERT_DIR     $X509_CERT_DIR
-X509_USER_PROXY   $X509_USER_PROXY
-X509_CONDORMAP    $X509_CONDORMAP
-X509_GRIDMAP_DNS  $X509_GRIDMAP_DNS
+######## setup_x509 ###########
+X509_EXPIRE              $X509_EXPIRE
+X509_CERT_DIR            $X509_CERT_DIR
+X509_USER_PROXY          $X509_USER_PROXY
+X509_CONDORMAP           $X509_CONDORMAP
+X509_GRIDMAP_DNS         $X509_GRIDMAP_DNS
+X509_GRIDMAP_TRUSTED_DNS $X509_GRIDMAP_DNS
+###############################
 EOF
 
 exit 0
