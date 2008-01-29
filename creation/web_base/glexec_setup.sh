@@ -80,6 +80,6 @@ else
 fi
 
 add_config_line "GLEXEC_STARTER True"
-add_config_line "GLEXEC $glexec_bin"
+add_config_line "GLEXEC_BIN $glexec_bin"
 
 exit 0
