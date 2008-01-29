@@ -1953,7 +1953,7 @@ def configure_gsi_security():
     #################################
     # create condor_mapfile
     # ask user for additional DNs
-    dns={"condor":my_dn}
+    dns={"condor":[my_dn,True]}
     print "You will most probably need other DNs in the condor grid mapfile"
     print "Please add all the DNs that can be used to connect to the "
     print "Condor daemons running on this node"
@@ -1974,18 +1974,33 @@ def configure_gsi_security():
         if a_uid in dns.keys():
             print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
             continue
-        dns[a_uid]=a_dn
+        while 1:
+            yn=raw_input("Is this a trusted Condor daemon?: (y/n) ")
+            if (yn!="y") and (yn!="n"):
+                print "Please answer y or n"
+                continue 
+            break
+        dns[a_uid]=[a_dn,yn=='y']
 
 
+    # create the condor_mapfile
     condor_mapfile="%s/certs/condor_mapfile"%CONDOR_BASE_PATH
     gridmap_fd=open(condor_mapfile,"w")
     try:
         for a_uid in dns.keys():
-            gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid],a_uid))
+            gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid][0],a_uid))
         gridmap_fd.write('GSI (.*) anonymous\n')
         gridmap_fd.write('FS (.*) \\1\n')
     finally:
         gridmap_fd.close()
+
+    #format the daemon_list
+    daemon_dns=[]
+    for a_uid in dns.keys():
+        a_dn,is_daemon=dns[a_uid]
+        if is_daemon:
+            daemon_dns.append(a_dn)
+    daemon_dns_str=string.join(daemon_dns,',')
 
     #################################
     # do the config
@@ -2001,7 +2016,7 @@ def configure_gsi_security():
         config_fd.write("DENY_WRITE = anonymous@*\n")
         config_fd.write("DENY_ADMINISTRATOR = anonymous@*\n")
         config_fd.write("DENY_DAEMON = anonymous@*\n")
-        config_fd.write("DENY_NEGOTIATOR = anonymous@*\n")
+        config_fd.write("DENY_NEGOTIATOR = anonymous@*\n\n")
         config_fd.write("# Grid Certificate directory\n")
         config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s/globus/TRUSTED_CA\n\n"%VDT_BASE_PATH)
         config_fd.write("############################\n")
@@ -2021,10 +2036,16 @@ def configure_gsi_security():
             config_fd.write("GSI_DAEMON_KEY  = %s\n\n"%cert_keyname)
             config_fd.write("# If you ever decide to use a Proxy, see below\n")
             config_fd.write("#GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy\n\n")
-        config_fd.write("############################\n")
+
+        config_fd.write("#################################\n")
         config_fd.write("# Where to find ID->uid mappings\n")
-        config_fd.write("############################\n")
+        config_fd.write("#################################\n")
         config_fd.write("CERTIFICATE_MAPFILE=%s\n\n"%condor_mapfile)
+
+        config_fd.write("#####################################\n")
+        config_fd.write("# Add whitelist of condor daemon DNs\n")
+        config_fd.write("#####################################\n")
+        config_fd.write("GSI_DAEMON_NAME=%s\n\n"%daemon_dns_str)
 
         config_fd.write("#####################################################\n")
         config_fd.write("# With strong security, do not use IP based controls\n")
