@@ -1001,14 +1001,16 @@ def gfactory_install():
                 if glexec_yn=="y":
                     fd.write('            <attr name="GLEXEC_BIN" const="True" type="string" glidein_publish="False" value="%s" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 fd.write('         </attrs>\n')
+                fd.write('         <files>\n')
+                if glexec_yn=="y":
+                    fd.write('           <file executable="True" absfname="web_base/glexec_setup.sh" untar="False" const="True"/>\n')
+                fd.write('         </files>\n')
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
             fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
             if len(gcb_list)>0: #not needed else
                 fd.write('      <file executable="True" absfname="web_base/gcb_setup.sh" untar="False" const="True"/>\n')
-            if glexec_yn=="y":
-                fd.write('      <file executable="True" absfname="web_base/glexec_setup.sh" untar="False" const="True"/>\n')
             fd.write('   </files>\n')
             fd.write('</glidein>\n')
         finally:
