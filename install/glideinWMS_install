@@ -862,6 +862,9 @@ def gfactory_install():
     #################################
     # create grid-mapfile
     # ask user for additional DNs
+    print "My DN = '%s'"%my_dn
+    print
+
     dns={"condor":my_dn}
     print "You will most probably need other DNs in the grid mapfile"
     print "Please add all the DNs that this glidein will connect to"
