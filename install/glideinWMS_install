@@ -1286,7 +1286,7 @@ def create_empty_dir(question, def_dir,empty_required=True):
                 yn='n'
                 if not empty_required:
                     while 1:
-                        yn=raw_input("Directory '%s' not empty.\nShould I use it anyhow?: (y/n) ")
+                        yn=raw_input("Directory '%s' not empty.\nShould I use it anyhow?: (y/n) "% user_dir)
                         if (yn!="y") and (yn!="n"):
                             print "Please answer y or n"
                             continue 
