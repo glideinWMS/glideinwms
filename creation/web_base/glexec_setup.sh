@@ -41,7 +41,7 @@ if [ $? -ne 0 ]; then
     echo "Failed to copy /bin/sh to . ($PWD)" 1>&2
     exit 1
 fi
-add_config_line "ALTERNATIVE_SHELL $PWD/sh" 
+add_config_line "ALTERNATIVE_SHELL" "$PWD/sh" 
 
 
 # --------------------------------------------------
@@ -53,7 +53,7 @@ if [ -z "$glide_tmp_dir" ]; then
     echo "TMP_DIR not found!" 1>&2
     exit 1
 fi
-add_config_line "GLEXEC_USER_DIR $glide_tmp_dir"
+add_config_line "GLEXEC_USER_DIR" "$glide_tmp_dir"
 
 # --------------------------------------------------
 #
@@ -79,7 +79,7 @@ else
     exit 1
 fi
 
-add_config_line "GLEXEC_STARTER True"
-add_config_line "GLEXEC_BIN $glexec_bin"
+add_config_line "GLEXEC_STARTER" "True"
+add_config_line "GLEXEC_BIN" "$glexec_bin"
 
 exit 0
