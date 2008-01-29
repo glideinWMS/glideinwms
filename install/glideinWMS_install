@@ -299,7 +299,7 @@ def wms_install():
         break
 
     default_web_dir='/var/www/html/glidefactory'
-    web_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_dir)
+    web_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_dir,empty_required=False)
     os.chown(web_dir,gfactory_pwd[2],gfactory_pwd[3])
     if web_dir!=default_web_dir:
         # if not the default, make a symlink to that location
@@ -1262,7 +1262,7 @@ def vofrontend_install():
 # and create it
 ########################################
 
-def create_empty_dir(question, def_dir):
+def create_empty_dir(question, def_dir,empty_required=True):
     if def_dir!=None:
         question=question+("[%s] "%def_dir)
     while 1:
@@ -1282,7 +1282,7 @@ def create_empty_dir(question, def_dir):
                     print "Failed to create '%s'!"% user_dir
                     continue
         else:
-            if len(os.listdir(user_dir))!=0:
+            if empty_required and (len(os.listdir(user_dir))!=0):
                 print "Directory '%s' not empty!"% user_dir
                 continue
 
@@ -1296,7 +1296,6 @@ def create_empty_dir(question, def_dir):
         
         return user_dir #obtained and checked the directory
  
-
 # Ask the user if it has an OSG client
 # Install one else
 ########################################
