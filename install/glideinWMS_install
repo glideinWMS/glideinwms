@@ -671,9 +671,9 @@ def gfactory_install():
 
     # Web URL
     if HTTPD_PORT==None:
-        default_web_base_url="http://%s/glidefactory"%full_host_name
+        default_web_base_url="http://%s/glidefactory/"%full_host_name
     else:
-        default_web_base_url="http://%s:%s/glidefactory"%(full_host_name,HTTPD_PORT)
+        default_web_base_url="http://%s:%s/glidefactory/"%(full_host_name,HTTPD_PORT)
 
     while 1:
         web_base_url=raw_input("What Web URL will you use?: [%s] "%default_web_base_url)
