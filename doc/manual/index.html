@@ -540,10 +540,10 @@ set:<br>
 <ul>
 
 
-  <li>The first one is the so called Grid Mapfile; it must list
-all the
-DNs Condor will trust. If you use GSI just for the maintenance of the
-glidein pool, it should list only the trusted DNs.<br>
+ <li>The first one is the so called Grid Mapfile
+ (<span style="font-family: monospace; font-weight: bold;">GRIDMAP</span>);
+it must list all the
+DNs Condor will trust.
 
 
 For example:<br>
@@ -556,8 +556,9 @@ For example:<br>
 </pre>
 
 <p>
-Recent condor versions provide also another, more flexible unified map file.
-It san be use in stead of the grid mapfile, and map users from all supported 
+Recent condor versions provide also another, more flexible unified map file 
+(<span style="font-family: monospace; font-weight: bold;">CERTIFICATE_MAPFILE</span>).
+It can be use instead of the grid mapfile, and map users from all supported 
 authentication domains.<br>
 
 For example:<br>
@@ -570,16 +571,20 @@ GSI (.*) anonymous
 FS (.*) \1
 </pre>
 
-
+If you use GSI just for the maintenance of the
+glidein pool, it should list only the trusted DNs.<br>
 Please notice that if you use GSI for authenticating your users, too, 
-you need to list all of them in the map use.
+you need to list all of them in the map file.
   </li>
 
 
-  <li>The second place is where you list all the proxies you will
-trust
-to be Condor daemons. Please notice that all the trusted DNs need to be
-listed in <span style="font-weight: bold;">both places</span>.</li>
+  <li>The second place is a list of trusted daemon DNs (<span style="font-family: monospace; font-weight: bold;">GSI_DAEMON_NAME</span>).
+  <br>
+  Please notice that all the trusted DNs need to be
+listed in <span style="font-weight: bold;">both places</span>.
+<p>
+<b>Note:</b> If you use gLExec with Condor, you also need to list all the users as trusted daemons. While suboptimal in security terms, it is a current (as of 7.0.0) Condor requirement.
+</li>
 
 
 </ul>
