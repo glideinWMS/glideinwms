@@ -1920,10 +1920,19 @@ GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy
 #GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem
 #GSI_DAEMON_KEY  = /etc/-grid-security/hostkey.pem
 
-############################
-# Where to find DN->uid mappings
-############################
-GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile
+#################################
+# Where to find ID->uid mappings
+#################################
+CERTIFICATE_MAPFILE=/opt/glidecondor/certs/condor_mapfile
+DENY_WRITE = anonymous@*
+DENY_ADMINISTRATOR = anonymous@*
+DENY_DAEMON = anonymous@*
+DENY_NEGOTIATOR = anonymous@*
+
+#####################################
+# Add whitelist of condor daemon DNs
+#####################################
+GSI_DAEMON_NAME=/DC=org/DC=doegrids/OU=Services/mymachine.fnal.gov,/DC=org/DC=doegrids/OU=Services/CN=mypool.fnal.gov
 
 #############################
 # Quill settings
