@@ -1035,7 +1035,7 @@ def gfactory_install():
 
 
     print
-    print "Glidein Factory config file installed in %s/%s"%(submit_base_dir,glidein_name)
+    print "Glidein Factory config file installed in %s/glidein_%s"%(submit_base_dir,glidein_name)
     print "Remember to set X509_USER_PROXY before starting the daemon"
     print
 
