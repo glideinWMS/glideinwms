@@ -1194,7 +1194,7 @@ def vofrontend_install():
                     
     # match string
     print "What expression do you want to use to match glideins to jobs?"
-    print "It is an arbitrary python boonea expression using the dictionaries"
+    print "It is an arbitrary python boolean expression using the dictionaries"
     print "  glidein and job"
     print "A simple example expression would be:"
     print '  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")'
