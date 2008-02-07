@@ -135,13 +135,13 @@ A few examples:<br>
 
 
 <div style="margin-left: 40px;">
-<pre>job["CDFMaxHours"]&lt;glidein["WMSMaxHours"]</pre>
+<pre>job["CDFMaxHours"]&lt;glidein["attrs"]["WMSMaxHours"]</pre>
 
 
 <pre>job["HasData"] or (glidein["site"] in string.split(job["SitesWithRequiredData"]))</pre>
 
 
-<pre>(job["Arch"] == glidein["Arch"]) and (job["gccVersion"]==glidein["gccVersion"])</pre>
+<pre>(job["Arch"] == glidein["Arch"]) and (job["gccVersion"]==glidein["attrs"]["gccVersion"])</pre>
 
 
 </div>
