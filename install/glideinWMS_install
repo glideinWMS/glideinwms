@@ -822,7 +822,8 @@ def gfactory_install():
             default_schedds=[]
             for line in lines:
                 line=line[:-1] #remove newline
-                default_schedds.append(line)
+                if len(line)>0:
+                    default_schedds.append(line)
         else:
             raise RuntimeError, "No glidein schedds in this pool!"
 
