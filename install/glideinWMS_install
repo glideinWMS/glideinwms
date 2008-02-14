@@ -996,11 +996,11 @@ def gfactory_install():
             fd.write('   <attrs>\n')
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" value="%s" const="True" parameter="True" glidein_publish="True" publish="True" job_publish="True" type="string"/>\n'%(gridenv_yn=='y'))
             if len(gcb_list)>0:
-                fd.write('      <attr name="GLIDEIN_UseGCB" value="1" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="string"/>\n')
+                fd.write('      <attr name="GLIDEIN_UseGCB" value="1" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="int"/>\n')
                 fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
                 fd.write('      <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
             else:
-                fd.write('      <attr name="GLIDEIN_UseGCB" value="0" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="string"/>\n')
+                fd.write('      <attr name="GLIDEIN_UseGCB" value="0" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="int"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
