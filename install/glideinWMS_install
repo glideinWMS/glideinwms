@@ -11,6 +11,7 @@ import string
 import time
 import md5
 import getpass
+import xml.sax.saxutils
 import socket
 import stat
 import httplib
@@ -1007,7 +1008,7 @@ def gfactory_install():
             for entry_name in sorted_entry_names:
                 entry_el=entries_list[entry_name]
                 if entry_el['rsl']!="":
-                    rsl_str='rsl="%s"'%entry_el['rsl']
+                    rsl_str='rsl=%s'%xml.sax.saxutils.quoteattr(entry_el['rsl'])
                 else:
                     rsl_str=""
                 
