@@ -812,7 +812,20 @@ def gfactory_install():
             default_schedds.append(line)
 
     if len(default_schedds)==0:
-        raise RuntimeError, "No glidein schedds in this pool!"
+        while 1:
+            yn=raw_input("No glidein schedds in this pool.\nDo you want to use the other schedds? (y/n) ")
+            if (yn!="y") and (yn!="n"):
+                print "Please answer y or n"
+                continue 
+            break
+        if yn=='y':
+            default_schedds=[]
+            for line in lines:
+                line=line[:-1] #remove newline
+                default_schedds.append(line)
+        else:
+            raise RuntimeError, "No glidein schedds in this pool!"
+
 
     print "The following glidein schedds have been found:"
     for i in range(len(default_schedds)):
