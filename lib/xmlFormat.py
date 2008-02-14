@@ -7,7 +7,7 @@
 
 
 import types
-import cgi
+import xml.sax.saxutils
 import string
 
 #########################################################################################
@@ -59,6 +59,17 @@ DEFAULT_IGNORE_NONES=False
 #
 ##########################################################
 
+def xml_quoteattr(el):
+    if el==None:
+        val = '"None"'
+    elif type(el) in types.StringTypes:
+        val = xml.sax.saxutils.quoteattr(el)
+    elif type(el) is types.FloatType:
+        val = '"%.12g"' % el
+    else:
+        val = '"%i"' %el
+    return val
+
 ######################################################################
 def complete_class_params(class_params):
     res = class_params.copy()
@@ -90,7 +101,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
         elif type(el) in types.StringTypes:
-            head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
+            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
@@ -114,7 +125,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
             if attr in text_params:
                 text_attrs.append(attr)
             else:
-                head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
+                head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif type(el) in (types.ListType,types.TupleType):
             if attr in lists_params.keys():
                 list_attrs.append(attr)
@@ -182,7 +193,7 @@ def class2string(inst,inst_name,params={},subclass_params={},dicts_params=None,l
     res_arr = []
     res_arr.append(head_str)
     for attr in text_attrs:
-        res_arr.append(leading_tab+indent_tab+"<%s>\n%s\n</%s>" % (attr,cgi.escape(inst[attr],1),attr))
+        res_arr.append(leading_tab+indent_tab+"<%s>\n%s\n</%s>" % (attr,xml.sax.saxutils.escape(inst[attr],1),attr))
 
     for attr in inst_attrs:
         c = get_subclass_param(subclass_params,attr)
@@ -225,7 +236,7 @@ def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params=None,
         return fd
     
     for attr in text_attrs:
-        fd.write(leading_tab+indent_tab+"<%s>\n%s\n</%s>\n" % (attr,cgi.escape(inst[attr],1),attr))
+        fd.write(leading_tab+indent_tab+"<%s>\n%s\n</%s>\n" % (attr,xml.sax.saxutils.escape(inst[attr],1),attr))
     for attr in inst_attrs:
         c = get_subclass_param(subclass_params,attr)
         class2file(fd,inst[attr],attr,{},c["subclass_params"],c["dicts_params"],c["lists_params"],c["tree_params"],c["text_params"],indent_tab,leading_tab+indent_tab,debug_str+("%s[%s]."%(inst_name,attr)))
@@ -269,7 +280,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
         elif type(el) in types.StringTypes:
-            head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
+            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
@@ -295,15 +306,8 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
             if el==None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
-                else:
-                    val = "None"
-            elif type(el) in types.StringTypes:
-                val = cgi.escape(el,1)
-            elif type(el) is types.FloatType:
-                val = "%.12g" % el
-            else:
-                val = "%i" %el
-            res_arr.append(leading_tab+indent_tab+('<%s %s="%s" %s="%s"/>' % (el_name,dict_attr_name,idx,el_attr_name,val)))
+            val=xml_quoteattr(el)
+            res_arr.append(leading_tab+indent_tab+('<%s %s="%s" %s=%s/>' % (el_name,dict_attr_name,idx,el_attr_name,val)))
         elif type(el) is types.InstanceType:
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
@@ -354,7 +358,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
         elif type(el) in types.StringTypes:
-            head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
+            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
@@ -380,15 +384,8 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
             if el==None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
-                else:
-                    val = "None"
-            elif type(el) in types.StringTypes:
-                val = cgi.escape(el,1)
-            elif type(el) is types.FloatType:
-                val = "%.12g" % el
-            else:
-                val = "%i" %el
-            fd.write(leading_tab+indent_tab+('<%s %s="%s" %s="%s"/>\n' % (el_name,dict_attr_name,idx,el_attr_name,val)))
+            val=xml_quoteattr(el)
+            fd.write(leading_tab+indent_tab+('<%s %s="%s" %s=%s/>\n' % (el_name,dict_attr_name,idx,el_attr_name,val)))
         elif type(el) is types.InstanceType:
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
@@ -451,7 +448,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
         elif type(el) in types.StringTypes:
-            head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
+            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
@@ -476,15 +473,8 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
             if el==None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
-                else:
-                    val = "None"
-            if type(el) in types.StringTypes:
-                val = cgi.escape(el,1)
-            elif type(el) is types.FloatType:
-                val = "%.12g" % el
-            else:
-                val = "%i" %el
-            res_arr.append(leading_tab+indent_tab+('<%s %s="%s"/>' % (el_name,el_attr_name,val)))
+            val=xml_quoteattr(el)
+            res_arr.append(leading_tab+indent_tab+('<%s %s=%s/>' % (el_name,el_attr_name,val)))
         elif type(el) is types.InstanceType:
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
@@ -535,7 +525,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
         elif type(el) in types.StringTypes:
-            head_arr.append(' %s="%s"' % (attr,cgi.escape(el,1)))
+            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
@@ -560,15 +550,8 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
             if el==None:
                 if DEFAULT_IGNORE_NONES:
                     continue # ignore nones
-                else:
-                    val = "None"
-            elif type(el) in types.StringTypes:
-                val = cgi.escape(el,1)
-            elif type(el) is types.FloatType:
-                val = "%.12g" % el
-            else:
-                val = "%i" %el
-            fd.write(leading_tab+indent_tab+('<%s %s="%s"/>\n' % (el_name,el_attr_name,val)))
+            val=xml_quoteattr(el)
+            fd.write(leading_tab+indent_tab+('<%s %s=%s/>\n' % (el_name,el_attr_name,val)))
         elif type(el) is types.InstanceType:
             if "class" in subtypes_params.keys():
                 c = complete_class_params(subtypes_params["class"])
