@@ -122,9 +122,11 @@ STARTD_VM_EXPRS = State, EnteredCurrentState, Activity, EnteredCurrentActivity, 
 
 #START = (((VirtualMachineID == 1) && $(VM1_START_CONDITION)) ||((VirtualMachineID == 2) && $(VM2_START_CONDITION))) && $(TIMEOUT_START_CONDITION)
 
+GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start))
+
 VM1_VM2_MATCH = (vm2_State =?= "Claimed") && (vm2_RemoteUser =?= User)
 VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && (GLIDEIN_Is_Monitor)
-VM2_START_CONDITION = ($(GLIDEIN_Start))
+VM2_START_CONDITION = $(GLIDEIN_START_CONDITION)
 START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
 
 # Max time a job can run in the glidein

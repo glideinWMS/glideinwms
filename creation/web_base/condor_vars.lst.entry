@@ -5,6 +5,7 @@
 #################################################################################################################
 GLIDEIN_Entry_Name	S	-		+				Y	Y	@
 GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
+GLIDEIN_Entry_Start	C	1		+				N	N	-
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
 CONDOR_DIR		C	-		+				Y	N	-
