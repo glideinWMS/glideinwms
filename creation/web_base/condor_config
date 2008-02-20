@@ -129,6 +129,8 @@ VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && (GLIDEIN_Is_Monitor)
 VM2_START_CONDITION = $(GLIDEIN_START_CONDITION)
 START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
 
+RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank))
+
 # Max time a job can run in the glidein
 MaxJobRetirementTime=$(GLIDEIN_Job_Max_Time)
 SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
