@@ -8,14 +8,11 @@
 
 LOG = $(LOCAL_DIR)/log
 EXECUTE = $(LOCAL_DIR)/execute
-NEGOTIATOR_HOST = $(HEAD_NODE) 
 COLLECTOR_HOST = $(HEAD_NODE)
-CONDOR_HOST = $(HEAD_NODE)
 FILESYSTEM_DOMAIN = $(HOSTNAME)
 UID_DOMAIN = $(HOSTNAME)
 
 SBIN = $(CONDOR_DIR)/sbin
-LIBEXEC = $(CONDOR_DIR)/libexec
 
 MAIL = /bin/mail
 DAEMON_LIST = MASTER, STARTD
@@ -26,9 +23,6 @@ STARTD = $(SBIN)/condor_startd
 STARTER = $(SBIN)/condor_starter
 
 STARTER_LIST = STARTER
-
-USE_NFS = False
-USE_CKPT_SERVER = False
 
 LOCK = $(LOG)
 STARTD_LOG = $(LOG)/StartdLog
@@ -78,7 +72,8 @@ MASTER_BACKOFF_CEILING = 600
 # default = 1200 sec, choose a larger value, at the expense of less
 # visibility into condor_q job dynamic attributes: cpu time, image size,
 # etc
-STARTER_UPDATE_INTERVAL = 3600
+# now in condor_vars.lst
+#STARTER_UPDATE_INTERVAL = 3600
 
 # This section contains macros are here to help write legible
 # expressions:
@@ -102,8 +97,6 @@ DENY_DAEMON = anonymous@*
 DENY_NEGOTIATOR = anonymous@*
 
 LOCAL_CONFIG_FILE       = 
-
-STARTD_RESOURCE_PREFIX = "vm"
 
 NUM_CPUS = 2
 VIRTUAL_MACHINE_TYPE_1 = cpus=1, memory=1%, swap=1%, disk=1%
