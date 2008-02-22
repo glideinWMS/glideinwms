@@ -85,7 +85,6 @@ function setup_gcb {
     append_config "NET_REMAP_ENABLE = true"
     append_config "NET_REMAP_SERVICE = GCB"
     append_config "NET_REMAP_INAGENT = $sg_gcb_ip"
-    append_config 'HOSTALLOW_ADMINISTRATOR = $(HOSTALLOW_ADMINISTRATOR), $(NET_REMAP_INAGENT)'
 
     echo "Using GCB $sg_gcb_ip:$sg_gcb_port"
     return 0
