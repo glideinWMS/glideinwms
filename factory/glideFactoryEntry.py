@@ -318,6 +318,13 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     fd.write("PID: %s\nParent PID:%s\nStarted: %s\n"%(os.getpid(),parent_pid,time.ctime(startup_time)))
     fd.flush()
     
+    # force integrity checks on all the operations
+    # I need integrity checks also on reads, as I depend on them
+    os.environ['_CONDOR_SEC_DEFAULT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_CLIENT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
+
     # start
     try:
         try:
@@ -370,10 +377,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.30 2007/12/18 18:03:59 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.31 2008/03/05 17:31:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.31  2008/03/05 17:31:56  sfiligoi
+#  Force integrity checks for all operations
+#
 #  Revision 1.30  2007/12/18 18:03:59  sfiligoi
 #  More logging
 #
