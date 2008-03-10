@@ -16,7 +16,7 @@ def string_quote_join(arglist):
     l2=[]
     for e in arglist:
         l2.append('"%s"'%e)
-    return string,join(l2)
+    return string.join(l2)
 
 class rrdtool_exe:
     def __init__(self):
@@ -1158,10 +1158,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.95 2007/12/18 18:08:28 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.96 2008/03/10 16:28:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.96  2008/03/10 16:28:35  sfiligoi
+#  Fix typo
+#
 #  Revision 1.95  2007/12/18 18:08:28  sfiligoi
 #  Better error handling
 #
