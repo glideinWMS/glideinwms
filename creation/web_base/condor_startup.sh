@@ -174,7 +174,10 @@ let elapsed_time=$end_time-$start_time
 echo === Condor ended `date` after $elapsed_time ===
 echo
 
-log_dir="log*"
+# log dir is always different
+# get the real name
+log_dir=`/bin/ls -d log*`
+
 echo ===   Stats of vm2   ===
 if [ -f "${log_dir}/StarterLog.vm2" ]; then
   awk -f parse_starterlog.awk ${log_dir}/StarterLog.vm2
