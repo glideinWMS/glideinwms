@@ -1,10 +1,10 @@
 #!/bin/env python
 #
-# cat_StartdLogs.py
+# find_StartdLogs.py
 #
 # Print out the StartdLogs for a certain date
 #
-# Usage: cat_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]
+# Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]
 #
 
 import sys,os,os.path,time
@@ -14,7 +14,7 @@ sys.path.append("../../lib")
 import gWftArgsHelper,gWftLogParser
 import glideFactoryConfig
 
-USAGE="Usage: cat_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]"
+USAGE="Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]"
 
 # return a GlideinDescript with
 # factory_dir, date_arr and time_arr
