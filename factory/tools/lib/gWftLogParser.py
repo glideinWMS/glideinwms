@@ -3,12 +3,10 @@
 #
 
 import time,os.path,mmap,re
-import binascii,StringIO,gzip
-import glideFactoryLogParser
-import condorLogParser
 
 # get the list of jobs that were active at a certain time
 def get_glideins(log_dir_name,date_arr,time_arr):
+    import glideFactoryLogParser,condorLogParser
     glidein_list=[]
 
     cldata=glideFactoryLogParser.dirSummaryTimingsOutFull(log_dir_name)
@@ -31,6 +29,7 @@ def get_glideins(log_dir_name,date_arr,time_arr):
             
 # get the list of log files for an entry that were active at a certain time
 def get_glidein_logs_entry(factory_dir,entry,date_arr,time_arr,ext="err"):
+    import condorLogParser
     log_list=[]
     
     log_dir_name=os.path.join(factory_dir,"entry_%s/log"%entry)
@@ -81,6 +80,7 @@ def get_StartdLog_raw(log_fname):
 
 # extract the StartdLog from a glidein log file
 def get_StartdLog(log_fname):
+    import binascii,StringIO,gzip
     raw_data=get_StartdLog_raw(log_fname)
     if raw_data!="":
         gzip_data=binascii.a2b_base64(raw_data)
