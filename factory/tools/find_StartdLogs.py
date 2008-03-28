@@ -50,7 +50,7 @@ def main():
     for fname in log_list:
         sys.stdout.write("%s\n"%fname)
         sys.stdout.write("===========================================================\n")
-        sys.stdout.write("%s\n"%gWftLogParser.get_StartdLog(fname))
+        sys.stdout.write("%s\n"%gWftLogParser.get_CondorLog(fname,'CondorLog'))
         
 
 

@@ -52,10 +52,10 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 
     return log_list
 
-SL_START_RE=re.compile("^StartdLog\n======== gzip . uuencode =============\nbegin-base64 644 -\n",re.M|re.DOTALL)
-
-# extract the StartdLog blob from a glidein log file
-def get_StartdLog_raw(log_fname):
+# extract the CondorLog blob from a glidein log file
+# condor_log_id should be something like "StartdLog"
+def get_CondorLog_raw(log_fname,condor_log_id):
+    SL_START_RE=re.compile("^%s\n======== gzip . uuencode =============\nbegin-base64 644 -\n"%condor_log_id,re.M|re.DOTALL)
     size = os.path.getsize(log_fname)
     fd=open(log_fname)
     try:
@@ -79,9 +79,10 @@ def get_StartdLog_raw(log_fname):
         fd.close()
 
 # extract the StartdLog from a glidein log file
-def get_StartdLog(log_fname):
+# condor_log_id should be something like "StartdLog"
+def get_CondorLog(log_fname,condor_log_id):
     import binascii,StringIO,gzip
-    raw_data=get_StartdLog_raw(log_fname)
+    raw_data=get_StartdLog_raw(log_fname,condor_log_id)
     if raw_data!="":
         gzip_data=binascii.a2b_base64(raw_data)
         del raw_data
