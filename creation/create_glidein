@@ -33,7 +33,12 @@ def main(params):
         copy_submit_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
         copy_submit_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.submit_dir,params.src_dir)
 
-        params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
+        # save config into file
+        cfgfile=os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE)
+        params.save_into_file(cfgfile)
+        # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
+        cfgfile=cgWConsts.insert_timestr(cfgfile)
+        params.save_into_file(cfgfile)
     except:
         glidein_dicts_obj.delete_dirs()
         raise
@@ -88,10 +93,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.125 2007/12/17 18:53:45 sfiligoi Exp $
+# $Id: create_glidein,v 1.126 2008/03/28 17:13:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.126  2008/03/28 17:13:43  sfiligoi
+#  Save the cfg file with a timestamp, too
+#
 #  Revision 1.125  2007/12/17 18:53:45  sfiligoi
 #  Fix typo
 #

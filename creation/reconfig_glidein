@@ -26,11 +26,19 @@ def main(params,old_params):
     glidein_dicts_obj=cgWParamDict.glideinDicts(params)
     glidein_dicts_obj.populate()
 
+    # merge them together
     glidein_dicts_obj.reuse(old_glidein_dicts_obj)
+
+    # write to disk
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
-    
-    params.save_into_file(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE))
+
+    # save config into file
+    cfgfile=os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE)
+    params.save_into_file(cfgfile)
+    # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
+    cfgfile=cgWConsts.insert_timestr(cfgfile)
+    params.save_into_file(cfgfile)
 
     print "Reconfigured glidein '%s'"%params.glidein_name
     print "Submit files are in %s"%glidein_dicts_obj.main_dicts.submit_dir
@@ -67,10 +75,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.4 2007/12/26 15:54:38 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.5 2008/03/28 17:13:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.5  2008/03/28 17:13:43  sfiligoi
+#  Save the cfg file with a timestamp, too
+#
 #  Revision 1.4  2007/12/26 15:54:38  sfiligoi
 #  Save config file
 #
