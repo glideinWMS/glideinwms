@@ -180,26 +180,15 @@ echo === End Stats of vm2 ===
 
 if [ "$debug_mode" == "1" ]; then
     ls -l log*/* 1>&2
-    echo "MasterLog" 1>&2
-    echo "==================================================" 1>&2
-    cat log*/MasterLog  1>&2
-    echo "--------------------------------------------------" 1>&2
-    echo 1>&2
-    echo "StartdLog" 1>&2
-    echo "==================================================" 1>&2
-    cat log*/StartdLog  1>&2
-    echo "--------------------------------------------------" 1>&2
-    echo 1>&2
-    echo "StarterLog.vm2" 1>&2
-    echo "==================================================" 1>&2
-    cat log*/StarterLog.vm2  1>&2
-    echo "--------------------------------------------------"  1>&2
-    echo 1>&2
-    echo "StarterLog.vm1"  1>&2
-    echo "=================================================="  1>&2
-    cat log*/StarterLog.vm1  1>&2
-    echo "--------------------------------------------------" 1>&2
     echo
+    for fname in "MasterLog StartdLog StarterLog.vm2 StarterLog.vm1"; do
+     fpath="log*/$fname"
+     if [ -f  "$fpath" ]; then
+       echo "$fname" 1>&2
+       echo "======== gzip | uuencode =============" 1>&2
+       gzip --stdout "$fpath" | uuencode --base64 - 1>&2
+       echo
+    done
 fi
 
 exit $ret
