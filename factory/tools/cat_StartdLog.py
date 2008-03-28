@@ -7,17 +7,17 @@
 # Usage: cat_StartdLog.py logname
 #
 
-import sys,os,os.path,time
+import sys
 sys.path.append("lib")
-import gWftArgsHelper,gWftLogParser
+import gWftLogParser
 
 USAGE="Usage: cat_StartdLog.py <logname>"
 
 def main():
     try:
         print gWftLogParser.get_StartdLog(sys.argv[1])
-    except ValueError, e:
-        sys.stderr.write("%s\n\n%s\n"%(e,USAGE))
+    except:
+        sys.stderr.write(USAGE)
         sys.exit(1)
 
 
