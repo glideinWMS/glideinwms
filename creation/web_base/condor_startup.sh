@@ -176,7 +176,7 @@ echo
 
 log_dir="log*"
 echo ===   Stats of vm2   ===
-if [ -f "${log_dir}/StarterLog.vm2"]; then
+if [ -f "${log_dir}/StarterLog.vm2" ]; then
   awk -f parse_starterlog.awk ${log_dir}/StarterLog.vm2
 fi
 echo === End Stats of vm2 ===
