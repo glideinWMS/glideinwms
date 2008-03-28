@@ -3,6 +3,7 @@
 #
 
 import time,os.path,mmap,re
+import binascii,StringIO,gzip
 import glideFactoryLogParser
 import condorLogParser
 
@@ -52,10 +53,10 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 
     return log_list
 
-SL_START_RE=re.compile("^StartdLog\n======== gzip . uuencode =============\n",re.M|re.DOTALL)
+SL_START_RE=re.compile("^StartdLog\n======== gzip . uuencode =============\nbegin-base64 644 -\n",re.M|re.DOTALL)
 
-# extract the StartdLog from a glidein log file
-def get_StartdLog(log_fname):
+# extract the StartdLog blob from a glidein log file
+def get_StartdLog_raw(log_fname):
     size = os.path.getsize(log_fname)
     fd=open(log_fname)
     try:
@@ -68,12 +69,24 @@ def get_StartdLog(log_fname):
             log_start_idx=start_re.end()
 
             # find where it ends
-            log_end_idx=buf.find("\n====\n",log_start_idx)
+            log_end_idx=buf.find("\n====",log_start_idx)
             if log_end_idx<0: # up to the end of the file
                 return buf[log_start_idx:]
             else:
-                return buf[log_start_idx:(log_end_idx+6)] # include endline
+                return buf[log_start_idx:log_end_idx]
         finally:
             buf.close()
     finally:
         fd.close()
+
+# extract the StartdLog from a glidein log file
+def get_StartdLog(log_fname):
+    raw_data=get_StartdLog_raw(log_fname)
+    if raw_data!="":
+        gzip_data=binascii.a2b_base64(raw_data)
+        del raw_data
+        data_fd=gzip.GzipFile(fileobj=StringIO.StringIO(gzip_data))
+        data=data_fd.read()
+    else:
+        data=raw_data
+    return data
