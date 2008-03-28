@@ -52,7 +52,7 @@ def get_glidein_logs(factory_dir,entries,date_arr,time_arr,ext="err"):
 
     return log_list
 
-SL_START_RE=re.compile("^StartdLog\n==============================*===================\n",re.M|re.DOTALL)
+SL_START_RE=re.compile("^StartdLog\n======== gzip . uuencode =============\n",re.M|re.DOTALL)
 
 # extract the StartdLog from a glidein log file
 def get_StartdLog(log_fname):
@@ -68,7 +68,7 @@ def get_StartdLog(log_fname):
             log_start_idx=start_re.end()
 
             # find where it ends
-            log_end_idx=buf.find("------------------------------------------------",log_start_idx)
+            log_end_idx=buf.find("\n====",log_start_idx)
             if log_end_idx<0: # up to the end of the file
                 return buf[log_start_idx:]
             else:
