@@ -62,7 +62,10 @@ def perform_work(factory_name,glidein_name,entry_name,
     #glideFactoryLib.factoryConfig.activity_log.write("QueryQ (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
     condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name)
     #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
-    condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
+    try:
+        condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
+    except:
+        condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
     log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
     log_stats.load()
@@ -79,9 +82,9 @@ def perform_work(factory_name,glidein_name,entry_name,
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
 
-    #glideFactoryLib.factoryConfig.activity_log.write("Sanitize")
-
-    glideFactoryLib.sanitizeGlideins(condorQ,condorStatus)
+    if condorStatus!=None: # temporary glitch, no sanitization this round
+        #glideFactoryLib.factoryConfig.activity_log.write("Sanitize")
+        glideFactoryLib.sanitizeGlideins(condorQ,condorStatus)
     
     #glideFactoryLib.factoryConfig.activity_log.write("Work done")
     return 0
@@ -377,10 +380,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.31 2008/03/05 17:31:56 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.32 2008/03/28 17:41:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.32  2008/03/28 17:41:45  sfiligoi
+#  Make condor_status non essential
+#
 #  Revision 1.31  2008/03/05 17:31:56  sfiligoi
 #  Force integrity checks for all operations
 #

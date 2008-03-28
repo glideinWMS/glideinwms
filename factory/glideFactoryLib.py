@@ -289,8 +289,12 @@ def logStats(condorq,condorstatus,client_int_name):
 
     # Count glideins by status
     qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
-    s_running=len(condorstatus.fetchStored().keys())
-    factoryConfig.logActivity("Client '%s', schedd status %s, collector running %i"%(client_int_name,qc_status,s_running))
+    if condorstatus!=None:
+        s_running=len(condorstatus.fetchStored().keys())
+    else:
+        s_running="?" # temporary glitch
+    
+    factoryConfig.logActivity("Client '%s', schedd status %s, collector running %s"%(client_int_name,qc_status,s_running))
     if factoryConfig.qc_stats!=None:
         factoryConfig.qc_stats.logSchedd(client_int_name,qc_status)
     
@@ -555,10 +559,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.24 2007/12/17 21:28:49 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.25 2008/03/28 17:41:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.25  2008/03/28 17:41:45  sfiligoi
+#  Make condor_status non essential
+#
 #  Revision 1.24  2007/12/17 21:28:49  sfiligoi
 #  Change verbosity to std; with the new glidein_submit this makes more sense
 #
