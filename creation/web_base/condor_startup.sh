@@ -188,6 +188,7 @@ if [ "$debug_mode" == "1" ]; then
        echo "======== gzip | uuencode =============" 1>&2
        gzip --stdout "$fpath" | uuencode --base64 - 1>&2
        echo
+     fi
     done
 fi
 
