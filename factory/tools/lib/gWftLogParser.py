@@ -82,7 +82,7 @@ def get_CondorLog_raw(log_fname,condor_log_id):
 # condor_log_id should be something like "StartdLog"
 def get_CondorLog(log_fname,condor_log_id):
     import binascii,StringIO,gzip
-    raw_data=get_StartdLog_raw(log_fname,condor_log_id)
+    raw_data=get_CondorLog_raw(log_fname,condor_log_id)
     if raw_data!="":
         gzip_data=binascii.a2b_base64(raw_data)
         del raw_data
