@@ -184,7 +184,7 @@ echo === End Stats of vm2 ===
 if [ "$debug_mode" == "1" ]; then
     ls -l log*/* 1>&2
     echo
-    for fname in "MasterLog StartdLog StarterLog.vm2 StarterLog.vm1"; do
+    for fname in MasterLog StartdLog StarterLog.vm2 StarterLog.vm1; do
      fpath="${log_dir}/${fname}"
      if [ -f  "$fpath" ]; then
        echo "$fname" 1>&2
