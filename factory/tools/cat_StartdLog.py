@@ -17,7 +17,7 @@ def main():
     try:
         print gWftLogParser.get_StartdLog(sys.argv[1])
     except:
-        sys.stderr.write(USAGE)
+        sys.stderr.write("%s\n"%USAGE)
         sys.exit(1)
 
 
