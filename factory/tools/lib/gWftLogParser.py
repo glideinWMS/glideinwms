@@ -68,11 +68,11 @@ def get_StartdLog(log_fname):
             log_start_idx=start_re.end()
 
             # find where it ends
-            log_end_idx=buf.find("\n====",log_start_idx)
+            log_end_idx=buf.find("\n====\n",log_start_idx)
             if log_end_idx<0: # up to the end of the file
                 return buf[log_start_idx:]
             else:
-                return buf[log_start_idx:log_end_idx]
+                return buf[log_start_idx:(log_end_idx+6)] # include endline
         finally:
             buf.close()
     finally:
