@@ -174,15 +174,18 @@ let elapsed_time=$end_time-$start_time
 echo === Condor ended `date` after $elapsed_time ===
 echo
 
+log_dir="log*"
 echo ===   Stats of vm2   ===
-awk -f parse_starterlog.awk log*/StarterLog.vm2
+if [ -f "${log_dir}/StarterLog.vm2"]; then
+  awk -f parse_starterlog.awk ${log_dir}/StarterLog.vm2
+fi
 echo === End Stats of vm2 ===
 
 if [ "$debug_mode" == "1" ]; then
     ls -l log*/* 1>&2
     echo
     for fname in "MasterLog StartdLog StarterLog.vm2 StarterLog.vm1"; do
-     fpath="log*/$fname"
+     fpath="${log_dir}/${fname}"
      if [ -f  "$fpath" ]; then
        echo "$fname" 1>&2
        echo "======== gzip | uuencode =============" 1>&2
