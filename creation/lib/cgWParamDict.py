@@ -165,10 +165,11 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
         # put standard attributes into config file
         # override anything the user set
-        self.dicts['consts'].add("GLIDEIN_Gatekeeper",entry_params.gatekeeper,allow_overwrite=True)
-        self.dicts['consts'].add("GLIDEIN_GridType",entry_params.gridtype,allow_overwrite=True)
-        if entry_params.rsl!=None:
-            self.dicts['consts'].add('GLIDEIN_GlobusRSL',entry_params.rsl)
+        for dtype in ('attrs','consts'):
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry_params.gatekeeper,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",entry_params.gridtype,allow_overwrite=True)
+            if entry_params.rsl!=None:
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry_params.rsl,allow_overwrite=True)
 
         # populate complex files
         populate_job_descript(self.dicts['job_descript'],
@@ -391,10 +392,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.37 2008/04/23 14:18:26 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.38 2008/04/23 14:24:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.38  2008/04/23 14:24:16  sfiligoi
+#  Also publish CE info
+#
 #  Revision 1.37  2008/04/23 14:18:26  sfiligoi
 #  Add CE info to the glidein
 #
