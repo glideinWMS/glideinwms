@@ -1,5 +1,6 @@
 vNext	More fine grained configuration of glideins
         Factory reads now force integrity checks
+        Glideins now publish the gatekeeper name.
 
 v1_1	Entry points can now be updated by using reconfig_glidein
         Add automatic OSG glexec discovery 
