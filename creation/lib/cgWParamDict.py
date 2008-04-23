@@ -163,6 +163,13 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         for attr_name in entry_params.attrs.keys():
             add_attr_unparsed(attr_name, entry_params.attrs[attr_name],self.dicts,self.entry_name)
 
+        # put standard attributes into config file
+        # override anything the user set
+        self.dicts['consts'].add("GLIDEIN_Gatekeeper",entry_params.gatekeeper,allow_overwrite=True)
+        self.dicts['consts'].add("GLIDEIN_GridType",entry_params.gridtype,allow_overwrite=True)
+        if entry_params.rsl!=None:
+            self.dicts['consts'].add('GLIDEIN_GlobusRSL',entry_params.rsl)
+
         # populate complex files
         populate_job_descript(self.dicts['job_descript'],
                               self.entry_name,entry_params)
@@ -384,10 +391,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.36 2008/01/25 21:45:35 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.37 2008/04/23 14:18:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.37  2008/04/23 14:18:26  sfiligoi
+#  Add CE info to the glidein
+#
 #  Revision 1.36  2008/01/25 21:45:35  sfiligoi
 #  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
 #
