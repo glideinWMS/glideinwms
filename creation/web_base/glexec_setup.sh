@@ -82,4 +82,15 @@ fi
 add_config_line "GLEXEC_STARTER" "True"
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 
+####################################################################
+# Add requirement that only jobs with X509 attributes can start here
+####################################################################
+
+start_condition=`grep '^GLIDEIN_Entry_Start ' $glidein_config | awk '{print $2}'`
+if [ -z "$start_condition" ]; then
+    add_config_line "GLIDEIN_Entry_Start" "x509userproxysubject=!=UNDEFINED"
+else
+    add_config_line "GLIDEIN_Entry_Start" "(x509userproxysubject=!=UNDEFINED)&&($start_condition)"
+fi
+
 exit 0
