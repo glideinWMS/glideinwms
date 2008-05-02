@@ -76,7 +76,7 @@ def monitor(jid,schedd_name,pool_name,
     condor_status=getCondorStatus(pool_name,remoteVM,monitorVM)
     validateCondorStatus(condor_status,remoteVM,monitorVM)
 
-    tmpdir=tempfile.mkdtemp(prefix="glidein_top_")
+    tmpdir=tempfile.mkdtemp(prefix="glidein_intmon_")
     try:
         sname=os.path.join(tmpdir,"mon.submit")
         mfname=os.path.join(tmpdir,"mon.sh")
