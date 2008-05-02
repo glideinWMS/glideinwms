@@ -1,3 +1,17 @@
+#
+# Description:
+#   This module implements helper functions
+#   used to perform pseudo-interactive monitoring
+#
+# Prerequisites:
+#   The startd must be configured with exactly 2 slots, called vm
+#   It must have cross-vm expressions State and RemoteUser enabled.
+#   It also must advertize that has the monitor vm.
+#
+# Author:
+#   Igor Sfiligoi (May 2007)
+#
+
 import string
 import time
 import tempfile
