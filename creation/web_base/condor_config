@@ -106,7 +106,7 @@ NUM_VIRTUAL_MACHINES_TYPE_2 = 1
 STARTD_RESOURCE_PREFIX = vm
 
 # Allow cross-VM expressions
-STARTD_VM_EXPRS = State, EnteredCurrentState, Activity, EnteredCurrentActivity, RemoteUser, Name
+STARTD_VM_EXPRS = State, EnteredCurrentState, Activity, EnteredCurrentActivity, RemoteUser, Name, GlobalJobId
 
 #VM1_START_CONDITION = ($(WMS_TEST_START) && (WMSGroup =?= "test"))
 #VM2_START_CONDITION = ($(WMS_DEFAULT_START) && (WMSGroup =!= "Held"))
@@ -118,11 +118,14 @@ GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start))
 
 HAS_MONITOR_VM=True
 IS_MONITOR_VM = (VirtualMachineID == 1)
-VM2_MONITORING_NAME = VM1_NAME
-VM1_MONITORED_NAME = VM2_NAME
+VM2_Monitoring_Name = VM1_Name
+# use plural names, since there may be more than one if multiple job VMs
+VM1_Monitored_NAMES = VM2_Name
+VM1_Monitored_GlobalJobIds = VM2_GlobalJobId
+
 STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM
-VM1_STARTD_ATTRS = MONITORED_NAME
-VM2_STARTD_ATTRS = MONITORING_NAME
+VM1_STARTD_ATTRS = Monitored_Names,Monitored_GlobalJobIds
+VM2_STARTD_ATTRS = Monitoring_Name
 
 VM1_VM2_MATCH = (vm2_State =?= "Claimed") && (vm2_RemoteUser =?= User)
 VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && (GLIDEIN_Is_Monitor)
