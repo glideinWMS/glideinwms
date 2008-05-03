@@ -120,7 +120,7 @@ HAS_MONITOR_VM=True
 IS_MONITOR_VM = (VirtualMachineID == 1)
 VM2_Monitoring_Name = VM1_Name
 # use plural names, since there may be more than one if multiple job VMs
-VM1_Monitored_NAMES = VM2_Name
+VM1_Monitored_Names = VM2_Name
 VM1_Monitored_GlobalJobIds = VM2_GlobalJobId
 
 STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM
