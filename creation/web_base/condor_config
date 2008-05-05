@@ -128,7 +128,7 @@ VM1_STARTD_ATTRS = Monitored_Names,Monitored_GlobalJobIds
 VM2_STARTD_ATTRS = Monitoring_Name
 
 VM1_VM2_MATCH = (vm2_State =?= "Claimed") && (vm2_RemoteUser =?= User)
-VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && (GLIDEIN_Is_Monitor)
+VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
 VM2_START_CONDITION = $(GLIDEIN_START_CONDITION)
 START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
 
