@@ -172,7 +172,8 @@ def create_status_history():
             for sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
                 size=sz[0]
                 fname=os.path.join(monitorAggregatorConfig.monitor_dir,"total/0Status.%s.%s.html"%(period,size))
-                if (not os.path.isfile(fname)): #create only if it does not exist
+                #if (not os.path.isfile(fname)): #create only if it does not exist
+                if 1: # create every time, it is small and works over reconfigs
                     fd=open(fname,"w")
                     fd.write("<html>\n<head>\n")
                     fd.write("<title>%s over last %s</title>\n"%(fe,period));
@@ -236,10 +237,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.5 2007/09/26 20:04:21 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.6 2008/05/05 19:51:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.6  2008/05/05 19:51:06  sfiligoi
+#  Always re-create the index files to account for reconfigs
+#
 #  Revision 1.5  2007/09/26 20:04:21  sfiligoi
 #  Disable history XMLs
 #
