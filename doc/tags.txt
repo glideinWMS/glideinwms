@@ -1,4 +1,4 @@
-vNext	More fine grained configuration of glideins
+v1_2	More fine grained configuration of glideins
         Factory reads now force integrity checks
         Glideins now publish the gatekeeper name.
 
