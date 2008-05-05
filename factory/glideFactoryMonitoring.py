@@ -491,7 +491,8 @@ class condorQStats:
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
                     fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
-                    if (not os.path.isfile(fname)): #create only if it does not exist
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs 
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
                         fd.write("<title>%s over last %s</title>\n"%(fe,period));
@@ -566,7 +567,8 @@ class condorQStats:
             for sz in monitoringConfig.graph_sizes:
                 size=sz[0]
                 fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
-                if (not os.path.isfile(fname)): #create only if it does not exist
+                #if (not os.path.isfile(fname)): #create only if it does not exist
+                if 1: # create every time, it is small and works over reconfigs
                     fd=open(fname,"w")
                     fd.write("<html>\n<head>\n")
                     fd.write("<title>%s over last %s</title>\n"%(fe,period));
@@ -976,7 +978,8 @@ class condorLogSummary:
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
                     fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
-                    if (not os.path.isfile(fname)): #create only if it does not exist
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
                         fd.write("<title>%s over last %s</title>\n"%(client_name,period));
@@ -1158,10 +1161,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.96 2008/03/10 16:28:35 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.97 2008/05/05 19:21:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.97  2008/05/05 19:21:10  sfiligoi
+#  Always re-create the index files to account for reconfigs
+#
 #  Revision 1.96  2008/03/10 16:28:35  sfiligoi
 #  Fix typo
 #
