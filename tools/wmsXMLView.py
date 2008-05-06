@@ -25,13 +25,13 @@ remove_condor_stats=True
 remove_internals=True
 
 # parse arguments
-alen=len(argv)
+alen=len(sys.argv)
 i=1
 while (i<alen):
-    ael=argv[i]
+    ael=sys.argv[i]
     if ael=='-pool':
         i=i+1
-        pool_name=argv[i]
+        pool_name=sys.argv[i]
     else:
         raise RuntimeError,"Unknown option '%s'"%ael
 
