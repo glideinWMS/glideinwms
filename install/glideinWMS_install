@@ -943,6 +943,15 @@ def gfactory_install():
             
         get_ress_glidein_entries(vo,entries_list,glexec_yn=="y")
 
+    yn=raw_input("Do you want to fetch entries from BDII?: (y/n) ")
+    if yn=='y':
+        try:
+            vo=get_proxy_vo(proxy_fname)
+        except RuntimeError:
+            vo=None # VOMS extensions are not required
+            
+        get_bdii_glidein_entries(vo,entries_list,glexec_yn=="y")
+
     print "Please list all additional glidein entry points,"
     while 1:
         entry_name=raw_input("Entry name (leave empty when finished): ")
@@ -3298,6 +3307,124 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
     return
 
+
+# Get list of entry point from BDII
+##########################################
+def get_bdii_glidein_entries(vo,             #vo can be None
+                             entries_list,   # dictionary, will add to this
+                             config_glexec): # bool, ask for glexec dir
+    import ldap
+
+    while 1:
+        default_bdii_url='exp-bdii.cern.ch'
+        bdii_url=raw_input("Which BDII server should I use?: [%s] "%default_bdii_url)
+        if bdii_url=="":
+            bdii_url=default_bdii_url
+        try:
+            bdii_ip=socket.gethostbyname(bdii_url)
+        except KeyError:
+            print "'%s' is not a valid host name!"%bdii_url
+            continue
+        #found and verified
+        break
+
+    default_reqs="&(GlueCEInfoContactString=*)"
+    if vo!=None:
+        default_reqs='%s(GlueCEAccessControlBaseRule=VO:%s)'%(default_reqs,vo)
+
+    select_reqs=raw_input("Select constraint: [%s] "%default_reqs)
+    if select_reqs=="":
+        select_reqs=default_reqs
+
+    ldap_obj=ldap.open(bdii_url,2170)
+    ldap_obj.simple_bind('','')
+    bdii_data=ldap_obj.search_s("mds-vo-name=local,o=grid",ldap.SCOPE_SUBTREE,
+                                "(%s)"%select_reqs)
+    del ldap_obj
+
+    cluster_count={}
+    bdii_entries={}
+    for elarr in bdii_data:
+        el1,el2=elarr
+        
+        work_dir="."
+        gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
+        rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
+
+        cluster_id=el1.split("Mds-Vo-name=",1)[1].split(",",1)[0]
+
+        count=1
+        if cluster_count.has_key(cluster_id):
+            count=cluster_count[cluster_id]+1
+        cluster_count[cluster_id]=count
+
+        if count==1:
+            key_name=cluster_id
+        else:
+            key_name="%s_%i"%(cluster_id,count)
+
+            if count==2: # rename id -> id_1
+                key_name_tmp="%s_1"%cluster_id
+                bdii_entries[key_name_tmp]=bdii_entries[cluster_id]
+                del bdii_entries[cluster_id]
+
+
+        bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
+                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG'}
+        
+    bdii_keys=bdii_entries.keys()
+    bdii_keys.sort()
+
+    print "Found %i entries"%len(bdii_keys)
+    yn=raw_input("Do you want to use them all?: (y/n) ")
+    if yn=="y":
+        # simply copy all of them
+        for key in bdii_keys:
+            entries_list[key]=bdii_entries[key]
+        return
+    
+    print "This is the list of entries found in BDII:"
+    for key in bdii_keys:
+        print "[%s] %s(%s)"%(string.ljust(key,20),bdii_entries[key]['gatekeeper'],bdii_entries[key]['rsl'])
+
+    print "Select the indexes you want to include"
+    print "Use a , separated list to include more than one"
+    while 1:
+        idxes=raw_input("Please select: ")
+        idx_arr=idxes.split(',')
+        problems=0
+        for idx in idx_arr:
+            if not (idx in bdii_keys):
+                print "'%s' is not a valid index!"%idx
+                problems=1
+                break
+        if problems:
+            continue
+
+        # got them
+        break
+
+    yn=raw_input("Do you want to customize them?: (y/n) ")
+    if yn=="y":
+        # customize them
+        for idx in idx_arr:
+            work_dir=raw_input("Work dir for '%s': [%s] "%(idx,bdii_entries[idx]['work_dir']))
+            if work_dir!="":
+                bdii_entries[idx]['work_dir']=work_dir
+            site_name=raw_input("Site name for '%s': [%s] "%(idx,bdii_entries[idx]['site_name']))
+            if site_name!="":
+                bdii_entries[idx]['site_name']=site_name
+
+        if config_glexec:
+            glexec_path=raw_input("gLExec path for '%s': [%s] "%(idx,bdii_entries[idx]['glexec_path']))
+            if glexec_path!="":
+                bdii_entries[idx]['glexec_path']=glexec_path
+            
+
+    for idx in idx_arr:
+        entries_list[idx]=bdii_entries[idx]
+
+    return
 
 ##########################################
 main()
