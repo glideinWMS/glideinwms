@@ -4,7 +4,7 @@
 #   in a XML format
 #
 # Arguments:
-#   [-pool collector_node]
+#   [-pool collector_node] [-condor_stats 1|0] [-internals 1|0]
 #
 # Author:
 #   Igor Sfiligoi (May 9th 2007)
@@ -32,6 +32,12 @@ while (i<alen):
     if ael=='-pool':
         i=i+1
         pool_name=sys.argv[i]
+    elif ael=='-condor_stats':
+        i=i+1
+        remove_condor_stats=not int(sys.argv[i])
+    elif ael=='-internals':
+        i=i+1
+        remove_internals=not int(sys.argv[i])
     else:
         raise RuntimeError,"Unknown option '%s'"%ael
     i=i+1
