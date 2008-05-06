@@ -34,6 +34,7 @@ while (i<alen):
         pool_name=sys.argv[i]
     else:
         raise RuntimeError,"Unknown option '%s'"%ael
+    i=i+1
 
 # get data
 glideins_obj=glideinFrontendInterface.findGlideins(pool_name)
