@@ -4,7 +4,7 @@
 #   in a XML format
 #
 # Arguments:
-#   None
+#   [-pool collector_node]
 #
 # Author:
 #   Igor Sfiligoi (May 9th 2007)
@@ -20,12 +20,26 @@ import glideFactoryInterface
 import glideinFrontendInterface
 import xmlFormat
 
+pool_name=None
 remove_condor_stats=True
 remove_internals=True
 
-glideins_obj=glideinFrontendInterface.findGlideins(None)
-clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(None,None)
+# parse arguments
+alen=len(argv)
+i=1
+while (i<alen):
+    ael=argv[i]
+    if ael=='-pool':
+        i=i+1
+        pool_name=argv[i]
+    else:
+        raise RuntimeError,"Unknown option '%s'"%ael
 
+# get data
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name)
+clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name,None)
+
+# extract data
 glideins=glideins_obj.keys()
 for glidein in glideins:
     glidein_el=glideins_obj[glidein]
@@ -59,7 +73,7 @@ for glidein in glideins:
             clients_obj[client]['factory_monitor']=clientsmon_obj[client]['monitor']
 
 
-
+#print data
 sub_dict={'clients':{'dict_name':'clients','el_name':'client','subtypes_params':{'class':{}}}}
 print xmlFormat.dict2string(glideins_obj,'glideinWMS','factory',
                             subtypes_params={'class':{'dicts_params':sub_dict}})
