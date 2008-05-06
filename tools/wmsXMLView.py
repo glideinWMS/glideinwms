@@ -4,7 +4,7 @@
 #   in a XML format
 #
 # Arguments:
-#   [-pool collector_node] [-condor_stats 1|0] [-internals 1|0]
+#   [-pool collector_node] [-condor-stats 1|0] [-internals 1|0]
 #
 # Author:
 #   Igor Sfiligoi (May 9th 2007)
@@ -32,7 +32,7 @@ while (i<alen):
     if ael=='-pool':
         i=i+1
         pool_name=sys.argv[i]
-    elif ael=='-condor_stats':
+    elif ael=='-condor-stats':
         i=i+1
         remove_condor_stats=not int(sys.argv[i])
     elif ael=='-internals':
