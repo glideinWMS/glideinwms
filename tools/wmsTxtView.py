@@ -70,7 +70,7 @@ txt_keys=txt_data.keys()
 txt_keys.sort()
 
 print '%s  ReqIdle   Idle    Running'%string.ljust('Entry',50)
-print '========================================-========-========-========'
+print '==================================================-========-========-========'
 for key in txt_keys:
     key_el=txt_data[key]
     print "%s %8i %8i %8i"%(string.ljust(key,50),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'])
