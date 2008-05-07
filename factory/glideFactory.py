@@ -14,6 +14,9 @@
 import os
 import os.path
 import sys
+
+STARTUP_DIR=sys.path[0]
+
 import fcntl
 import popen2
 import traceback
@@ -22,7 +25,7 @@ import time
 import string
 import copy
 import threading
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 
 import glideFactoryConfig
 import glideFactoryLib
@@ -59,11 +62,12 @@ def aggregate_stats():
 def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
           glideinDescript,entries):
 
+    global STARTUP_DIR
     childs={}
     glideFactoryLib.factoryConfig.activity_log.write("Starting entries %s"%entries)
     try:
         for entry_name in entries:
-            childs[entry_name]=popen2.Popen3("%s glideFactoryEntry.py %s %s %s %s %s"%(sys.executable,os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
+            childs[entry_name]=popen2.Popen3("%s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
 
         for entry_name in childs.keys():
             childs[entry_name].tochild.close()
@@ -187,10 +191,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.63 2008/05/07 19:59:07 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.64 2008/05/07 20:05:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.64  2008/05/07 20:05:16  sfiligoi
+#  Change rel paths into abspaths
+#
 #  Revision 1.63  2008/05/07 19:59:07  sfiligoi
 #  Change rel paths into abspaths
 #
