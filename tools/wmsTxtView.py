@@ -13,9 +13,9 @@
 
 import string
 import sys
-sys.path.append("../factory")
-sys.path.append("../frontend")
-sys.path.append("../lib")
+sys.path.append(os.path.join(sys.path[0],"../factory"))
+sys.path.append(os.path.join(sys.path[0],"../frontend"))
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryInterface
 import glideinFrontendInterface
