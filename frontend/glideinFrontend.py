@@ -18,7 +18,7 @@ import sys
 import fcntl
 import traceback
 import time
-sys.path.append("../lib")
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideinFrontendInterface
 import glideinFrontendLib
