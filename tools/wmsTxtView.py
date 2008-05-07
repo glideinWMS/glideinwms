@@ -57,7 +57,7 @@ for glidein in glideins:
         key=glidein
     elif txt_type=='Sites':
         key=glidein_el['attrs']['GLIDEIN_Site']
-    elif txt_type=='Gatekeeper':
+    elif txt_type=='Gatekeepers':
         key=glidein_el['attrs']['GLIDEIN_Gatekeeper']
     else:
         raise RuntimeError, "Unknwon type '%s'"%txt_type
