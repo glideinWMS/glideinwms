@@ -70,10 +70,10 @@ for glidein in glideins:
 txt_keys=txt_data.keys()
 txt_keys.sort()
 
-print '%s  ReqIdle  Idle   Running  MaxRun'%string.ljust('Entry',50)
-print '==================================================-=======-=======-=======-======='
+print '%s  ReqIdle  Idle   Running  MaxRun'%string.ljust('Entry',48)
+print '================================================-=======-=======-=======-======='
 for key in txt_keys:
     key_el=txt_data[key]
-    print "%s %7i %7i %7i %i"%(string.ljust(key,50),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'],key_el['MaxRunning'])
+    print "%s %7i %7i %7i %7i"%(string.ljust(key,48),key_el['RequestedIdle'],key_el['Idle'],key_el['Running'],key_el['MaxRunning'])
 
 
