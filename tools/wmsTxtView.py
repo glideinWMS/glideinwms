@@ -23,7 +23,7 @@ import glideinFrontendInterface
 pool_name=None
 remove_condor_stats=True
 remove_internals=True
-txt_type=None
+txt_type='Entries'
 
 # parse arguments
 alen=len(sys.argv)
@@ -53,7 +53,16 @@ glideins=glideins_obj.keys()
 for glidein in glideins:
     glidein_el=glideins_obj[glidein]
 
-    key=glidein
+    if txt_type=='Entries':
+        key=glidein
+    elif txt_type=='Sites':
+        key=glidein_el['attrs']['GLIDEIN_Site']
+    elif txt_type=='Gatekeeper':
+        key=glidein_el['attrs']['GLIDEIN_Gatekeeper']
+    else:
+        raise RuntimeError, "Unknwon type '%s'"%txt_type
+    
+        
     if txt_data.has_key(key):
         key_el=txt_data[key]
     else:
