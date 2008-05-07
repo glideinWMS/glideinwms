@@ -22,7 +22,7 @@ import time
 import string
 import copy
 import threading
-sys.path.append("../lib")
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryConfig
 import glideFactoryLib
@@ -187,10 +187,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.62 2007/07/03 16:41:46 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.63 2008/05/07 19:59:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.63  2008/05/07 19:59:07  sfiligoi
+#  Change rel paths into abspaths
+#
 #  Revision 1.62  2007/07/03 16:41:46  sfiligoi
 #  Add few GSI checks
 #

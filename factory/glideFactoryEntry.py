@@ -23,7 +23,7 @@ import time
 import string
 import copy
 import threading
-sys.path.append("../lib")
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryConfig
 import glideFactoryLib
@@ -380,10 +380,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.32 2008/03/28 17:41:45 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.33 2008/05/07 19:59:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.33  2008/05/07 19:59:07  sfiligoi
+#  Change rel paths into abspaths
+#
 #  Revision 1.32  2008/03/28 17:41:45  sfiligoi
 #  Make condor_status non essential
 #
