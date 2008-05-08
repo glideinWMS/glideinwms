@@ -34,13 +34,20 @@ def exe_cmd(argv_func):
 # changes to the work dir and executes the command
 def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
                          argv,condor_status):
+    # escape the spaces
+    # everything else should be passed to the cmsdline as it is
+    eargv=[]
+    for arg in argv:
+        eargv.append(string.replace(arg,' ','\ '))
+
+    # create the command file
     fd=open(monitor_file_name,"w")
     try:
         fd.write("#!/bin/sh\n")
         # find out work dir
         fd.write("outdir=`ls -lt .. | tail -1 | awk '{print $9}'`\n")
         # execute command in work dir
-        fd.write("(cd ../$outdir; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)\n"%(string.join(argv)))
+        fd.write("(cd ../$outdir; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)\n"%(string.join(eargv)))
         fd.write("echo Done > %s\n"%monitor_control_relname)
     finally:
         fd.close()
