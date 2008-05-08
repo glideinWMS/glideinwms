@@ -17,10 +17,14 @@ import glideinMonitor
 # into a list of arguments to pass to the command line
 #
 def exe_cmd(argv_func):
-    args=glideinMonitor.parseArgs(sys.argv[1:])
-    glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
-                           args['timeout'],
-                           createCmdMonitorFile,argv_func(args['argv']))
+    try:
+        args=glideinMonitor.parseArgs(sys.argv[1:])
+        glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
+                               args['timeout'],
+                               createCmdMonitorFile,argv_func(args['argv']))
+    except RuntimeError,e:
+        print e
+        return 1
 
 ######################################
 # INTERNAL - Do not use directly
