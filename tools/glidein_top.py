@@ -1,38 +1,29 @@
 #!/bin/env python
 #
-# glidein_top
+# glidein_top.py
 #
-# Execute a top command in the same glidein as the user job
+# Description:
+#   Execute a top command on a condor job
 #
 # Usage:
-#  glidein_top.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>
+#  glidein_top.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]
+#
+# Author:
+#   Igor Sfiligoi (May 2007)
+#
+# License:
+#  Fermitools
 #
 
-import os
-import stat
-import sys
-sys.path.append("lib")
-sys.path.append("../lib")
+import sys,os.path
+sys.path.append(os.path.join(sys.path[0],"lib"))
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 
-import glideinMonitor
+import glideinCmd
 
-def createTopMonitorFile(monitor_file_name,monitor_control_relname,
-                         argv,condor_status):
-    fd=open(monitor_file_name,"w")
-    try:
-        fd.write("#!/bin/sh\n")
-        fd.write("top -b -n 1\n")
-        fd.write("echo Done > %s\n"%monitor_control_relname)
-    finally:
-        fd.close()
+def argv_top(argv):
+    if len(argv)!=0:
+        raise RuntimeError, "Unexpected parameters starting with %s found!"%argv[0]
+    return ['top', '-b', '-n', '1']
 
-    os.chmod(monitor_file_name,stat.S_IRWXU)
-
-
-args=glideinMonitor.parseArgs(sys.argv[1:])
-if len(args['argv'])!=0:
-    raise RuntimeError, "Unexpected parameters starting with %s found!"%args['argv'][0]
-
-glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
-                       args['timeout'],
-                       createTopMonitorFile,args['argv'])
+glideinCmd.exe_cmd(argv_top)
