@@ -1,0 +1,24 @@
+#!/bin/env python
+#
+# glidein_ps.py
+#
+# Description:
+#   Execute a ps command on a condor job
+#
+# Usage:
+#  glidein_ps.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]  [<options>]
+#
+# Author:
+#   Igor Sfiligoi (May 2008)
+#
+# License:
+#  Fermitools
+#
+
+import sys,os.path
+sys.path.append(os.path.join(sys.path[0],"lib"))
+sys.path.append(os.path.join(sys.path[0],"../lib"))
+
+import glideinCmd
+
+glideinCmd.exe_cmd(lambda argv:(['ps', '-u', '`id', '-n', '-u`']+argv))
