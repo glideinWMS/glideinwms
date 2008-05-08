@@ -19,8 +19,8 @@ import os,os.path
 import string
 import stat
 import sys
-sys.path.append(os.path.join(os.path[0],"lib"))
-sys.path.append(os.path.join(os.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0],"lib"))
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideinMonitor
 
