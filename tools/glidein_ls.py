@@ -1,19 +1,26 @@
 #!/bin/env python
 #
-# glidein_ls
+# condor_ls
 #
-# Execute a ls command on the job directory
+# Description:
+#   Execute a ls command on a condor job working directory
 #
 # Usage:
-#  glidein_ls.py <cluster>.<process> [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>
+#  glidein_ls.py <cluster>.<process> [<dir>] [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]
+#
+# Author:
+#   Igor Sfiligoi (May 2007)
+#
+# License:
+#  Fermitools
 #
 
-import os
+import os,os.path
 import string
 import stat
 import sys
-sys.path.append("lib")
-sys.path.append("../lib")
+sys.path.append(os.path.join(os.path[0],"lib"))
+sys.path.append(os.path.join(os.path[0],"../lib"))
 
 import glideinMonitor
 
