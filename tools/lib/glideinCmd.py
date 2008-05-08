@@ -24,7 +24,7 @@ def exe_cmd(argv_func):
                                createCmdMonitorFile,argv_func(args['argv']))
     except RuntimeError,e:
         print e
-        return 1
+        sys.exit(1)
 
 ######################################
 # INTERNAL - Do not use directly
