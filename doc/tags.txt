@@ -1,6 +1,7 @@
 vnext	Added support for BDII.
         Added stop scripts for factory and frontend.
-        Added tools/wmsTxtList.py.
+        Added tools/wmsTxtList.py and tools/glidein_interactive.py.
+        All commands now are executable.
 
 v1_2	More fine grained configuration of glideins
         Factory reads now force integrity checks
