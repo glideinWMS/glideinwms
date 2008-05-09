@@ -1,3 +1,4 @@
+#!/bin/env python
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -380,10 +381,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.33 2008/05/07 19:59:07 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.34 2008/05/09 20:50:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.34  2008/05/09 20:50:11  sfiligoi
+#  Make them executable
+#
 #  Revision 1.33  2008/05/07 19:59:07  sfiligoi
 #  Change rel paths into abspaths
 #
