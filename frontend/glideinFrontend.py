@@ -1,3 +1,4 @@
+#!/bin/env python
 #
 # Description:
 #   This is the main of the glideinFrontend
