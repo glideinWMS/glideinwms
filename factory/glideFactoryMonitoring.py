@@ -651,11 +651,21 @@ class condorQStats:
                     fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
 
                     fd.write("</tr></table>\n")
+
+                    fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
+                              ('Split_Requested_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
                               ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
-                              ('Held','Split_Status_Attribute_Held'),
-                              ('ClientIdle','Split_ClientMonitor_Attribute_Idle'),
+                              ('Held','Split_Status_Attribute_Held')]:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                        fd.write('</tr>\n')                            
+                    fd.write("</table>")
+                    fd.write("<h2>Frontend (client) stats</h2>\n")
+                    fd.write("<table>")
+                    for l in [('ClientIdle','Split_ClientMonitor_Attribute_Idle'),
                               ('ClientRunning','Split_ClientMonitor_Attribute_Running'),
                               ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
                         fd.write('<tr valign="top">')
@@ -1214,10 +1224,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.101 2008/05/11 19:44:19 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.102 2008/05/11 19:58:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.102  2008/05/11 19:58:06  sfiligoi
+#  Add wait and pending
+#
 #  Revision 1.101  2008/05/11 19:44:19  sfiligoi
 #  Add wait and pending
 #
