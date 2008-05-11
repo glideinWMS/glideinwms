@@ -306,6 +306,7 @@ def logWorkRequests(work):
             factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
             factoryConfig.logActivity("  Params: %s"%work[work_key]['params'])
             factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
+            factoryConfig.qc_stats.logClientMonitor(work[work_key]['internals']["ClientName"],work[work_key]['monitor'],work[work_key]['internals'])
 
 
 ############################################################
@@ -559,10 +560,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.25 2008/03/28 17:41:45 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.26 2008/05/11 17:14:57 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.26  2008/05/11 17:14:57  sfiligoi
+#  Add client monitor info to the web page
+#
 #  Revision 1.25  2008/03/28 17:41:45  sfiligoi
 #  Make condor_status non essential
 #

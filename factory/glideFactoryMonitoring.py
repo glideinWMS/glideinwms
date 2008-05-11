@@ -340,6 +340,34 @@ class condorQStats:
 
         self.updated=time.time()
 
+    def logClientMonitor(self,client_name,client_monitor,client_internals):
+        """
+        client_monitor is a dictinary of monitoring info
+        client_internals is a dictinary of internals
+
+        At the moment, it looks only for
+          'Idle'
+          'Running'
+          'LastHeardFrom'
+        """
+        if self.data.has_key(client_name):
+            t_el=self.data[client_name]
+        else:
+            t_el={}
+            self.data[client_name]=t_el
+
+        el={}
+        t_el['ClientMonitor']=el
+
+        if client_monitor.has_key('Idle'):
+            el['Idle']=client_monitor['Idle']
+        if client_monitor.has_key('Running'):
+            el['Running']=client_monitor['Running']
+        if client_internals.has_key('LastHeardFrom'):
+            el['InfoAge']=long(time.time()-long(client_internals['LastHeardFrom']))
+
+        self.updated=time.time()
+
     def get_data(self):
         return self.data
 
@@ -350,7 +378,7 @@ class condorQStats:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_total(self):
-        total={'Status':None,'Requested':None}
+        total={'Status':None,'Requested':None,'ClientMonitor':None}
 
         for f in self.data.keys():
             fe=self.data[f]
@@ -435,7 +463,7 @@ class condorQStats:
 
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
-                # type - status or requested
+                # type - Status, Requested or ClientMonitor
                 for a in fe_el[tp].keys():
                     a_el=fe_el[tp][a]
                     if type(a_el)!=type({}): # ignore subdictionaries
@@ -482,6 +510,16 @@ class condorQStats:
             monitoringConfig.graph_rrds("%s/Held"%fe_dir,
                                         "Held glideins",
                                         [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
+            monitoringConfig.graph_rrds("%s/ClientIdle"%fe_dir,
+                                        "Idle client",
+                                        [("Idle","%s/ClientMonitor_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
+                                         ("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
+            monitoringConfig.graph_rrds("%s/ClientRunning"%fe_dir,
+                                        "Running client jobs",
+                                        [("Running","%s/ClientMonitor_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
+            monitoringConfig.graph_rrds("%s/InfoAge"%fe_dir,
+                                        "Client info age",
+                                        [("InfoAge","%s/ClientMonitor_Attribute_InfoAge.rrd"%fe_dir,"LINE2","000000")])
             
         # create support index files
         for fe in self.data.keys():
@@ -523,7 +561,7 @@ class condorQStats:
                         
                         fd.write("</tr></table>\n")
                         fd.write("<table>")
-                        for s in ['Idle','Running','Held']:
+                        for s in ['Idle','Running','Held','ClientIdle','ClientRunning','InfoAge']:
                             fd.write('<tr>')
                             fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
                             if s=='Running':
@@ -604,7 +642,10 @@ class condorQStats:
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
                               ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
-                              ('Held','Split_Status_Attribute_Held')]:
+                              ('Held','Split_Status_Attribute_Held'),
+                              ('ClientIdle','Split_ClientMonitor_Attribute_Idle'),
+                              ('ClientRunning','Split_ClientMonitor_Attribute_Running'),
+                              ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
                         fd.write('<tr valign="top">')
                         for s in l:
                             fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
@@ -1161,10 +1202,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.97 2008/05/05 19:21:10 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.98 2008/05/11 17:14:57 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.98  2008/05/11 17:14:57  sfiligoi
+#  Add client monitor info to the web page
+#
 #  Revision 1.97  2008/05/05 19:21:10  sfiligoi
 #  Always re-create the index files to account for reconfigs
 #
