@@ -563,7 +563,7 @@ class condorQStats:
 
                         fd.write("<h2>Glidein stats</h2>\n")
                         fd.write("<table>")
-                        for s in ['Idle','Running','Held','ClientIdle','ClientRunning','InfoAge']:
+                        for s in ['Idle','Running','Held']:
                             fd.write('<tr>')
                             fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
                             if s=='Running':
@@ -573,12 +573,9 @@ class condorQStats:
                         fd.write("</table>")
                         fd.write("<h2>Frontend (client) stats</h2>\n")
                         fd.write("<table>")
-                        for s in ['Idle','Running','Held','ClientIdle','ClientRunning','InfoAge']:
+                        for s in ['ClientIdle','ClientRunning','InfoAge']:
                             fd.write('<tr>')
                             fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
-                            if s=='Running':
-                                s1='MaxRun'
-                                fd.write('<td><img src="%s.%s.%s.png"></td>'%(s1,period,size))
                             fd.write('</tr>\n')                            
                         fd.write("</table>")
                         fd.write("</body>\n</html>\n")
@@ -1214,10 +1211,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.99 2008/05/11 17:49:10 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.100 2008/05/11 17:50:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.100  2008/05/11 17:50:50  sfiligoi
+#  Add more text
+#
 #  Revision 1.99  2008/05/11 17:49:10  sfiligoi
 #  Add more text
 #
