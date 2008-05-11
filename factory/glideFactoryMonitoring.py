@@ -655,7 +655,7 @@ class condorQStats:
                     fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
-                              ('Split_Requested_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
+                              ('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
                               ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
@@ -1224,10 +1224,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.102 2008/05/11 19:58:06 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.103 2008/05/11 19:59:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.103  2008/05/11 19:59:36  sfiligoi
+#  Add wait and pending
+#
 #  Revision 1.102  2008/05/11 19:58:06  sfiligoi
 #  Add wait and pending
 #
