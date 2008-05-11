@@ -1,3 +1,4 @@
+#!/bin/env python
 #
 # Description:
 #   This tool displays the status of the glideinWMS pool
