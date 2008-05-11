@@ -204,11 +204,11 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,submit_attrs,params):
 
     # Count glideins by status
     qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
+
     #   Idle==Jobstatus(1)
-    if qc_status.has_key(1):
-        idle_glideins=qc_status[1]
-    else:
-        idle_glideins=0
+    sum_idle_count(qc_status)
+    idle_glideins=qc_status[1]
+
     #   Idle==Jobstatus(2)
     if qc_status.has_key(2):
         running_glideins=qc_status[2]
@@ -289,6 +289,7 @@ def logStats(condorq,condorstatus,client_int_name):
 
     # Count glideins by status
     qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
+    sum_idle_count(qc_status)
     if condorstatus!=None:
         s_running=len(condorstatus.fetchStored().keys())
     else:
@@ -326,8 +327,35 @@ def get_status_glideidx(el):
     global factoryConfig
     return (el[factoryConfig.clusterid_startd_attribute],el[factoryConfig.procid_startd_attribute])
 
+# Split idle depending on GridJobStatus
+#   1001 : Unsubmitted
+#   1002 : Submitted/Pending
+#   1100 : Other
+# All others just return the JobStatus
 def hash_status(el):
-    return el["JobStatus"]
+    job_status=el["JobStatus"]
+    if job_status!=1:
+        return job_status
+    else:
+        # idle jobs, look of GridJobStatus
+        if el.has_key("GridJobStatus"):
+            grid_status=el["GridJobStatus"]
+            if grid_status=="PENDING":
+                return 1002
+            else:
+                return 1100
+        else:
+            return 1001
+
+# helper function that sums up the idle states
+def sum_idle_count(qc_status):
+    #   Idle==Jobstatus(1)
+    #   Have to integrate all the variants
+    qc_status[1]=0
+    for k in qc_status.keys():
+        if (k>=1000) and (k<2000):
+            qc_status[1]+=qc_status[k]
+    return
 
 def hash_statusStale(el):
     global factoryConfig
@@ -560,10 +588,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.26 2008/05/11 17:14:57 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.27 2008/05/11 19:44:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.27  2008/05/11 19:44:19  sfiligoi
+#  Add wait and pending
+#
 #  Revision 1.26  2008/05/11 17:14:57  sfiligoi
 #  Add client monitor info to the web page
 #

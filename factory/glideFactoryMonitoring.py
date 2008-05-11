@@ -304,7 +304,7 @@ class condorQStats:
         el={}
         t_el['Status']=el
 
-        status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"))
+        status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1100,"IdleOther"))
         for p in status_pairs:
             nr,str=p
             if qc_status.has_key(nr):
@@ -500,7 +500,10 @@ class condorQStats:
             monitoringConfig.graph_rrds("%s/Idle"%fe_dir,
                                         "Idle glideins",
                                         [("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
-                                         ("Idle","%s/Status_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
+                                         ("Idle","%s/Status_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF"),
+                                         ("Wait","%s/Status_Attribute_Wait.rrd"%fe_dir,"LINE2","FF00FF"),
+                                         ("Pending","%s/Status_Attribute_Pending.rrd"%fe_dir,"LINE2","00FF00"),
+                                         ("IdleOther","%s/Status_Attribute_IdleOther.rrd"%fe_dir,"LINE2","FF0000")])
             monitoringConfig.graph_rrds("%s/Running"%fe_dir,
                                         "Running glideins",
                                         [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
@@ -1211,10 +1214,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.100 2008/05/11 17:50:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.101 2008/05/11 19:44:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.101  2008/05/11 19:44:19  sfiligoi
+#  Add wait and pending
+#
 #  Revision 1.100  2008/05/11 17:50:50  sfiligoi
 #  Add more text
 #
