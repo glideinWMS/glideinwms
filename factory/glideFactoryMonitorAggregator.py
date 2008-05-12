@@ -153,7 +153,7 @@ def create_status_history():
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/ClientRunning",
                                                        "Running client jobs",
                                                        [("Running","total/ClientMonitor_Attribute_Running.rrd","AREA","00FF00")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("%s/InfoAge"total,
+    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/InfoAge",
                                                        "Client info age",
                                                        [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
 
@@ -262,10 +262,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.7 2008/05/12 00:09:49 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.8 2008/05/12 00:10:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.8  2008/05/12 00:10:55  sfiligoi
+#  Add new attrs to total
+#
 #  Revision 1.7  2008/05/12 00:09:49  sfiligoi
 #  Add new attrs to total
 #
