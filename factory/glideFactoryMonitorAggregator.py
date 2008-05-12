@@ -52,7 +52,7 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 def aggregateStatus():
     global monitorAggregatorConfig
 
-    global_total={'Status':None,'Requested':None}
+    global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
@@ -262,10 +262,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.8 2008/05/12 00:10:55 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.9 2008/05/12 00:30:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.9  2008/05/12 00:30:55  sfiligoi
+#  Add new attrs to total
+#
 #  Revision 1.8  2008/05/12 00:10:55  sfiligoi
 #  Add new attrs to total
 #
