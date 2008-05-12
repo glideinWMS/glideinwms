@@ -136,13 +136,26 @@ def create_status_history():
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Idle",
                                                        "Idle glideins",
                                                        [("Requested","total/Requested_Attribute_Idle.rrd","AREA","00FFFF"),
-                                                        ("Idle","total/Status_Attribute_Idle.rrd","LINE2","0000FF")])
+                                                        ("Idle","total/Status_Attribute_Idle.rrd","LINE2","0000FF"),
+                                                        ("Wait","total/Status_Attribute_Wait.rrd","LINE2","FF00FF"),
+                                                        ("Pending","total/Status_Attribute_Pending.rrd","LINE2","00FF00"),
+                                                        ("IdleOther","total/Status_Attribute_IdleOther.rrd","LINE2","FF0000")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Running",
                                                        "Running glideins",
                                                        [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Held",
                                                        "Held glideins",
                                                        [("Held","total/Status_Attribute_Held.rrd","AREA","c00000")])
+    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/ClientIdle",
+                                                       "Idle client",
+                                                       [("Idle","total/ClientMonitor_Attribute_Idle.rrd","AREA","00FFFF"),
+                                                        ("Requested","total/Requested_Attribute_Idle.rrd","LINE2","0000FF")])
+    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/ClientRunning",
+                                                       "Running client jobs",
+                                                       [("Running","total/ClientMonitor_Attribute_Running.rrd","AREA","00FF00")])
+    glideFactoryMonitoring.monitoringConfig.graph_rrds("%s/InfoAge"total,
+                                                       "Client info age",
+                                                       [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
 
     # create split graphs
     colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
@@ -203,10 +216,22 @@ def create_status_history():
                     fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
 
                     fd.write("</tr></table>\n")
+                    fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
                     for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
+                              ('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
                               ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
                               ('Held','Split_Status_Attribute_Held')]:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                        fd.write('</tr>\n')                            
+                    fd.write("</table>")
+                    fd.write("<h2>Frontend (client) stats</h2>\n")
+                    fd.write("<table>")
+                    for l in [('ClientIdle','Split_ClientMonitor_Attribute_Idle'),
+                              ('ClientRunning','Split_ClientMonitor_Attribute_Running'),
+                              ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
                         fd.write('<tr valign="top">')
                         for s in l:
                             fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
@@ -237,10 +262,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.6 2008/05/05 19:51:06 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.7 2008/05/12 00:09:49 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.7  2008/05/12 00:09:49  sfiligoi
+#  Add new attrs to total
+#
 #  Revision 1.6  2008/05/05 19:51:06  sfiligoi
 #  Always re-create the index files to account for reconfigs
 #
