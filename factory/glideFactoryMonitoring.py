@@ -18,6 +18,8 @@ def string_quote_join(arglist):
         l2.append('"%s"'%e)
     return string.join(l2)
 
+# this class is used in place of the rrdtool
+# python module, if that one is not available
 class rrdtool_exe:
     def __init__(self):
         self.rrd_bin=iexe_cmd("which rrdtool")[0][:-1]
@@ -1224,23 +1226,17 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.103 2008/05/11 19:59:36 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.104 2008/05/20 15:33:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.104  2008/05/20 15:33:45  sfiligoi
+#  Comments
+#
 #  Revision 1.103  2008/05/11 19:59:36  sfiligoi
 #  Add wait and pending
 #
-#  Revision 1.102  2008/05/11 19:58:06  sfiligoi
-#  Add wait and pending
-#
-#  Revision 1.101  2008/05/11 19:44:19  sfiligoi
-#  Add wait and pending
-#
 #  Revision 1.100  2008/05/11 17:50:50  sfiligoi
-#  Add more text
-#
-#  Revision 1.99  2008/05/11 17:49:10  sfiligoi
 #  Add more text
 #
 #  Revision 1.98  2008/05/11 17:14:57  sfiligoi
@@ -1248,9 +1244,6 @@ def rrd2graph(rrd_obj,fname,
 #
 #  Revision 1.97  2008/05/05 19:21:10  sfiligoi
 #  Always re-create the index files to account for reconfigs
-#
-#  Revision 1.96  2008/03/10 16:28:35  sfiligoi
-#  Fix typo
 #
 #  Revision 1.95  2007/12/18 18:08:28  sfiligoi
 #  Better error handling
@@ -1267,9 +1260,6 @@ def rrd2graph(rrd_obj,fname,
 #  Revision 1.91  2007/10/12 14:46:29  sfiligoi
 #  Get rid of large images and rename medium to large
 #
-#  Revision 1.90  2007/10/10 20:06:23  sfiligoi
-#  Fix bug
-#
 #  Revision 1.89  2007/10/10 20:03:57  sfiligoi
 #  Better collors
 #
@@ -1282,14 +1272,8 @@ def rrd2graph(rrd_obj,fname,
 #  Revision 1.86  2007/10/09 22:17:32  sfiligoi
 #  Add title
 #
-#  Revision 1.85  2007/10/09 22:15:31  sfiligoi
-#  Fix typo
-#
 #  Revision 1.84  2007/10/09 22:12:36  sfiligoi
 #  Put new graphs into index file
-#
-#  Revision 1.83  2007/10/09 21:47:36  sfiligoi
-#  Fix typo
 #
 #  Revision 1.82  2007/10/09 21:28:23  sfiligoi
 #  Improve colors
@@ -1297,32 +1281,11 @@ def rrd2graph(rrd_obj,fname,
 #  Revision 1.81  2007/10/09 20:59:40  sfiligoi
 #  Improve graphing
 #
-#  Revision 1.80  2007/10/09 20:22:10  sfiligoi
-#  Fix typo
-#
-#  Revision 1.79  2007/10/09 20:20:01  sfiligoi
-#  Fix typo
-#
 #  Revision 1.78  2007/10/09 20:05:55  sfiligoi
 #  Improve stacking
 #
-#  Revision 1.77  2007/10/09 19:59:46  sfiligoi
-#  Fix typo
-#
-#  Revision 1.76  2007/10/09 19:52:26  sfiligoi
-#  Fix bug
-#
 #  Revision 1.75  2007/10/09 19:26:31  sfiligoi
 #  Handle UINICODE properly
-#
-#  Revision 1.74  2007/10/09 19:00:47  sfiligoi
-#  Fix typo
-#
-#  Revision 1.73  2007/10/09 18:57:26  sfiligoi
-#  Fix bug
-#
-#  Revision 1.72  2007/10/09 18:42:02  sfiligoi
-#  Fix bug
 #
 #  Revision 1.71  2007/10/09 18:38:00  sfiligoi
 #  Add graph creation for lasted and waste
@@ -1339,32 +1302,11 @@ def rrd2graph(rrd_obj,fname,
 #  Revision 1.67  2007/10/08 19:25:55  sfiligoi
 #  Change TimeRange Log to be rounded on the hour
 #
-#  Revision 1.66  2007/10/05 23:13:02  sfiligoi
-#  Fix typo
-#
-#  Revision 1.65  2007/10/05 23:09:28  sfiligoi
-#  Fix typo
-#
-#  Revision 1.64  2007/10/05 22:58:59  sfiligoi
-#  Fix typo
-#
-#  Revision 1.63  2007/10/05 22:58:11  sfiligoi
-#  Fix typo
-#
-#  Revision 1.62  2007/10/05 22:57:17  sfiligoi
-#  Fix typo
-#
 #  Revision 1.61  2007/10/05 22:53:06  sfiligoi
 #  Add ouptpu log parsing and waste reporting
 #
 #  Revision 1.60  2007/10/04 20:22:04  sfiligoi
 #  Make time steps in multiples of 5
-#
-#  Revision 1.59  2007/10/04 19:49:40  sfiligoi
-#  Fix typo
-#
-#  Revision 1.58  2007/10/04 19:42:53  sfiligoi
-#  Fix typo
 #
 #  Revision 1.57  2007/10/04 18:58:22  sfiligoi
 #  Use Timings
@@ -1377,18 +1319,6 @@ def rrd2graph(rrd_obj,fname,
 #
 #  Revision 1.54  2007/09/26 20:28:55  sfiligoi
 #  Add protection from update problems
-#
-#  Revision 1.53  2007/09/26 20:15:30  sfiligoi
-#  Fix typo
-#
-#  Revision 1.52  2007/09/26 20:05:18  sfiligoi
-#  Fix typo
-#
-#  Revision 1.51  2007/09/26 20:02:50  sfiligoi
-#  Fix type conversion
-#
-#  Revision 1.50  2007/09/26 19:45:37  sfiligoi
-#  Fix type converion
 #
 #  Revision 1.49  2007/09/26 19:33:06  sfiligoi
 #  Use python-rrdtool if present
