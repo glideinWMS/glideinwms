@@ -982,7 +982,12 @@ class condorLogSummary:
 
         # create graphs for RRDs
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-        r_colors=('c00000','ff0000','ffc000','ffd090','ffff00','e0e0a0','a0e0e0','00ffff','90b0ff','a0ffa0','00ff00','00c000')
+        #r_colors=('c00000','ff0000','ffc000','ffd090','ffff00','e0e0a0','a0e0e0','00ffff','90b0ff','a0ffa0','00ff00','00c000')
+        r_colors=('c00000',
+                  'ff0000','ff2a00','ff5400','ff7f00','ffaa00','ffd400',
+                  'ffff00',
+                  'd4ff00','aaff00','7fff00','54ff00','2aff00','00ff00',
+                  '00c000')
         r_colors_len=len(r_colors)
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
@@ -1386,10 +1391,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.117 2008/05/20 20:03:21 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.118 2008/05/20 20:15:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.118  2008/05/20 20:15:12  sfiligoi
+#  Colors
+#
 #  Revision 1.117  2008/05/20 20:03:21  sfiligoi
 #  Properly sort Unknwon and TooLong
 #
