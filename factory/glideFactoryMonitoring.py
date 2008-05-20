@@ -1160,7 +1160,7 @@ class condorLogSummary:
                         fd.write("<title>%s over last %s</title>\n"%(client_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
+                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
                         
                         link_arr=[]
                         for ref_sz in monitoringConfig.graph_sizes:
@@ -1362,33 +1362,21 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.112 2008/05/20 17:43:43 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.113 2008/05/20 17:45:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.112  2008/05/20 17:43:43  sfiligoi
-#  Fix typo
-#
-#  Revision 1.111  2008/05/20 17:41:58  sfiligoi
+#  Revision 1.113  2008/05/20 17:45:56  sfiligoi
 #  Fix typo
 #
 #  Revision 1.110  2008/05/20 17:40:52  sfiligoi
 #  Separate the log totals index into separate code
 #
-#  Revision 1.109  2008/05/20 17:16:09  sfiligoi
-#  Fix table
-#
 #  Revision 1.108  2008/05/20 17:14:13  sfiligoi
-#  Add size and time to Log index,too
-#
-#  Revision 1.107  2008/05/20 17:06:47  sfiligoi
 #  Add size and time to Log index,too
 #
 #  Revision 1.106  2008/05/20 16:28:31  sfiligoi
 #  Properly calculate the InfoAge totals
-#
-#  Revision 1.105  2008/05/20 15:56:32  sfiligoi
-#  Correct type
 #
 #  Revision 1.104  2008/05/20 15:33:45  sfiligoi
 #  Comments
