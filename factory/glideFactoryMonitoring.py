@@ -1230,7 +1230,6 @@ class condorLogSummary:
                         pass
                     pass # for sz
                 pass # for rp
-            pass # for client_name
 
         self.history_files_updated=self.files_updated
         return
@@ -1363,10 +1362,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.110 2008/05/20 17:40:52 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.111 2008/05/20 17:41:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.111  2008/05/20 17:41:58  sfiligoi
+#  Fix typo
+#
 #  Revision 1.110  2008/05/20 17:40:52  sfiligoi
 #  Separate the log totals index into separate code
 #
