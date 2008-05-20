@@ -367,14 +367,25 @@ class condorQStats:
             el['Running']=client_monitor['Running']
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
+            el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
 
         self.updated=time.time()
 
     def get_data(self):
-        return self.data
+        data1=copy.deepcopy(self.data)
+        for f in data1.keys():
+            fe=data1[f]
+            for w in fe.keys():
+                el=fe[w]
+                for a in el.keys():
+                    if a[-10:]=='AvgCounter': # do not publish avgcounter fields... they are internals
+                        del el[a]
+            
+        return data1
 
     def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        return xmlFormat.dict2string(self.data,
+        data=self.get_data()
+        return xmlFormat.dict2string(data,
                                      dict_name="frontends",el_name="frontend",
                                      subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
@@ -413,6 +424,16 @@ class condorQStats:
         for w in total.keys():
             if total[w]==None:
                 del total[w] # remove entry if not defined
+            else:
+                tel=total[w]
+                for a in tel.keys():
+                    if a[-10:]=='AvgCounter':
+                        # this is an average counter, calc the average of the referred element
+                        # like InfoAge=InfoAge/InfoAgeAvgCounter
+                        aorg=a[:-10]
+                        tel[aorg]=tel[aorg]/tel[a]
+                        # the avgcount totals are just for internal purposes
+                        del tel[a]
 
         return total
     
@@ -454,14 +475,18 @@ class condorQStats:
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</glideFactoryEntryQStats>\n")
         monitoringConfig.write_file("schedd_status.xml",xml_str)
+
+        data=self.get_data()
+        total_el=self.get_total()
+
         # update RRDs
-        for fe in [None]+self.data.keys():
+        for fe in [None]+data.keys():
             if fe==None: # special key == Total
                 fe_dir="total"
-                fe_el=self.get_total()
+                fe_el=total_el
             else:
                 fe_dir="frontend_"+fe
-                fe_el=self.data[fe]
+                fe_el=data[fe]
 
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
@@ -477,17 +502,18 @@ class condorQStats:
     
     def create_support_history(self):
         global monitoringConfig
+        data=self.get_data()
         total_el=self.get_total()
 
         # create human readable files for each entry + total
-        for fe in [None]+self.data.keys():
+        for fe in [None]+data.keys():
             if fe==None: # special key == Total
                 fe="total"
                 fe_dir="total"
                 fe_el=total_el
             else:
                 fe_dir="frontend_"+fe
-                fe_el=self.data[fe]
+                fe_el=data[fe]
 
             # create history XML files for RRDs
             # DEPRECATED FOR NOW
@@ -527,7 +553,7 @@ class condorQStats:
                                         [("InfoAge","%s/ClientMonitor_Attribute_InfoAge.rrd"%fe_dir,"LINE2","000000")])
             
         # create support index files
-        for fe in self.data.keys():
+        for fe in data.keys():
             fe_dir="frontend_"+fe
             for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
@@ -1226,10 +1252,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.105 2008/05/20 15:56:32 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.106 2008/05/20 16:28:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.106  2008/05/20 16:28:31  sfiligoi
+#  Properly calculate the InfoAge totals
+#
 #  Revision 1.105  2008/05/20 15:56:32  sfiligoi
 #  Correct type
 #
