@@ -1041,7 +1041,7 @@ class condorLogSummary:
                             idx=0
                             for t_k in t_keys:
                                 if t=="Lasted":
-                                    t_k_color=time_color[t_k]
+                                    t_k_color=time_colors[t_k]
                                 else:
                                     if t_keys_len>1:
                                         t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
@@ -1399,10 +1399,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.119 2008/05/20 20:44:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.120 2008/05/20 20:46:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.120  2008/05/20 20:46:10  sfiligoi
+#  Fix typo
+#
 #  Revision 1.119  2008/05/20 20:44:50  sfiligoi
 #  Colors
 #
