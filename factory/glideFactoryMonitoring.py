@@ -1075,7 +1075,27 @@ class condorLogSummary:
                         fd.write("<html>\n<head>\n")
                         fd.write("<title>%s over last %s</title>\n"%(client_name,period));
                         fd.write("</head>\n<body>\n")
-                        fd.write("<h1>%s over last %s</h1>\n"%(client_name,period));
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
+
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        
+                        fd.write("</tr><tr>\n")
+                        
                         fd.write('<p>[<a href="0Status.%s.%s.html">Status</a>]</p>\n'%(period,size)) 
                         fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
@@ -1252,10 +1272,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.106 2008/05/20 16:28:31 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.107 2008/05/20 17:06:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.107  2008/05/20 17:06:47  sfiligoi
+#  Add size and time to Log index,too
+#
 #  Revision 1.106  2008/05/20 16:28:31  sfiligoi
 #  Properly calculate the InfoAge totals
 #
