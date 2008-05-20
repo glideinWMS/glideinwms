@@ -1076,8 +1076,12 @@ class condorLogSummary:
                         fd.write("<title>%s over last %s</title>\n"%(client_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
-
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
+                        
+                        fd.write("</tr><tr>\n")
+                        
+                        fd.write('<td>[<a href="../total/0Log.%s.%s.html">Entry total</a>]</td>\n'%(period,size))
+                        
                         link_arr=[]
                         for ref_sz in monitoringConfig.graph_sizes:
                             ref_size=ref_sz[0]
@@ -1272,10 +1276,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.107 2008/05/20 17:06:47 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.108 2008/05/20 17:14:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.108  2008/05/20 17:14:13  sfiligoi
+#  Add size and time to Log index,too
+#
 #  Revision 1.107  2008/05/20 17:06:47  sfiligoi
 #  Add size and time to Log index,too
 #
