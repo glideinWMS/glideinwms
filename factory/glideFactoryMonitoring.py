@@ -770,6 +770,8 @@ class condorLogSummary:
             return 'Unknown'
         if absval<240:
             return 'TooShort'
+        if absval>(180*3600): # limit valid times to 180 hours
+            return 'TooLong'
         # start with 7.5 min, and than exp2
         logval=int(math.log(absval/450.0,2)+0.49)
         level=math.pow(2,logval)*450.0
@@ -777,6 +779,9 @@ class condorLogSummary:
             return "%imins"%(int(level/60+0.49))
         else:
             return "%ihours"%(int(level/3600+0.49))
+
+    def getAllTimeRanges(self):
+        return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
             
     def getMillRange(self,absval):
         if absval<0.5:
@@ -868,6 +873,8 @@ class condorLogSummary:
                 elif s=='Completed':
                     # summarize completed data
                     count_entered_times={}
+                    for enle_timerange in self.getAllTimeRanges():
+                        count_entered_times[enle_timerange]=0
                     count_validation_failed=0
                     count_waste_mill={'validation':{},
                                  'idle':{},
@@ -918,10 +925,7 @@ class condorLogSummary:
 
                         # find and save time range
                         enle_timerange=self.getTimeRange(enle_difftime)                        
-                        try:
-                            count_entered_times[enle_timerange]+=1
-                        except: # easy initialization way
-                            count_entered_times[enle_timerange]=1
+                        count_entered_times[enle_timerange]+=1
 
                         # find and save waste range
                         for w in enle_waste_mill.keys():
@@ -1378,18 +1382,15 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.115 2008/05/20 18:14:40 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.116 2008/05/20 19:01:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.115  2008/05/20 18:14:40  sfiligoi
-#  Fix typo
+#  Revision 1.116  2008/05/20 19:01:41  sfiligoi
+#  Force updates of all the time ranges
 #
 #  Revision 1.114  2008/05/20 18:13:40  sfiligoi
 #  Add TREND graphs
-#
-#  Revision 1.113  2008/05/20 17:45:56  sfiligoi
-#  Fix typo
 #
 #  Revision 1.110  2008/05/20 17:40:52  sfiligoi
 #  Separate the log totals index into separate code
