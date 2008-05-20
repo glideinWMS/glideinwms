@@ -1098,9 +1098,8 @@ class condorLogSummary:
 
                         fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
                         
-                        fd.write("</tr><tr>\n")
+                        fd.write("</table>\n")
                         
-                        fd.write('<p>[<a href="0Status.%s.%s.html">Status</a>]</p>\n'%(period,size)) 
                         fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
@@ -1276,10 +1275,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.108 2008/05/20 17:14:13 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.109 2008/05/20 17:16:09 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.109  2008/05/20 17:16:09  sfiligoi
+#  Fix table
+#
 #  Revision 1.108  2008/05/20 17:14:13  sfiligoi
 #  Add size and time to Log index,too
 #
