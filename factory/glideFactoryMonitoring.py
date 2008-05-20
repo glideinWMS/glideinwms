@@ -984,11 +984,16 @@ class condorLogSummary:
         colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
         #r_colors=('c00000','ff0000','ffc000','ffd090','ffff00','e0e0a0','a0e0e0','00ffff','90b0ff','a0ffa0','00ff00','00c000')
         r_colors=('c00000',
-                  'ff0000','ff2a00','ff5400','ff7f00','ffaa00','ffd400',
+                  'ff0000','ff4000','ff8000','ffc000',
                   'ffff00',
-                  'd4ff00','aaff00','7fff00','54ff00','2aff00','00ff00',
+                  'c0ff00','80ff00','40ff00','00ff00',
                   '00c000')
         r_colors_len=len(r_colors)
+        time_colors=('000000','0c0000', # unknown and too short
+                     'ff0000','ffc000', # 7 and 15 mins
+                     'ffff00',          # 30 mins
+                     'a0ff00','50ff00','00ff00','00ff40','00ff80','00ffc0',
+                     '00ffff','008080')          # 128hours, TooLong
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -1035,10 +1040,13 @@ class condorLogSummary:
                             t_rrds=[]
                             idx=0
                             for t_k in t_keys:
-                                if t_keys_len>1:
-                                  t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
+                                if t=="Lasted":
+                                    t_k_color=time_color[t_k]
                                 else:
-                                  t_k_color=r_colors[r_colors_len/2]
+                                    if t_keys_len>1:
+                                        t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
+                                    else:
+                                        t_k_color=r_colors[r_colors_len/2]
                                 t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
                                 idx+=1
                             monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
@@ -1391,10 +1399,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.118 2008/05/20 20:15:12 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.119 2008/05/20 20:44:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.119  2008/05/20 20:44:50  sfiligoi
+#  Colors
+#
 #  Revision 1.118  2008/05/20 20:15:12  sfiligoi
 #  Colors
 #
