@@ -56,6 +56,7 @@ def aggregateStatus():
 
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
+    nr_entries=0
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
         status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
@@ -69,7 +70,6 @@ def aggregateStatus():
         status['entries'][entry]={'frontends':entry_data['frontends']}
 
         # update total
-        nr_entries=0
         if entry_data.has_key('total'):
             nr_entries+=1
             status['entries'][entry]['total']=entry_data['total']
@@ -271,10 +271,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.11 2008/05/20 16:51:14 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.12 2008/05/20 16:54:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.12  2008/05/20 16:54:04  sfiligoi
+#  Fix typo
+#
 #  Revision 1.11  2008/05/20 16:51:14  sfiligoi
 #  Properly calculate the InfoAge totals
 #
