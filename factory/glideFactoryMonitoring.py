@@ -1058,7 +1058,7 @@ class condorLogSummary:
                                         "Difference in "+s, diff_rrd_files)
 
         # create support index files
-        for client_name in [None]+self.stats_diff.keys():
+        for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
 
             for rp in monitoringConfig.rrd_reports:
@@ -1362,10 +1362,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.111 2008/05/20 17:41:58 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.112 2008/05/20 17:43:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.112  2008/05/20 17:43:43  sfiligoi
+#  Fix typo
+#
 #  Revision 1.111  2008/05/20 17:41:58  sfiligoi
 #  Fix typo
 #
