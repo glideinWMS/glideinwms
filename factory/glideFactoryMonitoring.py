@@ -1251,14 +1251,18 @@ class condorLogSummary:
 ############### P R I V A T E ################
 
 def getUnitVal(u):
-    if u=="TooShort":
+    if u=="Unknown":
         return 0
-    if u=="m":
+    if u=="TooShort":
         return 1
-    if u=="mins":
+    if u=="m":
         return 2
-    if u=="hours":
+    if u=="mins":
         return 3
+    if u=="hours":
+        return 4
+    if u=="TooLong":
+        return 5
     return 100 # just for protection
 
 # compare (nr,unit) pairs
@@ -1382,10 +1386,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.116 2008/05/20 19:01:41 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.117 2008/05/20 20:03:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.117  2008/05/20 20:03:21  sfiligoi
+#  Properly sort Unknwon and TooLong
+#
 #  Revision 1.116  2008/05/20 19:01:41  sfiligoi
 #  Force updates of all the time ranges
 #
