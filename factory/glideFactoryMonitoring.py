@@ -217,7 +217,7 @@ class MonitoringConfig:
 
     def rrd2graph(self,relative_fname,archive_id,freq,
                   period,width,height,
-                  title,relative_rrd_files,trend=none):
+                  title,relative_rrd_files,trend=None):
         """
         Convert one or more RRDs into a graph using
         rrdtool xport.
@@ -258,7 +258,7 @@ class MonitoringConfig:
     # if trend_fraction!=None, the fraction of period to trend over
     # for example, if trend==10, it will be 360s in an hour graph, and 2.4hours in a day graph
     def graph_rrds(self,base_fname,
-                   relative_title,relative_rrd_files,trend_fraction=none):
+                   relative_title,relative_rrd_files,trend_fraction=None):
         """
         Create graphs out of the RRD files
         """
@@ -1378,10 +1378,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.114 2008/05/20 18:13:40 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.115 2008/05/20 18:14:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.115  2008/05/20 18:14:40  sfiligoi
+#  Fix typo
+#
 #  Revision 1.114  2008/05/20 18:13:40  sfiligoi
 #  Add TREND graphs
 #
