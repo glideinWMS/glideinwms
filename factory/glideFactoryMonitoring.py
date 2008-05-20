@@ -790,7 +790,9 @@ class condorLogSummary:
         logval=int(math.log(absval*1.024,2)+0.49)
         level=int(math.pow(2,logval)/1.024)
         return "%im"%level
-            
+
+    def getAllMillRanges(self):
+        return ('0m','1m','3m','7m','15m','31m','62m','125m','250m','500m','1000m')            
 
     def logSummary(self,client_name,stats):
         """
@@ -930,13 +932,11 @@ class condorLogSummary:
                         # find and save waste range
                         for w in enle_waste_mill.keys():
                             count_waste_mill_w=count_waste_mill[w]
+                            for enle_waste_mill_w_range in self.getAllMillRanges():
+                                count_waste_mill_w[enle_waste_mill_w_range]=0
                             # find and save taime range
                             enle_waste_mill_w_range=self.getMillRange(enle_waste_mill[w])
-                            try:
-                                count_waste_mill_w[enle_waste_mill_w_range]+=1
-                            except: # easy initialization way
-                                count_waste_mill_w[enle_waste_mill_w_range]=1
-
+                            count_waste_mill_w[enle_waste_mill_w_range]+=1
 
                     # save run times
                     for timerange in count_entered_times.keys():
@@ -1399,10 +1399,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.124 2008/05/20 21:04:16 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.125 2008/05/20 21:18:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.125  2008/05/20 21:18:27  sfiligoi
+#  Force all mills
+#
 #  Revision 1.124  2008/05/20 21:04:16  sfiligoi
 #  Colors
 #
