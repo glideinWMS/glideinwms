@@ -217,7 +217,7 @@ class MonitoringConfig:
 
     def rrd2graph(self,relative_fname,archive_id,freq,
                   period,width,height,
-                  title,relative_rrd_files):
+                  title,relative_rrd_files,trend=none):
         """
         Convert one or more RRDs into a graph using
         rrdtool xport.
@@ -251,14 +251,16 @@ class MonitoringConfig:
                   self.rrd_step*rrd_archive[2], # step in seconds
                   self.rrd_ds_name,
                   rrd_archive[0], #ds_type
-                  period,width,height,title,rrd_files)
+                  period,width,height,title,rrd_files,trend)
         tmp2final(fname)
         return
 
+    # if trend_fraction!=None, the fraction of period to trend over
+    # for example, if trend==10, it will be 360s in an hour graph, and 2.4hours in a day graph
     def graph_rrds(self,base_fname,
-                   relative_title,relative_rrd_files):
+                   relative_title,relative_rrd_files,trend_fraction=none):
         """
-        Create default XML files out of the RRD files
+        Create graphs out of the RRD files
         """
 
         if len(relative_rrd_files)<1:
@@ -267,11 +269,15 @@ class MonitoringConfig:
         for r in self.rrd_reports:
             pname,period,idx,freq=r
             title=relative_title+" - last "+pname
+            if trend_fraction==None:
+                abs_trend=None
+            else:
+                abs_trend=period/trend_fraction
             for g in self.graph_sizes:
                 gname,width,height=g
                 try:
                     self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,freq,
-                                   period,width,height,title,relative_rrd_files)
+                                   period,width,height,title,relative_rrd_files,abs_trend)
                 except ExeError,e:
                     print "WARNING- graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
                     
@@ -987,6 +993,8 @@ class condorLogSummary:
 
                 monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
                                             "Difference in "+s, rrd_files)
+                monitoringConfig.graph_rrds("%s/Log10_%s_Diff"%(fe_dir,s),
+                                            "Trend Difference in "+s, rrd_files,trend_fraction=10)
 
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
@@ -1026,6 +1034,8 @@ class condorLogSummary:
                                 idx+=1
                             monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                         t,t_rrds)
+                            monitoringConfig.graph_rrds("%s/Log10_Completed_Entered_%s"%(fe_dir,t),
+                                                        "Trend "+t,t_rrds,trend_fraction=10)
 
                                 
 
@@ -1326,10 +1336,12 @@ def update_rrd(rrd_obj,rrdfname,
 #    outstr=iexe_cmd(cmdline)
 #    return
 
+# if != None, use the value to plot the RRD RPM TREND
+# instead of actual value
 def rrd2graph(rrd_obj,fname,
               rrd_step,ds_name,ds_type,
               period,width,height,
-              title,rrd_files):
+              title,rrd_files,trend=None):
     now=long(time.time())
     start=((now-period)/rrd_step)*rrd_step
     end=((now-1)/rrd_step)*rrd_step
@@ -1337,7 +1349,11 @@ def rrd2graph(rrd_obj,fname,
     for rrd_file in rrd_files:
         ds_id=rrd_file[0]
         ds_fname=rrd_file[1]
-        args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
+        if trend==None:
+            args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
+        else:
+            args.append(str("DEF:%s_inst=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
+            args.append(str("CDEF:%s=%s_inst,%i,TREND"%(ds_id,ds_id,trend)))
 
     if rrd_files[0][2]=="STACK":
         # add an invisible baseline to stack upon
@@ -1362,10 +1378,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.113 2008/05/20 17:45:56 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.114 2008/05/20 18:13:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.114  2008/05/20 18:13:40  sfiligoi
+#  Add TREND graphs
+#
 #  Revision 1.113  2008/05/20 17:45:56  sfiligoi
 #  Fix typo
 #
