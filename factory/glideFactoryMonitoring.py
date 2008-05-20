@@ -366,7 +366,7 @@ class condorQStats:
         if client_monitor.has_key('Running'):
             el['Running']=client_monitor['Running']
         if client_internals.has_key('LastHeardFrom'):
-            el['InfoAge']=long(time.time()-long(client_internals['LastHeardFrom']))
+            el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
 
         self.updated=time.time()
 
@@ -1226,10 +1226,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.104 2008/05/20 15:33:45 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.105 2008/05/20 15:56:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.105  2008/05/20 15:56:32  sfiligoi
+#  Correct type
+#
 #  Revision 1.104  2008/05/20 15:33:45  sfiligoi
 #  Comments
 #
