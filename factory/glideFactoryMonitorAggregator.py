@@ -52,6 +52,8 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 def aggregateStatus():
     global monitorAggregatorConfig
 
+    avgEntries=('InfoAge',)
+
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
     for entry in monitorAggregatorConfig.entries:
@@ -81,11 +83,15 @@ def aggregateStatus():
                     tel=global_total[w]
                     for a in el.keys():
                         tel[a]=int(el[a]) #coming from XML, everything is a string
+                        if a in avgEntries:
+                            tel[a+'AvgCounter']=1
                 else:                
                     # successive, sum 
                     for a in el.keys():
                         if tel.has_key(a):
                             tel[a]+=int(el[a])
+                            if a in avgEntries:
+                                tel[a+'AvgCounter']+=1
                             
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
@@ -95,6 +101,16 @@ def aggregateStatus():
     for w in global_total.keys():
         if global_total[w]==None:
             del global_total[w] # remove entry if not defined
+        else:
+            tel=global_total[w]
+            for a in tel.keys():
+                if a[-10:]=='AvgCounter':
+                    # this is an average counter, calc the average of the referred element
+                    # like InfoAge=InfoAge/InfoAgeAvgCounter
+                    aorg=a[:-10]
+                    tel[aorg]=tel[aorg]/tel[a]
+                    # the avgcount totals are just for internal purposes
+                    del tel[a]
 
     # Write xml files
     updated=time.time()
@@ -262,10 +278,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.9 2008/05/12 00:30:55 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.10 2008/05/20 16:40:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.10  2008/05/20 16:40:51  sfiligoi
+#  Properly calculate the InfoAge totals
+#
 #  Revision 1.9  2008/05/12 00:30:55  sfiligoi
 #  Add new attrs to total
 #
