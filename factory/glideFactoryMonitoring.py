@@ -992,8 +992,8 @@ class condorLogSummary:
         time_colors=('000000','0c0000', # unknown and too short
                      'ff0000','ffc000', # 7 and 15 mins
                      'ffff00',          # 30 mins
-                     'c0ff00','80f00','40ff00','00ff00','00ff40','00ff80','00ffc0',
-                     '00ffff','008080')          # 128hours, TooLong
+                     'c0ff00','80f000','40d800','00c000','00c080','00e0d0','00ffff',
+                     '0080f0','0000c0')          # 128hours, TooLong
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
@@ -1399,14 +1399,11 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.123 2008/05/20 20:53:41 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.124 2008/05/20 21:04:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.123  2008/05/20 20:53:41  sfiligoi
-#  Colors
-#
-#  Revision 1.122  2008/05/20 20:50:29  sfiligoi
+#  Revision 1.124  2008/05/20 21:04:16  sfiligoi
 #  Colors
 #
 #  Revision 1.117  2008/05/20 20:03:21  sfiligoi
