@@ -613,10 +613,11 @@ class condorQStats:
                         fd.close()
                         pass
 
-        # create human readable files for total aggregating multiple entries 
+        # get the list of frontends
         frontend_list=monitoringConfig.find_disk_frontends()
         frontend_list.sort()
 
+        # create human readable files for total aggregating multiple entries 
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         attr_rrds=monitoringConfig.find_disk_attributes("total")
         for fname,tp,a in attr_rrds:
@@ -1058,11 +1059,7 @@ class condorLogSummary:
 
         # create support index files
         for client_name in [None]+self.stats_diff.keys():
-            if client_name==None:
-                fe_dir="total"
-                client_name="Entry total"
-            else:
-                fe_dir="frontend_"+client_name
+            fe_dir="frontend_"+client_name
 
             for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
@@ -1098,7 +1095,98 @@ class condorLogSummary:
 
                         fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
                         
-                        fd.write("</table>\n")
+                        fd.write("</tr></table>\n")
+                        
+                        fd.write("<p>\n<table>\n")
+                        for s in self.job_statuses:
+                            if (not (s in ('Completed','Removed'))): # special treatement
+                                fd.write('<tr valign="top">')
+                                for w in ['Count','Diff']:
+                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                fd.write('</tr>\n')                            
+                        fd.write("</table>\n</p>\n")
+                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
+                        for s_arr in (('Diff','Entered_Lasted'),
+                                      ('Entered_Waste_validation','Entered_Waste_idle'),
+                                      ('Entered_Waste_nosuccess','Entered_Waste_badput')):
+                            fd.write('<tr valign="top">')
+                            for s in s_arr:
+                                fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('</tr>\n')
+                        
+                        fd.write('<tr valign="top">')
+                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+
+                        if client_name==None:
+                            # total has also the split graphs
+                            fd.write("<p><hr><p><table>")
+                            for s in self.job_statuses:
+                                if (not (s in ('Completed','Removed'))): # special treatement
+                                    fd.write('<tr valign="top">')
+                                    for w in ['Count','Diff']:
+                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                    if s=='Running':
+                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff',period,size))
+                                    elif s=='Held':
+                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
+                                    fd.write('</tr>\n')                            
+                            fd.write("</table>")
+                            
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+                    pass # for sz
+                pass # for rp
+            pass # for client_name
+
+        # get an ordered list of frontends
+        frontend_list=self.stats_diff.keys()
+        frontend_list.sort()
+
+        # create support index file for total
+        fe_dir="total"
+        client_name="Entry total"
+        for rp in monitoringConfig.rrd_reports:
+                period=rp[0]
+                for sz in monitoringConfig.graph_sizes:
+                    size=sz[0]
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s over last %s</title>\n"%(client_name,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        
+                        fd.write("</tr><tr>\n")
+                        
+                        fd.write('<td>[<a href="../../total/0Log.%s.%s.html">Factory total</a>]</td>\n'%(period,size))
+                        link_arr=[]
+                        for ref_fe in frontend_list:
+                            link_arr.append('<a href="../frontend_%s/0Log.%s.%s.html">%s</a>'%(ref_fe,period,size,ref_fe))
+                        fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write("</tr></table>\n")
                         
                         fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
@@ -1275,10 +1363,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.109 2008/05/20 17:16:09 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.110 2008/05/20 17:40:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.110  2008/05/20 17:40:52  sfiligoi
+#  Separate the log totals index into separate code
+#
 #  Revision 1.109  2008/05/20 17:16:09  sfiligoi
 #  Fix table
 #
