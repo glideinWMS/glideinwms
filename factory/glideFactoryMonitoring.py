@@ -810,12 +810,12 @@ class condorLogSummary:
     def get_stats_total(self):
         total={'Wait':None,'Idle':None,'Running':None,'Held':None}
         for k in total.keys():
-            total[k]=[]
-            tdata=total[k]
-            for client_name in self.stats_diff.keys():
+            tdata=[]
+            for client_name in self.current_stats_data.keys():
                 sdata=self.current_stats_data[client_name]
                 if ((sdata!=None) and (k in sdata.keys())):
                     tdata=tdata+sdata[k]
+            total[k]=tdata
         return total
 
     def get_diff_total(self):
@@ -1402,10 +1402,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.126 2008/05/21 14:40:12 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.127 2008/05/21 17:15:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.127  2008/05/21 17:15:43  sfiligoi
+#  Fix Log total counting
+#
 #  Revision 1.126  2008/05/21 14:40:12  sfiligoi
 #  Display trend graphs for 0Log.html
 #
