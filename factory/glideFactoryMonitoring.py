@@ -911,6 +911,14 @@ class condorLogSummary:
         
         return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill}
 
+    def get_completed_stats_xml_desc(self):
+        return {'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
+                'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
+                                                            'validation':{'el_name':'Fraction'},
+                                                            'badput':{'el_name':'Fraction'},
+                                                            'nosuccess':{'el_name':'Fraction'}}}
+                                   }
+                }
 
     def get_data_summary(self):
         stats_data={}
@@ -946,7 +954,8 @@ class condorLogSummary:
         data=self.get_data_summary()
         return xmlFormat.dict2string(data,
                                      dict_name="frontends",el_name="frontend",
-                                     subtypes_params={"class":{}},
+                                     subtypes_params={"class":{'subclass_params':{'CompletedCounts':self.get_completed_stats_xml_desc()}
+                                                               }},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_stats_total(self):
@@ -1005,13 +1014,7 @@ class condorLogSummary:
         total=self.get_total_summary()
         return xmlFormat.class2string(total,
                                       inst_name="total",
-                                      subclass_params={'CompletedCounts':{'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
-                                                                          'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
-                                                                                                                      'validation':{'el_name':'Fraction'},
-                                                                                                                      'badput':{'el_name':'Fraction'},
-                                                                                                                      'nosuccess':{'el_name':'Fraction'}}}
-                                                                                             }
-                                                                          }},
+                                      subclass_params={'CompletedCounts':self.get_completed_stats_xml_desc()},
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_updated():
@@ -1561,10 +1564,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.142 2008/05/21 22:09:27 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.143 2008/05/21 22:19:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.143  2008/05/21 22:19:10  sfiligoi
+#  Write better log xml
+#
 #  Revision 1.142  2008/05/21 22:09:27  sfiligoi
 #  Write better log xml
 #
