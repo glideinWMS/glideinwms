@@ -836,6 +836,7 @@ class condorLogSummary:
         data=self.get_stats_data_summary()
         return xmlFormat.dict2string(data,
                                      dict_name="frontends",el_name="frontend",
+                                     subtypes_params={"class":{}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_stats_total(self):
@@ -1481,10 +1482,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.132 2008/05/21 20:00:24 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.133 2008/05/21 20:08:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.133  2008/05/21 20:08:22  sfiligoi
+#  Fixed xml formatting
+#
 #  Revision 1.132  2008/05/21 20:00:24  sfiligoi
 #  Fixed typo
 #
