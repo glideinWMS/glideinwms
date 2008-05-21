@@ -3,6 +3,7 @@ vnext	Added support for BDII.
         Added tools/wmsTxtList.py and tools/glidein_interactive.py.
         All commands now are executable.
         Add client and Condor-G monitoring in factory data.
+        Greatly improved log stats monitoring.
 
 v1_2	More fine grained configuration of glideins
         Factory reads now force integrity checks
