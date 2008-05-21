@@ -936,8 +936,7 @@ class condorLogSummary:
                     out_el['Exited'][s]=exited
                 elif s=='Completed':
                     completed_counts=self.get_completed_stats(entered_list)
-                    for k in completed_counts.keys():
-                        out_el[k]=completed_counts[k]
+                    out_el['CompletedCounts']=completed_counts
             stats_data[client_name]=out_el
         return stats_data
 
@@ -996,8 +995,7 @@ class condorLogSummary:
                 out_total['Exited'][k]=len(diff_total[k]['Exited'])
             elif k=='Completed':
                 completed_counts=self.get_completed_stats(diff_total[k]['Entered'])
-                for i in completed_counts.keys():
-                    out_total[i]=completed_counts[i]
+                out_total['CompletedCounts']=completed_counts
 
         return out_total
 
@@ -1005,6 +1003,8 @@ class condorLogSummary:
         total=self.get_total_summary()
         return xmlFormat.class2string(total,
                                       inst_name="total",
+                                      subclass_params={'CompletedCounts':{'dicts_params':{'Lasted':{'el_name':'TimeRange'},
+                                                                                          'Waste':{'el_name':'Fraction'}}}}
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_updated():
@@ -1554,10 +1554,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.136 2008/05/21 21:00:42 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.137 2008/05/21 21:45:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.137  2008/05/21 21:45:52  sfiligoi
+#  Write better log xml
+#
 #  Revision 1.136  2008/05/21 21:00:42  sfiligoi
 #  Write better log xml
 #
