@@ -1005,8 +1005,13 @@ class condorLogSummary:
         total=self.get_total_summary()
         return xmlFormat.class2string(total,
                                       inst_name="total",
-                                      subclass_params={'CompletedCounts':{'dicts_params':{'Lasted':{'el_name':'TimeRange'},
-                                                                                          'Waste':{'el_name':'Fraction'}}}},
+                                      subclass_params={'CompletedCounts':{'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
+                                                                          'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
+                                                                                                                      'validation':{'el_name':'Fraction'},
+                                                                                                                      'badput':{'el_name':'Fraction'},
+                                                                                                                      'nosuccess':{'el_name':'Fraction'}}}
+                                                                                             }
+                                                                          }},
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_updated():
@@ -1556,10 +1561,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.141 2008/05/21 22:02:45 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.142 2008/05/21 22:09:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.142  2008/05/21 22:09:27  sfiligoi
+#  Write better log xml
+#
 #  Revision 1.141  2008/05/21 22:02:45  sfiligoi
 #  Fix typo
 #
