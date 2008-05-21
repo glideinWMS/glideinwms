@@ -844,20 +844,23 @@ class condorLogSummary:
         for client_name in self.stats_diff.keys():
             stats_el=self.current_stats_data[client_name]
             diff_el=self.stats_diff[client_name]
-            out_el={}
+            out_el={'Current':{},'Entered':{},'Exited':{}}
             for s in self.job_statuses:
+                if ((diff_el!=None) and (s in sdiff.keys())):
+                    entered=len(diff_el[s]['Entered'])
+                    exited=-len(diff_el[s]['Exited'])
+                else:
+                    entered=0
+                    exited=0
+                out_el['Entered'][s]=entered
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     if ((stats_el!=None) and (s in stats_el.keys())):
                         count=len(stats_el[s])
                     else:
                         count=0
-                    if ((diff_el!=None) and (s in sdiff.keys())):
-                        entered=len(diff_el[s]['Entered'])
-                        exited=-len(diff_el[s]['Exited'])
-                    else:
-                        entered=0
-                        exited=0
-                    out_el[s]={'Current':count,'Entered':entered,'Exited':exited}
+                    out_el['Current'][s]=count
+                    # and we can never get out of the terminal state
+                    out_el['Exited'][s]=exited
             stats_data[client_name]=out_el
         return stats_data
 
@@ -907,9 +910,14 @@ class condorLogSummary:
     def get_total_summary(self):
         stats_total=self.get_stats_total()
         diff_total=self.get_diff_total()
-        out_total={}
-        for k in stats_total.keys():
-            out_total[k]={'Current':len(stats_total[k]),'Entered':len(diff_total[k]['Entered']),'Exited':len(diff_total[k]['Exited'])}
+        out_total={'Current':{},'Entered':{},'Exited':{}}
+        for k in diff_total.keys():
+            out_total['Entered'][k]=len(diff_total[k]['Entered'])
+            if stats_total.has_key(k):
+                out_total['Current'][k]=len(stats_total[k])
+                # if no current, also exited does not have sense (terminal state)
+                out_total['Exited'][k]=len(diff_total[k]['Exited'])
+
         return out_total
 
     def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -1525,10 +1533,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.134 2008/05/21 20:31:13 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.135 2008/05/21 20:41:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.135  2008/05/21 20:41:12  sfiligoi
+#  Write better log xml
+#
 #  Revision 1.134  2008/05/21 20:31:13  sfiligoi
 #  Write better log xml
 #
