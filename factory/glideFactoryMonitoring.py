@@ -1085,9 +1085,11 @@ class condorLogSummary:
 
             if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                 idx=0
+                area_or_stack='AREA' # first must be area for exited
                 for fe in frontend_list:
                     fe_dir="frontend_"+fe
-                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),"STACK",out_colors[idx%len(out_colors)]])
+                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
+                    area_or_stack='STACK'
                     count_rrd_files.append([string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
@@ -1096,7 +1098,7 @@ class condorLogSummary:
             monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
                                         "Difference in "+s, diff_rrd_files)
             monitoringConfig.graph_rrds("total/Split_Log10_%s_Diff"%s,
-                                        "Difference in "+s, diff_rrd_files,trend_fraction=10)
+                                        "Trend Difference in "+s, diff_rrd_files,trend_fraction=10)
 
         # create support index files
         for client_name in self.stats_diff.keys():
@@ -1422,10 +1424,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.129 2008/05/21 18:16:22 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.130 2008/05/21 18:54:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.130  2008/05/21 18:54:48  sfiligoi
+#  Fix stacking
+#
 #  Revision 1.129  2008/05/21 18:16:22  sfiligoi
 #  Fix typo
 #
