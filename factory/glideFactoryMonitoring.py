@@ -851,7 +851,7 @@ class condorLogSummary:
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
                           'badput':{}} #i.e. everything but jobs terminating
-        for w in enle_waste_mill.keys():
+        for w in count_waste_mill.keys():
             count_waste_mill_w=count_waste_mill[w]
             for enle_waste_mill_w_range in self.getAllMillRanges():
                 count_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
@@ -1556,10 +1556,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.140 2008/05/21 21:59:33 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.141 2008/05/21 22:02:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.141  2008/05/21 22:02:45  sfiligoi
+#  Fix typo
+#
 #  Revision 1.140  2008/05/21 21:59:33  sfiligoi
 #  Fix enle_waste_mill initialization
 #
