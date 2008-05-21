@@ -1128,22 +1128,25 @@ class condorLogSummary:
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
-                                for w in ['Count','Diff']:
-                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('</tr>\n')                            
+                        fd.write('<tr valign="top">')
+                        fd.write('<td></td>')
+                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s_arr in (('Diff','Entered_Lasted'),
-                                      ('Entered_Waste_validation','Entered_Waste_idle'),
-                                      ('Entered_Waste_nosuccess','Entered_Waste_badput')):
+                        for s in ('Diff','Entered_Lasted',
+                                  'Entered_Waste_validation','Entered_Waste_idle',
+                                  'Entered_Waste_nosuccess','Entered_Waste_badput',):
                             fd.write('<tr valign="top">')
-                            for s in s_arr:
-                                fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         
-                        fd.write('<tr valign="top">')
-                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
 
                         if client_name==None:
@@ -1399,10 +1402,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.125 2008/05/20 21:18:27 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.126 2008/05/21 14:40:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.126  2008/05/21 14:40:12  sfiligoi
+#  Display trend graphs for 0Log.html
+#
 #  Revision 1.125  2008/05/20 21:18:27  sfiligoi
 #  Force all mills
 #
