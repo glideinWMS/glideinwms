@@ -917,7 +917,7 @@ class condorLogSummary:
             diff_el=self.stats_diff[client_name]
             out_el={'Current':{},'Entered':{},'Exited':{}}
             for s in self.job_statuses:
-                if ((diff_el!=None) and (s in sdiff.keys())):
+                if ((diff_el!=None) and (s in diff_el.keys())):
                     entered_list=diff_el[s]['Entered']
                     entered=len(entered_list)
                     exited=-len(diff_el[s]['Exited'])
@@ -1554,10 +1554,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.137 2008/05/21 21:45:52 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.138 2008/05/21 21:48:54 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.138  2008/05/21 21:48:54  sfiligoi
+#  Fix typo
+#
 #  Revision 1.137  2008/05/21 21:45:52  sfiligoi
 #  Write better log xml
 #
