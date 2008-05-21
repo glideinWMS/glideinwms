@@ -726,7 +726,7 @@ class condorQStats:
 
 class condorLogSummary:
     def __init__(self):
-        self.data={}
+        self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
         self.current_stats_data={}     # will contain dictionary client->dirSummary.data
@@ -817,6 +817,27 @@ class condorLogSummary:
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
 
+    def get_stats_data_summary(self):
+        stats_data={}
+        for client_name in self.current_stats_data.keys():
+            client_el=self.current_stats_data[client_name]
+            out_el={}
+            for s in self.job_statuses:
+                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+                    if ((client_el!=None) and (s in client_el.keys())):
+                        count=len(client_el[s])
+                    else:
+                        count=0
+                    out_el[s]=count
+            stats_data[client_el]=out_el
+        return stats_data
+
+    def get_xml_stats_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        data=self.get_stats_data_summary()
+        return xmlFormat.dict2string(data,
+                                     dict_name="frontends",el_name="frontend",
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
+
     def get_stats_total(self):
         total={'Wait':None,'Idle':None,'Running':None,'Held':None}
         for k in total.keys():
@@ -827,6 +848,19 @@ class condorLogSummary:
                     tdata=tdata+sdata[k]
             total[k]=tdata
         return total
+
+    def get_stats_total_summary(self):
+        in_total=self.get_stats_total()
+        out_total={}
+        for k in in_total.keys():
+            out_total[k]=len(in_total[k])
+        return out_total
+
+    def get_xml_stats_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        total=self.get_stats_total_summary()
+        return xmlFormat.class2string(total,
+                                      inst_name="total",
+                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_diff_total(self):
         total={'Wait':None,'Idle':None,'Running':None,'Held':None,'Completed':None,'Removed':None}
@@ -840,31 +874,54 @@ class condorLogSummary:
                         tdata[e]=tdata[e]+sdiff[k][e]
         return total
 
+    def get_updated():
+        return self.updated
+
+    def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
+                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
+                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
+                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
+                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
+                              "human":timeConversion.getHuman(self.updated)}}
+        return xmlFormat.dict2string(xml_updated,
+                                     dict_name="updated",el_name="timezone",
+                                     subtypes_params={"class":{}},
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
+
     def write_file(self):
         global monitoringConfig
 
         if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
             return 
-        
+
+        # write snaphot file
+        xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
+                 '<glideFactoryEntryLogStats>\n'+
+                 self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_stats_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_stats_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 "</glideFactoryEntryLogStats>\n")
+        monitoringConfig.write_file("log_stats.xml",xml_str)
+
+        # update rrds
+        stats_data_summary=self.get_stats_data_summary()
+        stats_total_summary=self.get_stats_total_summary()
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
-                sdata=self.get_stats_total()
+                sdata=stats_total_summary
                 sdiff=self.get_diff_total()
             else:
                 fe_dir="frontend_"+client_name
-                sdata=self.current_stats_data[client_name]
+                sdata=stats_data_summary[client_name]
                 sdiff=self.stats_diff[client_name]
 
             monitoringConfig.establish_dir(fe_dir)
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-                    if ((sdata!=None) and (s in sdata.keys())):
-                        count=len(sdata[s])
-                    else:
-                        count=0
-                    
+                    count=sdata[s]
                     monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
                                                "GAUGE",self.updated,count)
 
@@ -1424,10 +1481,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.130 2008/05/21 18:54:48 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.131 2008/05/21 19:52:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.131  2008/05/21 19:52:13  sfiligoi
+#  Write log xml
+#
 #  Revision 1.130  2008/05/21 18:54:48  sfiligoi
 #  Fix stacking
 #
