@@ -1041,12 +1041,12 @@ class condorLogSummary:
 
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
-                 '<glideFactoryEntryLogStats>\n'+
+                 '<glideFactoryEntryLogSummary>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 "</glideFactoryEntryLogStats>\n")
-        monitoringConfig.write_file("log_stats.xml",xml_str)
+                 "</glideFactoryEntryLogSummary>\n")
+        monitoringConfig.write_file("log_summary.xml",xml_str)
 
         # update rrds
         stats_data_summary=self.get_stats_data_summary()
@@ -1564,38 +1564,14 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.143 2008/05/21 22:19:10 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.144 2008/05/21 22:22:29 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.144  2008/05/21 22:22:29  sfiligoi
+#  Rename log xml to logsummary.xml
+#
 #  Revision 1.143  2008/05/21 22:19:10  sfiligoi
-#  Write better log xml
-#
-#  Revision 1.142  2008/05/21 22:09:27  sfiligoi
-#  Write better log xml
-#
-#  Revision 1.141  2008/05/21 22:02:45  sfiligoi
-#  Fix typo
-#
-#  Revision 1.140  2008/05/21 21:59:33  sfiligoi
-#  Fix enle_waste_mill initialization
-#
-#  Revision 1.139  2008/05/21 21:51:12  sfiligoi
-#  Fix typo
-#
-#  Revision 1.138  2008/05/21 21:48:54  sfiligoi
-#  Fix typo
-#
-#  Revision 1.137  2008/05/21 21:45:52  sfiligoi
-#  Write better log xml
-#
-#  Revision 1.136  2008/05/21 21:00:42  sfiligoi
-#  Write better log xml
-#
-#  Revision 1.135  2008/05/21 20:41:12  sfiligoi
-#  Write better log xml
-#
-#  Revision 1.134  2008/05/21 20:31:13  sfiligoi
 #  Write better log xml
 #
 #  Revision 1.130  2008/05/21 18:54:48  sfiligoi
