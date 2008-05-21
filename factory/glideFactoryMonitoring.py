@@ -286,11 +286,13 @@ class MonitoringConfig:
 # global configuration of the module
 monitoringConfig=MonitoringConfig()
 
-############################################################
+#########################################################################################################################################
 #
-# Status 
+#  condorQStats
 #
-############################################################
+#  This class handles the data obtained from condor_q
+#
+#########################################################################################################################################
 
 class condorQStats:
     def __init__(self):
@@ -713,7 +715,15 @@ class condorQStats:
                     pass
 
         return
-    
+
+#########################################################################################################################################
+#
+#  condorLogSummary
+#
+#  This class handles the data obtained from parsing the glidein log files
+#
+#########################################################################################################################################
+
 class condorLogSummary:
     def __init__(self):
         self.data={}
@@ -1061,6 +1071,8 @@ class condorLogSummary:
         frontend_list.sort()
 
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
+        in_colors=['00ff00','00ffff','00c000','0000c0','00ffc0','0000ff'] # other options 00c0c0,00c0ff
+        out_colors=['ff0000','ffff00','c00000','ff00ff','ffc000','ffc0c0'] # opther option c000c0
         for s in self.job_statuses:
             diff_rrd_files=[]
             count_rrd_files=[]
@@ -1068,14 +1080,14 @@ class condorLogSummary:
             idx=0
             for fe in frontend_list:
                 fe_dir="frontend_"+fe
-                diff_rrd_files.append(['Entered_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
+                diff_rrd_files.append(['Entered_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
                 idx=idx+1
 
             if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                 idx=0
                 for fe in frontend_list:
                     fe_dir="frontend_"+fe
-                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),"STACK",string.replace(colors[idx%len(colors)],'f','c')])
+                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),"STACK",out_colors[idx%len(out_colors)]])
                     count_rrd_files.append([string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
@@ -1083,6 +1095,8 @@ class condorLogSummary:
             
             monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
                                         "Difference in "+s, diff_rrd_files)
+            monitoringConfig.graph_rrds("total/Split_Log10_%s_Diff"%s,
+                                        "Difference in "+s, diff_rrd_files,trend_fraction=10)
 
         # create support index files
         for client_name in self.stats_diff.keys():
@@ -1129,8 +1143,13 @@ class condorLogSummary:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
                                 fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<tr valign="top">')
+                                fd.write('</tr>\n')                            
                                 fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
                         fd.write('<td></td>')
@@ -1402,10 +1421,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.127 2008/05/21 17:15:43 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.128 2008/05/21 18:12:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.128  2008/05/21 18:12:52  sfiligoi
+#  Add split graphs to total logs
+#
 #  Revision 1.127  2008/05/21 17:15:43  sfiligoi
 #  Fix Log total counting
 #
