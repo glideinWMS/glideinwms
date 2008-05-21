@@ -844,13 +844,17 @@ class condorLogSummary:
     def get_completed_stats(self,entered_list):
         # summarize completed data
         count_entered_times={}
-        for enle_timerange in self.getAllTimeRanges():
-            count_entered_times[enle_timerange]=0
+        for enle_timerange in self.getAllTimeRanges(): 
+            count_entered_times[enle_timerange]=0 # make sure all are initialized
         count_validation_failed=0
         count_waste_mill={'validation':{},
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
                           'badput':{}} #i.e. everything but jobs terminating
+        for w in enle_waste_mill.keys():
+            count_waste_mill_w=count_waste_mill[w]
+            for enle_waste_mill_w_range in self.getAllMillRanges():
+                count_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
         # should also add abs waste
 
         for enle in entered_list:
@@ -901,8 +905,6 @@ class condorLogSummary:
                 # find and save waste range
                 for w in enle_waste_mill.keys():
                     count_waste_mill_w=count_waste_mill[w]
-                    for enle_waste_mill_w_range in self.getAllMillRanges():
-                        count_waste_mill_w[enle_waste_mill_w_range]=0
                     # find and save taime range
                     enle_waste_mill_w_range=self.getMillRange(enle_waste_mill[w])
                     count_waste_mill_w[enle_waste_mill_w_range]+=1
@@ -1554,10 +1556,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.139 2008/05/21 21:51:12 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.140 2008/05/21 21:59:33 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.140  2008/05/21 21:59:33  sfiligoi
+#  Fix enle_waste_mill initialization
+#
 #  Revision 1.139  2008/05/21 21:51:12  sfiligoi
 #  Fix typo
 #
