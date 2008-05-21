@@ -839,6 +839,35 @@ class condorLogSummary:
                                      subtypes_params={"class":{}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
+    def get_data_summary(self):
+        stats_data={}
+        for client_name in self.stats_diff.keys():
+            stats_el=self.current_stats_data[client_name]
+            diff_el=self.stats_diff[client_name]
+            out_el={}
+            for s in self.job_statuses:
+                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+                    if ((stats_el!=None) and (s in stats_el.keys())):
+                        count=len(stats_el[s])
+                    else:
+                        count=0
+                    if ((diff_el!=None) and (s in sdiff.keys())):
+                        entered=len(diff_el[s]['Entered'])
+                        exited=-len(diff_el[s]['Exited'])
+                    else:
+                        entered=0
+                        exited=0
+                    out_el[s]={'Current':count,'Entered':entered,'Exited':exited}
+            stats_data[client_name]=out_el
+        return stats_data
+
+    def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        data=self.get_data_summary()
+        return xmlFormat.dict2string(data,
+                                     dict_name="frontends",el_name="frontend",
+                                     subtypes_params={"class":{}},
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
+
     def get_stats_total(self):
         total={'Wait':None,'Idle':None,'Running':None,'Held':None}
         for k in total.keys():
@@ -875,6 +904,20 @@ class condorLogSummary:
                         tdata[e]=tdata[e]+sdiff[k][e]
         return total
 
+    def get_total_summary(self):
+        stats_total=self.get_stats_total()
+        diff_total=self.get_diff_total()
+        out_total={}
+        for k in stats_total.keys():
+            out_total[k]={'Current':len(stats_total[k]),'Entered':len(diff_total[k]['Entered']),'Exited':len(diff_total[k]['Exited'])}
+        return out_total
+
+    def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        total=self.get_total_summary()
+        return xmlFormat.class2string(total,
+                                      inst_name="total",
+                                      indent_tab=indent_tab,leading_tab=leading_tab)
+
     def get_updated():
         return self.updated
 
@@ -901,8 +944,8 @@ class condorLogSummary:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<glideFactoryEntryLogStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 self.get_xml_stats_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 self.get_xml_stats_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</glideFactoryEntryLogStats>\n")
         monitoringConfig.write_file("log_stats.xml",xml_str)
 
@@ -1482,24 +1525,15 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.133 2008/05/21 20:08:22 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.134 2008/05/21 20:31:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.133  2008/05/21 20:08:22  sfiligoi
-#  Fixed xml formatting
-#
-#  Revision 1.132  2008/05/21 20:00:24  sfiligoi
-#  Fixed typo
-#
-#  Revision 1.131  2008/05/21 19:52:13  sfiligoi
-#  Write log xml
+#  Revision 1.134  2008/05/21 20:31:13  sfiligoi
+#  Write better log xml
 #
 #  Revision 1.130  2008/05/21 18:54:48  sfiligoi
 #  Fix stacking
-#
-#  Revision 1.129  2008/05/21 18:16:22  sfiligoi
-#  Fix typo
 #
 #  Revision 1.128  2008/05/21 18:12:52  sfiligoi
 #  Add split graphs to total logs
