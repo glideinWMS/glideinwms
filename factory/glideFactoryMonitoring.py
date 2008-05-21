@@ -829,7 +829,7 @@ class condorLogSummary:
                     else:
                         count=0
                     out_el[s]=count
-            stats_data[client_el]=out_el
+            stats_data[client_name]=out_el
         return stats_data
 
     def get_xml_stats_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -1481,10 +1481,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.131 2008/05/21 19:52:13 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.132 2008/05/21 20:00:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.132  2008/05/21 20:00:24  sfiligoi
+#  Fixed typo
+#
 #  Revision 1.131  2008/05/21 19:52:13  sfiligoi
 #  Write log xml
 #
