@@ -1143,13 +1143,8 @@ class condorLogSummary:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
                                 fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<tr valign="top">')
-                                fd.write('</tr>\n')                            
                                 fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
                         fd.write('<td></td>')
@@ -1241,8 +1236,14 @@ class condorLogSummary:
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
-                                for w in ['Count','Diff']:
-                                    fd.write('<td><img src="Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<tr valign="top">')
+                                fd.write('</tr>\n')                            
+                                fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('</tr>\n')                            
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
@@ -1421,10 +1422,13 @@ def rrd2graph(rrd_obj,fname,
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.128 2008/05/21 18:12:52 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.129 2008/05/21 18:16:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.129  2008/05/21 18:16:22  sfiligoi
+#  Fix typo
+#
 #  Revision 1.128  2008/05/21 18:12:52  sfiligoi
 #  Add split graphs to total logs
 #
