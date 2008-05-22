@@ -217,7 +217,7 @@ class MonitoringConfig:
 
     def rrd2graph(self,relative_fname,archive_id,freq,
                   period,width,height,
-                  title,relative_rrd_files,trend=None):
+                  title,relative_rrd_files,cdef_arr=None,trend=None):
         """
         Convert one or more RRDs into a graph using
         rrdtool xport.
@@ -251,14 +251,14 @@ class MonitoringConfig:
                   self.rrd_step*rrd_archive[2], # step in seconds
                   self.rrd_ds_name,
                   rrd_archive[0], #ds_type
-                  period,width,height,title,rrd_files,trend)
+                  period,width,height,title,rrd_files,cdef_arr,trend)
         tmp2final(fname)
         return
 
     # if trend_fraction!=None, the fraction of period to trend over
     # for example, if trend==10, it will be 360s in an hour graph, and 2.4hours in a day graph
     def graph_rrds(self,base_fname,
-                   relative_title,relative_rrd_files,trend_fraction=None):
+                   relative_title,relative_rrd_files,cdef_arr=None,trend_fraction=None):
         """
         Create graphs out of the RRD files
         """
@@ -277,7 +277,7 @@ class MonitoringConfig:
                 gname,width,height=g
                 try:
                     self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,freq,
-                                   period,width,height,title,relative_rrd_files,abs_trend)
+                                   period,width,height,title,relative_rrd_files,cdef_arr,abs_trend)
                 except ExeError,e:
                     print "WARNING- graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
                     
@@ -635,7 +635,7 @@ class condorQStats:
                 area_name="STACK"
                 if idx==0:
                     area_name="AREA"
-                rrd_fnames.append((string.replace(string.replace(fe,".","_"),"@","_"),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
+                rrd_fnames.append((cleanup_rrd_name(fe),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
                 idx=idx+1
 
             if tp=="Status":
@@ -792,6 +792,8 @@ class condorLogSummary:
 
     def getAllTimeRanges(self):
         return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
+    def getAllTimeRangeGroups(self):
+        return {'Unknown':('Unknown',),'TooShort':('TooShort','7mins'),'lt1h':('15mins','30mins'),'1hours-20hours':('1hours','2hours','4hours','8hours','16hours'),'21hours-100hours':('32hours','64hours'),'TooLong':('128hours','TooLong')}
             
     def getMillRange(self,absval):
         if absval<0.5:
@@ -803,6 +805,9 @@ class condorLogSummary:
 
     def getAllMillRanges(self):
         return ('0m','1m','3m','7m','15m','31m','62m','125m','250m','500m','1000m')            
+
+    def getAllMillRangeGroups(self):
+        return {'lt100m':('0m','1m','3m','7m','15m','31m','62m'),'100m-400m':('125m','250m'),'ge400m':('500m','1000m')}            
 
     def logSummary(self,client_name,stats):
         """
@@ -1210,6 +1215,8 @@ class condorLogSummary:
         frontend_list=monitoringConfig.find_disk_frontends()
         frontend_list.sort()
 
+        mill_range_groups=self.AllMillRangeGroups()
+        
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         in_colors=['00ff00','00ffff','00c000','0000c0','00ffc0','0000ff'] # other options 00c0c0,00c0ff
         out_colors=['ff0000','ffff00','c00000','ff00ff','ffc000','ffc0c0'] # opther option c000c0
@@ -1220,7 +1227,7 @@ class condorLogSummary:
             idx=0
             for fe in frontend_list:
                 fe_dir="frontend_"+fe
-                diff_rrd_files.append(['Entered_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
+                diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
                 idx=idx+1
 
             if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
@@ -1228,17 +1235,41 @@ class condorLogSummary:
                 area_or_stack='AREA' # first must be area for exited
                 for fe in frontend_list:
                     fe_dir="frontend_"+fe
-                    diff_rrd_files.append(['Exited_%s'%string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
+                    diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
                     area_or_stack='STACK'
-                    count_rrd_files.append([string.replace(string.replace(fe,".","_"),"@","_"),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
+                    count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
                                             s,count_rrd_files)
-            
+           
             monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
                                         "Difference in "+s, diff_rrd_files)
             monitoringConfig.graph_rrds("total/Split_Log10_%s_Diff"%s,
                                         "Trend Difference in "+s, diff_rrd_files,trend_fraction=10)
+
+        # create the completed split graphs
+        #for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+        #    pass
+        for range_group in mill_range_groups.keys():
+            range_list=mill_range_groups[range_group]
+            for t in ("Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+                diff_rrd_files=[]
+                cdef_arr=[]
+                idx=0
+                for fe in frontend_list:
+                    fe_dir="frontend_"+fe
+                    cdef_formula="0"
+                    for range_val in range_list:
+                        ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
+                        diff_rrd_files.append([ds_id,"%s/Log_Completed_Entered_%s_%s.rrd"%(fe_dir,t,range_val),"STACK","000000"]) # colors not used
+                        cdef_formula=cdef_formula+(",%s,+"%ds_id)
+                    cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
+                    idx+=1
+                monitoringConfig.graph_rrds("total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
+                                            "%s %s "%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
+                monitoringConfig.graph_rrds("total/Split_Log10_Completed_Entered_%s_%s"%(t,range_group),
+                                            "Trend %s %s "%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=10)
+
 
         # create support index files
         for client_name in self.stats_diff.keys():
@@ -1387,19 +1418,35 @@ class condorLogSummary:
                                 fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
                                 fd.write('</tr>\n')                            
-                        fd.write("</table>\n</p>\n")
-                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s_arr in (('Diff','Entered_Lasted'),
-                                      ('Entered_Waste_validation','Entered_Waste_idle'),
-                                      ('Entered_Waste_nosuccess','Entered_Waste_badput')):
-                            fd.write('<tr valign="top">')
-                            for s in s_arr:
-                                fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('</tr>\n')
-                        
                         fd.write('<tr valign="top">')
                         fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
                         fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
+                        for s in ('Diff','Entered_Lasted',
+                                  'Entered_Waste_validation','Entered_Waste_idle',
+                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                            fd.write('<tr valign="top">')
+                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+                        
+                        fd.write("<p>\n<h2>Terminated glideins by frontend</h2>\n<table>\n")
+                        #for r in []:
+                        #    for s in ('Entered_Lasted',):
+                        #        fd.write('<tr valign="top">')
+                        #        fd.write('<td><img src="Split_Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                        #        fd.write('<td><img src="Split_Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                        #        fd.write('</tr>\n')
+                        for r in mill_range_groups.keys():
+                            for s in ('Entered_Waste_validation','Entered_Waste_idle',
+                                      'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                                fd.write('<tr valign="top">')
+                                fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('</tr>\n')
+                        
                         fd.write("</table>\n</p>\n")
 
                         if client_name==None:
@@ -1527,7 +1574,7 @@ def update_rrd(rrd_obj,rrdfname,
 def rrd2graph(rrd_obj,fname,
               rrd_step,ds_name,ds_type,
               period,width,height,
-              title,rrd_files,trend=None):
+              title,rrd_files,cdef_arr=None,trend=None):
     now=long(time.time())
     start=((now-period)/rrd_step)*rrd_step
     end=((now-1)/rrd_step)*rrd_step
@@ -1541,15 +1588,27 @@ def rrd2graph(rrd_obj,fname,
             args.append(str("DEF:%s_inst=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
             args.append(str("CDEF:%s=%s_inst,%i,TREND"%(ds_id,ds_id,trend)))
 
-    if rrd_files[0][2]=="STACK":
+    plot_arr=rrd_files
+    if cdef_arr!=None:
+        plot_arr=cdef_arr # plot the cdefs not the files themselves, when we have them
+        for cdef_el in cdef_arr:
+            ds_id=cdef_el[0]
+            cdef_formula=cdef_el[1]
+            ds_graph_type=rrd_file[2]
+            ds_color=rrd_file[3]
+            args.append(str("CDEF:%s=%s"%(ds_id,cdef_formula)))
+
+
+    if plot_arr[0][2]=="STACK":
         # add an invisible baseline to stack upon
         args.append("AREA:0")
-        
-    for rrd_file in rrd_files:
-        ds_id=rrd_file[0]
-        ds_graph_type=rrd_file[2]
-        ds_color=rrd_file[3]
+
+    for plot_el in plot_arr:
+        ds_id=plot_el[0]
+        ds_graph_type=plot_el[2]
+        ds_color=plot_el[3]
         args.append("%s:%s#%s:%s"%(ds_graph_type,ds_id,ds_color,ds_id))
+            
 
     args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
 
@@ -1559,15 +1618,20 @@ def rrd2graph(rrd_obj,fname,
       print "Failed graph: %s"%str(args)
     return
 
+def cleanup_rrd_name(s):
+    return string.replace(string.replace(s,".","_"),"@","_")
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.144 2008/05/21 22:22:29 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.145 2008/05/22 16:14:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.145  2008/05/22 16:14:28  sfiligoi
+#  Write better log xml
+#
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
 #  Rename log xml to logsummary.xml
 #
