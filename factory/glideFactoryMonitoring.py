@@ -1513,9 +1513,9 @@ def cmpPairs(e1,e2):
     return cmp(n1,n2)
 
 def getMilGroupsVal(u):
-    if u[:2]=="lt":
+    if u[0]=="l":
         return 0
-    if u[:2]=="gt":
+    if u[0]=="g":
         return 1000
     return int(u[0])
 
@@ -1633,7 +1633,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.147 2008/05/22 16:47:25 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.148 2008/05/22 16:55:24 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
