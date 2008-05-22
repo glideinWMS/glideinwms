@@ -1216,6 +1216,8 @@ class condorLogSummary:
         frontend_list.sort()
 
         mill_range_groups=self.getAllMillRangeGroups()
+        mill_range_groups_keys=mill_range_groups.keys()
+        mill_range_groups_keys.sort(lambda e1,e2:cmp(getMilGroupsVal(e1),getMilGroupsVal(e2)))
         
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         in_colors=['00ff00','00ffff','00c000','0000c0','00ffc0','0000ff'] # other options 00c0c0,00c0ff
@@ -1250,7 +1252,7 @@ class condorLogSummary:
         # create the completed split graphs
         #for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
         #    pass
-        for range_group in mill_range_groups.keys():
+        for range_group in mill_range_groups_keys:
             range_list=mill_range_groups[range_group]
             for t in ("Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
                 diff_rrd_files=[]
@@ -1432,22 +1434,22 @@ class condorLogSummary:
                             fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         
-                        fd.write("<p>\n<h2>Terminated glideins by frontend</h2>\n<table>\n")
+                        fd.write("<p>\n<h2>Terminated glideins by frontend</h2>\n")
                         #for r in []:
                         #    for s in ('Entered_Lasted',):
                         #        fd.write('<tr valign="top">')
                         #        fd.write('<td><img src="Split_Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
                         #        fd.write('<td><img src="Split_Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
                         #        fd.write('</tr>\n')
-                        for r in mill_range_groups.keys():
-                            for s in ('Entered_Waste_validation','Entered_Waste_idle',
-                                      'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                        for s in ('Entered_Waste_validation','Entered_Waste_idle',
+                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                            fd.write("<p><table>\n")
+                            for r in mill_range_groups_keys:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('</tr>\n')
-                        
-                        fd.write("</table>\n</p>\n")
+                                fd.write('</tr>\n')                        
+                            fd.write("</table>\n</p>\n")
 
                         if client_name==None:
                             # total has also the split graphs
@@ -1510,6 +1512,12 @@ def cmpPairs(e1,e2):
         n2=10000
     return cmp(n1,n2)
 
+def getMilGroupsVal(u):
+    if u[:2]=="lt":
+        return 0
+    if u[:2]=="gt":
+        return 1000
+    return int(u[0])
 
 def tmp2final(fname):
     try:
@@ -1625,16 +1633,9 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.146 2008/05/22 16:19:41 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.147 2008/05/22 16:47:25 sfiligoi Exp $
 #
 # Log:
-#  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.146  2008/05/22 16:19:41  sfiligoi
-#  Fix typo
-#
-#  Revision 1.145  2008/05/22 16:14:28  sfiligoi
-#  Write better log xml
-#
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
 #  Rename log xml to logsummary.xml
 #
