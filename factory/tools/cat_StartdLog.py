@@ -7,6 +7,7 @@
 # Usage: cat_StartdLog.py logname
 #
 
+import os.path
 import sys
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
