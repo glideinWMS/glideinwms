@@ -623,6 +623,9 @@ class condorQStats:
 
         # get the list of frontends
         frontend_list=monitoringConfig.find_disk_frontends()
+        if len(frontend_list)==0:
+            return # nothing to do, wait for some frontends
+
         frontend_list.sort()
 
         # create human readable files for total aggregating multiple entries 
@@ -1214,6 +1217,9 @@ class condorLogSummary:
 
         # Crate split graphs for total
         frontend_list=monitoringConfig.find_disk_frontends()
+        if len(frontend_list)==0:
+            return # nothing more to do, wait for some frontends
+
         frontend_list.sort()
 
         mill_range_groups=self.getAllMillRangeGroups()
@@ -1370,10 +1376,6 @@ class condorLogSummary:
                     pass # for sz
                 pass # for rp
             pass # for client_name
-
-        # get an ordered list of frontends
-        frontend_list=self.stats_diff.keys()
-        frontend_list.sort()
 
         # create support index file for total
         fe_dir="total"
@@ -1652,7 +1654,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.150 2008/05/22 18:52:06 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.151 2008/05/22 21:19:50 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
