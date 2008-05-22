@@ -1162,13 +1162,13 @@ class condorLogSummary:
                     rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
 
                 monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
-                                            "Difference in "+s, rrd_files)
+                                            "Difference in %s glideins"%s, rrd_files)
                 monitoringConfig.graph_rrds("%s/Log10_%s_Diff"%(fe_dir,s),
-                                            "Trend Difference in "+s, rrd_files,trend_fraction=10)
+                                            "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=10)
 
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
-                                                s,
+                                                "%s glideins"%s,
                                                 [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
                 elif s=="Completed":
                     # create graphs for Lasted and Waste
@@ -1206,9 +1206,9 @@ class condorLogSummary:
                                 t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
                                 idx+=1
                             monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
-                                                        t,t_rrds)
+                                                        "%s glideins"%t,t_rrds)
                             monitoringConfig.graph_rrds("%s/Log10_Completed_Entered_%s"%(fe_dir,t),
-                                                        "Trend "+t,t_rrds,trend_fraction=10)
+                                                        "Trend %s glideins"%t,t_rrds,trend_fraction=10)
 
                                 
 
@@ -1247,12 +1247,12 @@ class condorLogSummary:
                     count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
-                                            s,count_rrd_files)
+                                            "%s glideins"%s,count_rrd_files)
            
             monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
-                                        "Difference in "+s, diff_rrd_files)
+                                        "Difference in %s glideins"%s, diff_rrd_files)
             monitoringConfig.graph_rrds("total/Split_Log10_%s_Diff"%s,
-                                        "Trend Difference in "+s, diff_rrd_files,trend_fraction=10)
+                                        "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=10)
 
         # create the completed split graphs
         #for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
@@ -1279,9 +1279,9 @@ class condorLogSummary:
                     cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
                     idx+=1
                 monitoringConfig.graph_rrds("total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
-                                            "%s %s "%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
+                                            "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
                 monitoringConfig.graph_rrds("total/Split_Log10_Completed_Entered_%s_%s"%(t,range_group),
-                                            "Trend %s %s "%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=10)
+                                            "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=10)
 
 
         # create support index files
@@ -1433,6 +1433,9 @@ class condorLogSummary:
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
                         fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Split_Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Split_Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
@@ -1649,7 +1652,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.149 2008/05/22 18:05:42 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.150 2008/05/22 18:52:06 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
