@@ -792,8 +792,9 @@ class condorLogSummary:
 
     def getAllTimeRanges(self):
         return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
+    
     def getAllTimeRangeGroups(self):
-        return {'Unknown':('Unknown',),'TooShort':('TooShort','7mins'),'lt1h':('15mins','30mins'),'1hours-20hours':('1hours','2hours','4hours','8hours','16hours'),'21hours-100hours':('32hours','64hours'),'TooLong':('128hours','TooLong')}
+        return {'Unknown':('Unknown',),'lt15mins':('TooShort','7mins'),'15mins-50mins':('15mins','30mins'),'50mins-30hours':('1hours','2hours','4hours','8hours','16hours'),'30hours-100hours':('32hours','64hours'),'gt100hours':('128hours','TooLong')}
             
     def getMillRange(self,absval):
         if absval<0.5:
@@ -807,7 +808,7 @@ class condorLogSummary:
         return ('0m','1m','3m','7m','15m','31m','62m','125m','250m','500m','1000m')            
 
     def getAllMillRangeGroups(self):
-        return {'lt100m':('0m','1m','3m','7m','15m','31m','62m'),'100m-400m':('125m','250m'),'ge400m':('500m','1000m')}            
+        return {'lt100m':('0m','1m','3m','7m','15m','31m','62m'),'100m-400m':('125m','250m'),'gt400m':('500m','1000m')}            
 
     def logSummary(self,client_name,stats):
         """
@@ -1217,8 +1218,12 @@ class condorLogSummary:
 
         mill_range_groups=self.getAllMillRangeGroups()
         mill_range_groups_keys=mill_range_groups.keys()
-        mill_range_groups_keys.sort(lambda e1,e2:cmp(getMilGroupsVal(e1),getMilGroupsVal(e2)))
-        
+        mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
+
+        time_range_groups=self.getAllTimeRangeGroups()
+        time_range_groups_keys=time_range_groups.keys()
+        time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
+
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         in_colors=['00ff00','00ffff','00c000','0000c0','00ffc0','0000ff'] # other options 00c0c0,00c0ff
         out_colors=['ff0000','ffff00','c00000','ff00ff','ffc000','ffc0c0'] # opther option c000c0
@@ -1252,9 +1257,15 @@ class condorLogSummary:
         # create the completed split graphs
         #for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
         #    pass
-        for range_group in mill_range_groups_keys:
-            range_list=mill_range_groups[range_group]
-            for t in ("Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+        for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+            if t=="Lasted":
+                range_groups=time_range_groups
+                range_groups_keys=time_range_groups_keys
+            else:
+                range_groups=mill_range_groups
+                range_groups_keys=mill_range_groups_keys
+            for range_group in range_groups_keys:
+                range_list=range_groups[range_group]
                 diff_rrd_files=[]
                 cdef_arr=[]
                 idx=0
@@ -1435,16 +1446,16 @@ class condorLogSummary:
                         fd.write("</table>\n</p>\n")
                         
                         fd.write("<p>\n<h2>Terminated glideins by frontend</h2>\n")
-                        #for r in []:
-                        #    for s in ('Entered_Lasted',):
-                        #        fd.write('<tr valign="top">')
-                        #        fd.write('<td><img src="Split_Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                        #        fd.write('<td><img src="Split_Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                        #        fd.write('</tr>\n')
-                        for s in ('Entered_Waste_validation','Entered_Waste_idle',
+
+                        for s in ('Entered_Lasted',
+                                  'Entered_Waste_validation','Entered_Waste_idle',
                                   'Entered_Waste_nosuccess','Entered_Waste_badput'):
                             fd.write("<p><table>\n")
-                            for r in mill_range_groups_keys:
+                            if s=='Entered_Lasted':
+                                range_groups_keys=time_range_groups_keys
+                            else:
+                                range_groups_keys=mill_range_groups_keys
+                            for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
@@ -1512,12 +1523,17 @@ def cmpPairs(e1,e2):
         n2=10000
     return cmp(n1,n2)
 
-def getMilGroupsVal(u):
-    if u[0]=="l":
+def getGroupsVal(u):
+    if u=="Unknown":
         return 0
-    if u[0]=="g":
+    if u[0:1]=="l":
+        return 1
+    if u[0:1]=="g":
         return 1000
-    return int(u[0])
+    if u[2:3]=='h':
+        return int(u[0:1])+100
+    else:
+        return int(u[0:1])+10
 
 def tmp2final(fname):
     try:
@@ -1633,7 +1649,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.148 2008/05/22 16:55:24 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.149 2008/05/22 18:05:42 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
