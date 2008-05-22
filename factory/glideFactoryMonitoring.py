@@ -1215,7 +1215,7 @@ class condorLogSummary:
         frontend_list=monitoringConfig.find_disk_frontends()
         frontend_list.sort()
 
-        mill_range_groups=self.AllMillRangeGroups()
+        mill_range_groups=self.getAllMillRangeGroups()
         
         colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
         in_colors=['00ff00','00ffff','00c000','0000c0','00ffc0','0000ff'] # other options 00c0c0,00c0ff
@@ -1625,10 +1625,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.145 2008/05/22 16:14:28 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.146 2008/05/22 16:19:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.146  2008/05/22 16:19:41  sfiligoi
+#  Fix typo
+#
 #  Revision 1.145  2008/05/22 16:14:28  sfiligoi
 #  Write better log xml
 #
