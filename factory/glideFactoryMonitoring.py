@@ -978,7 +978,7 @@ class condorLogSummary:
         total=self.get_total_summary()
         return xmlFormat.class2string(total,
                                       inst_name="total",
-                                      subclass_params={'CompletedCounts':self.get_completed_stats_xml_desc()},
+                                      subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_updated():
@@ -1656,7 +1656,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.153 2008/05/23 17:28:21 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.154 2008/05/23 17:30:48 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
