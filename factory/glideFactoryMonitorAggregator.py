@@ -27,8 +27,9 @@ class MonitorAggregatorConfig:
         # list of entries
         self.entries=[]
 
-        # name of the status file
+        # name of the status files
         self.status_relname="schedd_status.xml"
+        self.logsummary_relname="log_summary.xml"
 
     def config_factory(self,monitor_dir,entries):
         self.monitor_dir=monitor_dir
@@ -252,6 +253,83 @@ def create_status_history():
 
     return
 
+######################################################################################
+# create an aggregate of log summary files, write it in an aggregate log summary file
+# end return the values
+def aggregateLogSummary():
+    global monitorAggregatorConfig
+
+    # initialize global counters
+    global_total={'Current'{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'Lasted':{}}}
+    for s in ('Wait','Idle','Running','Held'):
+        for k in ['Current','Entered','Exited']:
+            global_total[k][s]=0
+    for s in ('Completed','Removed'):
+        for k in ['Entered']:
+            global_total[k][s]=0
+    for k in ['idle', 'validation', 'badput', 'nosuccess']:
+        el={}
+        for t in glideFactoryMonitoring.getAllMillRanges():
+            el[t]={'val': 0}
+        global_total['CompletedCounts']['Waste'][k]=el
+    el={}
+    for t in glideFactoryMonitoring.getAllTimeRanges():
+        el[t]={'val': 0}
+    global_total['CompletedCounts']['Lasted']=el
+
+    #
+    status={'entries':{},'total':global_total}
+    nr_entries=0
+    for entry in monitorAggregatorConfig.entries:
+        # load entry log summary file
+        status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
+                                  monitorAggregatorConfig.logsummary_relname)
+        try:
+            entry_data=xmlParse.xmlfile2dict(status_fname,always_singular_list=['Fraction','TimeRange'])
+        except IOError:
+            continue # file not found, ignore
+
+        # update entry 
+        status['entries'][entry]={'frontends':entry_data['frontends']}
+
+        # update total
+        if entry_data.has_key('total'):
+            nr_entries+=1
+            status['entries'][entry]['total']=entry_data['total']
+
+            for k in ['Current','Entered','Exited']:
+                for s in global_total[k].keys():
+                    global_total[k][s]+=entry_data['total'][k][s]
+            for k in ['idle', 'validation', 'badput', 'nosuccess']:
+                for t in glideFactoryMonitoring.getAllMillRanges():
+                    global_total['CompletedCounts']['Waste'][k][s]['val']+=entry_data['total']['CompletedCounts']['Waste'][k][s]['val']
+            for t in glideFactoryMonitoring.getAllTimeRanges():
+                global_total['CompletedCounts']['Lasted'][t]['val']+=entry_data['total']['CompletedCounts']['Lasted'][t]['val']
+        
+    # Write xml files
+    updated=time.time()
+    xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
+             '<glideFactoryLogSummary>\n'+
+             get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
+                                   subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
+                                                                                          "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':get_completed_stats_xml_desc()}}}}}}},
+                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.class2string(status["total"],inst_name="total",subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             "</glideFactoryLogSummary>\n")
+    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
+
+    # Write rrds
+    glideFactoryMonitoring.monitoringConfig.establish_dir("total")
+    for tp in global_total.keys():
+        # type - status or requested
+        for a in global_total[tp].keys():
+            a_el=int(global_total[tp][a])
+            glideFactoryMonitoring.monitoringConfig.write_rrd("total/%s_Attribute_%s"%(tp,a),
+                                                              "GAUGE",updated,a_el)
+
+    return status
+
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -271,10 +349,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.12 2008/05/20 16:54:04 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.13 2008/05/23 17:42:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.13  2008/05/23 17:42:18  sfiligoi
+#  Add creation of the log_summary
+#
 #  Revision 1.12  2008/05/20 16:54:04  sfiligoi
 #  Fix typo
 #

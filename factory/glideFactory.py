@@ -41,6 +41,7 @@ def aggregate_stats():
     global rrd_thread
     
     status=glideFactoryMonitorAggregator.aggregateStatus()
+    status=glideFactoryMonitorAggregator.aggregateLogSummary()
 
     # keep just one thread per monitoring type running at any given time
     # if the old one is still running, do nothing (lazy)
@@ -192,10 +193,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.65 2008/05/09 20:50:11 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.66 2008/05/23 17:42:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.66  2008/05/23 17:42:18  sfiligoi
+#  Add creation of the log_summary
+#
 #  Revision 1.65  2008/05/09 20:50:11  sfiligoi
 #  Make them executable
 #
