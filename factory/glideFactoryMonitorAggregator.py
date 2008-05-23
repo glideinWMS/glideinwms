@@ -336,7 +336,7 @@ def aggregateLogSummary():
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",subclass_params={'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()},leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</glideFactoryLogSummary>\n")
-    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
+    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname,xml_str)
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
@@ -368,10 +368,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.19 2008/05/23 19:28:45 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.20 2008/05/23 19:30:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.20  2008/05/23 19:30:56  sfiligoi
+#  Fix bug
+#
 #  Revision 1.19  2008/05/23 19:28:45  sfiligoi
 #  Fix bug
 #
