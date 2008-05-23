@@ -296,7 +296,7 @@ def aggregateLogSummary():
             out_fe_el={}
             for k in ['Current','Entered','Exited']:
                 out_fe_el[k]={}
-                for s in fe_el.keys():
+                for s in fe_el[k].keys():
                     out_fe_el[k][s]=int(fe_el[k][s])
             out_fe_el['CompletedCounts']={'Waste':{},'Lasted':{}}
             out_fe_el['CompletedCounts']['Failed']=int(fe_el['CompletedCounts']['Failed'])
@@ -368,10 +368,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.18 2008/05/23 19:24:48 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.19 2008/05/23 19:28:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.19  2008/05/23 19:28:45  sfiligoi
+#  Fix bug
+#
 #  Revision 1.18  2008/05/23 19:24:48  sfiligoi
 #  Fix bug
 #
