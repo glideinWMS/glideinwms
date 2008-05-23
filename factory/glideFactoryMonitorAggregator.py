@@ -332,7 +332,7 @@ def aggregateLogSummary():
                 local_total['CompletedCounts']['Lasted'][t]=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
                 global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
 
-            status['entries'][entry]['total']=entry_data['total']
+            status['entries'][entry]['total']=local_total
         
     # Write xml files
     updated=time.time()
@@ -352,12 +352,12 @@ def aggregateLogSummary():
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
-    for tp in global_total.keys():
-        # type - status or requested
-        for a in global_total[tp].keys():
-            a_el=int(global_total[tp][a])
-            glideFactoryMonitoring.monitoringConfig.write_rrd("total/%s_Attribute_%s"%(tp,a),
-                                                              "GAUGE",updated,a_el)
+    #for tp in global_total.keys():
+    #    # type - status or requested
+    #    for a in global_total[tp].keys():
+    #        a_el=int(global_total[tp][a])
+    #        glideFactoryMonitoring.monitoringConfig.write_rrd("total/%s_Attribute_%s"%(tp,a),
+    #                                                          "GAUGE",updated,a_el)
 
     return status
 
@@ -380,10 +380,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.21 2008/05/23 20:11:19 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.22 2008/05/23 20:13:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.22  2008/05/23 20:13:18  sfiligoi
+#  Fix bug
+#
 #  Revision 1.21  2008/05/23 20:11:19  sfiligoi
 #  Fix bug
 #
