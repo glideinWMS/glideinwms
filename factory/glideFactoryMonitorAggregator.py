@@ -313,17 +313,26 @@ def aggregateLogSummary():
         # update total
         if entry_data.has_key('total'):
             nr_entries+=1
-            status['entries'][entry]['total']=entry_data['total']
+            local_total={}
 
             for k in ['Current','Entered','Exited']:
+                local_total[k]={}
                 for s in global_total[k].keys():
+                    local_total[k][s]=int(entry_data['total'][k][s])
                     global_total[k][s]+=int(entry_data['total'][k][s])
+            local_total['CompletedCounts']={'Waste':{},'Lasted':{}}
+            local_total['CompletedCounts']['Failed']=int(entry_data['total']['CompletedCounts']['Failed'])
             global_total['CompletedCounts']['Failed']+=int(entry_data['total']['CompletedCounts']['Failed'])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
+                local_total['CompletedCounts']['Waste'][k]={}
                 for t in glideFactoryMonitoring.getAllMillRanges():
+                    local_total['CompletedCounts']['Waste'][k][t]=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
                     global_total['CompletedCounts']['Waste'][k][t]+=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
+                local_total['CompletedCounts']['Lasted'][t]=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
                 global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+
+            status['entries'][entry]['total']=entry_data['total']
         
     # Write xml files
     updated=time.time()
@@ -332,7 +341,10 @@ def aggregateLogSummary():
              get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
                                    subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
-                                                                                          "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}}}},
+                                                                                          "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}},
+                                                             "subclass_params":{"total":{"subclass_params":{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}
+                                                             }
+                                                    },
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",subclass_params={'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()},leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</glideFactoryLogSummary>\n")
@@ -368,10 +380,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.20 2008/05/23 19:30:56 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.21 2008/05/23 20:11:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.21  2008/05/23 20:11:19  sfiligoi
+#  Fix bug
+#
 #  Revision 1.20  2008/05/23 19:30:56  sfiligoi
 #  Fix bug
 #
