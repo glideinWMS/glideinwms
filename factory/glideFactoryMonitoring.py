@@ -777,42 +777,6 @@ class condorLogSummary:
         return end_ctime-start_ctime
 
         
-
-    def getTimeRange(self,absval):
-        if absval<1:
-            return 'Unknown'
-        if absval<240:
-            return 'TooShort'
-        if absval>(180*3600): # limit valid times to 180 hours
-            return 'TooLong'
-        # start with 7.5 min, and than exp2
-        logval=int(math.log(absval/450.0,2)+0.49)
-        level=math.pow(2,logval)*450.0
-        if level<3600:
-            return "%imins"%(int(level/60+0.49))
-        else:
-            return "%ihours"%(int(level/3600+0.49))
-
-    def getAllTimeRanges(self):
-        return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
-    
-    def getAllTimeRangeGroups(self):
-        return {'Unknown':('Unknown',),'lt15mins':('TooShort','7mins'),'15mins-50mins':('15mins','30mins'),'50mins-30hours':('1hours','2hours','4hours','8hours','16hours'),'30hours-100hours':('32hours','64hours'),'gt100hours':('128hours','TooLong')}
-            
-    def getMillRange(self,absval):
-        if absval<0.5:
-            return '0m'
-        # make sure 1000 gets back to 1000
-        logval=int(math.log(absval*1.024,2)+0.49)
-        level=int(math.pow(2,logval)/1.024)
-        return "%im"%level
-
-    def getAllMillRanges(self):
-        return ('0m','1m','3m','7m','15m','31m','62m','125m','250m','500m','1000m')            
-
-    def getAllMillRangeGroups(self):
-        return {'lt100m':('0m','1m','3m','7m','15m','31m','62m'),'100m-400m':('125m','250m'),'gt400m':('500m','1000m')}            
-
     def logSummary(self,client_name,stats):
         """
          stats - glideFactoryLogParser.dirSummaryTimingsOut
@@ -853,7 +817,7 @@ class condorLogSummary:
     def get_completed_stats(self,entered_list):
         # summarize completed data
         count_entered_times={}
-        for enle_timerange in self.getAllTimeRanges(): 
+        for enle_timerange in getAllTimeRanges(): 
             count_entered_times[enle_timerange]=0 # make sure all are initialized
         count_validation_failed=0
         count_waste_mill={'validation':{},
@@ -862,7 +826,7 @@ class condorLogSummary:
                           'badput':{}} #i.e. everything but jobs terminating
         for w in count_waste_mill.keys():
             count_waste_mill_w=count_waste_mill[w]
-            for enle_waste_mill_w_range in self.getAllMillRanges():
+            for enle_waste_mill_w_range in getAllMillRanges():
                 count_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
         # should also add abs waste
 
@@ -908,14 +872,14 @@ class condorLogSummary:
                     enle_waste_mill['badput']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
 
                 # find and save time range
-                enle_timerange=self.getTimeRange(enle_difftime)                        
+                enle_timerange=getTimeRange(enle_difftime)                        
                 count_entered_times[enle_timerange]+=1
 
                 # find and save waste range
                 for w in enle_waste_mill.keys():
                     count_waste_mill_w=count_waste_mill[w]
                     # find and save taime range
-                    enle_waste_mill_w_range=self.getMillRange(enle_waste_mill[w])
+                    enle_waste_mill_w_range=getMillRange(enle_waste_mill[w])
                     count_waste_mill_w[enle_waste_mill_w_range]+=1
         
         return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill}
@@ -1222,11 +1186,11 @@ class condorLogSummary:
 
         frontend_list.sort()
 
-        mill_range_groups=self.getAllMillRangeGroups()
+        mill_range_groups=getAllMillRangeGroups()
         mill_range_groups_keys=mill_range_groups.keys()
         mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
 
-        time_range_groups=self.getAllTimeRangeGroups()
+        time_range_groups=getAllTimeRangeGroups()
         time_range_groups_keys=time_range_groups.keys()
         time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
 
@@ -1528,6 +1492,42 @@ def cmpPairs(e1,e2):
         n2=10000
     return cmp(n1,n2)
 
+##################################################
+def getTimeRange(absval):
+        if absval<1:
+            return 'Unknown'
+        if absval<240:
+            return 'TooShort'
+        if absval>(180*3600): # limit valid times to 180 hours
+            return 'TooLong'
+        # start with 7.5 min, and than exp2
+        logval=int(math.log(absval/450.0,2)+0.49)
+        level=math.pow(2,logval)*450.0
+        if level<3600:
+            return "%imins"%(int(level/60+0.49))
+        else:
+            return "%ihours"%(int(level/3600+0.49))
+
+def getAllTimeRanges():
+        return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
+    
+def getAllTimeRangeGroups():
+        return {'Unknown':('Unknown',),'lt15mins':('TooShort','7mins'),'15mins-50mins':('15mins','30mins'),'50mins-30hours':('1hours','2hours','4hours','8hours','16hours'),'30hours-100hours':('32hours','64hours'),'gt100hours':('128hours','TooLong')}
+            
+def getMillRange(absval):
+        if absval<0.5:
+            return '0m'
+        # make sure 1000 gets back to 1000
+        logval=int(math.log(absval*1.024,2)+0.49)
+        level=int(math.pow(2,logval)/1.024)
+        return "%im"%level
+
+def getAllMillRanges():
+        return ('0m','1m','3m','7m','15m','31m','62m','125m','250m','500m','1000m')            
+
+def getAllMillRangeGroups():
+        return {'lt100m':('0m','1m','3m','7m','15m','31m','62m'),'100m-400m':('125m','250m'),'gt400m':('500m','1000m')}            
+
 def getGroupsVal(u):
     if u=="Unknown":
         return 0
@@ -1540,6 +1540,7 @@ def getGroupsVal(u):
     else:
         return int(u[0:1])+10
 
+##################################################
 def tmp2final(fname):
     try:
         os.remove(fname+"~")
@@ -1654,7 +1655,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.151 2008/05/22 21:19:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.152 2008/05/23 17:04:10 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
