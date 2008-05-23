@@ -884,15 +884,6 @@ class condorLogSummary:
         
         return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill}
 
-    def get_completed_stats_xml_desc(self):
-        return {'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
-                'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
-                                                            'validation':{'el_name':'Fraction'},
-                                                            'badput':{'el_name':'Fraction'},
-                                                            'nosuccess':{'el_name':'Fraction'}}}
-                                   }
-                }
-
     def get_data_summary(self):
         stats_data={}
         for client_name in self.stats_diff.keys():
@@ -927,7 +918,7 @@ class condorLogSummary:
         data=self.get_data_summary()
         return xmlFormat.dict2string(data,
                                      dict_name="frontends",el_name="frontend",
-                                     subtypes_params={"class":{'subclass_params':{'CompletedCounts':self.get_completed_stats_xml_desc()}
+                                     subtypes_params={"class":{'subclass_params':{'CompletedCounts':get_completed_stats_xml_desc()}
                                                                }},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
@@ -1541,6 +1532,16 @@ def getGroupsVal(u):
         return int(u[0:1])+10
 
 ##################################################
+def get_completed_stats_xml_desc(self):
+    return {'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
+            'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
+                                                        'validation':{'el_name':'Fraction'},
+                                                        'badput':{'el_name':'Fraction'},
+                                                        'nosuccess':{'el_name':'Fraction'}}}
+                               }
+            }
+
+##################################################
 def tmp2final(fname):
     try:
         os.remove(fname+"~")
@@ -1655,7 +1656,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.152 2008/05/23 17:04:10 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.153 2008/05/23 17:28:21 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
