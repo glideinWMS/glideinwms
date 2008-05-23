@@ -65,10 +65,11 @@ class OrderedDict(UserDict):
 # convert a XML file into a dictionary
 # ignore text sections
 def xmlfile2dict(fname,
-                 use_ord_dict=False): # if true, return OrderedDict instead of a regular dictionary
+                 use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
+                 always_singular_list=[]):  # anything id listed here will be considered as a list
     doc=xml.dom.minidom.parse(fname)
 
-    data=domel2dict(doc.documentElement,use_ord_dict)
+    data=domel2dict(doc.documentElement,use_ord_dict,always_singular_list)
 
     return data
 
@@ -99,10 +100,11 @@ def xmlfile2dict(fname,
 #  }
 #  
 def xmlstring2dict(str,
-                   use_ord_dict=False): # if true, return OrderedDict instead of a regular dictionary
+                   use_ord_dict=False,        # if true, return OrderedDict instead of a regular dictionary
+                   always_singular_list=[]):  # anything id listed here will be considered as a list
     doc=xml.dom.minidom.parseString(str)
 
-    data=domel2dict(doc.documentElement,use_ord_dict)
+    data=domel2dict(doc.documentElement,use_ord_dict,always_singular_list)
 
     return data
 
@@ -139,7 +141,9 @@ def getXMLAttributes(element,use_ord_dict):
 
     return attrs
 
-def is_singular_of(mysin,myplu):
+def is_singular_of(mysin,myplu,always_singular_list=[]):
+    if mysin in always_singular_list:
+        return True
     if myplu[-1]!='s':
         return False # if myplu does not end in s, it is not plural
     if (mysin+"s")==myplu: # regular, like attr/attrs
@@ -151,7 +155,7 @@ def is_singular_of(mysin,myplu):
     # else, no luck
     return False
 
-def domel2dict(doc,use_ord_dict=False):
+def domel2dict(doc,use_ord_dict=False,always_singular_list=[]):
     myname=doc.nodeName
     data=getXMLAttributes(doc,use_ord_dict) # first insert attributes
 
@@ -161,7 +165,7 @@ def domel2dict(doc,use_ord_dict=False):
         tag = el.tagName
         #print tag
         eldata=domel2dict(el,use_ord_dict)
-        if is_singular_of(tag,myname): # subelements, like "param" - "params"
+        if is_singular_of(tag,myname,always_singular_list): # subelements, like "param" - "params"
             if eldata.has_key("name"):
                 data[eldata['name']]=eldata
                 del eldata['name']
