@@ -313,9 +313,9 @@ def aggregateLogSummary():
              get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
                                    subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
-                                                                                          "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':get_completed_stats_xml_desc()}}}}}}},
+                                                                                          "subtypes_params":{"class":{'subclass_params':{'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.class2string(status["total"],inst_name="total",subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.class2string(status["total"],inst_name="total",subclass_params={'CompletedCounts':glideFactoryMonitoring.get_completed_stats_xml_desc()},leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</glideFactoryLogSummary>\n")
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
 
@@ -349,10 +349,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.16 2008/05/23 17:49:19 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.17 2008/05/23 17:50:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.17  2008/05/23 17:50:17  sfiligoi
+#  Fix typo
+#
 #  Revision 1.16  2008/05/23 17:49:19  sfiligoi
 #  Fix typo
 #
