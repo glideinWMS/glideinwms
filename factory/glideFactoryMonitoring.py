@@ -1532,7 +1532,7 @@ def getGroupsVal(u):
         return int(u[0:1])+10
 
 ##################################################
-def get_completed_stats_xml_desc(self):
+def get_completed_stats_xml_desc():
     return {'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
             'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
                                                         'validation':{'el_name':'Fraction'},
@@ -1656,7 +1656,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.154 2008/05/23 17:30:48 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.155 2008/05/23 17:51:03 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
