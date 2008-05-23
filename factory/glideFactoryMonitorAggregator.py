@@ -260,7 +260,7 @@ def aggregateLogSummary():
     global monitorAggregatorConfig
 
     # initialize global counters
-    global_total={'Current'{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'Lasted':{}}}
+    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'Lasted':{}}}
     for s in ('Wait','Idle','Running','Held'):
         for k in ['Current','Entered','Exited']:
             global_total[k][s]=0
@@ -349,10 +349,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.13 2008/05/23 17:42:18 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.14 2008/05/23 17:43:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.14  2008/05/23 17:43:20  sfiligoi
+#  Fix typo
+#
 #  Revision 1.13  2008/05/23 17:42:18  sfiligoi
 #  Add creation of the log_summary
 #
