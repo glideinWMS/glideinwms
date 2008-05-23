@@ -302,7 +302,7 @@ def aggregateLogSummary():
                     global_total[k][s]+=int(entry_data['total'][k][s])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
                 for t in glideFactoryMonitoring.getAllMillRanges():
-                    global_total['CompletedCounts']['Waste'][k][s]['val']+=int(entry_data['total']['CompletedCounts']['Waste'][k][s]['val'])
+                    global_total['CompletedCounts']['Waste'][k][t]['val']+=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 global_total['CompletedCounts']['Lasted'][t]['val']+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
         
@@ -349,10 +349,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.15 2008/05/23 17:44:29 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.16 2008/05/23 17:49:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.16  2008/05/23 17:49:19  sfiligoi
+#  Fix typo
+#
 #  Revision 1.15  2008/05/23 17:44:29  sfiligoi
 #  Fix bug
 #
