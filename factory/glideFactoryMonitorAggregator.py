@@ -270,11 +270,11 @@ def aggregateLogSummary():
     for k in ['idle', 'validation', 'badput', 'nosuccess']:
         el={}
         for t in glideFactoryMonitoring.getAllMillRanges():
-            el[t]={'val': 0}
+            el[t]=0
         global_total['CompletedCounts']['Waste'][k]=el
     el={}
     for t in glideFactoryMonitoring.getAllTimeRanges():
-        el[t]={'val': 0}
+        el[t]=0
     global_total['CompletedCounts']['Lasted']=el
 
     #
@@ -289,8 +289,26 @@ def aggregateLogSummary():
         except IOError:
             continue # file not found, ignore
 
-        # update entry 
-        status['entries'][entry]={'frontends':entry_data['frontends']}
+        # update entry
+        out_data={}
+        for frontend in entry_data['frontends'].keys():
+            fe_el=entry_data['frontends'][frontend]
+            out_fe_el={}
+            for k in ['Current','Entered','Exited']:
+                out_fe_el[k]={}
+                for s in fe_el.keys():
+                    out_fe_el[k][s]=int(fe_el[k][s])
+            out_fe_el['CompletedCounts']={'Waste':{},'Lasted':{}}
+            out_fe_el['CompletedCounts']['Failed']=int(fe_el['CompletedCounts']['Failed'])
+            for k in ['idle', 'validation', 'badput', 'nosuccess']:
+                out_fe_el['CompletedCounts']['Waste'][k]={}
+                for t in glideFactoryMonitoring.getAllMillRanges():
+                    out_fe_el['CompletedCounts']['Waste'][k][t]=int(fe_el['CompletedCounts']['Waste'][k][t]['val'])
+            for t in glideFactoryMonitoring.getAllTimeRanges():
+                out_fe_el['CompletedCounts']['Lasted'][t]=int(fe_el['CompletedCounts']['Lasted'][t]['val'])
+            out_data[frontend]=out_fe_el
+            
+        status['entries'][entry]={'frontends':out_data}
 
         # update total
         if entry_data.has_key('total'):
@@ -300,11 +318,12 @@ def aggregateLogSummary():
             for k in ['Current','Entered','Exited']:
                 for s in global_total[k].keys():
                     global_total[k][s]+=int(entry_data['total'][k][s])
+            global_total['CompletedCounts']['Failed']+=int(entry_data['total']['CompletedCounts']['Failed'])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
                 for t in glideFactoryMonitoring.getAllMillRanges():
-                    global_total['CompletedCounts']['Waste'][k][t]['val']+=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
+                    global_total['CompletedCounts']['Waste'][k][t]+=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
-                global_total['CompletedCounts']['Lasted'][t]['val']+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+                global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
         
     # Write xml files
     updated=time.time()
@@ -349,10 +368,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.17 2008/05/23 17:50:17 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.18 2008/05/23 19:24:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.18  2008/05/23 19:24:48  sfiligoi
+#  Fix bug
+#
 #  Revision 1.17  2008/05/23 17:50:17  sfiligoi
 #  Fix typo
 #
