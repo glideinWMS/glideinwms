@@ -24,7 +24,7 @@ function check_x509_proxy {
 	export X509_USER_PROXY
     else
 	echo "Could not find user proxy!" 1>&2
-	echo "Looked in '$X509_USER_PROXY'" 1>&2
+	echo "Looked in X509_USER_PROXY='$X509_USER_PROXY'" 1>&2
 	ls -l "$X509_USER_PROXY" 1>&2
 	exit 1
     fi
