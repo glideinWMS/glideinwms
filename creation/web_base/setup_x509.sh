@@ -24,6 +24,8 @@ function check_x509_proxy {
 	export X509_USER_PROXY
     else
 	echo "Could not find user proxy!" 1>&2
+	echo "Looked in '$X509_USER_PROXY'" 1>&2
+	ls -l "$X509_USER_PROXY" 1>&2
 	exit 1
     fi
 
@@ -73,6 +75,10 @@ function check_x509_proxy {
 	voms-proxy-info -exists -valid 12:0
 	if [ $? -ne 0 ]; then
 	    echo "Proxy not valid in 12 hours!" 1>&2
+	    echo "grid-proxy-info:" 1>&2
+	    grid-proxy-info 1>&2
+	    echo "voms-proxy-info:" 1>&2
+	    voms-proxy-info -all 1>&2
 	    exit 1
 	fi
     fi
