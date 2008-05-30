@@ -1108,14 +1108,6 @@ class condorLogSummary:
         create_log_split_graphs("frontend_%s",frontend_list)
 
         # create support index files
-        mill_range_groups=getAllMillRangeGroups()
-        mill_range_groups_keys=mill_range_groups.keys()
-        mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
-        
-        time_range_groups=getAllTimeRangeGroups()
-        time_range_groups_keys=time_range_groups.keys()
-        time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
-        
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
 
@@ -1203,115 +1195,7 @@ class condorLogSummary:
             pass # for client_name
 
         # create support index file for total
-        fe_dir="total"
-        client_name="Entry total"
-        for rp in monitoringConfig.rrd_reports:
-                period=rp[0]
-                for sz in monitoringConfig.graph_sizes:
-                    size=sz[0]
-                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
-                    #if (not os.path.isfile(fname)): #create only if it does not exist
-                    if 1: # create every time, it is small and works over reconfigs
-                        fd=open(fname,"w")
-                        fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(client_name,period));
-                        fd.write("</head>\n<body>\n")
-                        fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
-                        
-                        link_arr=[]
-                        for ref_sz in monitoringConfig.graph_sizes:
-                            ref_size=ref_sz[0]
-                            if size!=ref_size:
-                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        link_arr=[]
-                        for ref_rp in monitoringConfig.rrd_reports:
-                            ref_period=ref_rp[0]
-                            if period!=ref_period:
-                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
-                        
-                        fd.write("</tr><tr>\n")
-                        
-                        fd.write('<td>[<a href="../../total/0Log.%s.%s.html">Factory total</a>]</td>\n'%(period,size))
-                        link_arr=[]
-                        for ref_fe in frontend_list:
-                            link_arr.append('<a href="../frontend_%s/0Log.%s.%s.html">%s</a>'%(ref_fe,period,size,ref_fe))
-                        fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        fd.write("</tr></table>\n")
-                        
-                        fd.write("<p>\n<table>\n")
-                        for s in self.job_statuses:
-                            if (not (s in ('Completed','Removed'))): # special treatement
-                                fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<tr valign="top">')
-                                fd.write('</tr>\n')                            
-                                fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('</tr>\n')                            
-                        fd.write('<tr valign="top">')
-                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Split_Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Split_Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('</tr>\n')
-                        fd.write("</table>\n</p>\n")
-                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted',
-                                  'Entered_Waste_validation','Entered_Waste_idle',
-                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
-                            fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('</tr>\n')
-                        fd.write("</table>\n</p>\n")
-                        
-                        fd.write("<p>\n<h2>Terminated glideins by frontend</h2>\n")
-
-                        for s in ('Entered_Lasted',
-                                  'Entered_Waste_validation','Entered_Waste_idle',
-                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
-                            fd.write("<p><table>\n")
-                            if s=='Entered_Lasted':
-                                range_groups_keys=time_range_groups_keys
-                            else:
-                                range_groups_keys=mill_range_groups_keys
-                            for r in range_groups_keys:
-                                fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('</tr>\n')                        
-                            fd.write("</table>\n</p>\n")
-
-                        if client_name==None:
-                            # total has also the split graphs
-                            fd.write("<p><hr><p><table>")
-                            for s in self.job_statuses:
-                                if (not (s in ('Completed','Removed'))): # special treatement
-                                    fd.write('<tr valign="top">')
-                                    for w in ['Count','Diff']:
-                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
-                                    if s=='Running':
-                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff',period,size))
-                                    elif s=='Held':
-                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
-                                    fd.write('</tr>\n')                            
-                            fd.write("</table>")
-                            
-                        fd.write("</body>\n</html>\n")
-                        fd.close()
-                        pass
-                    pass # for sz
-                pass # for rp
+        create_log_total_index("Entry total","frontend","../frontend_%s",frontend_list,'<a href="../../total/0Log.%s.%s.html">Factory total</a>')
 
         self.history_files_updated=self.files_updated
         return
@@ -1556,6 +1440,117 @@ def create_log_split_graphs(subdir_template,subdir_list):
 
 
 
+###################################
+
+def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url_template):
+    subdir_list.sort()
+
+    mill_range_groups=getAllMillRangeGroups()
+    mill_range_groups_keys=mill_range_groups.keys()
+    mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
+    
+    time_range_groups=getAllTimeRangeGroups()
+    time_range_groups_keys=time_range_groups.keys()
+    time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
+    
+    fe_dir="total"
+    for rp in monitoringConfig.rrd_reports:
+                period=rp[0]
+                for sz in monitoringConfig.graph_sizes:
+                    size=sz[0]
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s over last %s</title>\n"%(title,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title,period))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        
+                        fd.write("</tr><tr>\n")
+
+                        if up_url_template!=None:
+                            fd.write('<td>[%s]</td>\n'%(up_url_template%(period,size)))
+                        else:
+                            fd.write('<td></td>\n') # no uplink
+                        link_arr=[]
+                        for ref_fe in subdir_list:
+                            link_arr.append(('<a href="'+subdir_template+'/0Log.%s.%s.html">%s</a>')%(ref_fe,period,size,ref_fe))
+                        fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write("</tr></table>\n")
+                        
+                        fd.write("<p>\n<table>\n")
+                        for s in ('Wait','Idle','Running','Held','Completed','Removed'):
+                            if (not (s in ('Completed','Removed'))): # special treatement
+                                fd.write('<tr valign="top">')
+                                fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<tr valign="top">')
+                                fd.write('</tr>\n')                            
+                                fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('</tr>\n')                            
+                        fd.write('<tr valign="top">')
+                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Split_Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td><img src="Split_Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
+                        for s in ('Diff','Entered_Lasted',
+                                  'Entered_Waste_validation','Entered_Waste_idle',
+                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                            fd.write('<tr valign="top">')
+                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+                        
+                        fd.write("<p>\n<h2>Terminated glideins by %s</h2>\n"%subdir_label)
+
+                        for s in ('Entered_Lasted',
+                                  'Entered_Waste_validation','Entered_Waste_idle',
+                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                            fd.write("<p><table>\n")
+                            if s=='Entered_Lasted':
+                                range_groups_keys=time_range_groups_keys
+                            else:
+                                range_groups_keys=mill_range_groups_keys
+                            for r in range_groups_keys:
+                                fd.write('<tr valign="top">')
+                                fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('</tr>\n')                        
+                            fd.write("</table>\n</p>\n")
+
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+                    pass # for sz
+                pass # for rp
+    
+
 ##################################################
 def tmp2final(fname):
     try:
@@ -1671,21 +1666,15 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.161 2008/05/30 15:45:26 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.162 2008/05/30 16:09:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.161  2008/05/30 15:45:26  sfiligoi
-#  Fix typo
+#  Revision 1.162  2008/05/30 16:09:48  sfiligoi
+#  Create create_log_total_index and use it both for entries and the factory
 #
 #  Revision 1.160  2008/05/30 15:44:01  sfiligoi
 #  Make create_log_split_graphs more flexible
-#
-#  Revision 1.159  2008/05/30 15:29:55  sfiligoi
-#  Fix typo
-#
-#  Revision 1.158  2008/05/30 15:27:13  sfiligoi
-#  Fix typo
 #
 #  Revision 1.157  2008/05/30 15:24:14  sfiligoi
 #  Move create_log_split_graphs into the global space

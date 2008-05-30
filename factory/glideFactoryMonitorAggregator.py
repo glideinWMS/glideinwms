@@ -394,6 +394,9 @@ def aggregateLogSummary():
 def create_log_history():
     glideFactoryMonitoring.create_log_graphs("total")
     glideFactoryMonitoring.create_log_split_graphs("entry_%s/total",monitorAggregatorConfig.entries)
+
+    # create support index file
+    glideFactoryMonitoring.create_log_total_index("Factory total","entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
     return
 
 #################        PRIVATE      #####################
@@ -415,10 +418,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.27 2008/05/30 15:44:01 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.28 2008/05/30 16:09:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.28  2008/05/30 16:09:48  sfiligoi
+#  Create create_log_total_index and use it both for entries and the factory
+#
 #  Revision 1.27  2008/05/30 15:44:01  sfiligoi
 #  Make create_log_split_graphs more flexible
 #
