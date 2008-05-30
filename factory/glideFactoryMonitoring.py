@@ -1095,79 +1095,12 @@ class condorLogSummary:
         #        monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
 
         # create graphs for RRDs
-        colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-        #r_colors=('c00000','ff0000','ffc000','ffd090','ffff00','e0e0a0','a0e0e0','00ffff','90b0ff','a0ffa0','00ff00','00c000')
-        r_colors=('c00000',
-                  'ff0000','ff4000','ff8000','ffc000',
-                  'ffff00',
-                  'c0ff00','80ff00','40ff00','00ff00',
-                  '00c000')
-        r_colors_len=len(r_colors)
-        time_colors=('000000','0c0000', # unknown and too short
-                     'ff0000','ffc000', # 7 and 15 mins
-                     'ffff00',          # 30 mins
-                     'c0ff00','80f000','40d800','00c000','00c080','00e0d0','00ffff',
-                     '0080f0','0000c0')          # 128hours, TooLong
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
             else:
                 fe_dir="frontend_"+client_name
-
-            for s in self.job_statuses:
-                rrd_files=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00")]
-                if not (s in ('Completed','Removed')): # always 0 for them
-                    rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
-
-                monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
-                                            "Difference in %s glideins"%s, rrd_files)
-                monitoringConfig.graph_rrds("%s/Log10_%s_Diff"%(fe_dir,s),
-                                            "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=10)
-
-                if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-                    monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
-                                                "%s glideins"%s,
-                                                [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
-                elif s=="Completed":
-                    # create graphs for Lasted and Waste
-                    client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
-                    for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
-                        # get sorted list of rrds
-                        t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
-                        t_keys={}
-                        for d in client_dir:
-                            t_re_m=t_re.match(d)
-                            if t_re_m!=None:
-                                t_keys[t_re_m.groups()]=1
-                        t_keys=t_keys.keys()
-                        t_keys_len=len(t_keys)
-
-                        if t_keys_len>0:
-                            if t=="Lasted":
-                                t_keys.sort(cmpPairs)
-                            else:
-                                # invert order for Wasted
-                                t_keys.sort(lambda x,y,:-cmpPairs(x,y))
-                            
-                            
-                            # Create graph out of it
-                            t_rrds=[]
-                            idx=0
-                            for t_k in t_keys:
-                                if t=="Lasted":
-                                    t_k_color=time_colors[idx]
-                                else:
-                                    if t_keys_len>1:
-                                        t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
-                                    else:
-                                        t_k_color=r_colors[r_colors_len/2]
-                                t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
-                                idx+=1
-                            monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
-                                                        "%s glideins"%t,t_rrds)
-                            monitoringConfig.graph_rrds("%s/Log10_Completed_Entered_%s"%(fe_dir,t),
-                                                        "Trend %s glideins"%t,t_rrds,trend_fraction=10)
-
+            create_log_graphs(fe_dir)
                                 
 
         # Crate split graphs for total
@@ -1542,6 +1475,75 @@ def get_completed_stats_xml_desc():
             }
 
 ##################################################
+def create_log_graphs(fe_dir):
+    colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
+    r_colors=('c00000',
+              'ff0000','ff4000','ff8000','ffc000',
+              'ffff00',
+              'c0ff00','80ff00','40ff00','00ff00',
+              '00c000')
+    r_colors_len=len(r_colors)
+    time_colors=('000000','0c0000', # unknown and too short
+                 'ff0000','ffc000', # 7 and 15 mins
+                 'ffff00',          # 30 mins
+                 'c0ff00','80f000','40d800','00c000','00c080','00e0d0','00ffff',
+                 '0080f0','0000c0')          # 128hours, TooLong
+    
+    for s in ('Wait','Idle','Running','Held','Completed','Removed'):
+        rrd_files=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00")]
+        if not (s in ('Completed','Removed')): # always 0 for them
+            rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
+
+        monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
+                                    "Difference in %s glideins"%s, rrd_files)
+        monitoringConfig.graph_rrds("%s/Log10_%s_Diff"%(fe_dir,s),
+                                    "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=10)
+
+        if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+            monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
+                                        "%s glideins"%s,
+                                        [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
+        elif s=="Completed":
+            # create graphs for Lasted and Waste
+            client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
+            for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+                # get sorted list of rrds
+                t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
+                t_keys={}
+                for d in client_dir:
+                    t_re_m=t_re.match(d)
+                    if t_re_m!=None:
+                        t_keys[t_re_m.groups()]=1
+                t_keys=t_keys.keys()
+                t_keys_len=len(t_keys)
+
+                if t_keys_len>0:
+                    if t=="Lasted":
+                        t_keys.sort(cmpPairs)
+                    else:
+                        # invert order for Wasted
+                        t_keys.sort(lambda x,y,:-cmpPairs(x,y))
+                            
+                            
+                    # Create graph out of it
+                    t_rrds=[]
+                    idx=0
+                    for t_k in t_keys:
+                        if t=="Lasted":
+                            t_k_color=time_colors[idx]
+                        else:
+                            if t_keys_len>1:
+                                t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
+                            else:
+                                t_k_color=r_colors[r_colors_len/2]
+                        t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
+                        idx+=1
+                    monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                                "%s glideins"%t,t_rrds)
+                    monitoringConfig.graph_rrds("%s/Log10_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s glideins"%t,t_rrds,trend_fraction=10)
+
+##################################################
 def tmp2final(fname):
     try:
         os.remove(fname+"~")
@@ -1656,7 +1658,7 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.155 2008/05/23 17:51:03 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.156 2008/05/30 15:05:01 sfiligoi Exp $
 #
 # Log:
 #  Revision 1.144  2008/05/21 22:22:29  sfiligoi
