@@ -211,18 +211,22 @@ def create_status_history():
                     fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
 
                     link_arr=[]
-                    for entry in monitorAggregatorConfig.entries:
-                            link_arr.append('<a href="../entry_%s/total/0Status.%s.%s.html">%s</a>'%(entry,period,size,entry))
-                    fd.write('<td width="33%%" rowspan=2 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write("</tr><tr>\n")
-
-                    link_arr=[]
                     for ref_rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
                         ref_period=ref_rp[0]
                         if period!=ref_period:
                             link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                     fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(ref_period,size))
+                        
+                    fd.write("</tr><tr>\n")
+
+                    fd.write("<td></td>\n") # no up link
+                    link_arr=[]
+                    for entry in monitorAggregatorConfig.entries:
+                            link_arr.append('<a href="../entry_%s/total/0Status.%s.%s.html">%s</a>'%(entry,period,size,entry))
+                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
 
                     fd.write("</tr></table>\n")
                     fd.write("<h2>Glidein stats</h2>\n")
@@ -418,10 +422,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.28 2008/05/30 16:09:48 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.29 2008/05/30 16:17:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.29  2008/05/30 16:17:30  sfiligoi
+#  Add link to log index
+#
 #  Revision 1.28  2008/05/30 16:09:48  sfiligoi
 #  Create create_log_total_index and use it both for entries and the factory
 #
