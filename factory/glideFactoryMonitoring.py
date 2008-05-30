@@ -1105,7 +1105,7 @@ class condorLogSummary:
 
         # Crate split graphs for total
         frontend_list=monitoringConfig.find_disk_frontends()
-        create_log_split_graphs("frontend",frontend_list)
+        create_log_split_graphs("frontend_%s",frontend_list)
 
         # create support index files
         mill_range_groups=getAllMillRangeGroups()
@@ -1480,7 +1480,10 @@ def create_log_graphs(fe_dir):
                     monitoringConfig.graph_rrds("%s/Log10_Completed_Entered_%s"%(fe_dir,t),
                                                 "Trend %s glideins"%t,t_rrds,trend_fraction=10)
 
-def create_log_split_graphs(subdir_prefix,subdir_list):
+
+###################################
+
+def create_log_split_graphs(subdir_template,subdir_list):
     if len(subdir_list)==0:
         return # nothing more to do, wait for some subdirs
 
@@ -1503,7 +1506,7 @@ def create_log_split_graphs(subdir_prefix,subdir_list):
 
             idx=0
             for fe in subdir_list:
-                fe_dir="%s_%s"%(subdir_prefix,fe)
+                fe_dir=subdir_tempate%fe
                 diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
                 idx=idx+1
 
@@ -1511,7 +1514,7 @@ def create_log_split_graphs(subdir_prefix,subdir_list):
                 idx=0
                 area_or_stack='AREA' # first must be area for exited
                 for fe in subdir_list:
-                    fe_dir="%s_%s"%(subdir_prefix,fe)
+                    fe_dir=subdir_tempate%fe
                     diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
                     area_or_stack='STACK'
                     count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
@@ -1538,7 +1541,7 @@ def create_log_split_graphs(subdir_prefix,subdir_list):
                 cdef_arr=[]
                 idx=0
                 for fe in subdir_list:
-                    fe_dir="%s_%s"%(subdir_prefix,fe)
+                    fe_dir=subdir_tempate%fe
                     cdef_formula="0"
                     for range_val in range_list:
                         ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
@@ -1668,10 +1671,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.159 2008/05/30 15:29:55 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.160 2008/05/30 15:44:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.160  2008/05/30 15:44:01  sfiligoi
+#  Make create_log_split_graphs more flexible
+#
 #  Revision 1.159  2008/05/30 15:29:55  sfiligoi
 #  Fix typo
 #
