@@ -351,14 +351,47 @@ def aggregateLogSummary():
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname,xml_str)
 
     # Write rrds
-    glideFactoryMonitoring.monitoringConfig.establish_dir("total")
-    #for tp in global_total.keys():
-    #    # type - status or requested
-    #    for a in global_total[tp].keys():
-    #        a_el=int(global_total[tp][a])
-    #        glideFactoryMonitoring.monitoringConfig.write_rrd("total/%s_Attribute_%s"%(tp,a),
-    #                                                          "GAUGE",updated,a_el)
+    stats_data_summary=self.get_stats_data_summary()
+    stats_total_summary=self.get_stats_total_summary()
+    for client_name in [None]+self.stats_diff.keys():
 
+    fe_dir="total"
+    sdata=status["total"]['Current']
+    sdiff=status["total"]
+
+    glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
+    for s in ('Wait','Idle','Running','Held','Completed','Removed'):
+        if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
+            count=sdata[s]
+            glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
+                                                              "GAUGE",updated,count)
+            exited=-status["total"]['Exited'][s]
+            glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
+                                                              "ABSOLUTE",updated,exited)
+            
+        entered=status["total"]['Entered'][s]
+        glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered"%(fe_dir,s),
+                                                          "ABSOLUTE",updated,entered)
+
+        if s=='Completed':
+            completed_counts=status["total"]['CompletedCounts']
+            count_entered_times=completed_counts['Lasted']
+            count_validation_failed=completed_counts['Failed']
+            count_waste_mill=completed_counts['Waste']
+            # save run times
+            for timerange in count_entered_times.keys():
+                glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
+                                                   "ABSOLUTE",updated,count_entered_times[timerange])
+            # save failures
+            glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s),
+                                                              "ABSOLUTE",updated,count_validation_failed)
+
+            # save waste_mill
+            for w in count_waste_mill.keys():
+                count_waste_mill_w=count_waste_mill[w]
+                for p in count_waste_mill_w.keys():
+                    glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
+                                                                      "ABSOLUTE",updated,count_waste_mill_w[p])
     return status
 
 #################        PRIVATE      #####################
@@ -380,42 +413,15 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.22 2008/05/23 20:13:18 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.23 2008/05/30 14:44:18 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
-#  Revision 1.22  2008/05/23 20:13:18  sfiligoi
-#  Fix bug
-#
-#  Revision 1.21  2008/05/23 20:11:19  sfiligoi
-#  Fix bug
-#
-#  Revision 1.20  2008/05/23 19:30:56  sfiligoi
-#  Fix bug
-#
-#  Revision 1.19  2008/05/23 19:28:45  sfiligoi
-#  Fix bug
-#
-#  Revision 1.18  2008/05/23 19:24:48  sfiligoi
-#  Fix bug
-#
-#  Revision 1.17  2008/05/23 17:50:17  sfiligoi
-#  Fix typo
-#
-#  Revision 1.16  2008/05/23 17:49:19  sfiligoi
-#  Fix typo
-#
-#  Revision 1.15  2008/05/23 17:44:29  sfiligoi
-#  Fix bug
-#
-#  Revision 1.14  2008/05/23 17:43:20  sfiligoi
-#  Fix typo
+#  Revision 1.23  2008/05/30 14:44:18  sfiligoi
+#  Add creation of log rrds
 #
 #  Revision 1.13  2008/05/23 17:42:18  sfiligoi
 #  Add creation of the log_summary
-#
-#  Revision 1.12  2008/05/20 16:54:04  sfiligoi
-#  Fix typo
 #
 #  Revision 1.11  2008/05/20 16:51:14  sfiligoi
 #  Properly calculate the InfoAge totals
