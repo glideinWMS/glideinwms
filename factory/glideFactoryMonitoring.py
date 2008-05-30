@@ -1108,6 +1108,14 @@ class condorLogSummary:
         create_log_split_graphs("frontend",frontend_list)
 
         # create support index files
+        mill_range_groups=getAllMillRangeGroups()
+        mill_range_groups_keys=mill_range_groups.keys()
+        mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
+        
+        time_range_groups=getAllTimeRangeGroups()
+        time_range_groups_keys=time_range_groups.keys()
+        time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
+        
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
 
@@ -1660,10 +1668,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.158 2008/05/30 15:27:13 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.159 2008/05/30 15:29:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.159  2008/05/30 15:29:55  sfiligoi
+#  Fix typo
+#
 #  Revision 1.158  2008/05/30 15:27:13  sfiligoi
 #  Fix typo
 #
