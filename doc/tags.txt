@@ -4,6 +4,7 @@ vnext	Added support for BDII.
         All commands now are executable.
         Add client and Condor-G monitoring in factory data.
         Greatly improved log stats monitoring.
+        Add doc section on monitoring.
 
 v1_2	More fine grained configuration of glideins
         Factory reads now force integrity checks
