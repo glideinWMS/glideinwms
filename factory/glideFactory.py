@@ -36,6 +36,11 @@ import logSupport
 # this thread will be used for lazy updates of rrd history conversions
 rrd_thread=None
 
+def create_history_thread():
+    glideFactoryMonitorAggregator.create_status_history()
+    glideFactoryMonitorAggregator.create_log_history()
+    return
+
 ############################################################
 def aggregate_stats():
     global rrd_thread
@@ -55,7 +60,7 @@ def aggregate_stats():
 
     if not thread_alive:
         glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats")
-        rrd_thread=threading.Thread(target=glideFactoryMonitorAggregator.create_status_history)
+        rrd_thread=threading.Thread(target=create_history_thread)
         rrd_thread.start()
 
     return
@@ -193,10 +198,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.66 2008/05/23 17:42:18 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.67 2008/05/30 15:07:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.67  2008/05/30 15:07:07  sfiligoi
+#  Add creating of cummulative log graphs
+#
 #  Revision 1.66  2008/05/23 17:42:18  sfiligoi
 #  Add creation of the log_summary
 #

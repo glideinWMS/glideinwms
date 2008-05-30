@@ -132,8 +132,7 @@ def aggregateStatus():
     return status
 
 ##############################################################################
-# create an aggregate of status files, write it in an aggregate status file
-# end return the values
+# create the history graphs and related index html file
 def create_status_history():
     # create history XML files for RRDs
     attr_rrds=glideFactoryMonitoring.monitoringConfig.find_disk_attributes("total")
@@ -390,6 +389,13 @@ def aggregateLogSummary():
                                                                       "ABSOLUTE",updated,count_waste_mill_w[p])
     return status
 
+##############################################################################
+# create the history graphs and related index html file
+def create_log_history():
+    glideFactoryMonitoring.create_log_graphs("total")
+
+    return
+
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -409,10 +415,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.24 2008/05/30 14:46:30 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.25 2008/05/30 15:07:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.25  2008/05/30 15:07:07  sfiligoi
+#  Add creating of cummulative log graphs
+#
 #  Revision 1.24  2008/05/30 14:46:30  sfiligoi
 #  Fix typo
 #
