@@ -123,7 +123,7 @@ Frontend</a></li>
     <li><a href="#condormon">Standard condor monitoring</a></li>
     <li><a href="#intmon">Pseudo interactive monitoring</a></li>
     <li><a href="#gfwebmon">Glidein Factory Web monitoring</a></li>
-    <li>glideinWMS text monitoring</li>
+    <li><a href="#textmon">glideinWMS text monitoring</a></li>
     </ul>
   </li>
   <li><a href="#ref">Reference</a></li>
@@ -642,8 +642,8 @@ The glideinWMS comes with 4 types of monitoring facilities:
 <ul>
 <li><a href="#condormon">Standard condor monitoring</a></li>
 <li><a href="#intmon">Pseudo interactive monitoring</a></li>
-<li><a href="gfwebmon">Glidein Factory Web monitoring</a></li>
-<li>glideinWMS text monitoring</li>
+<li><a href="#gfwebmon">Glidein Factory Web monitoring</a></li>
+<li><a href="#textmon">glideinWMS text monitoring</a></li>
 </ul>
 
 <h3><a name="condormon"></a>Standard condor monitoring</h3>
@@ -685,13 +685,31 @@ The glidein factory also produces a large amount of web accessible information.
 Look into
 <pre>
 http://<i>gfactory_node</i>:<i>http_port</i>/glidefactory/monitor/glidein_<i>factory_name</i>/
-<pre>
+</pre>
 <p>
 For most begginner users, start at
 <pre>
 http://<i>gfactory_node</i>:<i>http_port</i>/glidefactory/monitor/glidein_<i>factory_name</i>/total/0Status.hour.large.html
 </pre>
 and go on from there.
+
+<h3><a name="textmon"></a>glideinWMS text monitoring</h3>
+
+A system administrator can also monitor the glideinWMS status using text tools.
+<p>
+Move into
+<pre>
+glideinWMS/tools
+</pre>
+and run either
+<pre>
+./wmsXMLView.py
+</pre>
+or 
+<pre>
+./wmsTxtView.py [Entries|Sites|Gatekeepers]
+</pre>
+
 
 
 <a name="ref"></a><br>
