@@ -351,10 +351,6 @@ def aggregateLogSummary():
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.logsummary_relname,xml_str)
 
     # Write rrds
-    stats_data_summary=self.get_stats_data_summary()
-    stats_total_summary=self.get_stats_total_summary()
-    for client_name in [None]+self.stats_diff.keys():
-
     fe_dir="total"
     sdata=status["total"]['Current']
     sdiff=status["total"]
@@ -413,10 +409,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.23 2008/05/30 14:44:18 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.24 2008/05/30 14:46:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.24  2008/05/30 14:46:30  sfiligoi
+#  Fix typo
+#
 #  Revision 1.23  2008/05/30 14:44:18  sfiligoi
 #  Add creation of log rrds
 #
