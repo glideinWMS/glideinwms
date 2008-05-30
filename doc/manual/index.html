@@ -118,6 +118,14 @@ Frontend</a></li>
   </ul>
 
 
+  <li><a href="#monitoring">Monitoring</a>
+   <ul>
+    <li><a href="#condormon">Standard condor monitoring</a></li>
+    <li><a href="#intmon">Pseudo interactive monitoring</a></li>
+    <li><a href="#gfwebmon">Glidein Factory Web monitoring</a></li>
+    <li>glideinWMS text monitoring</li>
+    </ul>
+  </li>
   <li><a href="#ref">Reference</a></li>
 
 
@@ -626,6 +634,64 @@ glideins.<br>
 
 
 <br>
+
+<h2><a name="monitoring"></a>Monitoring</h2>
+
+
+The glideinWMS comes with 4 types of monitoring facilities:
+<ul>
+<li><a href="#condormon">Standard condor monitoring</a></li>
+<li><a href="#intmon">Pseudo interactive monitoring</a></li>
+<li><a href="gfwebmon">Glidein Factory Web monitoring</a></li>
+<li>glideinWMS text monitoring</li>
+</ul>
+
+<h3><a name="condormon"></a>Standard condor monitoring</h3>
+
+The glideinWMS creates a standard condor pool, so users can monitor their jobs using the
+standard Condor tools, like
+<a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">condor_q</a> and
+<a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_status.html">condor_status</a>.
+<p>
+The administrator can also install graphical tools like the 
+<a href="http://www.cs.wisc.edu/condor/contrib/">Condor View</a>.
+
+<h3><a name="intmon"></a>Pseudo interactive monitoring</h3>
+
+The glideinWMS also provides pseudo interactive monitoring functionalities;
+a user can run short lived commands alongide any already running job in the queue.
+<p>
+To run a pseudo interactive command, move into
+<pre>
+glideinWMS/tools
+</pre>
+and run 
+<pre>
+./glidein_interactive.py <i>jobid</i> <i>cmdline</i>
+</pre>
+<p>
+There are also a set of useful often used commands that you may want to use:
+<ul>
+<li>glidein_ls.py <i>jobid</i> <i>[subdir]</i>
+<li>glidein_cat.py  <i>jobid</i> <i>fname</i>
+<li>glidein_top.py <i>jobid</i>
+<li>glidein_ps.py <i>jobid</i> <i>[opts]</i>
+</ul>
+
+<h3><a name="gfwebmon"></a>Glidein Factory Web monitoring</h3>
+
+The glidein factory also produces a large amount of web accessible information.
+<p>
+Look into
+<pre>
+http://<i>gfactory_node</i>:<i>http_port</i>/glidefactory/monitor/glidein_<i>factory_name</i>/
+<pre>
+<p>
+For most begginner users, start at
+<pre>
+http://<i>gfactory_node</i>:<i>http_port</i>/glidefactory/monitor/glidein_<i>factory_name</i>/total/0Status.hour.large.html
+</pre>
+and go on from there.
 
 
 <a name="ref"></a><br>
