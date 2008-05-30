@@ -1506,7 +1506,7 @@ def create_log_split_graphs(subdir_template,subdir_list):
 
             idx=0
             for fe in subdir_list:
-                fe_dir=subdir_tempate%fe
+                fe_dir=subdir_template%fe
                 diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
                 idx=idx+1
 
@@ -1514,7 +1514,7 @@ def create_log_split_graphs(subdir_template,subdir_list):
                 idx=0
                 area_or_stack='AREA' # first must be area for exited
                 for fe in subdir_list:
-                    fe_dir=subdir_tempate%fe
+                    fe_dir=subdir_template%fe
                     diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
                     area_or_stack='STACK'
                     count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
@@ -1541,7 +1541,7 @@ def create_log_split_graphs(subdir_template,subdir_list):
                 cdef_arr=[]
                 idx=0
                 for fe in subdir_list:
-                    fe_dir=subdir_tempate%fe
+                    fe_dir=subdir_template%fe
                     cdef_formula="0"
                     for range_val in range_list:
                         ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
@@ -1671,10 +1671,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.160 2008/05/30 15:44:01 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.161 2008/05/30 15:45:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.161  2008/05/30 15:45:26  sfiligoi
+#  Fix typo
+#
 #  Revision 1.160  2008/05/30 15:44:01  sfiligoi
 #  Make create_log_split_graphs more flexible
 #
