@@ -1298,11 +1298,9 @@ def get_completed_stats_xml_desc():
 ##################################################
 def create_log_graphs(fe_dir):
     colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
-    r_colors=('c00000',
-              'ff0000','ff4000','ff8000','ffc000',
-              'ffff00',
-              'c0ff00','80ff00','40ff00','00ff00',
-              '00c000')
+    r_colors=('c00000','ff0000', #>250
+              'ff8000','ffc000', #1-250
+              'ffff00','ccff00','99ff00','66ff00','33ff00','00ff00','00c000') #<100
     r_colors_len=len(r_colors)
     time_colors=('000000','0c0000', # unknown and too short
                  'ff0000','ffc000', # 7 and 15 mins
@@ -1666,10 +1664,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.162 2008/05/30 16:09:48 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.163 2008/05/30 16:27:49 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.163  2008/05/30 16:27:49  sfiligoi
+#  Improve colors
+#
 #  Revision 1.162  2008/05/30 16:09:48  sfiligoi
 #  Create create_log_total_index and use it both for entries and the factory
 #
