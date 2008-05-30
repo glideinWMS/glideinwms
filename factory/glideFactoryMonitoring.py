@@ -1107,36 +1107,6 @@ class condorLogSummary:
         frontend_list=monitoringConfig.find_disk_frontends()
         create_log_split_graphs("frontend",frontend_list)
 
-        # create the completed split graphs
-        #for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
-        #    pass
-        for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
-            if t=="Lasted":
-                range_groups=time_range_groups
-                range_groups_keys=time_range_groups_keys
-            else:
-                range_groups=mill_range_groups
-                range_groups_keys=mill_range_groups_keys
-            for range_group in range_groups_keys:
-                range_list=range_groups[range_group]
-                diff_rrd_files=[]
-                cdef_arr=[]
-                idx=0
-                for fe in frontend_list:
-                    fe_dir="frontend_"+fe
-                    cdef_formula="0"
-                    for range_val in range_list:
-                        ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
-                        diff_rrd_files.append([ds_id,"%s/Log_Completed_Entered_%s_%s.rrd"%(fe_dir,t,range_val),"STACK","000000"]) # colors not used
-                        cdef_formula=cdef_formula+(",%s,+"%ds_id)
-                    cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
-                    idx+=1
-                monitoringConfig.graph_rrds("total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
-                                            "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                monitoringConfig.graph_rrds("total/Split_Log10_Completed_Entered_%s_%s"%(t,range_group),
-                                            "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=10)
-
-
         # create support index files
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
@@ -1690,10 +1660,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.157 2008/05/30 15:24:14 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.158 2008/05/30 15:27:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.158  2008/05/30 15:27:13  sfiligoi
+#  Fix typo
+#
 #  Revision 1.157  2008/05/30 15:24:14  sfiligoi
 #  Move create_log_split_graphs into the global space
 #
