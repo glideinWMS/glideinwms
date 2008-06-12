@@ -97,7 +97,7 @@ def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
     script_lines.append("outdir=`ls -lt .. | tail -1 | awk '{print $9}'`")
     # execute command in work dir
     script_lines.append("(cd ../$outdir; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
-    return createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,script_list)
+    return createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,script_lines)
 
 # callback function for glideinMonitor.monitor
 # executes the command
@@ -105,6 +105,6 @@ def createCmdMonitorFileSimple(monitor_file_name,monitor_control_relname,
                          argv,condor_status):
     script_lines=[]
     script_lines.append(argv2cmd(argv))
-    return createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,script_list)
+    return createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,script_lines)
 
 
