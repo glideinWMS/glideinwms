@@ -26,4 +26,4 @@ def argv_top(argv):
         raise RuntimeError, "Unexpected parameters starting with %s found!"%argv[0]
     return ['top', '-b', '-n', '1']
 
-glideinCmd.exe_cmd(argv_top)
+glideinCmd.exe_cmd_simple(argv_top)
