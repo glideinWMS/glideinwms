@@ -1,3 +1,6 @@
+vNext	Added glidein_gcb.
+	Add LIBEXEC to condor_config.
+
 v1_2_1	Added support for BDII.
         Added stop scripts for factory and frontend.
         Added tools/wmsTxtList.py and tools/glidein_interactive.py.
