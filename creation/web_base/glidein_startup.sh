@@ -232,26 +232,36 @@ fi
 # Setup OSG and/or Globus
 if [ -r "$OSG_GRID/setup.sh" ]; then
     . "$OSG_GRID/setup.sh"
-elif [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
-    . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
-elif [ -r "$GLOBUS_LOCATION/etc/globus-user-env.sh" ]; then
-    . "$GLOBUS_LOCATION/etc/globus-user-env.sh"
-elif [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
-    GLOBUS_LOCATION=/opt/globus
-    . "$GLOBUS_LOCATION/etc/globus-user-env.sh"
-elif [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
-    GLOBUS_LOCATION=/osgroot/osgcore/globus
-    . "$GLOBUS_LOCATION/etc/globus-user-env.sh"
 else
-    warn "Could not find OSG, EGEE and/or Globus." 1>&2
-    warn "Looked in:" 1>&2
-    warn ' OSG   : $OSG_GRID/setup.sh' 1>&2
-    warn ' EGEE  : ${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh' 1>&2
-    warn ' Globus: $GLOBUS_LOCATION/etc/globus-user-env.sh' 1>&2
-    warn ' Globus: /opt/globus/etc/globus-user-env.sh' 1>&2
-    warn ' Globus: /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
+  if [ -r "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh" ]; then
+    . "${GLITE_LOCAL_CUSTOMIZATION_DIR}/cp_1.sh"
+  fi
+fi
+
+if [ -z "$GLOBUS_PATH" ]; then
+  if [ -z "$GLOBUS_LOCATION" ]; then
+    # if GLOBUS_LOCATION not defined, try to guess it
+    if [ -r "/opt/globus/etc/globus-user-env.sh" ]; then
+       GLOBUS_LOCATION=/opt/globus
+    elif  [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
+       GLOBUS_LOCATION=/osgroot/osgcore/globus
+    else
+       warn "GLOBUS_LOCATION not defined and could not guess it." 1>&2
+       warn "Looked in:" 1>&2
+       warn ' /opt/globus/etc/globus-user-env.sh' 1>&2
+       warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
+       sleep $sleep_time # wait a bit, to reduce lost glideins
+       exit 1
+    fi
+  fi
+
+  if [ -r "$GLOBUS_LOCATION/etc/globus-user-env.sh" ]; then
+    . "$GLOBUS_LOCATION/etc/globus-user-env.sh"
+  else
+    warn "GLOBUS_PATH not defined and $GLOBUS_LOCATION/etc/globus-user-env.sh does not exist." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
+  fi
 fi
 
 ########################################
