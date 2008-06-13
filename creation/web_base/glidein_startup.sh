@@ -278,7 +278,7 @@ fi
 
 if [ -e "$work_dir" ]; then
     echo >/dev/null
-else:
+else
     warn "Startup dir $work_dir does not exist." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     exit 1
