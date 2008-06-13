@@ -43,7 +43,7 @@ def argv_gdb(argv):
     script_lines=[]
     script_lines.append('cat > %s <<EOF'%gdbcommand)
     script_lines.append('set height 0')
-    script_lines.append(gcb_cmd)
+    script_lines.append(gdb_cmd)
     script_lines.append('quit')
     script_lines.append('EOF')
     script_lines.append('gdb -command %s'%Gdbcommand) 
