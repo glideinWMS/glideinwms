@@ -9,7 +9,7 @@
 #  glidein_gdb.py <cluster>.<process> <pid> [<command>] [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]
 #
 # Supported gdb commands:
-#  watch (default)
+#  where (default)
 #
 # Author:
 #   Igor Sfiligoi (June 2007)
@@ -30,12 +30,12 @@ def argv_gdb(argv):
     pid=argv[0]
     
     # parse args to get the command
-    gdb_cmd="watch"
+    gdb_cmd="where"
     if len(argv)>1:
-        if argv[1]=="watch":
-            gdb_cmd="watch"
+        if argv[1]=="where":
+            gdb_cmd="where"
         else:
-            raise RuntimeError, "Unexpected command %s found!\nOnly watch supported."%argv[1]
+            raise RuntimeError, "Unexpected command %s found!\nOnly where supported."%argv[1]
 
     # select the lines
     gdbcommand="gdb.command"
