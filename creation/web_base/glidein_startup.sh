@@ -12,7 +12,7 @@ function usage {
     echo "  -entry <name>         : name of this glidein entry"
     echo "  -web <baseURL>        : base URL from where to fetch"
     echo "  -proxy <proxyURL>     : URL of the local proxy"
-    echo "  -dir <dirID>          : directory ID (supports .,Condor, CONDOR, OSG)"
+    echo "  -dir <dirID>          : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR)"
     echo "  -sign <sign>          : signature of the signature file"
     echo "  -signtype <id>        : type of signature (only sha1 supported for now)"
     echo "  -signentry <sign>     : signature of the entry signature file"
@@ -133,28 +133,28 @@ elif [ "$debug_mode" == "fast" ]; then
 fi
 
 if [ -z "$descript_file" ]; then
-    warn "Missing descript fname!" 1>&2
+    warn "Missing descript fname." 1>&2
     usage
 fi
 
 if [ -z "$descript_entry_file" ]; then
-    warn "Missing descript fname for entry!" 1>&2
+    warn "Missing descript fname for entry." 1>&2
     usage
 fi
 
 if [ -z "glidein_name" ]; then
-    warn "Missing gliden name!" 1>&2
+    warn "Missing gliden name." 1>&2
     usage
 fi
 
 if [ -z "glidein_entry" ]; then
-    warn "Missing glidein entry name!" 1>&2
+    warn "Missing glidein entry name." 1>&2
     usage
 fi
 
 
 if [ -z "$repository_url" ]; then
-    warn "Missing Web URL!" 1>&2
+    warn "Missing Web URL." 1>&2
     usage
 fi
 
@@ -163,12 +163,12 @@ if [ -z "$proxy_url" ]; then
 fi
 
 if [ -z "sign_id" ]; then
-    warn "Missing signature!" 1>&2
+    warn "Missing signature." 1>&2
     usage
 fi
 
 if [ -z "sign_entry_id" ]; then
-    warn "Missing entry signature!" 1>&2
+    warn "Missing entry signature." 1>&2
     usage
 fi
 
@@ -180,7 +180,7 @@ if [ "$sign_type" == "sha1" ]; then
     sign_sha1="$sign_id"
     sign_entry_sha1="$sign_entry_id"
 else
-    warn "Unsupported signtype $sign_type found!" 1>&2
+    warn "Unsupported signtype $sign_type found." 1>&2
     usage
 fi
     
@@ -240,7 +240,7 @@ elif [ -r "/osgroot/osgcore/globus/etc/globus-user-env.sh" ]; then
     GLOBUS_LOCATION=/osgroot/osgcore/globus
     . $GLOBUS_LOCATION/etc/globus-user-env.sh
 else
-    warn "Could not find OSG and/or Globus!" 1>&2
+    warn "Could not find OSG and/or Globus." 1>&2
     warn "Looked in:" 1>&2
     warn ' $OSG_GRID/setup.sh' 1>&2
     warn ' $GLOBUS_LOCATION/etc/globus-user-env.sh' 1>&2
@@ -258,10 +258,26 @@ elif [ "$work_dir" == "CONDOR" ]; then
     work_dir="$_CONDOR_SCRATCH_DIR"
 elif [ "$work_dir" == "OSG" ]; then
     work_dir="$OSG_WN_TMP"
+elif [ "$work_dir" == "TMPDIR" ]; then
+    work_dir="$TMPDIR"
 elif [ "$work_dir" == "." ]; then
     work_dir=`pwd`
 elif [ -z "$work_dir" ]; then
     work_dir=`pwd`
+fi
+
+if [ -z "$work_dir" ]; then
+    warn "Startup dir is empty." 1>&2
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
+fi
+
+if [ -e "$work_dir" ]; then
+    echo >/dev/null
+else:
+    warn "Startup dir $work_dir does not exist." 1>&2
+    sleep $sleep_time # wait a bit, to reduce lost glideins
+    exit 1
 fi
 
 start_dir=`pwd`
@@ -276,7 +292,7 @@ if [ $? -ne 0 ]; then
 else
     cd "$work_dir"
     if [ $? -ne 0 ]; then
-	warn "Dir '$work_dir' was created but I cannot cd into it!" 1>&2
+	warn "Dir '$work_dir' was created but I cannot cd into it." 1>&2
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	exit 1
     else
@@ -389,7 +405,7 @@ function check_file_signature {
 		cfs_rc=$?
 	    fi
 	    if [ $cfs_rc -ne 0 ]; then
-		warn "File $cfs_desc_fname is corrupted!" 1>&2
+		warn "File $cfs_desc_fname is corrupted." 1>&2
 		rm -f $tmp_signname
 		return 1
 	    fi
@@ -415,7 +431,7 @@ function get_untar_subdir {
 
     gus_config_file=`grep "^$gus_config_cfg " glidein_config | awk '{print $2}'`
     if [ -z "$gus_config_file" ]; then
-	warn "Error, cannot find '$gus_config_cfg' in glidein_config!" 1>&2
+	warn "Error, cannot find '$gus_config_cfg' in glidein_config." 1>&2
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
@@ -423,7 +439,7 @@ function get_untar_subdir {
 
     gus_dir=`grep -i "^$gus_fname " $gus_config_file | awk '{print $2}'`
     if [ -z "$gus_dir" ]; then
-	warn "Error, untar dir for '$gus_fname' cannot be empty!" 1>&2
+	warn "Error, untar dir for '$gus_fname' cannot be empty." 1>&2
 	sleep $sleep_time # wait a bit, to reduce lost glideins
 	cd "$start_dir";rm -fR "$work_dir"
 	exit 1
@@ -585,7 +601,7 @@ check_signature=0
 fetch_file_regular "main" "$descript_file"
 signature_file_line=`grep "^signature " "$descript_file"`
 if [ $? -ne 0 ]; then
-    warn "No signature in description file!" 1>&2
+    warn "No signature in description file." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -597,7 +613,7 @@ fetch_file_regular "main" "$signature_file"
 echo "$sign_sha1  $signature_file">signature.sha1.test
 sha1sum -c signature.sha1.test 1>&2
 if [ $? -ne 0 ]; then
-    warn "Corrupted signature file '$signature_file'!" 1>&2
+    warn "Corrupted signature file '$signature_file'." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -609,7 +625,7 @@ mv "$signature_file" "signature.sha1"
 fetch_file_regular "$short_entry_dir" "$descript_entry_file"
 signature_entry_file_line=`grep "^signature " "$entry_dir/$descript_entry_file"`
 if [ $? -ne 0 ]; then
-    warn "No signature in description file for entry!" 1>&2
+    warn "No signature in description file for entry." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -621,7 +637,7 @@ fetch_file_regular "$short_entry_dir" "$signature_entry_file"
 echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
 (cd $entry_dir; sha1sum -c signature.sha1.test) 1>&2
 if [ $? -ne 0 ]; then
-    warn "Corrupted entry signature file '$signature_entry_file'!" 1>&2
+    warn "Corrupted entry signature file '$signature_entry_file'." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -638,7 +654,7 @@ check_signature=1
 # the description file
 check_file_signature "main" "$descript_file"
 if [ $? -ne 0 ]; then
-    warn "Corrupted description file!" 1>&2
+    warn "Corrupted description file." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -646,7 +662,7 @@ fi
 
 check_file_signature "$short_entry_dir" "$descript_entry_file"
 if [ $? -ne 0 ]; then
-    warn "Corrupted description file for entry!" 1>&2
+    warn "Corrupted description file for entry." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -659,7 +675,7 @@ for id in file_list last_script
 do
   id_line=`grep "^$id " "$descript_file"`
   if [ $? -ne 0 ]; then
-    warn "No '$id' in description file!" 1>&2
+    warn "No '$id' in description file." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
@@ -674,7 +690,7 @@ for id in file_list
 do
   id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
   if [ $? -ne 0 ]; then
-    warn "No '$id' in entry description file!" 1>&2
+    warn "No '$id' in entry description file." 1>&2
     sleep $sleep_time # wait a bit, to reduce lost glideins
     cd "$start_dir";rm -fR "$work_dir"
     exit 1
