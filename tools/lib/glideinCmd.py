@@ -10,7 +10,7 @@ import sys,string,os,stat
 import glideinMonitor
 
 
-# Try to execute the pesudo interactive command
+# Try to execute the pseudo interactive command
 # based on the passed arguments
 #
 # argv_func is a callback that transforms the unrecognized arguments
@@ -27,7 +27,7 @@ def exe_cmd(argv_func):
         print e
         sys.exit(1)
 
-# Try to execute the pesudo interactive command
+# Try to execute the pseudo interactive command
 # based on the passed arguments
 #
 # argv_func is a callback that transforms the unrecognized arguments
@@ -43,19 +43,18 @@ def exe_cmd_simple(argv_func):
         print e
         sys.exit(1)
 
-# Try to execute the pesudo interactive command
+# Try to execute the pseudo interactive command
 # based on the passed arguments
 #
-# argv_func is a callback that creates the monitoring script
-# arguments are (file_name,out_relname,argv,condor_status)
-# where argv is the list of unrecognized arguments
+# argv_func is a callback that transforms the unrecognized arguments
+# into a list of lines to populate a sh script
 #
-def exe_script(argv_func):
+def exe_cmd_script(argv_func):
     try:
         args=glideinMonitor.parseArgs(sys.argv[1:])
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
-                               argv_func,args['argv'])
+                               createCmdMonitorFileScript,argv_func(args['argv']))
     except RuntimeError,e:
         print e
         sys.exit(1)
@@ -65,8 +64,8 @@ def exe_script(argv_func):
 ######################################
 
 # create a file usable by a callback function for glideinMonitor.monitor
-def createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,
-                               script_list):
+def monitorScriptFromList(monitor_file_name,monitor_control_relname,
+                          script_list):
     # create the command file
     fd=open(monitor_file_name,"w")
     try:
@@ -97,14 +96,20 @@ def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
     script_lines.append("outdir=`ls -lt .. | tail -1 | awk '{print $9}'`")
     # execute command in work dir
     script_lines.append("(cd ../$outdir; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
-    return createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,script_lines)
+    return monitorScriptFromList(monitor_file_name,monitor_control_relname,script_lines)
 
 # callback function for glideinMonitor.monitor
 # executes the command
 def createCmdMonitorFileSimple(monitor_file_name,monitor_control_relname,
-                         argv,condor_status):
+                               argv,condor_status):
     script_lines=[]
     script_lines.append(argv2cmd(argv))
-    return createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,script_lines)
+    return monitorScriptFromList(monitor_file_name,monitor_control_relname,script_lines)
+
+# callback function for glideinMonitor.monitor
+# executes the script_list lines
+def createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,
+                               script_list,condor_status):
+    return monitorScriptFromList(monitor_file_name,monitor_control_relname,script_list)
 
 
