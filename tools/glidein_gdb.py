@@ -1,0 +1,57 @@
+#!/bin/env python
+#
+# glidein_gdb.py
+#
+# Description:
+#   Execute a ls command on a condor job working directory
+#
+# Usage:
+#  glidein_gdb.py <cluster>.<process> <pid> [<command>] [-name <schedd_name>] [-pool <pool_name> ] [-timeout <nr secs>]
+#
+# Supported gdb commands:
+#  watch (default)
+#
+# Author:
+#   Igor Sfiligoi (June 2007)
+#
+# License:
+#  Fermitools
+#
+
+import sys,os.path
+sys.path.append(os.path.join(sys.path[0],"lib"))
+sys.path.append(os.path.join(sys.path[0],"../lib"))
+
+import glideinCmd
+
+def argv_gdb(argv):
+    if len(argv)==0:
+        raise RuntimeError, "Missing PID"
+    pid=argv[0]
+    
+    # parse args to get the command
+    gdb_cmd="watch"
+    if len(argv)>1:
+        if argv[1]=="watch":
+            gdb_cmd="watch"
+        else:
+            raise RuntimeError, "Unexpected command %s found!\nOnly watch supported."%argv[1]
+
+    # select the lines
+    gdbcommand="gdb.command"
+
+    script_lines=[]
+    script_lines.append('cat > %s <<EOF'%gdbcommand)
+    script_lines.append('set height 0')
+    script_lines.append(gcb_cmd)
+    script_lines.append('quit')
+    script_lines.append('EOF')
+    script_lines.append('gdb -command %s'%$gdbcommand) 
+    script_lines.append('res=$?')
+    script_lines.append('rm -f %s'%$gdbcommand)
+    script_lines.append('exit $res')
+
+    return script_lines
+
+
+glideinCmd.exe_cmd_script(argv_gdb)
