@@ -47,9 +47,7 @@ def argv_gdb(argv):
     script_lines.append('quit')
     script_lines.append('EOF')
     script_lines.append('gdb -command %s'%gdbcommand) 
-    script_lines.append('res=$?')
     script_lines.append('rm -f %s'%gdbcommand)
-    script_lines.append('exit $res')
 
     return script_lines
 
