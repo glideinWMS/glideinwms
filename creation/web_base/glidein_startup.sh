@@ -185,7 +185,8 @@ else
 fi
     
 
-echo "Starting glidein_startup.sh at" `date`
+startup_time=`date +%s`
+echo "Starting glidein_startup.sh at `date` ($startup_time)"
 echo "debug_mode        = '$debug_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
@@ -727,8 +728,16 @@ done < "$entry_dir/$file_list_entry"
 ###############################
 # Start the glidein main script
 echo "# --- Last Script values ---" >> glidein_config
+last_startup_time=`date +%s`
+let validation_time=$last_startup_time-$startup_time
+echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
+echo
 "./$last_script" glidein_config
 ret=$?
+last_startup_end_time=`date +%s`
+let last_script_time=$last_startup_end_time-$last_startup_time
+echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
+echo
 if [ $ret -ne 0 ]; then
   warn "Error running '$last_script'" 1>&2
   sleep $sleep_time # wait a bit, to reduce lost glideins
@@ -739,4 +748,9 @@ fi
 #########################
 # clean up after I finish
 cd $start_dir;rm -fR $work_dir
+
+glidein_end_time=`date +%s`
+let total_time=$glidein_end_time-$startup_time
+echo "=== Glidein ending `date` ($glidein_end_time) after $total_time ==="
+
 exit $ret

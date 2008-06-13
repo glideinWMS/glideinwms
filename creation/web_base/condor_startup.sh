@@ -163,7 +163,7 @@ if [ "$debug_mode" == "1" ]; then
 fi
 
 start_time=`date +%s`
-echo === Condor starting `date` ===
+echo "=== Condor starting `date` (`date +%s`) ==="
 
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
 $CONDOR_DIR/sbin/condor_master -r $retmins -dyn -f 
@@ -171,7 +171,7 @@ ret=$?
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
-echo === Condor ended `date` after $elapsed_time ===
+echo "=== Condor ended `date` (`date +%s`) after $elapsed_time ==="
 echo
 
 # log dir is always different
