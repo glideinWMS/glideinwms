@@ -55,6 +55,24 @@ shift
 shift
 done
 
+####################################
+# Cleaup, print out message and exit
+work_dir_created=0
+function glidein_exit {
+  if [ $1 -ne 0 ]; then
+    sleep $sleep_time # wait a bit in case of error, to reduce lost glideins
+  fi
+  cd "$start_dir"
+  if [ "$work_dir_created" -eq "1" ]; then
+    rm -fR "$work_dir"
+  fi
+
+  glidein_end_time=`date +%s`
+  let total_time=$glidein_end_time-$startup_time
+  echo "=== Glidein ending `date` ($glidein_end_time) with code $1 after $total_time ==="
+ 
+  exit $1
+}
 
 ###################################
 # Add a line to the config file
@@ -65,8 +83,7 @@ function add_config_line {
     mv glidein_config glidein_config.old
     if [ $? -ne 0 ]; then
 	warn "Error renaming glidein_config into glidein_config.old" 1>&2
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	exit 1
+	glidein_exit 1
     fi
     grep -v "^$id " glidein_config.old > glidein_config
     echo "$@" >> glidein_config
@@ -224,8 +241,7 @@ fi
 umask 0022
 if [ $? -ne 0 ]; then
     warn "Failed in umask 0022" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 
 ########################################
@@ -250,8 +266,7 @@ if [ -z "$GLOBUS_PATH" ]; then
        warn "Looked in:" 1>&2
        warn ' /opt/globus/etc/globus-user-env.sh' 1>&2
        warn ' /osgroot/osgcore/globus/etc/globus-user-env.sh' 1>&2
-       sleep $sleep_time # wait a bit, to reduce lost glideins
-       exit 1
+       glidein_exit 1
     fi
   fi
 
@@ -259,8 +274,7 @@ if [ -z "$GLOBUS_PATH" ]; then
     . "$GLOBUS_LOCATION/etc/globus-user-env.sh"
   else
     warn "GLOBUS_PATH not defined and $GLOBUS_LOCATION/etc/globus-user-env.sh does not exist." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
   fi
 fi
 
@@ -282,16 +296,14 @@ fi
 
 if [ -z "$work_dir" ]; then
     warn "Startup dir is empty." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 
 if [ -e "$work_dir" ]; then
     echo >/dev/null
 else
     warn "Startup dir $work_dir does not exist." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 
 start_dir=`pwd`
@@ -301,33 +313,30 @@ def_work_dir="$work_dir/glide_XXXXXX"
 work_dir=`mktemp -d "$def_work_dir"`
 if [ $? -ne 0 ]; then
     warn "Cannot create temp '$def_work_dir'" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 else
     cd "$work_dir"
     if [ $? -ne 0 ]; then
 	warn "Dir '$work_dir' was created but I cannot cd into it." 1>&2
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	exit 1
+	glidein_exit 1
     else
 	echo "Running in $work_dir"
     fi
 fi
+work_dir_created=1
 
 # mktemp makes it user readable by definition (ignores umask)
 chmod a+rx "$work_dir"
 if [ $? -ne 0 ]; then
     warn "Failed chmod '$work_dir'" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 
 glide_tmp_dir="${work_dir}/tmp"
 mkdir "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     warn "Cannot create '$glide_tmp_dir'" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 # the tmpdir should be world readable
 # This way it will work even if the user spawned by the glidein is different
@@ -335,15 +344,13 @@ fi
 chmod a+rwx "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     warn "Failed chmod '$glide_tmp_dir'" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 # prevent others to remove or rename a file in tmp
 chmod o+t "$glide_tmp_dir"
 if [ $? -ne 0 ]; then
     warn "Failed special chmod '$glide_tmp_dir'" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 
 short_entry_dir=entry_${glidein_entry}
@@ -351,8 +358,7 @@ entry_dir="${work_dir}/${short_entry_dir}"
 mkdir "$entry_dir"
 if [ $? -ne 0 ]; then
     warn "Cannot create '$entry_dir'" 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    exit 1
+    glidein_exit 1
 fi
 
 # create glidein_config
@@ -446,17 +452,13 @@ function get_untar_subdir {
     gus_config_file=`grep "^$gus_config_cfg " glidein_config | awk '{print $2}'`
     if [ -z "$gus_config_file" ]; then
 	warn "Error, cannot find '$gus_config_cfg' in glidein_config." 1>&2
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	cd "$start_dir";rm -fR "$work_dir"
-	exit 1
+	glidein_exit 1
     fi
 
     gus_dir=`grep -i "^$gus_fname " $gus_config_file | awk '{print $2}'`
     if [ -z "$gus_dir" ]; then
 	warn "Error, untar dir for '$gus_fname' cannot be empty." 1>&2
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	cd "$start_dir";rm -fR "$work_dir"
-	exit 1
+	glidein_exit 1
     fi
 
     echo "$gus_dir"
@@ -472,16 +474,12 @@ function fetch_file_regular {
 function fetch_file {
     if [ $# -ne 6 ]; then
 	warn "Not enough arguments in fetch_file $@" 1>&2
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	cd "$start_dir";rm -fR "$work_dir"
-	exit 1
+	glidein_exit 1
     fi
 
     fetch_file_try "$1" "$2" "$3" "$4" "$5" "$6"
     if [ $? -ne 0 ]; then
-	sleep $sleep_time # wait a bit, to reduce lost glideins
-	cd "$start_dir";rm -fR "$work_dir"
-	exit 1
+	glidein_exit 1
     fi
     return 0
 }
@@ -616,9 +614,7 @@ fetch_file_regular "main" "$descript_file"
 signature_file_line=`grep "^signature " "$descript_file"`
 if [ $? -ne 0 ]; then
     warn "No signature in description file." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
 fi
 signature_file=`echo $signature_file_line|awk '{print $2}'`
 
@@ -628,9 +624,7 @@ echo "$sign_sha1  $signature_file">signature.sha1.test
 sha1sum -c signature.sha1.test 1>&2
 if [ $? -ne 0 ]; then
     warn "Corrupted signature file '$signature_file'." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
 fi
 # for simplicity use a fixed name for signature file
 mv "$signature_file" "signature.sha1"
@@ -640,9 +634,7 @@ fetch_file_regular "$short_entry_dir" "$descript_entry_file"
 signature_entry_file_line=`grep "^signature " "$entry_dir/$descript_entry_file"`
 if [ $? -ne 0 ]; then
     warn "No signature in description file for entry." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
 fi
 signature_entry_file=`echo $signature_entry_file_line|awk '{print $2}'`
 
@@ -652,9 +644,7 @@ echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
 (cd $entry_dir; sha1sum -c signature.sha1.test) 1>&2
 if [ $? -ne 0 ]; then
     warn "Corrupted entry signature file '$signature_entry_file'." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
 fi
 # for simplicity use a fixed name for signature file
 mv "$entry_dir/$signature_entry_file" "$entry_dir/signature.sha1"
@@ -669,17 +659,13 @@ check_signature=1
 check_file_signature "main" "$descript_file"
 if [ $? -ne 0 ]; then
     warn "Corrupted description file." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
 fi
 
 check_file_signature "$short_entry_dir" "$descript_entry_file"
 if [ $? -ne 0 ]; then
     warn "Corrupted description file for entry." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidien_exit 1
 fi
 
 
@@ -690,9 +676,7 @@ do
   id_line=`grep "^$id " "$descript_file"`
   if [ $? -ne 0 ]; then
     warn "No '$id' in description file." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
   fi
   id_val=`echo $id_line|awk '{print $2}'`
   eval $id=$id_val
@@ -705,9 +689,7 @@ do
   id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
   if [ $? -ne 0 ]; then
     warn "No '$id' in entry description file." 1>&2
-    sleep $sleep_time # wait a bit, to reduce lost glideins
-    cd "$start_dir";rm -fR "$work_dir"
-    exit 1
+    glidein_exit 1
   fi
   id_var="${id}_entry"
   id_val=`echo $id_line|awk '{print $2}'`
@@ -750,17 +732,9 @@ echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after
 echo
 if [ $ret -ne 0 ]; then
   warn "Error running '$last_script'" 1>&2
-  sleep $sleep_time # wait a bit, to reduce lost glideins
-  cd "$start_dir";rm -fR "$work_dir"
-  exit 1
+  glidein_exit 1
 fi
 
 #########################
 # clean up after I finish
-cd $start_dir;rm -fR $work_dir
-
-glidein_end_time=`date +%s`
-let total_time=$glidein_end_time-$startup_time
-echo "=== Glidein ending `date` ($glidein_end_time) after $total_time ==="
-
-exit $ret
+glidein_exit $ret
