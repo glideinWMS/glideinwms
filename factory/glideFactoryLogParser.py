@@ -193,6 +193,8 @@ def extractLogData(fname):
         slot_stats[count_name]={'jobsnr':0,'secs':0}
 
     size = os.path.getsize(fname)
+    if size<10:
+        return {'condor_started':0}
     fd=open(fname,'r')
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
