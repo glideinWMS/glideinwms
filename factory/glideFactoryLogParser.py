@@ -164,25 +164,30 @@ class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
 #     P R I V A T E
 #########################################################
 
+ELD_RC_VALIDATE_END=re.compile("=== Last script starting .* after validating for (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_START=re.compile("=== Condor starting.*===")
 ELD_RC_CONDOR_END=re.compile("=== Condor ended.*after (?P<secs>[0-9]+) ===")
 ELD_RC_CONDOR_SLOT=re.compile("=== Stats of (?P<slot>\S+) ===(?P<content>.*)=== End Stats of (?P<slot2>\S+) ===",re.M|re.DOTALL)
 ELD_RC_CONDOR_SLOT_CONTENT_COUNT=re.compile("Total(?P<name>.*)jobs (?P<jobsnr>[0-9]+) .*utilization (?P<secs>[0-9]+)")
+ELD_RC_GLIDEIN_END=re.compile("=== Glidein ending .* with code (?P<code>[0-9]+) after (?P<secs>[0-9]+) ===")
 
 KNOWN_SLOT_STATS=['Total','goodZ','goodNZ','badSignal','badOther']
 
 
 # will return a dictionary
-#  condor_started - Boolean, did condor even start (if false, no other entries)
-#  condor_duration - integer, how long did it run
+#  glidein_duration - integer, how long did the glidein run
+#  validation_duration - integer, how long did it take before starting condor
+#  condor_started - Boolean, did condor even start (if false, no further entries)
+#  condor_duration - integer, how long did Condor run
 #  stats - dictionary of stats (as in KNOWN_SLOT_STATS), each having
 #           jobsnr - integer, number of jobs started
 #           secs   - integer, total number of secods used
-# for example {'condor_started': 1, 'condor_duration': 20298,
+# for example {'glidein_duration':20305,'validation_duration':6,'condor_started': 1, 'condor_duration': 20298,
 #              'stats': {'badSignal': {'secs': 0, 'jobsnr': 0}, 'goodZ': {'secs': 19481, 'jobsnr': 1}, 'Total': {'secs': 19481, 'jobsnr': 1}, 'goodNZ': {'secs': 0, 'jobsnr': 0}, 'badOther': {'secs': 0, 'jobsnr': 0}}}
 def extractLogData(fname):
     condor_starting=0
     condor_duration=None
+    validation_duration=None
     slot_stats={}
     for count_name in KNOWN_SLOT_STATS:
         slot_stats[count_name]={'jobsnr':0,'secs':0}
@@ -192,17 +197,30 @@ def extractLogData(fname):
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
         try:
-            start_re=ELD_RC_CONDOR_START.search(buf,0)
+            buf_idx=0
+            validate_re=ELD_RC_VALIDATE_END.search(buf,buf_idx)
+            if validate_re!=None:
+                try:
+                    validation_duration=int(validate_re.group('secs'))
+                except:
+                    validation_duration=None
+                
+                bux_idx=validate_re.end()+1
+            
+            start_re=ELD_RC_CONDOR_START.search(buf,buf_idx)
             if start_re!=None:
                 condor_starting=1
-                end_re=ELD_RC_CONDOR_END.search(buf,start_re.end()+1)
+                buf_idx=start_re.end()+1
+                end_re=ELD_RC_CONDOR_END.search(buf,buf_idx)
                 if end_re!=None:
                     try:
                         condor_duration=int(end_re.group('secs'))
                     except:
                         condor_duration=None
-                    slot_re=ELD_RC_CONDOR_SLOT.search(buf,end_re.end()+1)
+                    buf_idx=end_re.end()+1
+                    slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
                     while slot_re!=None:
+                        buf_idx=slot_re.end()+1
                         slot_name=slot_re.group('slot')
                         if slot_name[-1]!='1': # ignore slot 1, it is used for monitoring only
                             slot_buf=slot_re.group('content')
@@ -231,15 +249,31 @@ def extractLogData(fname):
                                 count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,count_re.end()+1)
                                 #end while count_re
                             
-                        slot_re=ELD_RC_CONDOR_SLOT.search(buf,slot_re.end()+1)
+                        slot_re=ELD_RC_CONDOR_SLOT.search(buf,buf_idx)
                         # end while slot_re
                     
+            glidein_end_re=ELD_RC_GLIDEIN_END.search(buf,buf_idx)
+            if glidein_end_re!=None:
+                try:
+                    glidein_duration=int(glidein_end_re.group('secs'))
+                except:
+                    glidein_duration=None
+                
+                bux_idx=glidein_end_re.end()+1
         finally:
             buf.close()
     finally:
         fd.close()
 
     out={'condor_started':condor_starting}
+    if validation_duration!=None:
+        out['validation_duration']=validation_duration
+    #else:
+    #   out['validation_duration']=1
+    if glidein_duration!=None:
+        out['glidein_duration']=glidein_duration
+    #else:
+    #   out['glidein_duration']=2
     if condor_starting:
         if condor_duration!=None:
             out['condor_duration']=condor_duration
