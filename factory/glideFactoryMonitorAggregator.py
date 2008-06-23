@@ -217,7 +217,7 @@ def create_status_history():
                             link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                     fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log</a>]</td>\n'%(ref_period,size))
+                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log</a>]</td>\n'%(period,size))
                         
                     fd.write("</tr><tr>\n")
 
@@ -422,10 +422,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.30 2008/05/30 16:20:01 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.31 2008/06/23 19:01:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.31  2008/06/23 19:01:20  sfiligoi
+#  Fix link in status page
+#
 #  Revision 1.30  2008/05/30 16:20:01  sfiligoi
 #  Fix typo
 #
