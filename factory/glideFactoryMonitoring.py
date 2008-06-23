@@ -838,14 +838,17 @@ class condorLogSummary:
             # get stats
             enle_stats=enle[4]
             enle_condor_started=0
+            enle_glidein_duration=enle_difftime # best guess
             if enle_stats!=None:
                 enle_condor_started=enle_stats['condor_started']
+                if enle_stats.has_key('glidein_duration'):
+                    enle_glidein_duration=enle_stats['glidein_duration']
             if not enle_condor_started:
                 count_validation_failed+=1
                 # 100% waste_mill
                 enle_waste_mill={'validation':1000,
                                  'idle':0,
-                                 'nosuccess':1000,
+                                 'nosuccess':0, #no jobs run, no failures
                                  'badput':1000}
             else:
                 #get waste_mill
@@ -853,23 +856,31 @@ class condorLogSummary:
                 if enle_condor_duration==None:
                     enle_condor_duration=0 # assume failed
 
-                if enle_condor_duration>enle_difftime: # can happen... Condor-G has its delays
-                    enle_difftime=enle_condor_duration
+                if enle_condor_duration>enle_glidein_duration: # can happen... Condor-G has its delays
+                    enle_glidein_duration=enle_condor_duration
 
-                # get wate numbers, in permill
+                # get waste numbers, in permill
                 if (enle_condor_duration<5): # very short means 100% loss
                     enle_waste_mill={'validation':1000,
                                      'idle':0,
-                                     'nosuccess':1000,
+                                     'nosuccess':0, #no jobs run, no failures
                                      'badput':1000}
                 else:
+                    if enle_stats.has_key('validation_duration'):
+                        enle_validation_duration=enle_stats['validation_duration']
+                    else:
+                        enle_validation_duration=enle_difftime-enle_condor_duration
                     enle_condor_stats=enle_stats['stats']
-                    enle_waste_mill={'validation':1000.0*(enle_difftime-enle_condor_duration)/enle_difftime,
-                                     'idle':1000.0*(enle_condor_duration-enle_condor_stats['Total']['secs'])/enle_difftime}
+                    enle_jobs_duration=enle_condor_stats['Total']['secs']
+                    enle_waste_mill={'validation':1000.0*validation_duration/enle_glidein_duration,
+                                     'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
                     enle_goodput=enle_condor_stats['goodZ']['secs']
-                    enle_waste_mill['nosuccess']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
+                    if enle_jobs_duration>0:
+                        enle_waste_mill['nosuccess']=1000.0*(enle_jobs_duration-enle_goodput)/enle_jobs_duration
+                    else:
+                        enle_waste_mill['nosuccess']=0 #no jobs run, no failures
                     enle_goodput+=enle_condor_stats['goodNZ']['secs']
-                    enle_waste_mill['badput']=1000.0*(enle_difftime-enle_goodput)/enle_difftime
+                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
 
                 # find and save time range
                 enle_timerange=getTimeRange(enle_difftime)                        
@@ -1664,10 +1675,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.163 2008/05/30 16:27:49 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.164 2008/06/23 18:53:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.164  2008/06/23 18:53:08  sfiligoi
+#  Improve validation and nosuccess numbers
+#
 #  Revision 1.163  2008/05/30 16:27:49  sfiligoi
 #  Improve colors
 #
