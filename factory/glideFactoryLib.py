@@ -205,6 +205,12 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,submit_attrs,params):
     # Count glideins by status
     qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
 
+    #   Held==JobStatus(5)
+    if qc_status.has_key(5):
+        held_glideins=qc_status[5]
+        if held_glideins>1000:
+            return 0 # too many held glideins, stop submitting new jobs
+
     #   Idle==Jobstatus(1)
     sum_idle_count(qc_status)
     idle_glideins=qc_status[1]
@@ -588,10 +594,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.27 2008/05/11 19:44:19 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.28 2008/06/23 19:33:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.28  2008/06/23 19:33:28  sfiligoi
+#  Protect from too many held jobs (1000)
+#
 #  Revision 1.27  2008/05/11 19:44:19  sfiligoi
 #  Add wait and pending
 #
