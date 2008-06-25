@@ -872,7 +872,7 @@ class condorLogSummary:
                         enle_validation_duration=enle_difftime-enle_condor_duration
                     enle_condor_stats=enle_stats['stats']
                     enle_jobs_duration=enle_condor_stats['Total']['secs']
-                    enle_waste_mill={'validation':1000.0*validation_duration/enle_glidein_duration,
+                    enle_waste_mill={'validation':1000.0*enle_validation_duration/enle_glidein_duration,
                                      'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
                     enle_goodput=enle_condor_stats['goodZ']['secs']
                     if enle_jobs_duration>0:
@@ -1675,10 +1675,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.164 2008/06/23 18:53:08 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.165 2008/06/25 18:07:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.165  2008/06/25 18:07:47  sfiligoi
+#  Fix typo
+#
 #  Revision 1.164  2008/06/23 18:53:08  sfiligoi
 #  Improve validation and nosuccess numbers
 #
