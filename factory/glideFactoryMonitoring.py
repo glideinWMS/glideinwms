@@ -828,7 +828,14 @@ class condorLogSummary:
             count_waste_mill_w=count_waste_mill[w]
             for enle_waste_mill_w_range in getAllMillRanges():
                 count_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
-        # should also add abs waste
+        time_waste_mill={'validation':{},
+                          'idle':{},
+                          'nosuccess':{}, #i.e. everything but jobs terminating with 0
+                          'badput':{}} #i.e. everything but jobs terminating
+        for w in time_waste_mill.keys():
+            time_waste_mill_w=time_waste_mill[w]
+            for enle_waste_mill_w_range in getAllMillRanges():
+                time_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
 
         for enle in entered_list:
             enle_running_time=enle[2]
@@ -888,12 +895,17 @@ class condorLogSummary:
 
             # find and save waste range
             for w in enle_waste_mill.keys():
-                count_waste_mill_w=count_waste_mill[w]
-                # find and save taime range
+                # find and save time range
                 enle_waste_mill_w_range=getMillRange(enle_waste_mill[w])
+
+                count_waste_mill_w=count_waste_mill[w]
                 count_waste_mill_w[enle_waste_mill_w_range]+=1
+
+                time_waste_mill_w=time_waste_mill[w]
+                time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
-        return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill}
+        
+        return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill,'WasteTime':count_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -1063,6 +1075,7 @@ class condorLogSummary:
                     count_entered_times=completed_counts['Lasted']
                     count_validation_failed=completed_counts['Failed']
                     count_waste_mill=completed_counts['Waste']
+                    time_waste_mill=completed_counts['WasteTime']
                     # save run times
                     for timerange in count_entered_times.keys():
                         monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
@@ -1077,6 +1090,11 @@ class condorLogSummary:
                         for p in count_waste_mill_w.keys():
                             monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
                                                        "ABSOLUTE",self.updated,count_waste_mill_w[p])
+                    for w in time_waste_mill.keys():
+                        time_waste_mill_w=time_waste_mill[w]
+                        for p in time_waste_mill_w.keys():
+                            monitoringConfig.write_rrd("%s/Log_%s_Entered_WasteTime_%s_%s"%(fe_dir,s,w,p),
+                                                       "ABSOLUTE",self.updated,time_waste_mill_w[p])
                             
 
 
@@ -1173,12 +1191,18 @@ class condorLogSummary:
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted',
-                                  'Entered_Waste_validation','Entered_Waste_idle',
-                                  'Entered_Waste_nosuccess','Entered_Waste_badput',):
+                        for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
                             fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('</tr>\n')
+                        for s in ('validation','idle',
+                                  'nosuccess','badput',):
+                            fd.write('<tr valign="top">')
+                            fd.write('<td><img src="Log_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         
                         fd.write("</table>\n</p>\n")
@@ -1310,7 +1334,11 @@ def get_completed_stats_xml_desc():
             'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
                                                         'validation':{'el_name':'Fraction'},
                                                         'badput':{'el_name':'Fraction'},
-                                                        'nosuccess':{'el_name':'Fraction'}}}
+                                                        'nosuccess':{'el_name':'Fraction'}}},
+                               'WasteTime':{'dicts_params':{'idle':{'el_name':'Fraction'},
+                                                            'validation':{'el_name':'Fraction'},
+                                                            'badput':{'el_name':'Fraction'},
+                                                            'nosuccess':{'el_name':'Fraction'}}}
                                }
             }
 
@@ -1344,7 +1372,9 @@ def create_log_graphs(fe_dir):
         elif s=="Completed":
             # create graphs for Lasted and Waste
             client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
-            for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+            for t in ("Lasted",
+                      "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
+                      "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
                 # get sorted list of rrds
                 t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
                 t_keys={}
@@ -1429,7 +1459,9 @@ def create_log_split_graphs(subdir_template,subdir_list):
                                         "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=10)
 
     # create the completed split graphs
-    for t in ("Lasted","Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation"):
+    for t in ("Lasted",
+              "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
+              "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
             if t=="Lasted":
                 range_groups=time_range_groups
                 range_groups_keys=time_range_groups_keys
@@ -1535,29 +1567,43 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted',
-                                  'Entered_Waste_validation','Entered_Waste_idle',
-                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                        for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
                             fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('</tr>\n')
+                        for s in ('validation','idle',
+                                  'nosuccess','badput'):
+                            fd.write('<tr valign="top">')
+                            fd.write('<td><img src="Log_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         
                         fd.write("<p>\n<h2>Terminated glideins by %s</h2>\n"%subdir_label)
 
-                        for s in ('Entered_Lasted',
-                                  'Entered_Waste_validation','Entered_Waste_idle',
-                                  'Entered_Waste_nosuccess','Entered_Waste_badput'):
+                        for s in ('Entered_Lasted',):
                             fd.write("<p><table>\n")
-                            if s=='Entered_Lasted':
-                                range_groups_keys=time_range_groups_keys
-                            else:
-                                range_groups_keys=mill_range_groups_keys
+                            range_groups_keys=time_range_groups_keys
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('</tr>\n')                        
+                            fd.write("</table>\n</p>\n")
+
+                        for s in ('validation','idle',
+                                  'nosuccess','badput'):
+                            fd.write("<p><table>\n")
+                            range_groups_keys=mill_range_groups_keys
+                            for r in range_groups_keys:
+                                fd.write('<tr valign="top">')
+                                fd.write('<td><img src="Split_Log_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log10_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log_Completed_Entered_WasteTime_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log10_Completed_Entered_WasteTime_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
@@ -1689,10 +1735,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.169 2008/06/25 19:24:40 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.170 2008/06/25 20:00:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.170  2008/06/25 20:00:28  sfiligoi
+#  Add WasteTime
+#
 #  Revision 1.169  2008/06/25 19:24:40  sfiligoi
 #  Add a legenda to log html
 #
