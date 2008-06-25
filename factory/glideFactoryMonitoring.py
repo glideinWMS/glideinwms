@@ -882,16 +882,16 @@ class condorLogSummary:
                     enle_goodput+=enle_condor_stats['goodNZ']['secs']
                     enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
 
-                # find and save time range
-                enle_timerange=getTimeRange(enle_difftime)                        
-                count_entered_times[enle_timerange]+=1
+            # find and save time range
+            enle_timerange=getTimeRange(enle_glidein_duration)                        
+            count_entered_times[enle_timerange]+=1
 
-                # find and save waste range
-                for w in enle_waste_mill.keys():
-                    count_waste_mill_w=count_waste_mill[w]
-                    # find and save taime range
-                    enle_waste_mill_w_range=getMillRange(enle_waste_mill[w])
-                    count_waste_mill_w[enle_waste_mill_w_range]+=1
+            # find and save waste range
+            for w in enle_waste_mill.keys():
+                count_waste_mill_w=count_waste_mill[w]
+                # find and save taime range
+                enle_waste_mill_w_range=getMillRange(enle_waste_mill[w])
+                count_waste_mill_w[enle_waste_mill_w_range]+=1
         
         return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill}
 
@@ -1675,10 +1675,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.165 2008/06/25 18:07:47 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.166 2008/06/25 18:52:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.166  2008/06/25 18:52:37  sfiligoi
+#  Fix counting
+#
 #  Revision 1.165  2008/06/25 18:07:47  sfiligoi
 #  Fix typo
 #
