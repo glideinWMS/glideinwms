@@ -1198,6 +1198,14 @@ class condorLogSummary:
                                     fd.write('</tr>\n')                            
                             fd.write("</table>")
                             
+
+                        fd.write("<p>\n<ul>Legenda of wasted:\n")
+                        fd.write(" <li>Validation - Time spent before starting Condor\n")
+                        fd.write(" <li>Idle - Time spent by Condor in idle state\n")
+                        fd.write(" <li>Nosuccess - Time spent by user jobs that did not return with error code 0 \n")
+                        fd.write(" <li>Badput - Time spent by the glidein not running user jobs\n")
+                        fd.write("</ul></p>\n")
+
                         fd.write("</body>\n</html>\n")
                         fd.close()
                         pass
@@ -1681,10 +1689,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.167 2008/06/25 19:16:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.168 2008/06/25 19:22:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.168  2008/06/25 19:22:41  sfiligoi
+#  Add a legenda to log html
+#
 #  Revision 1.167  2008/06/25 19:16:50  sfiligoi
 #  Add a legenda to log html
 #
