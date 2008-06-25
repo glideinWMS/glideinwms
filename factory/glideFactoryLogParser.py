@@ -194,7 +194,7 @@ def extractLogData(fname):
 
     size = os.path.getsize(fname)
     if size<10:
-        return {'condor_started':0}
+        return {'condor_started':0,'glidein_duration':0}
     fd=open(fname,'r')
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
