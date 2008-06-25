@@ -1199,7 +1199,7 @@ class condorLogSummary:
                             fd.write("</table>")
                             
 
-                        fd.write("<p>\n<ul>Legenda of wasted:\n")
+                        fd.write("<p>\nLegenda of wasted:\n<ul>\n")
                         fd.write(" <li>Validation - Time spent before starting Condor\n")
                         fd.write(" <li>Idle - Time spent by Condor in idle state\n")
                         fd.write(" <li>Nosuccess - Time spent by user jobs that did not return with error code 0 \n")
@@ -1561,7 +1561,7 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
-                        fd.write("<p>\n<ul>Legenda of wasted:\n")
+                        fd.write("<p>\nLegenda of wasted:\n<ul>\n")
                         fd.write(" <li>Validation - Time spent before starting Condor\n")
                         fd.write(" <li>Idle - Time spent by Condor in idle state\n")
                         fd.write(" <li>Nosuccess - Time spent by user jobs that did not return with error code 0 \n")
@@ -1689,10 +1689,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.168 2008/06/25 19:22:41 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.169 2008/06/25 19:24:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.169  2008/06/25 19:24:40  sfiligoi
+#  Add a legenda to log html
+#
 #  Revision 1.168  2008/06/25 19:22:41  sfiligoi
 #  Add a legenda to log html
 #
