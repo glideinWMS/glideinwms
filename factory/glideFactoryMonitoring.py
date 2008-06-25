@@ -905,7 +905,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill,'WasteTime':count_waste_mill}
+        return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -1735,10 +1735,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.170 2008/06/25 20:00:28 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.171 2008/06/25 20:14:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.171  2008/06/25 20:14:48  sfiligoi
+#  Fix typo
+#
 #  Revision 1.170  2008/06/25 20:00:28  sfiligoi
 #  Add WasteTime
 #
