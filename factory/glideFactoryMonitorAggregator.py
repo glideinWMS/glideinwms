@@ -263,7 +263,7 @@ def aggregateLogSummary():
     global monitorAggregatorConfig
 
     # initialize global counters
-    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'Lasted':{}}}
+    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'WasteTime':{},'Lasted':{}}}
     for s in ('Wait','Idle','Running','Held'):
         for k in ['Current','Entered','Exited']:
             global_total[k][s]=0
@@ -271,10 +271,11 @@ def aggregateLogSummary():
         for k in ['Entered']:
             global_total[k][s]=0
     for k in ['idle', 'validation', 'badput', 'nosuccess']:
-        el={}
-        for t in glideFactoryMonitoring.getAllMillRanges():
-            el[t]=0
-        global_total['CompletedCounts']['Waste'][k]=el
+        for w in ("Waste","WasteTime"):
+            el={}
+            for t in glideFactoryMonitoring.getAllMillRanges():
+                el[t]=0
+            global_total['CompletedCounts'][w][k]=el
     el={}
     for t in glideFactoryMonitoring.getAllTimeRanges():
         el[t]=0
@@ -301,12 +302,13 @@ def aggregateLogSummary():
                 out_fe_el[k]={}
                 for s in fe_el[k].keys():
                     out_fe_el[k][s]=int(fe_el[k][s])
-            out_fe_el['CompletedCounts']={'Waste':{},'Lasted':{}}
+            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{}}
             out_fe_el['CompletedCounts']['Failed']=int(fe_el['CompletedCounts']['Failed'])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
-                out_fe_el['CompletedCounts']['Waste'][k]={}
-                for t in glideFactoryMonitoring.getAllMillRanges():
-                    out_fe_el['CompletedCounts']['Waste'][k][t]=int(fe_el['CompletedCounts']['Waste'][k][t]['val'])
+                for w in ("Waste","WasteTime"):
+                    out_fe_el['CompletedCounts'][w][k]={}
+                    for t in glideFactoryMonitoring.getAllMillRanges():
+                        out_fe_el['CompletedCounts'][w][k][t]=int(fe_el['CompletedCounts'][w][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 out_fe_el['CompletedCounts']['Lasted'][t]=int(fe_el['CompletedCounts']['Lasted'][t]['val'])
             out_data[frontend]=out_fe_el
@@ -323,14 +325,15 @@ def aggregateLogSummary():
                 for s in global_total[k].keys():
                     local_total[k][s]=int(entry_data['total'][k][s])
                     global_total[k][s]+=int(entry_data['total'][k][s])
-            local_total['CompletedCounts']={'Waste':{},'Lasted':{}}
+            local_total['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{}}
             local_total['CompletedCounts']['Failed']=int(entry_data['total']['CompletedCounts']['Failed'])
             global_total['CompletedCounts']['Failed']+=int(entry_data['total']['CompletedCounts']['Failed'])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
-                local_total['CompletedCounts']['Waste'][k]={}
-                for t in glideFactoryMonitoring.getAllMillRanges():
-                    local_total['CompletedCounts']['Waste'][k][t]=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
-                    global_total['CompletedCounts']['Waste'][k][t]+=int(entry_data['total']['CompletedCounts']['Waste'][k][t]['val'])
+                for w in ("Waste","WasteTime"):
+                    local_total['CompletedCounts'][w][k]={}
+                    for t in glideFactoryMonitoring.getAllMillRanges():
+                        local_total['CompletedCounts'][w][k][t]=int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
+                        global_total['CompletedCounts'][w][k][t]+=int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 local_total['CompletedCounts']['Lasted'][t]=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
                 global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
@@ -377,6 +380,7 @@ def aggregateLogSummary():
             count_entered_times=completed_counts['Lasted']
             count_validation_failed=completed_counts['Failed']
             count_waste_mill=completed_counts['Waste']
+            time_waste_mill=completed_counts['WasteTime']
             # save run times
             for timerange in count_entered_times.keys():
                 glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
@@ -391,6 +395,11 @@ def aggregateLogSummary():
                 for p in count_waste_mill_w.keys():
                     glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
                                                                       "ABSOLUTE",updated,count_waste_mill_w[p])
+            for w in time_waste_mill.keys():
+                time_waste_mill_w=time_waste_mill[w]
+                for p in time_waste_mill_w.keys():
+                    glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_WasteTime_%s_%s"%(fe_dir,s,w,p),
+                                                                      "ABSOLUTE",updated,time_waste_mill_w[p])
     return status
 
 ##############################################################################
@@ -422,10 +431,13 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.31 2008/06/23 19:01:20 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.32 2008/06/26 13:50:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.32  2008/06/26 13:50:06  sfiligoi
+#  Add WasteTime
+#
 #  Revision 1.31  2008/06/23 19:01:20  sfiligoi
 #  Fix link in status page
 #
