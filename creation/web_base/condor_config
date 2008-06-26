@@ -133,6 +133,8 @@ VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && ((GLIDEIN_Is_Monitor=?=True) || (JOB
 VM2_START_CONDITION = $(GLIDEIN_START_CONDITION)
 START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
 
+IsOwner = (VirtualMachineID == 1) && (START =?= False)
+
 RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank))
 
 # Max time a job can run in the glidein
