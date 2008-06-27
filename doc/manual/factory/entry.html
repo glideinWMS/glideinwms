@@ -57,6 +57,8 @@ and&nbsp;firewalls</a></li>
     <li><a href="#tcp">Using TCP to send updates to
 the Collector</a></li>
 
+    <li><a href="#multicol">Multiple collectors</a></li>
+
     <li><a href="#start_rank">Setting the glidein
 start and rank condition</a></li>
 
@@ -705,6 +707,51 @@ option:<br>
 Please be aware that this will configure the glideins only; you still
 need to properly configure the Collector machine. See <a href="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
 documentation</a> for more details.<br>
+
+<h3><a name="multicol"></a>Multiple Collectors</h3>
+
+By default, Condor uses only one Collector for the <a href="../index.html#pool_glidein>glidein (user) pool</a>.
+However, if the load becomes too high, you can configure multiple collectors in a chain.<br>
+
+<br>
+
+You will need a master and a set of slave collectors. The slave collectors forward the startd adds to the master collector.
+<br>
+The negotiator and the schedds will talk to the master collector, while the startds will talk
+to one of the slave ones. 
+<br><br>
+
+Setting up slave collector in the <a href="../index.html#pool_glidein>glidein (user) pool</a>, one way to do it is to set the following env variables before
+starting up the condor_master:
+<div style="margin-left: 40px;"><pre>
+COLH=`condor_config_val COLLECTOR_HOST`
+LD=`condor_config_val LOCAL_DIR`
+export _CONDOR_COLLECTOR_HOST=$COLH:<collector port>
+export _CONDOR_MASTER_NAME=collector_<your name>
+export _CONDOR_DAEMON_LIST="MASTER, COLLECTOR"
+export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME
+export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
+# Forward all the traffic to the main collector
+export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618
+</pre></div>
+
+Once you have the slave collectors set up, you will want to use them.
+<br>
+<br>
+The <a href="../frontend/index.html">VO frontend</a> will have to point the factory to a <a href="../frontend/index.html#management">list of collectors</a>.
+<br>
+<br>
+However, by default the glideins expect a specific collector, so you need to add an additional script to handle this:
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;<span style="font-weight: bold;">glidein</span>&gt;<br>
+
+&nbsp;[entries&gt;&lt;entry&gt;]<br>
+
+&nbsp;&lt;<span style="font-weight: bold;">files</span>&gt;<br>
+
+&nbsp; &nbsp;&lt;<span style="font-weight: bold;">file
+absfname</span>="<span style="font-weight: bold;">web_base/collector_setup.sh</span>"</span><span style="font-family: monospace;"> <span style="font-weight: bold;">executable</span>="<span style="font-weight: bold;">True</span>"</span><span style="font-family: monospace;">/&gt;<br>
+
+&nbsp;&lt;<span style="font-weight: bold;">files</span>/&gt;</div>
 
 <h3><a name="start_rank"></a>Setting the
 glidein start and rank&nbsp;condition</h3>

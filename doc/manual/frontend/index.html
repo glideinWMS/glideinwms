@@ -242,7 +242,7 @@ for all the requests.<br>
 
 
 One parameter is always needed: <span style="font-weight: bold; font-family: monospace;">GLIDEIN_Collector</span>,
-and it is used to specify the location of the VO Collector.<br>
+and it is used to specify the location of the VO/glidein/user Collector (or of the <a href="../factory/entry.html#multicol">slave collectors</a>).<br>
 
 
 (An example: <span style="font-family: monospace;">glidein_params={"GLIDEIN_Collector":"cms-fe1.fnal.gov"}</span>)</li>
@@ -280,7 +280,7 @@ The fronted logs are deleted after a week.<br>
 A real life example could be:<br>
 
 
-<pre>cd glideinWMS/frontend<br>python glideinFrontend.py 15 4 ~/vo_23.conf</pre>
+<pre>cd glideinWMS/frontend<br>./glideinFrontend.py 15 4 ~/vo_23.conf</pre>
 
 
 <br>
