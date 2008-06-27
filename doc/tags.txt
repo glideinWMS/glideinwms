@@ -1,4 +1,6 @@
-vNext	Added glidein_gcb.
+vNext	Fix condor installation.
+        Update versions in installer.
+        Added glidein_gcb and collector_setup.
 	Add LIBEXEC to condor_config.
         Better support for EGEE.
 
