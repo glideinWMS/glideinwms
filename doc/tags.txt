@@ -1,4 +1,4 @@
-vNext	Fix condor installation.
+v1_2_2	Fix condor installation.
         Update versions in installer.
         Added glidein_gcb and collector_setup.
 	Add LIBEXEC to condor_config.
