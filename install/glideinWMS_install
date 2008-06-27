@@ -1558,7 +1558,8 @@ def install_condor():
 
     def_condor_base_dir="/opt/glidecondor"
     user_condor_base_dir=create_empty_dir("Where do you want to install it?: ",def_condor_base_dir)
-    os.mkdir("%s/tar"%user_condor_base_dir)
+    tar_dir="%s/tar"%user_condor_base_dir
+    os.mkdir(tar_dir)
     print "Installing condor in '%s'"%user_condor_base_dir
     print
     
@@ -1579,18 +1580,24 @@ def install_condor():
     try:
         print "Extracting from tarball"
         fd=tarfile.open(condor_tarball,"r:gz")
+        # first create the regular files
         for f in fd.getmembers():
-            fd.extract(f,"%s/tar"%user_condor_base_dir)
+            if not f.islnk():
+                fd.extract(f,tar_dir)
+        # then create the links
+        for f in fd.getmembers():
+            if f.islnk():
+                os.link(os.path.join(tar_dir,f.name),os.path.join(tar_dir,f.linkname))
         fd.close()
     
         print "Running condor_configure"
         CONDOR_LOCAL_DIR="%s/condor_local"%user_condor_base_dir
-        install_str="%s/tar/condor-%s/release.tar"%(user_condor_base_dir,condor_version)
+        install_str="%s/condor-%s/release.tar"%(tar_dir,condor_version)
         if not os.path.isfile(install_str):
             # Condor v7 changed the packaging
-            install_str="%s/tar/condor-%s"%(user_condor_base_dir,condor_version)
+            install_str="%s/condor-%s"%(tar_dir,condor_version)
 
-        cmdline="cd %s/tar/condor-%s;./condor_configure --install=%s --install-dir=%s --local-dir=%s --install-log=%s/tar/condor_configure.log"%(user_condor_base_dir,condor_version,install_str,user_condor_base_dir,CONDOR_LOCAL_DIR,user_condor_base_dir)
+        cmdline="cd %s/condor-%s;./condor_configure --install=%s --install-dir=%s --local-dir=%s --install-log=%s/condor_configure.log"%(tar_dir,condor_version,install_str,user_condor_base_dir,CONDOR_LOCAL_DIR,tar_dir)
         if os.getuid()==0:
             cmdline="%s  --owner=%s"%(cmdline,condor_user)
             
@@ -1599,7 +1606,7 @@ def install_condor():
             raise RuntimeError,"condor_configure failed! (%i)"%err
     finally:
         # installation files not needed anymore
-        shutil.rmtree("%s/tar"%user_condor_base_dir)
+        shutil.rmtree(tar_dir)
 
     yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [n] ")
     if yn=='y':
