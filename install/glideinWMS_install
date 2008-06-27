@@ -1587,7 +1587,7 @@ def install_condor():
         # then create the links
         for f in fd.getmembers():
             if f.islnk():
-                os.link(os.path.join(tar_dir,f.name),os.path.join(tar_dir,f.linkname))
+                os.link(os.path.join(tar_dir,f.linkname),os.path.join(tar_dir,f.name))
         fd.close()
     
         print "Running condor_configure"
