@@ -111,7 +111,7 @@ Frontend</a></li>
     <li><a href="#pool_WMS">The WMS pool</a></li>
 
 
-    <li><a href="#pool_glidein">The glidein pool</a></li>
+    <li><a href="#pool_glidein">The glidein (user) pool</a></li>
 
 
   
@@ -445,7 +445,7 @@ Here is a prototype of the security config:
 <pre>SEC_DEFAULT_AUTHENTICATION = REQUIRED<br>SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;Your choice here&gt;<br>SEC_DEFAULT_INTEGRITY = REQUIRED<br>HOSTALLOW_WRITE = machine1,machine2, ... ,machineN<br></pre>
 
 
-For more information about GSI, look at the configuration of the <a href="#pool_glidein">glidein pool</a>. For all other
+For more information about GSI, look at the configuration of the <a href="#pool_glidein">glidein (user) pool</a>. For all other
 kinds, please follow the instructions in the <a href="http://www.cs.wisc.edu/condor/manual/">Condor manual</a>.<br>
 
 
@@ -477,7 +477,7 @@ itself. (An no need for Startds either.)<br>
 <br>
 
 
-<h3><a name="pool_glidein"></a>The glidein pool</h3>
+<h3><a name="pool_glidein"></a>The glidein (user) pool</h3>
 
 
 The <a href="glideins.png" target="_blank">glidein
@@ -580,7 +580,7 @@ FS (.*) \1
 </pre>
 
 If you use GSI just for the maintenance of the
-glidein pool, it should list only the trusted DNs.<br>
+glidein (user) pool, it should list only the trusted DNs.<br>
 Please notice that if you use GSI for authenticating your users, too, 
 you need to list all of them in the map file.
   </li>
