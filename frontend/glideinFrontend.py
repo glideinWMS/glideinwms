@@ -33,8 +33,9 @@ def iterate_one(frontend_name,factory_pool,
                 glidein_params):
     global activity_log
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
-    condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(schedd_names,job_constraint)
-    condorq_dict_running=glideinFrontendLib.getRunningCondorQ(schedd_names,job_constraint)
+    condorq_dict=glideinFrontendLib.getIdleCondorQ(schedd_names,job_constraint)
+    condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
+    condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
     activity_log.write("Match")
     count_glideins_idle=glideinFrontendLib.countMatch(match_str,condorq_dict_idle,glidein_dict)

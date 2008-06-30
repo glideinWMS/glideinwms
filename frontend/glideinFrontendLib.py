@@ -10,24 +10,42 @@
 import condorMonitor,condorExe
 
 #
-# Return a dictionary of schedds containing idle jobs
+# Return a dictionary of schedds containing interesting jobs
 # Each element is a condorQ
 #
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate constraint
 #
-def getIdleCondorQ(schedd_names,constraint=None):
-    return getCondorQConstrained(schedd_names,"JobStatus==1",constraint)
+def getCondorQ(schedd_names,constraint=None):
+    return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint)
 
 #
 # Return a dictionary of schedds containing idle jobs
 # Each element is a condorQ
 #
-# If not all the jobs of the schedd has to be considered,
-# specify the appropriate constraint
+# Use the output of getCondorQ
+#
+def getIdleCondorQ(condorq_dict):
+    out={}
+    for schedd_name in condorq_dict.keys():
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==1)
+        sq.load()
+        out[schedd_name]=sq
+    return out
+
+#
+# Return a dictionary of schedds containing idle jobs
+# Each element is a condorQ
+#
+# Use the output of getCondorQ
 #
 def getRunningCondorQ(schedd_names,constraint=None):
-    return getCondorQConstrained(schedd_names,"JobStatus==2",constraint)
+    out={}
+    for schedd_name in condorq_dict.keys():
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==2)
+        sq.load()
+        out[schedd_name]=sq
+    return out
 
 #
 # Get the number of jobs that match each glidein
