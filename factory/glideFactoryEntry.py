@@ -63,9 +63,13 @@ def perform_work(factory_name,glidein_name,entry_name,
     #glideFactoryLib.factoryConfig.activity_log.write("QueryQ (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
     condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name)
     #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
-    try:
-        condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
-    except:
+
+    # Temporary disable queries to the collector
+    # Not really used by anybody, so let reduce the load
+    #try:
+    #    condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
+    #except:
+    if 1:
         condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
     log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
@@ -381,10 +385,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.34 2008/05/09 20:50:11 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.35 2008/06/30 18:45:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.35  2008/06/30 18:45:13  sfiligoi
+#  Remove queries to the collector
+#
 #  Revision 1.34  2008/05/09 20:50:11  sfiligoi
 #  Make them executable
 #
