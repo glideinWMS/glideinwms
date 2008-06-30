@@ -39,7 +39,7 @@ def getIdleCondorQ(condorq_dict):
 #
 # Use the output of getCondorQ
 #
-def getRunningCondorQ(schedd_names,constraint=None):
+def getRunningCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
         sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==2)

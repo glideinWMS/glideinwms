@@ -33,7 +33,7 @@ def iterate_one(frontend_name,factory_pool,
                 glidein_params):
     global activity_log
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
-    condorq_dict=glideinFrontendLib.getIdleCondorQ(schedd_names,job_constraint)
+    condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
