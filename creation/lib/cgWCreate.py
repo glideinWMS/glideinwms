@@ -29,7 +29,7 @@ def create_condor_tar_fd(condor_base_dir):
                 raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
 
         # check if optional binaries exist, if they do, include
-        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh']:
+        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         
@@ -104,10 +104,13 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.15 2007/12/14 19:57:26 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.16 2008/06/30 18:37:33 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.16  2008/06/30 18:37:33  sfiligoi
+#  Add the missing ondor_glexec_wrapper
+#
 #  Revision 1.15  2007/12/14 19:57:26  sfiligoi
 #  Remove old create_condor_tar
 #
