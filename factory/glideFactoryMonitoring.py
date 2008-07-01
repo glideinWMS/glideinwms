@@ -1761,11 +1761,14 @@ def cleanup_rrd_name(s):
 
 def createGraphHtml(html_name,png_fname, rrd2graph_args):
     base_png_dir,base_png_fname=os.path.split(png_fname)
+    base_png_dir2,base_png_subdir2=os.path.split(base_png_dir)
 
     printout_args=[]
     for arg in rrd2graph_args[1:]: # ignore the first one, was the fname
         if string.find(arg,base_png_dir):
             arg=string.replace(arg,base_png_dir+"/","")
+        elif (base_png_dir2!="") and string.find(arg,base_png_dir2):
+            arg=string.replace(arg,base_png_dir2+"/","../%s/"%base_png_subdir2)
         printout_args.append("'%s'"%arg)
     args_string=string.join(printout_args)
     
@@ -1787,10 +1790,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.178 2008/07/01 15:25:42 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.179 2008/07/01 15:46:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.179  2008/07/01 15:46:06  sfiligoi
+#  Create html file with graphs that explains how they were created
+#
 #  Revision 1.178  2008/07/01 15:25:42  sfiligoi
 #  Fix typo
 #
