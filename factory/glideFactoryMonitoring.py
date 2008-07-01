@@ -1777,7 +1777,7 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
         fd.write("Created with:\n<pre>\n")
         fd.write("rrdtool graph %s %s\n"%(base_png_fname,args_string))
         fd.write("</pre>\n</p>\n")
-        fd.write("/body>\n</html>\n")
+        fd.write("</body>\n</html>\n")
     finally:
         fd.close()
     return
@@ -1787,17 +1787,14 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.177 2008/07/01 15:23:06 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.178 2008/07/01 15:25:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.178  2008/07/01 15:25:42  sfiligoi
+#  Fix typo
+#
 #  Revision 1.177  2008/07/01 15:23:06  sfiligoi
-#  Create html file with graphs that explains how they were created
-#
-#  Revision 1.176  2008/07/01 15:10:22  sfiligoi
-#  Create html file with graphs that explains how they were created
-#
-#  Revision 1.175  2008/07/01 14:55:42  sfiligoi
 #  Create html file with graphs that explains how they were created
 #
 #  Revision 1.174  2008/07/01 14:44:11  sfiligoi
