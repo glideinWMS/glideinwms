@@ -1762,13 +1762,19 @@ def cleanup_rrd_name(s):
 def createGraphHtml(html_name,png_fname, rrd2graph_args):
     base_png_dir,base_png_fname=os.path.split(png_fname)
 
-    args_string=string.join(rrd2graph_args[1:])
+    printout_args=[]
+    for arg in rrd2graph_args[1:]: # ignore the first one, was the fname
+        if string.find(arg,base_png_dir):
+            arg=string.replace(arg,base_png_dir+"/","")
+        printout_args.append("'%s'"%arg)
+    args_string=string.join(printout_args)
+    
     fd=open(html_name,"w")
     try:
         fd.write("<html>\n<head><title>%s</title></head>\n"%base_png_fname)
         fd.write("<body>\n")
         fd.write('<img src="%s">\n<p>\n'%base_png_fname)
-        fd.write("Creted with:\n<pre>\n")
+        fd.write("Created with:\n<pre>\n")
         fd.write("rrdtool graph %s %s\n"%(base_png_fname,args_string))
         fd.write("</pre>\n</p>\n")
         fd.write("/body>\n</html>\n")
@@ -1781,10 +1787,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.176 2008/07/01 15:10:22 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.177 2008/07/01 15:23:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.177  2008/07/01 15:23:06  sfiligoi
+#  Create html file with graphs that explains how they were created
+#
 #  Revision 1.176  2008/07/01 15:10:22  sfiligoi
 #  Create html file with graphs that explains how they were created
 #
