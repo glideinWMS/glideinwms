@@ -247,12 +247,16 @@ class MonitoringConfig:
                 return # at least one file missing, file creation would fail
             rrd_files.append((rrd_file[0],abs_rrd_fname,rrd_file[2],rrd_file[3]))
 
-        rrd2graph(self.rrd_obj,fname+".tmp",
-                  self.rrd_step*rrd_archive[2], # step in seconds
-                  self.rrd_ds_name,
-                  rrd_archive[0], #ds_type
-                  period,width,height,title,rrd_files,cdef_arr,trend)
+        cmd_used=rrd2graph(self.rrd_obj,fname+".tmp",
+                           self.rrd_step*rrd_archive[2], # step in seconds
+                           self.rrd_ds_name,
+                           rrd_archive[0], #ds_type
+                           period,width,height,title,rrd_files,cdef_arr,trend)
         tmp2final(fname)
+        try:
+            createGraphHtml(fname+"_creation.html",fname,cmd_used)
+        except:
+            print "Failed creating graph html: %s"%(fname+"_creation.html")
         return
 
     # if trend_fraction!=None, the fraction of period to trend over
@@ -1749,34 +1753,41 @@ def rrd2graph(rrd_obj,fname,
     except:
       print "Failed graph: %s"%str(args)
 
-    try:
-        fd=open("%s_creation.html"%fname,"w")
-        try:
-            fd.write("<html>\n<head><title>%s</title></head>\n")
-            fd.write("<body>\n")
-            fd.write('<img src="%s">\n<p>\n'%fname)
-            fd.write("Creted with:\n<pre>\n")
-            fd.write("rrdtool graph %s\n"%str(args))
-            fd.write("</pre>\n</p>\n")
-            fd.write("/body>\n</html>\n")
-        finally:
-            fd.close()
-    except:
-        print "Failed graph html: %s_creation.html"%fname
-        
-    return
+    return args
 
 def cleanup_rrd_name(s):
     return string.replace(string.replace(s,".","_"),"@","_")
+
+
+def createGraphHtml(html_name,png_fname, rrd2graph_args):
+    base_png_dir,base_png_fname=os.path.split(png_fname)
+
+    args_string=string.join(rrd2graph_args[1:])
+    fd=open(html_name,"w")
+    try:
+        fd.write("<html>\n<head><title>%s</title></head>\n"%base_png_fname)
+        fd.write("<body>\n")
+        fd.write('<img src="%s">\n<p>\n'%base_png_fname)
+        fd.write("Creted with:\n<pre>\n")
+        fd.write("rrdtool graph %s %s\n"%(base_png_fname,args_string))
+        fd.write("</pre>\n</p>\n")
+        fd.write("/body>\n</html>\n")
+    finally:
+        fd.close()
+    return
+
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.175 2008/07/01 14:55:42 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.176 2008/07/01 15:10:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.176  2008/07/01 15:10:22  sfiligoi
+#  Create html file with graphs that explains how they were created
+#
 #  Revision 1.175  2008/07/01 14:55:42  sfiligoi
 #  Create html file with graphs that explains how they were created
 #
