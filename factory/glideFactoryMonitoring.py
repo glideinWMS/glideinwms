@@ -1765,9 +1765,9 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 
     printout_args=[]
     for arg in rrd2graph_args[1:]: # ignore the first one, was the fname
-        if string.find(arg,base_png_dir):
+        if string.find(arg,base_png_dir)>=0:
             arg=string.replace(arg,base_png_dir+"/","")
-        elif (base_png_dir2!="") and string.find(arg,base_png_dir2):
+        elif (base_png_dir2!="") and (string.find(arg,base_png_dir2)>=0):
             arg=string.replace(arg,base_png_dir2+"/","../%s/"%base_png_subdir2)
         printout_args.append("'%s'"%arg)
     args_string=string.join(printout_args)
@@ -1790,10 +1790,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.179 2008/07/01 15:46:06 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.180 2008/07/01 16:02:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.180  2008/07/01 16:02:36  sfiligoi
+#  Fix typo
+#
 #  Revision 1.179  2008/07/01 15:46:06  sfiligoi
 #  Create html file with graphs that explains how they were created
 #
