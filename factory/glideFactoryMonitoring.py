@@ -1647,7 +1647,7 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
     
 
 def img2html(img_name):
-    return '<a href="%s_creation.html"><img src="%s"></a>'%(img_name,img_name)
+    return '<a href="%s_creation.html"><img src="%s" border=0></a>'%(img_name,img_name)
 
 
 ##################################################
@@ -1795,10 +1795,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.182 2008/07/01 16:48:30 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.183 2008/07/01 17:00:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.183  2008/07/01 17:00:44  sfiligoi
+#  Remove annoying border
+#
 #  Revision 1.182  2008/07/01 16:48:30  sfiligoi
 #  Add links to img html
 #
