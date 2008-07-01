@@ -1616,7 +1616,6 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
-                        fd.write("<p>\nLegenda of wasted:\n<ul>\n")
                         fd.write("<p>\n<table><tr>\n")
                         fd.write("<td>\n")
                         fd.write("Legenda of wasted:\n<ul>\n")
@@ -1790,10 +1789,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.184 2008/07/01 18:57:04 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.185 2008/07/01 19:55:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.185  2008/07/01 19:55:04  sfiligoi
+#  Fix typo
+#
 #  Revision 1.184  2008/07/01 18:57:04  sfiligoi
 #  Clean up code
 #
