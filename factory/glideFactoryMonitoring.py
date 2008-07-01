@@ -608,17 +608,17 @@ class condorQStats:
                         fd.write("<table>")
                         for s in ['Idle','Running','Held']:
                             fd.write('<tr>')
-                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                             if s=='Running':
                                 s1='MaxRun'
-                                fd.write('<td><img src="%s.%s.%s.png"></td>'%(s1,period,size))
+                                fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s1,period,size)))
                             fd.write('</tr>\n')                            
                         fd.write("</table>")
                         fd.write("<h2>Frontend (client) stats</h2>\n")
                         fd.write("<table>")
                         for s in ['ClientIdle','ClientRunning','InfoAge']:
                             fd.write('<tr>')
-                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                             fd.write('</tr>\n')                            
                         fd.write("</table>")
                         fd.write("</body>\n</html>\n")
@@ -704,7 +704,7 @@ class condorQStats:
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
                         for s in l:
-                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                         fd.write('</tr>\n')                            
                     fd.write("</table>")
                     fd.write("<h2>Frontend (client) stats</h2>\n")
@@ -714,7 +714,7 @@ class condorQStats:
                               ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
                         fd.write('<tr valign="top">')
                         for s in l:
-                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                         fd.write('</tr>\n')                            
                     fd.write("</table>")
                     fd.write("</body>\n</html>\n")
@@ -1184,29 +1184,29 @@ class condorLogSummary:
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td>%s</td>'%img2html("Log_%s_Count.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Log_%s_Diff.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Log10_%s_Diff.%s.%s.png"%(s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
                         fd.write('<td></td>')
-                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td>%s</td>'%img2html("Log_Removed_Diff.%s.%s.png"%(period,size)))
+                        fd.write('<td>%s</td>'%img2html("Log10_Removed_Diff.%s.%s.png"%(period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
+                            fd.write('<td>%s</td><td></td>'%img2html("Log_Completed_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td><td></td>'%img2html("Log10_Completed_%s.%s.%s.png"%(s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
                             fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("Log_Completed_Entered_Waste_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td>'%img2html("Log_Completed_Entered_WasteTime_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td>'%img2html("Log10_Completed_Entered_Waste_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td>'%img2html("Log10_Completed_Entered_WasteTime_%s.%s.%s.png"%(s,period,size)))
                             fd.write('</tr>\n')
                         
                         fd.write("</table>\n</p>\n")
@@ -1218,11 +1218,11 @@ class condorLogSummary:
                                 if (not (s in ('Completed','Removed'))): # special treatement
                                     fd.write('<tr valign="top">')
                                     for w in ['Count','Diff']:
-                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%(s,w,period,size))
+                                        fd.write('<td>%s</td>'%img2html("Split_Log_%s_%s.%s.%s.png"%(s,w,period,size)))
                                     if s=='Running':
-                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Completed','Diff',period,size))
+                                        fd.write('<td>%s</td>'%img2html("Split_Log_%s_%s.%s.%s.png"%('Completed','Diff',period,size)))
                                     elif s=='Held':
-                                        fd.write('<td><img src="Split_Log_%s_%s.%s.%s.png"></td>'%('Removed','Diff',period,size))
+                                        fd.write('<td>%s</td>'%img2html("Split_Log_%s_%s.%s.%s.png"%('Removed','Diff',period,size)))
                                     fd.write('</tr>\n')                            
                             fd.write("</table>")
                             
@@ -1564,35 +1564,35 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                         for s in ('Wait','Idle','Running','Held','Completed','Removed'):
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log_%s_Count.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td>%s</td>'%img2html("Log_%s_Count.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Split_Log_%s_Count.%s.%s.png"%(s,period,size)))
                                 fd.write('<tr valign="top">')
                                 fd.write('</tr>\n')                            
-                                fd.write('<td><img src="Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
-                                fd.write('<td><img src="Split_Log10_%s_Diff.%s.%s.png"></td>'%(s,period,size))
+                                fd.write('<td>%s</td>'%img2html("Log_%s_Diff.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Split_Log_%s_Diff.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Log10_%s_Diff.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Split_Log10_%s_Diff.%s.%s.png"%(s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
-                        fd.write('<td><img src="Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Split_Log_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
-                        fd.write('<td><img src="Split_Log10_Removed_Diff.%s.%s.png"></td>'%(period,size))
+                        fd.write('<td>%s</td>'%img2html("Log_Removed_Diff.%s.%s.png"%(period,size)))
+                        fd.write('<td>%s</td>'%img2html("Split_Log_Removed_Diff.%s.%s.png"%(period,size)))
+                        fd.write('<td>%s</td>'%img2html("Log10_Removed_Diff.%s.%s.png"%(period,size)))
+                        fd.write('<td>%s</td>'%img2html("Split_Log10_Removed_Diff.%s.%s.png"%(period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
+                            fd.write('<td>%s</td><td></td>'%img2html("Log_Completed_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td><td></td>'%img2html("Log10_Completed_%s.%s.%s.png"%(s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput'):
                             fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("Log_Completed_Entered_Waste_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td>'%img2html("Log_Completed_Entered_WasteTime_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td>'%img2html("Log10_Completed_Entered_Waste_%s.%s.%s.png"%(s,period,size)))
+                            fd.write('<td>%s</td>'%img2html("Log10_Completed_Entered_WasteTime_%s.%s.%s.png"%(s,period,size)))
                             fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         
@@ -1603,8 +1603,8 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             range_groups_keys=time_range_groups_keys
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td><td></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td><td></td>'%(s,r,period,size))
+                                fd.write('<td>%s</td><td></td>'%img2html("Split_Log_Completed_%s_%s.%s.%s.png"%(s,r,period,size)))
+                                fd.write('<td>%s</td><td></td>'%img2html("Split_Log10_Completed_%s_%s.%s.%s.png"%(s,r,period,size)))
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
@@ -1614,10 +1614,10 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             range_groups_keys=mill_range_groups_keys
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Split_Log_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log_Completed_Entered_WasteTime_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log10_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log10_Completed_Entered_WasteTime_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td>%s</td>'%img2html("Split_Log_Completed_Entered_Waste_%s_%s.%s.%s.png"%(s,r,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Split_Log_Completed_Entered_WasteTime_%s_%s.%s.%s.png"%(s,r,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Split_Log10_Completed_Entered_Waste_%s_%s.%s.%s.png"%(s,r,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Split_Log10_Completed_Entered_WasteTime_%s_%s.%s.%s.png"%(s,r,period,size)))
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
@@ -1645,6 +1645,10 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                     pass # for sz
                 pass # for rp
     
+
+def img2html(img_name):
+    return '<a href="%s_creation.html"><img src="%s"></a>'%(img_name,img_name)
+
 
 ##################################################
 def tmp2final(fname):
@@ -1791,23 +1795,14 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.181 2008/07/01 16:26:10 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.182 2008/07/01 16:48:30 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.182  2008/07/01 16:48:30  sfiligoi
+#  Add links to img html
+#
 #  Revision 1.181  2008/07/01 16:26:10  sfiligoi
-#  Create html file with graphs that explains how they were created
-#
-#  Revision 1.180  2008/07/01 16:02:36  sfiligoi
-#  Fix typo
-#
-#  Revision 1.179  2008/07/01 15:46:06  sfiligoi
-#  Create html file with graphs that explains how they were created
-#
-#  Revision 1.178  2008/07/01 15:25:42  sfiligoi
-#  Fix typo
-#
-#  Revision 1.177  2008/07/01 15:23:06  sfiligoi
 #  Create html file with graphs that explains how they were created
 #
 #  Revision 1.174  2008/07/01 14:44:11  sfiligoi
