@@ -1239,6 +1239,7 @@ class condorLogSummary:
                         fd.write(" <li>WasteTime - Waste * glidein length \n")
                         fd.write("</ul></td>\n")
                         fd.write("</tr></table>\n")
+                        fd.write("</p>\n")
                         fd.write("</body>\n</html>\n")
                         fd.close()
                         pass
@@ -1617,11 +1618,23 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             fd.write("</table>\n</p>\n")
 
                         fd.write("<p>\nLegenda of wasted:\n<ul>\n")
+                        fd.write("<p>\n<table><tr>\n")
+                        fd.write("<td>\n")
+                        fd.write("Legenda of wasted:\n<ul>\n")
                         fd.write(" <li>Validation - Time spent before starting Condor\n")
                         fd.write(" <li>Idle - Time spent by Condor in idle state\n")
                         fd.write(" <li>Nosuccess - Time spent by user jobs that did not return with error code 0 \n")
                         fd.write(" <li>Badput - Time spent by the glidein not running user jobs\n")
-                        fd.write("</ul></p>\n")
+                        fd.write("</ul></td>\n")
+                        fd.write("<td>\n")
+                        fd.write("Scale:\n<ul>\n")
+                        fd.write(" <li>Completed - Number of jobs completed per second \n")
+                        fd.write(" <li>Lasted - Number of jobs of certain size per second \n")
+                        fd.write(" <li>Waste - Number of jobs in that state per second \n")
+                        fd.write(" <li>WasteTime - Waste * glidein length \n")
+                        fd.write("</ul></td>\n")
+                        fd.write("</tr></table>\n")
+                        fd.write("</p>\n")
                         fd.write("</body>\n</html>\n")
                         fd.close()
                         pass
@@ -1744,10 +1757,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.173 2008/07/01 14:39:39 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.174 2008/07/01 14:44:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.174  2008/07/01 14:44:11  sfiligoi
+#  Add another legenda
+#
 #  Revision 1.173  2008/07/01 14:39:39  sfiligoi
 #  Add another legenda
 #
