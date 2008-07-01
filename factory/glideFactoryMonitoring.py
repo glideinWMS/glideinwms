@@ -1193,15 +1193,15 @@ class condorLogSummary:
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
                             fd.write('<tr valign="top">')
                             fd.write('<td><img src="Log_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('<td><img src="Log_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('<td><img src="Log10_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         
@@ -1569,15 +1569,15 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_%s.%s.%s.png"></td><td></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput'):
                             fd.write('<tr valign="top">')
                             fd.write('<td><img src="Log_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
-                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('<td><img src="Log_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td><img src="Log10_Completed_Entered_Waste_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('<td><img src="Log10_Completed_Entered_WasteTime_%s.%s.%s.png"></td>'%(s,period,size))
                             fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
@@ -1589,8 +1589,8 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             range_groups_keys=time_range_groups_keys
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
-                                fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log_Completed_%s_%s.%s.%s.png"></td><td></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log10_Completed_%s_%s.%s.%s.png"></td><td></td>'%(s,r,period,size))
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
@@ -1601,8 +1601,8 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td><img src="Split_Log_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
-                                fd.write('<td><img src="Split_Log10_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('<td><img src="Split_Log_Completed_Entered_WasteTime_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
+                                fd.write('<td><img src="Split_Log10_Completed_Entered_Waste_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('<td><img src="Split_Log10_Completed_Entered_WasteTime_%s_%s.%s.%s.png"></td>'%(s,r,period,size))
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
@@ -1735,10 +1735,13 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.171 2008/06/25 20:14:48 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.172 2008/07/01 14:27:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.172  2008/07/01 14:27:19  sfiligoi
+#  More uniform graph disposition in Log
+#
 #  Revision 1.171  2008/06/25 20:14:48  sfiligoi
 #  Fix typo
 #
