@@ -1768,7 +1768,7 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
         if string.find(arg,base_png_dir)>=0:
             arg=string.replace(arg,base_png_dir+"/","")
         elif (base_png_dir2!="") and (string.find(arg,base_png_dir2)>=0):
-            arg=string.replace(arg,base_png_dir2+"/","../%s/"%base_png_subdir2)
+            arg=string.replace(arg,base_png_dir2+"/","../")
         printout_args.append("'%s'"%arg)
     args_string=string.join(printout_args)
     
@@ -1777,9 +1777,10 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
         fd.write("<html>\n<head><title>%s</title></head>\n"%base_png_fname)
         fd.write("<body>\n")
         fd.write('<img src="%s">\n<p>\n'%base_png_fname)
-        fd.write("Created with:\n<pre>\n")
-        fd.write("rrdtool graph %s %s\n"%(base_png_fname,args_string))
-        fd.write("</pre>\n</p>\n")
+        fd.write('Created with:\n</p>')
+        fd.write('<p STYLE="margin-left: 1.0in; text-indent: -1.0in; font-family: monospace">\n')
+        fd.write("rrdtool graph '%s' %s\n"%(base_png_fname,args_string))
+        fd.write("</p>\n")
         fd.write("</body>\n</html>\n")
     finally:
         fd.close()
@@ -1790,10 +1791,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.180 2008/07/01 16:02:36 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.181 2008/07/01 16:26:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.181  2008/07/01 16:26:10  sfiligoi
+#  Create html file with graphs that explains how they were created
+#
 #  Revision 1.180  2008/07/01 16:02:36  sfiligoi
 #  Fix typo
 #
