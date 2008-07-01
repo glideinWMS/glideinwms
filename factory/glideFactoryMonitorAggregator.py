@@ -237,7 +237,7 @@ def create_status_history():
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
                         for s in l:
-                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                         fd.write('</tr>\n')                            
                     fd.write("</table>")
                     fd.write("<h2>Frontend (client) stats</h2>\n")
@@ -247,7 +247,7 @@ def create_status_history():
                               ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
                         fd.write('<tr valign="top">')
                         for s in l:
-                            fd.write('<td><img src="%s.%s.%s.png"></td>'%(s,period,size))
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                         fd.write('</tr>\n')                            
                     fd.write("</table>")
                     fd.write("</body>\n</html>\n")
@@ -427,14 +427,20 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
                                  indent_tab=indent_tab,leading_tab=leading_tab)
 
 
+# import in local namespace
+img2html=glideFactoryMonitoring.img2html
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.32 2008/06/26 13:50:06 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.33 2008/07/01 18:48:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.33  2008/07/01 18:48:51  sfiligoi
+#  Add links to img html
+#
 #  Revision 1.32  2008/06/26 13:50:06  sfiligoi
 #  Add WasteTime
 #
