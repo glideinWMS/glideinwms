@@ -1748,6 +1748,22 @@ def rrd2graph(rrd_obj,fname,
       rrd_obj.graph(*args)
     except:
       print "Failed graph: %s"%str(args)
+
+    try:
+        fd=open("%s_creation.html"%fname,"w")
+        try:
+            fd.write("<html>\n<head><title>%s</title></head>\n")
+            fd.write("<body>\n")
+            fd.write('<img src="%s">\n<p>\n'%fname)
+            fd.write("Creted with:\n<pre>\n")
+            fd.write("rrdtool graph %s\n"%str(args))
+            fd.write("</pre>\n</p>\n")
+            fd.write("/body>\n</html>\n")
+        finally:
+            fd.close()
+    except:
+        print "Failed graph html: %s_creation.html"%fname
+        
     return
 
 def cleanup_rrd_name(s):
@@ -1757,21 +1773,18 @@ def cleanup_rrd_name(s):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.174 2008/07/01 14:44:11 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.175 2008/07/01 14:55:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.174  2008/07/01 14:44:11  sfiligoi
-#  Add another legenda
+#  Revision 1.175  2008/07/01 14:55:42  sfiligoi
+#  Create html file with graphs that explains how they were created
 #
-#  Revision 1.173  2008/07/01 14:39:39  sfiligoi
+#  Revision 1.174  2008/07/01 14:44:11  sfiligoi
 #  Add another legenda
 #
 #  Revision 1.172  2008/07/01 14:27:19  sfiligoi
 #  More uniform graph disposition in Log
-#
-#  Revision 1.171  2008/06/25 20:14:48  sfiligoi
-#  Fix typo
 #
 #  Revision 1.170  2008/06/25 20:00:28  sfiligoi
 #  Add WasteTime
@@ -1779,17 +1792,8 @@ def cleanup_rrd_name(s):
 #  Revision 1.169  2008/06/25 19:24:40  sfiligoi
 #  Add a legenda to log html
 #
-#  Revision 1.168  2008/06/25 19:22:41  sfiligoi
-#  Add a legenda to log html
-#
-#  Revision 1.167  2008/06/25 19:16:50  sfiligoi
-#  Add a legenda to log html
-#
 #  Revision 1.166  2008/06/25 18:52:37  sfiligoi
 #  Fix counting
-#
-#  Revision 1.165  2008/06/25 18:07:47  sfiligoi
-#  Fix typo
 #
 #  Revision 1.164  2008/06/23 18:53:08  sfiligoi
 #  Improve validation and nosuccess numbers
