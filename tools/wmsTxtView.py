@@ -71,10 +71,11 @@ for glidein in glideins:
         txt_data[key]=key_el
 
     if glidein_el.has_key('monitor'):
-        key_el['RequestedIdle']+=glidein_el['monitor']['TotalRequestedIdle']
-        key_el['Idle']+=glidein_el['monitor']['TotalStatusIdle']
-        key_el['Running']+=glidein_el['monitor']['TotalStatusRunning']
-        key_el['MaxRunning']+=glidein_el['monitor']['TotalRequestedMaxRun']
+        if glidein_el['monitor'].has_key('TotalRequestedIdle'):
+            key_el['RequestedIdle']+=glidein_el['monitor']['TotalRequestedIdle']
+            key_el['Idle']+=glidein_el['monitor']['TotalStatusIdle']
+            key_el['Running']+=glidein_el['monitor']['TotalStatusRunning']
+            key_el['MaxRunning']+=glidein_el['monitor']['TotalRequestedMaxRun']
 
 #print data
 txt_keys=txt_data.keys()
