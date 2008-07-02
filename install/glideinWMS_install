@@ -2093,6 +2093,11 @@ def configure_gsi_security():
         config_fd.write("#####################################\n")
         config_fd.write("GSI_DAEMON_NAME=%s\n\n"%daemon_dns_str)
 
+        config_fd.write("#####################################\n")
+        config_fd.write("# Limit session caching to ~12h\n")
+        config_fd.write("#####################################\n")
+        config_fd.write("SEC_DEFAULT_SESSION_DURATION = 50000\n\n")
+
         config_fd.write("#####################################################\n")
         config_fd.write("# With strong security, do not use IP based controls\n")
         config_fd.write("#####################################################\n")
