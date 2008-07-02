@@ -1,5 +1,7 @@
-vNext	Fix glexec handling in condor v7.0.3
+v1_2_3	Fix glexec handling in condor v7.0.3
 	Cut in half the number of condor_q's in the frontend.
+        Minor monitoring twaeks.
+        Minor installation tweaks.
 
 v1_2_2	Fix condor installation.
         Update versions in installer.
