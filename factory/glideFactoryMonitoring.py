@@ -607,7 +607,7 @@ class condorQStats:
                         fd.write("<h2>Glidein stats</h2>\n")
                         fd.write("<table>")
                         for s in ['Idle','Running','Held']:
-                            fd.write('<tr>')
+                            fd.write('<tr valign="top">')
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                             if s=='Running':
                                 s1='MaxRun'
@@ -617,7 +617,7 @@ class condorQStats:
                         fd.write("<h2>Frontend (client) stats</h2>\n")
                         fd.write("<table>")
                         for s in ['ClientIdle','ClientRunning','InfoAge']:
-                            fd.write('<tr>')
+                            fd.write('<tr valign="top">')
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                             fd.write('</tr>\n')                            
                         fd.write("</table>")
@@ -1231,7 +1231,7 @@ class condorLogSummary:
                             fd.write("</table>")
                             
 
-                        fd.write("<p>\n<table><tr>\n")
+                        fd.write("<p>\n<table><tr valign='top'>\n")
                         fd.write("<td>\n")
                         fd.write("Legenda of wasted:\n<ul>\n")
                         fd.write(" <li>Validation - Time spent before starting Condor\n")
@@ -1621,7 +1621,7 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
 
-                        fd.write("<p>\n<table><tr>\n")
+                        fd.write("<p>\n<table><tr valign='top'>\n")
                         fd.write("<td>\n")
                         fd.write("Legenda of wasted:\n<ul>\n")
                         fd.write(" <li>Validation - Time spent before starting Condor\n")
@@ -1794,10 +1794,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.186 2008/07/02 16:00:19 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.187 2008/07/02 16:58:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.187  2008/07/02 16:58:14  sfiligoi
+#  Improve table placing
+#
 #  Revision 1.186  2008/07/02 16:00:19  sfiligoi
 #  Improve graph titles
 #
