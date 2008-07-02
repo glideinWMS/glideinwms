@@ -1570,8 +1570,8 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                                 fd.write('<tr valign="top">')
                                 for p in ('','Split_'):
                                     fd.write('<td>%s</td>'%img2html("%sLog_%s_Count.%s.%s.png"%(p,s,period,size)))
+                                fd.write('</tr>\n')
                                 fd.write('<tr valign="top">')
-                                fd.write('</tr>\n')                            
                                 for l in ('Log','Log10'):
                                     for p in ('','Split_'):
                                         fd.write('<td>%s</td>'%img2html("%s%s_%s_Diff.%s.%s.png"%(p,l,s,period,size)))
@@ -1794,10 +1794,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.187 2008/07/02 16:58:14 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.188 2008/07/02 17:05:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.188  2008/07/02 17:05:28  sfiligoi
+#  Improve table placing
+#
 #  Revision 1.187  2008/07/02 16:58:14  sfiligoi
 #  Improve table placing
 #
