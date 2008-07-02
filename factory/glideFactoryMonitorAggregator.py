@@ -178,12 +178,17 @@ def create_status_history():
             rrd_fnames.append((string.replace(string.replace(entry,".","_"),"@","_"),"entry_%s/total/%s.rrd"%(entry,fname),area_name,colors[idx%len(colors)]))
             idx=idx+1
 
-        if tp=="Status":
-            tstr=a
+        if tp=="ClientMonitor":
+            if a=="InfoAge":
+                tstr="Client info age"
+            else:
+                tstr="%s client jobs"%a
+        elif tp=="Status":
+            tstr="%s glideins"%a
         else:
-            tstr="%s %s"%(tp,a)
+            tstr="%s %s glideins"%(tp,a)
         glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Split_%s"%fname,
-                                                           "%s glideins"%tstr,
+                                                           tstr,
                                                            rrd_fnames)
         
 
@@ -434,10 +439,13 @@ img2html=glideFactoryMonitoring.img2html
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.33 2008/07/01 18:48:51 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.34 2008/07/02 16:05:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.34  2008/07/02 16:05:13  sfiligoi
+#  Improve graph titles
+#
 #  Revision 1.33  2008/07/01 18:48:51  sfiligoi
 #  Add links to img html
 #

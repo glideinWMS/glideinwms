@@ -554,7 +554,7 @@ class condorQStats:
                                         "Held glideins",
                                         [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
             monitoringConfig.graph_rrds("%s/ClientIdle"%fe_dir,
-                                        "Idle client",
+                                        "Idle client jobs",
                                         [("Idle","%s/ClientMonitor_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
                                          ("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
             monitoringConfig.graph_rrds("%s/ClientRunning"%fe_dir,
@@ -645,12 +645,17 @@ class condorQStats:
                 rrd_fnames.append((cleanup_rrd_name(fe),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
                 idx=idx+1
 
-            if tp=="Status":
-                tstr=a
+            if tp=="ClientMonitor":
+                if a=="InfoAge":
+                    tstr="Client info age"
+                else:
+                    tstr="%s client jobs"%a
+            elif tp=="Status":
+                tstr="%s glideins"%a
             else:
-                tstr="%s %s"%(tp,a)
+                tstr="%s %s glideins"%(tp,a)
             monitoringConfig.graph_rrds("total/Split_%s"%fname,
-                                        "%s glideins"%tstr,
+                                        tstr,
                                         rrd_fnames)
 
         # create support index files for total
@@ -1789,10 +1794,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.185 2008/07/01 19:55:04 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.186 2008/07/02 16:00:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.186  2008/07/02 16:00:19  sfiligoi
+#  Improve graph titles
+#
 #  Revision 1.185  2008/07/01 19:55:04  sfiligoi
 #  Fix typo
 #
