@@ -214,6 +214,21 @@ the listed schedds.<br>
 Possible values include (but are not limited to) <span style="font-family: monospace;">"myschedd@mymachine.mydomain"</span>
 and <span style="font-family: monospace;">"myschedd_g1@mymachine.mydomain,myschedd_g2@mymachine.mydomain,myschedd_g3@mymachine.mydomain"</span>.&nbsp;</li>
 
+  <li><span style="font-family: monospace;">&lt;</span><span style="font-weight: bold; font-family: monospace;">glidein
+loop_delay</span><span style="font-family: monospace;">="</span><span style="font-style: italic; font-family: monospace;">seconds</span><span style="font-family: monospace;">"</span> 
+<span style="font-weight: bold; font-family: monospace;">
+advertise_delay</span><span style="font-family: monospace;">="</span><span style="font-style: italic; font-family: monospace;">nr</span><span style="font-family: monospace;">"
+&gt;</span><br>
+
+Defines how active the glidein factory should be.<br>
+<br>
+The glidein factory works in polling mode.<br>
+<span style="font-weight: bold; font-family: monospace;">loop_delay</span> defines how much 
+time should pass between each polling loop, 
+with the collector being updated every
+<span style="font-weight: bold; font-family: monospace;">advertise_delay</span> loops.
+
+
   <li><span style="font-family: monospace;">&lt;</span><span style="font-weight: bold; font-family: monospace;">glidein</span><span style="font-family: monospace;">&gt;&lt;</span><span style="font-weight: bold; font-family: monospace;">attrs</span><span style="font-family: monospace;">&gt;&lt;</span><span style="font-weight: bold; font-family: monospace;">attr name=</span><span style="font-weight: bold; font-family: monospace;">"GLIDEIN_Expose_Grid_Env"
 value</span><span style="font-family: monospace;">="</span><span style="font-style: italic; font-family: monospace;">Bool</span><span style="font-family: monospace;">" </span><span style="font-weight: bold; font-family: monospace;">const="True"</span><span style="font-family: monospace;"> </span><span style="font-weight: bold; font-family: monospace;">parameter="True"
 publish="False"</span><span style="font-family: monospace;">/&gt;<br>
