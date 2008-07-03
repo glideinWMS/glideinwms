@@ -185,6 +185,9 @@ class Params:
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
         self.defaults["submit"]=xmlParse.OrderedDict({"base_dir":(os.environ["HOME"],"base_dir","Submit base dir",None)})
 
+        self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
+        self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
+
         stage_defaults=xmlParse.OrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Stage base dir",None)
         stage_defaults["web_base_url"]=("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL',None)
@@ -199,7 +202,6 @@ class Params:
         self.defaults["attrs"]=sub_defaults['attrs']
         self.defaults["files"]=sub_defaults['files']
         self.defaults["entries"]=(xmlParse.OrderedDict(),"Dictionary of entries","Each entry contains",self.entry_defaults)
-                       
                        
         # support dir
         self.src_dir=os.path.join(os.getcwd(),"web_base")
@@ -426,10 +428,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.11 2008/07/03 18:04:13 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.12 2008/07/03 18:24:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.12  2008/07/03 18:24:56  sfiligoi
+#  Put loop_delay and advertise_delay into the XML
+#
 #  Revision 1.11  2008/07/03 18:04:13  sfiligoi
 #  Document TMPDIR
 #
