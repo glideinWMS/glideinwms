@@ -261,7 +261,7 @@ directory&nbsp; and launch the command:<br>
 
 
 <div style="text-align: left; margin-left: 40px;">
-<pre>python glideinFrontend.py &lt;sleep between loops&gt; &lt;force advertise every N loops&gt; &lt;config file path&gt;<br></pre>
+<pre>./glideinFrontend.py &lt;config file path&gt; &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;<br></pre>
 
 
 </div>
@@ -280,7 +280,7 @@ The fronted logs are deleted after a week.<br>
 A real life example could be:<br>
 
 
-<pre>cd glideinWMS/frontend<br>./glideinFrontend.py 15 4 ~/vo_23.conf</pre>
+<pre>~/glideinWMS/frontend/glideinFrontend.py ~/vo_23.conf &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</pre>
 
 
 <br>
