@@ -813,104 +813,50 @@ Another option is to use the <a href="../../install/factory_install.html">provid
 
 
 To start the Glidein Factory Daemon, all you need to do is <br>
-
-
-
-
-
-<ul>
-
-
-
-
-
-  <li>decide the frequency of updates,</li>
-
-
-
-
-
-  <li>move to the Glidein Factory directory</li>
-
-
-
-
-
-  <li>launch the daemon with<br>
-
-
-
-
-
-    
-    
-    
-    
-    
-    <pre>python glideFactory &lt;sleep between loops&gt; &lt;advertise every N loops&gt; &lt;entry point submit directory&gt;</pre>
-
-
-
-
-
-  </li>
-
-
-
-
-
-</ul>
-
-
-
-
-
+<pre>&lt;path&gt;/glideFactory &lt;entry point submit directory&gt; &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</pre>
 and you are all set.<br>
-
-
-
+<br>
 
 
 <br>
 
 
-Activity messages will be printed in<br>
-
-
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;entry point submit directory&gt;/log/factory_info.&lt;date&gt;.log</span><br>
-
-
+Base activity messages will be printed in<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/log/factory_info.&lt;date&gt;.log</span><br>
 </div>
-
-
 while all the warnings go into<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/log/factory_err.&lt;date&gt;.log</span><br>
+</div>
 
-
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;entry point submit directory&gt;/log/factory_err.&lt;date&gt;.log</span><br>
-
-
+<br>
+<br>
+However, each entry has also its own logs in<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/factory_info.&lt;date&gt;.log</span><br>
+</div>
+while all the warnings go into<br>
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/factory_err.&lt;date&gt;.log</span><br>
+</div>
+while the glidein output logs will be in
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/job.&lt;condor-g job nr&gt;.out</span><br>
+</div>
+and
+<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/job.&lt;condor-g job nr&gt;.err</span><br>
 </div>
 
 
-Both the glidein factory logs and the actual glidein logs are deleted after a week.<br>
+<br>
+Both the entry factory logs and the actual glidein logs are deleted after a week.<br>
 
 
 <br>
 
 
 Finally, a real life example could be:<br>
+<pre>.glideinWMS/factory/glideFactory.py /opt/glideins/glidein_fnal24 &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;<br></pre>
 
 
+This will start a daemon that runs on the entry point located in <span style="font-family: monospace;">/opt/glideins/glidein_fnal24</span>.<br>
 
-
-
-<pre>cd glideinWMS/factory<br>./glideFactory.py 5 6 /opt/glideins/glidein_fnal24<br></pre>
-
-
-
-
-
-This will start a daemon that runs on the entry point located in <span style="font-family: monospace;">/opt/glideins/glidein_fnal24</span>, waits 5 seconds between checks and advertises itself every 6 loops.<br>
 <h2><a name="monitoring"></a>Glidein Factory Monitoring</h2>
 Monitoring is an essential part of any service. One has to monitor to
 both maintain the healt of the system and to tune the system for anticipated 
