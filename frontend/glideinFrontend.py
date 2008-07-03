@@ -158,10 +158,10 @@ def iterate(log_dir,sleep_time,
         fd.close()
 
 ############################################################
-def main(sleep_time,advertize_rate,config_file):
-    config_dict={}
+def main(config_file):
+    config_dict={'loop_delay':60}
     execfile(config_file,config_dict)
-    iterate(config_dict['log_dir'],sleep_time,
+    iterate(config_dict['log_dir'],config_dict['loop_delay'],
             config_dict['frontend_name'],config_dict['factory_pool'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],
             config_dict['max_idle_glideins_per_entry'], 5,
@@ -186,5 +186,5 @@ if __name__ == '__main__':
 
     signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
     signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
-    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
+    main(sys.argv[1])
  
