@@ -99,6 +99,8 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             if eval(params.entries[entry].enabled,{},{}):
                 active_entry_list.append(entry)
         glidein_dict.add('Entries',string.join(active_entry_list,','))
+        glidein_dict.add('LoopDelay',params.loop_delay)
+        glidein_dict.add('AdvertiseDelay',params.advertise_delay)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -392,10 +394,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.38 2008/04/23 14:24:16 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.39 2008/07/03 19:43:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.39  2008/07/03 19:43:28  sfiligoi
+#  Put LoopDelay and AdvertiseDelay in glidein.descript
+#
 #  Revision 1.38  2008/04/23 14:24:16  sfiligoi
 #  Also publish CE info
 #
