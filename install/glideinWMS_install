@@ -1272,7 +1272,11 @@ def vofrontend_install():
 
         fd.write("# Where to store log files\n")
         fd.write("# Possibly put it in a dedicated directory\n")
-        fd.write("log_dir='%s/log'\n"%config_dir)
+        fd.write("log_dir='%s/log'\n\n"%config_dir)
+
+        fd.write("# Frontend works in polling mode\n")
+        fd.write("# How much time should pass between a polling loop?\n")
+        fd.write("loop_delay=60\n\n")
     finally:
         fd.close()
 
