@@ -997,7 +997,8 @@ def gfactory_install():
     try:
         try:
             fd.write('<glidein factory_name="%s" glidein_name="%s"\n'%(factory_name,glidein_name))
-            fd.write('         schedd_name="%s">\n'%string.join(schedds,','))
+            fd.write('         schedd_name="%s"\n'%string.join(schedds,','))
+            fd.write('         loop_delay="60" advertise_delay="5">\n')
             fd.write('   <submit base_dir="%s"/>\n'%submit_base_dir)
             fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
