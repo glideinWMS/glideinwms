@@ -128,7 +128,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
         
         
 ############################################################
-def main(sleep_time,advertize_rate,startup_dir):
+def main(startup_dir):
     startup_time=time.time()
 
     # create log files in the glidein log directory
@@ -143,6 +143,10 @@ def main(sleep_time,advertize_rate,startup_dir):
 
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
+
+    sleep_time=int(glideinDescript.data['LoopDelay'])
+    advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
+    
     entries=string.split(glideinDescript.data['Entries'],',')
     entries.sort()
 
@@ -191,17 +195,20 @@ if __name__ == '__main__':
     if not os.environ.has_key('X509_CERT_DIR'):
         raise RuntimeError, "Need X509_CERT_DIR to work!"
 
-    main(int(sys.argv[1]),int(sys.argv[2]),sys.argv[3])
+    main(sys.argv[1])
  
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.67 2008/05/30 15:07:07 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.68 2008/07/03 19:42:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.68  2008/07/03 19:42:10  sfiligoi
+#  Read sleep_time and advertize_rate from glidein.descript
+#
 #  Revision 1.67  2008/05/30 15:07:07  sfiligoi
 #  Add creating of cummulative log graphs
 #
