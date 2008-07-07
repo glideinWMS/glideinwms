@@ -205,7 +205,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
         myJobAttributes=jobAttributes.data.copy()
-        myJobAttributes['InDowntime']=in_downtime
+        myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
@@ -400,10 +400,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.37 2008/07/07 18:53:52 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.38 2008/07/07 18:58:05 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.38  2008/07/07 18:58:05  sfiligoi
+#  Rename InDowntime to GLIDEIN_In_Downtime
+#
 #  Revision 1.37  2008/07/07 18:53:52  sfiligoi
 #  Fix typo
 #
