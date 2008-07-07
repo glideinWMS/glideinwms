@@ -31,6 +31,7 @@ import glideFactoryLib
 import glideFactoryMonitoring
 import glideFactoryInterface
 import glideFactoryLogParser
+import glideFactoryDowntimeLib
 import logSupport
 
 # this thread will be used for lazy updates of rrd history conversions
@@ -96,7 +97,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     
 
 ############################################################
-def find_and_perform_work(glideinDescript,jobDescript,jobParams):
+def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     factory_name=glideinDescript.data['FactoryName']
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
@@ -134,6 +135,12 @@ def find_and_perform_work(glideinDescript,jobDescript,jobParams):
                 max_running=work[work_key]['requests']['MaxRunningGlideins']
             else:
                 max_running=None
+
+            if in_downtime:
+                # we are in downtime... no new submissions
+                idle_glideins=0
+                max_running=0
+            
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,
@@ -185,7 +192,7 @@ def write_stats():
     return
 
 ############################################################
-def advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams):
+def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
     factory_name=glideinDescript.data['FactoryName']
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
@@ -197,7 +204,9 @@ def advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams):
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitors.copy())
+        myJobAttributes=jobAttributes.data.copy()
+        myJobAttributes['InDowntime']=in_downtime
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 
@@ -229,13 +238,13 @@ def advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams):
     return
 
 ############################################################
-def iterate_one(do_advertize,
+def iterate_one(do_advertize,in_downtime,
                 glideinDescript,jobDescript,jobAttributes,jobParams):
-    done_something = find_and_perform_work(glideinDescript,jobDescript,jobParams)
+    done_something = find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams)
 
     if do_advertize or done_something:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
-        advertize_myself(glideinDescript,jobDescript,jobAttributes,jobParams)
+        advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams)
     
     return done_something
 
@@ -246,15 +255,21 @@ def iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
+    factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile']
+    entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile']
     while 1:
         check_parent(parent_pid)
-        glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
+        in_downtime=(factory_downtimes.checkDowntime() or entry_downtimes.checkDowntime())
+        if in_downtime:
+            glideFactoryLib.factoryConfig.activity_log.write("Downtime iteration at %s" % time.ctime())
+        else:
+            glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             glideFactoryLib.factoryConfig.client_internals = {}
 
-            done_something=iterate_one(count==0,
+            done_something=iterate_one(count==0,in_downtime,
                                        glideinDescript,jobDescript,jobAttributes,jobParams)
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
@@ -385,10 +400,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.35 2008/06/30 18:45:13 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.36 2008/07/07 18:43:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.36  2008/07/07 18:43:40  sfiligoi
+#  Use the downtime info
+#
 #  Revision 1.35  2008/06/30 18:45:13  sfiligoi
 #  Remove queries to the collector
 #
