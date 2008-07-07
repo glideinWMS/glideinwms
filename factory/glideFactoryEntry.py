@@ -255,8 +255,8 @@ def iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
-    factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile']
-    entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile']
+    factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+    entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
         check_parent(parent_pid)
         in_downtime=(factory_downtimes.checkDowntime() or entry_downtimes.checkDowntime())
@@ -400,10 +400,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.36 2008/07/07 18:43:40 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.37 2008/07/07 18:53:52 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.37  2008/07/07 18:53:52  sfiligoi
+#  Fix typo
+#
 #  Revision 1.36  2008/07/07 18:43:40  sfiligoi
 #  Use the downtime info
 #
