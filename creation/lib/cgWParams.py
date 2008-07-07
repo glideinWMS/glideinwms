@@ -137,7 +137,6 @@ class SubParams:
             return outlst
         else:
             return el
-        
 
 class Params:
     def __init__(self,argv):
@@ -162,7 +161,8 @@ class Params:
         untar_defaults["dir"]=(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None)
         untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
         self.file_defaults["untar_options"]=untar_defaults
-        
+
+        downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
@@ -178,6 +178,7 @@ class Params:
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=sub_defaults['files']
+        self.entry_defaults["downtimes"]=downtimes_defaults
         
         self.defaults=xmlParse.OrderedDict()
         self.defaults["factory_name"]=(socket.gethostname(),'ID', 'Factory name',None)
@@ -199,6 +200,9 @@ class Params:
         condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
         condor_defaults["base_dir"]=(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
         self.defaults["condor"]=condor_defaults
+
+        self.defaults["downtimes"]=downtimes_defaults
+
         self.defaults["attrs"]=sub_defaults['attrs']
         self.defaults["files"]=sub_defaults['files']
         self.defaults["entries"]=(xmlParse.OrderedDict(),"Dictionary of entries","Each entry contains",self.entry_defaults)
@@ -428,10 +432,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.12 2008/07/03 18:24:56 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.13 2008/07/07 17:55:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.13  2008/07/07 17:55:07  sfiligoi
+#  Add support for downtimes files
+#
 #  Revision 1.12  2008/07/03 18:24:56  sfiligoi
 #  Put loop_delay and advertise_delay into the XML
 #

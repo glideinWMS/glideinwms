@@ -43,6 +43,10 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         if params==None:
             params=self.params
 
+        # if a user does not provide a file name, use the default one
+        if params.downtimes.absfname==None:
+            params.subparams.data['downtimes']['absfname']=os.path.join(self.submit_dir,'factory.downtimes')
+        
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
@@ -101,6 +105,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('Entries',string.join(active_entry_list,','))
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
+        glidein_dict.add('DowntimesFile',params.downtimes.absfname)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -140,6 +145,10 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
         entry_params=params.entries[self.entry_name]
 
+        # if a user does not provide a file name, use the default one
+        if entry_params.downtimes.absfname==None:
+            entry_params.data['downtimes']['absfname']=os.path.join(self.submit_dir,'entry.downtimes')
+        
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
@@ -380,6 +389,7 @@ def populate_job_descript(job_descript_dict,        # will be modified
     job_descript_dict.add('StartupDir',entry_params.work_dir)
     if entry_params.proxy_url!=None:
         job_descript_dict.add('ProxyURL',entry_params.proxy_url)
+    job_descript_dict.add('DowntimesFile',entry_params.downtimes.absfname)
 
     
 #######################
@@ -394,10 +404,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.39 2008/07/03 19:43:28 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.40 2008/07/07 17:55:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.40  2008/07/07 17:55:07  sfiligoi
+#  Add support for downtimes files
+#
 #  Revision 1.39  2008/07/03 19:43:28  sfiligoi
 #  Put LoopDelay and AdvertiseDelay in glidein.descript
 #
