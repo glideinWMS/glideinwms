@@ -1,5 +1,11 @@
 #!/bin/env python
 
+#
+# Description:
+#  This program updates a glidein factory directory structure
+#  based on a configuration file
+#
+
 import os
 import copy
 import sys
@@ -75,10 +81,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.5 2008/03/28 17:13:43 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.6 2008/07/07 20:30:05 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.6  2008/07/07 20:30:05  sfiligoi
+#  Add comments
+#
 #  Revision 1.5  2008/03/28 17:13:43  sfiligoi
 #  Save the cfg file with a timestamp, too
 #

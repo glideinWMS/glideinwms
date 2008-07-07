@@ -1,5 +1,11 @@
 #!/bin/env python
 
+#
+# Description:
+#  This program creates a glidein factory directory structure
+#  based on a configuration file
+#
+
 import os
 import copy
 import sys
@@ -93,10 +99,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.126 2008/03/28 17:13:43 sfiligoi Exp $
+# $Id: create_glidein,v 1.127 2008/07/07 20:30:05 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.127  2008/07/07 20:30:05  sfiligoi
+#  Add comments
+#
 #  Revision 1.126  2008/03/28 17:13:43  sfiligoi
 #  Save the cfg file with a timestamp, too
 #
