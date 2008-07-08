@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080708;12521700">
+	<META NAME="CHANGED" CONTENT="20080708;13054900">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Factory</H1>
@@ -28,7 +28,8 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 	<UL>
 		<LI><A HREF="#create_entry">Creating a new configuration directory
 		tree</A> 
-		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
+	        <LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
+                <LI><A HREF="#downtimes">Downtime handling</A>
 	</UL>
 	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
 	<UL>
@@ -90,10 +91,10 @@ of the tree contains the common startup and configuration files,
 while each entry point has a few additional configuration files on
 its own. Each entry point is completely described by these files on
 disk; the Entry Point Daemons only extract information about entry
-point attributes and supported parameters needed for advertizing.
+point attributes and supported parameters needed for advertising.
 When glidein jobs are submitted, only the frontend provided
 parameters need to be given to the&nbsp;glidein startup script, as
-the script itself will authonomously gather all the other
+the script itself will autonomously gather all the other
 information.<BR><BR>More details about the Entry Point&nbsp;Daemon
 internals can be found <A HREF="factory_internals.html">here</A>.&nbsp;
 </P>
@@ -253,12 +254,26 @@ of the configuration is described on a dedicated page</A> .</P>
 <P>
 <BR>Both the entry factory logs and the actual glidein logs are
 deleted after a week.<BR><BR>Finally, a real life example could be:</P>
-<PRE>.glideinWMS/factory/glideFactory.py /opt/glideins/glidein_fnal24 &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</PRE><P>
+<PRE>./glideinWMS/factory/glideFactory.py /opt/glideins/glidein_fnal24 &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</PRE><P>
 This will start a daemon that runs on the entry point located in
 <FONT FACE="monospace">/opt/glideins/glidein_fnal24</FONT>.</P>
+<H3><A NAME="downtimes"></A>Downtime handling</H3>
+<P>Starting with v1_3, the glidein factory supports the dynamic
+handling of downtimes.<BR>Downtimes can be handled both at the
+factory and at the entry level.</P>
+<P>Downtimes are useful when one or more Grid sites are known to have
+issues (can be anything from scheduled maintenance to a storage
+element corrupting user files).<BR>In this case the factory
+administrator can temporarily stop submitting glideins to the
+affected sites, without stopping the factory as a whole.</P>
+<P>Downtimes are handled with the 
+</P>
+<PRE>./glideinWMS/factory/manageFactoryDowntimes.py</PRE><P>
+command. An admin can add downtimes both at the entry and at the
+factory level; both will be used.</P>
 <H2><A NAME="monitoring"></A>Glidein Factory Monitoring</H2>
 <P>Monitoring is an essential part of any service. One has to monitor
-to both maintain the healt of the system and to tune the system for
+to both maintain the health of the system and to tune the system for
 anticipated growth. The various ways you can monitor a Glidein
 Factory are described below. 
 </P>
