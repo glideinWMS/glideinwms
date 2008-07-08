@@ -9,11 +9,12 @@
 import os
 import copy
 import sys
+STARTUP_DIR=sys.path[0]
 import os.path
 import string
 import shutil
 import traceback
-sys.path.append("lib")
+sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 import cgWParams
 import cgWDictFile
 import cgWConsts
@@ -45,6 +46,11 @@ def main(params):
         # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
         cfgfile=cgWConsts.insert_timestr(cfgfile)
         params.save_into_file(cfgfile)
+
+        # create the init.d starup file
+        cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.INITD_STARTUP_FILE),
+                                       glidein_dicts_obj.main_dicts.submit_dir,
+                                       os.path.realpath(os.path.join(STARTUP_DIR,'..')))
     except:
         glidein_dicts_obj.delete_dirs()
         raise
@@ -99,10 +105,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.127 2008/07/07 20:30:05 sfiligoi Exp $
+# $Id: create_glidein,v 1.128 2008/07/08 20:49:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.128  2008/07/08 20:49:07  sfiligoi
+#  Add init.d startup file
+#
 #  Revision 1.127  2008/07/07 20:30:05  sfiligoi
 #  Add comments
 #

@@ -68,6 +68,8 @@ SUBMIT_WRAPPER="job_submit.sh"
 LOCAL_START_WRAPPER="local_start.sh"
 XML_CONFIG_FILE="glideinWMS.xml"
 
+INITD_STARTUP_FILE="factory_startup"
+
 ###################################################
 #
 # These functions append constant parts to strings
@@ -109,10 +111,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.14 2008/01/25 21:45:35 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.15 2008/07/08 20:49:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.15  2008/07/08 20:49:07  sfiligoi
+#  Add init.d startup file
+#
 #  Revision 1.14  2008/01/25 21:45:35  sfiligoi
 #  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
 #

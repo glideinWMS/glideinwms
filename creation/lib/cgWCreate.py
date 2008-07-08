@@ -100,14 +100,72 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         arg_str+="-param_GLIDEIN_Client $ENV(GLIDEIN_CLIENT) $ENV(GLIDEIN_PARAMS)"
         self.add("Arguments",arg_str,allow_overwrite=True)
 
+#########################################
+# Create init.d compatible startup file
+def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
+    fd=open(startup_fname,"w")
+    try:
+        fd.write("#!/bin/bash\n")
+        fd.write("# condor   This is the glideinWMS factory startup script\n")
+        fd.write("# chkconfig: 35 90 30\n")
+        fd.write("# description: Starts and stops a glideinWMS factory\n\n")
+        
+        fd.write("# Source function library.\n")
+        fd.write("if [ -f /etc/init.d/functions ] ; then\n")
+        fd.write("        . /etc/init.d/functions\n")
+        fd.write("elif [ -f /etc/rc.d/init.d/functions ] ; then\n")
+        fd.write("        . /etc/rc.d/init.d/functions\n")
+        fd.write("else\n")
+        fd.write("        exit 0\n")
+        fd.write("fi\n\n")
+        
+        fd.write("factory_dir='%s'\n"%factory_dir)
+        fd.write("glideinWMS_dir='%s'\n"%glideinWMS_dir)
+        fd.write("\n")
+        
+        fd.write("factory_name=`awk '/^FactoryName /{print $2}' $factory_dir/glidein.descript`\n")
+        fd.write("glidein_name=`awk '/^GlideinName /{print $2}' $factory_dir/glidein.descript`\n")
+        fd.write('id_str="$glidein_name@$factory_name"\n')
+        fd.write("\n")
+        
+        fd.write("start() {\n")
+        fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
+        fd.write('        "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write("        RETVAL=$?\n")
+        fd.write("        echo\n")
+        fd.write("}\n\n")
+        
+        fd.write("stop() {\n")
+        fd.write('        echo -n "Shutting down glideinWMS factory $id_str: "\n')
+        fd.write('        "$glideinWMS_dir/factory/stopFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write("        RETVAL=$?\n")
+        fd.write("        echo\n")
+        fd.write("}\n\n")
+        
+        fd.write("restart() {\n")
+        fd.write("        stop\n")
+        fd.write("        start\n")
+        fd.write("}\n\n")
+    finally:
+        fd.close()
+        
+    os.chmod(startup_fname,
+             stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+
+    return
+
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.16 2008/06/30 18:37:33 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.17 2008/07/08 20:49:07 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.17  2008/07/08 20:49:07  sfiligoi
+#  Add init.d startup file
+#
 #  Revision 1.16  2008/06/30 18:37:33  sfiligoi
 #  Add the missing ondor_glexec_wrapper
 #
