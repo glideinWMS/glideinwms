@@ -8,6 +8,7 @@
 ####################################
 
 import os,os.path
+import stat
 import string
 import traceback
 import tarfile
@@ -159,10 +160,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.17 2008/07/08 20:49:07 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.18 2008/07/08 20:53:00 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.18  2008/07/08 20:53:00  sfiligoi
+#  Fix typo
+#
 #  Revision 1.17  2008/07/08 20:49:07  sfiligoi
 #  Add init.d startup file
 #
