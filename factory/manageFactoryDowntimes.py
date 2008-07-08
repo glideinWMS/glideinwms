@@ -19,6 +19,7 @@ def usage():
     print "  add start_time end_time - Add a scheduled downtime period"
     print "  down [delay]            - Put the factory down now(+delay)" 
     print "  up [delay]              - Get the factory back up now(+delay)"
+    print "  check [delay]           - Report if the factory is in downtime now(+delay)"
     print "where *_time is of the format:"
     print "  [[MM-]DD-]HH:MM[:SS]"
     print "and delay is of the format:"
@@ -69,6 +70,20 @@ def up(down_fd,argv):
         down_fd.endDowntime(when)
     return 0
 
+def check(down_fd,argv):
+    when=0
+    if len(argv)>1:
+        when=delay2time(argv[1])
+
+    when+=long(time.time())
+
+    in_downtime=down_fd.checkDowntime(when)
+    if in_downtime:
+        print "Down"
+    else:
+        print "Up"
+    return in_downtime
+
 def main(argv):
     if len(argv)<4:
         usage()
@@ -111,6 +126,8 @@ def main(argv):
         return down(fd,argv[3:])
     elif cmd=='up':
         return up(fd,argv[3:])
+    elif cmd=='check':
+        return check(fd,argv[3:])
     else:
         usage()
         print "Invalid command %s"%cmd
