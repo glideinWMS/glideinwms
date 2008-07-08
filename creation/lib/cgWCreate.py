@@ -131,7 +131,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         
         fd.write("start() {\n")
         fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
-        fd.write('        "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write('        ("$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &) && success || failure\n')
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
         fd.write("}\n\n")
@@ -162,7 +162,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("                status python\n")
         fd.write("        ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: $prog {start|stop|restart|status}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
@@ -180,10 +180,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.19 2008/07/08 20:56:15 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.20 2008/07/08 20:58:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.20  2008/07/08 20:58:51  sfiligoi
+#  Fix typo
+#
 #  Revision 1.19  2008/07/08 20:56:15  sfiligoi
 #  Fix typo
 #

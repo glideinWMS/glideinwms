@@ -61,7 +61,7 @@ def get_entry_pid(startup_dir,entry_name):
         fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
         fd.close()
         # if I can get a lock, it means that there is no factory 
-        raise RuntimeError, "Entry '%s' not running"%s
+        raise RuntimeError, "Entry '%s' not running"%entry_name
     except IOError:
         lines=fd.readlines()
         fd.close()
