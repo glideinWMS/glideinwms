@@ -147,6 +147,26 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        stop\n")
         fd.write("        start\n")
         fd.write("}\n\n")
+
+        fd.write("case $1 in\n")
+        fd.write("        start)\n")
+        fd.write("                start\n")
+        fd.write("        ;;\n")
+        fd.write("        stop)\n")
+        fd.write("                stop\n")
+        fd.write("        ;;\n")
+        fd.write("        restart)\n")
+        fd.write("                restart\n")
+        fd.write("        ;;\n")
+        fd.write("        status)\n")
+        fd.write("                status python\n")
+        fd.write("        ;;\n")
+        fd.write("        *)\n")
+        fd.write('        echo $"Usage: $prog {start|stop|restart|status}"\n')
+        fd.write("        exit 1\n")
+        fd.write("esac\n\n")
+
+        fd.write("exit $RETVAL\n")
     finally:
         fd.close()
         
@@ -160,10 +180,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.18 2008/07/08 20:53:00 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.19 2008/07/08 20:56:15 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.19  2008/07/08 20:56:15  sfiligoi
+#  Fix typo
+#
 #  Revision 1.18  2008/07/08 20:53:00  sfiligoi
 #  Fix typo
 #
