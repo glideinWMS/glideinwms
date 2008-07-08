@@ -1,1055 +1,308 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-  <title>Glidein Factory</title>
-</head>
-<body>
-<h1>Glidein Factory</h1>
-<h2>Description</h2>
-
-
-
-
-
-
-A&nbsp;Glidein Factory is the glidein producing infrastructure of a
-<a href="../index.html">glidein&nbsp;based WMS</a>.<br>
-
-
-
-
-
-
-<h2>Index</h2>
-
-
-
-
-
-
-<ul>
-
-
-
-
-
-
-  <li><a href="#overview">Overview</a></li>
-
-
-
-
-
-
-  <li><a href="#philosophy">The Glidein Factory
-philosophy</a></li>
-
-
-
-
-
-
-  <li><a href="#implementation">Implementation
-details</a></li>
-
-
-
-
-
-
-  
-  
-  
-  
-  
-  <ul>
-
-
-
-
-
-
-    <li><a href="#glidein_daemons">The Glidein
-Factory Daemons</a> (<a href="factory_internals.html">internals</a>)</li>
-
-
-
-
-
-
-    <li><a href="#glidein_startup">The glidein
-startup script</a> (<a href="glidein_internals.html">internals</a>)</li>
-
-
-
-
-
-
-  
-  
-  
-  
-  
-  </ul>
-
-
-
-
-
-
-  <li><a href="#management">Glidein Factory management</a></li>
-
-
-
-
-
-  
-  
-  
-  
-  
-  <ul>
-
-
-
-
-
-    <li><a href="#create_entry">Creating a new configuration directory tree</a></li>
-
-
-
-
-
-    <li><a href="#run_daemon">Starting a Glidein Factory Daemon</a></li>
-
-
-
-
-
-  
-  
-  
-  
-  
-  </ul>
-  <li><a href="#monitoring">Glidein Factory Monitoring</a></li>
-  <ul>
-    <li><a href="#monitoring_classads">Looking at ClassAds</a></li>
-    <li><a href="#monitoring_web">Web monitoring</a></li>
-    <li><a href="#monitoring_history">Historical Web Monitoring</a></li>
-  </ul>
-
-
-
-
-
-  <li><a href="#scalability">Scalability consideration</a></li>
-
-
-
-
-
-
-  <li><a href="#ref">Reference</a></li>
-
-
-
-
-
-
-</ul>
-
-
-
-
-
-
-<h2><a name="overview"></a>Overview</h2>
-
-
-
-
-
-
-The main task of the Glidein Factory is to advertise
-itself,&nbsp;listen for requests
-from&nbsp;<a href="../frontend/index.html">frontend
-clients</a> and submit <a href="../index.html#glideins">glideins</a>.
-Look at the picture
-below for a schematic view.<br>
-
-
-
-
-
-
-<img src="overview.png"><br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-A single glidein factory can handle multiple kinds of glideins, also
-called <span style="font-weight: bold;"><a name="glidein_entry_point">glidein entry points</a></span>
-(as they usually point to different Grid resources). For
-each entry point, it will advertise a different class-ad. <br>
-
-
-
-
-
-
-Similarly,
-each request from a frontend client will affect a single entry point; a
-frontend will need to advertise several requests in order to
-have glideins submitted to all the desirable resources.<br>
-
-
-
-
-
-
-<h2><a name="philosophy"></a>The Glidein
-Factory philosophy</h2>
-
-
-
-
-
-
-The main idea behind a Glidein Factory is to make the life of a VO
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Glidein Factory</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20080708;12521700">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Glidein Factory</H1>
+<H2>Description</H2>
+<P>A&nbsp;Glidein Factory is the glidein producing infrastructure of
+a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
+<H2>Index</H2>
+<UL>
+	<LI><A HREF="#overview">Overview</A> 
+	<LI><A HREF="#philosophy">The Glidein Factory philosophy</A> 
+	<LI><A HREF="#implementation">Implementation details</A> 
+	<UL>
+		<LI><A HREF="#glidein_daemons">The Glidein Factory Daemons</A>
+		(<A HREF="factory_internals.html">internals</A>) 
+		<LI><A HREF="#glidein_startup">The glidein startup script</A>
+		(<A HREF="glidein_internals.html">internals</A>) 
+	</UL>
+	<LI><A HREF="#management">Glidein Factory management</A> 
+	<UL>
+		<LI><A HREF="#create_entry">Creating a new configuration directory
+		tree</A> 
+		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
+	</UL>
+	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
+	<UL>
+		<LI><A HREF="#monitoring_classads">Looking at ClassAds</A> 
+		<LI><A HREF="#monitoring_web">Web monitoring</A> 
+		<LI><A HREF="#monitoring_history">Historical Web Monitoring</A> 
+	</UL>
+	<LI><A HREF="#scalability">Scalability consideration</A> 
+	<LI><P><A HREF="#ref">Reference</A> 
+	</P>
+</UL>
+<H2><A NAME="overview"></A>Overview</H2>
+<P><A NAME="glidein_entry_point"></A>The main task of the Glidein
+Factory is to advertise itself,&nbsp;listen for requests
+from&nbsp;<A HREF="../frontend/index.html">frontend clients</A> and
+submit <A HREF="../index.html#glideins">glideins</A>. Look at the
+picture below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=881 HEIGHT=359 BORDER=0><BR><BR>A
+single glidein factory can handle multiple kinds of glideins, also
+called <B>glidein entry points</B> (as they usually point to
+different Grid resources). For each entry point, it will advertise a
+different class-ad. <BR>Similarly, each request from a frontend
+client will affect a single entry point; a frontend will need to
+advertise several requests in order to have glideins submitted to all
+the desirable resources.</P>
+<H2><A NAME="philosophy"></A>The Glidein Factory philosophy</H2>
+<P>The main idea behind a Glidein Factory is to make the life of a VO
 frontend as easy as possible. And to do that, the factory needs to
-abstract as much as possible. <br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-For starters, the factory itself is the one that knows the details of
-various Grid sites and properly configures the glidein entry points, so
-they will run without any additional knowledge. A frontend only needs
-to know that an entry point exists, and the parameters it takes.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-Additionally, the factory also does the submissions themselves. The
-frontend just publishes that it needs some glideins &nbsp;and the
-factory will start submitting them. The only handle the frontend may
-want to use is the ability to regulate the rate of glideins that are
-sent to the
+abstract as much as possible. <BR><BR>For starters, the factory
+itself is the one that knows the details of various Grid sites and
+properly configures the glidein entry points, so they will run
+without any additional knowledge. A frontend only needs to know that
+an entry point exists, and the parameters it takes.<BR><BR>Additionally,
+the factory also does the submissions themselves. The frontend just
+publishes that it needs some glideins &nbsp;and the factory will
+start submitting them. The only handle the frontend may want to use
+is the ability to regulate the rate of glideins that are sent to the
 Grid site. In the current implementation, this can be achieved by
-setting the desired number of <a href="http://www.cs.wisc.edu/condor/manual/v6.8/2_6Managing_Job.html#SECTION00361000000000000000">idle
-glideins</a> to be kept in the Grid queue.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-The <a href="../overview.png" target="_blank">typical
-scenario</a> features a frontend with several (hundreds or
-even thousands of) user jobs in the queue that is looking for resources
-to run them. It will fetch the factory classads, select the ones
-that satisfy its needs, and advertise class-ads with requests for those
-glideins. If the frontend ever runs out of user jobs, it
-will advertise the fact that it does not need those glideins anymore.
-In
+setting the desired number of <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/2_6Managing_Job.html#SECTION00361000000000000000">idle
+glideins</A> to be kept in the Grid queue.<BR><BR>The <A HREF="../overview.png" TARGET="_blank">typical
+scenario</A> features a frontend with several (hundreds or even
+thousands of) user jobs in the queue that is looking for resources to
+run them. It will fetch the factory classads, select the ones that
+satisfy its needs, and advertise class-ads with requests for those
+glideins. If the frontend ever runs out of user jobs, it will
+advertise the fact that it does not need those glideins anymore. In
 practical terms, this means asking the factory to keep exactly 0 idle
-glideins in the queue.<br>
-
-
-
-
-
-
-<h2><a name="implementation"></a>Implementation
-details</h2>
-
-
-
-
-
-
-<h3><a name="glidein_daemons"></a>The Glidein
-Factory Daemons</h3>
-
-
-
-
-
-
-The Glidein Factory is composed of several Entry Point Daemons, each
-advertising itself and processing the incoming requests. The factory
-was thus implemented so that each entry point is run by a separate
-process. In fact, a Glidein Factory is essentially a collection
-of Entry Point Daemons, each representing a glidein entry point,
-spawned (and monitored) by a single Glidein Factory Daemon. See the picture below for a logical overview.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-<img src="entry_points_overview.png"><br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-All daemons of a Glidein Factory share the same directory tree. The
-root of the tree contains the common startup and configuration files,
-while each entry point has a few additional configuration files on its
-own. Each entry point is completely described by these files on disk;
-the Entry Point Daemons only extract information about entry point
-attributes and supported parameters needed for advertizing. When
-glidein jobs are submitted, only the frontend provided parameters need
-to be given to the&nbsp;glidein startup script, as the script itself
-will authonomously gather all the other information.<br>
-
-
-
-
-
-<br>
-
-
-
-
-
-More details about the Entry Point&nbsp;Daemon internals can be found <a href="factory_internals.html">here</a>.&nbsp; <br>
-
-
-
-
-
-
-<h3><a name="glidein_startup"></a>The glidein
-startup script</h3>
-
-
-
-
-
-
-As said in the <a href="../index.html#glideins">overview</a>,&nbsp;
-a glidein is essentially a properly configured Condor startd. However,
-somebody needs to do that configuration. So we need a job startup
-script that will do the work.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-A startup script needs to perform several tasks:<br>
-
-
-
-
-
-
-<ul>
-
-
-
-
-
-
-  <li>check that the working environment on the worker node is
-reasonable (else user jobs will fail)</li>
-
-
-
-
-
-
-  <li>obtain the Condor binaries</li>
-
-
-
-
-
-
-  <li>configure&nbsp;Condor</li>
-
-
-
-
-
-
-  <li>prepare the environment for&nbsp;Condor</li>
-
-
-
-
-
-
-  <li>start Condor</li>
-
-
-
-
-
-
-</ul>
-
-
-
-
-
-
-Given the complexity of the task, and for the sake of flexibility, it
-makes sense to split the script in several pieces. So the glidein job
-is composed of several pieces, including the startup script pieces, the
-Condor binaries, and a base configuration file. <br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-However, having a Grid job with data files can represent a challenge;
-each Grid flavor treats data in a different way!<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-To make the system as general as possible, the Glidein&nbsp;Factory
+glideins in the queue.</P>
+<H2><A NAME="implementation"></A>Implementation details</H2>
+<H3><A NAME="glidein_daemons"></A>The Glidein Factory Daemons</H3>
+<P>The Glidein Factory is composed of several Entry Point Daemons,
+each advertising itself and processing the incoming requests. The
+factory was thus implemented so that each entry point is run by a
+separate process. In fact, a Glidein Factory is essentially a
+collection of Entry Point Daemons, each representing a glidein entry
+point, spawned (and monitored) by a single Glidein Factory Daemon.
+See the picture below for a logical overview.<BR><BR><BR><IMG SRC="entry_points_overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=818 HEIGHT=539 BORDER=0><BR><BR>All
+daemons of a Glidein Factory share the same directory tree. The root
+of the tree contains the common startup and configuration files,
+while each entry point has a few additional configuration files on
+its own. Each entry point is completely described by these files on
+disk; the Entry Point Daemons only extract information about entry
+point attributes and supported parameters needed for advertizing.
+When glidein jobs are submitted, only the frontend provided
+parameters need to be given to the&nbsp;glidein startup script, as
+the script itself will authonomously gather all the other
+information.<BR><BR>More details about the Entry Point&nbsp;Daemon
+internals can be found <A HREF="factory_internals.html">here</A>.&nbsp;
+</P>
+<H3><A NAME="glidein_startup"></A>The glidein startup script</H3>
+<P>As said in the <A HREF="../index.html#glideins">overview</A>,&nbsp;
+a glidein is essentially a properly configured Condor startd.
+However, somebody needs to do that configuration. So we need a job
+startup script that will do the work.<BR><BR>A startup script needs
+to perform several tasks:</P>
+<UL>
+	<LI>check that the working environment on the worker node is
+	reasonable (else user jobs will fail) 
+	<LI>obtain the Condor binaries 
+	<LI>configure&nbsp;Condor 
+	<LI>prepare the environment for&nbsp;Condor 
+	<LI><P>start Condor 
+	</P>
+</UL>
+<P>Given the complexity of the task, and for the sake of flexibility,
+it makes sense to split the script in several pieces. So the glidein
+job is composed of several pieces, including the startup script
+pieces, the Condor binaries, and a base configuration file.
+<BR><BR>However, having a Grid job with data files can represent a
+challenge; each Grid flavor treats data in a different way!<BR><BR>To
+make the system as general as possible, the Glidein&nbsp;Factory
 requires the use of a Web Server to distribute its data. This version
-of the Glide based Factory was tested with <a href="http://www.apache.org/">Apache</a> and <a href="http://www.stllinux.org/meeting_notes/2001/0719/tux/index.html">TUX</a>,
+of the Glide based Factory was tested with <A HREF="http://www.apache.org/">Apache</A>
+and <A HREF="http://www.stllinux.org/meeting_notes/2001/0719/tux/index.html">TUX</A>,
 but any other web server should work just well, as only static file
-delivery is required.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-A general overview of how a glidein starts up is given in the picture
-below.<br>
-
-
-
-
-
-
-<img src="glidein_script.png"><br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-The task of the basic startup script (called <span style="font-family: monospace; font-weight: bold;">glidein_startup.sh</span>)
+delivery is required.<BR><BR>A general overview of how a glidein
+starts up is given in the picture below.<BR><IMG SRC="glidein_script.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=944 HEIGHT=494 BORDER=0><BR><BR>The
+task of the basic startup script (called <FONT FACE="monospace"><B>glidein_startup.sh</B></FONT>)
 is thus reduced to loading the other files, including the support
 scripts, the base config files and the Condor binaries. The list of
 files to load is obtained from the Web server as one of the first
-steps, making the startup script completely generic.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-Please notice two things. First, all the files transfered over the Web
-are signed using <span style="font-weight: bold; font-family: monospace;">sha1sum</span>.
-This prevents a hacker from tampering with the files while in transit. This
-is especially important for executables and scripts (to prevent
+steps, making the startup script completely generic.<BR><BR>Please
+notice two things. First, all the files transfered over the Web are
+signed using <FONT FACE="monospace"><B>sha1sum</B></FONT>. This
+prevents a hacker from tampering with the files while in transit.
+This is especially important for executables and scripts (to prevent
 arbitrary code to be executed), but is useful for configuration files
-too.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-The signature checking is implemented in two steps:<br>
-
-
-
-
-
-
-<ol>
-
-
-
-
-
-
-  <li>The signature of all the files to be transfered is saved in
-a file called <span style="font-weight: bold; font-family: monospace;">signature.sha1</span>
-and stored on the Web server. The signature of the signature file is
-then passed as one of the parameters to the startup script.</li>
-
-
-
-
-
-
-  <li>The startup script loads the signature file from the Web
-server and verifies its signature. All other downloads, including the
-file containing the list of other files, is checked against the values
-in the signature file. See the pseudo-code below.<br>
-
-
-
-
-
-
-    
-    
-    
-    
-    
-    <div style="margin-left: 40px;">
-    
-    
-    
-    
-    
-    <pre>wget http://head.fnal.gov/glidein_g1/signature.sha1<br>sha1sum <span style="font-style: italic;">known_sha1</span> signature.sha1<br>if $?!=0 then<br> exit 1<br>fi<br>grep files_list signature.sha1 &gt; filelist.sha1<br>wget http://head.fnal.gov/glidein_g1/files_list.lst<br>sha1sum -c filelist.sha1<br>if $?!=0 then<br> exit 2<br>fi<br>for file in files_list.lst do<br> wget http://head.fnal.gov/glidein_g1/$file<br>done<br>sha1sum -c signature.sha1<br>if $?!=0 then<br> exit 3<br>fi<br><span style="font-style: italic;">launch scripts</span></pre>
-
-
-
-
-
-
-    </div>
-
-
-
-
-
-
-  </li>
-
-
-
-
-
-
-</ol>
-
-
-
-
-
-
-The second point I would like to stress are the advantages that come
-from using standard Web technologies. Web technologies are widely used
-nowadays and there is a plethora of tools that can be readily used. In
-our case, we can reduce the network load and speed startup times by
-using a Web cache near the worker nodes, if available. The Glidein Factory was tested with <a href="http://www.squid-cache.org/">Squid</a>,
-but other products should work as well. It is also worth mentioning that
-both OSG and gLite has expressed interest in deploying a Squid server on every Grid site.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-More details about the startup script internals and support scripts provided by the current implementation can be found <a href="glidein_internals.html">here</a>.<br>
-
-
-
-
-
-
-<h2><a name="management"></a>Glidein Factory management</h2>
-
-
-
-
-
-
-To run a Glidein Factory, you need to perform two steps:<br>
-
-
-
-
-
-<ol>
-
-
-
-
-
-  <li>Create the configuration directories</li>
-
-
-
-
-
-  <li>Run the Glidein Factory Daemon</li>
-
-
-
-
-
-</ol>
-
-
-
-
-
-
-and repeat as needed to serve all the resources available.<br>
-
-
-
-
-
-<br>
-
-
-
-
-
-Please notice that it is extremely difficult to change an entry point after it has been created, so <span style="font-weight: bold;">it is much better to just create a new one, if changes are needed</span>. <br>
-
-
-
-
-
-<br>
-
-
-
-
-
-The reason why changes are so problematic are two fold:<br>
-
-
-
-
-
-<ul>
-
-
-
-
-
-  <li>&nbsp;The first problem are signatures. Any change requires the
-change of the signature file, that in turn gets a new signature. Since
-the signature file signature is one of the parameters of the startup
-script, all glideins already in the queue will fail.&nbsp;</li>
-
-
-
-
-
-  <li>The second problem is caching. For performance&nbsp;reasons, most
-Web caches don't check too often if the original document has been
-changed; a glidein could thus get an old copy of a file and fail the
-signature check.</li>
-
-
-
-
-
-</ul>
-
-
-
-
-
-There is only one file that is neither signed nor cached and can be thus modified; the blacklisting file called <span style="font-weight: bold; font-family: monospace;">nodes.blacklist</span>.
-This one can be used to temporarily blacklist malfunctioning nodes that
-would pass regular sanity checks (for example: memory corruption or I/O
-errors), while waiting for the Grid site admin to take action.
-
-<h3><a name="create_entry"></a>Creating a new configuration directory tree</h3>
-
-
-To create an entry point you need:<br>
-
-<ul>
-
-  <li>the name of the Gatekeeper(s),</li>
-
-  <li>the configuration details of the Grid pool(s),</li>
-
-  <li>the location of the&nbsp;submit point, and</li>
-
-  <li>the loction of the Web server data directory.</li>
-
-</ul>
-
-
-
-The directory tree containing the entry points is created by launching the command<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">create_glidein</span><br></div>
-or
-<div style="margin-left: 40px;"><span style="font-family: monospace;">reconfig_glidein</span><br></div>
-<br>
-Another option is to use the <a href="../../install/factory_install.html">provided installer</a>.
-<br><br>
-
-<a href="entry.html">The complete description of the configuration is described on a dedicated page</a> .<br>
-
-
-
-
-
-<h3><a name="run_daemon"></a>Starting a Glidein Factory Daemon</h3>
-
-
-
-
-
-To start the Glidein Factory Daemon, all you need to do is <br>
-<pre>&lt;path&gt;/glideFactory &lt;entry point submit directory&gt; &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</pre>
-and you are all set.<br>
-<br>
-
-
-<br>
-
-
-Base activity messages will be printed in<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/log/factory_info.&lt;date&gt;.log</span><br>
-</div>
-while all the warnings go into<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/log/factory_err.&lt;date&gt;.log</span><br>
-</div>
-
-<br>
-<br>
-However, each entry has also its own logs in<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/factory_info.&lt;date&gt;.log</span><br>
-</div>
-while all the warnings go into<br>
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/factory_err.&lt;date&gt;.log</span><br>
-</div>
-while the glidein output logs will be in
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/job.&lt;condor-g job nr&gt;.out</span><br>
-</div>
-and
-<div style="margin-left: 40px;"><span style="font-family: monospace;">&lt;factory directory&gt;/entry_&lt;entry name&gt;/log/job.&lt;condor-g job nr&gt;.err</span><br>
-</div>
-
-
-<br>
-Both the entry factory logs and the actual glidein logs are deleted after a week.<br>
-
-
-<br>
-
-
-Finally, a real life example could be:<br>
-<pre>.glideinWMS/factory/glideFactory.py /opt/glideins/glidein_fnal24 &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;<br></pre>
-
-
-This will start a daemon that runs on the entry point located in <span style="font-family: monospace;">/opt/glideins/glidein_fnal24</span>.<br>
-
-<h2><a name="monitoring"></a>Glidein Factory Monitoring</h2>
-Monitoring is an essential part of any service. One has to monitor to
-both maintain the healt of the system and to tune the system for anticipated 
-growth. The various ways
-you can monitor a Glidein Factory are described below.
-<h3><a name="monitoring_classads"></a>Looking at ClassAds</h3>
-As explained in the <a href="../index.html#classads">Data exchange overview</a>,
-the Entry Point Daemons expose a lot of monitoring information in the
-ClassAds sent to the WMS collector. While this may not be the most user
-friendly interface, most of the monitoring information you'll ever need
-is present there.<br>
-<h3><a name="monitoring_web"></a>Web monitoring</h3>
-The Glidein Factory Daemon and the Entry Point Daemons also create XML documents on a Web accessible area (see <span style="font-family: monospace;">&lt;</span><span style="font-weight: bold; font-family: monospace;">glidein</span><span style="font-family: monospace;">&gt;&lt;</span><span style="font-weight: bold; font-family: monospace;">monitor
-base_dir&gt;</span> on the <a href="entry.html#args_global">configuration page</a>). These xml files contain the same information you would get by <a href="#monitoring_classads">fetching the ClassAds</a>, in addition to a short summary.<br>
-<h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
-The Entry Point Daemons will also create <a href="http://oss.oetiker.ch/rrdtool/">RRD databases</a> and associated graphs for a period of up to one year. This way, one can easily monitor the evolution of the system.
-
-
-
-
-<h2><a name="scalability"></a>Scalability considerations</h2>
-
-
-
-
-
-To be written. <br>
-
-
-
-
-
-<br>
-
-
-
-
-
-Should talk about the use of multiple schedds and the possibility of having multiple entry points to the same Grid resource.<br>
-
-
-
-<br>
-
-
-
-Will be documented in future releases.<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-<a name="ref"></a>
-<table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
-
-
-
-
-
-
-  <tbody>
-
-
-
-
-
-
-    <tr>
-
-
-
-
-
-
-      <td style="width: 50%; text-align: left; vertical-align: top;">
-      
-      
-      
-      
-      
-      <h2>Repository</h2>
-
-
-
-
-
-
-      
-      
-      
-      
-      
-      <h3>CVSROOT</h3>
-
-
-
-
-
-
-cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
-
-
-
-
-
-
-      
-      
-      
-      
-      
-      <h2>Package(s)</h2>
-
-
-
-
-
-
-glideinWMS/factory<br>
-
-
-
-
-
-
-glideinWMS/creation</td>
-
-
-
-
-
-
-      <td style="width: 50%; text-align: left; vertical-align: top;">
-      
-      
-      
-      
-      
-      <h2>Author(s)</h2>
-
-
-
-
-
-
-Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
-
-
-
-
-
-
-    </tr>
-
-
-
-
-
-
-  
-  
-  
-  
-  
-  </tbody>
-</table>
-
-
-
-
-
-
-<br>
-
-
-
-
-
-
-</body>
-</html>
+too.<BR><BR>The signature checking is implemented in two steps:</P>
+<OL>
+	<LI>The signature of all the files to be transfered is saved in a
+	file called <FONT FACE="monospace"><B>signature.sha1</B></FONT> and
+	stored on the Web server. The signature of the signature file is
+	then passed as one of the parameters to the startup script. 
+	<LI><P>The startup script loads the signature file from the Web
+	server and verifies its signature. All other downloads, including
+	the file containing the list of other files, is checked against the
+	values in the signature file. See the pseudo-code below.</P>
+	<PRE>wget http://head.fnal.gov/glidein_g1/signature.sha1
+sha1sum <I>known_sha1</I> signature.sha1
+if $?!=0 then
+ exit 1
+fi
+grep files_list signature.sha1 &gt; filelist.sha1
+wget http://head.fnal.gov/glidein_g1/files_list.lst
+sha1sum -c filelist.sha1
+if $?!=0 then
+ exit 2
+fi
+for file in files_list.lst do
+ wget http://head.fnal.gov/glidein_g1/$file
+done
+sha1sum -c signature.sha1
+if $?!=0 then
+ exit 3
+fi
+<I>launch scripts</I></PRE>
+</OL>
+<P>The second point I would like to stress are the advantages that
+come from using standard Web technologies. Web technologies are
+widely used nowadays and there is a plethora of tools that can be
+readily used. In our case, we can reduce the network load and speed
+startup times by using a Web cache near the worker nodes, if
+available. The Glidein Factory was tested with <A HREF="http://www.squid-cache.org/">Squid</A>,
+but other products should work as well. It is also worth mentioning
+that both OSG and gLite has expressed interest in deploying a Squid
+server on every Grid site.<BR><BR>More details about the startup
+script internals and support scripts provided by the current
+implementation can be found <A HREF="glidein_internals.html">here</A>.</P>
+<H2><A NAME="management"></A>Glidein Factory management</H2>
+<P>To run a Glidein Factory, you need to perform two steps:</P>
+<OL>
+	<LI>Create the configuration directories 
+	<LI><P>Run the Glidein Factory Daemon 
+	</P>
+</OL>
+<P>and repeat as needed to serve all the resources available.<BR><BR>Please
+notice that it is extremely difficult to change an entry point after
+it has been created, so <B>it is much better to just create a new
+one, if changes are needed</B>. <BR><BR>The reason why changes are so
+problematic are two fold:</P>
+<UL>
+	<LI>&nbsp;The first problem are signatures. Any change requires the
+	change of the signature file, that in turn gets a new signature.
+	Since the signature file signature is one of the parameters of the
+	startup script, all glideins already in the queue will fail.&nbsp; 
+	<LI><P>The second problem is caching. For performance&nbsp;reasons,
+	most Web caches don't check too often if the original document has
+	been changed; a glidein could thus get an old copy of a file and
+	fail the signature check. 
+	</P>
+</UL>
+<P>There is only one file that is neither signed nor cached and can
+be thus modified; the blacklisting file called <FONT FACE="monospace"><B>nodes.blacklist</B></FONT>.
+This one can be used to temporarily blacklist malfunctioning nodes
+that would pass regular sanity checks (for example: memory corruption
+or I/O errors), while waiting for the Grid site admin to take action.
+</P>
+<H3><A NAME="create_entry"></A>Creating a new configuration directory
+tree</H3>
+<P>To create an entry point you need:</P>
+<UL>
+	<LI>the name of the Gatekeeper(s), 
+	<LI>the configuration details of the Grid pool(s), 
+	<LI>the location of the&nbsp;submit point, and 
+	<LI><P>the loction of the Web server data directory. 
+	</P>
+</UL>
+<DL>
+	<DT>The directory tree containing the entry points is created by
+	launching the command<DD>
+	<FONT FACE="monospace">create_glidein</FONT><DT>
+	or 
+	<DD><FONT FACE="monospace">reconfig_glidein</FONT></DL>
+<P>
+<BR>Another option is to use the <A HREF="../../install/factory_install.html">provided
+installer</A>. <BR><BR><A HREF="entry.html">The complete description
+of the configuration is described on a dedicated page</A> .</P>
+<H3><A NAME="run_daemon"></A>Starting a Glidein Factory Daemon</H3>
+<P>To start the Glidein Factory Daemon, all you need to do is 
+</P>
+<PRE>&lt;path&gt;/glideFactory &lt;entry point submit directory&gt; &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</PRE>
+<DL>
+	<DT>
+	and you are all set.<BR><BR><BR>Base activity messages will be
+	printed in<DD>
+	<FONT FACE="monospace">&lt;factory
+	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT><DT>
+	while all the warnings go into<DD>
+	<FONT FACE="monospace">&lt;factory
+	directory&gt;/log/factory_err.&lt;date&gt;.log</FONT><DT>
+	<BR><BR>However, each entry has also its own logs in<DD>
+	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	name&gt;/log/factory_info.&lt;date&gt;.log</FONT><DT>
+	while all the warnings go into<DD>
+	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	name&gt;/log/factory_err.&lt;date&gt;.log</FONT><DT>
+	while the glidein output logs will be in 
+	<DD><FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	name&gt;/log/job.&lt;condor-g job nr&gt;.out</FONT><DT>
+	and 
+	<DD><FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT></DL>
+<P>
+<BR>Both the entry factory logs and the actual glidein logs are
+deleted after a week.<BR><BR>Finally, a real life example could be:</P>
+<PRE>.glideinWMS/factory/glideFactory.py /opt/glideins/glidein_fnal24 &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</PRE><P>
+This will start a daemon that runs on the entry point located in
+<FONT FACE="monospace">/opt/glideins/glidein_fnal24</FONT>.</P>
+<H2><A NAME="monitoring"></A>Glidein Factory Monitoring</H2>
+<P>Monitoring is an essential part of any service. One has to monitor
+to both maintain the healt of the system and to tune the system for
+anticipated growth. The various ways you can monitor a Glidein
+Factory are described below. 
+</P>
+<H3><A NAME="monitoring_classads"></A>Looking at ClassAds</H3>
+<P>As explained in the <A HREF="../index.html#classads">Data exchange
+overview</A>, the Entry Point Daemons expose a lot of monitoring
+information in the ClassAds sent to the WMS collector. While this may
+not be the most user friendly interface, most of the monitoring
+information you'll ever need is present there.</P>
+<H3><A NAME="monitoring_web"></A>Web monitoring</H3>
+<P>The Glidein Factory Daemon and the Entry Point Daemons also create
+XML documents on a Web accessible area (see <FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>monitor
+base_dir&gt;</B></FONT> on the <A HREF="entry.html#args_global">configuration
+page</A>). These xml files contain the same information you would get
+by <A HREF="#monitoring_classads">fetching the ClassAds</A>, in
+addition to a short summary.</P>
+<H3><A NAME="monitoring_history"></A>Historical Web monitoring</H3>
+<P>The Entry Point Daemons will also create <A HREF="http://oss.oetiker.ch/rrdtool/">RRD
+databases</A> and associated graphs for a period of up to one year.
+This way, one can easily monitor the evolution of the system. 
+</P>
+<H2><A NAME="scalability"></A>Scalability considerations</H2>
+<P><A NAME="ref"></A>To be written. <BR><BR>Should talk about the use
+of multiple schedds and the possibility of having multiple entry
+points to the same Grid resource.<BR><BR>Will be documented in future
+releases.<BR><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=0>
+	<COL WIDTH=90*>
+	<COL WIDTH=166*>
+	<TR>
+		<TD WIDTH=35%>
+			<H2 ALIGN=LEFT>Repository</H2>
+			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
+			<H2 ALIGN=LEFT>Package(s)</H2>
+			<P ALIGN=LEFT>glideinWMS/factory<BR>glideinWMS/creation</TD>
+		<TD WIDTH=65% VALIGN=TOP>
+			<H2 ALIGN=LEFT>Author(s)</H2>
+			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
+			Division)</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
