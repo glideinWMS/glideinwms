@@ -138,7 +138,7 @@ def addPeriod(fname,start_time,end_time,create_if_empty=True):
         try:
             fcntl.flock(fd,fcntl.LOCK_EX)
             if not exists: # new file, create header
-                fd.write("# Downtime file\n#Start\t\tEnd\n")
+                fd.write("# Downtime file\n#Start\t\t\t\tEnd\n")
             if end_time!=None:
                 fd.write("%s\t%s\n"%(timeConversion.getISO8601_Local(start_time),timeConversion.getISO8601_Local(end_time)))
             else:
