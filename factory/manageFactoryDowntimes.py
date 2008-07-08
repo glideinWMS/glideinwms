@@ -20,16 +20,58 @@ def usage():
     print "  down [delay]            - Put the factory down now(+delay)" 
     print "  up [delay]              - Get the factory back up now(+delay)"
     print "  check [delay]           - Report if the factory is in downtime now(+delay)"
-    print "where *_time is of the format:"
-    print "  [[MM-]DD-]HH:MM[:SS]"
+    print "where *_time is in one of the two formats:"
+    print "  [[[YYYY-]MM-]DD-]HH:MM[:SS]"
+    print "  unix_time"
     print "and delay is of the format:"
     print "  [HHh][MMm][SS[s]]"
     print
 
+# [[[YYYY-]MM-]DD-]HH:MM[:SS]
+def strtxt2time(timeStr):
+    deftime=time.localtime(time.time())
+    year=deftime[0]
+    month=deftime[1]
+    day=deftime[2]
+    seconds=0
+    
+    darr=timeStr.split('-')
+    if len(darr)>1: # we have at least part of the date
+        timeStr=darr[-1]
+        day=long(darr[-2])
+        len(darr)>2:
+            month=long(darr[-3])
+            len(darr)>3:
+                month=long(darr[-4])
+
+    tarr=timeStr.split(':')
+    hours=long(tarr[0])
+    minutes=long(tarr[1])
+    if len(tarr)>2:
+        seconds=long(tarr[2])
+
+    outtime=time.mktime((year, month, day, hours, minutes, seconds, 0, 0, -1))
+    return outtime
+
+
+# [[[YYYY-]MM-]DD-]HH:MM[:SS]
+# or
+# unix_time
+def str2time(timeStr):
+    if len(timeStr.split(':',1))>1:
+        # has a :, so it must be a text representation
+        return strtxt2time(timeStr)
+    else:
+        # should be a simple number
+        return long(timeStr)
+
 def add(down_fd,argv):
-    raise RuntimeError, "add not yet implemented"
+    start_time=str2time(argv[1])
+    end_time=str2time(argv[2])
+    down_fd.addPeriod(start_time,end_time)
     return 0
 
+# [HHh][MMm][SS[s]]
 def delay2time(delayStr):
     hours=0
     minutes=0
@@ -83,7 +125,7 @@ def check(down_fd,argv):
         print "Down"
     else:
         print "Up"
-    return in_downtime
+    return 0
 
 def main(argv):
     if len(argv)<4:
