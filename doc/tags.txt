@@ -1,4 +1,5 @@
 vNext	Factory and frontend now gets sleep and advertize attr from config.
+	Add downtime concept to the factory and relative management tool.
 
 v1_2_3	Fix glexec handling in condor v7.0.3
 	Cut in half the number of condor_q's in the frontend.
