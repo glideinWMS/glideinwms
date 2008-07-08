@@ -19,6 +19,10 @@ def usage():
     print "  add start_time end_time - Add a scheduled downtime period"
     print "  down [delay]            - Put the factory down now(+delay)" 
     print "  up [delay]              - Get the factory back up now(+delay)"
+    print "where *_time is of the format:"
+    print "  [[MM-]DD-]HH:MM[:SS]"
+    print "and delay is of the format:"
+    print "  [HHh][MMm][SS[s]]"
     print
 
 def add(down_fd,argv):
@@ -26,23 +30,40 @@ def add(down_fd,argv):
     return 0
 
 def delay2time(delayStr):
-    raise RuntimeError, "delay not yet implemented"
+    hours=0
+    minutes=0
+    seconds=0
+    harr=delayStr.split('h',1)
+    if len(harr)==2:
+        hours=long(harr[0])
+        delayStr=harr[1]
+    marr=delayStr.split('m',1)
+    if len(marr)==2:
+        minutes=long(marr[0])
+        delayStr=marr[1]
+    if delayStr[-1:]=='s':
+        delayStr=delayStr[:-1] # remove final s if present
+    seconds=long(selayStr)
+    
+    return seconds+60*(minutes+60*hours)
 
 def down(down_fd,argv):
+    when=0
     if len(argv)>1:
         when=delay2time(argv[1])
-    else:
-        when=long(time.time())
+
+    when+=long(time.time())
 
     if not down_fd.checkDowntime(when): #only add a new line if not in downtimeat that time
         down_fd.startDowntime(when)
     return 0
 
 def up(down_fd,argv):
+    when=0
     if len(argv)>1:
         when=delay2time(argv[1])
-    else:
-        when=long(time.time())
+
+    when+=long(time.time())
 
     if down_fd.checkDowntime(when): #only terminate downtime if there was an open period
         down_fd.endDowntime(when)
