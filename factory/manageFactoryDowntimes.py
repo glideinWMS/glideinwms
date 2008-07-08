@@ -43,7 +43,7 @@ def delay2time(delayStr):
         delayStr=marr[1]
     if delayStr[-1:]=='s':
         delayStr=delayStr[:-1] # remove final s if present
-    seconds=long(selayStr)
+    seconds=long(delayStr)
     
     return seconds+60*(minutes+60*hours)
 
