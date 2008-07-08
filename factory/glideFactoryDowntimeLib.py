@@ -10,6 +10,7 @@
 import time
 import fcntl
 import os.path
+import timeConversion
 
 #
 # Handle a downtime file
@@ -91,7 +92,7 @@ def read(fname, raise_on_error=False):
                 else:
                     continue # ignore malformed lines
             try:
-                start_time=long(arr[0])
+                start_time=timeConversion.extractISO8601_Local(arr[0])
             except ValueError,e:
                 if raise_on_error:
                     raise ValueError, "%s:%i: 1st element: %s"%(fname,lnr,e)
@@ -102,7 +103,7 @@ def read(fname, raise_on_error=False):
                 if arr[1]=='None':
                     end_time=None
                 else:
-                    end_time=long(arr[1])
+                    end_time=timeConversion.extractISO8601_Local(arr[1])
             except ValueError,e:
                 if raise_on_error:
                     raise ValueError, "%s:%i: 2nd element: %s"%(fname,lnr,e)
@@ -139,9 +140,9 @@ def addPeriod(fname,start_time,end_time,create_if_empty=True):
             if not exists: # new file, create header
                 fd.write("# Downtime file\n#Start\t\tEnd\n")
             if end_time!=None:
-                fd.write("%li\t%li\n"%(start_time,end_time))
+                fd.write("%s\t%s\n"%(timeConversion.getISO8601_Local(start_time),timeConversion.getISO8601_Local(end_time)))
             else:
-                fd.write("%li\tNone\n"%start_time)
+                fd.write("%s\tNone\n"%timeConversion.getISO8601_Local(start_time))
         finally:
             fd.close()
 
@@ -190,7 +191,7 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
                     if arr[1]=='None':
                         end_time=None
                     else:
-                        end_time=long(arr[1])
+                        end_time=timeConversion.extractISO8601_Local(arr[1])
                 except ValueError,e:
                     if raise_on_error:
                         raise ValueError, "%s:%i: 2nd element: %s"%(fname,lnr,e)
@@ -254,7 +255,7 @@ def endDowntime(fname,end_time=None):
                 
                 if arr[1]=='None':
                     # open period -> close
-                    outlines.append("%s\t%li\n"%(arr[0],end_time))
+                    outlines.append("%s\t%s\n"%(arr[0],timeConversion.getISO8601_Local(end_time)))
                     closed_nr+=1
                 else:
                     # closed just pass on
