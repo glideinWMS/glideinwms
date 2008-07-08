@@ -39,9 +39,9 @@ def strtxt2time(timeStr):
     if len(darr)>1: # we have at least part of the date
         timeStr=darr[-1]
         day=long(darr[-2])
-        len(darr)>2:
+        if len(darr)>2:
             month=long(darr[-3])
-            len(darr)>3:
+            if len(darr)>3:
                 month=long(darr[-4])
 
     tarr=timeStr.split(':')
