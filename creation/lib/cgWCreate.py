@@ -117,7 +117,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write(" return 0\n}\n\n")
 
         fd.write("failure() {\n")
-        fd.write(' echo -en "\\033[60G[\033[31mFailure\033[0m]"\n')
+        fd.write(' echo -en "\\033[60G[\033[31mFAILED\033[0m]"\n')
         fd.write(" return 1\n}\n\n")
         
         fd.write("factory_dir='%s'\n"%factory_dir)
@@ -180,10 +180,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.22 2008/07/09 16:29:31 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.23 2008/07/09 17:43:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.23  2008/07/09 17:43:01  sfiligoi
+#  Fix typo
+#
 #  Revision 1.22  2008/07/09 16:29:31  sfiligoi
 #  Add color to initd_startup
 #
