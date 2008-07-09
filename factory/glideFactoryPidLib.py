@@ -39,7 +39,7 @@ def register_factory_pid(startup_dir):
         raise RuntimeError, "Another glideinFactory already running"
     fd.seek(0)
     fd.truncate()
-    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(startup_time)))
+    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(time.time())))
     fd.flush()
 
     return fd
