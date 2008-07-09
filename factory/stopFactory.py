@@ -164,7 +164,7 @@ def main(startup_dir):
         if check_pid(entry_pids[entry]):
             print "Hard killed entry '%s'"%entry
             os.kill(entry_pids[entry],signal.SIGKILL)
-    return
+    return 0
         
 
 if __name__ == '__main__':
@@ -172,4 +172,4 @@ if __name__ == '__main__':
         print "Usage: stopFactory.py submit_dir"
         sys.exit(1)
 
-    main(sys.argv[1])
+    sys.exit(main(sys.argv[1]))
