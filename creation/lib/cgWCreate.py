@@ -131,7 +131,9 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         
         fd.write("start() {\n")
         fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
-        fd.write('        ("$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &) && success || failure\n')
+        fd.write('        "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &\n')
+        fd.write('        "sleep 1\n')
+        fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" && success || failure\n')
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
         fd.write("}\n\n")
@@ -159,7 +161,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("                restart\n")
         fd.write("        ;;\n")
         fd.write("        status)\n")
-        fd.write("                echo 'To be implemented'\n")
+        fd.write('               "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"\n')
         fd.write("        ;;\n")
         fd.write("        *)\n")
         fd.write('        echo $"Usage: factory_startup {start|stop|restart|status}"\n')
@@ -180,10 +182,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.23 2008/07/09 17:43:01 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.24 2008/07/09 18:40:02 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.24  2008/07/09 18:40:02  sfiligoi
+#  Use checkFactory
+#
 #  Revision 1.23  2008/07/09 17:43:01  sfiligoi
 #  Fix typo
 #
