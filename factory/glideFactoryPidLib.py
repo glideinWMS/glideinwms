@@ -90,7 +90,7 @@ def get_gfactory_pid(startup_dir):
 # return fd (to be closed by factory before ending)
 # raises an exception if it cannot create the lock file
 def register_entry_pid(startup_dir,entry_name,parent_pid):
-    lock_fname=os.path.join(startup_dir,"%s/entry_%s/factory.lock"%(startup_dir,entry_name))
+    lock_file=os.path.join(startup_dir,"%s/entry_%s/factory.lock"%(startup_dir,entry_name))
 
     # check lock file
     if not os.path.exists(lock_file): #create a lock file if needed
