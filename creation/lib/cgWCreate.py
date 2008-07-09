@@ -132,7 +132,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("start() {\n")
         fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
         fd.write('        "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &\n')
-        fd.write('        "sleep 1\n')
+        fd.write('        sleep 1\n')
         fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" && success || failure\n')
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
@@ -182,30 +182,18 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.24 2008/07/09 18:40:02 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.25 2008/07/09 18:41:26 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.25  2008/07/09 18:41:26  sfiligoi
+#  Fix typo
+#
 #  Revision 1.24  2008/07/09 18:40:02  sfiligoi
 #  Use checkFactory
 #
-#  Revision 1.23  2008/07/09 17:43:01  sfiligoi
-#  Fix typo
-#
 #  Revision 1.22  2008/07/09 16:29:31  sfiligoi
 #  Add color to initd_startup
-#
-#  Revision 1.21  2008/07/09 16:16:13  sfiligoi
-#  Get rid of system functions... they skrew up the environment
-#
-#  Revision 1.20  2008/07/08 20:58:51  sfiligoi
-#  Fix typo
-#
-#  Revision 1.19  2008/07/08 20:56:15  sfiligoi
-#  Fix typo
-#
-#  Revision 1.18  2008/07/08 20:53:00  sfiligoi
-#  Fix typo
 #
 #  Revision 1.17  2008/07/08 20:49:07  sfiligoi
 #  Add init.d startup file
