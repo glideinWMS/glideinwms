@@ -111,14 +111,14 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("# chkconfig: 35 90 30\n")
         fd.write("# description: Starts and stops a glideinWMS factory\n\n")
         
-        fd.write("# Source function library.\n")
-        fd.write("if [ -f /etc/init.d/functions ] ; then\n")
-        fd.write("        . /etc/init.d/functions\n")
-        fd.write("elif [ -f /etc/rc.d/init.d/functions ] ; then\n")
-        fd.write("        . /etc/rc.d/init.d/functions\n")
-        fd.write("else\n")
-        fd.write("        exit 0\n")
-        fd.write("fi\n\n")
+        fd.write("# Emulate function library.\n")
+        fd.write("success() {\n")
+        fd.write(" echo '[OK]'\n")
+        fd.write(" return 0\n}\n\n")
+
+        fd.write("failure() {\n")
+        fd.write(" echo '[Failure]'\n")
+        fd.write(" return 1\n}\n\n")
         
         fd.write("factory_dir='%s'\n"%factory_dir)
         fd.write("glideinWMS_dir='%s'\n"%glideinWMS_dir)
@@ -159,7 +159,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("                restart\n")
         fd.write("        ;;\n")
         fd.write("        status)\n")
-        fd.write("                status python\n")
+        fd.write("                echo 'To be implemented'\n")
         fd.write("        ;;\n")
         fd.write("        *)\n")
         fd.write('        echo $"Usage: factory_startup {start|stop|restart|status}"\n')
@@ -180,10 +180,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.20 2008/07/08 20:58:51 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.21 2008/07/09 16:16:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.21  2008/07/09 16:16:13  sfiligoi
+#  Get rid of system functions... they skrew up the environment
+#
 #  Revision 1.20  2008/07/08 20:58:51  sfiligoi
 #  Fix typo
 #
