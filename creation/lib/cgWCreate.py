@@ -133,7 +133,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
         fd.write('        "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &\n')
         fd.write('        sleep 1\n')
-        fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" && success || failure\n')
+        fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure\n')
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
         fd.write("}\n\n")
@@ -182,11 +182,11 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.25 2008/07/09 18:41:26 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.26 2008/07/09 18:43:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
-#  Revision 1.25  2008/07/09 18:41:26  sfiligoi
+#  Revision 1.26  2008/07/09 18:43:14  sfiligoi
 #  Fix typo
 #
 #  Revision 1.24  2008/07/09 18:40:02  sfiligoi
