@@ -6,13 +6,43 @@
 #   Igor Sfiligoi Jul 9th 2008
 #
 
-import sys,os,os.path,fcntl
+import sys,os,os.path,fcntl,time
+
+############################################################
 
 #
 # Verify if the system knows about a pid
 #
 def check_pid(pid):
     return os.path.isfile("/proc/%s/cmdline"%pid)
+
+############################################################
+
+#
+# Create the lock file and registeres the factory pid
+#
+# return fd (to be closed by factory before ending)
+# raises an exception if it cannot create the lock file
+def register_factory_pid(startup_dir):
+    lock_file=os.path.join(startup_dir,"glideinWMS.lock")
+
+    # check lock file
+    if not os.path.exists(lock_file): #create a lock file if needed
+        fd=open(lock_file,"w")
+        fd.close()
+
+    fd=open(lock_file,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except IOError:
+        fd.close()
+        raise RuntimeError, "Another glideinFactory already running"
+    fd.seek(0)
+    fd.truncate()
+    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(startup_time)))
+    fd.flush()
+
+    return fd
 
 #
 # Find and return the factory pid
