@@ -92,10 +92,22 @@ def argv2cmd(argv):
 # changes to the work dir and executes the command
 def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
                          argv,condor_status,remoteJobVM,monitorVM):
+    if condor_status[monitorVM].has_key('GLEXEC_STARTER'):
+        glexec_starter=condor_status[monitorVM]['GLEXEC_STARTER']
+    else:
+        glexec_starter=False #if not defined, assume no gLExec
+
     script_lines=[]
-    script_lines.append("outdir=`ls -lt .. | tail -1 | awk '{print $9}'`")
-    # execute command in work dir
-    script_lines.append("(cd ../$outdir; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
+    # find work dir and execute command there
+    if glexec_starter:
+        # job running in another branch of glexec invocation
+        script_lines.append("outdir=`ls -dlt ../../../starter* | tail -1 | awk '{print $9}'`")
+        script_lines.append("(cd $outdir/execute/dir*; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
+    else:
+        # job running in a different subdir of the execute dir
+        script_lines.append("outdir=`ls -lt .. | tail -1 | awk '{print $9}'`")
+        script_lines.append("(cd ../$outdir; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
+
     return monitorScriptFromList(monitor_file_name,monitor_control_relname,script_lines)
 
 # callback function for glideinMonitor.monitor
