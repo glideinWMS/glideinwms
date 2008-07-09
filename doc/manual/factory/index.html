@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080708;13054900">
+	<META NAME="CHANGED" CONTENT="20080709;14213700">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Factory</H1>
@@ -28,8 +29,8 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 	<UL>
 		<LI><A HREF="#create_entry">Creating a new configuration directory
 		tree</A> 
-	        <LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
-                <LI><A HREF="#downtimes">Downtime handling</A>
+		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
+		<LI><A HREF="#downtimes">Downtime handling</A> 
 	</UL>
 	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
 	<UL>
@@ -218,45 +219,49 @@ tree</H3>
 </UL>
 <DL>
 	<DT>The directory tree containing the entry points is created by
-	launching the command<DD>
-	<FONT FACE="monospace">create_glidein</FONT><DT>
+	launching the command</DT><DD>
+	<FONT FACE="monospace">create_glidein</FONT></DD><DT>
 	or 
-	<DD><FONT FACE="monospace">reconfig_glidein</FONT></DL>
+	</DT><DD><P>
+	<FONT FACE="monospace">reconfig_glidein</FONT></P></DD></DL>
 <P>
 <BR>Another option is to use the <A HREF="../../install/factory_install.html">provided
 installer</A>. <BR><BR><A HREF="entry.html">The complete description
 of the configuration is described on a dedicated page</A> .</P>
 <H3><A NAME="run_daemon"></A>Starting a Glidein Factory Daemon</H3>
-<P>To start the Glidein Factory Daemon, all you need to do is 
+<P>The glidein factory comes with a init.d style startup script.<BR>To
+start the glidein factory all you need to do is 
 </P>
-<PRE>&lt;path&gt;/glideFactory &lt;entry point submit directory&gt; &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</PRE>
 <DL>
-	<DT>
-	and you are all set.<BR><BR><BR>Base activity messages will be
-	printed in<DD>
+	<DD><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	start</FONT></DD></DL>
+<P>
+and you are all set.<BR><BR><BR>Base activity messages will be
+printed in</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;factory
+	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
+	while all the warnings go into</DT><DD>
 	<FONT FACE="monospace">&lt;factory
-	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT><DT>
-	while all the warnings go into<DD>
-	<FONT FACE="monospace">&lt;factory
-	directory&gt;/log/factory_err.&lt;date&gt;.log</FONT><DT>
-	<BR><BR>However, each entry has also its own logs in<DD>
+	directory&gt;/log/factory_err.&lt;date&gt;.log</FONT></DD><DT>
+	<BR><BR>However, each entry has also its own logs in</DT><DD>
 	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
-	name&gt;/log/factory_info.&lt;date&gt;.log</FONT><DT>
-	while all the warnings go into<DD>
+	name&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
+	while all the warnings go into</DT><DD>
 	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
-	name&gt;/log/factory_err.&lt;date&gt;.log</FONT><DT>
+	name&gt;/log/factory_err.&lt;date&gt;.log</FONT></DD><DT>
 	while the glidein output logs will be in 
-	<DD><FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
-	name&gt;/log/job.&lt;condor-g job nr&gt;.out</FONT><DT>
+	</DT><DD>
+	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	name&gt;/log/job.&lt;condor-g job nr&gt;.out</FONT></DD><DT>
 	and 
-	<DD><FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
-	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT></DL>
+	</DT><DD><P>
+	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT></P></DD></DL>
 <P>
 <BR>Both the entry factory logs and the actual glidein logs are
-deleted after a week.<BR><BR>Finally, a real life example could be:</P>
-<PRE>./glideinWMS/factory/glideFactory.py /opt/glideins/glidein_fnal24 &gt;/dev/null 2&gt;&amp;1 &lt;/dev/null &amp;</PRE><P>
-This will start a daemon that runs on the entry point located in
-<FONT FACE="monospace">/opt/glideins/glidein_fnal24</FONT>.</P>
+deleted after a week.<BR><BR><BR>
+</P>
 <H3><A NAME="downtimes"></A>Downtime handling</H3>
 <P>Starting with v1_3, the glidein factory supports the dynamic
 handling of downtimes.<BR>Downtimes can be handled both at the
