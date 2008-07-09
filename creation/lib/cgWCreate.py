@@ -113,11 +113,11 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         
         fd.write("# Emulate function library.\n")
         fd.write("success() {\n")
-        fd.write(" echo '[OK]'\n")
+        fd.write(' echo -en "\\033[60G[\033[32mOK\033[0m]"\n')
         fd.write(" return 0\n}\n\n")
 
         fd.write("failure() {\n")
-        fd.write(" echo '[Failure]'\n")
+        fd.write(' echo -en "\\033[60G[\033[31mFailure\033[0m]"\n')
         fd.write(" return 1\n}\n\n")
         
         fd.write("factory_dir='%s'\n"%factory_dir)
@@ -180,10 +180,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.21 2008/07/09 16:16:13 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.22 2008/07/09 16:29:31 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.22  2008/07/09 16:29:31  sfiligoi
+#  Add color to initd_startup
+#
 #  Revision 1.21  2008/07/09 16:16:13  sfiligoi
 #  Get rid of system functions... they skrew up the environment
 #
