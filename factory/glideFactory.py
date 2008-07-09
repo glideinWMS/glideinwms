@@ -132,6 +132,13 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
 def main(startup_dir):
     startup_time=time.time()
 
+    # force integrity checks on all the operations
+    # I need integrity checks also on reads, as I depend on them
+    os.environ['_CONDOR_SEC_DEFAULT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_CLIENT_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
+    os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
+
     # create log files in the glidein log directory
     activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_info"))
     warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_err"))
@@ -189,10 +196,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.69 2008/07/09 18:01:06 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.70 2008/07/09 18:19:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.70  2008/07/09 18:19:08  sfiligoi
+#  Enforce integrity
+#
 #  Revision 1.69  2008/07/09 18:01:06  sfiligoi
 #  Move pid handling into glideFactoryPidLib
 #
