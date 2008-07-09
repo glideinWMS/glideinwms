@@ -28,6 +28,7 @@ import copy
 import threading
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 
+import glideFactoryPidLib
 import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryMonitorAggregator
@@ -152,22 +153,8 @@ def main(startup_dir):
 
     glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir,"monitor"),entries)
 
-    # check lock file
-    lock_file=os.path.join(startup_dir,"glideinWMS.lock")
-    if not os.path.exists(lock_file): #create a lock file if needed
-        fd=open(lock_file,"w")
-        fd.close()
-
-    fd=open(lock_file,"r+")
-    try:
-        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except IOError:
-        fd.close()
-        raise RuntimeError, "Another glidein factory already running"
-    fd.seek(0)
-    fd.truncate()
-    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(startup_time)))
-    fd.flush()
+    # create lock file
+    fd=glideFactoryPidLib.register_factory_pid(startup_dir)
     
     # start
     try:
@@ -202,10 +189,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.68 2008/07/03 19:42:10 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.69 2008/07/09 18:01:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.69  2008/07/09 18:01:06  sfiligoi
+#  Move pid handling into glideFactoryPidLib
+#
 #  Revision 1.68  2008/07/03 19:42:10  sfiligoi
 #  Read sleep_time and advertize_rate from glidein.descript
 #
