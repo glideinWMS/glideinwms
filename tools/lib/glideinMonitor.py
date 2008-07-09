@@ -164,6 +164,7 @@ def createSubmitFile(work_dir,sfile,mlog,
         fd.write("when_to_transfer_output=ON_EXIT\n")
         fd.write("notification=Never\n")
         fd.write("+GLIDEIN_Is_Monitor=True\n")
+        fd.write("+Owner=Undefined\n")
         fd.write('Requirements=(Name=?="%s")&&(Arch=!="Absurd")\n'%monitorVM)
         fd.write("periodic_remove=(CurrentTime>%li)\n"%(long(time.time())+timeout+30)) # karakiri after timeout+delta
         fd.write("queue\n")
