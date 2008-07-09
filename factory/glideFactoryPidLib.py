@@ -19,7 +19,7 @@ def check_pid(pid):
 ############################################################
 
 #
-# Create the lock file and registeres the factory pid
+# Create the lock file and registers the factory pid
 #
 # return fd (to be closed by factory before ending)
 # raises an exception if it cannot create the lock file
@@ -82,13 +82,41 @@ def get_gfactory_pid(startup_dir):
     
     return pid
 
+############################################################
+
+#
+# Create the lock file and registers the factory pid
+#
+# return fd (to be closed by factory before ending)
+# raises an exception if it cannot create the lock file
+def register_entry_pid(startup_dir,entry_name,parent_pid):
+    lock_fname=os.path.join(startup_dir,"%s/entry_%s/factory.lock"%(startup_dir,entry_name))
+
+    # check lock file
+    if not os.path.exists(lock_file): #create a lock file if needed
+        fd=open(lock_file,"w")
+        fd.close()
+
+    fd=open(lock_file,"r+")
+    try:
+        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except IOError:
+        fd.close()
+        raise RuntimeError, "Another glideinFactory entry already running"
+    fd.seek(0)
+    fd.truncate()
+    fd.write("PID: %s\nParent PID:%s\nStarted: %s\n"%(os.getpid(),parent_pid,time.ctime(time.time())))
+    fd.flush()
+
+    return fd
+
 #
 # Find and return the factory entry pid 
 #
 # returns (pid, parent pid)
 # raises an exception if it cannot find it
 def get_entry_pid(startup_dir,entry_name):
-    lock_fname=os.path.join(startup_dir,"entry_%s/factory.lock"%entry_name)
+    lock_fname=os.path.join(startup_dir,"%s/entry_%s/factory.lock"%(startup_dir,entry_name))
 
     if not os.path.isfile(lock_fname):
         raise RuntimeError, "Entry '%s' never started"%entry_name
@@ -116,7 +144,7 @@ def get_entry_pid(startup_dir,entry_name):
         raise RuntimeError, "Corrupted lock file '%s': invalid PID"%lock_fname
 
     if not check_pid(pid):
-        raise RuntimeError, "glideinFactory (PID %s) not running"%pid
+        raise RuntimeError, "glideinFactory entry (PID %s) not running"%pid
     
     ppidarr=lines[1].split(':')
     if (len(ppidarr)!=2) or (ppidarr[0]!='Parent PID'):
