@@ -60,7 +60,8 @@ def parseArgs(argv):
     outdict['argv']=argv[i:]
     return outdict
     
-
+# createMonitorFile is a callback with the following arguments:
+#    (monitor_file_name,monitor_control_relname,argv,condor_status,remoteJobVM,monitorVM):
 def monitor(jid,schedd_name,pool_name,
             timeout,
             createMonitorFile,argv):
@@ -99,7 +100,7 @@ def monitor(jid,schedd_name,pool_name,
         mlog=os.path.join(tmpdir,"mon.log")
         mc_relname="mon.done"
         mcname=os.path.join(tmpdir,mc_relname)
-        createMonitorFile(mfname,mc_relname,argv,condor_status[remoteVM])
+        createMonitorFile(mfname,mc_relname,argv,condor_status,remoteVM,monitorVM)
         createSubmitFile(tmpdir,sname,mlog,mfname,mfout,mferr,
                          monitorVM,timeout,x509_file)
         jid=condorManager.condorSubmitOne(sname,schedd_name,pool_name)

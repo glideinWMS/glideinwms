@@ -91,7 +91,7 @@ def argv2cmd(argv):
 # callback function for glideinMonitor.monitor
 # changes to the work dir and executes the command
 def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
-                         argv,condor_status):
+                         argv,condor_status,remoteJobVM,monitorVM):
     script_lines=[]
     script_lines.append("outdir=`ls -lt .. | tail -1 | awk '{print $9}'`")
     # execute command in work dir
@@ -101,7 +101,7 @@ def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
 # callback function for glideinMonitor.monitor
 # executes the command
 def createCmdMonitorFileSimple(monitor_file_name,monitor_control_relname,
-                               argv,condor_status):
+                               argv,condor_status,remoteJobVM,monitorVM):
     script_lines=[]
     script_lines.append(argv2cmd(argv))
     return monitorScriptFromList(monitor_file_name,monitor_control_relname,script_lines)
@@ -109,7 +109,7 @@ def createCmdMonitorFileSimple(monitor_file_name,monitor_control_relname,
 # callback function for glideinMonitor.monitor
 # executes the script_list lines
 def createCmdMonitorFileScript(monitor_file_name,monitor_control_relname,
-                               script_list,condor_status):
+                               script_list,condor_status,remoteJobVM,monitorVM):
     return monitorScriptFromList(monitor_file_name,monitor_control_relname,script_list)
 
 
