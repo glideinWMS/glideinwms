@@ -26,6 +26,7 @@ import copy
 import threading
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
+import glideFactoryPidLib
 import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryMonitoring
@@ -324,22 +325,8 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
-    # check lock file
-    lock_file="entry_%s/factory.lock"%entry_name
-    if not os.path.exists(lock_file): #create a lock file if needed
-        fd=open(lock_file,"w")
-        fd.close()
-
-    fd=open(lock_file,"r+")
-    try:
-        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except IOError:
-        fd.close()
-        raise RuntimeError, "Another glidein factory already running for entry '%s'"%entry_name
-    fd.seek(0)
-    fd.truncate()
-    fd.write("PID: %s\nParent PID:%s\nStarted: %s\n"%(os.getpid(),parent_pid,time.ctime(startup_time)))
-    fd.flush()
+    # create lock file
+    fd=glideFactoryPidLib.register_entry_pid(startup_dir,entry_name,parent_pid)
     
     # force integrity checks on all the operations
     # I need integrity checks also on reads, as I depend on them
@@ -400,10 +387,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.38 2008/07/07 18:58:05 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.39 2008/07/09 18:15:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.39  2008/07/09 18:15:47  sfiligoi
+#  Move pid handling into glideFactoryPidLib
+#
 #  Revision 1.38  2008/07/07 18:58:05  sfiligoi
 #  Rename InDowntime to GLIDEIN_In_Downtime
 #
