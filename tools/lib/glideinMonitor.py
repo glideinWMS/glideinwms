@@ -163,6 +163,10 @@ def validateCondorStatus(condor_status,jobVM,monitorVM):
         (condor_status[monitorVM]['vm2_State']!='Claimed')):
         raise RuntimeError, "Job cannot be yet monitored"
 
+    if ((not condor_status[monitorVM].has_key('vm2_State')) or
+        (condor_status[monitorVM]['vm2_Activity']=='Retiring')):
+        raise RuntimeError, "Job cannot be monitored anymore"
+
     return
 
 def createSubmitFile(work_dir,sfile,mlog,
