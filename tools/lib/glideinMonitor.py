@@ -16,6 +16,7 @@ import string
 import time
 import tempfile
 import shutil
+import os
 import os.path
 import sys
 
@@ -76,6 +77,19 @@ def monitor(jid,schedd_name,pool_name,
     condor_status=getCondorStatus(pool_name,remoteVM,monitorVM)
     validateCondorStatus(condor_status,remoteVM,monitorVM)
 
+    if condor_status[monitorVM].has_key('GLEXEC_STARTER'):
+        glexec_starter=condor_status[monitorVM]['GLEXEC_STARTER']
+    else:
+        glexec_starter=False #if not defined, assume no gLExec
+
+    if glexec_starter:
+        if not os.environ.has_key('X509_USER_PROXY'):
+            raise RuntimeError, "Job running on a gLExec enabled resource; X509_USER_PROXY must be defined"
+        x509_file=os.environ['X509_USER_PROXY']
+    else:
+        x509_file=None
+        
+
     tmpdir=tempfile.mkdtemp(prefix="glidein_intmon_")
     try:
         sname=os.path.join(tmpdir,"mon.submit")
@@ -87,7 +101,7 @@ def monitor(jid,schedd_name,pool_name,
         mcname=os.path.join(tmpdir,mc_relname)
         createMonitorFile(mfname,mc_relname,argv,condor_status[remoteVM])
         createSubmitFile(tmpdir,sname,mlog,mfname,mfout,mferr,
-                         monitorVM,timeout)
+                         monitorVM,timeout,x509_file)
         jid=condorManager.condorSubmitOne(sname,schedd_name,pool_name)
         try:
             checkFile(mcname,timeout)
@@ -147,11 +161,12 @@ def validateCondorStatus(condor_status,jobVM,monitorVM):
     if ((not condor_status[monitorVM].has_key('vm2_State')) or
         (condor_status[monitorVM]['vm2_State']!='Claimed')):
         raise RuntimeError, "Job cannot be yet monitored"
+
     return
 
 def createSubmitFile(work_dir,sfile,mlog,
                      mfname,mfout,mferr,
-                     monitorVM,timeout):
+                     monitorVM,timeout,x509_file=None):
     fd=open(sfile,"w")
     try:
         fd.write("universe=vanilla\n")
@@ -165,6 +180,8 @@ def createSubmitFile(work_dir,sfile,mlog,
         fd.write("notification=Never\n")
         fd.write("+GLIDEIN_Is_Monitor=True\n")
         fd.write("+Owner=Undefined\n")
+        if x509_file!=None:
+            fd.write('x509userproxy = %s\n'%x509_file)
         fd.write('Requirements=(Name=?="%s")&&(Arch=!="Absurd")\n'%monitorVM)
         fd.write("periodic_remove=(CurrentTime>%li)\n"%(long(time.time())+timeout+30)) # karakiri after timeout+delta
         fd.write("queue\n")
