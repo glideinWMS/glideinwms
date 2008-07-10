@@ -150,6 +150,29 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        start\n")
         fd.write("}\n\n")
 
+        fd.write("reconfig() {\n")
+        fd.write('        if [ -f "$1" ]; then\n')
+        fd.write("           has_arg=1\n")
+        fd.write("        else\n")
+        fd.write("           has_arg=0\n")
+        fd.write('           echo $"Usage: factory_startup reconfig <fname>"\n')
+        fd.write("           exit 1\n")
+        fd.write("        fi\n")
+        fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null\n')
+        fd.write("        notrun=$?\n")
+        fd.write("        if [ $notrun -eq 0 ]; then\n")
+        fd.write("          stop\n")
+        fd.write("        fi\n")
+        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" $1\n')
+        fd.write("        reconfig_failed=$?\n")
+        fd.write('        echo -n "Reconfiguring the factory"\n')
+        fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
+        fd.write("        echo\n")
+        fd.write("        if [ $notrun -eq 0 ]; then\n")
+        fd.write("          start\n")
+        fd.write("        fi\n")
+        fd.write("}\n\n")
+
         fd.write("case $1 in\n")
         fd.write("        start)\n")
         fd.write("                start\n")
@@ -163,8 +186,11 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        status)\n")
         fd.write('               "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"\n')
         fd.write("        ;;\n")
+        fd.write("        reconfig)\n")
+        fd.write("                reconfig $2\n")
+        fd.write("        ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|reconfig}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
@@ -182,10 +208,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.26 2008/07/09 18:43:14 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.27 2008/07/10 20:00:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.27  2008/07/10 20:00:20  sfiligoi
+#  Add reconfig to the startup script
+#
 #  Revision 1.26  2008/07/09 18:43:14  sfiligoi
 #  Fix typo
 #
