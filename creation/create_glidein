@@ -91,7 +91,7 @@ def copy_submit_exe(filename,submit_dir,org_dir):
 
 if __name__ == '__main__':
     try:
-        params=cgWParams.Params(sys.argv)
+        params=cgWParams.Params(os.path.join(STARTUP_DIR,"web_base"),sys.argv)
     except RuntimeError,e:
         print e
         sys.exit(1)
@@ -106,10 +106,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.129 2008/07/10 18:57:47 sfiligoi Exp $
+# $Id: create_glidein,v 1.130 2008/07/10 19:21:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.130  2008/07/10 19:21:16  sfiligoi
+#  Make it executable from any disk location
+#
 #  Revision 1.129  2008/07/10 18:57:47  sfiligoi
 #  Move all path changes out of the libraries
 #

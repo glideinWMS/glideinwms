@@ -9,12 +9,15 @@
 import os
 import copy
 import sys
+
+STARTUP_DIR=sys.path[0]
+
 import os.path
 import string
 import shutil
 import traceback
-sys.path.append(os.path.join(sys.path[0],"lib"))
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import cgWParams
 import cgWDictFile
 import cgWConsts
@@ -59,7 +62,7 @@ def main(params,old_params):
 
 if __name__ == '__main__':
     try:
-        params=cgWParams.Params(sys.argv)
+        params=cgWParams.Params(os.path.join(STARTUP_DIR,"web_base"),sys.argv)
     except RuntimeError,e:
         print e
         sys.exit(1)
@@ -67,7 +70,7 @@ if __name__ == '__main__':
         old_config_file=os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
             try:
-                old_params=cgWParams.Params([sys.argv[0],old_config_file])
+                old_params=cgWParams.Params(os.path.join(STARTUP_DIR,"web_base"),[sys.argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
@@ -82,10 +85,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.8 2008/07/10 18:57:47 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.9 2008/07/10 19:21:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.9  2008/07/10 19:21:17  sfiligoi
+#  Make it executable from any disk location
+#
 #  Revision 1.8  2008/07/10 18:57:47  sfiligoi
 #  Move all path changes out of the libraries
 #

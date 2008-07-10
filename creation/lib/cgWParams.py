@@ -138,7 +138,7 @@ class SubParams:
             return el
 
 class Params:
-    def __init__(self,argv):
+    def __init__(self,src_dir,argv):
         self.attr_defaults=xmlParse.OrderedDict()
         self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
@@ -207,7 +207,7 @@ class Params:
         self.defaults["entries"]=(xmlParse.OrderedDict(),"Dictionary of entries","Each entry contains",self.entry_defaults)
                        
         # support dir
-        self.src_dir=os.path.join(os.getcwd(),"web_base")
+        self.src_dir=src_dir
 
         try:
             if len(argv)<2:
@@ -431,10 +431,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.14 2008/07/10 18:57:47 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.15 2008/07/10 19:21:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.15  2008/07/10 19:21:17  sfiligoi
+#  Make it executable from any disk location
+#
 #  Revision 1.14  2008/07/10 18:57:47  sfiligoi
 #  Move all path changes out of the libraries
 #
