@@ -64,7 +64,9 @@ def parseArgs(argv):
 #    (monitor_file_name,monitor_control_relname,argv,condor_status,remoteJobVM,monitorVM):
 def monitor(jid,schedd_name,pool_name,
             timeout,
-            createMonitorFile,argv):
+            createMonitorFile,argv,
+            stdout_fd=sys.stdout,
+            stderr_fd=sys.stderr):
     try:
         jid_cluster,jid_proc=string.split(jid,".",1)
     except:
@@ -106,8 +108,8 @@ def monitor(jid,schedd_name,pool_name,
         jid=condorManager.condorSubmitOne(sname,schedd_name,pool_name)
         try:
             checkFile(mcname,timeout)
-            printFile(mfout,sys.stdout)
-            printFile(mferr,sys.stderr)
+            printFile(mfout,stdout_fd)
+            printFile(mferr,stderr_fd)
         except:
             condorManager.condorRemoveOne(jid,schedd_name,pool_name)
             raise
