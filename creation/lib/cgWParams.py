@@ -6,7 +6,6 @@ import string
 import socket
 import types
 import traceback
-sys.path.append("../lib")
 import xmlParse
 import xml.parsers.expat
 import xmlFormat
@@ -432,10 +431,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.13 2008/07/07 17:55:07 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.14 2008/07/10 18:57:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.14  2008/07/10 18:57:47  sfiligoi
+#  Move all path changes out of the libraries
+#
 #  Revision 1.13  2008/07/07 17:55:07  sfiligoi
 #  Add support for downtimes files
 #

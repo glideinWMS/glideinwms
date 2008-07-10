@@ -15,6 +15,7 @@ import string
 import shutil
 import traceback
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import cgWParams
 import cgWDictFile
 import cgWConsts
@@ -105,10 +106,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.128 2008/07/08 20:49:07 sfiligoi Exp $
+# $Id: create_glidein,v 1.129 2008/07/10 18:57:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.129  2008/07/10 18:57:47  sfiligoi
+#  Move all path changes out of the libraries
+#
 #  Revision 1.128  2008/07/08 20:49:07  sfiligoi
 #  Add init.d startup file
 #
