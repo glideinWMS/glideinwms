@@ -1364,8 +1364,8 @@ def get_completed_stats_xml_desc():
 def create_log_graphs(fe_dir):
     colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
     r_colors=('c00000','ff4000', #>250
-              'ffc000','ffff00', #100-250
-              'd0ff00','b0ff00','90ff00','60ff00','30ff00','00ff00','00c000') #<100
+              'ffc000','fff800', #100-250
+              'd8ff00','b0ff00','90ff00','60ff00','30ff00','00ff00','00c000') #<100
     r_colors_len=len(r_colors)
     time_colors=('000000','0c0000', # unknown and too short
                  'ff0000','ffc000', # 7 and 15 mins
@@ -1794,10 +1794,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.189 2008/07/10 17:10:21 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.190 2008/07/10 17:40:00 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.190  2008/07/10 17:40:00  sfiligoi
+#  Tweak r_colors... 10% should be yellow, everything below green
+#
 #  Revision 1.189  2008/07/10 17:10:21  sfiligoi
 #  Tweak r_colors... 10% should be yellow, everything below green
 #
