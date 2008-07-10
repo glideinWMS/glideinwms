@@ -13,7 +13,7 @@ import os.path
 import string
 import shutil
 import traceback
-sys.path.append("lib")
+sys.path.append(os.path.join(sys.path[0],"lib"))
 import cgWParams
 import cgWDictFile
 import cgWConsts
@@ -81,10 +81,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.6 2008/07/07 20:30:05 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.7 2008/07/10 18:41:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.7  2008/07/10 18:41:45  sfiligoi
+#  Make it executable from any disk location
+#
 #  Revision 1.6  2008/07/07 20:30:05  sfiligoi
 #  Add comments
 #
