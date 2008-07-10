@@ -17,9 +17,9 @@ import glideinMonitor
 # into a list of arguments to pass to the command line after it has
 # moved into the monitored job dir
 #
-def exe_cmd(argv_func):
+def exe_cmd(argv_func,argv=sys.argv):
     try:
-        args=glideinMonitor.parseArgs(sys.argv[1:])
+        args=glideinMonitor.parseArgs(argv[1:])
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
                                createCmdMonitorFile,argv_func(args['argv']))
@@ -33,9 +33,9 @@ def exe_cmd(argv_func):
 # argv_func is a callback that transforms the unrecognized arguments
 # into a list of arguments to pass to the command line
 #
-def exe_cmd_simple(argv_func):
+def exe_cmd_simple(argv_func,argv=sys.argv):
     try:
-        args=glideinMonitor.parseArgs(sys.argv[1:])
+        args=glideinMonitor.parseArgs(argv[1:])
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
                                createCmdMonitorFileSimple,argv_func(args['argv']))
@@ -49,9 +49,9 @@ def exe_cmd_simple(argv_func):
 # argv_func is a callback that transforms the unrecognized arguments
 # into a list of lines to populate a sh script
 #
-def exe_cmd_script(argv_func):
+def exe_cmd_script(argv_func,argv=sys.argv):
     try:
-        args=glideinMonitor.parseArgs(sys.argv[1:])
+        args=glideinMonitor.parseArgs(argv[1:])
         glideinMonitor.monitor(args['jid'],args['schedd_name'],args['pool_name'],
                                args['timeout'],
                                createCmdMonitorFileScript,argv_func(args['argv']))
