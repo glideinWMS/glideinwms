@@ -51,6 +51,9 @@ def main(params,old_params):
     params.save_into_file(cfgfile)
 
     print "Reconfigured glidein '%s'"%params.glidein_name
+    print "Active entries are:"
+    for entry in glidein_dicts_obj.active_entry_list:
+        print "  %s"%entry
     print "Submit files are in %s"%glidein_dicts_obj.main_dicts.submit_dir
 
 
@@ -85,10 +88,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.9 2008/07/10 19:21:17 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.10 2008/07/11 15:49:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.10  2008/07/11 15:49:10  sfiligoi
+#  Printout active entries during creation and reconfig
+#
 #  Revision 1.9  2008/07/10 19:21:17  sfiligoi
 #  Make it executable from any disk location
 #

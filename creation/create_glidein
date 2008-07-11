@@ -57,6 +57,9 @@ def main(params):
         raise
 
     print "Created glidein '%s'"%params.glidein_name
+    print "Active entries are:"
+    for entry in glidein_dicts_obj.active_entry_list:
+        print "  %s"%entry
     print "Submit files can be found in %s"%glidein_dicts_obj.main_dicts.submit_dir
     print "Support files are in %s"%glidein_dicts_obj.main_dicts.stage_dir
     print "Monitoring files are in %s"%glidein_dicts_obj.main_dicts.monitor_dir
@@ -106,10 +109,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.130 2008/07/10 19:21:16 sfiligoi Exp $
+# $Id: create_glidein,v 1.131 2008/07/11 15:49:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.131  2008/07/11 15:49:10  sfiligoi
+#  Printout active entries during creation and reconfig
+#
 #  Revision 1.130  2008/07/10 19:21:16  sfiligoi
 #  Make it executable from any disk location
 #

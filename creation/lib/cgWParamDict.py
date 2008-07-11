@@ -98,11 +98,11 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
-        active_entry_list=[]
+        self.active_entry_list=[]
         for entry in params.entries.keys():
             if eval(params.entries[entry].enabled,{},{}):
-                active_entry_list.append(entry)
-        glidein_dict.add('Entries',string.join(active_entry_list,','))
+                self.active_entry_list.append(entry)
+        glidein_dict.add('Entries',string.join(self.active_entry_list,','))
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('DowntimesFile',params.downtimes.absfname)
@@ -222,6 +222,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.entry_dicts={}
         for entry_name in entry_list:
             self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
+        self.active_entry_list=[]
         return
 
     def populate(self,params=None): # will update params (or self.params)
@@ -229,6 +230,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             params=self.params
         
         self.main_dicts.populate(params)
+        self.active_entry_list=self.main_dicts.active_entry_list
 
         # make sure all the schedds are defined
         # if not, define them, in place, so thet it get recorded
@@ -404,10 +406,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.40 2008/07/07 17:55:07 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.41 2008/07/11 15:49:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.41  2008/07/11 15:49:10  sfiligoi
+#  Printout active entries during creation and reconfig
+#
 #  Revision 1.40  2008/07/07 17:55:07  sfiligoi
 #  Add support for downtimes files
 #
