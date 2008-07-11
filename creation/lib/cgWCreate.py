@@ -173,6 +173,26 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        fi\n")
         fd.write("}\n\n")
 
+        fd.write('downtime() {\n')
+        fd.write('       if [ -z "$2" ]; then\n')
+        fd.write('           echo $"Usage: factory_startup $1 \'factory\'|entry_name [delay]"\n')
+        fd.write('           exit 1\n')
+        fd.write('       fi\n\n')
+        fd.write('	 if [ "$1" == "down" ]; then\n')
+        fd.write('	   echo -n "Setting downtime for"\n')
+        fd.write('	 else\n')
+        fd.write('	   echo -n "Removing downtime for"\n')
+        fd.write('	 fi\n\n')
+        fd.write('	 if [ "$2" == "factory" ]; then\n')
+        fd.write('	   echo -n " factory:"\n')
+        fd.write('       else\n')
+        fd.write('	   echo -n " entry $2:"\n')
+        fd.write('	 fi\n\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 $1 $3 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write('	 RETVAL=$?\n')
+        fd.write('	 echo\n')
+        fd.write('}\n\n')
+        
         fd.write("case $1 in\n")
         fd.write("        start)\n")
         fd.write("                start\n")
@@ -189,8 +209,14 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        reconfig)\n")
         fd.write("                reconfig $2\n")
         fd.write("        ;;\n")
+        fd.write("	  down)\n")
+        fd.write("		  downtime down $2 $3\n")
+        fd.write("	  ;;\n")
+        fd.write("	  up)\n")
+        fd.write("		  downtime up $2 $3\n")
+        fd.write("	  ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|reconfig}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|reconfig|down|up}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
@@ -208,10 +234,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.27 2008/07/10 20:00:20 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.28 2008/07/11 17:33:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.28  2008/07/11 17:33:08  sfiligoi
+#  Add downtime handling to the startup script
+#
 #  Revision 1.27  2008/07/10 20:00:20  sfiligoi
 #  Add reconfig to the startup script
 #
