@@ -1191,24 +1191,24 @@ class condorLogSummary:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Count.%s.%s.png"%(s,period,size)))
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Diff.%s.%s.png"%(s,period,size)))
-                                fd.write('<td>%s</td>'%img2html("Log10_%s_Diff.%s.%s.png"%(s,period,size)))
+                                fd.write('<td>%s</td>'%img2html("Log50_%s_Diff.%s.%s.png"%(s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
                         fd.write('<td></td>')
-                        for l in ('Log','Log10'):
+                        for l in ('Log','Log50'):
                             fd.write('<td>%s</td>'%img2html("%s_Removed_Diff.%s.%s.png"%(l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log10'):
+                            for l in ('Log','Log50'):
                                 fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log10'):
+                            for l in ('Log','Log50'):
                                 for w in ('Waste','WasteTime'):
                                     fd.write('<td>%s</td>'%img2html("%s_Completed_Entered_%s_%s.%s.%s.png"%(l,w,s,period,size)))
                             fd.write('</tr>\n')
@@ -1380,8 +1380,8 @@ def create_log_graphs(fe_dir):
 
         monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
                                     "Difference in %s glideins"%s, rrd_files)
-        monitoringConfig.graph_rrds("%s/Log10_%s_Diff"%(fe_dir,s),
-                                    "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=10)
+        monitoringConfig.graph_rrds("%s/Log50_%s_Diff"%(fe_dir,s),
+                                    "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=50)
 
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
@@ -1426,8 +1426,8 @@ def create_log_graphs(fe_dir):
                         idx+=1
                     monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                 "%s glideins"%t,t_rrds)
-                    monitoringConfig.graph_rrds("%s/Log10_Completed_Entered_%s"%(fe_dir,t),
-                                                "Trend %s glideins"%t,t_rrds,trend_fraction=10)
+                    monitoringConfig.graph_rrds("%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s glideins"%t,t_rrds,trend_fraction=50)
 
 
 ###################################
@@ -1473,8 +1473,8 @@ def create_log_split_graphs(subdir_template,subdir_list):
            
             monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
                                         "Difference in %s glideins"%s, diff_rrd_files)
-            monitoringConfig.graph_rrds("total/Split_Log10_%s_Diff"%s,
-                                        "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=10)
+            monitoringConfig.graph_rrds("total/Split_Log50_%s_Diff"%s,
+                                        "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
 
     # create the completed split graphs
     for t in ("Lasted",
@@ -1502,8 +1502,8 @@ def create_log_split_graphs(subdir_template,subdir_list):
                     idx+=1
                 monitoringConfig.graph_rrds("total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
                                             "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                monitoringConfig.graph_rrds("total/Split_Log10_Completed_Entered_%s_%s"%(t,range_group),
-                                            "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=10)
+                monitoringConfig.graph_rrds("total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
+                                            "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
 
 
 
@@ -1572,12 +1572,12 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                                     fd.write('<td>%s</td>'%img2html("%sLog_%s_Count.%s.%s.png"%(p,s,period,size)))
                                 fd.write('</tr>\n')
                                 fd.write('<tr valign="top">')
-                                for l in ('Log','Log10'):
+                                for l in ('Log','Log50'):
                                     for p in ('','Split_'):
                                         fd.write('<td>%s</td>'%img2html("%s%s_%s_Diff.%s.%s.png"%(p,l,s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
-                        for l in ('Log','Log10'):
+                        for l in ('Log','Log50'):
                             for p in ('','Split_'):
                                 fd.write('<td>%s</td>'%img2html("%s%s_Removed_Diff.%s.%s.png"%(p,l,period,size)))
                         fd.write('</tr>\n')
@@ -1585,13 +1585,13 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log10'):
+                            for l in ('Log','Log50'):
                                 fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput'):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log10'):
+                            for l in ('Log','Log50'):
                                 for w in ('Waste','WasteTime'):
                                     fd.write('<td>%s</td>'%img2html("%s_Completed_Entered_%s_%s.%s.%s.png"%(l,w,s,period,size)))
                             fd.write('</tr>\n')
@@ -1604,7 +1604,7 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             range_groups_keys=time_range_groups_keys
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
-                                for l in ('Log','Log10'):
+                                for l in ('Log','Log50'):
                                     fd.write('<td>%s</td><td></td>'%img2html("Split_%s_Completed_%s_%s.%s.%s.png"%(l,s,r,period,size)))
                                 fd.write('</tr>\n')                        
                             fd.write("</table>\n</p>\n")
@@ -1615,7 +1615,7 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                             range_groups_keys=mill_range_groups_keys
                             for r in range_groups_keys:
                                 fd.write('<tr valign="top">')
-                                for l in ('Log','Log10'):
+                                for l in ('Log','Log50'):
                                     for w in ('Waste','WasteTime'):
                                         fd.write('<td>%s</td>'%img2html("Split_%s_Completed_Entered_%s_%s_%s.%s.%s.png"%(l,w,s,r,period,size)))
                                 fd.write('</tr>\n')                        
@@ -1794,14 +1794,14 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.190 2008/07/10 17:40:00 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.191 2008/07/11 15:35:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
-#  Revision 1.190  2008/07/10 17:40:00  sfiligoi
-#  Tweak r_colors... 10% should be yellow, everything below green
+#  Revision 1.191  2008/07/11 15:35:19  sfiligoi
+#  Change from Log10 to Log50... gives more usefull information
 #
-#  Revision 1.189  2008/07/10 17:10:21  sfiligoi
+#  Revision 1.190  2008/07/10 17:40:00  sfiligoi
 #  Tweak r_colors... 10% should be yellow, everything below green
 #
 #  Revision 1.188  2008/07/02 17:05:28  sfiligoi
