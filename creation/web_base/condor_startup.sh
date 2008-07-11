@@ -101,6 +101,38 @@ function set_var {
     return 0
 }
 
+function python_b64uuencode {
+    echo "begin-base64 644 -"
+    python -c 'import binascii,sys;fd=sys.stdin;buf=fd.read();size=len(buf);idx=0
+while size>57:
+ print binascii.b2a_base64(buf[idx:idx+57]),;
+ idx+=57;
+ size-=57;
+print binascii.b2a_base64(buf[idx:]),'
+    echo "===="
+}
+
+function base64_b64uuencode {
+    echo "begin-base64 644 -"
+    base64 -
+    echo "===="
+}
+
+# not all WNs have all the tools installed
+function b64uuencode {
+    which uuencode >/dev/null 2>&1
+    if [ $? -eq 0 ]; then
+	uuencode -m -
+    else
+	which base64 >/dev/null 2>&1
+	if [ $? -eq 0 ]; then
+	    base64_b64uuencode
+	else
+	    python_b64uuencode
+	fi
+    fi
+}
+
 condor_vars=`grep -i "^CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
 condor_vars_entry=`grep -i "^CONDOR_VARS_ENTRY_FILE " $config_file | awk '{print $2}'`
 
@@ -192,7 +224,7 @@ if [ "$debug_mode" == "1" ]; then
      if [ -f  "$fpath" ]; then
        echo "$fname" 1>&2
        echo "======== gzip | uuencode =============" 1>&2
-       gzip --stdout "$fpath" | uuencode --base64 - 1>&2
+       gzip --stdout "$fpath" | b64uuencode 1>&2
        echo
      fi
     done
