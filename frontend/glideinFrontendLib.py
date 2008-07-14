@@ -16,8 +16,10 @@ import condorMonitor,condorExe
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate constraint
 #
-def getCondorQ(schedd_names,constraint=None):
-    return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint)
+def getCondorQ(schedd_names,constraint=None,format_list=None):
+    if format_list!=None:
+        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i')])
+    return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
 
 #
 # Return a dictionary of schedds containing idle jobs
@@ -92,7 +94,7 @@ def countMatch(match_str,condorq_dict,glidein_dict):
 # If not all the jobs of the schedd has to be considered,
 # specify the appropriate additional constraint
 #
-def getCondorQConstrained(schedd_names,type_constraint,constraint=None):
+def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_list=None):
     out_condorq_dict={}
     for schedd in schedd_names:
         condorq=condorMonitor.CondorQ(schedd)
@@ -101,7 +103,7 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None):
             full_constraint="(%s) && (%s)"%(full_constraint,constraint)
 
         try:
-            condorq.load(full_constraint)
+            condorq.load(full_constraint,format_list)
         except condorExe.ExeError:
             continue # if schedd not found it is equivalent to no jobs in the queue
         if len(condorq.fetchStored())>0:
