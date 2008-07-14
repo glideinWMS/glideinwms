@@ -46,8 +46,17 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
     def fetchStored(self,constraint_func=None):
         return applyConstraint(self.stored_data,constraint_func)
 
+#
+# format_list is a list of
+#  (attr_name, attr_type)
+# where attr_type is one of
+#  "s" - string
+#  "i" - integer
+#  "r" - real (float)
+#  "b" - bool
+#
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
-    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None):
+    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,format_list=None):
         self.exe_name=exe_name
         self.resource_str=resource_str
         self.group_attribute=group_attribute
@@ -57,13 +66,28 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         else:
             self.pool_str="-pool %s"%pool_name
 
+        self.format_list=None
+        self.full_xml=(format_list==None)
+        if format_list!=None:
+            format_arr=["-format '<c>' ClusterId"] #clusterid is always there, so this will always be printed out
+            for format_el in format_list:
+                attr_name,attr_type=format_el
+                format_arr.append('-format \'<a n="%s"><%s>%%s</%s></a>\' %s'%(attr_name,attr_type,attr_type,attr_name))
+            format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
+            self.format_str=string.join(format_arr," ")
+
     def fetch(self,constraint=None):
         if constraint==None:
             constraint_str=""
         else:
             constraint_str="-constraint '%s'"%constraint
 
-        xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str));
+        if self.full_xml:
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str));
+        else:
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s %s %s %s"%(self.resource_str,self.format_str,self.pool_str,constraint_str));
+            xml_data=['<?xml version="1.0"?><classads>']+xml_data+["</classads>"]
+
         list_data=xml2list(xml_data)
         del xml_data
         dict_data=list2dict(list_data,self.group_attribute)
@@ -72,38 +96,39 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
     def load(self,constraint=None):
         self.stored_data=self.fetch(constraint)
 
+
 #
 # Fully usable query functions
 #
 
 # condor_q 
 class CondorQ(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None):
+    def __init__(self,schedd_name=None,pool_name=None,format_list=None):
         self.schedd_name=schedd_name
         if schedd_name==None:
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
-        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name)
+        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,format_list)
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None):
+    def __init__(self,schedd_name=None,pool_name=None,format_list=None):
         self.schedd_name=schedd_name
         if schedd_name==None:
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
-        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name)
+        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,format_list)
 
 # condor_status
 class CondorStatus(QueryExe):
-    def __init__(self,subsystem_name=None,pool_name=None):
+    def __init__(self,subsystem_name=None,pool_name=None,format_list=None):
         if subsystem_name==None:
             subsystem_str=""
         else:
             subsystem_str="-%s"%subsystem_name
-        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name)
+        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,format_list)
 
 #
 # Subquery classes
@@ -267,12 +292,23 @@ def xml2list_start_element(name, attrs):
         xml2list_intype="s"
     elif name=="i":
         xml2list_intype="i"
+    elif name=="r":
+        xml2list_intype="r"
     elif name=="b":
         xml2list_intype="b"
-        xml2list_inattr["val"] = (attrs["v"]!="f")
+        if attrs.has_key('v'):
+            xml2list_inattr["val"] = (attrs["v"]!="f")
+        else:
+            xml2list_inattr["val"] = None # extended syntax... value in text area
     elif name=="un":
         xml2list_intype="un"
         xml2list_inattr["val"] = None
+    elif name in ("s","e"):
+        pass # nothing to do
+    elif name=="classads":
+        pass # top element, nothing to do
+    else:
+        raise TypeError,"Unsupported type: %s"%name
         
 def xml2list_end_element(name):
     global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
@@ -282,8 +318,14 @@ def xml2list_end_element(name):
     elif name=="a":
         xml2list_inclassad[xml2list_inattr["name"]]=xml2list_inattr["val"]
         xml2list_inattr = None
-    elif name in ("i","b","un"):
+    elif name in ("i","b","un","r"):
         xml2list_intype="s"
+    elif name in ("s","e"):
+        pass # nothing to do
+    elif name=="classads":
+        pass # top element, nothing to do
+    else:
+        raise TypeError,"Unexpected type: %s"%name
     
 def xml2list_char_data(data):
     global xml2list_data,xml2list_inclassad,xml2list_inattr,xml2list_intype
@@ -292,7 +334,14 @@ def xml2list_char_data(data):
 
     if xml2list_intype=="i":
         xml2list_inattr["val"]= int(data)
-    elif xml2list_intype in ("b","un"):
+    elif xml2list_intype=="r":
+        xml2list_inattr["val"]= float(data)
+    elif xml2list_intype=="b":
+        if xml2list_inattr["val"]!=None:
+            pass #nothing to do, value was in attribute
+        else:
+            xml2list_inattr["val"]=(data[0] in ('T','t'))
+    elif xml2list_intype=="un":
         pass #nothing to do, value was in attribute
     else:
         unescaped_data=string.replace(data,'\\"','"')
