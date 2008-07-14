@@ -109,6 +109,10 @@ class CondorQ(QueryExe):
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
+
+        if format_list!=None:
+            # check that ClusterId and ProcId are present, and if not add them
+            format_list=complete_format_list(format_list, [("ClusterId",'i'),("ProcId",'i')])
         QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,format_list)
 
 # condor_q, where we have only one ProcId x ClusterId
@@ -119,6 +123,9 @@ class CondorQLite(QueryExe):
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
+        if format_list!=None:
+            # check that ClusterId is present, and if not add it
+            format_list=complete_format_list(format_list, [("ClusterId",'i')])
         QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,format_list)
 
 # condor_status
@@ -128,6 +135,9 @@ class CondorStatus(QueryExe):
             subsystem_str=""
         else:
             subsystem_str="-%s"%subsystem_name
+        if format_list!=None:
+            # check that Name present and if not, add it
+            format_list=complete_format_list(format_list, [("Name",'s')])
         QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,format_list)
 
 #
@@ -255,6 +265,20 @@ class SummarizeMulti:
 # P R I V A T E, do not use
 #
 ############################################################
+
+# check that req_format_els are present in in_format_list, and if not add them
+# return a new format_list
+def complete_format_list(in_format_list, req_format_els):
+    out_format_list=in_format_list[0:]
+    for req_format_el in req_format_els:
+        found=False
+        for format_el in in_format_list:
+            if format_el[0]==req_format_el[0]:
+                found=True
+                break
+        if not found:
+            out_format_list.append(req_format_el)
+    return out_format_list
 
 #
 # Convert Condor XML to list
