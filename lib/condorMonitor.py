@@ -56,7 +56,7 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
 #  "b" - bool
 #
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
-    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,format_list=None):
+    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None):
         self.exe_name=exe_name
         self.resource_str=resource_str
         self.group_attribute=group_attribute
@@ -66,26 +66,25 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         else:
             self.pool_str="-pool %s"%pool_name
 
-        self.format_list=None
-        self.full_xml=(format_list==None)
+    def fetch(self,constraint=None,format_list=None):
+        if constraint==None:
+            constraint_str=""
+        else:
+            constraint_str="-constraint '%s'"%constraint
+
+        full_xml=(format_list==None)
         if format_list!=None:
             format_arr=["-format '<c>' ClusterId"] #clusterid is always there, so this will always be printed out
             for format_el in format_list:
                 attr_name,attr_type=format_el
                 format_arr.append('-format \'<a n="%s"><%s>%%s</%s></a>\' %s'%(attr_name,attr_type,attr_type,attr_name))
             format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
-            self.format_str=string.join(format_arr," ")
+            format_str=string.join(format_arr," ")
 
-    def fetch(self,constraint=None):
-        if constraint==None:
-            constraint_str=""
-        else:
-            constraint_str="-constraint '%s'"%constraint
-
-        if self.full_xml:
+        if full_xml:
             xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str));
         else:
-            xml_data=condorExe.exe_cmd(self.exe_name,"%s %s %s %s"%(self.resource_str,self.format_str,self.pool_str,constraint_str));
+            xml_data=condorExe.exe_cmd(self.exe_name,"%s %s %s %s"%(self.resource_str,format_str,self.pool_str,constraint_str));
             xml_data=['<?xml version="1.0"?><classads>']+xml_data+["</classads>"]
 
         list_data=xml2list(xml_data)
@@ -103,42 +102,54 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
 # condor_q 
 class CondorQ(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None,format_list=None):
+    def __init__(self,schedd_name=None,pool_name=None):
         self.schedd_name=schedd_name
         if schedd_name==None:
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
 
+        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name)
+
+    def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
             # check that ClusterId and ProcId are present, and if not add them
             format_list=complete_format_list(format_list, [("ClusterId",'i'),("ProcId",'i')])
-        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,format_list)
+        return QueryExe.fetch(self,constraint=constraint,format_list=format_list)
+
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None,format_list=None):
+    def __init__(self,schedd_name=None,pool_name=None):
         self.schedd_name=schedd_name
         if schedd_name==None:
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
+
+        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name)
+
+    def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
             # check that ClusterId is present, and if not add it
             format_list=complete_format_list(format_list, [("ClusterId",'i')])
-        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,format_list)
+        return QueryExe.fetch(self,constraint=constraint,format_list=format_list)
 
 # condor_status
 class CondorStatus(QueryExe):
-    def __init__(self,subsystem_name=None,pool_name=None,format_list=None):
+    def __init__(self,subsystem_name=None,pool_name=None):
         if subsystem_name==None:
             subsystem_str=""
         else:
             subsystem_str="-%s"%subsystem_name
+
+        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name)
+
+    def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
             # check that Name present and if not, add it
             format_list=complete_format_list(format_list, [("Name",'s')])
-        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,format_list)
+        return QueryExe.fetch(self,constraint=constraint,format_list=format_list)
 
 #
 # Subquery classes
