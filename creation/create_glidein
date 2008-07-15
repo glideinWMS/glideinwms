@@ -49,8 +49,7 @@ def main(params):
         params.save_into_file(cfgfile)
 
         # create the init.d starup file
-        cgWCreate.create_initd_startup(params.glidein_name,
-                                       os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.INITD_STARTUP_FILE),
+        cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.INITD_STARTUP_FILE),
                                        glidein_dicts_obj.main_dicts.submit_dir,
                                        os.path.realpath(os.path.join(STARTUP_DIR,'..')))
     except:
@@ -110,10 +109,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.134 2008/07/15 21:27:20 sfiligoi Exp $
+# $Id: create_glidein,v 1.135 2008/07/15 21:30:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.135  2008/07/15 21:30:08  sfiligoi
+#  Fix typo
+#
 #  Revision 1.134  2008/07/15 21:27:20  sfiligoi
 #  Fix typo
 #

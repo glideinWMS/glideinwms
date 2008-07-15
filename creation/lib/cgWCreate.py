@@ -103,7 +103,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
 
 #########################################
 # Create init.d compatible startup file
-def create_initd_startup(factory_name,startup_fname,factory_dir,glideinWMS_dir):
+def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
     fd=open(startup_fname,"w")
     try:
         fd.write("#!/bin/bash\n")
@@ -120,7 +120,6 @@ def create_initd_startup(factory_name,startup_fname,factory_dir,glideinWMS_dir):
         fd.write(' echo -en "\\033[60G[\033[31mFAILED\033[0m]"\n')
         fd.write(" return 1\n}\n\n")
         
-        fd.write("factory_name='%s'\n"%factory_name)
         fd.write("factory_dir='%s'\n"%factory_dir)
         fd.write("glideinWMS_dir='%s'\n"%glideinWMS_dir)
         fd.write("\n")
@@ -164,7 +163,7 @@ def create_initd_startup(factory_name,startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        if [ $notrun -eq 0 ]; then\n")
         fd.write("          stop\n")
         fd.write("        fi\n")
-        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$factory_name" $1\n')
+        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
         fd.write("        reconfig_failed=$?\n")
         fd.write('        echo -n "Reconfiguring the factory"\n')
         fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
@@ -235,10 +234,13 @@ def create_initd_startup(factory_name,startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.29 2008/07/15 21:25:58 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.30 2008/07/15 21:30:11 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.30  2008/07/15 21:30:11  sfiligoi
+#  Fix typo
+#
 #  Revision 1.29  2008/07/15 21:25:58  sfiligoi
 #  Use -force_name
 #
