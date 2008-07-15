@@ -1255,7 +1255,7 @@ def vofrontend_install():
     # job constraint
     default_job_constraint="(JobUniverse==5)"
     for job_attr in job_attr_list:
-        default_job_constraint+="(%s=!=UNDEFINED)"%job_attr[0]
+        default_job_constraint+="&&(%s=!=UNDEFINED)"%job_attr[0]
     job_constraint=raw_input("What kind of jobs do you want to monitor?: [%s] "%default_job_constraint)
     if job_constraint=="":
         job_constraint=default_job_constraint
