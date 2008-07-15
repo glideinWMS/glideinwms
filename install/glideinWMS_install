@@ -1,16 +1,11 @@
 #!/bin/env python
 
-import sys
-import os
-import os.path
+import sys,os,os.path,string,time
 import shutil
-import tarfile
-import readline
-import pwd
-import string
-import time
+import tarfile,readline,pwd
 import md5
 import getpass
+import re
 import xml.sax.saxutils
 import socket
 import stat
