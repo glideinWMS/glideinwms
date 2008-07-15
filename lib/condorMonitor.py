@@ -28,11 +28,11 @@ def set_path(new_condor_bin_path):
 # Generic, you most probably don't want to use these
 class AbstractQuery: # pure virtual, just to have a minimum set of methods defined
     # returns the data, will not modify self
-    def fetch(self,constraint=None):
+    def fetch(self,constraint=None,format_list=None):
         raise RuntimeError,"Fetch not implemented"
 
     # will fetch in self.stored_data
-    def load(self,constraint=None):
+    def load(self,constraint=None,format_list=None):
         raise RuntimeError,"Load not implemented"
 
     # constraint_func is a boolean function, with only one argument (data el)
@@ -92,8 +92,8 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         dict_data=list2dict(list_data,self.group_attribute)
         return dict_data
 
-    def load(self,constraint=None):
-        self.stored_data=self.fetch(constraint)
+    def load(self,constraint=None,format_list=None):
+        self.stored_data=self.fetch(constraint,format_list)
 
 
 #
