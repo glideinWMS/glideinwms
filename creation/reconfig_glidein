@@ -64,16 +64,34 @@ def main(params,old_params):
 ############################################################
 
 if __name__ == '__main__':
+    usage_prefix=("reconfig_glidein [-force_name name]"
+    argv=sys.argv
+    force_name=None
+    while len(argv)>2:
+        if argv[1]=='-force_name':
+            force_name=argv[2]
+            argv=argv[0:1]+argv[3:]
+        else:
+            break
+            
     try:
-        params=cgWParams.Params("reconfig_glidein",os.path.join(STARTUP_DIR,"web_base"),sys.argv)
+        params=cgWParams.Params(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
     except RuntimeError,e:
         print e
         sys.exit(1)
+
+    if force_name!=None:
+        if params.glidein_name!=force_name:
+        print params.usage()
+        print ""
+        print "This is not a '%s' config file"%force_name
+        sys.exit(1)
+        
     try:
         old_config_file=os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
             try:
-                old_params=cgWParams.Params("reconfig_glidein",os.path.join(STARTUP_DIR,"web_base"),[sys.argv[0],old_config_file])
+                old_params=cgWParams.Params(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),[argv[0],old_config_file])
             except RuntimeError, e:
                 raise RuntimeError,"Failed to load %s"%old_config_file
         else:
@@ -88,10 +106,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.11 2008/07/15 20:49:46 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.12 2008/07/15 21:17:23 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.12  2008/07/15 21:17:23  sfiligoi
+#  Add -force_name
+#
 #  Revision 1.11  2008/07/15 20:49:46  sfiligoi
 #  Improve usage printout
 #
