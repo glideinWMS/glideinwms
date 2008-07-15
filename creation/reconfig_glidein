@@ -82,10 +82,10 @@ if __name__ == '__main__':
 
     if force_name!=None:
         if params.glidein_name!=force_name:
-        print params.usage()
-        print ""
-        print "This is not a '%s' config file"%force_name
-        sys.exit(1)
+           print params.usage()
+           print ""
+           print "This is not a '%s' config file"%force_name
+           sys.exit(1)
         
     try:
         old_config_file=os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE)
@@ -106,10 +106,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.13 2008/07/15 21:18:03 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.14 2008/07/15 21:18:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.14  2008/07/15 21:18:37  sfiligoi
+#  Fix typo
+#
 #  Revision 1.13  2008/07/15 21:18:03  sfiligoi
 #  Fix typo
 #
