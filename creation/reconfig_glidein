@@ -84,7 +84,7 @@ if __name__ == '__main__':
         if params.glidein_name!=force_name:
            print params.usage()
            print ""
-           print "This is not a '%s' config file"%force_name
+           print "This is not a '%s' config file ('%s' found)"%(force_name,params.glidein_name)
            sys.exit(1)
         
     try:
@@ -106,10 +106,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.14 2008/07/15 21:18:37 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.15 2008/07/15 21:21:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.15  2008/07/15 21:21:10  sfiligoi
+#  Add better help
+#
 #  Revision 1.14  2008/07/15 21:18:37  sfiligoi
 #  Fix typo
 #
