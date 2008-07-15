@@ -1071,7 +1071,9 @@ def extract_job_attrs(match_str):
         attr_obj=attr_re.search(match_str,idx)
         if attr_obj==None:
             break # not found
-        job_attrs.append((attr_obj.group('attr'),'s')) # assume it is string, don;t have better info
+        attr_el=(attr_obj.group('attr'),'s') # assume it is string, don't have better info
+        if not (attr_el in job_attrs):
+            job_attrs.append(attr_el)
         idx=attr_obj.end()+1
     return job_attrs
     
