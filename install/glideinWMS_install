@@ -1143,7 +1143,7 @@ def vofrontend_install():
 
     # WMS collector node
     while 1:
-        pool_node=raw_input("What node is the WMS collector running?: ")
+        pool_node=raw_input("What node is/are the WMS collector(s) running?: ")
         try:
             socket.gethostbyname(pool_node)
         except:
