@@ -1067,6 +1067,20 @@ def gfactory_install():
     return
 
 #-------------------------------------------------------------------------------
+def extract_job_attrs(match_str):
+    job_attrs=[]
+    attr_re=re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
+
+    idx=0
+    while 1:
+        attr_obj=attr_re.search(match_str,idx)
+        if attr_obj==None:
+            break # not found
+        job_attrs.append((attr_obj.group('attr'),'s')) # assume it is string, don;t have better info
+        idx=job_attrs.end()+1
+    return job_attrs
+    
+
 def vofrontend_install():
     global VDT_BASE_PATH
     if os.getuid()==0:
@@ -1231,6 +1245,21 @@ def vofrontend_install():
     if match_str=="":
         match_str=default_match_str
                     
+    print "What attributres are you using in the job expression?"
+    print "You need to specify a list of pairs"
+    print "Each pair has the name and type of the attributes."
+    print "The possible typoes are s,i,r,b (for string, int, real, bool)"
+    print "The example above would had:"
+    print '  [("DESIRED_Sites","s")]'
+    print "I have computed my best estimate for your match string,"
+    print "please verify and correct if needed."
+    
+    default_job_attributes=repr(extract_job_attrs(match_str))
+    job_attributes=raw_input("Job attributes: [%s] "%default_job_attributes)
+    if job_attributes=="":
+        job_attributes=default_job_attributes
+
+                    
     #####################################
     # create config files
     config_dir=create_empty_dir("Where will you host your config and log files?: ","%s/myvofrontend1"%os.environ['HOME'])
@@ -1255,6 +1284,9 @@ def vofrontend_install():
         fd.write("# If not all the jobs of the schedd has to be considered,\n")
         fd.write("# specify the appropriate constraint\n")
         fd.write("job_constraint=%r\n\n"%job_constraint)
+
+        fd.write("# What job attributes should I extract?\n")
+        fd.write("job_attributes=%s\n\n"%job_attributes)
 
         fd.write("# String for matching jobs to glideins\n")
         fd.write("match_string=%r\n\n"%match_str)
