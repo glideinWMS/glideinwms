@@ -70,17 +70,23 @@ def iterate_one(frontend_name,factory_pool,
             # have all the running jobs I wanted
             glidein_min_idle=0
         elif count_jobs['idle']>0:
-            glidein_min_idle=(count_jobs['idle']/3)+reserve_idle # since it takes a few cycles to stabilize, ask for only one third
+            glidein_min_idle=count_jobs['idle']/3 # since it takes a few cycles to stabilize, ask for only one third
+            glidein_idle_reserve=count_jobs['old_idle']/3 # do not reserve any more than the number of old idles for reserve (/3)
+            if glidein_idle_reserve>reserve_idle:
+                glidein_idle_reserve=reserve_idle
+
+            glidein_min_idle+=glidein_idle_reserve
+            
             if glidein_min_idle>max_idle:
                 glidein_min_idle=max_idle # but never go above max
-            if glidein_min_idle>(max_running-total_running+reserve_idle):
-                glidein_min_idle=(max_running-total_running+reserve_idle) # don't go over the max_running
+            if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
+                glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((count_jobs['idle']+count_jobs['running'])*(0.99+reserve_running_fraction)+1)
-        activity_log.write("For %s Idle %i Running %i"%(glidename,count_jobs['idle'],count_jobs['running']))
+        activity_log.write("For %s Idle %i (old %i) Running %i"%(glidename,count_jobs['idle'],count_jobs['old_idle'],count_jobs['running']))
         activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
 
         try:
