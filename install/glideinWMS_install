@@ -1220,12 +1220,6 @@ def vofrontend_install():
     print
 
 
-    # job constraint
-    default_job_constraint="JobUniverse==5"
-    job_constraint=raw_input("What kind of jobs do you want to monitor?: [%s] "%default_job_constraint)
-    if job_constraint=="":
-        job_constraint=default_job_constraint
-                    
     # match string
     print "What expression do you want to use to match glideins to jobs?"
     print "It is an arbitrary python boolean expression using the dictionaries"
@@ -1254,6 +1248,16 @@ def vofrontend_install():
     if job_attributes=="":
         job_attributes=default_job_attributes
 
+    job_attr_list=eval(job_attributes)
+
+    # job constraint
+    default_job_constraint="(JobUniverse==5)"
+    for job_attr in job_attr_list:
+        default_job_constraint+="(%s=!=UNDEFINED)"%job_attr[0]
+    job_constraint=raw_input("What kind of jobs do you want to monitor?: [%s] "%default_job_constraint)
+    if job_constraint=="":
+        job_constraint=default_job_constraint
+                    
                     
     #####################################
     # create config files
