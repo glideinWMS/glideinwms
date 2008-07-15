@@ -18,7 +18,7 @@ import condorMonitor,condorExe
 #
 def getCondorQ(schedd_names,constraint=None,format_list=None):
     if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i')])
+        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i')])
     return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
 
 #
@@ -36,7 +36,7 @@ def getIdleCondorQ(condorq_dict):
     return out
 
 #
-# Return a dictionary of schedds containing idle jobs
+# Return a dictionary of schedds containing running jobs
 # Each element is a condorQ
 #
 # Use the output of getCondorQ
@@ -45,6 +45,20 @@ def getRunningCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
         sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==2)
+        sq.load()
+        out[schedd_name]=sq
+    return out
+
+#
+# Return a dictionary of schedds containing old jobs
+# Each element is a condorQ
+#
+# Use the output of getCondorQ
+#
+def getOldCondorQ(condorq_dict,min_age):
+    out={}
+    for schedd_name in condorq_dict.keys():
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el['ServerTime']-el['EnteredCurrentStatus'])>=min_age)
         sq.load()
         out[schedd_name]=sq
     return out

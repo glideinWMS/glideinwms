@@ -35,30 +35,42 @@ def iterate_one(frontend_name,factory_pool,
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
+    condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
+    dict_types={'idle':{'dict':condorq_dict_idle},
+                'old_idle':{'dict':condorq_dict_old_idle},
+                'running':{'dict':condorq_dict_running}}
+
     activity_log.write("Match")
-    count_glideins_idle=glideinFrontendLib.countMatch(match_str,condorq_dict_idle,glidein_dict)
-    count_glideins_running=glideinFrontendLib.countMatch(match_str,condorq_dict_running,glidein_dict)
+    for dt in dict_types.keys():
+        dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,dict_types[dt]['dict'],glidein_dict)
+    
 
-    total_running=0
-    for schedd in condorq_dict_running.keys():
-        condorq=condorq_dict_running[schedd]
-        condorq_data=condorq.fetchStored()
-        total_running+=len(condorq_data.keys())
-    activity_log.write("Total running %i limit %i"%(total_running,max_running))
-        
-    for glidename in count_glideins_idle.keys():
+    for dt in dict_types.keys():
+        total=0
+        dict=dict_types[dt]['dict']
+        for schedd in dict.keys():
+            condorq=dict[schedd]
+            condorq_data=condorq.fetchStored()
+            total+=len(condorq_data.keys())
+        dict_types[dt]['total']=total
+
+    total_running=dict_types['running']['total']
+    activity_log.write("Total idle %i (old %i) running %i limit %i"%(dict_types['idle']['total'],dict_types['idle_old']['total'],total_running,max_running))
+    
+    for glidename in dict_types['idle']['count'].keys():
         request_name=glidename
-
-        idle_jobs=count_glideins_idle[glidename]
-        running_jobs=count_glideins_running[glidename]
+        
+        count_jobs={}
+        for dt in dict_types.keys():
+            count_jobs[dt]=dict_types[dt]['count'][glidename]
 
         if total_running>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
-        elif idle_jobs>0:
-            glidein_min_idle=(idle_jobs/3)+reserve_idle # since it takes a few cycles to stabilize, ask for only one third
+        elif count_jobs['idle']>0:
+            glidein_min_idle=(count_jobs['idle']/3)+reserve_idle # since it takes a few cycles to stabilize, ask for only one third
             if glidein_min_idle>max_idle:
                 glidein_min_idle=max_idle # but never go above max
             if glidein_min_idle>(max_running-total_running+reserve_idle):
@@ -67,12 +79,12 @@ def iterate_one(frontend_name,factory_pool,
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
-        glidein_max_run=int((idle_jobs+running_jobs)*(0.99+reserve_running_fraction)+1)
-        activity_log.write("For %s Idle %i Running %i"%(glidename,idle_jobs,running_jobs))
+        glidein_max_run=int((count_jobs['idle']+count_jobs['running'])*(0.99+reserve_running_fraction)+1)
+        activity_log.write("For %s Idle %i Running %i"%(glidename,count_jobs['idle'],count_jobs['running']))
         activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
 
         try:
-          glidein_monitors={"Idle":idle_jobs,"Running":running_jobs}
+          glidein_monitors={"Idle":count_jobs['idle'],"Running":count_jobs['running']}
           glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
           warning_log.write("Advertize %s failed"%request_name)
