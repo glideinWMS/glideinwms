@@ -138,7 +138,8 @@ class SubParams:
             return el
 
 class Params:
-    def __init__(self,src_dir,argv):
+    def __init__(self,usage_prefix,src_dir,argv):
+        self.usage_prefix=usage_prefix
         self.attr_defaults=xmlParse.OrderedDict()
         self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
@@ -298,7 +299,7 @@ class Params:
         return self.subparams.__getattr__(name)
 
     def usage(self):
-        return "Usage: create_glidein cfg_fname|-help"
+        return "Usage: %s cfg_fname|-help"%self.usage_prefix
 
     #save into a file
     #The file should be usable for reload
@@ -431,10 +432,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.15 2008/07/10 19:21:17 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.16 2008/07/15 20:49:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.16  2008/07/15 20:49:46  sfiligoi
+#  Improve usage printout
+#
 #  Revision 1.15  2008/07/10 19:21:17  sfiligoi
 #  Make it executable from any disk location
 #

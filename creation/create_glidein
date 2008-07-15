@@ -94,7 +94,7 @@ def copy_submit_exe(filename,submit_dir,org_dir):
 
 if __name__ == '__main__':
     try:
-        params=cgWParams.Params(os.path.join(STARTUP_DIR,"web_base"),sys.argv)
+        params=cgWParams.Params("create_glidein",os.path.join(STARTUP_DIR,"web_base"),sys.argv)
     except RuntimeError,e:
         print e
         sys.exit(1)
@@ -109,10 +109,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.131 2008/07/11 15:49:10 sfiligoi Exp $
+# $Id: create_glidein,v 1.132 2008/07/15 20:49:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.132  2008/07/15 20:49:46  sfiligoi
+#  Improve usage printout
+#
 #  Revision 1.131  2008/07/11 15:49:10  sfiligoi
 #  Printout active entries during creation and reconfig
 #
