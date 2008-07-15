@@ -57,7 +57,7 @@ def iterate_one(frontend_name,factory_pool,
         dict_types[dt]['total']=total
 
     total_running=dict_types['running']['total']
-    activity_log.write("Total idle %i (old %i) running %i limit %i"%(dict_types['idle']['total'],dict_types['idle_old']['total'],total_running,max_running))
+    activity_log.write("Total idle %i (old %i) running %i limit %i"%(dict_types['idle']['total'],dict_types['old_idle']['total'],total_running,max_running))
     
     for glidename in dict_types['idle']['count'].keys():
         request_name=glidename
