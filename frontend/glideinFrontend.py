@@ -75,11 +75,18 @@ def iterate_one(frontend_name,factory_pool,
             status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],frontend_name,request_name)
             count_status[dt]=glideinFrontendLib.countCondorStatus(status_dict_types[dt]['client_dict'])
 
+
+        # effective idle is how much more we need
+        # if there are idle slots, subtract them, they should match soon
+        effective_idle=count_jobs['Idle']-count_status['Idle']
+        if effective_idle<0:
+            effective_idle=0
+
         if total_running>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
-        elif count_jobs['Idle']>0:
-            glidein_min_idle=(count_jobs['Idle']/3)+1 # since it takes a few cycles to stabilize, ask for only one third
+        elif effective_idle>0:
+            glidein_min_idle=(effective_idle/3)+1 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=count_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
@@ -95,7 +102,8 @@ def iterate_one(frontend_name,factory_pool,
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*(0.99+reserve_running_fraction)+1)
-        activity_log.write("For %s Idle %i (old %i) Running %i"%(glidename,count_jobs['Idle'],count_jobs['OldIdle'],count_jobs['Running']))
+        activity_log.write("For %s Idle %i (effective %i old %i) Running %i"%(glidename,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
+        activity_log.write("Glideins for %s Idle %i Running %i"%(glidename,count_status['Idle'],count_status['Running']))
         activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
 
         try:
