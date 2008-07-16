@@ -364,6 +364,7 @@ class condorQStats:
           'Running'
           'GlideinsIdle'
           'GlideinsRunning'
+          'GlideinsTotal'
           'LastHeardFrom'
         """
         if self.data.has_key(client_name):
@@ -375,7 +376,7 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        for k in ('Idle','Running','GlideinsIdle','GlideinsRunning'):
+        for k in ('Idle','Running','GlideinsIdle','GlideinsRunning','GlideinsTotal'):
             if client_monitor.has_key(k):
                 el[k]=client_monitor[k]
 
@@ -549,7 +550,8 @@ class condorQStats:
             monitoringConfig.graph_rrds("%s/Running"%fe_dir,
                                         "Running glideins",
                                         [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00"),
-                                         ("Client","%s/ClientMonitor_Attribute_GlideinsRunning.rrd"%fe_dir,"LINE2","000000")])
+                                         ("ClientGlideins","%s/ClientMonitor_Attribute_GlideinsTotal.rrd"%fe_dir,"LINE2","000000"),
+                                         ("ClientRunning","%s/ClientMonitor_Attribute_GlideinsRunning.rrd"%fe_dir,"LINE2","0000FF")])
             monitoringConfig.graph_rrds("%s/MaxRun"%fe_dir,
                                         "Max running glideins requested",
                                         [("MaxRun","%s/Requested_Attribute_MaxRun.rrd"%fe_dir,"AREA","008000")])
@@ -1797,10 +1799,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.193 2008/07/16 21:25:01 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.194 2008/07/16 21:31:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.194  2008/07/16 21:31:17  sfiligoi
+#  Use total number of glideins from client
+#
 #  Revision 1.193  2008/07/16 21:25:01  sfiligoi
 #  Add ClientMonitor_GlideinsRunning into Running graph
 #
