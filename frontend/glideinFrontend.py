@@ -50,7 +50,8 @@ def iterate_one(frontend_name,factory_pool,
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
 
-    status_dict_types={'Idle':{'dict':status_dict_idle},
+    status_dict_types={'Total':{'dict':status_dict},
+                       'Idle':{'dict':status_dict_idle},
                        'Running':{'dict':status_dict_running}}
 
     activity_log.write("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
@@ -103,7 +104,7 @@ def iterate_one(frontend_name,factory_pool,
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*(0.99+reserve_running_fraction)+1)
         activity_log.write("For %s Idle %i (effective %i old %i) Running %i"%(glidename,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
-        activity_log.write("Glideins for %s Idle %i Running %i"%(glidename,count_status['Idle'],count_status['Running']))
+        activity_log.write("Glideins for %s Total %s Idle %i Running %i"%(glidename,count_status['Total'],count_status['Idle'],count_status['Running']))
         activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
 
         try:
