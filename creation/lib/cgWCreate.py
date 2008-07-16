@@ -206,6 +206,9 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        status)\n")
         fd.write('               "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"\n')
         fd.write("        ;;\n")
+        fd.write("        info)\n")
+        fd.write('               "$glideinWMS_dir/creation_info_glidein" $@\n')
+        fd.write("        ;;\n")
         fd.write("        reconfig)\n")
         fd.write("                reconfig $2\n")
         fd.write("        ;;\n")
@@ -216,7 +219,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("		  downtime up $2 $3\n")
         fd.write("	  ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|reconfig|down|up}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
@@ -234,10 +237,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.30 2008/07/15 21:30:11 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.31 2008/07/16 16:11:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.31  2008/07/16 16:11:21  sfiligoi
+#  Add infor to factory_startup
+#
 #  Revision 1.30  2008/07/15 21:30:11  sfiligoi
 #  Fix typo
 #
