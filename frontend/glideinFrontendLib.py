@@ -64,6 +64,16 @@ def getOldCondorQ(condorq_dict,min_age):
     return out
 
 #
+# Return the number of jobs in the dictionary
+# Use the output of getCondorQ
+#
+def countCondorQ(condorq_dict):
+    count=0
+    for schedd_name in condorq_dict.keys():
+        count+=len(condorq_dict[schedd_name].fetchStored())
+    return count
+
+#
 # Get the number of jobs that match each glidein
 #
 # match_str = '(job["MIN_NAME"]<glidein["MIN_NAME"]) && (job["ARCH"]==glidein["ARCH"])'
@@ -95,6 +105,56 @@ def countMatch(match_str,condorq_dict,glidein_dict):
     return out_glidein_counts
 
 
+#
+# Return a dictionary of collectors containing interesting classads
+# Each element is a condorStatus
+#
+# If not all the jobs of the schedd has to be considered,
+# specify the appropriate constraint
+#
+def getCondorStatus(collector_names,constraint=None,format_list=None):
+    if format_list!=None:
+        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDEIN_Client','s')])
+    return getCondorStatusConstrained(collector_names,'IS_MONITOR_VM=!=True',constraint,format_list)
+
+#
+# Return a dictionary of collectors containing idle(unclaimed) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getIdleCondorStatus(status_dict):
+    out={}
+    for collector_name in status_dict.keys():
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Unclaimed") and (el['Activity']=="Idle")))
+        sq.load()
+        out[collector_name]=sq
+    return out
+
+#
+# Return a dictionary of collectors containing running(claimed) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getRunningCondorStatus(status_dict):
+    out={}
+    for collector_name in status_dict.keys():
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Claimed") and (el['Activity']=="Busy")))
+        sq.load()
+        out[collector_name]=sq
+    return out
+
+#
+# Return the number of vms in the dictionary
+# Use the output of getCondorStatus
+#
+def countCondorStatus(status_dict):
+    count=0
+    for collector_name in status_dict.keys():
+        count+=len(status_dict[collector_name].fetchStored())
+    return count
+
 ############################################################
 #
 # I N T E R N A L - Do not use
@@ -123,4 +183,27 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
     return out_condorq_dict
+
+#
+# Return a dictionary of collectors containing classads of a certain kind 
+# Each element is a condorStatus
+#
+# If not all the jobs of the schedd has to be considered,
+# specify the appropriate additional constraint
+#
+def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,format_list=None):
+    out_status_dict={}
+    for collector in collector_names:
+        status=condorMonitor.CondorStatus(pool_name=collector)
+        full_constraint=type_constraint[0:] #make copy
+        if constraint!=None:
+            full_constraint="(%s) && (%s)"%(full_constraint,constraint)
+
+        try:
+            status.load(full_constraint,format_list)
+        except condorExe.ExeError:
+            continue # if collector not found it is equivalent to no classads
+        if len(status.fetchStored())>0:
+            out_status_dict[collector]=status
+    return out_status_dict
 

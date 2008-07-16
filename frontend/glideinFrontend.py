@@ -34,37 +34,38 @@ def iterate_one(frontend_name,factory_pool,
     global activity_log
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
+    status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
+
+
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
-    dict_types={'idle':{'dict':condorq_dict_idle},
-                'old_idle':{'dict':condorq_dict_old_idle},
-                'running':{'dict':condorq_dict_running}}
+    activity_log.write("Jobs found total %i idle %i (old %i) running %i"%(countCondorQ(condorq_dict),countCondorQ(condorq_dict_idle),countCondorQ(condorq_dict_old_idle),countCondorQ(condorq_dict_running)))
+
+    status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
+    status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
+
+    activity_log.write("Glideins found total %i idle %i running %i"%(countCondorStatus(status_dict),countCondorStatus(status_dict_idle),countCondorStatus(status_dict_running)))
+
+    condorq_dict_types={'idle':{'dict':condorq_dict_idle},
+                        'old_idle':{'dict':condorq_dict_old_idle},
+                        'running':{'dict':condorq_dict_running}}
 
     activity_log.write("Match")
-    for dt in dict_types.keys():
-        dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,dict_types[dt]['dict'],glidein_dict)
-    
+    for dt in condorq_dict_types.keys():
+        condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,condorq_dict_types[dt]['dict'],glidein_dict)
+        condorq_dict_types[dt]['total']=countCondorQ(condorq_dict_types[dt]['dict'])
 
-    for dt in dict_types.keys():
-        total=0
-        dict=dict_types[dt]['dict']
-        for schedd in dict.keys():
-            condorq=dict[schedd]
-            condorq_data=condorq.fetchStored()
-            total+=len(condorq_data.keys())
-        dict_types[dt]['total']=total
-
-    total_running=dict_types['running']['total']
-    activity_log.write("Total idle %i (old %i) running %i limit %i"%(dict_types['idle']['total'],dict_types['old_idle']['total'],total_running,max_running))
+    total_running=condorq_dict_types['running']['total']
+    activity_log.write("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['idle']['total'],condorq_dict_types['old_idle']['total'],total_running,max_running))
     
-    for glidename in dict_types['idle']['count'].keys():
+    for glidename in condorq_dict_types['idle']['count'].keys():
         request_name=glidename
         
         count_jobs={}
-        for dt in dict_types.keys():
-            count_jobs[dt]=dict_types[dt]['count'][glidename]
+        for dt in condorq_dict_types.keys():
+            count_jobs[dt]=condorq_dict_types[dt]['count'][glidename]
 
         if total_running>=max_running:
             # have all the running jobs I wanted
