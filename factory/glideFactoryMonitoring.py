@@ -548,7 +548,8 @@ class condorQStats:
                                          ("IdleOther","%s/Status_Attribute_IdleOther.rrd"%fe_dir,"LINE2","FF0000")])
             monitoringConfig.graph_rrds("%s/Running"%fe_dir,
                                         "Running glideins",
-                                        [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
+                                        [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00"),
+                                         ("Client","%s/ClientMonitor_Attribute_GlideinsRunning.rrd"%fe_dir,"LINE2","000000")])
             monitoringConfig.graph_rrds("%s/MaxRun"%fe_dir,
                                         "Max running glideins requested",
                                         [("MaxRun","%s/Requested_Attribute_MaxRun.rrd"%fe_dir,"AREA","008000")])
@@ -1796,10 +1797,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.192 2008/07/16 21:14:38 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.193 2008/07/16 21:25:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.193  2008/07/16 21:25:01  sfiligoi
+#  Add ClientMonitor_GlideinsRunning into Running graph
+#
 #  Revision 1.192  2008/07/16 21:14:38  sfiligoi
 #  Add support for GlideinsIdle and GlideinsRunning
 #
