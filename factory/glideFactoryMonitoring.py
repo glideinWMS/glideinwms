@@ -362,6 +362,8 @@ class condorQStats:
         At the moment, it looks only for
           'Idle'
           'Running'
+          'GlideinsIdle'
+          'GlideinsRunning'
           'LastHeardFrom'
         """
         if self.data.has_key(client_name):
@@ -373,10 +375,10 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        if client_monitor.has_key('Idle'):
-            el['Idle']=client_monitor['Idle']
-        if client_monitor.has_key('Running'):
-            el['Running']=client_monitor['Running']
+        for k in ('Idle','Running','GlideinsIdle','GlideinsRunning'):
+            if client_monitor.has_key(k):
+                el[k]=client_monitor[k]
+
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
             el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
@@ -1794,10 +1796,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.191 2008/07/11 15:35:19 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.192 2008/07/16 21:14:38 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.192  2008/07/16 21:14:38  sfiligoi
+#  Add support for GlideinsIdle and GlideinsRunning
+#
 #  Revision 1.191  2008/07/11 15:35:19  sfiligoi
 #  Change from Log10 to Log50... gives more usefull information
 #
