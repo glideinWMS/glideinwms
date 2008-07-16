@@ -285,6 +285,8 @@ class Params:
             self.data=xmlParse.xmlfile2dict(fname,use_ord_dict=True)
         except xml.parsers.expat.ExpatError, e:
             raise RuntimeError, "XML error parsing config file: %s"%e
+        except IOError, e:
+            raise RuntimeError, "Config file error: %s"%e
         self.subparams=SubParams(self.data)
         return
 
@@ -432,10 +434,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.16 2008/07/15 20:49:46 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.17 2008/07/16 15:47:15 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.17  2008/07/16 15:47:15  sfiligoi
+#  Improve error handling
+#
 #  Revision 1.16  2008/07/15 20:49:46  sfiligoi
 #  Improve usage printout
 #
