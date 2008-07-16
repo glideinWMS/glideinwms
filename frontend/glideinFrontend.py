@@ -41,12 +41,12 @@ def iterate_one(frontend_name,factory_pool,
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
-    activity_log.write("Jobs found total %i idle %i (old %i) running %i"%(countCondorQ(condorq_dict),countCondorQ(condorq_dict_idle),countCondorQ(condorq_dict_old_idle),countCondorQ(condorq_dict_running)))
+    activity_log.write("Jobs found total %i idle %i (old %i) running %i"%(glideinFrontendLib.countCondorQ(condorq_dict),glideinFrontendLib.countCondorQ(condorq_dict_idle),glideinFrontendLib.countCondorQ(condorq_dict_old_idle),glideinFrontendLib.countCondorQ(condorq_dict_running)))
 
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
 
-    activity_log.write("Glideins found total %i idle %i running %i"%(countCondorStatus(status_dict),countCondorStatus(status_dict_idle),countCondorStatus(status_dict_running)))
+    activity_log.write("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
 
     condorq_dict_types={'idle':{'dict':condorq_dict_idle},
                         'old_idle':{'dict':condorq_dict_old_idle},
@@ -55,7 +55,7 @@ def iterate_one(frontend_name,factory_pool,
     activity_log.write("Match")
     for dt in condorq_dict_types.keys():
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,condorq_dict_types[dt]['dict'],glidein_dict)
-        condorq_dict_types[dt]['total']=countCondorQ(condorq_dict_types[dt]['dict'])
+        condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
 
     total_running=condorq_dict_types['running']['total']
     activity_log.write("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['idle']['total'],condorq_dict_types['old_idle']['total'],total_running,max_running))
