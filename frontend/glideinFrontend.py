@@ -72,7 +72,7 @@ def iterate_one(frontend_name,factory_pool,
 
         count_status={}
         for dt in status_dict_types.keys():
-            status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],glidename)
+            status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],frontend_name,request_name)
             count_status[dt]=glideinFrontendLib.countCondorStatus(status_dict_types[dt]['client_dict'])
 
         if total_running>=max_running:
