@@ -79,7 +79,7 @@ def iterate_one(frontend_name,factory_pool,
             # have all the running jobs I wanted
             glidein_min_idle=0
         elif count_jobs['Idle']>0:
-            glidein_min_idle=count_jobs['Idle']/3 # since it takes a few cycles to stabilize, ask for only one third
+            glidein_min_idle=(count_jobs['Idle']/3)+1 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=count_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
