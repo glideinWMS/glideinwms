@@ -207,7 +207,8 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write('               "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"\n')
         fd.write("        ;;\n")
         fd.write("        info)\n")
-        fd.write('               "$glideinWMS_dir/creation_info_glidein" $@\n')
+        fd.write("               shift\n")
+        fd.write('               "$glideinWMS_dir/creation/info_glidein" $@ "$factory_dir/glideinWMS.xml"\n')
         fd.write("        ;;\n")
         fd.write("        reconfig)\n")
         fd.write("                reconfig $2\n")
@@ -237,15 +238,15 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.31 2008/07/16 16:11:21 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.32 2008/07/16 16:17:05 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
-#  Revision 1.31  2008/07/16 16:11:21  sfiligoi
-#  Add infor to factory_startup
-#
-#  Revision 1.30  2008/07/15 21:30:11  sfiligoi
+#  Revision 1.32  2008/07/16 16:17:05  sfiligoi
 #  Fix typo
+#
+#  Revision 1.31  2008/07/16 16:11:21  sfiligoi
+#  Add info to factory_startup
 #
 #  Revision 1.29  2008/07/15 21:25:58  sfiligoi
 #  Use -force_name
@@ -255,9 +256,6 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 #  Revision 1.27  2008/07/10 20:00:20  sfiligoi
 #  Add reconfig to the startup script
-#
-#  Revision 1.26  2008/07/09 18:43:14  sfiligoi
-#  Fix typo
 #
 #  Revision 1.24  2008/07/09 18:40:02  sfiligoi
 #  Use checkFactory
