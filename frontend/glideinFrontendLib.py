@@ -140,7 +140,7 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Claimed") and (el['Activity']=="Busy")))
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Claimed") and (el['Activity'] in ("Busy","Retiring"))))
         sq.load()
         out[collector_name]=sq
     return out
