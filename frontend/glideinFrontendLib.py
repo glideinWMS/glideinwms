@@ -146,6 +146,20 @@ def getRunningCondorStatus(status_dict):
     return out
 
 #
+# Return a dictionary of collectors containing idle(unclaimed) vms
+# Each element is a condorStatus
+#
+# Use the output of getCondorStatus
+#
+def getClientCondorStatus(status_dict,client_name):
+    out={}
+    for collector_name in status_dict.keys():
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:el['GLIDEIN_Client']==client_name)
+        sq.load()
+        out[collector_name]=sq
+    return out
+
+#
 # Return the number of vms in the dictionary
 # Use the output of getCondorStatus
 #

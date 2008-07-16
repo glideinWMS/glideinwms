@@ -41,16 +41,19 @@ def iterate_one(frontend_name,factory_pool,
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
+    condorq_dict_types={'Idle':{'dict':condorq_dict_idle},
+                        'OldIdle':{'dict':condorq_dict_old_idle},
+                        'Running':{'dict':condorq_dict_running}}
+
     activity_log.write("Jobs found total %i idle %i (old %i) running %i"%(glideinFrontendLib.countCondorQ(condorq_dict),glideinFrontendLib.countCondorQ(condorq_dict_idle),glideinFrontendLib.countCondorQ(condorq_dict_old_idle),glideinFrontendLib.countCondorQ(condorq_dict_running)))
 
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
 
-    activity_log.write("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
+    status_dict_types={'Idle':{'dict':status_dict_idle},
+                       'Running':{'dict':status_dict_running}}
 
-    condorq_dict_types={'Idle':{'dict':condorq_dict_idle},
-                        'OldIdle':{'dict':condorq_dict_old_idle},
-                        'Running':{'dict':condorq_dict_running}}
+    activity_log.write("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
 
     activity_log.write("Match")
     for dt in condorq_dict_types.keys():
@@ -66,6 +69,11 @@ def iterate_one(frontend_name,factory_pool,
         count_jobs={}
         for dt in condorq_dict_types.keys():
             count_jobs[dt]=condorq_dict_types[dt]['count'][glidename]
+
+        count_status={}
+        for dt in status_dict_types.keys():
+            status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],glidename)
+            count_status[dt]=glideinFrontendLib.countCondorStatus(status_dict_types[dt]['client_dict'])
 
         if total_running>=max_running:
             # have all the running jobs I wanted
@@ -94,6 +102,8 @@ def iterate_one(frontend_name,factory_pool,
           glidein_monitors={}
           for t in count_jobs.keys():
               glidein_monitors[t]=count_jobs[t]
+          for t in count_status.keys():
+              glidein_monitors['Glideins%s'%t]=count_status[t]
           glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
           warning_log.write("Advertize %s failed"%request_name)
