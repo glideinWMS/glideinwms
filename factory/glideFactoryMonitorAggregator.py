@@ -151,7 +151,9 @@ def create_status_history():
                                                         ("IdleOther","total/Status_Attribute_IdleOther.rrd","LINE2","FF0000")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Running",
                                                        "Running glideins",
-                                                       [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00")])
+                                                       [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00"),
+                                                        ("ClientGlideins","total/ClientMonitor_Attribute_GlideinsTotal.rrd","LINE2","000000"),
+                                                        ("ClientRunning","total/ClientMonitor_Attribute_GlideinsRunning.rrd","LINE2","0000FF")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Held",
                                                        "Held glideins",
                                                        [("Held","total/Status_Attribute_Held.rrd","AREA","c00000")])
@@ -439,10 +441,13 @@ img2html=glideFactoryMonitoring.img2html
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.34 2008/07/02 16:05:13 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.35 2008/07/16 21:36:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.35  2008/07/16 21:36:48  sfiligoi
+#  Use total number of glideins from client
+#
 #  Revision 1.34  2008/07/02 16:05:13  sfiligoi
 #  Improve graph titles
 #
