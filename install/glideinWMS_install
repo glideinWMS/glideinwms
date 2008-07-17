@@ -1280,7 +1280,7 @@ def vofrontend_install():
                     
     #####################################
     # create config files
-    config_dir=create_empty_dir("Where will you host your config and log files?: ","%s/myvofrontend1"%os.environ['HOME'])
+    config_dir=create_empty_dir("Where will you host your config and log files?: ","%s/frontend_%s"%(os.environ['HOME'],frontend_name))
 
     os.mkdir("%s/log"%config_dir)
     os.mkdir("%s/etc"%config_dir)
