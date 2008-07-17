@@ -39,7 +39,7 @@ def get_entry_pids(startup_dir,factory_pid):
 def main(startup_dir):
     # get the pids
     try:
-        factory_pid=glideFactoryPidLib.get_gfactory_pid(startup_dir)
+        factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
     except RuntimeError, e:
         print e
         return 1

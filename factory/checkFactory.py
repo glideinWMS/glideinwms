@@ -15,7 +15,7 @@ import glideFactoryPidLib
 
 try:
     startup_dir=sys.argv[1]
-    factory_pid=glideFactoryPidLib.get_gfactory_pid(startup_dir)
+    factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
 except:
     print "Not running"
     sys.exit(1)

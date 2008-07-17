@@ -49,7 +49,7 @@ def register_factory_pid(startup_dir):
 #
 # return pid
 # raises an exception if it cannot find it
-def get_gfactory_pid(startup_dir):
+def get_factory_pid(startup_dir):
     lock_fname=os.path.join(startup_dir,"glideinWMS.lock")
 
     if not os.path.isfile(lock_fname):
