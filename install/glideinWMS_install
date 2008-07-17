@@ -1147,7 +1147,8 @@ def vofrontend_install():
 
     # WMS collector node
     while 1:
-	print "What node is the WMS collector running?"
+	print
+	print "What node is the WMS collector running on?"
 	print "If you have a pool of collectors, list them all"
 	print "(for example: master1.my.org:9621,master1.my.org:9622)"
         pool_node=raw_input("Collector name: ")
