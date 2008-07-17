@@ -29,6 +29,7 @@ import logSupport
 def iterate_one(frontend_name,factory_pool,
                 schedd_names,job_constraint,match_str,job_attributes,
                 max_idle,reserve_idle,
+                max_vms_idle,curb_vms_idle,
                 max_running,reserve_running_fraction,
                 glidein_params):
     global activity_log
@@ -83,12 +84,10 @@ def iterate_one(frontend_name,factory_pool,
         if effective_idle<0:
             effective_idle=0
 
-        curb_unclaimed=50
-        max_unclaimed=100
         if total_running>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
-        elif count_status['Idle']>=max_unclaimed:
+        elif count_status['Idle']>=max_vms_running:
             # enough idle vms, do not ask for more
             glidein_min_idle=0
         elif (effective_idle>0):
@@ -104,7 +103,7 @@ def iterate_one(frontend_name,factory_pool,
                 glidein_min_idle=max_idle # but never go above max
             if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
                 glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
-            if count_status['Idle']>=curb_unclaimed:
+            if count_status['Idle']>=curb_vms_running:
                 glidein_min_idle/=2 # above first treshold, reduce
             if glidein_min_idle<1:
                 glidein_min_idle=1
@@ -134,6 +133,7 @@ def iterate(log_dir,sleep_time,
             frontend_name,factory_pool,
             schedd_names,job_constraint,match_str,job_attributes,
             max_idle,reserve_idle,
+            max_vms_idle,curb_vms_idle,
             max_running,reserve_running_fraction,
             glidein_params):
     global activity_log,warning_log
@@ -172,6 +172,7 @@ def iterate(log_dir,sleep_time,
                     try:
                         done_something=iterate_one(frontend_name,factory_pool,schedd_names,job_constraint,match_str,job_attributes,
                                                    max_idle,reserve_idle,
+                                                   max_vms_idle,curb_vms_idle,
                                                    max_running,reserve_running_fraction,
                                                    glidein_params)
                     except KeyboardInterrupt:
@@ -214,12 +215,14 @@ def main(config_file):
                  'match_string':'1',
                  'job_attributes':None,
                  'max_idle_glideins_per_entry':10,'reserve_idle_glideins_per_entry':5,
+                 'max_idle_vms_per_entry':50,'curb_idle_vms_per_entry':10,
                  'max_running_jobs':10000}
     execfile(config_file,config_dict)
     iterate(config_dict['log_dir'],config_dict['loop_delay'],
             config_dict['frontend_name'],config_dict['factory_pool'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],config_dict['job_attributes'],
             config_dict['max_idle_glideins_per_entry'],config_dict['reserve_idle_glideins_per_entry'],
+            config_dict['max_idle_vms_per_entry'],config_dict['curb_idle_vms_per_entry'],
             config_dict['max_running_jobs'], 0.05,
             config_dict['glidein_params'])
 
