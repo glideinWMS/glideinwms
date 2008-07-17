@@ -88,7 +88,7 @@ def iterate_one(frontend_name,factory_pool,
         if total_running>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
-        elif count_status['Idle']>=max_vms_running:
+        elif count_status['Idle']>=max_vms_idle:
             # enough idle vms, do not ask for more
             glidein_min_idle=0
         elif (effective_idle>0):
@@ -104,7 +104,7 @@ def iterate_one(frontend_name,factory_pool,
                 glidein_min_idle=max_idle # but never go above max
             if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
                 glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
-            if count_status['Idle']>=curb_vms_running:
+            if count_status['Idle']>=curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
             if glidein_min_idle<1:
                 glidein_min_idle=1
