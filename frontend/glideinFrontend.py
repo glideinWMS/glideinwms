@@ -209,12 +209,17 @@ def iterate(log_dir,sleep_time,
 
 ############################################################
 def main(config_file):
-    config_dict={'loop_delay':60,'job_attributes':None}
+    config_dict={'loop_delay':60,
+                 'job_constraint':'JobUniverse==5',
+                 'match_string':'1',
+                 'job_attributes':None,
+                 'max_idle_glideins_per_entry':10,'reserve_idle_glideins_per_entry':5,
+                 'max_running_jobs':10000}
     execfile(config_file,config_dict)
     iterate(config_dict['log_dir'],config_dict['loop_delay'],
             config_dict['frontend_name'],config_dict['factory_pool'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],config_dict['job_attributes'],
-            config_dict['max_idle_glideins_per_entry'], 5,
+            config_dict['max_idle_glideins_per_entry'],config_dict['reserve_idle_glideins_per_entry'],
             config_dict['max_running_jobs'], 0.05,
             config_dict['glidein_params'])
 
