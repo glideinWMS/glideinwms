@@ -215,7 +215,7 @@ class MonitoringConfig:
 
     #############################################################################
 
-    def rrd2graph(self,relative_fname,archive_id,freq,
+    def rrd2graph(self,relative_fname,period_name,archive_id,freq,
                   period,width,height,
                   title,relative_rrd_files,cdef_arr=None,trend=None):
         """
@@ -228,11 +228,13 @@ class MonitoringConfig:
         if self.rrd_obj==None:
             return # nothing to do, no rrd bin no rrd conversion
         
+        fname=os.path.join(self.monitor_dir,relative_fname)      
+
         rrd_archive=self.rrd_archives[archive_id]
 
-        fname=os.path.join(self.monitor_dir,relative_fname)      
+        lock_fname=os.path.join(os.path.dirname(fname),"graphs_%s.lock") # one lock x dir x period
         try:
-            if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq*(1.0-(random.random()*0.1-0.05))):
+            if os.path.getmtime(lock_fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq*(1.0-(random.random()*0.1-0.05))):
                 return # file too new to see any benefit from an update
         except OSError:
             pass # file does not exist -> create
@@ -280,7 +282,7 @@ class MonitoringConfig:
             for g in self.graph_sizes:
                 gname,width,height=g
                 try:
-                    self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),idx,freq,
+                    self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),pname,idx,freq,
                                    period,width,height,title,relative_rrd_files,cdef_arr,abs_trend)
                 except ExeError,e:
                     print "WARNING- graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
@@ -1799,10 +1801,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.194 2008/07/16 21:31:17 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.195 2008/07/17 20:33:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.195  2008/07/17 20:33:08  sfiligoi
+#  Sync graph creation within dir
+#
 #  Revision 1.194  2008/07/16 21:31:17  sfiligoi
 #  Use total number of glideins from client
 #
