@@ -23,6 +23,7 @@ sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideinFrontendInterface
 import glideinFrontendLib
+import glideinFrontedPidLib
 import logSupport
 
 ############################################################
@@ -146,21 +147,8 @@ def iterate(log_dir,sleep_time,
                                      activity_log,warning_log)
     
 
-    lock_file=os.path.join(log_dir,"frontend.lock")
-    if not os.path.exists(lock_file): #create a lock file if needed
-        fd=open(lock_file,"w")
-        fd.close()
-
-    fd=open(lock_file,"r+")
-    try:
-        fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
-    except IOError:
-        fd.close()
-        raise RuntimeError, "Another frontend already running"
-    fd.seek(0)
-    fd.truncate()
-    fd.write("PID: %s\nStarted: %s\n"%(os.getpid(),time.ctime(startup_time)))
-    fd.flush()
+    # create lock file
+    fd=glideinFrontendPidLib.register_frontend_pid(log_dir)
     
     try:
         try:
