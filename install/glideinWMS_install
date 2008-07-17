@@ -1146,19 +1146,36 @@ def vofrontend_install():
         frontend_name=def_frontend_name
 
     # WMS collector node
-    print
-    print "What node is the WMS collector running on?"
-    print "If you have a pool of collectors, list them all"
-    print "(for example: master1.my.org:9621,master1.my.org:9622)"
-    pool_node=raw_input("Collector name: ")
+    while 1:
+        pool_node=raw_input("What node is the WMS collector running?: ")
+        try:
+            socket.gethostbyname(pool_node)
+        except:
+            print "'%s' not a valid host name!"%pool_node
+            continue
+        #have a valid pool_node
+        break
 
     # collector
     fd=os.popen("condor_config_val COLLECTOR_HOST")
     lines=fd.readlines()
     err=fd.close()
     if err!=None: # found
-        raise RuntimeError, "Failed to find COLLECTOR_HOST!"
-    local_collector=lines[0][:-1]
+        default_local_collector=""
+    else:
+        default_local_collector=lines[0][:-1]
+
+    print
+    print "What node is the pool collector running on?"
+    print "If you have a hierarchy of collectors, list them all"
+    print "(for example: master1.my.org:9621,master1.my.org:9622)"
+    while 1:
+        local_collector=raw_input("Collector name(s): [%s]"%default_local_collector)
+        if local_collector=="":
+            local_collector=default_local_collector
+        if local_collector!="":
+            break
+        print "Empty string not a valid collector"
 
     # schedds
     fd=os.popen("condor_status -schedd -format '%s\n' Name")
