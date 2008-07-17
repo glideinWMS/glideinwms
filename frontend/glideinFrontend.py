@@ -83,11 +83,17 @@ def iterate_one(frontend_name,factory_pool,
         if effective_idle<0:
             effective_idle=0
 
+        curb_unclaimed=50
+        max_unclaimed=100
         if total_running>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
-        elif effective_idle>0:
-            glidein_min_idle=(effective_idle/3)+1 # since it takes a few cycles to stabilize, ask for only one third
+        elif count_status['Idle']>=max_unclaimed:
+            # enough idle vms, do not ask for more
+            glidein_min_idle=0
+        elif (effective_idle>0):
+            glidein_min_idle=count_jobs['Idle']
+            glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=count_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
@@ -98,6 +104,10 @@ def iterate_one(frontend_name,factory_pool,
                 glidein_min_idle=max_idle # but never go above max
             if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
                 glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
+            if count_status['Idle']>=curb_unclaimed:
+                glidein_min_idle/=2 # above first treshold, reduce
+            if glidein_min_idle<1:
+                glidein_min_idle=1
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
