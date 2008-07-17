@@ -164,6 +164,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("          stop\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
+        fd.write('	  RETVAL=$?\n')
         fd.write("        reconfig_failed=$?\n")
         fd.write('        echo -n "Reconfiguring the factory"\n')
         fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
@@ -205,10 +206,12 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        ;;\n")
         fd.write("        status)\n")
         fd.write('               "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"\n')
+        fd.write('	         RETVAL=$?\n')
         fd.write("        ;;\n")
         fd.write("        info)\n")
         fd.write("               shift\n")
         fd.write('               "$glideinWMS_dir/creation/info_glidein" $@ "$factory_dir/glideinWMS.xml"\n')
+        fd.write('	         RETVAL=$?\n')
         fd.write("        ;;\n")
         fd.write("        reconfig)\n")
         fd.write("                reconfig $2\n")
@@ -238,10 +241,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.32 2008/07/16 16:17:05 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.33 2008/07/17 18:54:22 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.33  2008/07/17 18:54:22  sfiligoi
+#  Improve error propagation
+#
 #  Revision 1.32  2008/07/16 16:17:05  sfiligoi
 #  Fix typo
 #
