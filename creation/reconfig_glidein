@@ -64,12 +64,16 @@ def main(params,old_params):
 ############################################################
 
 if __name__ == '__main__':
-    usage_prefix="reconfig_glidein [-force_name name]"
+    usage_prefix="reconfig_glidein [-force_name name] [-writeback yes|no]"
     argv=sys.argv
     force_name=None
+    writeback='yes'
     while len(argv)>2:
         if argv[1]=='-force_name':
             force_name=argv[2]
+            argv=argv[0:1]+argv[3:]
+        elif argv[1]=='-writeback':
+            writeback=argv[2]
             argv=argv[0:1]+argv[3:]
         else:
             break
@@ -87,6 +91,12 @@ if __name__ == '__main__':
            print "This is not a '%s' config file ('%s' found)"%(force_name,params.glidein_name)
            sys.exit(1)
         
+    if not (writeback in ('yes','no')):
+        print params.usage()
+        print ""
+        print "-writeback must be yes or no, found '%s'"%writeback
+        sys.exit(1)
+        
     try:
         old_config_file=os.path.join(params.submit_dir,cgWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
@@ -102,22 +112,27 @@ if __name__ == '__main__':
         print ""
         print e
 
+    try:
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
+    except:
+        print "Writing back config file failed"
+        sys.exit(1)
+        
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.15 2008/07/15 21:21:10 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.16 2008/07/21 15:42:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.16  2008/07/21 15:42:42  sfiligoi
+#  Add support for rewriting the config file
+#
 #  Revision 1.15  2008/07/15 21:21:10  sfiligoi
 #  Add better help
-#
-#  Revision 1.14  2008/07/15 21:18:37  sfiligoi
-#  Fix typo
-#
-#  Revision 1.13  2008/07/15 21:18:03  sfiligoi
-#  Fix typo
 #
 #  Revision 1.12  2008/07/15 21:17:23  sfiligoi
 #  Add -force_name

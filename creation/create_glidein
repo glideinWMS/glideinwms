@@ -93,31 +93,54 @@ def copy_submit_exe(filename,submit_dir,org_dir):
 ############################################################
 
 if __name__ == '__main__':
+    usage_prefix="create_glidein [-writeback yes|no]"
+    argv=sys.argv
+    writeback='yes'
+    while len(argv)>2:
+        if argv[1]=='-writeback':
+            writeback=argv[2]
+            argv=argv[0:1]+argv[3:]
+        else:
+            break
+            
     try:
-        params=cgWParams.Params("create_glidein",os.path.join(STARTUP_DIR,"web_base"),sys.argv)
+        params=cgWParams.Params(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
     except RuntimeError,e:
         print e
         sys.exit(1)
+        
+    if not (writeback in ('yes','no')):
+        print params.usage()
+        print ""
+        print "-writeback must be yes or no, found '%s'"%writeback
+        sys.exit(1)
+        
     try:
         main(params)
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
     except RuntimeError, e:
         print params.usage()
         print ""
         print e
 
+    try:
+        if writeback=='yes':
+            params.save_into_file_wbackup(params.cfg_name)
+    except:
+        print "Writing back config file failed"
+        sys.exit(1)
+
 ###########################################################
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.135 2008/07/15 21:30:08 sfiligoi Exp $
+# $Id: create_glidein,v 1.136 2008/07/21 15:42:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
-#  Revision 1.135  2008/07/15 21:30:08  sfiligoi
-#  Fix typo
-#
-#  Revision 1.134  2008/07/15 21:27:20  sfiligoi
-#  Fix typo
+#  Revision 1.136  2008/07/21 15:42:42  sfiligoi
+#  Add support for rewriting the config file
 #
 #  Revision 1.133  2008/07/15 21:25:58  sfiligoi
 #  Use -force_name

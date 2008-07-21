@@ -217,7 +217,8 @@ class Params:
             if argv[1]=="-help":
                 raise RuntimeError,"\nA config file will contain:\n%s\n\nThe config file will be in XML format."%self.get_description("  ")
                 
-            self.load_file(argv[1])
+            self.cfg_name=argv[1]
+            self.load_file(self.cfg_name)
             # create derived values
             self.derive()
         except RuntimeError, e:
@@ -313,6 +314,30 @@ class Params:
             fd.close()
         return
     
+    #save into a file (making a backup)
+    #The file should be usable for reload
+    def save_into_file_wbackup(self,fname):
+        # rewrite config file (write tmp file first)
+        tmp_name="%s.tmp"%fname
+        try:
+            os.unlink(tmp_name)
+        except:
+            pass # just protect
+        self.save_into_file(tmp_name)
+
+        # also save old one with backup name
+        backup_name="%s~"%fname
+        try:
+            os.unlink(backup_name)
+        except:
+            pass # just protect
+        try:
+            os.rename(fname,backup_name)
+        except:
+            pass # just protect
+        
+        # finally rename to the proper name
+        os.rename(tmp_name,fname)
 
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
@@ -434,10 +459,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.17 2008/07/16 15:47:15 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.18 2008/07/21 15:42:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.18  2008/07/21 15:42:42  sfiligoi
+#  Add support for rewriting the config file
+#
 #  Revision 1.17  2008/07/16 15:47:15  sfiligoi
 #  Improve error handling
 #
