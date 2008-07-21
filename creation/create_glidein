@@ -117,8 +117,6 @@ if __name__ == '__main__':
         
     try:
         main(params)
-        if writeback=='yes':
-            params.save_into_file_wbackup(params.cfg_name)
     except RuntimeError, e:
         print params.usage()
         print ""
@@ -135,10 +133,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.136 2008/07/21 15:42:42 sfiligoi Exp $
+# $Id: create_glidein,v 1.137 2008/07/21 15:51:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.137  2008/07/21 15:51:28  sfiligoi
+#  Fix typo
+#
 #  Revision 1.136  2008/07/21 15:42:42  sfiligoi
 #  Add support for rewriting the config file
 #
