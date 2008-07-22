@@ -37,8 +37,11 @@ class LDAPQuery:
 
         ldap_obj=ldap.open(self.ldap_url,self.ldap_port)
         ldap_obj.simple_bind('','')
-        bdii_data=ldap_obj.search_s(self.base,ldap.SCOPE_SUBTREE,
-                                    filter_str)
+        try:
+            bdii_data=ldap_obj.search_s(self.base,ldap.SCOPE_SUBTREE,
+                                        filter_str)
+        except ldap.FILTER_ERROR, e:
+            raise ValueError, "LDAP filter error for '%s': %s"%(filter_str,e)
         del ldap_obj
 
         out_data={}
@@ -80,3 +83,4 @@ class BDIICEQuery(LDAPQuery):
             if (old_data[k]['GlueCEStateStatus'][0]=='Production')==usable:
                 new_data[k]=old_data[k]
         self.stored_data=new_data
+
