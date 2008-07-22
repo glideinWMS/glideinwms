@@ -3240,7 +3240,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
     default_reqs=""
     if vo!=None:
-        default_reqs='StringlistMember("VO:%s",GlueCEAccessControlBaseRule)'%(default_reqs,vo)
+        default_reqs='StringlistMember("VO:%s",GlueCEAccessControlBaseRule)'%vo
 
     
     select_reqs=raw_input("Select Condor RESS constraint: [%s] "%default_reqs)
