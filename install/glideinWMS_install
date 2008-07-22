@@ -3277,13 +3277,18 @@ def get_ress_glidein_entries(vo,             #vo can be None
         if len(cluster_arr)<2:
             continue # something is wrong here, at least a.b expected
 
+        t_found=False
         for t in ress_entries.keys():
             test_el=ress_entries[t]
             if ((test_el['gatekeeper']==gatekeeper_name) and
                 (test_el['rsl']==rsl)):
-                # found a duplicate entry, just add the additional ress entry to the list
-                test_el['ress_ids'].append(condor_id)
-                continue
+                # found a duplicate entry
+                t_found=True
+                break
+        if t_found:
+            # found a duplicate entry, just add the additional ress entry to the list
+            test_el['ress_ids'].append(condor_id)
+            continue
     
         cluster_id="ress_%s"%site_name
 
