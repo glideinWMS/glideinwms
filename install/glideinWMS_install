@@ -3282,6 +3282,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
         rsl='(queue=%s)(jobtype=single)'%condor_el['GlueCEName']
         site_name=condor_el['GlueSiteName']
 
+        work_dir="OSG"
         entry_el={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
                   'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
                   'ress_ids':[condor_id]}
@@ -3319,7 +3320,6 @@ def get_ress_glidein_entries(vo,             #vo can be None
                 ress_entries[key_name_tmp]=ress_entries[cluster_id]
                 del ress_entries[cluster_id]
 
-        work_dir="OSG"
         ress_entries[key_name]=entry_el
 
 
