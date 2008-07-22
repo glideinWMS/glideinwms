@@ -1025,7 +1025,7 @@ def gfactory_install():
                 if glexec_yn=="y":
                     fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 if entry_el.has_key('bdii_id'):
-                    fd.write('            <attr name="GLIDEIN_BDII_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['site_name'])
+                    fd.write('            <attr name="GLIDEIN_BDII_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['bdii_id'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
