@@ -11,6 +11,8 @@ import socket
 import stat
 import httplib
 import ftplib
+STARTUP_DIR=sys.path[0]
+sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 
 #############################
 #
@@ -1022,6 +1024,8 @@ def gfactory_install():
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
                 if glexec_yn=="y":
                     fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
+                if entry_el.has_key('bdii_id'):
+                    fd.write('            <attr name="GLIDEIN_BDII_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['site_name'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
@@ -3463,7 +3467,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
 def get_bdii_glidein_entries(vo,             #vo can be None
                              entries_list,   # dictionary, will add to this
                              config_glexec): # bool, ask for glexec dir
-    import ldap
+    import ldapMonitor
 
     while 1:
         default_bdii_url='exp-bdii.cern.ch'
@@ -3478,30 +3482,29 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         #found and verified
         break
 
-    default_reqs="&(GlueCEInfoContactString=*)"
+    default_reqs=""
     if vo!=None:
         default_reqs='%s(GlueCEAccessControlBaseRule=VO:%s)'%(default_reqs,vo)
 
-    select_reqs=raw_input("Select constraint: [%s] "%default_reqs)
+    select_reqs=raw_input("Select filter: [%s] "%default_reqs)
     if select_reqs=="":
         select_reqs=default_reqs
 
-    ldap_obj=ldap.open(bdii_url,2170)
-    ldap_obj.simple_bind('','')
-    bdii_data=ldap_obj.search_s("mds-vo-name=local,o=grid",ldap.SCOPE_SUBTREE,
-                                "(%s)"%select_reqs)
-    del ldap_obj
+    bdii_obj=ldapMonitor.BDIICEQuery(bdii_url,additional_filter_str=select_reqs)
+    bdii_obj.load()
+    bdii_data=bdii_fd.fetchStored()
+    del bdii_obj
 
     cluster_count={}
     bdii_entries={}
-    for elarr in bdii_data:
-        el1,el2=elarr
+    for bdii_id in bdii_data:
+        el2=bdii_data[bdii_id]
         
         work_dir="."
         gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
         rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
 
-        cluster_id=el1.split("Mds-Vo-name=",1)[1].split(",",1)[0]
+        cluster_id=el2['Mds-Vo-name'][0]
 
         count=1
         if cluster_count.has_key(cluster_id):
@@ -3520,7 +3523,8 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
 
         bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG'}
+                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG',
+                                'bdii_id':bdii_id}
         
     bdii_keys=bdii_entries.keys()
     bdii_keys.sort()
