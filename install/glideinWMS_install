@@ -2063,8 +2063,8 @@ def get_proxy_vo(proxy_fname):
     vo_fd=os.popen("source %s/setup.sh;voms-proxy-info -all -file %s"%(VDT_BASE_PATH,proxy_fname))
     vo_blob=vo_fd.read()
     err=vo_fd.close()
-    if err!=None:
-        raise RuntimeError,"Failed to extract VO from proxy '%s'!"%proxy_fname
+    #if err!=None:
+    #    raise RuntimeError,"Failed to extract VO from proxy '%s'!"%proxy_fname
 
     i=vo_blob.find("VO        : ")
     if i<0:
