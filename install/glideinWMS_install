@@ -3270,7 +3270,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
         cluster_name=condor_el['GlueClusterName']
         gatekeeper_name=condor_el['GlueCEInfoContactString']
-        rsl='(queue=%%s)(jobtype=single)'%condor_el['GlueCEName']
+        rsl='(queue=%s)(jobtype=single)'%condor_el['GlueCEName']
         site_name=condor_el['GlueSiteName']
 
         cluster_arr=cluster_name.split('.')
