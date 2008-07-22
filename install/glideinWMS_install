@@ -3218,6 +3218,15 @@ def get_gcb_list():
     return gcb_list
 
 
+# Compare two entry elements
+##########################################
+
+def compare_entry_els(el1,el2):
+    for attr in ('gatekeeper','rsl'):
+        if el1[attr]!=el2[attr]:
+            return False
+    return True
+
 # Get list of entry point from RESS
 ##########################################
 def get_ress_glidein_entries(vo,             #vo can be None
@@ -3273,6 +3282,10 @@ def get_ress_glidein_entries(vo,             #vo can be None
         rsl='(queue=%s)(jobtype=single)'%condor_el['GlueCEName']
         site_name=condor_el['GlueSiteName']
 
+        entry_el={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
+                  'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
+                  'ress_ids':[condor_id]}
+
         cluster_arr=cluster_name.split('.')
         if len(cluster_arr)<2:
             continue # something is wrong here, at least a.b expected
@@ -3280,17 +3293,16 @@ def get_ress_glidein_entries(vo,             #vo can be None
         t_found=False
         for t in ress_entries.keys():
             test_el=ress_entries[t]
-            if ((test_el['gatekeeper']==gatekeeper_name) and
-                (test_el['rsl']==rsl)):
-                # found a duplicate entry
+            if compare_entry_els(test_el,entry_el):
+                # found a duplicate entry, just add the additional ress entry to the list
+                test_el['ress_ids'].append(condor_id)
                 t_found=True
                 break
         if t_found:
-            # found a duplicate entry, just add the additional ress entry to the list
-            test_el['ress_ids'].append(condor_id)
+            # found a duplicate entry, see next el
             continue
     
-        cluster_id="ress_%s"%site_name
+        cluster_id=site_name
 
         count=1
         if cluster_count.has_key(cluster_id):
@@ -3308,15 +3320,25 @@ def get_ress_glidein_entries(vo,             #vo can be None
                 del ress_entries[cluster_id]
 
         work_dir="OSG"
-        ress_entries[key_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
-                                'ress_ids':[condor_id]}
+        ress_entries[key_name]=entry_el
 
+
+    for t in ress_entries.keys():
+        test_el=ress_entries[t]
+        t_found=False
+        for l in entries_list.keys():
+            l_el=entries_list[l]
+            if compare_entry_els(test_el,l_el):
+                # found a duplicate entry
+                l_el['ress_ids']=test_el['ress_ids'] # nobody else should have defined ress_ids
+                del ress_entries[t] # discard the ress_specific entry
+                t_found=True
+                break
 
     ress_keys=ress_entries.keys()
     ress_keys.sort()
 
-    print "Found %i entries"%len(ress_keys)
+    print "Found %i additional entries"%len(ress_keys)
     yn=raw_input("Do you want to use them all?: (y/n) ")
     if yn=="y":
         # simply copy all of them
@@ -3425,7 +3447,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
 
         site_name=el2['Mds-Vo-name'][0]
-        cluster_id="bdii_%s"%site_name
+        cluster_id=site_name
 
         count=1
         if cluster_count.has_key(cluster_id):
@@ -3447,10 +3469,22 @@ def get_bdii_glidein_entries(vo,             #vo can be None
                                 'work_dir':work_dir,'site_name':site_name,'glexec_path':'.',
                                 'bdii_id':bdii_id}
         
+    for t in bdii_entries.keys():
+        test_el=bdii_entries[t]
+        t_found=False
+        for l in entries_list.keys():
+            l_el=entries_list[l]
+            if compare_entry_els(test_el,l_el):
+                # found a duplicate entry
+                l_el['bdii_id']=test_el['bdii_id'] # nobody else should have defined bdii_ids
+                del bdii_entries[t] # discard the bdii_specific entry
+                t_found=True
+                break
+
     bdii_keys=bdii_entries.keys()
     bdii_keys.sort()
 
-    print "Found %i entries"%len(bdii_keys)
+    print "Found %i additional entries"%len(bdii_keys)
     yn=raw_input("Do you want to use them all?: (y/n) ")
     if yn=="y":
         # simply copy all of them
