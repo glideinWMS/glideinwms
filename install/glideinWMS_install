@@ -3492,7 +3492,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
     bdii_obj=ldapMonitor.BDIICEQuery(bdii_url,additional_filter_str=select_reqs)
     bdii_obj.load()
-    bdii_data=bdii_fd.fetchStored()
+    bdii_data=bdii_obj.fetchStored()
     del bdii_obj
 
     cluster_count={}
