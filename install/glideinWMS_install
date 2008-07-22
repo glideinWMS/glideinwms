@@ -1015,8 +1015,8 @@ def gfactory_install():
                     fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 if entry_el.has_key('bdii_id'):
                     fd.write('            <attr name="GLIDEIN_BDII_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['bdii_id'])
-                if entry_el.has_key('ress_id'):
-                    fd.write('            <attr name="GLIDEIN_RESS_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['ress_id'])
+                if entry_el.has_key('ress_ids'):
+                    fd.write('            <attr name="GLIDEIN_RESS_IDS" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%string.join(entry_el['ress_ids'],','))
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
@@ -3276,8 +3276,17 @@ def get_ress_glidein_entries(vo,             #vo can be None
         cluster_arr=cluster_name.split('.')
         if len(cluster_arr)<2:
             continue # something is wrong here, at least a.b expected
+
+        for t in ress_entries.keys():
+            test_el=ress_entries[t]
+            if ((test_el['gatekeeper']==gatekeeper_name) and
+                (test_el['rsl']==rsl)):
+                # found a duplicate entry, just add the additional ress entry to the list
+                test_el['ress_ids'].append(condor_id)
+                continue
     
-        cluster_id=site_name
+        cluster_id="ress_%s"%site_name
+
         count=1
         if cluster_count.has_key(cluster_id):
             count=cluster_count[cluster_id]+1
@@ -3295,8 +3304,8 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
         work_dir="OSG"
         ress_entries[key_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG',
-                                'ress_id':condor_id}
+                                'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
+                                'ress_ids':[condor_id]}
 
 
     ress_keys=ress_entries.keys()
@@ -3410,7 +3419,8 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
         rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
 
-        cluster_id=el2['Mds-Vo-name'][0]
+        site_name=el2['Mds-Vo-name'][0]
+        cluster_id="bdii_%s"%site_name
 
         count=1
         if cluster_count.has_key(cluster_id):
@@ -3429,7 +3439,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
 
         bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG',
+                                'work_dir':work_dir,'site_name':site_name,'glexec_path':'.',
                                 'bdii_id':bdii_id}
         
     bdii_keys=bdii_entries.keys()
