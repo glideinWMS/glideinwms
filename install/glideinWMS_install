@@ -1026,6 +1026,8 @@ def gfactory_install():
                     fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 if entry_el.has_key('bdii_id'):
                     fd.write('            <attr name="GLIDEIN_BDII_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['bdii_id'])
+                if entry_el.has_key('ress_id'):
+                    fd.write('            <attr name="GLIDEIN_RESS_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['ress_id'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
@@ -3342,6 +3344,8 @@ def get_cronus_glidein_entries(vo,            #vo can be None
 def get_ress_glidein_entries(vo,             #vo can be None
                              entries_list,   # disctionary, will add to this
                              config_glexec): # bool, ask for glexec dir
+    import condorMonitor
+
     while 1:
         default_ress_url='osg-ress-1.fnal.gov'
         ress_url=raw_input("Which RESS server should I use?: [%s] "%default_ress_url)
@@ -3355,32 +3359,40 @@ def get_ress_glidein_entries(vo,             #vo can be None
         #found and verified
         break
 
-    default_reqs="((GlueCEPolicyMaxCPUTime==0) || (GlueCEPolicyMaxCPUTime>(72*60)))"
+    default_reqs=""
     if vo!=None:
-        default_reqs='%s && StringlistMember("VO:%s",GlueCEAccessControlBaseRule)'%(default_reqs,vo)
+        default_reqs='StringlistMember("VO:%s",GlueCEAccessControlBaseRule)'%(default_reqs,vo)
 
     
-    select_reqs=raw_input("Select constraint: [%s] "%default_reqs)
+    select_reqs=raw_input("Select Condor RESS constraint: [%s] "%default_reqs)
     if select_reqs=="":
         select_reqs=default_reqs
 
+    default_python_filter="(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))"
+    python_filter=raw_input("Define a python filter: [%s] "%default_python_filter)
+    if python_filter=="":
+        python_filter=default_python_filter
+    python_filter_obj=compile(python_filter,"<string>","eval")
+
     # Get gatekeepers from RESS
-    fd=os.popen("condor_status -pool %s -constraint '%s' -format '%%s ' GlueClusterName -format '%%s ' GlueCEInfoContactString -format '(queue=%%s)(jobtype=single) ' GlueCEName -format '%%s' GlueSiteName -format '\\n' Name"%(ress_url,select_reqs))
-    lines=fd.readlines()
-    err=fd.close()
-    if err!=None: # found
-        raise RuntimeError, "Failed to fetch info from RESS at %s!"%ress_url
+    ress_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)'%select_reqs
+    condor_obj=condorMonitor.CondorStatus(pool_name=ress_url)
+    condor_obj.load(constraint=ress_constraint)
+    condor_data=condor_obj.fetchStored()
+    del condor_obj
 
     cluster_count={}
     ress_entries={}
-    for line in lines:
-        line_arr=line.split()
-        if len(line_arr)!=4:
-            continue #ignore
-        cluster_name=line_arr[0]
-        gatekeeper_name=line_arr[1]
-        rsl=line_arr[2]
-        site_name=line_arr[3]
+    for condor_id in condor_data.keys():
+        condor_el=condor_data[condor_id]
+
+        if not eval(python_filter_obj,condor_el):
+            continue # has not passed the filter
+
+        cluster_name=condor_el['GlueClusterName']
+        gatekeeper_name=condor_el['GlueCEInfoContactString']
+        rsl='(queue=%%s)(jobtype=single)'%condor_el['GlueCEName']
+        site_name=condor_el['GlueSiteName']
 
         cluster_arr=cluster_name.split('.')
         if len(cluster_arr)<2:
@@ -3404,7 +3416,8 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
         work_dir="OSG"
         ress_entries[key_name]={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG'}
+                                'work_dir':work_dir,'site_name':cluster_id,'glexec_path':'OSG',
+                                'ress_id':condor_id}
 
 
     ress_keys=ress_entries.keys()
@@ -3486,9 +3499,16 @@ def get_bdii_glidein_entries(vo,             #vo can be None
     if vo!=None:
         default_reqs='%s(GlueCEAccessControlBaseRule=VO:%s)'%(default_reqs,vo)
 
-    select_reqs=raw_input("Select filter: [%s] "%default_reqs)
+    select_reqs=raw_input("Define a BDII LDAP filter: [%s] "%default_reqs)
     if select_reqs=="":
         select_reqs=default_reqs
+
+
+    default_python_filter="(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))"
+    python_filter=raw_input("Define a python filter: [%s] "%default_python_filter)
+    if python_filter=="":
+        python_filter=default_python_filter
+    python_filter_obj=compile(python_filter,"<string>","eval")
 
     bdii_obj=ldapMonitor.BDIICEQuery(bdii_url,additional_filter_str=select_reqs)
     bdii_obj.load()
@@ -3499,6 +3519,13 @@ def get_bdii_glidein_entries(vo,             #vo can be None
     bdii_entries={}
     for bdii_id in bdii_data:
         el2=bdii_data[bdii_id]
+
+        # LDAP returns everything in lists... convert to values (i.e. get first element from list)
+        scalar_el={}
+        for k in el2.keys():
+            scalar_el[k]=el2[k][0]
+        if not eval(python_filter_obj,scalar_el):
+            continue # has not passed the filter
         
         work_dir="."
         gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
