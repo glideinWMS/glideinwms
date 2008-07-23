@@ -144,9 +144,14 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
         return
 
     import cgWDictFile
-    
+    import cgWConsts
+
+    infosys_fd=InfoSysDictFile(get_entry_submit_dir('.',entry_name),cgWConsts.INFOSYS_FILE)
+
     # to be finished
     print entry_name
+    for k in infosys_fd.keys:
+        print "\t%s\t%s\t%s"%infosys_fd[k]
 
 def main(argv):
     if len(argv)<4:
