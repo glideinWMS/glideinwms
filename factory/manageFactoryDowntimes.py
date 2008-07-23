@@ -136,26 +136,54 @@ def check(down_fd,argv):
     return 0
 
 def infosys_based(entry_name,down_fd,argv,infosys_types):
+    # find out which entries I need to look at
+    # gather downtime fds for them
+    config_els={}
     if entry_name=='factory':
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
-            infosys_based(entry,down_fd,argv,infosys_types)
-        return
+            config=glideFactoryConfig.JobDescript(entry)
+            fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
+            config_el={'down_fd':fd}
+            config_els[entry]=config_el
+    else:
+        config_el={'down_fd':down_fd}
+        config_els[entry_name]=config_el
 
+    # load the infosys info
     import cgWDictFile
     import cgWConsts
 
-    infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry_name),cgWConsts.INFOSYS_FILE)
-    infosys_fd.load()
+    for entry in config_els.keys():
+        infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry),cgWConsts.INFOSYS_FILE)
+        infosys_fd.load()
+        config_els[entry]['infosys_fd']=infosys_fd
 
+    # summarize
+    infosys_data={}
+    for entry in config_els.keys():
+        infosys_fd=config_els[entry]['infosys_fd']
+        for k in infosys_fd.keys:
+            infosys_type=infosys_fd[k][0]
+            server=infosys_fd[k][1]
+            ref=infosys_fd[k][2]
+            if not infosys_data.has_key(infosys_type):
+                infosys_data.has_key[infosys_type]={}
+            infosys_data_type=infosys_data[infosys_type]
+            if not infosys_data_type.has_key(server):
+                infosys_data_type[server]=[]
+            infosys_data_type[server].append(ref)
+            
     # to be finished
-    print entry_name
-    for k in infosys_fd.keys:
-        infosys_type=infosys_fd[k][0]
-        server=infosys_fd[k][1]
-        ref=infosys_fd[k][2]
-        print "\t%s\t%s\t%s"%(infosys_type,server,ref)
+    for infosys_type in infosys_data.keys():
+        print "%s"% infosys_type
+        infosys_data_type=infosys_data[infosys_type]
+        for server in infosys_data_type.keys():
+            print "\t\t%s"%server
+            infosys_data_server=infosys_data_type[server]
+            for ref in infosys_data_server:
+                print "\t\t\t\t%s"%ref
 
 def main(argv):
     if len(argv)<4:
