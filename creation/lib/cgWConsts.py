@@ -67,6 +67,7 @@ SUBMIT_FILE="job.condor"
 SUBMIT_WRAPPER="job_submit.sh"
 LOCAL_START_WRAPPER="local_start.sh"
 XML_CONFIG_FILE="glideinWMS.xml"
+INFOSYS_FILE="infosys.descript"
 
 INITD_STARTUP_FILE="factory_startup"
 
@@ -111,10 +112,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.15 2008/07/08 20:49:07 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.16 2008/07/23 19:30:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.16  2008/07/23 19:30:48  sfiligoi
+#  Add INFOSYS_FILE
+#
 #  Revision 1.15  2008/07/08 20:49:07  sfiligoi
 #  Add init.d startup file
 #
