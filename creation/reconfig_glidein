@@ -111,6 +111,7 @@ if __name__ == '__main__':
         print params.usage()
         print ""
         print e
+        sys.exit(1)
 
     try:
         if writeback=='yes':
@@ -124,10 +125,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: reconfig_glidein,v 1.16 2008/07/21 15:42:42 sfiligoi Exp $
+# $Id: reconfig_glidein,v 1.17 2008/07/23 16:40:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: reconfig_glidein,v $
+#  Revision 1.17  2008/07/23 16:40:59  sfiligoi
+#  Add missing exits in case of error
+#
 #  Revision 1.16  2008/07/21 15:42:42  sfiligoi
 #  Add support for rewriting the config file
 #

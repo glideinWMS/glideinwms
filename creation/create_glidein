@@ -121,6 +121,7 @@ if __name__ == '__main__':
         print params.usage()
         print ""
         print e
+        sys.exit(1)
 
     try:
         if writeback=='yes':
@@ -133,10 +134,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.137 2008/07/21 15:51:28 sfiligoi Exp $
+# $Id: create_glidein,v 1.138 2008/07/23 16:40:59 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.138  2008/07/23 16:40:59  sfiligoi
+#  Add missing exits in case of error
+#
 #  Revision 1.137  2008/07/21 15:51:28  sfiligoi
 #  Fix typo
 #
