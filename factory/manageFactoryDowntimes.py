@@ -152,7 +152,10 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
     # to be finished
     print entry_name
     for k in infosys_fd.keys:
-        print "\t%s\t%s\t%s"%infosys_fd[k]
+        infosys_type=infosys_fd[k][0]
+        server=infosys_fd[k][1]
+        ref=infosys_fd[k][2]
+        print "\t%s\t%s\t%s"%(infosys_type,server,ref)
 
 def main(argv):
     if len(argv)<4:
