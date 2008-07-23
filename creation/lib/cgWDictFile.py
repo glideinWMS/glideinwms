@@ -737,8 +737,8 @@ class VarsDictFile(DictFile):
 class InfoSysDictFile(DictFile):
     def file_header(self,want_comments):
         if want_comments:
-            return ("# Key                               Type    Server         Ref                                      \n"+
-                    "####################################################################################################")
+            return (("# %s \t%30s \t%s \t\t%s\n"%('Type','Server','Ref','ID'))+
+                    ("#"*78))
         else:
             return None
 
@@ -762,7 +762,7 @@ class InfoSysDictFile(DictFile):
         self.add(None,(infosys_type,server_name,ref_str))
         
     def format_val(self,key,want_comments):
-        return "%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2])
+        return "%s \t%30s \t%s \t\t%s"%(self.vals[key][0],self.vals[key][1],self.vals[key][2],key)
         
 
     def parse_val(self,line):
@@ -774,10 +774,10 @@ class InfoSysDictFile(DictFile):
         if len(arr)==0:
             return # empty line
         if len(arr)!=4:
-            raise RuntimeError,"Not a valid var line (expected 3, found %i elements): '%s'"%(len(arr),line)
+            raise RuntimeError,"Not a valid var line (expected 4, found %i elements): '%s'"%(len(arr),line)
 
-        key=arr[0]
-        return self.add(key,arr[1:])
+        key=arr[-1]
+        return self.add(key,arr[:-1])
 
 
 class CondorJDLDictFile(DictFile):
@@ -1295,10 +1295,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.83 2008/07/23 19:30:18 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.84 2008/07/23 19:50:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.84  2008/07/23 19:50:13  sfiligoi
+#  Change formatting of infosys file
+#
 #  Revision 1.83  2008/07/23 19:30:18  sfiligoi
 #  Add InfoSysDictFile, used for entries
 #
