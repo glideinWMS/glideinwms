@@ -1013,8 +1013,8 @@ def gfactory_install():
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
                 if glexec_yn=="y":
                     fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
-                if entry_el.has_key('bdii_id'):
-                    fd.write('            <attr name="GLIDEIN_BDII_ID" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%entry_el['bdii_id'])
+                if entry_el.has_key('bdii_ids'):
+                    fd.write('            <attr name="GLIDEIN_BDII_IDS" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%string.join(entry_el['bdii_ids'],','))
                 if entry_el.has_key('ress_ids'):
                     fd.write('            <attr name="GLIDEIN_RESS_IDS" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%string.join(entry_el['ress_ids'],','))
                 fd.write('         </attrs>\n')
@@ -3283,9 +3283,10 @@ def get_ress_glidein_entries(vo,             #vo can be None
         site_name=condor_el['GlueSiteName']
 
         work_dir="OSG"
+        ress_id="ress://%s/%s"%(ress_url,condor_id)
         entry_el={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
                   'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
-                  'ress_ids':[condor_id]}
+                  'ress_ids':[ress_id]}
 
         cluster_arr=cluster_name.split('.')
         if len(cluster_arr)<2:
@@ -3432,8 +3433,8 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
     cluster_count={}
     bdii_entries={}
-    for bdii_id in bdii_data:
-        el2=bdii_data[bdii_id]
+    for ldap_id in bdii_data:
+        el2=bdii_data[ldap_id]
 
         # LDAP returns everything in lists... convert to values (i.e. get first element from list)
         scalar_el={}
@@ -3448,6 +3449,8 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
         site_name=el2['Mds-Vo-name'][0]
         cluster_id="bdii_%s"%site_name
+
+        bdii_id="bdii://%s/%s"%(bdii_url,ldap_id)
 
         count=1
         if cluster_count.has_key(cluster_id):
@@ -3467,7 +3470,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
         bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
                                 'work_dir':work_dir,'site_name':site_name,'glexec_path':'.',
-                                'bdii_id':bdii_id}
+                                'bdii_ids':[bdii_id]}
         
     for t in bdii_entries.keys():
         test_el=bdii_entries[t]
@@ -3476,7 +3479,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
             l_el=entries_list[l]
             if compare_entry_els(test_el,l_el):
                 # found a duplicate entry
-                l_el['bdii_id']=test_el['bdii_id'] # nobody else should have defined bdii_ids
+                l_el['bdii_ids']=test_el['bdii_ids'] # nobody else should have defined bdii_ids
                 del bdii_entries[t] # discard the bdii_specific entry
                 t_found=True
                 break
