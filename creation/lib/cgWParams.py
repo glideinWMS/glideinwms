@@ -125,7 +125,6 @@ class SubParams:
     def get_el(self,name):
         el=self.data[name]
         if isinstance(el,xmlParse.OrderedDict):
-            print name
             return SubParams(el)
         elif type(el)==type([]):
             outlst=[]
@@ -469,10 +468,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.20 2008/07/23 16:37:33 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.21 2008/07/23 16:43:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.21  2008/07/23 16:43:27  sfiligoi
+#  Remove a spurious print
+#
 #  Revision 1.20  2008/07/23 16:37:33  sfiligoi
 #  Slight change in syntax
 #
