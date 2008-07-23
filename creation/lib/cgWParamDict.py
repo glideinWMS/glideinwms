@@ -182,6 +182,10 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
             if entry_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry_params.rsl,allow_overwrite=True)
 
+        # populate infosys
+        for infosys_ref in entry_params.infosys_refs:
+            self.dicts['infosys'].add_extended(infosys_ref['type'],infosys_ref['server'],infosys_ref['ref'],allow_overwrite=True)
+
         # populate complex files
         populate_job_descript(self.dicts['job_descript'],
                               self.entry_name,entry_params)
@@ -406,10 +410,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.41 2008/07/11 15:49:10 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.42 2008/07/23 19:41:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.42  2008/07/23 19:41:06  sfiligoi
+#  Populate infosys
+#
 #  Revision 1.41  2008/07/11 15:49:10  sfiligoi
 #  Printout active entries during creation and reconfig
 #
