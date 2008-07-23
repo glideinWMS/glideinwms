@@ -7,7 +7,7 @@
 #
 
 import os.path
-import time
+import time,string
 import sys
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
