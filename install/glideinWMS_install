@@ -1010,8 +1010,7 @@ def gfactory_install():
                 
                 fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" %s work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],rsl_str,entry_el['work_dir']))
                 fd.write('         <infosys_refs>\n')
-                for is_id in entry_el['is_ids']:
-                    is_el=entry_el['is_ids'][is_id]
+                for is_el in entry_el['is_ids']:
                     fd.write('           <infosys_ref type="%s" server="%s" name="%s"/>\n'%(is_el['type'],is_el['server'],es_el['name']))
                 fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
@@ -3284,7 +3283,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
         site_name=condor_el['GlueSiteName']
 
         work_dir="OSG"
-        ress_id={'type':'ress','server':ress_url,'name':condor_id}
+        ress_id={'type':'RESS','server':ress_url,'name':condor_id}
         entry_el={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
                   'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
                   'is_ids':[ress_id]}
@@ -3451,7 +3450,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         site_name=el2['Mds-Vo-name'][0]
         cluster_id="bdii_%s"%site_name
 
-        bdii_id={'type':'bdii','server':bdii_url,'name':ldap_id}
+        bdii_id={'type':'BDII','server':bdii_url,'name':ldap_id}
 
         count=1
         if cluster_count.has_key(cluster_id):
