@@ -964,7 +964,7 @@ def gfactory_install():
             
             
         entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl_name,'gridtype':'gt2',
-                                  'work_dir':work_dir,'site_name':site_name,'glexec_path':glexec_path}
+                                  'work_dir':work_dir,'site_name':site_name,'glexec_path':glexec_path,'is_ids':[]}
         
 
     # Expose Grid Env
@@ -1009,14 +1009,15 @@ def gfactory_install():
                     rsl_str=""
                 
                 fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" %s work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],rsl_str,entry_el['work_dir']))
+                fd.write('         <infosys_refs>\n')
+                for is_id in entry_el['is_ids']:
+                    is_el=entry_el['is_ids'][is_id]
+                    fd.write('           <infosys_ref type="%s" server="%s" name="%s"/>\n'%(is_el['type'],is_el['server'],es_el['name']))
+                fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
                 if glexec_yn=="y":
                     fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
-                if entry_el.has_key('bdii_ids'):
-                    fd.write('            <attr name="GLIDEIN_BDII_IDS" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%string.join(entry_el['bdii_ids'],','))
-                if entry_el.has_key('ress_ids'):
-                    fd.write('            <attr name="GLIDEIN_RESS_IDS" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="False"/>\n'%string.join(entry_el['ress_ids'],','))
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
@@ -3283,10 +3284,10 @@ def get_ress_glidein_entries(vo,             #vo can be None
         site_name=condor_el['GlueSiteName']
 
         work_dir="OSG"
-        ress_id="ress://%s/%s"%(ress_url,condor_id)
+        ress_id={'type':'ress','server':ress_url,'name':condor_id}
         entry_el={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
                   'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
-                  'ress_ids':[ress_id]}
+                  'is_ids':[ress_id]}
 
         cluster_arr=cluster_name.split('.')
         if len(cluster_arr)<2:
@@ -3297,7 +3298,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
             test_el=ress_entries[t]
             if compare_entry_els(test_el,entry_el):
                 # found a duplicate entry, just add the additional ress entry to the list
-                test_el['ress_ids'].append(condor_id)
+                test_el['is_ids'].append(condor_id)
                 t_found=True
                 break
         if t_found:
@@ -3331,7 +3332,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
             l_el=entries_list[l]
             if compare_entry_els(test_el,l_el):
                 # found a duplicate entry
-                l_el['ress_ids']=test_el['ress_ids'] # nobody else should have defined ress_ids
+                l_el['is_ids']+=test_el['is_ids']
                 del ress_entries[t] # discard the ress_specific entry
                 t_found=True
                 break
@@ -3450,7 +3451,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         site_name=el2['Mds-Vo-name'][0]
         cluster_id="bdii_%s"%site_name
 
-        bdii_id="bdii://%s/%s"%(bdii_url,ldap_id)
+        bdii_id={'type':'bdii','server':bdii_url,'name':ldap_id}
 
         count=1
         if cluster_count.has_key(cluster_id):
@@ -3470,7 +3471,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
         bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
                                 'work_dir':work_dir,'site_name':site_name,'glexec_path':'.',
-                                'bdii_ids':[bdii_id]}
+                                'is_ids':[bdii_id]}
         
     for t in bdii_entries.keys():
         test_el=bdii_entries[t]
@@ -3479,7 +3480,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
             l_el=entries_list[l]
             if compare_entry_els(test_el,l_el):
                 # found a duplicate entry
-                l_el['bdii_ids']=test_el['bdii_ids'] # nobody else should have defined bdii_ids
+                l_el['is_ids']+=test_el['is_ids']
                 del bdii_entries[t] # discard the bdii_specific entry
                 t_found=True
                 break
