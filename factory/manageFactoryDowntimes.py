@@ -13,6 +13,7 @@ STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import glideFactoryConfig
 import glideFactoryDowntimeLib
+sys.path.append(os.path.join(STARTUP_DIR,"../creation/lib"))
 
 def usage():
     print "Usage:"
@@ -21,12 +22,17 @@ def usage():
     print "  add start_time end_time - Add a scheduled downtime period"
     print "  down [delay]            - Put the factory down now(+delay)" 
     print "  up [delay]              - Get the factory back up now(+delay)"
+    print "  ress [ISinfo]           - Set the up/down based on RESS status"
+    print "  bdii [ISinfo]           - Set the up/down based on bdii status"
+    print "  ress+bdii [ISinfo]      - Set the up/down based both on RESS and bdii status"
     print "  check [delay]           - Report if the factory is in downtime now(+delay)"
     print "where *_time is in one of the two formats:"
     print "  [[[YYYY-]MM-]DD-]HH:MM[:SS]"
     print "  unix_time"
-    print "and delay is of the format:"
+    print "delay is of the format:"
     print "  [HHh][MMm][SS[s]]"
+    print "and ISinfo is:"
+    print "  'CEStatus' (others will follow in the future)"
     print
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
@@ -129,6 +135,19 @@ def check(down_fd,argv):
         print "Up"
     return 0
 
+def infosys_based(entry_name,down_fd,argv,infosys_types):
+    if entry_name=='factory':
+        glideinDescript=glideFactoryConfig.GlideinDescript()
+        entries=string.split(glideinDescript.data['Entries'],',')
+        for entry in entries:
+            infosys_based(entry,down_fd,argv,infosys_types)
+        return
+
+    import cgWDictFile
+    
+    # to be finished
+    print entry_name
+
 def main(argv):
     if len(argv)<4:
         usage()
@@ -173,6 +192,12 @@ def main(argv):
         return up(fd,argv[3:])
     elif cmd=='check':
         return check(fd,argv[3:])
+    elif cmd=='ress':
+        return infosys_based(entry_name,fd,argv[3:],['ress'])
+    elif cmd=='bdii':
+        return infosys_based(entry_name,fd,argv[3:],['bdii'])
+    elif cmd=='ress+bdii':
+        return infosys_based(entry_name,fd,argv[3:],['ress','bdii'])
     else:
         usage()
         print "Invalid command %s"%cmd
