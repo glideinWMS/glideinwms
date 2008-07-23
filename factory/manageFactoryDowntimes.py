@@ -146,7 +146,7 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
     import cgWDictFile
     import cgWConsts
 
-    infosys_fd=cgWDictFile.InfoSysDictFile(get_entry_submit_dir('.',entry_name),cgWConsts.INFOSYS_FILE)
+    infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry_name),cgWConsts.INFOSYS_FILE)
 
     # to be finished
     print entry_name
