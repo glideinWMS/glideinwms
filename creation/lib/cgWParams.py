@@ -125,6 +125,7 @@ class SubParams:
     def get_el(self,name):
         el=self.data[name]
         if isinstance(el,xmlParse.OrderedDict):
+            print name
             return SubParams(el)
         elif type(el)==type([]):
             outlst=[]
@@ -156,6 +157,12 @@ class Params:
         self.file_defaults["executable"]=("False",'Bool','Is this an executable that needs to be run in the glidein?',None)
         self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
 
+        self.infosys_defaults=xmlParse.OrderedDict()
+        self.infosys_defaults["type"]=(None,"RESS|BDII","Type of information system",None)
+        self.infosys_defaults["server"]=(None,"host","Location of the infosys server",None)
+        self.infosys_defaults["name"]=(None,"id","Referenced for the entry point in the infosys",None)
+
+
         untar_defaults=xmlParse.OrderedDict()
         untar_defaults["cond_attr"]=("TRUE","attrname","If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",None)
         untar_defaults["dir"]=(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None)
@@ -166,7 +173,8 @@ class Params:
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
-                      'files':([],'List of files',"Each file entry contains",self.file_defaults)}
+                      'files':([],'List of files',"Each file entry contains",self.file_defaults),
+                      'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults)}
         
         self.entry_defaults=xmlParse.OrderedDict()
         self.entry_defaults["gatekeeper"]=(None,'gatekeeper', 'Grid gatekeeper/resource',None)
@@ -178,6 +186,7 @@ class Params:
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=sub_defaults['files']
+        self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=downtimes_defaults
         
         self.defaults=xmlParse.OrderedDict()
@@ -259,7 +268,8 @@ class Params:
         old_default_dicts_params=xmlFormat.DEFAULT_DICTS_PARAMS
         xmlFormat.DEFAULT_IGNORE_NONES=True
         # these are used internally, do not need to be ordered
-        xmlFormat.DEFAULT_LISTS_PARAMS={'files':{'el_name':'file','subtypes_params':{'class':{}}}}
+        xmlFormat.DEFAULT_LISTS_PARAMS={'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                                        'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}}
         xmlFormat.DEFAULT_DICTS_PARAMS={'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'entries':{'el_name':'entry','subtypes_params':{'class':{}}}}
         # hack needed to make xmlFormat to properly do the formating
         old_DictType=types.DictType
@@ -459,10 +469,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.18 2008/07/21 15:42:42 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.19 2008/07/23 16:03:49 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.19  2008/07/23 16:03:49  sfiligoi
+#  Add infosys_refs
+#
 #  Revision 1.18  2008/07/21 15:42:42  sfiligoi
 #  Add support for rewriting the config file
 #
