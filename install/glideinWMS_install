@@ -1011,7 +1011,7 @@ def gfactory_install():
                 fd.write('      <entry name="%s" gridtype="%s" gatekeeper="%s" %s work_dir="%s">\n'%(entry_name,entry_el['gridtype'],entry_el['gatekeeper'],rsl_str,entry_el['work_dir']))
                 fd.write('         <infosys_refs>\n')
                 for is_el in entry_el['is_ids']:
-                    fd.write('           <infosys_ref type="%s" server="%s" name="%s"/>\n'%(is_el['type'],is_el['server'],es_el['name']))
+                    fd.write('           <infosys_ref type="%s" server="%s" name="%s"/>\n'%(is_el['type'],is_el['server'],is_el['name']))
                 fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
