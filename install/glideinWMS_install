@@ -3297,7 +3297,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
             test_el=ress_entries[t]
             if compare_entry_els(test_el,entry_el):
                 # found a duplicate entry, just add the additional ress entry to the list
-                test_el['is_ids'].append(condor_id)
+                test_el['is_ids'].append(ress_id)
                 t_found=True
                 break
         if t_found:
