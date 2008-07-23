@@ -158,7 +158,28 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
     for entry in config_els.keys():
         infosys_fd=cgWDictFile.InfoSysDictFile(cgWConsts.get_entry_submit_dir('.',entry),cgWConsts.INFOSYS_FILE)
         infosys_fd.load()
+
+        if len(infosys_fd.keys)==0:
+            # entry not associated with any infosys, cannot be managed, ignore
+            del config_els[entry]
+            continue
+
+        compatible_infosys=False
+        for k in infosys_fd.keys:
+            infosys_type=infosys_fd[k][0]
+            if infosys_type in infosys_types:
+                compatible_infosys=True
+                break
+        if not compatible_infosys:
+            # entry not associated with a compatible infosys, cannot be managed, ignore
+            del config_els[entry]
+            continue
+            
         config_els[entry]['infosys_fd']=infosys_fd
+
+    if len(config_els.keys())==0:
+        return 0 # nothing to do
+    # all the remaining entries are handled by one of the supported infosys
 
     # summarize
     infosys_data={}
@@ -173,7 +194,7 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
             infosys_data_type=infosys_data[infosys_type]
             if not infosys_data_type.has_key(server):
                 infosys_data_type[server]=[]
-            infosys_data_type[server].append(ref)
+            infosys_data_type[server].append({'ref':ref,'entry_name':entry)
             
     # to be finished
     for infosys_type in infosys_data.keys():
