@@ -169,7 +169,7 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
             server=infosys_fd[k][1]
             ref=infosys_fd[k][2]
             if not infosys_data.has_key(infosys_type):
-                infosys_data.has_key[infosys_type]={}
+                infosys_data[infosys_type]={}
             infosys_data_type=infosys_data[infosys_type]
             if not infosys_data_type.has_key(server):
                 infosys_data_type[server]=[]
