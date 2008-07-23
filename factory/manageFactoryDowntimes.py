@@ -251,11 +251,11 @@ def main(argv):
     elif cmd=='check':
         return check(fd,argv[3:])
     elif cmd=='ress':
-        return infosys_based(entry_name,fd,argv[3:],['ress'])
+        return infosys_based(entry_name,fd,argv[3:],['RESS'])
     elif cmd=='bdii':
-        return infosys_based(entry_name,fd,argv[3:],['bdii'])
+        return infosys_based(entry_name,fd,argv[3:],['BDII'])
     elif cmd=='ress+bdii':
-        return infosys_based(entry_name,fd,argv[3:],['ress','bdii'])
+        return infosys_based(entry_name,fd,argv[3:],['RESS','BDII'])
     else:
         usage()
         print "Invalid command %s"%cmd
