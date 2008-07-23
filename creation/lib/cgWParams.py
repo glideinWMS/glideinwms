@@ -160,7 +160,7 @@ class Params:
         self.infosys_defaults=xmlParse.OrderedDict()
         self.infosys_defaults["type"]=(None,"RESS|BDII","Type of information system",None)
         self.infosys_defaults["server"]=(None,"host","Location of the infosys server",None)
-        self.infosys_defaults["name"]=(None,"id","Referenced for the entry point in the infosys",None)
+        self.infosys_defaults["ref"]=(None,"id","Referenced for the entry point in the infosys",None)
 
 
         untar_defaults=xmlParse.OrderedDict()
@@ -469,10 +469,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.19 2008/07/23 16:03:49 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.20 2008/07/23 16:37:33 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.20  2008/07/23 16:37:33  sfiligoi
+#  Slight change in syntax
+#
 #  Revision 1.19  2008/07/23 16:03:49  sfiligoi
 #  Add infosys_refs
 #
