@@ -95,7 +95,9 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
     text_attrs = []
     head_arr = []
     head_arr.append(leading_tab+('<%s' % inst_name))
-    for attr in params.keys():
+    params_keys=params.keys()
+    params_keys.sort()
+    for attr in params_keys:
         el = params[attr]
         if type(el) in (types.IntType,types.LongType):
             head_arr.append(' %s="%i"' % (attr,el))
@@ -114,6 +116,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
 
     if type(inst)==types.DictType:
         keys = inst.keys() #dictionaries can be use like classes
+        keys.sort()
     else:
         keys = dir(inst)
     for attr in keys:
@@ -275,7 +278,9 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
 
     head_arr = []
     head_arr.append(leading_tab+('<%s' % dict_name))
-    for attr in params.keys():
+    params_keys=params.keys()
+    params_keys.sort()
+    for attr in params_keys:
         el = params[attr]
         if type(el) in (types.IntType,types.LongType):
             head_arr.append(' %s="%i"' % (attr,el))
@@ -297,6 +302,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
 
     if type(dict)==types.DictType:
         keys = dict.keys()
+        keys.sort()
     else:
         keys = range(len(dict)) # allow lists to be used as dictionaries
     
@@ -353,7 +359,9 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
 
     head_arr = []
     head_arr.append(leading_tab+('<%s' % dict_name))
-    for attr in params.keys():
+    params_keys=params.keys()
+    params_keys.sort()
+    for attr in params_keys:
         el = params[attr]
         if type(el) in (types.IntType,types.LongType):
             head_arr.append(' %s="%i"' % (attr,el))
@@ -375,6 +383,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
 
     if type(dict)==types.DictType:
         keys = dict.keys()
+        keys.sort()
     else:
         keys = range(len(dist)) # allow lists to be used as dictionaries
     
@@ -444,7 +453,9 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
 
     head_arr = []
     head_arr.append(leading_tab+('<%s' % list_name))
-    for attr in params.keys():
+    params_keys=params.keys()
+    params_keys.sort()
+    for attr in params_keys:
         el = params[attr]
         if type(el) in (types.IntType,types.LongType):
             head_arr.append(' %s="%i"' % (attr,el))
@@ -467,6 +478,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
     
     if type(list)==types.DictType:
         els = list.keys() # Use only the keys of the dictionary
+        els.sort()
     else:
         els = list
 
@@ -521,7 +533,9 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
 
     head_arr = []
     head_arr.append(leading_tab+('<%s' % list_name))
-    for attr in params.keys():
+    params_keys=params.keys()
+    params_keys.sort()
+    for attr in params_keys:
         el = params[attr]
         if type(el) in (types.IntType,types.LongType):
             head_arr.append(' %s="%i"' % (attr,el))
@@ -544,6 +558,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
     
     if type(list)==types.DictType:
         els = list.keys() # Use only the keys of the dictionary
+        els.sort()
     else:
         els = list
 
@@ -597,7 +612,9 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
 def tree2string(tree,tree_name,child_element,indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     res= []
     line = leading_tab+'<'+tree_name
-    for key in tree.keys():
+    tree_keys=tree.keys()
+    tree_keys.sort()
+    for key in tree_keys:
         if key==child_element:
             continue # do it later
         line = line + (' %s="%s"' % (key,tree[key]))
@@ -622,7 +639,9 @@ def tree2string(tree,tree_name,child_element,indent_tab=DEFAULT_TAB,leading_tab=
 # only simple attributes are allowed and will be put in the header
 def tree2file(fd,tree,tree_name,child_element,indent_tab=DEFAULT_TAB,leading_tab="",debug_str=""):
     line = leading_tab+'<'+tree_name
-    for key in tree.keys():
+    tree_keys=tree.keys()
+    tree_keys.sort()
+    for key in tree_keys:
         if key==child_element:
             continue # do it later
         line = line + (' %s="%s"' % (key,tree[key]))
