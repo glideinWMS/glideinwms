@@ -319,6 +319,7 @@ class Params:
         fd=open(fname,"w")
         try:
             fd.write(self.get_xml())
+            fd.write("\n")
         finally:
             fd.close()
         return
@@ -468,10 +469,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.21 2008/07/23 16:43:27 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.22 2008/07/24 18:04:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.22  2008/07/24 18:04:25  sfiligoi
+#  Add final newline to the XML file when saving
+#
 #  Revision 1.21  2008/07/23 16:43:27  sfiligoi
 #  Remove a spurious print
 #
