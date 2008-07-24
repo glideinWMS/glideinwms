@@ -915,7 +915,7 @@ def gfactory_install():
     # entries
     entries_list={}
 
-    yn=raw_input("Do you want to fetch entries from RESS?: (y/n) ")
+    yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
     if yn=='y':
         try:
             vo=get_proxy_vo(proxy_fname)
@@ -924,7 +924,7 @@ def gfactory_install():
             
         get_ress_glidein_entries(vo,entries_list,glexec_yn=="y")
 
-    yn=raw_input("Do you want to fetch entries from BDII?: (y/n) ")
+    yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
     if yn=='y':
         try:
             vo=get_proxy_vo(proxy_fname)
@@ -1049,13 +1049,17 @@ def gfactory_install():
     #####################################
     # run create_glidein
 
-    err=os.system('%s/creation/create_glidein %s'%(glideinWMS_base_dir,cfg_name))
-    if err!=0:
-        raise RuntimeError, "Failed to create glidein '%s'!"%glidein_name
-
+    yn=raw_input("Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n]")
+    if yn=='y':
+        err=os.system('%s/creation/create_glidein %s'%(glideinWMS_base_dir,cfg_name))
+        if err!=0:
+            print "Failed to create glidein '%s'!"%glidein_name
+            print "You may need to change the configuration file first"
+    else:
+        print "To create the glidein, you need to run"
+        print '%s/creation/create_glidein'%glideinWMS_base_dir
 
     print
-    print "Glidein Factory config file installed in %s/glidein_%s"%(submit_base_dir,glidein_name)
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
     print "Remember to set X509_USER_PROXY before starting the daemon"
     print
