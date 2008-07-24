@@ -235,6 +235,7 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
     production_entries=[]
     for infosys_type in infosys_data.keys():
         if infosys_type in infosys_types:
+            infosys_data_type=infosys_data[infosys_type]
             for server in infosys_data_type.keys():
                 infosys_data_server=infosys_data_type[server]
                 if infosys_type=="RESS":
