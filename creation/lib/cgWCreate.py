@@ -181,8 +181,10 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write('       fi\n\n')
         fd.write('	 if [ "$1" == "down" ]; then\n')
         fd.write('	   echo -n "Setting downtime for"\n')
-        fd.write('	 else\n')
+        fd.write('	 elif [ "$1" == "up" ]; then\n')
         fd.write('	   echo -n "Removing downtime for"\n')
+        fd.write('	 else\n')
+        fd.write('	   echo -n "Infosys-based downtime management for"\n')
         fd.write('	 fi\n\n')
         fd.write('	 if [ "$2" == "factory" ]; then\n')
         fd.write('	   echo -n " factory:"\n')
@@ -244,18 +246,18 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.34 2008/07/24 18:45:43 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.35 2008/07/24 18:56:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.35  2008/07/24 18:56:14  sfiligoi
+#  Fix typo
+#
 #  Revision 1.34  2008/07/24 18:45:43  sfiligoi
 #  Add infosysdown to the factory startup script
 #
 #  Revision 1.33  2008/07/17 18:54:22  sfiligoi
 #  Improve error propagation
-#
-#  Revision 1.32  2008/07/16 16:17:05  sfiligoi
-#  Fix typo
 #
 #  Revision 1.31  2008/07/16 16:11:21  sfiligoi
 #  Add info to factory_startup
