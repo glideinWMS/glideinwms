@@ -157,7 +157,7 @@ def get_production_bdii_entries(server,ref_dict_list):
 
     production_entries=[]
 
-    dbii_obj=ldapMonitor.BDIICEQuery(server)
+    bdii_obj=ldapMonitor.BDIICEQuery(server)
     bdii_obj.load()
     bdii_obj.filterStatus(usable=True)
     bdii_refs=bdii_obj.fetchStored().keys()
