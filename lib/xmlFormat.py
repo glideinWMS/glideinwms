@@ -73,15 +73,16 @@ def xml_quoteattr(el):
 ######################################################################
 def complete_class_params(class_params):
     res = class_params.copy()
-    if not ("subclass_params" in res.keys()):
+    res_keys=res.keys()
+    if not ("subclass_params" in res_keys):
         res["subclass_params"] = {}
-    if not ("dicts_params" in res.keys()):
+    if not ("dicts_params" in res_keys):
         res["dicts_params"] = DEFAULT_DICTS_PARAMS
-    if not ("lists_params" in res.keys()):
+    if not ("lists_params" in res_keys):
         res["lists_params"] = DEFAULT_LISTS_PARAMS
-    if not ("tree_params" in res.keys()):
+    if not ("tree_params" in res_keys):
         res["tree_params"] = DEFAULT_TREE_PARAMS
-    if not ("text_params" in res.keys()):
+    if not ("text_params" in res_keys):
         res["text_params"] = DEFAULT_TEXT_PARAMS
     return res
 
@@ -255,11 +256,12 @@ def class2file(fd,inst,inst_name,params={},subclass_params={},dicts_params=None,
 ######################################################################
 def complete_dict_params(dict_params):
     res = dict_params.copy()
-    if not ("dict_attr_name" in res.keys()):
+    res_keys=res.keys()
+    if not ("dict_attr_name" in res_keys):
         res["dict_attr_name"] = "name"
-    if not ("el_attr_name" in res.keys()):
+    if not ("el_attr_name" in res_keys):
         res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
-    if not ("subtypes_params" in res.keys()):
+    if not ("subtypes_params" in res_keys):
         res["subtypes_params"] = {}
     return res
 
@@ -424,9 +426,10 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
 ######################################################################
 def complete_list_params(list_params):
     res = list_params.copy()
-    if not ("el_attr_name" in res.keys()):
+    res_keys=res.keys()
+    if not ("el_attr_name" in res_keys):
         res["el_attr_name"] = DEFAULT_EL_ATTR_NAME
-    if not ("subtypes_params" in res.keys()):
+    if not ("subtypes_params" in res_keys):
         res["subtypes_params"] = {}
     return res
 
