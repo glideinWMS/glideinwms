@@ -1027,14 +1027,14 @@ def gfactory_install():
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
-                    fd.write('           <file executable="True" absfname="%s/web_base/glexec_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
+                    fd.write('           <file executable="True" absfname="%s/creation/web_base/glexec_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
                 fd.write('         </files>\n')
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
             fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
             if len(gcb_list)>0: #not needed else
-                fd.write('      <file executable="True" absfname="%s/web_base/gcb_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
+                fd.write('      <file executable="True" absfname="%s/creation/web_base/gcb_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
             fd.write('   </files>\n')
             fd.write('</glidein>\n')
         finally:
@@ -1049,7 +1049,7 @@ def gfactory_install():
     #####################################
     # run create_glidein
 
-    err=os.system('cd %s/creation && ./create_glidein %s'%(glideinWMS_base_dir,cfg_name))
+    err=os.system('%s/creation/create_glidein %s'%(glideinWMS_base_dir,cfg_name))
     if err!=0:
         raise RuntimeError, "Failed to create glidein '%s'!"%glidein_name
 
