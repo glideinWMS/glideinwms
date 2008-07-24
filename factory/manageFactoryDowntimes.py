@@ -328,7 +328,6 @@ def main(argv):
     if cmd=='add':
         return add(entry_name,argv[3:])
     elif cmd=='down':
-        if fd==None:
         return down(entry_name,argv[3:])
     elif cmd=='up':
         return up(entry_name,argv[3:])
