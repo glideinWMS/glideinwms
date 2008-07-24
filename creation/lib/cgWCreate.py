@@ -176,7 +176,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 
         fd.write('downtime() {\n')
         fd.write('       if [ -z "$2" ]; then\n')
-        fd.write('           echo $"Usage: factory_startup $1 \'factory\'|entry_name [delay]"\n')
+        fd.write('           echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
         fd.write('           exit 1\n')
         fd.write('       fi\n\n')
         fd.write('	 if [ "$1" == "down" ]; then\n')
@@ -228,7 +228,10 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("		  downtime ress+bdii entries $2\n")
         fd.write("	  ;;\n")
         fd.write("	  statusdown)\n")
-        fd.write('		 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 $3 $4\n')
+        fd.write('               if [ -z "$2" ]; then\n')
+        fd.write('                  echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
+        fd.write('                  exit 1\n')
+        fd.write('		 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 check $3\n')
         fd.write('	         RETVAL=$?\n')
         fd.write("	  ;;\n")
         fd.write("        *)\n")
@@ -250,10 +253,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.36 2008/07/24 19:58:10 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.37 2008/07/24 20:04:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.37  2008/07/24 20:04:20  sfiligoi
+#  Improve factory_startup
+#
 #  Revision 1.36  2008/07/24 19:58:10  sfiligoi
 #  Improve factory_startup
 #
