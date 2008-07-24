@@ -229,11 +229,10 @@ def infosys_based(entry_name,argv,infosys_types):
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
-            config_el={'down_fd':get_downtime_fd(entry,argv[0])}
-            config_els[entry]=config_el
+            config_els[entry]={}
     else:
-        config_el={'down_fd':get_downtime_fd(entry_name,argv[0])}
-        config_els[entry_name]=config_el
+        config_el={}
+        config_els[entry_name]={}
 
     # load the infosys info
     import cgWDictFile
@@ -300,10 +299,10 @@ def infosys_based(entry_name,argv,infosys_types):
     for entry in entry_keys:
         if entry in production_entries:
             print "%s up"%entry
-            up(config_els[entry]['down_fd'],['up'])
+            up(entry,['up'])
         else:
             print "%s down"%entry
-            down(config_els[entry]['down_fd'],['down']) 
+            down(entry,['down']) 
     
     return 0
 
