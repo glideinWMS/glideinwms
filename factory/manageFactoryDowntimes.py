@@ -171,7 +171,7 @@ def check(entry_name,argv):
     for entry in entry_keys:
         prefix_str=""
         if entry!="factory":
-            prefix_str="%s "%entry
+            prefix_str="%s\t"%entry
         down_fd=config_els[entry]
         in_downtime=down_fd.checkDowntime(when)
         if in_downtime:
