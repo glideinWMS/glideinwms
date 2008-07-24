@@ -83,8 +83,6 @@ def get_downtime_fd(entry_name,cmdname):
     try:
         if entry_name=='factory':
             config=glideFactoryConfig.GlideinDescript()
-        elif entry_name=='entries':
-            config=None
         else:
             config=glideFactoryConfig.JobDescript(entry_name)
     except IOError, e:
@@ -97,10 +95,8 @@ def get_downtime_fd(entry_name,cmdname):
     #    print "Cound not find config file %s"%descr_file
     #    return 1
 
-    if config!=None:
-        fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
-    else:
-        fd=None
+    fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
+    return fd
 
 
 def add(entry_name,argv):
