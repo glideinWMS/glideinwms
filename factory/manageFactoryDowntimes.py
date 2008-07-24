@@ -141,7 +141,7 @@ def get_production_ress_entries(server,ref_dict_list):
     production_entries=[]
 
     condor_obj=condorMonitor.CondorStatus(pool_name=server)
-    condor_obj.load(constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(GlueCEStateStatus=?="Production")')
+    condor_obj.load(constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(GlueCEStateStatus=?="Production")',format_list=[])
     condor_refs=condor_obj.fetchStored().keys()
     #del condor_obj
 
