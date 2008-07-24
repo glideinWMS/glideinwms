@@ -169,15 +169,12 @@ def check(entry_name,argv):
     entry_keys=config_els.keys()
     entry_keys.sort()
     for entry in entry_keys:
-        prefix_str=""
-        if entry!="factory":
-            prefix_str="%s\t"%entry
         down_fd=config_els[entry]
         in_downtime=down_fd.checkDowntime(when)
         if in_downtime:
-            print "%sDown"%prefix_str
+            print "%s\tDown"%entry
         else:
-            print "%sUp"%prefix_str
+            print "%s\tUp"%entry
 
     return 0
 
