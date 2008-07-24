@@ -222,8 +222,11 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("	  up)\n")
         fd.write("		  downtime up $2 $3\n")
         fd.write("	  ;;\n")
+        fd.write("	  infosysdown)\n")
+        fd.write("		  downtime ress+bdii factory $2\n")
+        fd.write("	  ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
@@ -241,10 +244,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.33 2008/07/17 18:54:22 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.34 2008/07/24 18:45:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.34  2008/07/24 18:45:43  sfiligoi
+#  Add infosysdown to the factory startup script
+#
 #  Revision 1.33  2008/07/17 18:54:22  sfiligoi
 #  Improve error propagation
 #
