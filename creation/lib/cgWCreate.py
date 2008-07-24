@@ -225,10 +225,14 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("		  downtime up $2 $3\n")
         fd.write("	  ;;\n")
         fd.write("	  infosysdown)\n")
-        fd.write("		  downtime ress+bdii factory $2\n")
+        fd.write("		  downtime ress+bdii entries $2\n")
+        fd.write("	  ;;\n")
+        fd.write("	  statusdown)\n")
+        fd.write('		 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 $3 $4\n')
+        fd.write('	         RETVAL=$?\n')
         fd.write("	  ;;\n")
         fd.write("        *)\n")
-        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown}"\n')
+        fd.write('        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}"\n')
         fd.write("        exit 1\n")
         fd.write("esac\n\n")
 
@@ -246,12 +250,12 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.35 2008/07/24 18:56:14 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.36 2008/07/24 19:58:10 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
-#  Revision 1.35  2008/07/24 18:56:14  sfiligoi
-#  Fix typo
+#  Revision 1.36  2008/07/24 19:58:10  sfiligoi
+#  Improve factory_startup
 #
 #  Revision 1.34  2008/07/24 18:45:43  sfiligoi
 #  Add infosysdown to the factory startup script
