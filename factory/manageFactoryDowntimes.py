@@ -135,6 +135,41 @@ def check(down_fd,argv):
         print "Up"
     return 0
 
+def get_production_ress_entries(server,ref_dict_list):
+    import condorMonitor
+
+    production_entries=[]
+
+    condor_obj=condorMonitor.CondorStatus(pool_name=server)
+    condor_obj.load(constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(GlueCEStateStatus=?="Production")')
+    condor_refs=condor_obj.fetchStored().keys()
+    #del condor_obj
+
+    for el in ref_dict_list:
+        ref=el['ref']
+        if ref in bdii_refs:
+            production_entries.append(el['entry_name'])    
+    
+    return production_entries
+
+def get_production_bdii_entries(server,ref_dict_list):
+    import ldapMonitor
+
+    production_entries=[]
+
+    dbii_obj=ldapMonitor.BDIICEQuery(server)
+    bdii_obj.load()
+    bdii_obj.filterStatus(usable=True)
+    bdii_refs=bdii_obj.fetchStored().keys()
+    #del bdii_obj
+
+    for el in ref_dict_list:
+        ref=el['ref']
+        if ref in bdii_refs:
+            production_entries.append(el['entry_name'])    
+    
+    return production_entries
+
 def infosys_based(entry_name,down_fd,argv,infosys_types):
     # find out which entries I need to look at
     # gather downtime fds for them
@@ -195,16 +230,30 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
             if not infosys_data_type.has_key(server):
                 infosys_data_type[server]=[]
             infosys_data_type[server].append({'ref':ref,'entry_name':entry})
-            
-    # to be finished
+
+    # get production entries
+    production_entries=[]
     for infosys_type in infosys_data.keys():
-        print "%s"% infosys_type
-        infosys_data_type=infosys_data[infosys_type]
-        for server in infosys_data_type.keys():
-            print "\t\t%s"%server
-            infosys_data_server=infosys_data_type[server]
-            for ref in infosys_data_server:
-                print "\t\t\t\t%s"%ref
+        if infosys_type in infosys_types:
+            for server in infosys_data_type.keys():
+                infosys_data_server=infosys_data_type[server]
+                if infosys_type=="RESS":
+                    production_entries+=get_production_ress_entries(server,infosys_data_server)
+                elif infosys_type=="BDII":
+                    production_entries+=get_production_bdii_entries(server,infosys_data_server)
+                else:
+                    raise RuntimeError, "Unknown infosys type '%s'"%infosys_type # should never get here
+
+    # Use the info to put the 
+    for entry in config_els.keys():
+        if entry in production_entries:
+            print "%s up"%entry
+            up(config_els[entry]['down_fd'],['up'])
+        else:
+            print "%s down"%entry
+            down(config_els[entry]['down_fd'],['down']) 
+    
+    return 0
 
 def main(argv):
     if len(argv)<4:
