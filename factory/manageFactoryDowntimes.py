@@ -246,7 +246,9 @@ def infosys_based(entry_name,down_fd,argv,infosys_types):
                     raise RuntimeError, "Unknown infosys type '%s'"%infosys_type # should never get here
 
     # Use the info to put the 
-    for entry in config_els.keys():
+    entry_keys=config_els.keys()
+    entry_keys.sort()
+    for entry in entry_keys():
         if entry in production_entries:
             print "%s up"%entry
             up(config_els[entry]['down_fd'],['up'])
