@@ -77,7 +77,7 @@ def str2time(timeStr):
 #
 def get_downtime_fd(entry_name,cmdname):
     if entry_name=='entries':
-        print "entries not supported for %s"cmdname
+        print "entries not supported for %s"%cmdname
         sys.exit(1)
 
     try:
