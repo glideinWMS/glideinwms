@@ -3433,7 +3433,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
 
     cluster_count={}
     bdii_entries={}
-    for ldap_id in bdii_data:
+    for ldap_id in bdii_data.keys():
         el2=bdii_data[ldap_id]
 
         # LDAP returns everything in lists... convert to values (i.e. get first element from list)
