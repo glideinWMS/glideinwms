@@ -147,7 +147,7 @@ def get_production_ress_entries(server,ref_dict_list):
 
     for el in ref_dict_list:
         ref=el['ref']
-        if ref in bdii_refs:
+        if ref in condor_refs:
             production_entries.append(el['entry_name'])    
     
     return production_entries
