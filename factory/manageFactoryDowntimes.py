@@ -17,7 +17,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../creation/lib"))
 
 def usage():
     print "Usage:"
-    print "  manageFactoryDowntimes.py factory_dir ['factory'|entry_name] [command]"
+    print "  manageFactoryDowntimes.py factory_dir ['factory'|'entries'|entry_name] [command]"
     print "where command is one of:"
     print "  add start_time end_time - Add a scheduled downtime period"
     print "  down [delay]            - Put the factory down now(+delay)" 
@@ -73,7 +73,38 @@ def str2time(timeStr):
         # should be a simple number
         return long(timeStr)
 
-def add(down_fd,argv):
+#
+#
+def get_downtime_fd(entry_name,cmdname):
+    if entry_name=='entries':
+        print "entries not supported for %s"cmdname
+        sys.exit(1)
+
+    try:
+        if entry_name=='factory':
+            config=glideFactoryConfig.GlideinDescript()
+        elif entry_name=='entries':
+            config=None
+        else:
+            config=glideFactoryConfig.JobDescript(entry_name)
+    except IOError, e:
+        usage()
+        print "Failed to load config for %s %s"%(factory_dir,entry_name)
+        print "%s"%e
+        return 1
+
+    #if not os.path.isfile(descr_file):
+    #    print "Cound not find config file %s"%descr_file
+    #    return 1
+
+    if config!=None:
+        fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
+    else:
+        fd=None
+
+
+def add(entry_name,argv):
+    down_fd=get_downtime_fd(entry_name,argv[0])
     start_time=str2time(argv[1])
     end_time=str2time(argv[2])
     down_fd.addPeriod(start_time,end_time)
@@ -99,7 +130,8 @@ def delay2time(delayStr):
     
     return seconds+60*(minutes+60*hours)
 
-def down(down_fd,argv):
+def down(entry_name,argv):
+    down_fd=get_downtime_fd(entry_name,argv[0])
     when=0
     if len(argv)>1:
         when=delay2time(argv[1])
@@ -110,7 +142,8 @@ def down(down_fd,argv):
         down_fd.startDowntime(when)
     return 0
 
-def up(down_fd,argv):
+def up(entry_name,argv):
+    down_fd=get_downtime_fd(entry_name,argv[0])
     when=0
     if len(argv)>1:
         when=delay2time(argv[1])
@@ -121,18 +154,34 @@ def up(down_fd,argv):
         down_fd.endDowntime(when)
     return 0
 
-def check(down_fd,argv):
+def check(entry_name,argv):
+    config_els={}
+    if entry_name=='entries':
+        glideinDescript=glideFactoryConfig.GlideinDescript()
+        entries=string.split(glideinDescript.data['Entries'],',')
+        for entry in entries:
+            config_els[entry]=get_downtime_fd(entry,argv[0])
+    else:
+        config_els[entry_name]=get_downtime_fd(entry_name,argv[0])
+
     when=0
     if len(argv)>1:
         when=delay2time(argv[1])
 
     when+=long(time.time())
 
-    in_downtime=down_fd.checkDowntime(when)
-    if in_downtime:
-        print "Down"
-    else:
-        print "Up"
+    entry_keys=config_els.keys()
+    entry_keys.sort()
+    for entry in entry_keys:
+        prefix_str=""
+        if entry!="factory":
+            prefix_str="%s "%entry
+        in_downtime=down_fd.checkDowntime(when)
+        if in_downtime:
+            print "%sDown"%prefix_str
+        else:
+            print "%sUp"%prefix_str
+
     return 0
 
 def get_production_ress_entries(server,ref_dict_list):
@@ -170,20 +219,20 @@ def get_production_bdii_entries(server,ref_dict_list):
     
     return production_entries
 
-def infosys_based(entry_name,down_fd,argv,infosys_types):
+def infosys_based(entry_name,argv,infosys_types):
     # find out which entries I need to look at
     # gather downtime fds for them
     config_els={}
     if entry_name=='factory':
+        return 0 # nothing to do... the whole factory cannot be controlled by infosys
+    elif entry_name=='entries':
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
-            config=glideFactoryConfig.JobDescript(entry)
-            fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
-            config_el={'down_fd':fd}
+            config_el={'down_fd':get_downtime_fd(entry,argv[0])}
             config_els[entry]=config_el
     else:
-        config_el={'down_fd':down_fd}
+        config_el={'down_fd':get_downtime_fd(entry_name,argv[0])}
         config_els[entry_name]=config_el
 
     # load the infosys info
@@ -274,40 +323,23 @@ def main(argv):
         return 1
 
     entry_name=argv[2]
-    try:
-        if entry_name=='factory':
-            config=glideFactoryConfig.GlideinDescript()
-        else:
-            config=glideFactoryConfig.JobDescript(entry_name)
-    except IOError, e:
-        usage()
-        print "Failed to load config for %s %s"%(factory_dir,entry_name)
-        print "%s"%e
-        return 1
-
-    #if not os.path.isfile(descr_file):
-    #    print "Cound not find config file %s"%descr_file
-    #    return 1
-
-    
-    fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
-
     cmd=argv[3]
 
     if cmd=='add':
-        return add(fd,argv[3:])
+        return add(entry_name,argv[3:])
     elif cmd=='down':
-        return down(fd,argv[3:])
+        if fd==None:
+        return down(entry_name,argv[3:])
     elif cmd=='up':
-        return up(fd,argv[3:])
+        return up(entry_name,argv[3:])
     elif cmd=='check':
-        return check(fd,argv[3:])
+        return check(entry_name,argv[3:])
     elif cmd=='ress':
-        return infosys_based(entry_name,fd,argv[3:],['RESS'])
+        return infosys_based(entry_name,argv[3:],['RESS'])
     elif cmd=='bdii':
-        return infosys_based(entry_name,fd,argv[3:],['BDII'])
+        return infosys_based(entry_name,argv[3:],['BDII'])
     elif cmd=='ress+bdii':
-        return infosys_based(entry_name,fd,argv[3:],['RESS','BDII'])
+        return infosys_based(entry_name,argv[3:],['RESS','BDII'])
     else:
         usage()
         print "Invalid command %s"%cmd
