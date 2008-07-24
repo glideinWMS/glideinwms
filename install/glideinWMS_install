@@ -774,6 +774,9 @@ def gfactory_install():
         if os.path.exists('%s/glidein_%s'%(submit_base_dir,glidein_name)):
             print "Glidein '%s' already exists!"%glidein_name
             continue
+        if os.path.exists('%s/glidein_%s.cfg'%(submit_base_dir,glidein_name)):
+            print "Glidein config area for '%s' already exists!"%glidein_name
+            continue
 
         #have it
         break
@@ -901,14 +904,6 @@ def gfactory_install():
         dns[a_uid]=a_dn
 
 
-    grid_mapfile="%s/gfactory_tmp_%s_%s.grid-map"%(os.environ['HOME'],os.getpid(),time.time())
-    gridmap_fd=open(grid_mapfile,"w")
-    try:
-        for a_uid in dns.keys():
-            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
-    finally:
-        gridmap_fd.close()
-
     # Use gLExec
     while 1:
         glexec_yn=raw_input("Do you want to use gLExec?: (y/n) ")
@@ -976,9 +971,21 @@ def gfactory_install():
         break
     
 
+    os.mkdir('%s/glidein_%s.cfg'%(submit_base_dir,glidein_name))
+    
+    #####################################
+    # create grid mapfile
+    grid_mapfile='%s/glidein_%s.cfg/grid-mapfile'%(submit_base_dir,glidein_name)
+    gridmap_fd=open(grid_mapfile,"w")
+    try:
+        for a_uid in dns.keys():
+            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
+    finally:
+        gridmap_fd.close()
+
     #####################################
     # create config files
-    cfg_name="%s/gfactory_tmp_%s_%s.xml"%(os.environ['HOME'],os.getpid(),time.time())
+    cfg_name='%s/glidein_%s.cfg/glideinWMS.xml'%(submit_base_dir,glidein_name)
     fd=open(cfg_name,"w")
     try:
         try:
@@ -1020,14 +1027,14 @@ def gfactory_install():
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 if glexec_yn=="y": #not needed else
-                    fd.write('           <file executable="True" absfname="web_base/glexec_setup.sh" untar="False" const="True"/>\n')
+                    fd.write('           <file executable="True" absfname="%s/web_base/glexec_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
                 fd.write('         </files>\n')
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
             fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
             if len(gcb_list)>0: #not needed else
-                fd.write('      <file executable="True" absfname="web_base/gcb_setup.sh" untar="False" const="True"/>\n')
+                fd.write('      <file executable="True" absfname="%s/web_base/gcb_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
             fd.write('   </files>\n')
             fd.write('</glidein>\n')
         finally:
@@ -1043,14 +1050,13 @@ def gfactory_install():
     # run create_glidein
 
     err=os.system('cd %s/creation && ./create_glidein %s'%(glideinWMS_base_dir,cfg_name))
-    os.unlink(cfg_name)
-    os.unlink(grid_mapfile)
     if err!=0:
         raise RuntimeError, "Failed to create glidein '%s'!"%glidein_name
 
 
     print
     print "Glidein Factory config file installed in %s/glidein_%s"%(submit_base_dir,glidein_name)
+    print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
     print "Remember to set X509_USER_PROXY before starting the daemon"
     print
 
