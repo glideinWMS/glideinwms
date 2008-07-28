@@ -492,9 +492,17 @@ class SimpleFileDictFile(DictFile):
 
     def format_val(self,key,want_comments):
         if self.vals[key][0]!=None:
-            return "%s %s"%(key,self.vals[key][0])
+            return "%s \t%s"%(key,self.vals[key][0])
         else:
             return key
+
+    def file_header(self,want_comments):
+        if want_comments:
+            return (DictFile.file_header(self,want_comments)+
+                    ("# %s \t%s\n"%('Filename','Data'))+
+                    ("#"*78))
+        else:
+            return None
 
     def parse_val(self,line):
         if line[0]=='#':
@@ -574,7 +582,15 @@ class FileDictFile(SimpleFileDictFile):
             raise RuntimeError, "Values '%s' not (real_fname,cache/exec,cond_download,config_out)"%val
 
     def format_val(self,key,want_comments):
-        return "%s %s %s %s %s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
+        return "%s \t%s \t%s \t%s \t%s"%(key,self.vals[key][0],self.vals[key][1],self.vals[key][2],self.vals[key][3])
+
+    def file_header(self,want_comments):
+        if want_comments:
+            return (DictFile.file_header(self,want_comments)+
+                    ("# %s \t%s\n"%('Outfile','InFile','Cache/exec','Condition','ConfigOut'))+
+                    ("#"*78))
+        else:
+            return None
 
     def parse_val(self,line):
         if line[0]=='#':
@@ -657,7 +673,8 @@ class VarsDictFile(DictFile):
     
     def file_header(self,want_comments):
         if want_comments:
-            return ("# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
+            return (DictFile.file_header(self,want_comments)+
+                    "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
                     "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
                     "#                                                                                                + = Use VarName   \n"+
                     "#                                                                                                @ = Use CondorName\n"
@@ -737,7 +754,8 @@ class VarsDictFile(DictFile):
 class InfoSysDictFile(DictFile):
     def file_header(self,want_comments):
         if want_comments:
-            return (("# %s \t%30s \t%s \t\t%s\n"%('Type','Server','Ref','ID'))+
+            return (DictFile.file_header(self,want_comments)+
+                    ("# %s \t%30s \t%s \t\t%s\n"%('Type','Server','Ref','ID'))+
                     ("#"*78))
         else:
             return None
@@ -1295,10 +1313,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.84 2008/07/23 19:50:13 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.85 2008/07/28 18:05:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.85  2008/07/28 18:05:48  sfiligoi
+#  Improve file headers
+#
 #  Revision 1.84  2008/07/23 19:50:13  sfiligoi
 #  Change formatting of infosys file
 #
