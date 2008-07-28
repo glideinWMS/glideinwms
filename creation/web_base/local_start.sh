@@ -27,14 +27,14 @@ GLIDEIN_NAME=`grep "^GlideinName " glidein.descript | awk '{print $2}'`
 
 WEB_BASE=`grep "^WebURL " glidein.descript | awk '{print $2}'`
 
-SIGN=`grep " main" signatures.sha1 | awk '{print $1}'`
-SIGNENTRY=`grep " entry_$GLIDEIN_ENTRY_NAME" signatures.sha1 | awk '{print $1}'`
+SIGN=`grep " main$" signatures.sha1 | awk '{print $1}'`
+SIGNENTRY=`grep " entry_$GLIDEIN_ENTRY_NAME$" signatures.sha1 | awk '{print $1}'`
 if [ -z "$SIGNENTRY" ]; then
   echo "Failed to load entry signature!" 1>&2
 fi
 
-DESCRIPT=`grep " main" signatures.sha1 | awk '{print $2}'`
-DESCRIPTENTRY=`grep " entry_$GLIDEIN_ENTRY_NAME" signatures.sha1 | awk '{print $2}'`
+DESCRIPT=`grep " main$" signatures.sha1 | awk '{print $2}'`
+DESCRIPTENTRY=`grep " entry_$GLIDEIN_ENTRY_NAME$" signatures.sha1 | awk '{print $2}'`
 if [ -z "$SIGNENTRY" ]; then
   echo "Failed to load entry description!" 1>&2
 fi
