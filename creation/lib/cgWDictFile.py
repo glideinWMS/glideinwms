@@ -587,7 +587,7 @@ class FileDictFile(SimpleFileDictFile):
     def file_header(self,want_comments):
         if want_comments:
             return (DictFile.file_header(self,want_comments)+
-                    ("# %s \t%s\n"%('Outfile','InFile','Cache/exec','Condition','ConfigOut'))+
+                    ("# %s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile','Cache/exec','Condition','ConfigOut'))+
                     ("#"*78))
         else:
             return None
@@ -1313,10 +1313,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.85 2008/07/28 18:05:48 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.86 2008/07/28 18:13:58 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.86  2008/07/28 18:13:58  sfiligoi
+#  Fix typo
+#
 #  Revision 1.85  2008/07/28 18:05:48  sfiligoi
 #  Improve file headers
 #
