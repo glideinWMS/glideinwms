@@ -154,6 +154,7 @@ class Params:
         self.file_defaults["relfname"]=(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None)
         self.file_defaults["const"]=("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None)
         self.file_defaults["executable"]=("False",'Bool','Is this an executable that needs to be run in the glidein?',None)
+        self.file_defaults["after_entry"]=("False",'Bool','Should this file be loaded after the entry ones?',None)
         self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
 
         self.infosys_defaults=xmlParse.OrderedDict()
@@ -184,7 +185,8 @@ class Params:
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
-        self.entry_defaults["files"]=sub_defaults['files']
+        self.entry_defaults["files"]=copy.deepcopy(sub_defaults['files'])
+        del self.entry_defaults["files"]["after_entry"] # this is the entry, so after entry does not make sense
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=downtimes_defaults
         
@@ -469,10 +471,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.22 2008/07/24 18:04:25 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.23 2008/07/28 17:44:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.23  2008/07/28 17:44:42  sfiligoi
+#  Add after_entry option to file
+#
 #  Revision 1.22  2008/07/24 18:04:25  sfiligoi
 #  Add final newline to the XML file when saving
 #
