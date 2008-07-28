@@ -70,8 +70,10 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
-        for file_name in ('parse_starterlog.awk',"condor_config"):
+        for file_name in ('parse_starterlog.awk',"condor_job_wrapper.sh", "condor_config"):
             self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
+        self.dicts['description'].add("condor_config","condor_job_wrapper")
+        self.dicts['description'].add("condor_job_wrapper.sh","condor_job_wrapper")
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user files in stage
@@ -415,10 +417,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.43 2008/07/28 19:12:16 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.44 2008/07/28 20:37:15 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.44  2008/07/28 20:37:15  sfiligoi
+#  Add condor_job_wrapper.sh, and advertize condor_job_wrapper and condor_config in the descript file
+#
 #  Revision 1.43  2008/07/28 19:12:16  sfiligoi
 #  Add support for after_entry
 #

@@ -19,9 +19,15 @@ fi
 
 entry_name=`grep -i "^GLIDEIN_Entry_Name " $config_file | awk '{print $2}'`
 
-export CONDOR_CONFIG="${PWD}/condor_config"
+description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
+
+export CONDOR_CONFIG="${PWD}/`grep -i '^condor_config ' $description_file | awk '{print $2}'`"
 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
+
+condor_job_wrapper=`grep -i "^condor_job_wrapper " $description_file | awk '{print $2}'`
+echo "USER_JOB_WRAPPER = $(LOCAL_DIR)/$condor_job_wrapper" >> $CONDOR_CONFIG
+
 
 # glidein_variables = list of additional variables startd is to publish
 glidein_variables=""
