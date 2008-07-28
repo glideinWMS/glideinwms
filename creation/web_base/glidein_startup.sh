@@ -671,7 +671,7 @@ fi
 
 ##############################################
 # Extract other infor from the descript files
-for id in file_list last_script
+for id in file_list after_file_list last_script
 do
   id_line=`grep "^$id " "$descript_file"`
   if [ $? -ne 0 ]; then
@@ -700,6 +700,7 @@ done
 # Fetch list of support files
 fetch_file_regular "main" "$file_list"
 fetch_file_regular "$short_entry_dir" "$file_list_entry"
+fetch_file_regular "main" "$after_file_list"
 
 # Fetch files
 while read file
@@ -716,6 +717,13 @@ do
 	fetch_file "$short_entry_dir" $file
     fi
 done < "$entry_dir/$file_list_entry"
+
+while read file
+do
+    if [ "${file:0:1}" != "#" ]; then
+	fetch_file "main" $file
+    fi
+done < "$after_file_list"
 
 ###############################
 # Start the glidein main script
