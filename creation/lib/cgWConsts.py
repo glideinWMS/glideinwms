@@ -47,6 +47,7 @@ CONSTS_FILE="constants.cfg"
 UNTAR_CFG_FILE="untar.cfg"
 
 FILE_LISTFILE="file_list.lst"
+AFTER_FILE_LISTFILE="after_file_list.lst"
 SIGNATURE_FILE="signature.sha1"
 
 GRIDMAP_FILE='grid-mapfile'
@@ -112,10 +113,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.16 2008/07/23 19:30:48 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.17 2008/07/28 18:29:48 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.17  2008/07/28 18:29:48  sfiligoi
+#  Add AFTER_FILE_LISTFILE
+#
 #  Revision 1.16  2008/07/23 19:30:48  sfiligoi
 #  Add INFOSYS_FILE
 #
