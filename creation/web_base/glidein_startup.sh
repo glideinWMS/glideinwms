@@ -426,7 +426,7 @@ function check_file_signature {
 
     if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
 	tmp_signname="${cfs_signature}_$$_`date +%s`_$RANDOM"
-	grep "$cfs_fname" "$cfs_signature" > $tmp_signname
+	grep " $cfs_fname$" "$cfs_signature" > $tmp_signname
 	if [ $? -ne 0 ]; then
 	    rm -f $tmp_signname
 	    echo "No signature for $cfs_desc_fname." 1>&2
