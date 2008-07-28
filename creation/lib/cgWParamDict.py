@@ -289,6 +289,11 @@ def add_file_unparsed(file,dicts):
     is_executable=eval(file.executable,{},{})
     do_untar=eval(file.untar,{},{})
 
+    file_list_idx='file_list'
+    if file.has_key('after_entry'):
+        if eval(file.after_entry,{},{}):
+            file_list_idx='after_file_list'
+
     if is_executable: # a script
         if not is_const:
             raise RuntimeError, "A file cannot be executable if it is not constant: %s"%file
@@ -296,7 +301,7 @@ def add_file_unparsed(file,dicts):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
-        dicts['file_list'].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -311,15 +316,15 @@ def add_file_unparsed(file,dicts):
         cond_attr=file.untar_options.cond_attr
 
 
-        dicts['file_list'].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
         dicts['untar_cfg'].add(relfname,wnsubdir)
     else: # not executable nor tarball => simple file
         if is_const:
             val='regular'
-            dicts['file_list'].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
+            dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
         else:
             val='nocache'
-            dicts['file_list'].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
+            dicts[file_list_idx].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
 
 #######################
 # Register an attribute
@@ -410,10 +415,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.42 2008/07/23 19:41:06 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.43 2008/07/28 19:12:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.43  2008/07/28 19:12:16  sfiligoi
+#  Add support for after_entry
+#
 #  Revision 1.42  2008/07/23 19:41:06  sfiligoi
 #  Populate infosys
 #
