@@ -186,7 +186,7 @@ class Params:
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=copy.deepcopy(sub_defaults['files'])
-        del self.entry_defaults["files"]["after_entry"] # this is the entry, so after entry does not make sense
+        del self.entry_defaults["files"]["after_entry"][3] # this is the entry, so after entry does not make sense
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=downtimes_defaults
         
@@ -471,10 +471,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.23 2008/07/28 17:44:42 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.24 2008/07/28 17:49:35 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.24  2008/07/28 17:49:35  sfiligoi
+#  Fix typo
+#
 #  Revision 1.23  2008/07/28 17:44:42  sfiligoi
 #  Add after_entry option to file
 #
