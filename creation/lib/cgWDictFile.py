@@ -496,14 +496,6 @@ class SimpleFileDictFile(DictFile):
         else:
             return key
 
-    def file_header(self,want_comments):
-        if want_comments:
-            return (DictFile.file_header(self,want_comments)+
-                    ("# %s \t%s\n"%('Filename','Data'))+
-                    ("#"*78))
-        else:
-            return None
-
     def parse_val(self,line):
         if line[0]=='#':
             return # ignore comments
@@ -586,8 +578,8 @@ class FileDictFile(SimpleFileDictFile):
 
     def file_header(self,want_comments):
         if want_comments:
-            return (DictFile.file_header(self,want_comments)+
-                    ("# %s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile','Cache/exec','Condition','ConfigOut'))+
+            return (DictFile.file_header(self,want_comments)+"\n"+
+                    ("# %s \t%s \t%s \t%s \t%s\n"%('Outfile','InFile        ','Cache/exec','Condition','ConfigOut'))+
                     ("#"*78))
         else:
             return None
@@ -673,7 +665,7 @@ class VarsDictFile(DictFile):
     
     def file_header(self,want_comments):
         if want_comments:
-            return (DictFile.file_header(self,want_comments)+
+            return (DictFile.file_header(self,want_comments)+"\n"+
                     "# VarName               Type    Default         CondorName                     Req.     Export  UserName           \n"+
                     "#                       S=Quote - = No Default  + = VarName                             Condor   - = Do not export \n"+
                     "#                                                                                                + = Use VarName   \n"+
@@ -754,7 +746,7 @@ class VarsDictFile(DictFile):
 class InfoSysDictFile(DictFile):
     def file_header(self,want_comments):
         if want_comments:
-            return (DictFile.file_header(self,want_comments)+
+            return (DictFile.file_header(self,want_comments)+"\n"+
                     ("# %s \t%30s \t%s \t\t%s\n"%('Type','Server','Ref','ID'))+
                     ("#"*78))
         else:
@@ -1313,10 +1305,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.86 2008/07/28 18:13:58 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.87 2008/07/28 18:18:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.87  2008/07/28 18:18:44  sfiligoi
+#  Improve file headers
+#
 #  Revision 1.86  2008/07/28 18:13:58  sfiligoi
 #  Fix typo
 #
