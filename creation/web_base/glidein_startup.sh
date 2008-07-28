@@ -74,20 +74,26 @@ function glidein_exit {
   exit $1
 }
 
+# Create a script that defines add_config_line
+# This way other depending scripts can use it
+function create_add_config_line {
+    cat > "$1" << EOF
 ###################################
 # Add a line to the config file
 function add_config_line {
     id=$1
 
-    rm -f glidein_config.old #just in case one was there
-    mv glidein_config glidein_config.old
+    rm -f ${glidein_config}.old #just in case one was there
+    mv $glidein_config ${glidein_config}.old
     if [ $? -ne 0 ]; then
-	warn "Error renaming glidein_config into glidein_config.old" 1>&2
-	glidein_exit 1
+        warn "Error renaming $glidein_config into ${glidein_config}.old"
+        exit 1
     fi
-    grep -v "^$id " glidein_config.old > glidein_config
-    echo "$@" >> glidein_config
-    rm -f glidein_config.old
+    grep -v "^$id " ${glidein_config}.old > $glidein_config
+    echo "$@" >> $glidein_config
+    rm -f ${glidein_config}.old
+}
+EOF
 }
 
 ###################################
@@ -127,6 +133,9 @@ function params2file {
  -e 's/\.comma,/,/g'\
  -e 's/\.dot,/./g'`
 	add_config_line "$1 $pfval"
+        if [ $? -ne 0 ]; then
+	    glidein_exit 1
+	fi
 	if [ -z "$param_list" ]; then
 	    param_list="$1"
 	else
@@ -361,7 +370,11 @@ if [ $? -ne 0 ]; then
     glidein_exit 1
 fi
 
+create_add_config_line add_config_line.source
+source add_config_line.source
+
 # create glidein_config
+glidein_config="$PWD/glidein_config"
 echo > glidein_config
 echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
@@ -377,6 +390,7 @@ echo "DESCRIPTION_FILE $descript_file" >> glidein_config
 echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
 echo "GLIDEIN_Signature $sign_id" >> glidein_config
 echo "GLIDEIN_Entry_Signature $sign_entry_id" >> glidein_config
+echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 params2file $params
 
@@ -594,9 +608,16 @@ function fetch_file_base {
 	if [ "$ffb_file_type" == "untar" ]; then
 	    # when untaring the original file is less interesting than the untar dir
 	    add_config_line "$ffb_config_out" "$work_dir/$ffb_untar_dir"
+	    if [ $? -ne 0 ]; then
+		glidein_exit 1
+	    fi
 	else
 	    add_config_line "$ffb_config_out" "$work_dir/$ffb_outname"
+	    if [ $? -ne 0 ]; then
+		glidein_exit 1
+	    fi
 	fi
+
     fi
 
     return 0
