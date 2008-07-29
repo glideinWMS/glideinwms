@@ -9,29 +9,9 @@
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
-###################################
-# Add a line to the config file
-function add_config_line {
-    id=$1
-
-    rm -f $tmp_fname #just in case one was there
-    mv $glidein_config $tmp_fname
-    if [ $? -ne 0 ]; then
-	warn "Error renaming $glidein_config into $tmp_fname"
-	exit 1
-    fi
-    grep -v "^$id " $tmp_fname > $glidein_config
-    echo "$@" >> $glidein_config
-    rm -f $tmp_fname
-}
-
-function append_config {
-    echo "$1" >> condor_config
-    if [ $? -ne 0 ]; then
-	echo "Failed to to update condor_config!" 1>&2
-	exit 1
-    fi    
-}
+# import add_config_line function
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
 
 # --------------------------------------------------
 # create a local copy of the shell

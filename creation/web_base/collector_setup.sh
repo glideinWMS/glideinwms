@@ -15,22 +15,9 @@ function warn {
  echo `date` $@
 }
 
-###################################
-# Add a line to the config file
-function add_config_line {
-    id=$1
-
-    rm -f $tmp_fname #just in case one was there
-    mv $glidein_config $tmp_fname
-    if [ $? -ne 0 ]; then
-        warn "Error renaming $glidein_config into $tmp_fname"
-        exit 1
-    fi
-    grep -v "^$id " $tmp_fname > $glidein_config
-    echo "$@" >> $glidein_config
-    rm -f $tmp_fname
-}
-
+# import add_config_line function
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
 
 head_nodes=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
 if [ -z "$head_nodes" ]; then
