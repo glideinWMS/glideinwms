@@ -10,7 +10,7 @@ function warn {
 }
 
 # import add_config_line function
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $config_file | awk '{print $2}'`
 source $add_config_line_source
 
 if [ "$entry_dir" == "main" ]; then 
