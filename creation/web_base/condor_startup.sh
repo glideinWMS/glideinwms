@@ -26,6 +26,7 @@ export CONDOR_CONFIG="${PWD}/`grep -i '^condor_config ' $description_file | awk 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
 
 condor_job_wrapper=`grep -i "^condor_job_wrapper " $description_file | awk '{print $2}'`
+chmod a+x $condor_job_wrapper
 echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> $CONDOR_CONFIG
 
 
