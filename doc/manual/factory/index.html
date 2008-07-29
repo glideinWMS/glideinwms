@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080709;14213700">
+	<META NAME="CHANGED" CONTENT="20080724;15221000">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -229,15 +230,20 @@ tree</H3>
 installer</A>. <BR><BR><A HREF="entry.html">The complete description
 of the configuration is described on a dedicated page</A> .</P>
 <H3><A NAME="run_daemon"></A>Starting a Glidein Factory Daemon</H3>
-<P>The glidein factory comes with a init.d style startup script.<BR>To
-start the glidein factory all you need to do is 
+<P>The glidein factory comes with a init.d style startup script.</P>
+<P>Glidein factory starting and stopping is handled by 
 </P>
 <DL>
-	<DD><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
-	start</FONT></DD></DL>
+	<DD><P><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	start|stop|restart</FONT></P></DD></DL>
 <P>
-and you are all set.<BR><BR><BR>Base activity messages will be
-printed in</P>
+. The same script can also be used to reconfigure the factory (from a
+config file)</P>
+<DL>
+	<DD><P><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	reconfig <I>config_fname</I></FONT></P></DD></DL>
+<P>
+.<BR><BR><BR>Base activity messages will be printed in</P>
 <DL>
 	<DD><FONT FACE="monospace">&lt;factory
 	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
@@ -260,8 +266,13 @@ printed in</P>
 	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT></P></DD></DL>
 <P>
 <BR>Both the entry factory logs and the actual glidein logs are
-deleted after a week.<BR><BR><BR>
-</P>
+deleted after a week.</P>
+<DL>
+	<DT>Additional monitoring can be obtained with<DD><P>
+	<FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	status|info 'factory'|<I>entry_name</I></FONT></P></DD></DL>
+<P>
+and you are all set.</P>
 <H3><A NAME="downtimes"></A>Downtime handling</H3>
 <P>Starting with v1_3, the glidein factory supports the dynamic
 handling of downtimes.<BR>Downtimes can be handled both at the
@@ -271,11 +282,19 @@ issues (can be anything from scheduled maintenance to a storage
 element corrupting user files).<BR>In this case the factory
 administrator can temporarily stop submitting glideins to the
 affected sites, without stopping the factory as a whole.</P>
-<P>Downtimes are handled with the 
+<DL>
+	<DT>Downtimes are handled and monitored with 
+	<DD><P><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	up|down|infosysdown|statusdown 'factory'|'entries'|<I>entry_name</I></FONT></P></DD></DL>
+<P>
+. An admin can handle and monitor downtimes both at the entry and at
+the factory level. <BR>Please be aware that both will be used.<BR><BR><BR>
+</P>
+<P>Advanced users may want ot have a look at 
 </P>
 <PRE>./glideinWMS/factory/manageFactoryDowntimes.py</PRE><P>
-command. An admin can add downtimes both at the entry and at the
-factory level; both will be used.</P>
+command. 
+</P>
 <H2><A NAME="monitoring"></A>Glidein Factory Monitoring</H2>
 <P>Monitoring is an essential part of any service. One has to monitor
 to both maintain the health of the system and to tune the system for
