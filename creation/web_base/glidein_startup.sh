@@ -81,17 +81,17 @@ function create_add_config_line {
 ###################################
 # Add a line to the config file
 function add_config_line {
-    id=$1
+    id=\$1
 
-    rm -f ${glidein_config}.old #just in case one was there
-    mv $glidein_config ${glidein_config}.old
-    if [ $? -ne 0 ]; then
-        warn "Error renaming $glidein_config into ${glidein_config}.old"
+    rm -f \${glidein_config}.old #just in case one was there
+    mv \$glidein_config \${glidein_config}.old
+    if [ \$? -ne 0 ]; then
+        warn "Error renaming \$glidein_config into \${glidein_config}.old"
         exit 1
     fi
-    grep -v "^$id " ${glidein_config}.old > $glidein_config
-    echo "$@" >> $glidein_config
-    rm -f ${glidein_config}.old
+    grep -v "^\$id " \${glidein_config}.old > \$glidein_config
+    echo "\$@" >> \$glidein_config
+    rm -f \${glidein_config}.old
 }
 EOF
 }
