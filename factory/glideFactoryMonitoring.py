@@ -214,8 +214,26 @@ class MonitoringConfig:
     #    return
 
     #############################################################################
+    def update_lock(self,ref_time,relative_lock_fname):
+        lock_fname=os.path.join(self.monitor_dir,relative_lock_fname)
+        try:
+            if os.path.getmtime(lock_fname)>(ref_time-self.rrd_step*rrd_archive[2]*freq):
+                return # file too new to see any benefit from an update
+        except OSError:
+            pass # file does not exist -> will be created later on
 
-    def rrd2graph(self,relative_fname,period_name,archive_id,freq,
+        # touch lock file
+        try:
+            fd=open(lock_fname,"w")
+            fd.close()
+        except:
+            pass # ignore errors
+
+        return
+
+    def rrd2graph(self,ref_time,relative_lock_fname,
+                  relative_fname,
+                  archive_id,freq,
                   period,width,height,
                   title,relative_rrd_files,cdef_arr=None,trend=None):
         """
@@ -232,19 +250,12 @@ class MonitoringConfig:
 
         rrd_archive=self.rrd_archives[archive_id]
 
-        lock_fname=os.path.join(os.path.dirname(fname),"graphs_%s.lock") # one lock x dir x period
+        lock_fname=os.path.join(self.monitor_dir,relative_lock_fname)
         try:
-            if os.path.getmtime(lock_fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq*(1.0-(random.random()*0.1-0.05))):
+            if os.path.getmtime(lock_fname)>(ref_time-self.rrd_step*rrd_archive[2]*freq):
                 return # file too new to see any benefit from an update
         except OSError:
-            pass # file does not exist -> create
-
-        # touch lock file
-        try:
-            fd=open(lock_fname,"w")
-            fd.close()
-        except:
-            pass # ignore errors
+            pass # file does not exist -> will be created later on
 
         #print "Converting RRD into "+fname
 
@@ -270,7 +281,8 @@ class MonitoringConfig:
 
     # if trend_fraction!=None, the fraction of period to trend over
     # for example, if trend==10, it will be 360s in an hour graph, and 2.4hours in a day graph
-    def graph_rrds(self,base_fname,
+    def graph_rrds(self,ref_time,base_lock_fname,
+                   base_fname,
                    relative_title,relative_rrd_files,cdef_arr=None,trend_fraction=None):
         """
         Create graphs out of the RRD files
@@ -289,12 +301,21 @@ class MonitoringConfig:
             for g in self.graph_sizes:
                 gname,width,height=g
                 try:
-                    self.rrd2graph(base_fname+".%s.%s.png"%(pname,gname),pname,idx,freq,
+                    self.rrd2graph(ref_time,base_lock_fname+".%s.rrd2graph_lock"%pname,
+                                   base_fname+".%s.%s.png"%(pname,gname),
+                                   idx,freq,
                                    period,width,height,title,relative_rrd_files,cdef_arr,abs_trend)
                 except ExeError,e:
                     print "WARNING- graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
                     
         return
+
+    def update_locks(self,ref_time,base_lock_fname):
+        for r in self.rrd_reports:
+            pname,period,idx,freq=r
+            self.update_lock(ref_time,base_lock_fname+".%s.rrd2graph_lock"%pname)
+        return
+
 
 # global configuration of the module
 monitoringConfig=MonitoringConfig()
@@ -529,6 +550,10 @@ class condorQStats:
         data=self.get_data()
         total_el=self.get_total()
 
+        # use the same reference time for all the graphs
+        graph_ref_time=time.time()
+        # remember to call update_locks before exiting this function
+
         # create human readable files for each entry + total
         for fe in [None]+data.keys():
             if fe==None: # special key == Total
@@ -549,32 +574,39 @@ class condorQStats:
             #                                         [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
 
             # create graphs for RRDs
-            monitoringConfig.graph_rrds("%s/Idle"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/Idle"%fe_dir,
                                         "Idle glideins",
                                         [("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
                                          ("Idle","%s/Status_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF"),
                                          ("Wait","%s/Status_Attribute_Wait.rrd"%fe_dir,"LINE2","FF00FF"),
                                          ("Pending","%s/Status_Attribute_Pending.rrd"%fe_dir,"LINE2","00FF00"),
                                          ("IdleOther","%s/Status_Attribute_IdleOther.rrd"%fe_dir,"LINE2","FF0000")])
-            monitoringConfig.graph_rrds("%s/Running"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/Running"%fe_dir,
                                         "Running glideins",
                                         [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00"),
                                          ("ClientGlideins","%s/ClientMonitor_Attribute_GlideinsTotal.rrd"%fe_dir,"LINE2","000000"),
                                          ("ClientRunning","%s/ClientMonitor_Attribute_GlideinsRunning.rrd"%fe_dir,"LINE2","0000FF")])
-            monitoringConfig.graph_rrds("%s/MaxRun"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/MaxRun"%fe_dir,
                                         "Max running glideins requested",
                                         [("MaxRun","%s/Requested_Attribute_MaxRun.rrd"%fe_dir,"AREA","008000")])
-            monitoringConfig.graph_rrds("%s/Held"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/Held"%fe_dir,
                                         "Held glideins",
                                         [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
-            monitoringConfig.graph_rrds("%s/ClientIdle"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/ClientIdle"%fe_dir,
                                         "Idle client jobs",
                                         [("Idle","%s/ClientMonitor_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
                                          ("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
-            monitoringConfig.graph_rrds("%s/ClientRunning"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/ClientRunning"%fe_dir,
                                         "Running client jobs",
                                         [("Running","%s/ClientMonitor_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
-            monitoringConfig.graph_rrds("%s/InfoAge"%fe_dir,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "%s/InfoAge"%fe_dir,
                                         "Client info age",
                                         [("InfoAge","%s/ClientMonitor_Attribute_InfoAge.rrd"%fe_dir,"LINE2","000000")])
             
@@ -642,6 +674,7 @@ class condorQStats:
         # get the list of frontends
         frontend_list=monitoringConfig.find_disk_frontends()
         if len(frontend_list)==0:
+            monitoringConfig.update_locks(graph_ref_time,"status")
             return # nothing to do, wait for some frontends
 
         frontend_list.sort()
@@ -668,7 +701,8 @@ class condorQStats:
                 tstr="%s glideins"%a
             else:
                 tstr="%s %s glideins"%(tp,a)
-            monitoringConfig.graph_rrds("total/Split_%s"%fname,
+            monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                        "total/Split_%s"%fname,
                                         tstr,
                                         rrd_fnames)
 
@@ -740,6 +774,7 @@ class condorQStats:
                     fd.close()
                     pass
 
+        monitoringConfig.update_locks(graph_ref_time,"status")
         return
 
 #########################################################################################################################################
@@ -1146,18 +1181,22 @@ class condorLogSummary:
         #            report_rrds.append(('Count',"%s/Log_%s_Count.rrd"%(fe_dir,s)))
         #        monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
 
+        # use the same reference time for all the graphs
+        graph_ref_time=time.time()
+        # remember to call update_locks before exiting this function
+
         # create graphs for RRDs
         for client_name in [None]+self.stats_diff.keys():
             if client_name==None:
                 fe_dir="total"
             else:
                 fe_dir="frontend_"+client_name
-            create_log_graphs(fe_dir)
+            create_log_graphs(graph_ref_time,"logsummary",fe_dir)
                                 
 
         # Crate split graphs for total
         frontend_list=monitoringConfig.find_disk_frontends()
-        create_log_split_graphs("frontend_%s",frontend_list)
+        create_log_split_graphs(graph_ref_time,"logsummary","frontend_%s",frontend_list)
 
         # create support index files
         for client_name in self.stats_diff.keys():
@@ -1272,6 +1311,7 @@ class condorLogSummary:
         # create support index file for total
         create_log_total_index("Entry total","frontend","../frontend_%s",frontend_list,'<a href="../../total/0Log.%s.%s.html">Factory total</a>')
 
+        monitoringConfig.update_locks(graph_ref_time,"logsummary")
         self.history_files_updated=self.files_updated
         return
 
@@ -1375,7 +1415,7 @@ def get_completed_stats_xml_desc():
             }
 
 ##################################################
-def create_log_graphs(fe_dir):
+def create_log_graphs(ref_time,base_lock_name,fe_dir):
     colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
     r_colors=('c00000','ff4000', #>250
               'ffc000','fff800', #100-250
@@ -1392,13 +1432,16 @@ def create_log_graphs(fe_dir):
         if not (s in ('Completed','Removed')): # always 0 for them
             rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
 
-        monitoringConfig.graph_rrds("%s/Log_%s_Diff"%(fe_dir,s),
+        monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                    "%s/Log_%s_Diff"%(fe_dir,s),
                                     "Difference in %s glideins"%s, rrd_files)
-        monitoringConfig.graph_rrds("%s/Log50_%s_Diff"%(fe_dir,s),
+        monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                    "%s/Log50_%s_Diff"%(fe_dir,s),
                                     "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=50)
 
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-            monitoringConfig.graph_rrds("%s/Log_%s_Count"%(fe_dir,s),
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                        "%s/Log_%s_Count"%(fe_dir,s),
                                         "%s glideins"%s,
                                         [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
         elif s=="Completed":
@@ -1438,15 +1481,17 @@ def create_log_graphs(fe_dir):
                                 t_k_color=r_colors[r_colors_len/2]
                         t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
                         idx+=1
-                    monitoringConfig.graph_rrds("%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                                "%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                 "%s glideins"%t,t_rrds)
-                    monitoringConfig.graph_rrds("%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
                                                 "Trend %s glideins"%t,t_rrds,trend_fraction=50)
 
 
 ###################################
 
-def create_log_split_graphs(subdir_template,subdir_list):
+def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list):
     if len(subdir_list)==0:
         return # nothing more to do, wait for some subdirs
 
@@ -1482,12 +1527,15 @@ def create_log_split_graphs(subdir_template,subdir_list):
                     area_or_stack='STACK'
                     count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
-                monitoringConfig.graph_rrds("total/Split_Log_%s_Count"%s,
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                            "total/Split_Log_%s_Count"%s,
                                             "%s glideins"%s,count_rrd_files)
            
-            monitoringConfig.graph_rrds("total/Split_Log_%s_Diff"%s,
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                        "total/Split_Log_%s_Diff"%s,
                                         "Difference in %s glideins"%s, diff_rrd_files)
-            monitoringConfig.graph_rrds("total/Split_Log50_%s_Diff"%s,
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                        "total/Split_Log50_%s_Diff"%s,
                                         "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
 
     # create the completed split graphs
@@ -1514,9 +1562,11 @@ def create_log_split_graphs(subdir_template,subdir_list):
                         cdef_formula=cdef_formula+(",%s,+"%ds_id)
                     cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
                     idx+=1
-                monitoringConfig.graph_rrds("total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                            "total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
                                             "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                monitoringConfig.graph_rrds("total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                            "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
                                             "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
 
 
@@ -1808,10 +1858,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.196 2008/07/29 16:11:23 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.197 2008/07/29 17:09:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.197  2008/07/29 17:09:25  sfiligoi
+#  Fix lock handling
+#
 #  Revision 1.196  2008/07/29 16:11:23  sfiligoi
 #  Fix locking
 #

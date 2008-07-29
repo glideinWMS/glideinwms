@@ -140,31 +140,41 @@ def create_status_history():
     #for fname,tp,a in attr_rrds:
     #    glideFactoryMonitoring.monitoringConfig.report_rrds("total/%s"%fname,
     #                                                        [(a,"total/%s.rrd"%fname)])
+    
+    # use the same reference time for all the graphs
+    graph_ref_time=time.time()
+    # remember to call update_locks before exiting this function
 
     # create graphs for RRDs
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Idle",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                       "total/Idle",
                                                        "Idle glideins",
                                                        [("Requested","total/Requested_Attribute_Idle.rrd","AREA","00FFFF"),
                                                         ("Idle","total/Status_Attribute_Idle.rrd","LINE2","0000FF"),
                                                         ("Wait","total/Status_Attribute_Wait.rrd","LINE2","FF00FF"),
                                                         ("Pending","total/Status_Attribute_Pending.rrd","LINE2","00FF00"),
                                                         ("IdleOther","total/Status_Attribute_IdleOther.rrd","LINE2","FF0000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Running",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                       "total/Running",
                                                        "Running glideins",
                                                        [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00"),
                                                         ("ClientGlideins","total/ClientMonitor_Attribute_GlideinsTotal.rrd","LINE2","000000"),
                                                         ("ClientRunning","total/ClientMonitor_Attribute_GlideinsRunning.rrd","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Held",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                       "total/Held",
                                                        "Held glideins",
                                                        [("Held","total/Status_Attribute_Held.rrd","AREA","c00000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/ClientIdle",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                       "total/ClientIdle",
                                                        "Idle client",
                                                        [("Idle","total/ClientMonitor_Attribute_Idle.rrd","AREA","00FFFF"),
                                                         ("Requested","total/Requested_Attribute_Idle.rrd","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/ClientRunning",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                       "total/ClientRunning",
                                                        "Running client jobs",
                                                        [("Running","total/ClientMonitor_Attribute_Running.rrd","AREA","00FF00")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds("total/InfoAge",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                       "total/InfoAge",
                                                        "Client info age",
                                                        [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
 
@@ -189,7 +199,8 @@ def create_status_history():
             tstr="%s glideins"%a
         else:
             tstr="%s %s glideins"%(tp,a)
-        glideFactoryMonitoring.monitoringConfig.graph_rrds("total/Split_%s"%fname,
+        glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+                                                           "total/Split_%s"%fname,
                                                            tstr,
                                                            rrd_fnames)
         
@@ -261,6 +272,7 @@ def create_status_history():
                     fd.close()
                     pass
 
+    glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"status")
     return
 
 ######################################################################################
@@ -412,11 +424,17 @@ def aggregateLogSummary():
 ##############################################################################
 # create the history graphs and related index html file
 def create_log_history():
-    glideFactoryMonitoring.create_log_graphs("total")
-    glideFactoryMonitoring.create_log_split_graphs("entry_%s/total",monitorAggregatorConfig.entries)
-
+    # use the same reference time for all the graphs
+    graph_ref_time=time.time()
+    # remember to call update_locks before exiting this function
+    
+    glideFactoryMonitoring.create_log_graphs(graph_ref_time,"logsummary","total")
+    glideFactoryMonitoring.create_log_split_graphs(graph_ref_time,"logsummary","entry_%s/total",monitorAggregatorConfig.entries)
+    
     # create support index file
     glideFactoryMonitoring.create_log_total_index("Factory total","entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
+    
+    glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"logsummary")
     return
 
 #################        PRIVATE      #####################
@@ -441,10 +459,13 @@ img2html=glideFactoryMonitoring.img2html
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.35 2008/07/16 21:36:48 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.36 2008/07/29 17:09:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.36  2008/07/29 17:09:25  sfiligoi
+#  Fix lock handling
+#
 #  Revision 1.35  2008/07/16 21:36:48  sfiligoi
 #  Use total number of glideins from client
 #
