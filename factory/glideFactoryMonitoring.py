@@ -214,7 +214,10 @@ class MonitoringConfig:
     #    return
 
     #############################################################################
-    def update_lock(self,ref_time,relative_lock_fname):
+    def update_lock(self,ref_time,relative_lock_fname,
+                    archive_id,freq):
+        rrd_archive=self.rrd_archives[archive_id]
+
         lock_fname=os.path.join(self.monitor_dir,relative_lock_fname)
         try:
             if os.path.getmtime(lock_fname)>(ref_time-self.rrd_step*rrd_archive[2]*freq):
@@ -313,7 +316,7 @@ class MonitoringConfig:
     def update_locks(self,ref_time,base_lock_fname):
         for r in self.rrd_reports:
             pname,period,idx,freq=r
-            self.update_lock(ref_time,base_lock_fname+".%s.rrd2graph_lock"%pname)
+            self.update_lock(ref_time,base_lock_fname+".%s.rrd2graph_lock"%pname,idx,freq)
         return
 
 
@@ -1858,10 +1861,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.197 2008/07/29 17:09:25 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.198 2008/07/29 17:13:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.198  2008/07/29 17:13:32  sfiligoi
+#  Fix typo
+#
 #  Revision 1.197  2008/07/29 17:09:25  sfiligoi
 #  Fix lock handling
 #
