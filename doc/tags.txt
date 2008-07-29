@@ -1,6 +1,7 @@
 vNext	Better support for RESS and BDII
 	 Including automatic downtime handling
-	Global files can now be leaded after entry
+	Global files can now be loaded after entry
+	Starting to implement the job wrapper.
 	Fix monitor locking
 
 v1_3	Factory and frontend now gets sleep and advertize attr from config.
