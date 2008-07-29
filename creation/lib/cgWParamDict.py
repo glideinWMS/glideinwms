@@ -402,6 +402,7 @@ def populate_job_descript(job_descript_dict,        # will be modified
     job_descript_dict.add('StartupDir',entry_params.work_dir)
     if entry_params.proxy_url!=None:
         job_descript_dict.add('ProxyURL',entry_params.proxy_url)
+    job_descript_dict.add('Verbosity',entry_params.verbosity)
     job_descript_dict.add('DowntimesFile',entry_params.downtimes.absfname)
 
     
@@ -417,10 +418,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.45 2008/07/29 18:03:08 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.46 2008/07/29 18:49:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.46  2008/07/29 18:49:44  sfiligoi
+#  Add entry verbosity
+#
 #  Revision 1.45  2008/07/29 18:03:08  sfiligoi
 #  Fix typo
 #

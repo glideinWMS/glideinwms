@@ -154,6 +154,7 @@ class Params:
         self.file_defaults["relfname"]=(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None)
         self.file_defaults["const"]=("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None)
         self.file_defaults["executable"]=("False",'Bool','Is this an executable that needs to be run in the glidein?',None)
+        self.file_defaults["wrapper"]=("False",'Bool','Is this a wrapper script that needs to be sourced in the glidein job wrapper?',None)
         self.file_defaults["after_entry"]=("False",'Bool','Should this file be loaded after the entry ones?',None)
         self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
 
@@ -183,6 +184,7 @@ class Params:
         self.entry_defaults['schedd_name']=(None,"ScheddName","Which schedd to use (Overrides the global one if specified)",None)
         self.entry_defaults["work_dir"]=(".",".|Condor|OSG|TMPDIR","Where to start glidein",None)
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
+        self.entry_defaults['verbosity']=('std','std|nodebug|fast',"Verbosity level and timeout setting",None)
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=copy.deepcopy(sub_defaults['files'])
@@ -471,10 +473,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.25 2008/07/28 17:50:08 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.26 2008/07/29 18:49:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.26  2008/07/29 18:49:44  sfiligoi
+#  Add entry verbosity
+#
 #  Revision 1.25  2008/07/28 17:50:08  sfiligoi
 #  Fix typo
 #
