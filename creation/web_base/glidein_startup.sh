@@ -21,7 +21,7 @@ function usage {
     echo "  -schedd <name>        : condorG Schedd Name"
     echo "  -descript <fname>     : description file name"
     echo "  -descriptentry <fname>: description file name for entry"
-    echo "  -v <id>               : verbosity level (std and dbg supported)"
+    echo "  -v <id>               : verbosity level (std, nodebug and fast supported)"
     echo "  -param_* <arg>        : user specified parameters"
     exit 1
 }
