@@ -239,6 +239,13 @@ class MonitoringConfig:
         except OSError:
             pass # file does not exist -> create
 
+        # touch lock file
+        try:
+            fd=open(lock_fname,"w")
+            fd.close()
+        except:
+            pass # ignore errors
+
         #print "Converting RRD into "+fname
 
         # convert relative fnames to absolute ones
@@ -1801,10 +1808,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.195 2008/07/17 20:33:08 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.196 2008/07/29 16:11:23 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.196  2008/07/29 16:11:23  sfiligoi
+#  Fix locking
+#
 #  Revision 1.195  2008/07/17 20:33:08  sfiligoi
 #  Sync graph creation within dir
 #
