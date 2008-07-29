@@ -557,7 +557,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,p
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i "std" %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
+            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster,j))
@@ -594,10 +594,13 @@ def removeGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.28 2008/06/23 19:33:28 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.29 2008/07/29 18:53:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.29  2008/07/29 18:53:24  sfiligoi
+#  Verbosity in not passed as an argument anymore
+#
 #  Revision 1.28  2008/06/23 19:33:28  sfiligoi
 #  Protect from too many held jobs (1000)
 #
