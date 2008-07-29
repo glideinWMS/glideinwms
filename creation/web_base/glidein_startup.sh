@@ -585,6 +585,7 @@ function fetch_file_base {
 	    return 1
 	fi
 	if [ "$ffb_outname" != "$last_script" ]; then # last_script global for simplicity
+            echo "Executing $ffb_outname"
 	    "./$ffb_outname" glidein_config "$ffb_entry_dir"
 	    ret=$?
 	    if [ $ret -ne 0 ]; then
