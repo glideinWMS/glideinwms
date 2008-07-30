@@ -105,13 +105,16 @@ class MonitoringConfig:
         try:
             for job_id in job_ids:
                 el=entered_dict[job_id]
-                fd.write("<job %37s %17s %17s><wastemill %17s %11s %16s %13s/></job>\n"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                                                         ('id="%s"'%job_id),
-                                                                                         ('duration="%s"'%el['duration']),
-                                                                                         ('validation="%s"'%el['validation']),
-                                                                                         ('idle="%s"'%el['idle']),
-                                                                                         ('nosuccess="%s"'%el['nosuccess']),
-                                                                                         ('badput="%s"'%el['badput'])))
+                waste_mill=el['wastemill']
+                fd.write("<job %37s %17s %17s %22s %16s><wastemill %17s %11s %16s %13s/></job>\n"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                                                                   ('id="%s"'%job_id),
+                                                                                                   ('duration="%i"'%el['duration']),
+                                                                                                   ('condor_started="%s"'%(el['condor_started']==True)),
+                                                                                                   ('user_jobs="%i"'%el['jobsnr']),
+                                                                                                   ('validation="%i"'%waste_mill['validation']),
+                                                                                                   ('idle="%i"'%waste_mill['idle']),
+                                                                                                   ('nosuccess="%i"'%waste_mill['nosuccess']),
+                                                                                                   ('badput="%i"'%waste_mill['badput'])))
         finally:
             fd.close()
 
@@ -899,9 +902,8 @@ class condorLogSummary:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     # in: entered_list=self.stats_diff[client_name]['Entered']
-    # out: count_validation_failed,entered_list[job_id]{'duration','validation','idle','nosuccess','badput'}
+    # out: entered_list[job_id]{'duration','condor_started','jobsnr',wastemill':{'validation','idle','nosuccess','badput'}}
     def get_completed_stats(self,entered_list):
-        count_validation_failed=0
         out_list={}
 
         for enle in entered_list:
@@ -919,10 +921,9 @@ class condorLogSummary:
                 if enle_stats.has_key('glidein_duration'):
                     enle_glidein_duration=enle_stats['glidein_duration']
             if not enle_condor_started:
-                count_validation_failed+=1
                 # 100% waste_mill
-                enle_waste_mill={'duration':0,
-                                 'validation':1000,
+                enle_nr_jobs=0
+                enle_waste_mill={'validation':1000,
                                  'idle':0,
                                  'nosuccess':0, #no jobs run, no failures
                                  'badput':1000}
@@ -936,9 +937,9 @@ class condorLogSummary:
                     enle_glidein_duration=enle_condor_duration
 
                 # get waste numbers, in permill
-                if (enle_glidein_duration<5): # very short means 100% loss
-                    enle_waste_mill={'duration':enle_glidein_duration,
-                                     'validation':1000,
+                if (enle_condor_duration<5): # very short means 100% loss
+                    enle_nr_jobs=0
+                    enle_waste_mill={'validation':1000,
                                      'idle':0,
                                      'nosuccess':0, #no jobs run, no failures
                                      'badput':1000}
@@ -949,8 +950,8 @@ class condorLogSummary:
                         enle_validation_duration=enle_difftime-enle_condor_duration
                     enle_condor_stats=enle_stats['stats']
                     enle_jobs_duration=enle_condor_stats['Total']['secs']
-                    enle_waste_mill={'duration':enle_glidein_duration,
-                                     'validation':1000.0*enle_validation_duration/enle_glidein_duration,
+                    enle_nr_jobs=enle_condor_stats['Total']['jobsnr']
+                    enle_waste_mill={'validation':1000.0*enle_validation_duration/enle_glidein_duration,
                                      'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
                     enle_goodput=enle_condor_stats['goodZ']['secs']
                     if enle_jobs_duration>0:
@@ -960,13 +961,15 @@ class condorLogSummary:
                     enle_goodput+=enle_condor_stats['goodNZ']['secs']
                     enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
 
-            out_list[enle_job_id]=enle_waste_mill
+            out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,
+                                   'jobsnr':enle_nr_jobs,
+                                   'wastemill':enle_waste_mill}
         
         return (count_validation_failed,out_list)
 
-    # in: count_validation_failed,entered_list=get_completed_data()
+    # in: entered_list=get_completed_data()
     # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
-    def summarize_completed_stats(self,count_validation_failed,entered_list):
+    def summarize_completed_stats(self,entered_dict):
         # summarize completed data
         count_entered_times={}
         for enle_timerange in getAllTimeRanges(): 
@@ -990,8 +993,13 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
 
         for enle_job in entered_list.keys():
-            enle_waste_mill=entered_list[enle_job]
-            enle_glidein_duration=enle_waste_mill['duration']
+            enle=entered_list[enle_job]
+            enle_waste_mill=enle['wastemill']
+            enle_glidein_duration=enle['duration']
+            enle_condor_started=enle['condor_started']
+
+            if not enle_condor_started:
+                count_validation_failed+=1
 
             # find and save time range
             enle_timerange=getTimeRange(enle_glidein_duration)
@@ -1038,8 +1046,8 @@ class condorLogSummary:
                     # and we can never get out of the terminal state
                     out_el['Exited'][s]=exited
                 elif s=='Completed':
-                    count_validation_failed,completed_stats=self.get_completed_stats(entered_list)
-                    completed_counts=self.summarize_completed_stats(count_validation_failed,completed_stats)
+                    completed_stats=self.get_completed_stats(entered_list)
+                    completed_counts=self.summarize_completed_stats(completed_stats)
                     out_el['CompletedCounts']=completed_counts
             stats_data[client_name]=out_el
         return stats_data
@@ -1099,8 +1107,8 @@ class condorLogSummary:
                 # if no current, also exited does not have sense (terminal state)
                 out_total['Exited'][k]=len(diff_total[k]['Exited'])
             elif k=='Completed':
-                count_validation_failed,completed_stats=self.get_completed_stats(diff_total[k]['Entered'])
-                completed_counts=self.summarize_completed_stats(count_validation_failed,completed_stats)
+                completed_stats=self.get_completed_stats(diff_total[k]['Entered'])
+                completed_counts=self.summarize_completed_stats(completed_stats)
                 out_total['CompletedCounts']=completed_counts
 
         return out_total
@@ -1178,9 +1186,10 @@ class condorLogSummary:
                     monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
                                                "ABSOLUTE",self.updated,exited)
                 elif s=='Completed':
-                    count_validation_failed,completed_stats=self.get_completed_stats(entered_list)
-                    monitoringConfig.logCompleted(completed_stats)
-                    completed_counts=self.summarize_completed_stats(count_validation_failed,completed_stats)
+                    completed_stats=self.get_completed_stats(entered_list)
+                    if client_name!=None: # do not repeat for total
+                        monitoringConfig.logCompleted(completed_stats)
+                    completed_counts=self.summarize_completed_stats(completed_stats)
 
                     count_entered_times=completed_counts['Lasted']
                     count_validation_failed=completed_counts['Failed']
@@ -1910,10 +1919,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.200 2008/07/30 15:33:12 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.201 2008/07/30 16:09:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.201  2008/07/30 16:09:37  sfiligoi
+#  Add jobsnr and fix formatting
+#
 #  Revision 1.200  2008/07/30 15:33:12  sfiligoi
 #  Fix typo
 #
