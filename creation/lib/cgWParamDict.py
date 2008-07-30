@@ -70,10 +70,9 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
-        for file_name in ('parse_starterlog.awk',"condor_job_wrapper.sh", "condor_config"):
+        for file_name in ('parse_starterlog.awk', "condor_config"):
             self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['description'].add("condor_config","condor_config")
-        self.dicts['description'].add("condor_job_wrapper.sh","condor_job_wrapper")
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user files in stage
@@ -430,18 +429,18 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.47 2008/07/30 19:49:53 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.48 2008/07/30 20:15:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.48  2008/07/30 20:15:04  sfiligoi
+#  Remove condor_job_wrapper... will generate it in condor_startup.sh
+#
 #  Revision 1.47  2008/07/30 19:49:53  sfiligoi
 #  Add support for wrapper
 #
 #  Revision 1.46  2008/07/29 18:49:44  sfiligoi
 #  Add entry verbosity
-#
-#  Revision 1.45  2008/07/29 18:03:08  sfiligoi
-#  Fix typo
 #
 #  Revision 1.44  2008/07/28 20:37:15  sfiligoi
 #  Add condor_job_wrapper.sh, and advertize condor_job_wrapper and condor_config in the descript file
