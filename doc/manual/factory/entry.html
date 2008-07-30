@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080730;16423500">
+	<META NAME="CHANGED" CONTENT="20080730;17053300">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Factory Configuration</H1>
@@ -36,7 +38,8 @@ below. A set of configuration example is provided, too.</P>
 		condition</A> 
 		<LI><A HREF="#time_limit">Limiting time spent on a Grid resource</A>
 		
-		<LI><A HREF="#custom_code">Adding custom code to the glideins</A> 
+		<LI><A HREF="#custom_code">Adding custom code/files to the glideins</A>
+		
 	</UL>
 	<LI><P><A HREF="#ref">Reference</A> 
 	</P>
@@ -44,19 +47,23 @@ below. A set of configuration example is provided, too.</P>
 <H2><A NAME="name"></A>Command line tools</H2>
 <DL>
 	<DT>To create a new directory, use the command: 
-	<DD><FONT FACE="monospace">create_glidein</FONT><DT>
+	</DT><DD>
+	<FONT FACE="monospace">create_glidein</FONT></DD><DT>
 	<BR>To update an existing directory, use: 
-	<DD><FONT FACE="monospace">reconfig_glidein</FONT><DT>
+	</DT><DD>
+	<FONT FACE="monospace">reconfig_glidein</FONT></DD><DT>
 	<BR>Both are located in: 
-	<DD><FONT FACE="monospace">glideinWMS/creation</FONT><DT>
+	</DT><DD>
+	<FONT FACE="monospace">glideinWMS/creation</FONT></DD><DT>
 	<BR>They will create all the needed directories and files needed by
 	a <A HREF="index.html#glidein_daemons">Glidein Factory Daemon</A>.<BR><BR>Both
 	commands has only one argument, and it is the configuration file to
 	load: 
-	<DD><P><FONT FACE="monospace">./create_glidein &lt;xml
-	file&gt;<BR>./reconfig_glidein &lt;xml file&gt;</FONT></P>
-</DL>
-<H2><A NAME="args"></A>The configuration file</H2>
+	</DT><DD><P>
+	<FONT FACE="monospace">./create_glidein &lt;xml
+	file&gt;<BR>./reconfig_glidein &lt;xml file&gt;</FONT></P></DD></DL>
+<H2>
+<A NAME="args"></A>The configuration file</H2>
 <P>The configuration file is a XML document.<BR><BR>It is composed of
 two parts:</P>
 <UL>
@@ -68,10 +75,10 @@ two parts:</P>
 	<DT>The global arguments are common to all the entry points, but
 	each entry point may have its own specific settings. <BR>At least
 	one entry point must be specified in the configuration file.<BR><BR>For
-	some complete examples, look into<DD><P>
-	<FONT FACE="monospace">glideinWMS/creation/config_examples/</FONT></P>
-</DL>
-<H3><A NAME="args_global"></A>Suggested global arguments</H3>
+	some complete examples, look into</DT><DD><P>
+	<FONT FACE="monospace">glideinWMS/creation/config_examples/</FONT></P></DD></DL>
+<H3>
+<A NAME="args_global"></A>Suggested global arguments</H3>
 <P>You definitely <B>need to set</B> the following arguments:</P>
 <UL>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein
@@ -276,6 +283,22 @@ following arguments:</P>
 	be used by the glidein factory if it is set to <FONT FACE="monospace"><B>True</B></FONT>.
 	(Defaults to <FONT FACE="monospace"><B>True</B></FONT>). 
 	</P>
+	<LI><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entries</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entry
+	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>entry
+	name</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>verbosity</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>std/fast/nodebug</I></FONT><FONT FACE="monospace">&quot;&gt;</FONT><BR>Specify
+	the verbosity level and termination time in case of validation
+	errors: 
+	<UL>
+		<LI>std (default) – reasonable verbosity (including the condor
+		log files) and 20min sleep in case of error (to reduce the damage
+		resulting from broken nodes) 
+		<LI>fast – same verbosity as std, but will only wait 2 mins
+		before terminating in case of error (good for debugging) 
+		<LI><P>nodebug – very low verbosity, if you want to save on disk
+		space 
+		</P>
+	</UL>
 </UL>
 <P>The other arguments are for advanced admins only, and are
 explained below.</P>
@@ -316,7 +339,7 @@ worker nodes. gLExec is a service that, taken</P>
 	the provided command as that UID. <BR><BR>By using gLExec, a Glidein
 	Factory can get rid of both of the above problems, and still keep
 	all the advantages.<BR><BR>To enable gLExec support, you need to
-	specify:<DD>
+	specify:</DT><DD>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file
 	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>web_base/glexec_setup.sh</B></FONT><FONT FACE="monospace">&quot;</FONT>
@@ -324,56 +347,59 @@ worker nodes. gLExec is a service that, taken</P>
 	&lt;</FONT><FONT FACE="monospace"><B>attr name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GLEXEC_BIN</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>path
 	to glexec</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><DT>
-	For most current gLExec installation this comes down to:<DD>
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DD><DT>
+	For most current gLExec installation this comes down to:</DT><DD><P>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GLEXEC_BIN</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=</FONT><FONT FACE="monospace"><B>&quot;OSG&quot;
 	publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT>
-	
-</DL>
-<P>More details about scripts in general can be found in the <A HREF="#custom_code">&quot;custom
+		</P></DD></DL>
+<P>
+More details about scripts in general can be found in the <A HREF="#custom_code">&quot;custom
 code&quot;</A> section. 
 </P>
 <DL>
 	<DT>You will also need to properly configure the <B>shadow config
 	files</B>, by adding: 
-	<DD><FONT FACE="monospace">GLEXEC_STARTER = True<BR>GLEXEC =
-	/bin/false </FONT>
-</DL>
-<P>to the condor_config.</P>
+	</DT><DD><P>
+	<FONT FACE="monospace">GLEXEC_STARTER = True<BR>GLEXEC = /bin/false </FONT>
+	</P></DD></DL>
+<P>
+to the condor_config.</P>
 <DL>
 	<DD><H4><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
 	<DD><P>gLExec installations on at least one site had problems with
-	delegated proxies. If in doubt, try to disable the delegation.</P>
-	<DD>To disable delegation, add 
-	<DL>
-		<DD><FONT FACE="monospace">DELEGATE_JOB_GSI_CREDENTIALS=False<BR>SEC_DEFAULT_ENCRYPTION=PREFERRED
+	delegated proxies. If in doubt, try to disable the delegation.</P></DD><DD><P>
+	To disable delegation, add 
+	</P></DD><DL>
+		<DD><P>
+		<FONT FACE="monospace">DELEGATE_JOB_GSI_CREDENTIALS=False<BR>SEC_DEFAULT_ENCRYPTION=PREFERRED
 		</FONT>
-	</DL>
+		</P></DD></DL>
 </DL>
-<P>to the <B>shadow configuration file</B> 
+<P>
+to the <B>shadow configuration file</B> 
 </P>
 <DL>
-	<DD>and set in the glidein creation file:<DL>
-		<DD>
+	<DD><P>and set in the glidein creation file:</P></DD><DL>
+		<DD><P>
 		<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR>&nbsp;
 		&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;
 		</FONT>&nbsp; <FONT FACE="monospace"><BR></FONT>&nbsp; &nbsp;<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr
 		name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>SEC_DEFAULT_ENCRYPTION</B></FONT><FONT FACE="monospace">&quot;
 		</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>REQUIRED</B></FONT><FONT FACE="monospace">&quot;
 		</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
-		</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DL>
+		</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></P></DD></DL>
 	<DD><P>
 	<BR>Another thing to consider is the startup directory; it must be
 	accessible by both the starting user and the target user(s). The
 	directory you usually start in the Grid is most often not readable
 	by any other user, so you must select something else. Both <FONT FACE="monospace">Condor</FONT>
 	and <FONT FACE="monospace">OSG</FONT> should be fine, or you can
-	specify any other fixed, WN-local location.</P>
-</DL>
-<H3><A NAME="gcb"></A>Private networks and firewalls</H3>
+	specify any other fixed, WN-local location.</P></DD></DL>
+<H3>
+<A NAME="gcb"></A>Private networks and firewalls</H3>
 <DL>
 	<DT>Condor daemons need two way communication in order to work
 	properly. This clashes with the network policies of most Grid sites,
@@ -383,7 +409,7 @@ code&quot;</A> section.
 	you should refer to the Condor documentation available at
 	<A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</A>.
 	Here you will find only the parameters needed to enable it in the
-	glideins.<BR><BR>To use Condor with GCB, you need to specify:<DD>
+	glideins.<BR><BR>To use Condor with GCB, you need to specify:</DT><DD><P>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file
 	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>web_base/gcb_setup.sh</B></FONT><FONT FACE="monospace">&quot;
@@ -396,7 +422,7 @@ code&quot;</A> section.
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_ORDER</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I><B>RANDOM</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>GCBLOAD</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>ROUNDROBIN</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>SEQUENTIAL</B></I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DL>
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></P></DD></DL>
 <P>
 where:</P>
 <UL>
@@ -418,34 +444,34 @@ where:</P>
 	queries (v6.9.1 and above), you most probably want to protect your
 	glideins from failing due to an overloaded GCB. To do that, you need
 	to transfer the <FONT FACE="monospace">gcb_broker_query</FONT>
-	binary to the worker nodes:<DD>
+	binary to the worker nodes:</DT><DD>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>file
 	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>path
 	to gcb_broker_query</I></FONT><FONT FACE="monospace">&quot;/&gt;</FONT>
-	
-	<DT>and decide what is the minimum number of free sockets you are
-	comfortable with:<DD>
+		</DD><DT>
+	and decide what is the minimum number of free sockets you are
+	comfortable with:</DT><DD>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attr
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_MIN_FREE</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>number</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><DT>
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DD><DT>
 	I would suggest you set it to at least 100, possibly more. Most
 	Condor versions use around 5 sockets per VM (depending on
 	configuration).<BR><BR>You can also specify a default GCB port
-	(defaults to <FONT FACE="monospace">65432)</FONT>:<DD>
+	(defaults to <FONT FACE="monospace">65432)</FONT>:</DT><DD>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attr
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_PORT</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>port</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><DT>
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DD><DT>
 	although Condor GCB right now does not support any other port
 	number.<BR><BR>Also, for more flexibility, you can&nbsp;let <A HREF="../frontend/index.html#management">the
 	frontends</A> to provide their own GCB servers, by setting
 	<FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>const</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;</FONT>
 	.<BR><BR>If you are more sophisticate, and want to use <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
-	routing tables</A>, too, add:<DD>
+	routing tables</A>, too, add:</DT><DD><P>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>path
 	to routing file</I></FONT><FONT FACE="monospace">&quot;
@@ -453,7 +479,7 @@ where:</P>
 	&lt;</FONT><FONT FACE="monospace"><B>attr name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_REMAP_ROUTE</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>gcb_route.cfg</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DL>
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></P></DD></DL>
 <P>
 <BR>Please be aware that the above will configure the glideins only;
 you still need to properly configure the Collector and the submit
@@ -481,9 +507,9 @@ them.<BR><BR>The values are set using the&nbsp;&nbsp;<FONT FACE="monospace"><B>&
 	<DT>By default, Condor uses UDP packets to communicate between the
 	glideins and the Collector. While more efficient than TCP, UDP
 	packets are often blocked at the firewall, or lost on the WAN. <BR><BR>To
-	switch on TCP updates, please specify, with the <FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT><FONT FACE="monospace">
-	/&gt;</FONT> option:<DD>
-	<FONT FACE="monospace"><B>UPDATE_COLLECTOR_WITH_TCP</B>=True</FONT></DL>
+	switch on TCP updates, please specify, with the <FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT>
+	<FONT FACE="monospace">/&gt;</FONT> option:</DT><DD><P>
+	<FONT FACE="monospace"><B>UPDATE_COLLECTOR_WITH_TCP</B>=True</FONT></P></DD></DL>
 <P>
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
@@ -502,25 +528,26 @@ export _CONDOR_DAEMON_LIST=&quot;MASTER, COLLECTOR&quot;
 export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME
 export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
 # Forward all the traffic to the main collector
-export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE><DD>
+export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE><DD><P>
 	Once you have the slave collectors set up, you will want to use
 	them. <BR><BR>The <A HREF="../frontend/index.html">VO frontend</A>
 	will have to point the factory to a <A HREF="../frontend/index.html#management">list
 	of collectors</A>. <BR><BR>However, by default the glideins expect a
 	specific collector, so you need to add an additional script to
 	handle this: 
-	<DD><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	</P></DD><DD><P>
+	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file
 	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>web_base/collector_setup.sh</B></FONT><FONT FACE="monospace">&quot;</FONT>
-	<FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">/&gt;</FONT></P>
-</DL>
-<H3><A NAME="start_rank"></A><FONT FACE="monospace">Setting the
-glidein start and rank&nbsp;condition</FONT></H3>
+	<FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">/&gt;</FONT></P></DD></DL>
+<H3>
+<A NAME="start_rank"></A><FONT FACE="monospace">Setting the glidein
+start and rank&nbsp;condition</FONT></H3>
 <P><FONT FACE="monospace">As with any Condor pool, you may need to
 set the startd <A HREF="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00463000000000000000">start</A>
 and <A HREF="http://www.cs.wisc.edu/condor/manual/v6.9/3_6Startd_Policy.html#SECTION00465000000000000000">rank</A>
-conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT><FONT FACE="monospace">
-/&gt; options: </FONT>
+conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT>
+<FONT FACE="monospace">/&gt; options: </FONT>
 </P>
 <UL>
 	<LI><FONT FACE="monospace"><B>GLIDEIN_Start</B>=<I>expression</I> </FONT>
@@ -528,7 +555,7 @@ conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="
 	</P>
 </UL>
 <DL>
-	<DT><FONT FACE="monospace"><BR>For example:</FONT><DD><P>
+	<DT><FONT FACE="monospace"><BR>For example:</FONT></DT><DD><P>
 	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;
 	&lt;<B>attrs</B>&gt;<BR>&nbsp; &nbsp; &lt;<B>attr
 	name</B>=&quot;<B>GLIDEIN_Start</B>&quot;
@@ -537,10 +564,10 @@ conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="
 	&nbsp; &lt;<B>attr name</B>=&quot;<B>GLIDEIN_Rank</B>&quot;
 	<B>value</B>=&quot;<B>ImageSize</B>&quot; <B>publish</B>=&quot;<B>False</B>&quot;
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
-	</P>
-</DL>
-<H3><A NAME="time_limit"></A><FONT FACE="monospace">Limiting time
-spent on a Grid resource</FONT></H3>
+	</P></DD></DL>
+<H3>
+<A NAME="time_limit"></A><FONT FACE="monospace">Limiting time spent
+on a Grid resource</FONT></H3>
 <P><FONT FACE="monospace">The whole concept of gliding into Grid
 resources is based on the idea that you are getting those resources
 on a <B>temporary basis</B>. This implies that you need to leave the
@@ -556,27 +583,29 @@ regulate this:</FONT></P>
 	(or kill it if it does not end within a configurable timeout) and
 	exit immediately afterwards. This obviously implies that no new jobs
 	will start after it entered that state.<BR>The two timeouts can be
-	set with the &lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT><FONT FACE="monospace">
-	/&gt; options:</FONT>
-	<UL><LI>
-		<FONT FACE="monospace"><B>GLIDEIN_Retire_Time</B>=<I>nr_of_seconds</I>
+	set with the &lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT> <FONT FACE="monospace">/&gt;
+	options:</FONT> 
+	<UL>
+		<LI><FONT FACE="monospace"><B>GLIDEIN_Retire_Time</B>=<I>nr_of_seconds</I>
 		</FONT>
-		<LI><FONT FACE="monospace"><B>GLIDEIN_Job_Max_Time</B>=<I>nr_of_seconds</I>
+		<LI><P><FONT FACE="monospace"><B>GLIDEIN_Job_Max_Time</B>=<I>nr_of_seconds</I>
 		</FONT>
+		</P>
 	</UL>
 	<P><FONT FACE="monospace">The two default to 2 and 100 hours. </FONT>
 	<LI><FONT FACE="monospace">If a glidein is not claimed within a
 	configurable timeout, the glidein will exit.<BR>The timeout can be
-	set qith:</FONT>
-	<UL><LI>
-		<FONT FACE="monospace"><B>GLIDEIN_Max_Idle</B>=<I>nr_of_seconds</I>
+	set qith:</FONT> 
+	<UL>
+		<LI><P><FONT FACE="monospace"><B>GLIDEIN_Max_Idle</B>=<I>nr_of_seconds</I>
 		</FONT>
+		</P>
 	</UL>
 	<P><FONT FACE="monospace">The default is 20 minutes. </FONT>
 	</P>
 </OL>
 <DL>
-	<DT><FONT FACE="monospace">An example:</FONT><DD><P>
+	<DT><FONT FACE="monospace">An example:</FONT></DT><DD><P>
 	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;
 	&lt;<B>attrs</B>&gt;<BR>&nbsp; &nbsp; &lt;<B>attr
 	name</B>=&quot;<B>GLIDEIN_Max_Idle</B>&quot; <B>value</B>=&quot;<B>300</B>&quot;
@@ -588,16 +617,16 @@ regulate this:</FONT></P>
 	name</B>=&quot;<B>GLIDEIN_Job_Max_Time</B>&quot; <B>value</B>=&quot;<B>180000</B>&quot;
 	<B>type</B>=&quot;<B>int</B>&quot; <B>publish</B>=&quot;<B>False</B>&quot;
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
-	</P>
-	<DD><H3><A NAME="custom_code"></A><FONT FACE="monospace">Adding
-	custom code to the glideins</FONT></H3>
-</DL>
+	</P></DD></DL>
+<H3>
+<A NAME="custom_code"></A><FONT FACE="monospace">Adding custom
+code/files to the glideins</FONT></H3>
 <P><FONT FACE="monospace">While provided code should cover most of
 the general purpose use cases, some administrators may have
 additional needs. For these cases, the glidein creation command adds
 the following options:</FONT></P>
 <UL>
-	<LI><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
+	<LI><P><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
 	&nbsp;&lt;<B>file absfname</B>=&quot;<I>script name</I>&quot;
 	<B>executable</B>=&quot;<B>True</B>&quot;/&gt;<BR>Path to the custom
 	script.<BR><BR>The script will be copied in the Web-accessible area,
@@ -607,12 +636,19 @@ the following options:</FONT></P>
 	below).<BR><BR>When invoked, the script will be given a single
 	argument; the name of the config file to use. That file will contain
 	all the glidein variables, one per line, with variable name first, a
-	(set of) space(s), followed by the actual value. For example:</FONT><P>
-	<FONT FACE="monospace">GLIDEIN_Site &nbsp;fnal<BR>MYVAR &nbsp;X34_44</FONT><P>
-	<FONT FACE="monospace">It is scripts task to parse out those values;
-	a bash example would be:</FONT><P>
-	<FONT FACE="monospace">myval=`awk '/^MYVAR /{print $2}'`</FONT><LI>
+	(set of) space(s), followed by the actual value. For example:</FONT></P>
+	<P><FONT FACE="monospace">GLIDEIN_Site &nbsp;fnal<BR>MYVAR &nbsp;X34_44</FONT></P>
+	<P><FONT FACE="monospace">It is scripts task to parse out those
+	values; a bash example would be:</FONT></P>
+	<P><FONT FACE="monospace">myval=`awk $1 '/^MYVAR /{print $2}'`</FONT><LI><P>
 	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
+	&nbsp;&lt;<B>file absfname</B>=&quot;<I>script name</I>&quot;
+	<B>wrapper</B>=&quot;<B>True</B>&quot;/&gt;<BR>Path to the wrapper
+	custom script.<BR><BR>The script will be copied in the
+	Web-accessible area, and will be sourced just before a user job
+	starts starts; i.e. it will become part of the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_3Configuration.html#14376">user
+	job wrapper</A>.</FONT></P>
+	<LI><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
 	&nbsp;&lt;<B>file absfname</B>=&quot;<I>loacl file name</I>&quot;
 	<B>relfname=</B>&quot;<I>target file name</I>&quot; <B>const=</B>&quot;<I>Bool</I>&quot;
 	<B>executable</B>=&quot;<B>False</B>&quot;/&gt;<BR>Path to the
@@ -624,18 +660,21 @@ the following options:</FONT></P>
 	script and could be tampered in transit by a malicious user. So
 	never put sensitive data (like the switch to disable security
 	checks) in a changeable file.&nbsp; </FONT>
-	<LI><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
-	&nbsp;&lt;<B>file absfname</B>=&quot;<I>loacl file
-	name</I>&quot;&nbsp;<B>untar</B>=&quot;<B>True</B>&quot;&gt;<BR>&nbsp;
-	&nbsp; &lt;<B>untar_options</B> <B>cond_attr</B>=&quot;<I>conf_sw</I>&quot;
-	<B>dir</B>=&quot;<I>dir name</I>&quot; <B>absdir_outattr</B>=&quot;<I>attr
-	name</I>&quot;&gt;<BR>Sometimes it is useful to transfer a whole set
-	of files, or even directories, and that is much easier to accomplish
-	by means of a tar-ball. A subsystem is the glidein way to describe a
-	compressed tarball that is delivered to the worker nodes, untarred
-	in a separate directory and advertised to the other scripts.<BR><BR>where:</FONT>
-	<UL><LI>
-		<FONT FACE="monospace"><B>absfname</B><BR>Path to the costum
+	<LI><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>loacl
+	file name</I></FONT><FONT FACE="monospace">&quot;&nbsp;</FONT><FONT FACE="monospace"><B>untar</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;&gt;<BR>&nbsp;
+	&nbsp; &lt;</FONT><FONT FACE="monospace"><B>untar_options</B></FONT>
+	<FONT FACE="monospace"><B>cond_attr</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>conf_sw</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>dir
+	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>absdir_outattr</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>attr
+	name</I></FONT><FONT FACE="monospace">&quot;&gt;<BR>Sometimes it is
+	useful to transfer a whole set of files, or even directories, and
+	that is much easier to accomplish by means of a tar-ball. A
+	subsystem is the glidein way to describe a compressed tarball that
+	is delivered to the worker nodes, untarred in a separate directory
+	and advertised to the other scripts.<BR><BR>where:</FONT> 
+	<UL>
+		<LI><FONT FACE="monospace"><B>absfname</B><BR>Path to the costum
 		tarball. (like &quot;/tmp/mytar_v12.5.tgz&quot;) </FONT>
 		<LI><FONT FACE="monospace"><B>conf_sw</B><BR>Name of a
 		configuration switch. (like &quot;ENABLE_KRB5&quot;)<BR><BR>The
@@ -645,27 +684,27 @@ the following options:</FONT></P>
 		untar it. </FONT>
 		<LI><FONT FACE="monospace"><B>dir</B><BR>Name of the subdirectory
 		to untar it in. (like &quot;krb5&quot;) </FONT>
-		<LI><FONT FACE="monospace"><B>absdir_outattr</B><BR>Name of a
+		<LI><P><FONT FACE="monospace"><B>absdir_outattr</B><BR>Name of a
 		variable name. (like &quot;KRB5_SUBSYS_DIR&quot;)<BR><BR>The
 		variable will be set to the absolute path of the directory where
 		the tarball was unpacked, if and only if the unpacking actually
 		happened. It will not be define </FONT>
+		</P>
 	</UL>
-	<P></P>
 </UL>
 <P><A NAME="ref"></A><FONT FACE="monospace">Please notice that files
 and subsystems will be downloaded before the scripts, and that the
 user provided scripts will be executed in the specified order, and
 before the Condor daemons are started up.</FONT></P>
-<TABLE BORDER=0 WIDTH="100%" CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD valign=top>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
 			<H2 ALIGN=LEFT>Repository</H2>
 			<H3 ALIGN=LEFT>CVSROOT</H3>
 			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
 			<H2 ALIGN=LEFT>Package(s)</H2>
 			<P ALIGN=LEFT>glideinWMS/creation</TD>
-		<TD valign=top>
+		<TD>
 			<H2 ALIGN=LEFT>Author(s)</H2>
 			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
 			Division)</TD>
