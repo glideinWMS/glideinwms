@@ -47,7 +47,7 @@ done
 cat >> $condor_job_wrapper <<EOF
 
 # Condor job wrappers must replace its own image
-exec "$@"
+exec "\$@"
 EOF
 
 chmod a+x $condor_job_wrapper
