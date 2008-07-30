@@ -4,6 +4,7 @@ vNext	Better support for RESS and BDII
 	Starting to implement the job wrapper.
 	Fix monitor locking
 	Add verbosity to entries.
+	Add a completed job log.
 
 v1_3	Factory and frontend now gets sleep and advertize attr from config.
 	Add downtime concept to the factory and relative management tool.
