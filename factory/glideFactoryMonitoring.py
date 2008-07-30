@@ -1039,7 +1039,7 @@ class condorLogSummary:
                     out_el['Exited'][s]=exited
                 elif s=='Completed':
                     count_validation_failed,completed_stats=self.get_completed_stats(entered_list)
-                    completed_counts=self.get_completed_stats(count_validation_failed,completed_stats)
+                    completed_counts=self.summarize_completed_stats(count_validation_failed,completed_stats)
                     out_el['CompletedCounts']=completed_counts
             stats_data[client_name]=out_el
         return stats_data
@@ -1100,7 +1100,7 @@ class condorLogSummary:
                 out_total['Exited'][k]=len(diff_total[k]['Exited'])
             elif k=='Completed':
                 count_validation_failed,completed_stats=self.get_completed_stats(diff_total[k]['Entered'])
-                completed_counts=self.get_completed_stats(count_validation_failed,completed_stats)
+                completed_counts=self.summarize_completed_stats(count_validation_failed,completed_stats)
                 out_total['CompletedCounts']=completed_counts
 
         return out_total
@@ -1180,7 +1180,7 @@ class condorLogSummary:
                 elif s=='Completed':
                     count_validation_failed,completed_stats=self.get_completed_stats(entered_list)
                     monitoringConfig.logCompleted(completed_stats)
-                    completed_counts=self.get_completed_stats(count_validation_failed,completed_stats)
+                    completed_counts=self.summarize_completed_stats(count_validation_failed,completed_stats)
 
                     count_entered_times=completed_counts['Lasted']
                     count_validation_failed=completed_counts['Failed']
@@ -1910,10 +1910,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.199 2008/07/30 15:10:08 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.200 2008/07/30 15:33:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.200  2008/07/30 15:33:12  sfiligoi
+#  Fix typo
+#
 #  Revision 1.199  2008/07/30 15:10:08  sfiligoi
 #  Add logging of completed job stats
 #
