@@ -25,7 +25,31 @@ export CONDOR_CONFIG="${PWD}/`grep -i '^condor_config ' $description_file | awk 
 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
 
-condor_job_wrapper=`grep -i "^condor_job_wrapper " $description_file | awk '{print $2}'`
+wrapper_list=`grep -i "^WRAPPER_LIST " $config_file | awk '{print $2}'`
+
+#
+# Create the job wrapper
+#
+condor_job_wrapper="condor_job_wrapper.sh"
+cat > $condor_job_wrapper <<EOF
+#!/bin/bash
+
+# This script is started just before the user job
+# It is referenced by the USER_JOB_WRAPPER
+
+EOF
+
+for fname in `cat $wrapper_list`; 
+do 
+  cat "$fname" >> $condor_job_wrapper
+done
+
+cat >> $condor_job_wrapper <<EOF
+
+# Condor job wrappers must replace its own image
+exec "$@"
+EOF
+
 chmod a+x $condor_job_wrapper
 echo "USER_JOB_WRAPPER = \$(LOCAL_DIR)/$condor_job_wrapper" >> $CONDOR_CONFIG
 
