@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080724;15221000">
+	<META NAME="CHANGED" CONTENT="20080730;16340800">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
@@ -32,6 +33,7 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 		tree</A> 
 		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
 		<LI><A HREF="#downtimes">Downtime handling</A> 
+                <LI><A HREF="#localtest">Testing with a local glidein</A>
 	</UL>
 	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
 	<UL>
@@ -227,49 +229,49 @@ tree</H3>
 	<FONT FACE="monospace">reconfig_glidein</FONT></P></DD></DL>
 <P>
 <BR>Another option is to use the <A HREF="../../install/factory_install.html">provided
-installer</A>. <BR><BR><A HREF="entry.html">The complete description
-of the configuration is described on a dedicated page</A> .</P>
+installer</A>. <BR><BR><A HREF="entry.html">Technical details of the
+configuration are described on a dedicated page</A> .</P>
 <H3><A NAME="run_daemon"></A>Starting a Glidein Factory Daemon</H3>
 <P>The glidein factory comes with a init.d style startup script.</P>
 <P>Glidein factory starting and stopping is handled by 
 </P>
 <DL>
-	<DD><P><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
 	start|stop|restart</FONT></P></DD></DL>
 <P>
 . The same script can also be used to reconfigure the factory (from a
 config file)</P>
 <DL>
-	<DD><P><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
 	reconfig <I>config_fname</I></FONT></P></DD></DL>
 <P>
 .<BR><BR><BR>Base activity messages will be printed in</P>
 <DL>
-	<DD><FONT FACE="monospace">&lt;factory
+	<DD><FONT FACE="monospace">&lt;glidein
 	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
 	while all the warnings go into</DT><DD>
-	<FONT FACE="monospace">&lt;factory
+	<FONT FACE="monospace">&lt;glidein
 	directory&gt;/log/factory_err.&lt;date&gt;.log</FONT></DD><DT>
 	<BR><BR>However, each entry has also its own logs in</DT><DD>
-	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
 	name&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
 	while all the warnings go into</DT><DD>
-	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
 	name&gt;/log/factory_err.&lt;date&gt;.log</FONT></DD><DT>
 	while the glidein output logs will be in 
 	</DT><DD>
-	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
 	name&gt;/log/job.&lt;condor-g job nr&gt;.out</FONT></DD><DT>
 	and 
 	</DT><DD><P>
-	<FONT FACE="monospace">&lt;factory directory&gt;/entry_&lt;entry
+	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
 	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT></P></DD></DL>
 <P>
 <BR>Both the entry factory logs and the actual glidein logs are
 deleted after a week.</P>
 <DL>
-	<DT>Additional monitoring can be obtained with<DD><P>
-	<FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	<DT>Additional monitoring can be obtained with</DT><DD><P>
+	<FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
 	status|info 'factory'|<I>entry_name</I></FONT></P></DD></DL>
 <P>
 and you are all set.</P>
@@ -284,7 +286,8 @@ administrator can temporarily stop submitting glideins to the
 affected sites, without stopping the factory as a whole.</P>
 <DL>
 	<DT>Downtimes are handled and monitored with 
-	<DD><P><FONT FACE="monospace">&lt;factory directory&gt;/factory_startup
+	</DT><DD><P>
+	<FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
 	up|down|infosysdown|statusdown 'factory'|'entries'|<I>entry_name</I></FONT></P></DD></DL>
 <P>
 . An admin can handle and monitor downtimes both at the entry and at
@@ -295,6 +298,18 @@ the factory level. <BR>Please be aware that both will be used.<BR><BR><BR>
 <PRE>./glideinWMS/factory/manageFactoryDowntimes.py</PRE><P>
 command. 
 </P>
+<H3><A NAME="localtest"></A>Testing with a local glidein</H3>
+<P>In case of problems, you may want to test a glidein by hand. 
+</P>
+<P>Move to the glidein directory and run</P>
+<DL>
+	<DD><P><FONT FACE="monospace">./local_start.sh <I>entry_name</I>
+	fast -- GLIDEIN_Collector <I>yourhost</I>.dot,<I>your</I>.dot,<I>domain</I></FONT></P></DD></DL>
+<P>
+. This will start a glidein on the local machine and pointing to the
+<I>yourhost.your.domain</I> collector.</P>
+<P>Please make sure you have a valid Grid environment set up,
+including a valid proxy, as the glidein needs it in order to work.</P>
 <H2><A NAME="monitoring"></A>Glidein Factory Monitoring</H2>
 <P>Monitoring is an essential part of any service. One has to monitor
 to both maintain the health of the system and to tune the system for
