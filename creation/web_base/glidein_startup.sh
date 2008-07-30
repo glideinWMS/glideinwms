@@ -373,6 +373,9 @@ fi
 create_add_config_line add_config_line.source
 source add_config_line.source
 
+wrapper_list="$PWD/wrapper_list.lst"
+touch $wrapper_list
+
 # create glidein_config
 glidein_config="$PWD/glidein_config"
 echo > glidein_config
@@ -391,6 +394,7 @@ echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
 echo "GLIDEIN_Signature $sign_id" >> glidein_config
 echo "GLIDEIN_Entry_Signature $sign_entry_id" >> glidein_config
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
+echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 params2file $params
 
@@ -595,6 +599,8 @@ function fetch_file_base {
 	else
 	    echo "Skipping last script $last_script" 1>&2
 	fi
+    elif [ "$ffb_file_type" == "wrapper" ]; then
+	echo "$PWD/$ffb_outname" >> "$wrapper_list"
     elif [ "$ffb_file_type" == "untar" ]; then
 	ffb_untar_dir=`get_untar_subdir "$ffb_entry_dir" "$ffb_target_fname"`
 	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$work_dir/$ffb_outname") 1>&2
