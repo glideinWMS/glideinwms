@@ -74,6 +74,7 @@ class MonitoringConfig:
         
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
+        self.log_dir="log/"
 
         try:
             import rrdtool
@@ -89,6 +90,30 @@ class MonitoringConfig:
 
         self.attribute_rrd_recmp=re.compile("^(?P<tp>[a-zA-Z]+)_Attribute_(?P<attr>[a-zA-Z]+)\.rrd$")
 
+
+    def logCompleted(self,entered_dict):
+        now=time.time()
+
+        job_ids=entered_dict.keys()
+        if len(job_ids)==0:
+            return # nothing to do
+        job_ids.sort()
+        
+        relative_fname="completed_jobs_%s.log"%time.strftime("%Y%m%d",time.localtime(now))
+        fname=os.path.join(self.log_dir,relative_fname)
+        fd=open(fname,"a")
+        try:
+            for job_id in job_ids:
+                el=entered_dict[job_id]
+                fd.write("<job %37s %17s %17s><wastemill %17s %11s %16s %13s/></job>\n"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                                                         ('id="%s"'%job_id),
+                                                                                         ('duration="%s"'%el['duration']),
+                                                                                         ('validation="%s"'%el['validation']),
+                                                                                         ('idle="%s"'%el['idle']),
+                                                                                         ('nosuccess="%s"'%el['nosuccess']),
+                                                                                         ('badput="%s"'%el['badput'])))
+        finally:
+            fd.close()
 
     def write_file(self,relative_fname,str):
         fname=os.path.join(self.monitor_dir,relative_fname)
@@ -874,8 +899,74 @@ class condorLogSummary:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     # in: entered_list=self.stats_diff[client_name]['Entered']
-    # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
+    # out: count_validation_failed,entered_list[job_id]{'duration','validation','idle','nosuccess','badput'}
     def get_completed_stats(self,entered_list):
+        count_validation_failed=0
+        out_list={}
+
+        for enle in entered_list:
+            enle_job_id=enle[0]
+            enle_running_time=enle[2]
+            enle_last_time=enle[3]
+            enle_difftime=self.diffTimes(enle_last_time,enle_running_time)
+
+            # get stats
+            enle_stats=enle[4]
+            enle_condor_started=0
+            enle_glidein_duration=enle_difftime # best guess
+            if enle_stats!=None:
+                enle_condor_started=enle_stats['condor_started']
+                if enle_stats.has_key('glidein_duration'):
+                    enle_glidein_duration=enle_stats['glidein_duration']
+            if not enle_condor_started:
+                count_validation_failed+=1
+                # 100% waste_mill
+                enle_waste_mill={'duration':0,
+                                 'validation':1000,
+                                 'idle':0,
+                                 'nosuccess':0, #no jobs run, no failures
+                                 'badput':1000}
+            else:
+                #get waste_mill
+                enle_condor_duration=enle_stats['condor_duration']
+                if enle_condor_duration==None:
+                    enle_condor_duration=0 # assume failed
+
+                if enle_condor_duration>enle_glidein_duration: # can happen... Condor-G has its delays
+                    enle_glidein_duration=enle_condor_duration
+
+                # get waste numbers, in permill
+                if (enle_glidein_duration<5): # very short means 100% loss
+                    enle_waste_mill={'duration':enle_glidein_duration,
+                                     'validation':1000,
+                                     'idle':0,
+                                     'nosuccess':0, #no jobs run, no failures
+                                     'badput':1000}
+                else:
+                    if enle_stats.has_key('validation_duration'):
+                        enle_validation_duration=enle_stats['validation_duration']
+                    else:
+                        enle_validation_duration=enle_difftime-enle_condor_duration
+                    enle_condor_stats=enle_stats['stats']
+                    enle_jobs_duration=enle_condor_stats['Total']['secs']
+                    enle_waste_mill={'duration':enle_glidein_duration,
+                                     'validation':1000.0*enle_validation_duration/enle_glidein_duration,
+                                     'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
+                    enle_goodput=enle_condor_stats['goodZ']['secs']
+                    if enle_jobs_duration>0:
+                        enle_waste_mill['nosuccess']=1000.0*(enle_jobs_duration-enle_goodput)/enle_jobs_duration
+                    else:
+                        enle_waste_mill['nosuccess']=0 #no jobs run, no failures
+                    enle_goodput+=enle_condor_stats['goodNZ']['secs']
+                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
+
+            out_list[enle_job_id]=enle_waste_mill
+        
+        return (count_validation_failed,out_list)
+
+    # in: count_validation_failed,entered_list=get_completed_data()
+    # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
+    def summarize_completed_stats(self,count_validation_failed,entered_list):
         # summarize completed data
         count_entered_times={}
         for enle_timerange in getAllTimeRanges(): 
@@ -898,64 +989,18 @@ class condorLogSummary:
             for enle_waste_mill_w_range in getAllMillRanges():
                 time_waste_mill_w[enle_waste_mill_w_range]=0 # make sure all are intialized
 
-        for enle in entered_list:
-            enle_running_time=enle[2]
-            enle_last_time=enle[3]
-            enle_difftime=self.diffTimes(enle_last_time,enle_running_time)
-
-            # get stats
-            enle_stats=enle[4]
-            enle_condor_started=0
-            enle_glidein_duration=enle_difftime # best guess
-            if enle_stats!=None:
-                enle_condor_started=enle_stats['condor_started']
-                if enle_stats.has_key('glidein_duration'):
-                    enle_glidein_duration=enle_stats['glidein_duration']
-            if not enle_condor_started:
-                count_validation_failed+=1
-                # 100% waste_mill
-                enle_waste_mill={'validation':1000,
-                                 'idle':0,
-                                 'nosuccess':0, #no jobs run, no failures
-                                 'badput':1000}
-            else:
-                #get waste_mill
-                enle_condor_duration=enle_stats['condor_duration']
-                if enle_condor_duration==None:
-                    enle_condor_duration=0 # assume failed
-
-                if enle_condor_duration>enle_glidein_duration: # can happen... Condor-G has its delays
-                    enle_glidein_duration=enle_condor_duration
-
-                # get waste numbers, in permill
-                if (enle_condor_duration<5): # very short means 100% loss
-                    enle_waste_mill={'validation':1000,
-                                     'idle':0,
-                                     'nosuccess':0, #no jobs run, no failures
-                                     'badput':1000}
-                else:
-                    if enle_stats.has_key('validation_duration'):
-                        enle_validation_duration=enle_stats['validation_duration']
-                    else:
-                        enle_validation_duration=enle_difftime-enle_condor_duration
-                    enle_condor_stats=enle_stats['stats']
-                    enle_jobs_duration=enle_condor_stats['Total']['secs']
-                    enle_waste_mill={'validation':1000.0*enle_validation_duration/enle_glidein_duration,
-                                     'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
-                    enle_goodput=enle_condor_stats['goodZ']['secs']
-                    if enle_jobs_duration>0:
-                        enle_waste_mill['nosuccess']=1000.0*(enle_jobs_duration-enle_goodput)/enle_jobs_duration
-                    else:
-                        enle_waste_mill['nosuccess']=0 #no jobs run, no failures
-                    enle_goodput+=enle_condor_stats['goodNZ']['secs']
-                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
+        for enle_job in entered_list.keys():
+            enle_waste_mill=entered_list[enle_job]
+            enle_glidein_duration=enle_waste_mill['duration']
 
             # find and save time range
-            enle_timerange=getTimeRange(enle_glidein_duration)                        
+            enle_timerange=getTimeRange(enle_glidein_duration)
             count_entered_times[enle_timerange]+=1
 
             # find and save waste range
             for w in enle_waste_mill.keys():
+                if w=="duration":
+                    continue # not a waste
                 # find and save time range
                 enle_waste_mill_w_range=getMillRange(enle_waste_mill[w])
 
@@ -993,7 +1038,8 @@ class condorLogSummary:
                     # and we can never get out of the terminal state
                     out_el['Exited'][s]=exited
                 elif s=='Completed':
-                    completed_counts=self.get_completed_stats(entered_list)
+                    count_validation_failed,completed_stats=self.get_completed_stats(entered_list)
+                    completed_counts=self.get_completed_stats(count_validation_failed,completed_stats)
                     out_el['CompletedCounts']=completed_counts
             stats_data[client_name]=out_el
         return stats_data
@@ -1053,7 +1099,8 @@ class condorLogSummary:
                 # if no current, also exited does not have sense (terminal state)
                 out_total['Exited'][k]=len(diff_total[k]['Exited'])
             elif k=='Completed':
-                completed_counts=self.get_completed_stats(diff_total[k]['Entered'])
+                count_validation_failed,completed_stats=self.get_completed_stats(diff_total[k]['Entered'])
+                completed_counts=self.get_completed_stats(count_validation_failed,completed_stats)
                 out_total['CompletedCounts']=completed_counts
 
         return out_total
@@ -1131,7 +1178,9 @@ class condorLogSummary:
                     monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
                                                "ABSOLUTE",self.updated,exited)
                 elif s=='Completed':
-                    completed_counts=self.get_completed_stats(entered_list)
+                    count_validation_failed,completed_stats=self.get_completed_stats(entered_list)
+                    monitoringConfig.logCompleted(completed_stats)
+                    completed_counts=self.get_completed_stats(count_validation_failed,completed_stats)
 
                     count_entered_times=completed_counts['Lasted']
                     count_validation_failed=completed_counts['Failed']
@@ -1861,10 +1910,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.198 2008/07/29 17:13:32 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.199 2008/07/30 15:10:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.199  2008/07/30 15:10:08  sfiligoi
+#  Add logging of completed job stats
+#
 #  Revision 1.198  2008/07/29 17:13:32  sfiligoi
 #  Fix typo
 #

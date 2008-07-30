@@ -312,6 +312,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
+    glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(log_dir,"entry_%s/log"%entry_name)
 
     cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)|(factory_info\..*)|(factory_err\..*)",
                                      7*24*3600,
@@ -387,10 +388,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.39 2008/07/09 18:15:47 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.40 2008/07/30 15:10:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.40  2008/07/30 15:10:08  sfiligoi
+#  Add logging of completed job stats
+#
 #  Revision 1.39  2008/07/09 18:15:47  sfiligoi
 #  Move pid handling into glideFactoryPidLib
 #
