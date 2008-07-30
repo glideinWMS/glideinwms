@@ -965,7 +965,7 @@ class condorLogSummary:
                                    'jobsnr':enle_nr_jobs,
                                    'wastemill':enle_waste_mill}
         
-        return (count_validation_failed,out_list)
+        return out_list
 
     # in: entered_list=get_completed_data()
     # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
@@ -1919,10 +1919,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.201 2008/07/30 16:09:37 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.202 2008/07/30 16:30:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.202  2008/07/30 16:30:25  sfiligoi
+#  Fix typo
+#
 #  Revision 1.201  2008/07/30 16:09:37  sfiligoi
 #  Add jobsnr and fix formatting
 #
