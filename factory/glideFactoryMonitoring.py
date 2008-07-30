@@ -969,7 +969,7 @@ class condorLogSummary:
 
     # in: entered_list=get_completed_data()
     # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
-    def summarize_completed_stats(self,entered_dict):
+    def summarize_completed_stats(self,entered_list):
         # summarize completed data
         count_entered_times={}
         for enle_timerange in getAllTimeRanges(): 
@@ -1919,10 +1919,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.202 2008/07/30 16:30:25 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.203 2008/07/30 16:37:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.203  2008/07/30 16:37:08  sfiligoi
+#  Fix typo
+#
 #  Revision 1.202  2008/07/30 16:30:25  sfiligoi
 #  Fix typo
 #
