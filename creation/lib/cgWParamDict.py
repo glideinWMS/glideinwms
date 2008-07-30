@@ -289,6 +289,7 @@ def add_file_unparsed(file,dicts):
 
     is_const=eval(file.const,{},{})
     is_executable=eval(file.executable,{},{})
+    is_wrapper=eval(file.wrapper,{},{})
     do_untar=eval(file.untar,{},{})
 
     file_list_idx='file_list'
@@ -303,7 +304,18 @@ def add_file_unparsed(file,dicts):
         if do_untar:
             raise RuntimeError, "A tar file cannot be executable: %s"%file
 
+        if is_wrapper:
+            raise RuntimeError, "A wrapper file cannot be executable: %s"%file
+
         dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
+    elif is_wrapper: # a sourceable script for the wrapper
+        if not is_const:
+            raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%file
+    
+        if do_untar:
+            raise RuntimeError, "A tar file cannot be a wrapper: %s"%file
+
+        dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -418,10 +430,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.46 2008/07/29 18:49:44 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.47 2008/07/30 19:49:53 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.47  2008/07/30 19:49:53  sfiligoi
+#  Add support for wrapper
+#
 #  Revision 1.46  2008/07/29 18:49:44  sfiligoi
 #  Add entry verbosity
 #
