@@ -1,7 +1,7 @@
 vNext	Better support for RESS and BDII
 	 Including automatic downtime handling
 	Global files can now be loaded after entry
-	Starting to implement the job wrapper.
+	Added support for job wrapper scripts.
 	Fix monitor locking
 	Add verbosity to entries.
 	Add a completed job log.
