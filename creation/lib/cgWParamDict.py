@@ -415,7 +415,7 @@ def populate_job_descript(job_descript_dict,        # will be modified
         job_descript_dict.add('ProxyURL',entry_params.proxy_url)
     job_descript_dict.add('Verbosity',entry_params.verbosity)
     job_descript_dict.add('DowntimesFile',entry_params.downtimes.absfname)
-    job_descript_dict.add('MaxJobs',entry_params.config.max_job)
+    job_descript_dict.add('MaxJobs',entry_params.config.max_jobs)
     job_descript_dict.add('MaxIdle',entry_params.config.max_idle)
     job_descript_dict.add('MaxHeld',entry_params.config.max_held)
 
@@ -432,10 +432,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.50 2008/08/05 18:03:51 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.51 2008/08/05 18:06:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.51  2008/08/05 18:06:55  sfiligoi
+#  Fix typo
+#
 #  Revision 1.50  2008/08/05 18:03:51  sfiligoi
 #  Add max_jobs, max_idle and max_held to the parameters
 #

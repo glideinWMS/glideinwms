@@ -180,7 +180,6 @@ class Params:
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
                       'files':([],'List of files',"Each file entry contains",self.file_defaults),
-                      'config':(xmlParse.OrderedDict(),"Dictionary of config values","Factory configuration",entry_config_defaults),
                       'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults)}
         
         
@@ -193,7 +192,7 @@ class Params:
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
         self.entry_defaults['verbosity']=('std','std|nodebug|fast',"Verbosity level and timeout setting",None)
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
-        self.entry_defaults["config"]=sub_defaults['config']
+        self.entry_defaults["config"]=entry_config_defaults
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=copy.deepcopy(sub_defaults['files'])
         del self.entry_defaults["files"][3]["after_entry"] # this is the entry, so after entry does not make sense
@@ -481,10 +480,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.30 2008/08/05 18:06:08 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.31 2008/08/05 18:10:29 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.31  2008/08/05 18:10:29  sfiligoi
+#  Fix typo
+#
 #  Revision 1.30  2008/08/05 18:06:08  sfiligoi
 #  Fix typo
 #
