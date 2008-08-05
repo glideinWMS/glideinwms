@@ -2,9 +2,12 @@ vNext	Better support for RESS and BDII
 	 Including automatic downtime handling
 	Global files can now be loaded after entry
 	Added support for job wrapper scripts.
-	Fix monitor locking
+	Fix monitor locking.
 	Add verbosity to entries.
+	Add max held/idle/running to entries and improve held handling.
 	Add a completed job log.
+	Improve signal handling (for stopping factory)
+	Made the most CPU intensive part of monitoring optional.
 
 v1_3	Factory and frontend now gets sleep and advertize attr from config.
 	Add downtime concept to the factory and relative management tool.
