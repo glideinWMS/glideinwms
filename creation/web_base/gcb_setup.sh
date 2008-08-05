@@ -23,7 +23,7 @@ function append_config {
 function check_gcb {
     vg_gcb_ip=`echo "$1" | awk -F ":" '{print $1}'`
     if [ -z "$vg_gcb_ip" ]; then
-	echo "GCB name is an empty string!"
+	echo "GCB name is an empty string!" 1>&2
 	return 1
     fi
     vg_gcb_port=`echo "$1" | awk -F ":" '{print $2}'`
@@ -32,7 +32,7 @@ function check_gcb {
     fi
 
     if [ "$vg_gcb_port" -ne "$default_gcb_port" ]; then
-	echo "Non standard port $vg_gcb_port (not $default_gcb_port) not supported!"
+	echo "Non standard port $vg_gcb_port (not $default_gcb_port) not supported!" 1>&2
 	return 2
     fi
 
@@ -44,16 +44,16 @@ function check_gcb {
 	nc -z -w 2 $vg_gcb_ip $vg_gcb_port
 	ret=$?
 	if [ $ret -ne 0 ]; then
-	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via nc"
+	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via nc" 1>&2
 	    return 3
 	fi
     fi
 
     if [ "$gcb_query_exists" -eq 1 ]; then
-	restr=`./gcb_broker_query $vg_gcb_ip freesockets`
+	restr=`$condor_dir/sbin/gcb_broker_query $vg_gcb_ip freesockets`
 	ret=$?
 	if [ $ret -ne 0 ]; then
-	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via gcb_broker_query"
+	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via gcb_broker_query" 1>&2
 	    return 4
 	fi
 	vg_free_sockets=`echo "$restr" | awk '{print $3}'`
@@ -64,12 +64,12 @@ function check_gcb {
 
     if [ -n "$gcb_min_free" ]; then
 	if [ "$vg_free_sockets" -lt "$gcb_min_free" ]; then
-	    echo "GCB $vg_gcb_ip:$vg_gcb_port has only $vg_free_sockets free, needed $gcb_min_free"
+	    echo "GCB $vg_gcb_ip:$vg_gcb_port has only $vg_free_sockets free, needed $gcb_min_free" 1>&2
 	    return 5
 	fi
     fi
 
-    echo "$vg_free_sockets $vg_gcb_ip:$vg_gcb_port"
+    echo "GCB $vg_gcb_ip:$vg_gcb_port has $vg_free_sockets free sockets" 1>&2
     return 0
 }
 
@@ -90,10 +90,24 @@ function setup_gcb {
     return 0
 }
 
+gcb_order=`grep '^GCB_ORDER ' $glidein_config | awk '{print $2}'`
+if [ -z "$gcb_order" ]; then
+    gcb_order="NONE"
+fi
+
+if [ "$gcb_order" == "NONE" ]; then
+    echo "Not using GCB"
+    exit 0
+fi
+
+condor_dir=`grep '^CONDOR_DIR ' $glidein_config | awk '{print $2}'`
+if [ -z "$condor_dir" ]; then
+    echo "No CONDOR_DIR found!" 1>&2
+    exit 1
+fi
+
 gcb_query_exists=0
-if [ -e "gcb_broker_query" ]; then
-    # may not be executable, after being transfered via wget
-    chmod u+x gcb_broker_query
+if [ -e "$condor_dir/sbin/gcb_broker_query" ]; then
     gcb_query_exists=1
 fi
 
@@ -109,11 +123,6 @@ gcb_list=`grep '^GCB_LIST ' $glidein_config | awk '{print $2}'`
 if [ -z "$gcb_list" ]; then
     echo "No GCB_LIST found!" 1>&2
     exit 1
-fi
-
-gcb_order=`grep '^GCB_ORDER ' $glidein_config | awk '{print $2}'`
-if [ -z "$gcb_order" ]; then
-    gcb_order="RANDOM"
 fi
 
 default_gcb_port=65432
