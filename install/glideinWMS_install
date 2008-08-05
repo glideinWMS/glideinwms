@@ -999,11 +999,10 @@ def gfactory_install():
             fd.write('   <attrs>\n')
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" value="%s" const="True" parameter="True" glidein_publish="True" publish="True" job_publish="True" type="string"/>\n'%(gridenv_yn=='y'))
             if len(gcb_list)>0:
-                fd.write('      <attr name="GLIDEIN_UseGCB" value="1" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="int"/>\n')
                 fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
                 fd.write('      <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
             else:
-                fd.write('      <attr name="GLIDEIN_UseGCB" value="0" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="int"/>\n')
+                fd.write('      <attr name="GLIDEIN_ORDER" value="NONE" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="string"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1033,8 +1032,6 @@ def gfactory_install():
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
             fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
-            if len(gcb_list)>0: #not needed else
-                fd.write('      <file executable="True" absfname="%s/creation/web_base/gcb_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
             fd.write('   </files>\n')
             fd.write('</glidein>\n')
         finally:
