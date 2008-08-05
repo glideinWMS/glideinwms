@@ -335,6 +335,8 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
+    glideFactoryMonitoring.monitoringConfig.want_split_terminated_graphs=eval(glideinDescript.data['WantSplitTermMonitorGraphs'],{},{})
+
     # create lock file
     fd=glideFactoryPidLib.register_entry_pid(startup_dir,entry_name,parent_pid)
     
@@ -387,9 +389,12 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
 #
 ############################################################
 
+def termsignal(signr,frame):
+    raise KeyboardInterrupt, "Received signal %s"%signr
+
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
-    signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
+    signal.signal(signal.SIGTERM,termsignal)
+    signal.signal(signal.SIGQUIT,termsignal)
     main(sys.argv[1],int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],sys.argv[5])
  
 
@@ -397,10 +402,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.44 2008/08/05 20:16:39 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.45 2008/08/05 21:20:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.45  2008/08/05 21:20:16  sfiligoi
+#  Improve signal handling
+#
 #  Revision 1.44  2008/08/05 20:16:39  sfiligoi
 #  Fix typo
 #

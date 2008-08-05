@@ -154,6 +154,7 @@ def main(startup_dir):
 
     sleep_time=int(glideinDescript.data['LoopDelay'])
     advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.want_split_terminated_graphs=eval(glideinDescript.data['WantSplitTermMonitorGraphs'],{},{})
     
     entries=string.split(glideinDescript.data['Entries'],',')
     entries.sort()
@@ -182,7 +183,13 @@ def main(startup_dir):
 #
 ############################################################
 
+def termsignal(signr,frame):
+    raise KeyboardInterrupt, "Received signal %s"%signr
+
 if __name__ == '__main__':
+    signal.signal(signal.SIGTERM,termsignal)
+    signal.signal(signal.SIGQUIT,termsignal)
+
     # check that the GSI environment is properly set
     if not os.environ.has_key('X509_USER_PROXY'):
         raise RuntimeError, "Need X509_USER_PROXY to work!"
@@ -196,10 +203,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.70 2008/07/09 18:19:08 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.71 2008/08/05 21:20:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.71  2008/08/05 21:20:16  sfiligoi
+#  Improve signal handling
+#
 #  Revision 1.70  2008/07/09 18:19:08  sfiligoi
 #  Enforce integrity
 #
