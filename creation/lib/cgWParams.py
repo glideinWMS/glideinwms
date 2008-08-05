@@ -172,10 +172,17 @@ class Params:
 
         downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
 
+        entry_config_defaults=xmlParse.OrderedDict()
+        entry_config_defaults["max_jobs"]=('10000',"nr","Maximum number of concurrent glideins that can be submitted.",None)
+        entry_config_defaults["max_idle"]=('2000',"nr","Maximum number of idle glideins allowed.",None)
+        entry_config_defaults["max_held"]=('1000',"nr","Maximum number of held glideins before forcing the cleanup.",None)
+
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
                       'files':([],'List of files',"Each file entry contains",self.file_defaults),
+                      'config':(xmlParse.OrderedDict(),"Factory configuration",entry_config_defaults),
                       'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults)}
+        
         
         self.entry_defaults=xmlParse.OrderedDict()
         self.entry_defaults["gatekeeper"]=(None,'gatekeeper', 'Grid gatekeeper/resource',None)
@@ -186,7 +193,7 @@ class Params:
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
         self.entry_defaults['verbosity']=('std','std|nodebug|fast',"Verbosity level and timeout setting",None)
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
-        self.entry_defaults["max_jobs"]=('10000',"nr","Maximum number of concurrent glideins that can be submitted.",None)
+        self.entry_defaults["config"]=
         self.entry_defaults["max_idle"]=('2000',"nr","Maximum number of idle glideins allowed.",None)
         self.entry_defaults["max_held"]=('1000',"nr","Maximum number of held glideins before forcing the cleanup.",None)
         self.entry_defaults["attrs"]=sub_defaults['attrs']
@@ -476,10 +483,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.27 2008/08/05 17:59:06 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.28 2008/08/05 18:03:51 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.28  2008/08/05 18:03:51  sfiligoi
+#  Add max_jobs, max_idle and max_held to the parameters
+#
 #  Revision 1.27  2008/08/05 17:59:06  sfiligoi
 #  Add max_jobs, max_idle and max_held to the parameters
 #
