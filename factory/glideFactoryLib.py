@@ -45,18 +45,20 @@ class FactoryConfig:
 
 
         # Stale value settings, in seconds
-        self.stale_maxage={ 1:6*3600,         # 6 hours for idle
+        self.stale_maxage={ 1:7*24*3600,      # 1 week for idle
                             2:31*24*3600,     # 1 month for running
                            -1:2*3600}         # 2 hours for unclaimed (using special value -1 for this)
 
         # Sleep times between commands
-        self.submit_sleep = 1.0
-        self.remove_sleep = 1.0
+        self.submit_sleep = 0.2
+        self.remove_sleep = 0.2
+        self.release_sleep = 0.2
 
         # Max commands per cycle
         self.max_submits = 100
         self.max_cluster_size=10
         self.max_removes = 5
+        self.max_releases = 20
 
         # submit file name
         self.submit_file = "job.condor"
@@ -196,7 +198,7 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,submit_attrs,params):
+def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,params):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -208,14 +210,14 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,submit_attrs,params):
     #   Held==JobStatus(5)
     if qc_status.has_key(5):
         held_glideins=qc_status[5]
-        if held_glideins>1000:
+        if held_glideins>max_held:
             return 0 # too many held glideins, stop submitting new jobs
 
     #   Idle==Jobstatus(1)
     sum_idle_count(qc_status)
     idle_glideins=qc_status[1]
 
-    #   Idle==Jobstatus(2)
+    #   Running==Jobstatus(2)
     if qc_status.has_key(2):
         running_glideins=qc_status[2]
     else:
@@ -223,7 +225,7 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,submit_attrs,params):
 
     if ((idle_glideins<min_nr_idle) and
         ((max_nr_running==None) or  #no max
-         (running_glideins<max_nr_running))):
+         ((running_glideins+idle_glideins)<max_nr_running))):
         stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
@@ -284,6 +286,23 @@ def sanitizeGlideins(condorq,status):
     # However, it needs some sort of history to account for
     # temporary network outages
     #
+
+    return
+
+def sanitizeGlideinsSimple(condorq):
+    global factoryConfig
+
+    # Check if some glideins have been in idle state for too long
+    stale_list=extractStale(condorq,status)
+    if len(stale_list)>0:
+        factoryConfig.logWarning("Found %i stale glideins"%len(stale_list))
+        removeGlideins(condorq.schedd_name,stale_list)
+
+    # Check if there are held glideins
+    held_list=extractHeldSimple(condorq)
+    if len(held_list)>0:
+        factoryConfig.logWarning("Found %i held glideins"%len(held_list))
+        releaseGlideins(condorq.schedd_name,held_list)
 
     return
 
@@ -420,6 +439,14 @@ def extractStale(q,status):
 
     return diffList(qstale_list,sstale_list)
 
+def extractStaleSimple(q):
+    # first find out the stale idle jids
+    #  hash: (Idle==1, Stale==1)
+    qstale=q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
+    qstale_list=qstale.keys()
+    
+    return qstale_list
+
 def extractHeld(q,status):
     # first find out the stale idle jids
     #  Held==5
@@ -430,6 +457,12 @@ def extractHeld(q,status):
     sheld_list=extractRegistered(q,status,qheld_list)
 
     return diffList(qheld_list,sheld_list)
+
+def extractHeldSimple(q):
+    #  Held==5
+    qheld=q.fetchStored(lambda el:el["JobStatus"]==5)
+    qheld_list=qheld.keys()
+    return qheld_list
 
 def extractRunStale(q):
     # first find out the stale running jids
@@ -589,15 +622,41 @@ def removeGlideins(schedd_name,jid_list):
             break # limit reached, stop
     factoryConfig.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
 
+# release the glideins in the list
+def releaseGlideins(schedd_name,jid_list):
+    global factoryConfig
+
+    released_jids=[]
+    
+    schedd_str=schedd_name2str(schedd_name)
+    is_not_first=0
+    for jid in jid_list:
+        if is_not_first:
+            is_not_first=1
+            time.sleep(factoryConfig.release_sleep)
+        try:
+            condorExe.exe_cmd("condor_release","%s %li.%li"%(schedd_str,jid[0],jid[1]))
+            released_jids.append(jid)
+        except condorExe.ExeError, e:
+            factoryConfig.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            pass # silently ignore errors, and try next one
+
+        if len(released_jids)>=factoryConfig.max_releases:
+            break # limit reached, stop
+    factoryConfig.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
+
 
 ###########################################################
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.29 2008/07/29 18:53:24 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.30 2008/08/05 19:53:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.30  2008/08/05 19:53:14  sfiligoi
+#  Add support for entry max_jobs, max_idle and max_held
+#
 #  Revision 1.29  2008/07/29 18:53:24  sfiligoi
 #  Verbosity in not passed as an argument anymore
 #

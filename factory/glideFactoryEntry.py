@@ -52,7 +52,7 @@ def check_parent(parent_pid):
 def perform_work(factory_name,glidein_name,entry_name,
                  schedd_name,
                  client_name,client_int_name,client_int_req,
-                 idle_glideins,max_running,
+                 idle_glideins,max_running,max_held,
                  jobDescript,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
@@ -113,6 +113,10 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     #glideFactoryLib.factoryConfig.activity_log.write("Perform work")
     schedd_name=jobDescript.data['Schedd']
 
+    factory_max_running=int(glideinDescript.data['MaxJobs'])
+    factory_max_idle=int(glideinDescript.data['MaxIdle'])
+    factory_max_held=int(glideinDescript.data['MaxHeld'])
+
     done_something=0
     for work_key in work.keys():
         # merge work and default params
@@ -132,10 +136,15 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
 
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
+            if idle_glideins>factory_max_idle:
+                idle_glideins=factory_max_idle
+            
             if work[work_key]['requests'].has_key('MaxRunningGlideins'):
                 max_running=work[work_key]['requests']['MaxRunningGlideins']
+                if max_running>factory_max_running:
+                    max_running=factory_max_running
             else:
-                max_running=None
+                max_running=factory_max_running
 
             if in_downtime:
                 # we are in downtime... no new submissions
@@ -144,7 +153,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
-                                         idle_glideins,max_running,
+                                         idle_glideins,max_running,factory_max_held,
                                          jobDescript,params)
         #else, it is malformed and should be skipped
 
@@ -388,10 +397,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.41 2008/07/30 15:18:30 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.42 2008/08/05 19:53:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.42  2008/08/05 19:53:14  sfiligoi
+#  Add support for entry max_jobs, max_idle and max_held
+#
 #  Revision 1.41  2008/07/30 15:18:30  sfiligoi
 #  Fix typo
 #
