@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080730;17053300">
+	<META NAME="CHANGED" CONTENT="20080805;17540900">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
@@ -410,22 +411,21 @@ to the <B>shadow configuration file</B>
 	<A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</A>.
 	Here you will find only the parameters needed to enable it in the
 	glideins.<BR><BR>To use Condor with GCB, you need to specify:</DT><DD><P>
-	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
-	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file
-	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>web_base/gcb_setup.sh</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">/&gt;<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&lt;</FONT><FONT FACE="monospace"><B>attr name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_LIST</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>IP[:PORT],IP[:PORT],...</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>&nbsp;
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_ORDER</B></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I><B>RANDOM</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>GCBLOAD</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>ROUNDROBIN</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>SEQUENTIAL</B></I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I><B>NONE|RANDOM</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>GCBLOAD</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>ROUNDROBIN</B></I></FONT><FONT FACE="monospace"><I>|</I></FONT><FONT FACE="monospace"><I><B>SEQUENTIAL</B></I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></P></DD></DL>
 <P>
 where:</P>
 <UL>
+	<LI><FONT FACE="monospace">NONE</FONT><BR>Do not use GCB (a good way
+	to selectively disable it) 
 	<LI><FONT FACE="monospace">RANDOM</FONT><BR>Randomly distributes
 	between the listed GCBs 
 	<LI><FONT FACE="monospace">ROUNDROBIN</FONT> (or <FONT FACE="monospace">RR</FONT>)<BR>Round
@@ -442,14 +442,10 @@ where:</P>
 <DL>
 	<DT>If your GCBs support <FONT FACE="monospace">freesockets</FONT>
 	queries (v6.9.1 and above), you most probably want to protect your
-	glideins from failing due to an overloaded GCB. To do that, you need
-	to transfer the <FONT FACE="monospace">gcb_broker_query</FONT>
-	binary to the worker nodes:</DT><DD>
-	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>file
-	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>path
-	to gcb_broker_query</I></FONT><FONT FACE="monospace">&quot;/&gt;</FONT>
-		</DD><DT>
-	and decide what is the minimum number of free sockets you are
+	glideins from failing due to an overloaded GCB. To do that, 
+	<FONT FACE="monospace">gcb_broker_query</FONT> binary needs to be
+	part of the Condor distribution you are using. You also need to
+	decide what is the minimum number of free sockets you are
 	comfortable with:</DT><DD>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attr
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GCB_MIN_FREE</B></FONT><FONT FACE="monospace">&quot;
@@ -641,11 +637,11 @@ the following options:</FONT></P>
 	<P><FONT FACE="monospace">It is scripts task to parse out those
 	values; a bash example would be:</FONT></P>
 	<P><FONT FACE="monospace">myval=`awk $1 '/^MYVAR /{print $2}'`</FONT><LI><P>
-	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
-	&nbsp;&lt;<B>file absfname</B>=&quot;<I>script name</I>&quot;
-	<B>wrapper</B>=&quot;<B>True</B>&quot;/&gt;<BR>Path to the wrapper
-	custom script.<BR><BR>The script will be copied in the
-	Web-accessible area, and will be sourced just before a user job
+	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>script
+	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>wrapper</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>Path
+	to the wrapper custom script.<BR><BR>The script will be copied in
+	the Web-accessible area, and will be sourced just before a user job
 	starts starts; i.e. it will become part of the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_3Configuration.html#14376">user
 	job wrapper</A>.</FONT></P>
 	<LI><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
