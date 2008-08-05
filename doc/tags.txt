@@ -3,6 +3,8 @@ vNext	Better support for RESS and BDII
 	Global files can now be loaded after entry
 	Added support for job wrapper scripts.
 	Fix monitor locking.
+	gcb_setup now supports ORDER=NONE.
+	gcb_setup is now loaded automatically.
 	Add verbosity to entries.
 	Add max held/idle/running to entries and improve held handling.
 	Add a completed job log.
