@@ -193,9 +193,7 @@ class Params:
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
         self.entry_defaults['verbosity']=('std','std|nodebug|fast',"Verbosity level and timeout setting",None)
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
-        self.entry_defaults["config"]=
-        self.entry_defaults["max_idle"]=('2000',"nr","Maximum number of idle glideins allowed.",None)
-        self.entry_defaults["max_held"]=('1000',"nr","Maximum number of held glideins before forcing the cleanup.",None)
+        self.entry_defaults["config"]=sub_defaults['config']
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=copy.deepcopy(sub_defaults['files'])
         del self.entry_defaults["files"][3]["after_entry"] # this is the entry, so after entry does not make sense
@@ -483,10 +481,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.28 2008/08/05 18:03:51 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.29 2008/08/05 18:05:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.29  2008/08/05 18:05:14  sfiligoi
+#  Fix typo
+#
 #  Revision 1.28  2008/08/05 18:03:51  sfiligoi
 #  Add max_jobs, max_idle and max_held to the parameters
 #
