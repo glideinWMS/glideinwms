@@ -90,7 +90,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
         # add additional system scripts
-        for script_name in ('collector_setup.sh',):
+        for script_name in ('collector_setup.sh','gcb_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
@@ -437,10 +437,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.53 2008/08/05 22:00:33 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.54 2008/08/05 22:19:03 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.54  2008/08/05 22:19:03  sfiligoi
+#  Load gcb_setup.sh by default... disable by using GCB_ORDER=NONE (or not defining it at all)
+#
 #  Revision 1.53  2008/08/05 22:00:33  sfiligoi
 #  Always load collector_setup.sh
 #
