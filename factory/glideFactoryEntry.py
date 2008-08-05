@@ -84,7 +84,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,submit_attrs,params)
+    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
@@ -397,10 +397,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.43 2008/08/05 20:14:41 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.44 2008/08/05 20:16:39 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.44  2008/08/05 20:16:39  sfiligoi
+#  Fix typo
+#
 #  Revision 1.43  2008/08/05 20:14:41  sfiligoi
 #  Fix typo
 #
