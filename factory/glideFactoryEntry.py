@@ -113,9 +113,9 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     #glideFactoryLib.factoryConfig.activity_log.write("Perform work")
     schedd_name=jobDescript.data['Schedd']
 
-    factory_max_running=int(glideinDescript.data['MaxJobs'])
-    factory_max_idle=int(glideinDescript.data['MaxIdle'])
-    factory_max_held=int(glideinDescript.data['MaxHeld'])
+    factory_max_running=int(jobDescript.data['MaxJobs'])
+    factory_max_idle=int(jobDescript.data['MaxIdle'])
+    factory_max_held=int(jobDescript.data['MaxHeld'])
 
     done_something=0
     for work_key in work.keys():
@@ -397,10 +397,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.42 2008/08/05 19:53:14 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.43 2008/08/05 20:14:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.43  2008/08/05 20:14:41  sfiligoi
+#  Fix typo
+#
 #  Revision 1.42  2008/08/05 19:53:14  sfiligoi
 #  Add support for entry max_jobs, max_idle and max_held
 #
