@@ -76,6 +76,8 @@ class MonitoringConfig:
         self.monitor_dir="monitor/"
         self.log_dir="log/"
 
+        self.want_split_terminated_graphs=True
+
         try:
             import rrdtool
             self.rrd_obj=rrdtool
@@ -1599,8 +1601,9 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                                         "total/Split_Log50_%s_Diff"%s,
                                         "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
 
-    # create the completed split graphs
-    for t in ("Lasted",
+    if monitoringConfig.want_split_terminated_graphs:
+        # create the completed split graphs
+        for t in ("Lasted",
               "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
               "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
             if t=="Lasted":
@@ -1721,30 +1724,31 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
                                     fd.write('<td>%s</td>'%img2html("%s_Completed_Entered_%s_%s.%s.%s.png"%(l,w,s,period,size)))
                             fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        
-                        fd.write("<p>\n<h2>Terminated glideins by %s</h2>\n"%subdir_label)
 
-                        for s in ('Entered_Lasted',):
-                            fd.write("<p><table>\n")
-                            range_groups_keys=time_range_groups_keys
-                            for r in range_groups_keys:
-                                fd.write('<tr valign="top">')
-                                for l in ('Log','Log50'):
-                                    fd.write('<td>%s</td><td></td>'%img2html("Split_%s_Completed_%s_%s.%s.%s.png"%(l,s,r,period,size)))
-                                fd.write('</tr>\n')                        
-                            fd.write("</table>\n</p>\n")
+                        if monitoringConfig.want_split_terminated_graphs:                        
+                            fd.write("<p>\n<h2>Terminated glideins by %s</h2>\n"%subdir_label)
 
-                        for s in ('validation','idle',
-                                  'nosuccess','badput'):
-                            fd.write("<p><table>\n")
-                            range_groups_keys=mill_range_groups_keys
-                            for r in range_groups_keys:
-                                fd.write('<tr valign="top">')
-                                for l in ('Log','Log50'):
-                                    for w in ('Waste','WasteTime'):
-                                        fd.write('<td>%s</td>'%img2html("Split_%s_Completed_Entered_%s_%s_%s.%s.%s.png"%(l,w,s,r,period,size)))
-                                fd.write('</tr>\n')                        
-                            fd.write("</table>\n</p>\n")
+                            for s in ('Entered_Lasted',):
+                                fd.write("<p><table>\n")
+                                range_groups_keys=time_range_groups_keys
+                                for r in range_groups_keys:
+                                    fd.write('<tr valign="top">')
+                                    for l in ('Log','Log50'):
+                                        fd.write('<td>%s</td><td></td>'%img2html("Split_%s_Completed_%s_%s.%s.%s.png"%(l,s,r,period,size)))
+                                    fd.write('</tr>\n')                        
+                                fd.write("</table>\n</p>\n")
+
+                            for s in ('validation','idle',
+                                      'nosuccess','badput'):
+                                fd.write("<p><table>\n")
+                                range_groups_keys=mill_range_groups_keys
+                                for r in range_groups_keys:
+                                    fd.write('<tr valign="top">')
+                                    for l in ('Log','Log50'):
+                                        for w in ('Waste','WasteTime'):
+                                            fd.write('<td>%s</td>'%img2html("Split_%s_Completed_Entered_%s_%s_%s.%s.%s.png"%(l,w,s,r,period,size)))
+                                    fd.write('</tr>\n')                        
+                                fd.write("</table>\n</p>\n")
 
                         fd.write("<p>\n<table><tr valign='top'>\n")
                         fd.write("<td>\n")
@@ -1919,10 +1923,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.203 2008/07/30 16:37:08 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.204 2008/08/05 20:48:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.204  2008/08/05 20:48:25  sfiligoi
+#  Add want_split_terminated_graphsa
+#
 #  Revision 1.203  2008/07/30 16:37:08  sfiligoi
 #  Fix typo
 #
