@@ -213,7 +213,12 @@ class Params:
         stage_defaults["web_base_url"]=("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL',None)
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
         self.defaults["stage"]=stage_defaults
-        self.defaults["monitor"]=xmlParse.OrderedDict({"base_dir":("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)})
+
+        monitor_default=xmlParse.OrderedDict()
+        monitor_default["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)
+        monitor_default["want_split_terminated_graphs"]=("True","Bool","Should create split terminated log graphs (CPU intensive)?",None)
+        
+        self.defaults["monitor"]=monitor_default
         
         condor_defaults=xmlParse.OrderedDict()
         condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
@@ -480,10 +485,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.32 2008/08/05 18:47:16 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.33 2008/08/05 20:38:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.33  2008/08/05 20:38:55  sfiligoi
+#  Add WantSplitTermMonitorGraphs
+#
 #  Revision 1.32  2008/08/05 18:47:16  sfiligoi
 #  Improve comments
 #

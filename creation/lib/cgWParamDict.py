@@ -107,6 +107,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('DowntimesFile',params.downtimes.absfname)
+        glidein_dict.add('WantSplitTermMonitorGraphs',str(bool(eval(params.monitor.want_split_terminated_graphs,{},{}))))
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -432,10 +433,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.51 2008/08/05 18:06:55 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.52 2008/08/05 20:38:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.52  2008/08/05 20:38:55  sfiligoi
+#  Add WantSplitTermMonitorGraphs
+#
 #  Revision 1.51  2008/08/05 18:06:55  sfiligoi
 #  Fix typo
 #
