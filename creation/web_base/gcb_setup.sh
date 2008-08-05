@@ -69,7 +69,7 @@ function check_gcb {
 	fi
     fi
 
-    echo "GCB $vg_gcb_ip:$vg_gcb_port has $vg_free_sockets free sockets" 1>&2
+    echo "$vg_free_sockets $vg_gcb_ip:$vg_gcb_port"
     return 0
 }
 
@@ -190,6 +190,7 @@ for gcb in $gcb_els; do
     ret=$?
     if [ "$ret" -eq 0 ]; then
 	setup_gcb `echo "$msg" |awk '{print $2}'`
+	echo GCB `echo "$msg" |awk '{print $2}'` has `echo "$msg" |awk '{print $1}'` "free sockets"
 	gcb_configured=1
 	break
     else
