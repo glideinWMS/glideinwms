@@ -180,7 +180,7 @@ class Params:
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
                       'files':([],'List of files',"Each file entry contains",self.file_defaults),
-                      'config':(xmlParse.OrderedDict(),"Factory configuration",entry_config_defaults),
+                      'config':(xmlParse.OrderedDict(),"Dictionary of config values","Factory configuration",entry_config_defaults),
                       'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults)}
         
         
@@ -481,10 +481,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.29 2008/08/05 18:05:14 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.30 2008/08/05 18:06:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.30  2008/08/05 18:06:08  sfiligoi
+#  Fix typo
+#
 #  Revision 1.29  2008/08/05 18:05:14  sfiligoi
 #  Fix typo
 #
