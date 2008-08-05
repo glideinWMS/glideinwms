@@ -173,9 +173,9 @@ class Params:
         downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
 
         entry_config_defaults=xmlParse.OrderedDict()
-        entry_config_defaults["max_jobs"]=('10000',"nr","Maximum number of concurrent glideins that can be submitted.",None)
-        entry_config_defaults["max_idle"]=('2000',"nr","Maximum number of idle glideins allowed.",None)
-        entry_config_defaults["max_held"]=('1000',"nr","Maximum number of held glideins before forcing the cleanup.",None)
+        entry_config_defaults["max_jobs"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
+        entry_config_defaults["max_idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
+        entry_config_defaults["max_held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
@@ -480,10 +480,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.31 2008/08/05 18:10:29 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.32 2008/08/05 18:47:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.32  2008/08/05 18:47:16  sfiligoi
+#  Improve comments
+#
 #  Revision 1.31  2008/08/05 18:10:29  sfiligoi
 #  Fix typo
 #
