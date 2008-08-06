@@ -1,778 +1,377 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
-<html>
-<head>
-
-
-  
-  <meta content="text/html; charset=ISO-8859-1" http-equiv="content-type">
-
-  
-  <title>Glidein based WMS</title>
-</head>
-
-
-<body>
-
-
-<h1>Glidein based WMS</h1>
-
-
-<h2>Description</h2>
-
-
-The glideinWMS package holds the Condor glidein based Workload
-Management System (WMS).<br>
-
-
-<h2>Index</h2>
-
-
-<ul>
-
-
-  <li><a href="#glideins">The glidein mechanism</a></li>
-
-
-  <li><a href="#overview">WMS overview</a></li>
-
-
-  
-  <ul>
-
-
-    <li><a href="factory/index.html">Glidein Factory</a></li>
-
-
-  
-  </ul>
-
-
-  
-  <ul>
-
-
-    <li><a href="frontend/index.html">VO
-Frontend</a></li>
-
-
-  
-  </ul>
-
-
-  <li><a href="#classads">Data Exchange overview</a></li>
-
-
-  
-  <ul>
-
-
-    <li><a href="#factory_classads">The Glidein
-Factory Class-Ad</a></li>
-
-
-    <li><a href="#frontend_classads">The VO Frontend
-Class-Ad</a></li>
-
-
-  
-  </ul>
-
-
-  <li><a href="#implementation">Implementation
-details</a></li>
-
-
-  
-  <ul>
-
-
-    <li><a href="factory/index.html#implementation">Glidein
-Factory</a></li>
-    <ul>
-      <li><a href="factory/index.html#create_entry">Configuration</a></li>
-    </ul>
-
-
-    <li><a href="frontend/index.html#implementation">VO
-Frontend</a></li>
-
-
-  
-  </ul>
-
-
-  <li><a href="#condor">The Condor Pool</a></li>
-
-
-  
-  <ul>
-
-
-    <li><a href="#pool_WMS">The WMS pool</a></li>
-
-
-    <li><a href="#pool_glidein">The glidein (user) pool</a></li>
-
-
-  
-  </ul>
-
-
-  <li><a href="#monitoring">Monitoring</a>
-   <ul>
-    <li><a href="#condormon">Standard condor monitoring</a></li>
-    <li><a href="#intmon">Pseudo interactive monitoring</a></li>
-    <li><a href="#gfwebmon">Glidein Factory Web monitoring</a></li>
-    <li><a href="#textmon">glideinWMS text monitoring</a></li>
-    </ul>
-  </li>
-  <li><a href="#ref">Reference</a></li>
-
-
-</ul>
-
-
-<h2><a name="glideins"></a>The glidein
-mechanism</h2>
-
-
-As the title says, this WMS is based on glideins. But what are <span style="font-style: italic; font-weight: bold;">the glideins</span>?<br>
-
-
-<br>
-
-
-A glidein is, simply put, a properly configured <a href="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
-Startd</a> submitted as a Grid job. <br>
-
-
-Once the glidein starts on a worker node, it will join the the
-specified Condor pool, making the obtained Grid-batch slot a slot in
-the Condor pool. At this point, a regular Condor job can start there as
-if was a dedicated resource. See the picture below for a schematic
-overview.<br>
-
-
-<img src="glideins.png"><br>
-
-
-Condor glideins are a convenient way to expand a Condor pool. Apart
-from the task of submitting new glideins as needed, everything
-else&nbsp;stays the same as in a dedicated pool.<br>
-
-
-<h2><a name="overview"></a>WMS Overview</h2>
-
-
-The glidein based WMS is made of two pieces:<br>
-
-
-<ul>
-
-
-  <li>One or more glidein factories</li>
-
-
-  <li>One or more VO frontends</li>
-
-
-</ul>
-
-
-The two pieces perform each a part of the job:<br>
-
-
-<ul>
-
-
-  <li>The glidein factories are the one that know about available
-Grid sites and know how to submit glideins to them.&nbsp;</li>
-
-
-  <li>The VO frontends are the ones that know about the VO job
-specifics and know how many and what kind of glideins are needed. </li>
-
-
-</ul>
-
-
-The two pieces communicate via a common Condor Collector; see the image
-below for a schematic view.<br>
-
-
-<img src="overview.png"><br>
-
-
-A single WMS (identified by the Condor Collector) can serve multiple
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Glidein based WMS</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20080806;13091300">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Glidein based WMS</H1>
+<H2>Description</H2>
+<P>The glideinWMS package holds the Condor glidein based Workload
+Management System (WMS).</P>
+<H2>Index</H2>
+<UL>
+	<LI><A HREF="#glideins">The glidein mechanism</A> 
+	<LI><A HREF="#overview">WMS overview</A> 
+	<UL>
+		<LI><A HREF="factory/index.html">Glidein Factory</A> 
+		<LI><A HREF="frontend/index.html">VO Frontend</A> 
+	</UL>
+	<LI><A HREF="#classads">Data Exchange overview</A> 
+	<UL>
+		<LI><A HREF="#factory_classads">The Glidein Factory Class-Ad</A> 
+		<LI><A HREF="#frontend_classads">The VO Frontend Class-Ad</A> 
+	</UL>
+	<LI><A HREF="#implementation">Implementation details</A> 
+	<UL>
+		<LI><A HREF="factory/index.html#implementation">Glidein Factory</A>
+		
+		<UL>
+			<LI><A HREF="factory/index.html#create_entry">Configuration</A> 
+		</UL>
+		<LI><A HREF="frontend/index.html#implementation">VO Frontend</A> 
+	</UL>
+	<LI><A HREF="#condor">The Condor Pool</A> 
+	<UL>
+		<LI><A HREF="#pool_WMS">The WMS pool</A> 
+		<LI><A HREF="#pool_glidein">The glidein (user) pool</A> 
+	</UL>
+	<LI><A HREF="#monitoring">Monitoring</A> 
+	<UL>
+		<LI><A HREF="#condormon">Standard condor monitoring</A> 
+		<LI><A HREF="#intmon">Pseudo interactive monitoring</A> 
+		<LI><A HREF="#gfwebmon">Glidein Factory Web monitoring</A> 
+		<LI><A HREF="#textmon">glideinWMS text monitoring</A> 
+	</UL>
+	<LI><P><A HREF="#ref">Reference</A> 
+	</P>
+</UL>
+<H2><A NAME="glideins"></A>The glidein mechanism</H2>
+<P>As the title says, this WMS is based on glideins. But what are <I><B>the
+glideins</B></I>?<BR><BR>A glidein is, simply put, a properly
+configured <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+Startd</A> submitted as a Grid job. <BR>Once the glidein starts on a
+worker node, it will join the the specified Condor pool, making the
+obtained Grid-batch slot a slot in the Condor pool. At this point, a
+regular Condor job can start there as if was a dedicated resource.
+See the picture below for a schematic overview.<BR><IMG SRC="glideins.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=723 HEIGHT=237 BORDER=0><BR>Condor
+glideins are a convenient way to expand a Condor pool. Apart from the
+task of submitting new glideins as needed, everything else&nbsp;stays
+the same as in a dedicated pool.</P>
+<H2><A NAME="overview"></A>WMS Overview</H2>
+<P>The glidein based WMS is made of two pieces:</P>
+<UL>
+	<LI>One or more glidein factories 
+	<LI><P>One or more VO frontends 
+	</P>
+</UL>
+<P>The two pieces perform each a part of the job:</P>
+<UL>
+	<LI>The glidein factories are the one that know about available Grid
+	sites and know how to submit glideins to them.&nbsp; 
+	<LI><P>The VO frontends are the ones that know about the VO job
+	specifics and know how many and what kind of glideins are needed. 
+	</P>
+</UL>
+<P>The two pieces communicate via a common Condor Collector; see the
+image below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=642 HEIGHT=490 BORDER=0><BR>A
+single WMS (identified by the Condor Collector) can serve multiple
 frontends via multiple factories. It is a truly many-to-many system.
 However, the current implementation does not support prioritization
 between different frontends, so it is best to have only one frontend;
-multiple factories will instead work as desired.<br>
-
-
-<br>
-
-
-More details can be found<br>
-
-
-<ul>
-
-
-  <li>on the <a href="factory/index.html">Glidein
-Factory page</a>, and</li>
-
-
-  <li>on the <a href="frontend/index.html">VO
-Frontend page</a>.</li>
-
-
-</ul>
-
-
-<h2><a name="classads"></a>Data exchange
-overview</h2>
-
-
-In the previous section we described the general architecture of the
-WMS. Let now have a look at the type of information that the two pieces
-publish.<br>
-
-
-<h3><a name="factory_classads"></a>The
-Glidein&nbsp;Factory Class-Ad</h3>
-
-
-A&nbsp;factory publishes one class-ad per glidein kind. The
-class-ad contains <br>
-
-
-<ul>
-
-
-  <li>the name of the glidein (and&nbsp;the
-factory),&nbsp;</li>
-
-
-  <li>the attributes that describe the glidein, and&nbsp;</li>
-
-
-  <li>the list of parameters that the glidein accepts. All the
-parameters&nbsp;have also default values associated with them, in
-case a frontend does not redefine them.&nbsp;</li>
-
-
-  <li>Plus a list of monitoring values (like how many glideins
-are already in the queues, etc.)</li>
-
-
-</ul>
-
-
-Look at the picture below for a generic description.<br>
-
-
-<br>
-
-
-<img src="factory_publish.png"><br>
-
-
-<br>
-
-
-Please notice that the glidein attributes can be completely arbitrary;
-the only predefined attributes are the glidein and factory name, plus
-the convention that anything that starts with <span style="font-family: monospace; font-weight: bold;">GlideinParam</span>
-is a parameter and anything that starts with <span style="font-family: monospace; font-weight: bold;">GlideinMonitor</span>
-is a monitoring attribute.<br>
-
-
-<br>
-
-
-Once the&nbsp;factory starts serving frontends, it will publish
-also another ClassAd for every frontend served. This ClassAd contains
-only monitoring information, and is not used by the glideinWMS itself.<br>
-
-
-Find below a graphical representation of these ClassAds.<br>
-
-
-<img src="factory_client_publish.png"><br>
-
-
-<h3><a name="frontend_classads"></a>The VO
-Frontend Class-Ad</h3>
-
-
-A VO frontend will obtain the list all available glideins and select
-the ones that fit its needs, based on the published attributes. For
-each fitting glidein, a frontend class-ad will be published. Such a
-class-ad will contain <br>
-
-
-<ul>
-
-
-  <li>the name of the frontend and a request ID,&nbsp;</li>
-
-
-  <li>the desired glidein name,&nbsp;</li>
-
-
-  <li>the rate of glidein submissions, and</li>
-
-
-  <li>the glidein parameters.</li>
-
-
-  <li>Plus a list of monitoring values (like how many jobs are
-currently running, etc.)</li>
-
-
-</ul>
-
-
-Have a look at the picture below for a generic description.<br>
-
-
-<img src="frontend_publish.png"><br>
-
-
-In the current implementation, the only glidein rate setting parameter
-supported is <span style="font-family: monospace; font-weight: bold;">ReqIdleGlideins</span>,
+multiple factories will instead work as desired.<BR><BR>More details
+can be found</P>
+<UL>
+	<LI>on the <A HREF="factory/index.html">Glidein Factory page</A>,
+	and 
+	<LI><P>on the <A HREF="frontend/index.html">VO Frontend page</A>. 
+	</P>
+</UL>
+<H2><A NAME="classads"></A>Data exchange overview</H2>
+<P>In the previous section we described the general architecture of
+the WMS. Let now have a look at the type of information that the two
+pieces publish.</P>
+<H3><A NAME="factory_classads"></A>The Glidein&nbsp;Factory Class-Ad</H3>
+<P>A&nbsp;factory publishes one class-ad per glidein kind. The
+class-ad contains 
+</P>
+<UL>
+	<LI>the name of the glidein (and&nbsp;the factory),&nbsp; 
+	<LI>the attributes that describe the glidein, and&nbsp; 
+	<LI>the list of parameters that the glidein accepts. All the
+	parameters&nbsp;have also default values associated with them, in
+	case a frontend does not redefine them.&nbsp; 
+	<LI><P>Plus a list of monitoring values (like how many glideins are
+	already in the queues, etc.) 
+	</P>
+</UL>
+<P>Look at the picture below for a generic description.<BR><BR><IMG SRC="factory_publish.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=899 HEIGHT=683 BORDER=0><BR><BR>Please
+notice that the glidein attributes can be completely arbitrary; the
+only predefined attributes are the glidein and factory name, plus the
+convention that anything that starts with <FONT FACE="monospace"><B>GlideinParam</B></FONT>
+is a parameter and anything that starts with <FONT FACE="monospace"><B>GlideinMonitor</B></FONT>
+is a monitoring attribute.<BR><BR>Once the&nbsp;factory starts
+serving frontends, it will publish also another ClassAd for every
+frontend served. This ClassAd contains only monitoring information,
+and is not used by the glideinWMS itself.<BR>Find below a graphical
+representation of these ClassAds.<BR><IMG SRC="factory_client_publish.png" NAME="graphics4" ALIGN=BOTTOM WIDTH=629 HEIGHT=503 BORDER=0></P>
+<H3><A NAME="frontend_classads"></A>The VO Frontend Class-Ad</H3>
+<P>A VO frontend will obtain the list all available glideins and
+select the ones that fit its needs, based on the published
+attributes. For each fitting glidein, a frontend class-ad will be
+published. Such a class-ad will contain 
+</P>
+<UL>
+	<LI>the name of the frontend and a request ID,&nbsp; 
+	<LI>the desired glidein name,&nbsp; 
+	<LI>the rate of glidein submissions, and 
+	<LI>the glidein parameters. 
+	<LI><P>Plus a list of monitoring values (like how many jobs are
+	currently running, etc.) 
+	</P>
+</UL>
+<P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM WIDTH=809 HEIGHT=656 BORDER=0><BR>In
+the current implementation, the only glidein rate setting parameter
+supported is <FONT FACE="monospace"><B>ReqIdleGlideins</B></FONT>,
 that tells the factory how many idle glideins to keep in the queue at
 any given time. Future versions may contain more sophisticated
 controls, like the maximum number of glideins to keep in the queue or
-the maximum rate at which the glideins should be submitted.<br>
-
-
-<h2><a name="implementation"></a>Implementation
-details</h2>
-
-
-Due to the amount of material available, the documentation
-is being kept<br>
-
-
-<ul>
-
-
-  <li>on the <a href="factory/index.html#implementation">Glidein
-Factory page</a>, and </li>
-
-
-  <li>on the <a href="frontend/index.html#implementation">VO
-Frontend page</a>.</li>
-
-
-</ul>
-
-
-<h2><a name="condor"></a>The Condor pool</h2>
-
-
-To make a working Glidein-based WMS, you will need to install one or
-more Condor pools:<br>
-
-
-<ul>
-
-
-  <li><a href="#pool_WMS">one for exchanging
-messages
-between the factory and the frontends</a></li>
-
-
-  <li><a href="#pool_glidein">one for each VO
-frontend</a></li>
-
-
-</ul>
-
-
-If you want, you can merge several of them together, but at least
-logically, they are separate, and I would strongly suggest to keep them
-separate unless you have just a small system.<br>
-
-
-<br>
-
-
-Installing and properly configuring a Condor pool is (unfortunately) a
-complex process, and this manual will not attempt to describe all the
-glory details. In this manual, it is assumed you have installed a
-Condor pool already (see <a href="http://www.cs.wisc.edu/condor/">http://www.cs.wisc.edu/condor/</a>
+the maximum rate at which the glideins should be submitted.</P>
+<H2><A NAME="implementation"></A>Implementation details</H2>
+<P>Due to the amount of material available, the documentation is
+being kept</P>
+<UL>
+	<LI>on the <A HREF="factory/index.html#implementation">Glidein
+	Factory page</A>, and 
+	<LI><P>on the <A HREF="frontend/index.html#implementation">VO
+	Frontend page</A>. 
+	</P>
+</UL>
+<H2><A NAME="condor"></A>The Condor pool</H2>
+<P>To make a working Glidein-based WMS, you will need to install one
+or more Condor pools:</P>
+<UL>
+	<LI><A HREF="#pool_WMS">one for exchanging messages between the
+	factory and the frontends</A> 
+	<LI><P><A HREF="#pool_glidein">one for each VO frontend</A> 
+	</P>
+</UL>
+<P>If you want, you can merge several of them together, but at least
+logically, they are separate, and I would strongly suggest to keep
+them separate unless you have just a small system.<BR><BR>Installing
+and properly configuring a Condor pool is (unfortunately) a complex
+process, and this manual will not attempt to describe all the glory
+details. In this manual, it is assumed you have installed a Condor
+pool already (see <A HREF="http://www.cs.wisc.edu/condor/">http://www.cs.wisc.edu/condor/</A>
 for more information) and only the WMS specific options&nbsp;are
-discussed.<br>
-
-
-<br>
-
-
-Most configuration changes needed by the Glidein-based WMS regard
-security; you definitely don't want just anybody to mess with you
-pool!<br>
-
-
-<br>
-
-
-<h3><a name="pool_WMS"></a>The WMS pool</h3>
-
-
-The <a href="overview.png" target="_blank">WMS pool</a>
-can use any authentication mechanism you prefer; GSI (i.e.
-x509), Kerberos, etc., all work fine for this purpose. There is also
-nothing to hide, so encryption can be turned off. However, you do want
-to make sure that the information is not tampered with, so you should
-enable the integrity checks!<br>
-
-
-<br>
-
-
-If you happen to know the IP addresses of all the factories and all the
-frontends, it is also good practice to limit the ability to submit new
-requests to only those nodes ( + obviously the Collector machine).<br>
-
-
-<br>
-
-
-Here is a prototype of the security config:
-<pre>SEC_DEFAULT_AUTHENTICATION = REQUIRED<br>SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;Your choice here&gt;<br>SEC_DEFAULT_INTEGRITY = REQUIRED<br>HOSTALLOW_WRITE = machine1,machine2, ... ,machineN<br></pre>
-
-
-For more information about GSI, look at the configuration of the <a href="#pool_glidein">glidein (user) pool</a>. For all other
-kinds, please follow the instructions in the <a href="http://www.cs.wisc.edu/condor/manual/">Condor manual</a>.<br>
-
-
-<br>
-
-
-To ease monitoring and debugging, it is also useful to allow
-unauthenticated read of the information; as said before, there is
-nothing to hide. However, <span style="font-weight: bold;">be
-sure you enable this only for the Collector</span>, and require
-the factory and the frontend to authenticate at all times, since this
-is needed for the integrity checks to work. <br>
-
-
-<br>
-
-
-The lines to add, on the Collector machine, are:<br>
-
-
-<pre>SEC_READ_AUTHENTICATION = OPTIONAL<br>SEC_CLIENT_AUTHENTICATION = OPTIONAL<br>SEC_READ_INTEGRITY = OPTIONAL<br>SEC_CLIENT_INTEGRITY = OPTIONAL<br></pre>
-
-
+discussed.<BR><BR>Most configuration changes needed by the
+Glidein-based WMS regard security; you definitely don't want just
+anybody to mess with you pool!</P>
+<H3><A NAME="pool_WMS"></A>The WMS pool</H3>
+<P>The <A HREF="overview.png" TARGET="_blank">WMS pool</A> can use
+any authentication mechanism you prefer; GSI (i.e. x509), Kerberos,
+etc., all work fine for this purpose. There is also nothing to hide,
+so encryption can be turned off. However, you do want to make sure
+that the information is not tampered with, so you should enable the
+integrity checks!<BR><BR>If you happen to know the IP addresses of
+all the factories and all the frontends, it is also good practice to
+limit the ability to submit new requests to only those nodes ( +
+obviously the Collector machine).<BR><BR>Here is a prototype of the
+security config: 
+</P>
+<PRE>SEC_DEFAULT_AUTHENTICATION = REQUIRED
+SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;Your choice here&gt;
+SEC_DEFAULT_INTEGRITY = REQUIRED
+HOSTALLOW_WRITE = machine1,machine2, ... ,machineN</PRE><P>
+For more information about GSI, look at the configuration of the
+<A HREF="#pool_glidein">glidein (user) pool</A>. For all other kinds,
+please follow the instructions in the <A HREF="http://www.cs.wisc.edu/condor/manual/">Condor
+manual</A>.<BR><BR>To ease monitoring and debugging, it is also
+useful to allow unauthenticated read of the information; as said
+before, there is nothing to hide. However, <B>be sure you enable this
+only for the Collector</B>, and require the factory and the frontend
+to authenticate at all times, since this is needed for the integrity
+checks to work. <BR><BR>The lines to add, on the Collector machine,
+are:</P>
+<PRE>SEC_READ_AUTHENTICATION = OPTIONAL
+SEC_CLIENT_AUTHENTICATION = OPTIONAL
+SEC_READ_INTEGRITY = OPTIONAL
+SEC_CLIENT_INTEGRITY = OPTIONAL</PRE><P>
 Last, please notice that there is no need for a Negotiator in this
 pool. All the matching is done by the factory and frontend software
-itself. (An no need for Startds either.)<br>
-
-
-<br>
-
-
-<h3><a name="pool_glidein"></a>The glidein (user) pool</h3>
-
-
-The <a href="glideins.png" target="_blank">glidein
-pool</a> relies heavily on GSI, also known as x509,
-authentication. The reason for this is due to the nature of glideins;
-the Condor Startd is a Grid job. And thus have&nbsp;a x509 proxy
-available at startup.<br>
-
-
-So the glidein Condor pool must be set up to support at least GSI;
-other
+itself. (An no need for Startds either.)</P>
+<H3><A NAME="pool_glidein"></A>The glidein (user) pool</H3>
+<P>The <A HREF="glideins.png" TARGET="_blank">glidein pool</A> relies
+heavily on GSI, also known as x509, authentication. The reason for
+this is due to the nature of glideins; the Condor Startd is a Grid
+job. And thus have&nbsp;a x509 proxy available at startup.<BR>So the
+glidein Condor pool must be set up to support at least GSI; other
 methods can be used too, to support your local user job submission
-policies.<br>
-
-
-<br>
-
-
-Regarding other security features, integrity checks should be enabled
-and encryption should be left as an option for the transfer of
-sensitive information in user jobs.<br>
-
-
-<br>
-
-
-Here is a prototype of the security config:
-<pre>SEC_DEFAULT_AUTHENTICATION = REQUIRED<br>SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;local methods&gt;, GSI<br>SEC_DEFAULT_INTEGRITY = REQUIRED<br>SEC_DEFAULT_ENCRYPTION = OPTIONAL<br></pre>
-
-
-The GSI authentication needs some other parameters to be enabled, too.
-See the <a href="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#SECTION00463100000000000000">Condor
-manual</a> for the full details.<br>
-
-
-<br>
-
-
-First of all, you must tell Condor what kind of proxies you will trust;
-i.e. you must provide it with the public keys of all the trusted
-Certification Authorities (CAs).<br>
-
-
-<br>
-
-
-Next, you have to tell condor how it will authenticate with the other
-parties. You can use either a host certificate/key pair or a regular
-proxy. The glidein will always use a proxy, but all the other Condor
-daemons (Collector, Negotiator and Schedd) can use a host certificate
-if they are running as root and the machine has the host certificates
-installed.&nbsp; Please note that the two methods are equivalent,
-as
-Condor will extract, as needed, a proxy from the certificate using the
-provided key.<br>
-
-
-<br>
-
-
-Last but not least, you must specify who do you trust. A sensitive
-sysadmin will want only the known DNs (Distinguished Names, i.e. the
-text representation of the proxy identity) to be allowed to
-impersonate Condor daemons. There are two places where this has to be
-set:<br>
-
-
-<ul>
-
-
- <li>The first one is the so called Grid Mapfile
- (<span style="font-family: monospace; font-weight: bold;">GRIDMAP</span>);
-it must list all the
-DNs Condor will trust.
-
-
-For example:<br>
-    
-    <pre>
-[root@cmswmshead.fnal.gov] cat grid-mapfile 
-"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head" condor1
-"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1" condor2
-"/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1" condor3
-</pre>
-
-<p>
-Recent condor versions provide also another, more flexible unified map file 
-(<span style="font-family: monospace; font-weight: bold;">CERTIFICATE_MAPFILE</span>).
-It can be use instead of the grid mapfile, and map users from all supported 
-authentication domains.<br>
-
-For example:<br>
-<pre>
-[root@cmswmshead.fnal.gov] cat condor_mapfile 
-GSI "/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head" condor1
-GSI "/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1" condor2
-GSI "/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1" condor3
+policies.<BR><BR>Regarding other security features, integrity checks
+should be enabled and encryption should be left as an option for the
+transfer of sensitive information in user jobs.<BR><BR>Here is a
+prototype of the security config: 
+</P>
+<PRE>SEC_DEFAULT_AUTHENTICATION = REQUIRED
+SEC_DEFAULT_AUTHENTICATION_METHODS = &lt;local methods&gt;, GSI
+SEC_DEFAULT_INTEGRITY = REQUIRED
+SEC_DEFAULT_ENCRYPTION = OPTIONAL</PRE><P>
+The GSI authentication needs some other parameters to be enabled,
+too. See the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#SECTION00463100000000000000">Condor
+manual</A> for the full details.<BR><BR>First of all, you must tell
+Condor what kind of proxies you will trust; i.e. you must provide it
+with the public keys of all the trusted Certification Authorities
+(CAs).<BR><BR>Next, you have to tell condor how it will authenticate
+with the other parties. You can use either a host certificate/key
+pair or a regular proxy. The glidein will always use a proxy, but all
+the other Condor daemons (Collector, Negotiator and Schedd) can use a
+host certificate if they are running as root and the machine has the
+host certificates installed.&nbsp; Please note that the two methods
+are equivalent, as Condor will extract, as needed, a proxy from the
+certificate using the provided key.<BR><BR>Last but not least, you
+must specify who do you trust. A sensitive sysadmin will want only
+the known DNs (Distinguished Names, i.e. the text representation of
+the proxy identity) to be allowed to impersonate Condor daemons.
+There are two places where this has to be set:</P>
+<UL>
+	<LI><P>The first one is the so called Grid Mapfile (<FONT FACE="monospace"><B>GRIDMAP</B></FONT>);
+	it must list all the DNs Condor will trust. For example:</P>
+	<PRE>[root@cmswmshead.fnal.gov] cat grid-mapfile 
+&quot;/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head&quot; condor1
+&quot;/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1&quot; condor2
+&quot;/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1&quot; condor3</PRE><P>
+	Recent condor versions provide also another, more flexible unified
+	map file (<FONT FACE="monospace"><B>CERTIFICATE_MAPFILE</B></FONT>).
+	It can be use instead of the grid mapfile, and map users from all
+	supported authentication domains.<BR>For example:</P>
+	<PRE>[root@cmswmshead.fnal.gov] cat condor_mapfile 
+GSI &quot;/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head&quot; condor1
+GSI &quot;/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1&quot; condor2
+GSI &quot;/DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1&quot; condor3
 GSI (.*) anonymous
-FS (.*) \1
-</pre>
-
-If you use GSI just for the maintenance of the
-glidein (user) pool, it should list only the trusted DNs.<br>
-Please notice that if you use GSI for authenticating your users, too, 
-you need to list all of them in the map file.
-  </li>
-
-
-  <li>The second place is a list of trusted daemon DNs (<span style="font-family: monospace; font-weight: bold;">GSI_DAEMON_NAME</span>).
-  <br>
-  Please notice that all the trusted DNs need to be
-listed in <span style="font-weight: bold;">both places</span>.
-<p>
-<b>Note:</b> If you use gLExec with Condor, you also need to list all the users as trusted daemons. While suboptimal in security terms, it is a current (as of 7.0.0) Condor requirement.
-</li>
-
-
-</ul>
-
-
-A prototype of the above configuration is:<br>
-
-
-<pre>GSI_DAEMON_DIRECTORY = /opt/condor/certs<br># Use a Proxy<br>GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br># Use a Certificate/Key pair<br>#GSI_DAEMON_CERT = $(GSI_DAEMON_DIRECTORY)/hostcert.pem<br>#GSI_DAEMON_KEY = $(GSI_DAEMON_DIRECTORY)/hostkey.pem<br>GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br>GSI_DAEMON_NAME= /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head,\<br> /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1,\<br> /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1</pre>
-
-
-<br>
-
-
-Last, to ease monitoring and debugging, it is also useful to allow
-unauthenticated read of the information, unless you have strict privacy
-requirements in your environment.<br>
-
-
-<br>
-
-
-To enable it, add the following lines:<br>
-
-
-<pre>SEC_READ_AUTHENTICATION = OPTIONAL<br>SEC_CLIENT_AUTHENTICATION = OPTIONAL<br>SEC_READ_INTEGRITY = OPTIONAL<br>SEC_CLIENT_INTEGRITY = OPTIONAL<br></pre>
-
-
-<br>
-
-
-Please note that you do not need to worry about glidein security
-configuration at a global level; the <a href="factory/entry.html#security">glidein
-factory</a> will make sure the settings are correct in the
-glideins.<br>
-
-
-<br>
-
-
-<br>
-
-<h2><a name="monitoring"></a>Monitoring</h2>
-
-
-The glideinWMS comes with 4 types of monitoring facilities:
-<ul>
-<li><a href="#condormon">Standard condor monitoring</a></li>
-<li><a href="#intmon">Pseudo interactive monitoring</a></li>
-<li><a href="#gfwebmon">Glidein Factory Web monitoring</a></li>
-<li><a href="#textmon">glideinWMS text monitoring</a></li>
-</ul>
-
-<h3><a name="condormon"></a>Standard condor monitoring</h3>
-
-The glideinWMS creates a standard condor pool, so users can monitor their jobs using the
-standard Condor tools, like
-<a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">condor_q</a> and
-<a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_status.html">condor_status</a>.
-<p>
-The administrator can also install graphical tools like the 
-<a href="http://www.cs.wisc.edu/condor/contrib/">Condor View</a>.
-
-<h3><a name="intmon"></a>Pseudo interactive monitoring</h3>
-
-The glideinWMS also provides pseudo interactive monitoring functionalities;
-a user can run short lived commands alongide any already running job in the queue.
-<p>
-To run a pseudo interactive command, move into
-<pre>
-glideinWMS/tools
-</pre>
+FS (.*) \1</PRE><P>
+	If you use GSI just for the maintenance of the glidein (user) pool,
+	it should list only the trusted DNs.<BR>Please notice that if you
+	use GSI for authenticating your users, too, you need to list all of
+	them in the map file. 
+	<LI><P>The second place is a list of trusted daemon DNs
+	(<FONT FACE="monospace"><B>GSI_DAEMON_NAME</B></FONT>). <BR>Please
+	notice that all the trusted DNs need to be listed in <B>both places</B>.
+		</P>
+	<P><B>Note:</B> If you use gLExec with Condor, you also need to list
+	all the users as trusted daemons. While suboptimal in security
+	terms, it is a current (as of 7.0.0) Condor requirement. 
+	</P>
+</UL>
+<P>A prototype of the above configuration is:</P>
+<PRE>GSI_DAEMON_DIRECTORY = /opt/condor/certs
+# Use a Proxy
+GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy
+# Use a Certificate/Key pair
+#GSI_DAEMON_CERT = $(GSI_DAEMON_DIRECTORY)/hostcert.pem
+#GSI_DAEMON_KEY = $(GSI_DAEMON_DIRECTORY)/hostkey.pem
+GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile
+GSI_DAEMON_NAME= /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Head,\
+ /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Factory1,\
+ /DC=org/DC=doegrids/OU=Robots/CN=FNAL CMSWMS Frontend1</PRE><P>
+<BR>Last, to ease monitoring and debugging, it is also useful to
+allow unauthenticated read of the information, unless you have strict
+privacy requirements in your environment.<BR><BR>To enable it, add
+the following lines:</P>
+<PRE>SEC_READ_AUTHENTICATION = OPTIONAL
+SEC_CLIENT_AUTHENTICATION = OPTIONAL
+SEC_READ_INTEGRITY = OPTIONAL
+SEC_CLIENT_INTEGRITY = OPTIONAL</PRE><P>
+<BR>Please note that you do not need to worry about glidein security
+configuration at a global level; the <A HREF="factory/entry.html#security">glidein
+factory</A> will make sure the settings are correct in the glideins.<BR><BR><BR>
+</P>
+<H2><A NAME="monitoring"></A>Monitoring</H2>
+<P>The glideinWMS comes with 4 types of monitoring facilities: 
+</P>
+<UL>
+	<LI><A HREF="#condormon">Standard condor monitoring</A> 
+	<LI><A HREF="#intmon">Pseudo interactive monitoring</A> 
+	<LI><A HREF="#gfwebmon">Glidein Factory Web monitoring</A> 
+	<LI><P><A HREF="#textmon">glideinWMS text monitoring</A> 
+	</P>
+</UL>
+<H3><A NAME="condormon"></A>Standard condor monitoring</H3>
+<P>The glideinWMS creates a standard condor pool, so users can
+monitor their jobs using the standard Condor tools, like <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">condor_q</A>
+and <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_status.html">condor_status</A>.
+</P>
+<P>The administrator can also install graphical tools like the <A HREF="http://www.cs.wisc.edu/condor/contrib/">Condor
+View</A>. 
+</P>
+<H3><A NAME="intmon"></A>Pseudo interactive monitoring</H3>
+<P>The glideinWMS also provides pseudo interactive monitoring
+functionalities; a user can run short lived commands alongide any
+already running job in the queue. 
+</P>
+<P>To run a pseudo interactive command, move into 
+</P>
+<PRE>glideinWMS/tools</PRE><P>
 and run 
-<pre>
-./glidein_interactive.py <i>jobid</i> <i>cmdline</i>
-</pre>
-<p>
-There are also a set of useful often used commands that you may want to use:
-<ul>
-<li>glidein_ls.py <i>jobid</i> <i>[subdir]</i>
-<li>glidein_cat.py  <i>jobid</i> <i>fname</i>
-<li>glidein_top.py <i>jobid</i>
-<li>glidein_ps.py <i>jobid</i> <i>[opts]</i>
-</ul>
-
-<h3><a name="gfwebmon"></a>Glidein Factory Web monitoring</h3>
-
-The glidein factory also produces a large amount of web accessible information.
-<p>
-Look into
-<pre>
-http://<i>gfactory_node</i>:<i>http_port</i>/glidefactory/monitor/glidein_<i>factory_name</i>/
-</pre>
-<p>
-For most begginner users, start at
-<pre>
-http://<i>gfactory_node</i>:<i>http_port</i>/glidefactory/monitor/glidein_<i>factory_name</i>/total/0Status.hour.large.html
-</pre>
-and go on from there.
-
-<h3><a name="textmon"></a>glideinWMS text monitoring</h3>
-
-A system administrator can also monitor the glideinWMS status using text tools.
-<p>
-Move into
-<pre>
-glideinWMS/tools
-</pre>
-and run either
-<pre>
-./wmsXMLView.py
-</pre>
+</P>
+<PRE>./glidein_interactive.py <I>jobid</I> <I>cmdline</I></PRE><P>
+There are also a set of useful often used commands that you may want
+to use: 
+</P>
+<UL>
+	<LI>glidein_ls.py <I>jobid</I> <I>[subdir]</I> 
+	<LI>glidein_cat.py <I>jobid</I> <I>fname</I> 
+	<LI>glidein_top.py <I>jobid</I> 
+	<LI><P>glidein_ps.py <I>jobid</I> <I>[opts]</I> 
+	</P>
+</UL>
+<H3><A NAME="gfwebmon"></A>Glidein Factory Web monitoring</H3>
+<P>The glidein factory also produces a large amount of web accessible
+information. 
+</P>
+<P>Look into 
+</P>
+<PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/</PRE><P>
+For most begginner users, start at 
+</P>
+<PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/total/0Status.hour.large.html</PRE><P>
+and go on from there. 
+</P>
+<H3><A NAME="textmon"></A>glideinWMS text monitoring</H3>
+<P>A system administrator can also monitor the glideinWMS status
+using text tools. 
+</P>
+<P>Move into 
+</P>
+<PRE>glideinWMS/tools</PRE><P>
+and run either 
+</P>
+<PRE>./wmsXMLView.py</PRE><P>
 or 
-<pre>
-./wmsTxtView.py [Entries|Sites|Gatekeepers]
-</pre>
-
-
-
-<a name="ref"></a><br>
-
-
-<table style="text-align: left; width: 100%;" border="0" cellpadding="2" cellspacing="2">
-
-
-  <tbody>
-
-
-    <tr>
-
-
-      <td style="width: 50%; text-align: left; vertical-align: top;">
-      
-      <h2>Repository</h2>
-
-
-      
-      <h3>CVSROOT</h3>
-
-
-cvsuser@cdcvs.fnal.gov:/cvs/cd<br>
-
-
-      
-      <h3>Package(s)</h3>
-
-
-glideinWMS</td>
-
-
-      <td style="width: 50%; text-align: left; vertical-align: top;">
-      
-      <h2>Author(s)</h2>
-
-
-Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</td>
-
-
-    </tr>
-
-
-  
-  </tbody>
-</table>
-
-
-<br>
-
-
-<h2></h2>
-
-
-<br>
-
-
-<br>
-
-
-<br>
-
-
-</body>
-</html>
+</P>
+<PRE>./wmsTxtView.py [Entries|Sites|Gatekeepers]</PRE><P>
+<A NAME="ref"></A><BR>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<H2 ALIGN=LEFT>Repository</H2>
+			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
+			<H3 ALIGN=LEFT>Package(s)</H3>
+			<P ALIGN=LEFT>glideinWMS</TD>
+		<TD>
+			<H2 ALIGN=LEFT>Author(s)</H2>
+			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
+			Division)</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+<P><BR><BR><BR>
+</P>
+</BODY>
+</HTML>
