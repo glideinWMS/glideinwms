@@ -37,9 +37,6 @@ Checking...
 Seems condor version 7.1.3
 
 Where do you want to install it?: [/opt/glidecondor]
-Directory '/opt/glidecondor' does not exist, should I create it?: (y/n) y
-Failed to create '/opt/glidecondor'!
-Where do you want to install it?: [/opt/glidecondor]
 Installing condor in '/opt/glidecondor'
 
 If something goes wrong with Condor, who should get email about it?: myadmin@fnal.gov
