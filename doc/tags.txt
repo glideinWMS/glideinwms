@@ -6,7 +6,8 @@ vNext	Better support for RESS and BDII
 	gcb_setup now supports ORDER=NONE.
 	gcb_setup is now loaded automatically.
 	Add verbosity to entries.
-	Add max held/idle/running to entries and improve held handling.
+	Add config section to entries.
+	Improve held handling.
 	Add a completed job log.
 	Improve signal handling (for stopping factory)
 	Made the most CPU intensive part of monitoring optional.
