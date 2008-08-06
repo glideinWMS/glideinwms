@@ -173,9 +173,24 @@ class Params:
         downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
 
         entry_config_defaults=xmlParse.OrderedDict()
-        entry_config_defaults["max_jobs"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
-        entry_config_defaults["max_idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
-        entry_config_defaults["max_held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
+
+        entry_config_max_jobs_defaults=xmlParse.OrderedDict()
+        entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
+        entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
+        entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
+        entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
+        
+        entry_config_queue_defaults=xmlParse.OrderedDict()
+        entry_config_queue_defaults["max_per_cycle"]=['100',"nr","Maximum number of jobs affected per cycle.",None]
+        entry_config_queue_defaults["sleep"]=['0.2',"seconds","Sleep between interactions with the schedd.",None]
+
+        entry_config_defaults['submit']=copy.deepcopy(entry_config_queue_defaults)
+        entry_config_defaults['submit']['cluster_size']=['10',"nr","Max number of jobs submitted in a single transaction.",None]
+        entry_config_defaults['remove']=copy.deepcopy(entry_config_queue_defaults)
+        entry_config_defaults['remove']['max_per_cycle'][0]='5'
+        entry_config_defaults['release']=copy.deepcopy(entry_config_queue_defaults)
+        entry_config_defaults['release']['max_per_cycle'][0]='20'
+
 
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
@@ -485,24 +500,15 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.33 2008/08/05 20:38:55 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.34 2008/08/06 16:44:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.34  2008/08/06 16:44:42  sfiligoi
+#  Add rate and sleep config options
+#
 #  Revision 1.33  2008/08/05 20:38:55  sfiligoi
 #  Add WantSplitTermMonitorGraphs
-#
-#  Revision 1.32  2008/08/05 18:47:16  sfiligoi
-#  Improve comments
-#
-#  Revision 1.31  2008/08/05 18:10:29  sfiligoi
-#  Fix typo
-#
-#  Revision 1.30  2008/08/05 18:06:08  sfiligoi
-#  Fix typo
-#
-#  Revision 1.29  2008/08/05 18:05:14  sfiligoi
-#  Fix typo
 #
 #  Revision 1.28  2008/08/05 18:03:51  sfiligoi
 #  Add max_jobs, max_idle and max_held to the parameters
@@ -512,12 +518,6 @@ def find_condor_base_dir():
 #
 #  Revision 1.26  2008/07/29 18:49:44  sfiligoi
 #  Add entry verbosity
-#
-#  Revision 1.25  2008/07/28 17:50:08  sfiligoi
-#  Fix typo
-#
-#  Revision 1.24  2008/07/28 17:49:35  sfiligoi
-#  Fix typo
 #
 #  Revision 1.23  2008/07/28 17:44:42  sfiligoi
 #  Add after_entry option to file

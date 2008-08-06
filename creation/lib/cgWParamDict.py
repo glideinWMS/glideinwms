@@ -420,9 +420,17 @@ def populate_job_descript(job_descript_dict,        # will be modified
         job_descript_dict.add('ProxyURL',entry_params.proxy_url)
     job_descript_dict.add('Verbosity',entry_params.verbosity)
     job_descript_dict.add('DowntimesFile',entry_params.downtimes.absfname)
-    job_descript_dict.add('MaxJobs',entry_params.config.max_jobs)
-    job_descript_dict.add('MaxIdle',entry_params.config.max_idle)
-    job_descript_dict.add('MaxHeld',entry_params.config.max_held)
+    job_descript_dict.add('MaxRunning',entry_params.config.max_jobs.running)
+    job_descript_dict.add('MaxIdle',entry_params.config.max_jobs.idle)
+    job_descript_dict.add('MaxHeld',entry_params.config.max_jobs.held)
+    job_descript_dict.add('MaxSubmitRate',entry_params.config.submit.max_per_cycle)
+    job_descript_dict.add('SubmitCluster',entry_params.config.submit.cluster_size)
+    job_descript_dict.add('SubmitSleep',entry_params.config.submit.sleep)
+    job_descript_dict.add('MaxRemoveRate',entry_params.config.remove.max_per_cycle)
+    job_descript_dict.add('RemoveSleep',entry_params.config.remove.sleep)
+    job_descript_dict.add('MaxReleaseRate',entry_params.config.release.max_per_cycle)
+    job_descript_dict.add('ReleaseSleep',entry_params.config.release.sleep)
+
 
     
 #######################
@@ -437,10 +445,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.54 2008/08/05 22:19:03 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.55 2008/08/06 16:44:42 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.55  2008/08/06 16:44:42  sfiligoi
+#  Add rate and sleep config options
+#
 #  Revision 1.54  2008/08/05 22:19:03  sfiligoi
 #  Load gcb_setup.sh by default... disable by using GCB_ORDER=NONE (or not defining it at all)
 #
@@ -449,9 +460,6 @@ def symlink_file(infile,outfile):
 #
 #  Revision 1.52  2008/08/05 20:38:55  sfiligoi
 #  Add WantSplitTermMonitorGraphs
-#
-#  Revision 1.51  2008/08/05 18:06:55  sfiligoi
-#  Fix typo
 #
 #  Revision 1.50  2008/08/05 18:03:51  sfiligoi
 #  Add max_jobs, max_idle and max_held to the parameters
