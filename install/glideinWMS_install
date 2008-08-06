@@ -2350,7 +2350,7 @@ def create_secondary_collector_support_files():
         fd.write('export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME\n')
         fd.write('export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock\n')
         fd.write('# Forward all the traffic to the main collector\n')
-        fd.write('export _CONDOR_CONDOR_VIEW_HOST=cmssrv37.fnal.gov:9618\n\n')
+        fd.write('export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618\n\n')
 
         fd.write('unset LD\n')
         fd.write('unset COLH\n')
