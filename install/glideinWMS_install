@@ -2324,6 +2324,8 @@ def create_secondary_collector_support_files():
     global CONDOR_LOCAL_DIR
     global SECONDARY_COLLECTOR_SUPPORT_FILES_INSTALLED
 
+    full_host_name=socket.getfqdn()
+
     ##############################
     # Secondary collector setup file
     fd=open("%s/new_collector_setup.sh"%CONDOR_BASE_PATH,"w")
@@ -2334,7 +2336,7 @@ def create_secondary_collector_support_files():
         fd.write(' return 1\n')
         fd.write('fi\n\n')
 
-        fd.write('COLH=`condor_config_val COLLECTOR_HOST`\n')
+        fd.write('COLH=%s\n'%full_host_name)
         fd.write("LD=%s\n"%CONDOR_LOCAL_DIR)
 
         fd.write('export _CONDOR_COLLECTOR_HOST=$COLH:`expr 9620 + $1`\n')
