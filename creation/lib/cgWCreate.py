@@ -30,7 +30,7 @@ def create_condor_tar_fd(condor_base_dir):
                 raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
 
         # check if optional binaries exist, if they do, include
-        for f in ['sbin/condor_procd','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper']:
+        for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         
@@ -254,10 +254,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.38 2008/07/24 20:09:15 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.39 2008/08/06 18:40:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.39  2008/08/06 18:40:55  sfiligoi
+#  Add gcb_broker_query to the condor tarball
+#
 #  Revision 1.38  2008/07/24 20:09:15  sfiligoi
 #  Fix typo
 #
