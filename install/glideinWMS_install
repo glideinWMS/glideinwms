@@ -159,6 +159,33 @@ def collector_install():
     if not COLLECTOR_INSTALLED:
         setup_collector('My pool')
 
+    ##################################
+    # configure secondary collectors
+    if not SECONDARY_COLLECTOR_SUPPORT_FILES_INSTALLED:
+        create_secondary_collector_support_files()
+    
+    while 1:
+        nr_collectors_default=9
+        nr_collectors_str=raw_input("How many slave collectors do you want?: [9] ")
+        if nr_collectors_str=="":
+            nr_collectors_str="%s"%nr_collectors_default
+        try:
+            nr_collectors=int(nr_collectors_str)
+        except:
+            print "'%s' is not a number!"%nr_collectors_str
+            continue
+        if nr_collectors<0:
+            print "You entered a negative number! (%i)"%nr_collectors
+            continue
+        if nr_collectors>99: # security check
+            print "You entered too big of a number! (%i)"%nr_collectors
+            continue
+
+        break # have the number of collectors
+
+    for collector_nr in range(nr_collectors):
+        configure_secondary_collector(collector_nr)
+
     restart_condor()
 
     print "**************************************************"
