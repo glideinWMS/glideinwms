@@ -335,7 +335,15 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
+    # use config values to configure the factory
     glideFactoryMonitoring.monitoringConfig.want_split_terminated_graphs=eval(glideinDescript.data['WantSplitTermMonitorGraphs'],{},{})
+    glideFactoryLib.factoryConfig.max_submits=int(jobDescript.data['MaxSubmitRate'])
+    glideFactoryLib.factoryConfig.max_cluster_size=int(jobDescript.data['SubmitCluster'])
+    glideFactoryLib.factoryConfig.submit_sleep=int(jobDescript.data['SubmitSleep'])
+    glideFactoryLib.factoryConfig.max_removes=int(jobDescript.data['MaxRemoveRate'])
+    glideFactoryLib.factoryConfig.remove_sleep=int(jobDescript.data['RemoveSleep'])
+    glideFactoryLib.factoryConfig.max_releases=int(jobDescript.data['MaxReleaseRate'])
+    glideFactoryLib.factoryConfig.release_sleep=int(jobDescript.data['ReleaseSleep'])
 
     # create lock file
     fd=glideFactoryPidLib.register_entry_pid(startup_dir,entry_name,parent_pid)
@@ -402,24 +410,18 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.45 2008/08/05 21:20:16 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.46 2008/08/06 16:56:55 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.46  2008/08/06 16:56:55  sfiligoi
+#  Use the rate and sleep config options
+#
 #  Revision 1.45  2008/08/05 21:20:16  sfiligoi
 #  Improve signal handling
 #
-#  Revision 1.44  2008/08/05 20:16:39  sfiligoi
-#  Fix typo
-#
-#  Revision 1.43  2008/08/05 20:14:41  sfiligoi
-#  Fix typo
-#
 #  Revision 1.42  2008/08/05 19:53:14  sfiligoi
 #  Add support for entry max_jobs, max_idle and max_held
-#
-#  Revision 1.41  2008/07/30 15:18:30  sfiligoi
-#  Fix typo
 #
 #  Revision 1.40  2008/07/30 15:10:08  sfiligoi
 #  Add logging of completed job stats
@@ -429,9 +431,6 @@ if __name__ == '__main__':
 #
 #  Revision 1.38  2008/07/07 18:58:05  sfiligoi
 #  Rename InDowntime to GLIDEIN_In_Downtime
-#
-#  Revision 1.37  2008/07/07 18:53:52  sfiligoi
-#  Fix typo
 #
 #  Revision 1.36  2008/07/07 18:43:40  sfiligoi
 #  Use the downtime info
