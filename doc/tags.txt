@@ -1,4 +1,4 @@
-vNext	Better support for RESS and BDII
+v1_4	Better support for RESS and BDII
 	 Including automatic downtime handling
 	Global files can now be loaded after entry
 	Added support for job wrapper scripts.
