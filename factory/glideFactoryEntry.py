@@ -113,7 +113,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     #glideFactoryLib.factoryConfig.activity_log.write("Perform work")
     schedd_name=jobDescript.data['Schedd']
 
-    factory_max_running=int(jobDescript.data['MaxJobs'])
+    factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
 
@@ -339,11 +339,11 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryMonitoring.monitoringConfig.want_split_terminated_graphs=eval(glideinDescript.data['WantSplitTermMonitorGraphs'],{},{})
     glideFactoryLib.factoryConfig.max_submits=int(jobDescript.data['MaxSubmitRate'])
     glideFactoryLib.factoryConfig.max_cluster_size=int(jobDescript.data['SubmitCluster'])
-    glideFactoryLib.factoryConfig.submit_sleep=int(jobDescript.data['SubmitSleep'])
+    glideFactoryLib.factoryConfig.submit_sleep=float(jobDescript.data['SubmitSleep'])
     glideFactoryLib.factoryConfig.max_removes=int(jobDescript.data['MaxRemoveRate'])
-    glideFactoryLib.factoryConfig.remove_sleep=int(jobDescript.data['RemoveSleep'])
+    glideFactoryLib.factoryConfig.remove_sleep=float(jobDescript.data['RemoveSleep'])
     glideFactoryLib.factoryConfig.max_releases=int(jobDescript.data['MaxReleaseRate'])
-    glideFactoryLib.factoryConfig.release_sleep=int(jobDescript.data['ReleaseSleep'])
+    glideFactoryLib.factoryConfig.release_sleep=float(jobDescript.data['ReleaseSleep'])
 
     # create lock file
     fd=glideFactoryPidLib.register_entry_pid(startup_dir,entry_name,parent_pid)
@@ -410,10 +410,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.46 2008/08/06 16:56:55 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.47 2008/08/06 17:32:25 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.47  2008/08/06 17:32:25  sfiligoi
+#  Fix typo
+#
 #  Revision 1.46  2008/08/06 16:56:55  sfiligoi
 #  Use the rate and sleep config options
 #
