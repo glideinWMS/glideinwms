@@ -34,13 +34,13 @@ def main(config_file):
     # first soft kill (5s timeout)
     os.kill(frontend_pid,signal.SIGTERM)
     for retries in range(25):
-        if check_pid(frontend_pid):
+        if glideinFrontendPidLib.check_pid(frontend_pid):
             time.sleep(0.2)
         else:
             break # frontend dead
 
     # final check for processes
-    if check_pid(frontend_pid):
+    if glideinFrontendPidLib.check_pid(frontend_pid):
         print "Hard killed frontend"
         os.kill(frontend_pid,signal.SIGKILL)
 
