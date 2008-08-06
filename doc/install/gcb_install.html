@@ -1,106 +1,94 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Unix)">
+	<TITLE>Installation of a GCB node</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="20071114;13460300">
-	<META NAME="CHANGED" CONTENT="20071114;14090900">
-	<STYLE>
-	<!--
-		@page { size: 8.5in 11in }
-		P { margin-bottom: 0in }
-		P.western { font-family: "Utopia", serif; font-size: 10pt }
-		P.cjk { font-family: "Verdana"; font-size: 10pt }
-		P.ctl { font-family: "Verdana"; font-size: 10pt }
-		H1.western { font-family: "Utopia", serif; font-size: 16pt }
-		H1.cjk { font-family: "Verdana"; font-size: 16pt }
-		H1.ctl { font-family: "Verdana"; font-size: 16pt }
-		H2.western { font-family: "Utopia", serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H3.western { font-family: "Utopia", serif; font-size: 13pt }
-		H3.cjk { font-family: "Verdana"; font-size: 13pt }
-		H3.ctl { font-family: "Verdana"; font-size: 13pt }
-		BLOCKQUOTE { border: 1px solid #dddddd; padding: 0.1in }
-		BLOCKQUOTE.western { font-family: "Utopia", serif; font-size: 10pt }
-		BLOCKQUOTE.cjk { font-family: "Verdana"; font-size: 10pt }
-		BLOCKQUOTE.ctl { font-family: "Verdana"; font-size: 10pt }
-	-->
-	</STYLE>
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20080806;13050400">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 CLASS="western">Installation of a GCB node 
+<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
+GCB node </FONT></FONT>
 </H1>
-<table>
-<tr>
-<td valign=top>
-<H2 CLASS="western">1. Description 
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD VALIGN=TOP>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This node will serve
+			as a <A HREF="http://www.cs.wisc.edu/condor/gcb/">Generic
+			Connection Brokering (GCB)</A> node. If you are working over
+			firewalls or NATs, you will need one or more of these.<BR>GCB is
+			needed every time you have a firewall or a NAT; if this node dies,
+			all the glideins relying on it will die with it.</FONT></FONT></P>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
+			requirements </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
+			reasonably recent CPU</B> and a small amount of <B>memory</B>
+			(<B>256MB</B> should be enough).<BR>It must have <B>reliable
+			network</B> connectivity and must be <B>on the public internet,</B>
+			with <B>no firewalls</B>; it will work as a router. It will <B>use
+			20k IP ports</B>, so it should not be collocated with other
+			network intensive applications.<BR>The machine must be <B>very
+			stable</B>; if the GCB dies, all the glideins relying on it will
+			die with it (You can use multiple GCBs to minimize the damage, but
+			you should still try to choose the stablest machine you can
+			afford.)<BR>The <B>disk</B> needed is just for Condor binaries and
+			log files (<B>5GB</B> should be enough)<BR><BR>BTW: As low spec
+			machine could be difficult to find, please consider collocating it
+			with a <A HREF="frontend_install.html">VO Frontend</A>.</FONT></FONT></TD>
+		<TD>
+			<P><IMG SRC="overview_gcb.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
+			
+		</TD>
+	</TR>
+</TABLE>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed software
+</FONT></FONT>
 </H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">This node will serve
-as a <A HREF="http://www.cs.wisc.edu/condor/gcb/">Generic Connection
-Brokering (GCB)</A> node. If you are working over firewalls or NATs,
-you will need one or more of these.<BR>GCB is needed every time you
-have a firewall or a NAT; if this node dies, all the glideins relying
-on it will die with it.</P>
-<H2 CLASS="western">2. Hardware requirements 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">This machine needs <B>a
-reasonably recent CPU</B> and a small amount of <B>memory</B> (<B>256MB</B>
-should be enough).<BR>It must have <B>reliable network</B>
-connectivity and must be <B>on the public internet,</B> with <B>no
-firewalls</B>; it will work as a router. It will <B>use 20k IP ports</B>,
-so it should not be collocated with other network intensive
-applications.<BR>The machine must be <B>very stable</B>; if the GCB
-dies, all the glideins relying on it will die with it (You can use
-multiple GCBs to minimize the damage, but you should still try to
-choose the stablest machine you can afford.)<BR>The <B>disk</B>
-needed is just for Condor binaries and log files (<B>5GB</B> should
-be enough)<BR><BR>BTW: As low spec machine could be difficult to
-find, please consider collocating it with a <A HREF="frontend_install.html">VO
-Frontend</A>.</P>
-<td valign=center>
-<img src="overview_gcb.png">
-</table>
-<H2 CLASS="western">3. Needed software 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">A reasonably recent
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>A reasonably recent
 Linux OS (SL4 used at press time).<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-distribution</A>.</P>
-<H2 CLASS="western">4. Installation instructions 
+distribution</A>.</FONT></FONT></P>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
+instructions </FONT></FONT>
 </H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The GCB should be
-installed as a non privileged user, for example the user <B>gcbuser</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Move into</P>
-<BLOCKQUOTE CLASS="western">glideinWMS/install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">and execute</P>
-<BLOCKQUOTE CLASS="western">./glideinWMS_install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will be presented
-with this screen:</P>
-<BLOCKQUOTE CLASS="western">What do you want to install?<BR>(May
-select several options at one, using a , separated list)<BR>[1]
-glideinWMS Collector<BR>[2] Glidein Factory<BR>[3] GCB<BR>[4] pool
-Collector<BR>[5] Schedd node<BR>[6] Condor for VO Frontend<BR>[7] VO
-Frontend<BR>[8] Components</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Select <B>3</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Now follow the
-instructions and install all the software components.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The installation is
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The GCB should be
+installed as a non privileged user, for example the user <B>gcbuser</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
+with this screen:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+want to install?<BR>(May select several options at one, using a ,
+separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
+Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>3</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
+instructions and install all the software components.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The installation is
 straightforward, as can be seen in the snaphot locate in
-<A HREF="gcb_install_snapshot.txt">gcb_install_snapshot.txt</A>.</P>
-<H3 CLASS="western">4.1 Verify it is running 
+<A HREF="gcb_install_snapshot.txt">gcb_install_snapshot.txt</A>.</FONT></FONT></P>
+<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.1 Verify it is running </FONT></FONT>
 </H3>
-<P CLASS="western">You can check that the processes are running:</P>
-<BLOCKQUOTE CLASS="western">ps -u gcbuser |grep gcb</BLOCKQUOTE>
-<P CLASS="western">You should see one gcb_broker and at least one
-gcb_relay_server.<BR><BR>You can also check that tey are working
-well, by pinging it with gcb_broker_query:</P>
-<BLOCKQUOTE CLASS="western">~/gcbcondor/sbin/gcb_broker_query <I>your_ip</I>
-freesockets</BLOCKQUOTE>
-<P CLASS="western"><BR>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can check that the
+processes are running:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>ps -u
+gcbuser |grep gcb</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You should see one
+gcb_broker and at least one gcb_relay_server.<BR><BR>You can also
+check that tey are working well, by pinging it with gcb_broker_query:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>~/gcbcondor/sbin/gcb_broker_query
+<I>your_ip</I> freesockets</FONT></FONT></P></BLOCKQUOTE>
+<P><BR><BR>
 </P>
 <HR SIZE=1>
-<P CLASS="western"><A HREF="index.html">Back to the index</A><BR><BR>
-</P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
+to the index</A></FONT></FONT></P>
 </BODY>
 </HTML>

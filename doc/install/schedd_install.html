@@ -1,123 +1,113 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Unix)">
+	<TITLE>Installation of a scheduler node in the glideinWMS</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="20071113;14435800">
-	<META NAME="CHANGED" CONTENT="20071113;15085300">
-	<STYLE>
-	<!--
-		@page { size: 8.5in 11in }
-		P { margin-bottom: 0in }
-		P.western { font-family: "Utopia", serif; font-size: 10pt }
-		P.cjk { font-family: "Verdana"; font-size: 10pt }
-		P.ctl { font-family: "Verdana"; font-size: 10pt }
-		H1.western { font-family: "Utopia", serif; font-size: 16pt }
-		H1.cjk { font-family: "Verdana"; font-size: 16pt }
-		H1.ctl { font-family: "Verdana"; font-size: 16pt }
-		H2.western { font-family: "Utopia", serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H3 { font-family: "Verdana"; font-size: 13pt }
-		BLOCKQUOTE { border: 1px solid #dddddd; padding: 0.1in }
-		BLOCKQUOTE.western { font-family: "Utopia", serif; font-size: 10pt }
-		BLOCKQUOTE.cjk { font-family: "Verdana"; font-size: 10pt }
-		BLOCKQUOTE.ctl { font-family: "Verdana"; font-size: 10pt }
-	-->
-	</STYLE>
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20080806;13025200">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 CLASS="western">Installation of a scheduler node in the
-glideinWMS 
+<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
+scheduler node in the glideinWMS </FONT></FONT>
 </H1>
-<table>
-<tr>
-<td valign=top>
-<H2 CLASS="western">1. Description 
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD VALIGN=TOP>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This node will be a
+			<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
+			Submit node</A> for the user jobs.<BR>You can install many such
+			nodes to improve scalability of your system.</FONT></FONT></P>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
+			requirements </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
+			reasonably recent CPUs</B> and <B>a large amount of memory</B>
+			(<B>2+GB</B> recommended, <B>~1.5MB per running job</B>).<BR>The
+			amount of <B>disk</B> needed <B>depends on the user jobs</B>;
+			Condor itself uses very little (5 GB should be enough)</FONT></FONT></P>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed
+			software </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
+			OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
+			client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
+			distribution</A>.</FONT></FONT></TD>
+		<TD>
+			<P><IMG SRC="overview_schedd.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
+			
+		</TD>
+	</TR>
+</TABLE>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
+instructions </FONT></FONT>
 </H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">This node will be a
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
-Submit node</A> for the user jobs.<BR>You can install many such nodes
-to improve scalability of your system.</P>
-<H2 CLASS="western">2. Hardware requirements 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">This machine needs <B>a
-reasonably recent CPUs</B> and <B>a large amount of memory</B> (<B>2+GB</B>
-recommended, <B>~1.5MB per running job</B>).<BR>The amount of <B>disk</B>
-needed <B>depends on the user jobs</B>; Condor itself uses very
-little (5 GB should be enough)</P>
-<H2 CLASS="western">3. Needed software 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
-OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
-client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-distribution</A>.</P>
-<td valign=center>
-<img src="overview_schedd.png">
-</table>
-<H2 CLASS="western">4. Installation instructions 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The scheduler node
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The scheduler node
 software should be installed as root. The whole process is managed by
-a install script described below. 
+a install script described below. </FONT></FONT>
 </P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Move into</P>
-<BLOCKQUOTE CLASS="western">glideinWMS/install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">and execute</P>
-<BLOCKQUOTE CLASS="western">./glideinWMS_install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will be presented
-with this screen:</P>
-<BLOCKQUOTE CLASS="western">What do you want to install?<BR>(May
-select several options at one, using a , separated list)<BR>[1]
-glideinWMS Collector<BR>[2] Glidein Factory<BR>[3] GCB<BR>[4] pool
-Collector<BR>[5] Schedd node<BR>[6] Condor for VO Frontend<BR>[7] VO
-Frontend<BR>[8] Components</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Select <B>5</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Now follow the
-instructions and install all the software components.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Most of the questions
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
+with this screen:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+want to install?<BR>(May select several options at one, using a ,
+separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
+Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>5</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
+instructions and install all the software components.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Most of the questions
 should be fairly straightforward (see an example installation
-snapshot in <A HREF="schedd_root_install_snapshot.txt">schedd_root_install_snapshot.txt</A>).</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The configuration of
+snapshot in <A HREF="schedd_root_install_snapshot.txt">schedd_root_install_snapshot.txt</A>).</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The configuration of
 the GSI security is not completely automatic. You will need to
 specify the DNs of the glidein pool collector, the VO frontend and
 the glidein proxy. See <A HREF="gsi_config.html">Configuring GSI
-security in Condor</A> for more details. 
+security in Condor</A> for more details. </FONT></FONT>
 </P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will also need to
-specify the GCB nodes.</P>
-<H3>4.1 Example config files 
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will also need to
+specify the GCB nodes.</FONT></FONT></P>
+<H3><FONT FACE="Verdana"><FONT SIZE=3>4.1 Example config files </FONT></FONT>
 </H3>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You can find example
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can find example
 Condor config files
-in<BR><A HREF="example-config/glide-schedd/mymachine/condor_config">example-config/glide-schedd/mymachine/condor_config</A><BR>and<BR><A HREF="example-config/glide-schedd/mymachine/condor_config.local">example-config/glide-schedd/mymachine/condor_config.local</A>.</P>
-<H2 CLASS="western">5. Submitting user jobs 
+in<BR><A HREF="example-config/glide-schedd/mymachine/condor_config">example-config/glide-schedd/mymachine/condor_config</A><BR>and<BR><A HREF="example-config/glide-schedd/mymachine/condor_config.local">example-config/glide-schedd/mymachine/condor_config.local</A>.</FONT></FONT></P>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. Submitting user
+jobs </FONT></FONT>
 </H2>
-<P CLASS="western">From the user point of view, this is just a
-regular Condor pool.<BR><BR>However, since the resources potentially
-come from all over the world, users need to create more complex
-<B>Requirements</B>, in order to prevent the jobs from landing on
-sites that cannot run their jobs.<BR>Users will need to know which
-attributes the glideins publish and use them accordingly.</P>
-<P CLASS="western"><BR>One useful attribute that all glideins publish
-is GLIDEIN_Site. If a user wants to restrict its job to a list of
-sites, he can do it be using:</P>
-<BLOCKQUOTE CLASS="western">+DESIRED_Sites =
-&quot;Site1,Site4,Site7,Site22&quot;<BR>Requirements =
-stringListMember(GLIDEIN_Site,DESIRED_Sites)</BLOCKQUOTE>
-<P CLASS="western">Some glideins may also need to properly identify
-the final user, using GSI authentication. A user should thus add the
-following line:</P>
-<BLOCKQUOTE CLASS="western">x509userproxy = <I>&lt;path to X509
-proxy&gt;</I></BLOCKQUOTE>
-<P CLASS="western">to their Condor submission file.</P>
-<P CLASS="western"><BR>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>From the user point of
+view, this is just a regular Condor pool.<BR><BR>However, since the
+resources potentially come from all over the world, users need to
+create more complex <B>Requirements</B>, in order to prevent the jobs
+from landing on sites that cannot run their jobs.<BR>Users will need
+to know which attributes the glideins publish and use them
+accordingly.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><BR>One useful
+attribute that all glideins publish is GLIDEIN_Site. If a user wants
+to restrict its job to a list of sites, he can do it be using:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
+= &quot;Site1,Site4,Site7,Site22&quot;<BR>Requirements =
+stringListMember(GLIDEIN_Site,DESIRED_Sites)</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Some glideins may also
+need to properly identify the final user, using GSI authentication. A
+user should thus add the following line:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>x509userproxy
+= <I>&lt;path to X509 proxy&gt;</I></FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>to their Condor
+submission file.</FONT></FONT></P>
+<P><BR><BR>
 </P>
-<P CLASS="western"><BR>
+<P><BR><BR>
 </P>
 <HR SIZE=1>
-<P CLASS="western"><A HREF="index.html">Back to the index</A></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
+to the index</A></FONT></FONT></P>
 </BODY>
 </HTML>
-

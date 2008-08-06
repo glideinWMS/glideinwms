@@ -1,102 +1,89 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Unix)">
+	<TITLE>Installation of the glidein pool Collector</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="20071109;16562400">
-	<META NAME="CHANGED" CONTENT="20071109;17385000">
-	<STYLE>
-	<!--
-		@page { size: 8.5in 11in }
-		P { margin-bottom: 0in }
-		P.western { font-family: "Utopia", serif; font-size: 10pt }
-		P.cjk { font-family: "Verdana"; font-size: 10pt }
-		P.ctl { font-family: "Verdana"; font-size: 10pt }
-		H1.western { font-family: "Utopia", serif; font-size: 16pt }
-		H1.cjk { font-family: "Verdana"; font-size: 16pt }
-		H1.ctl { font-family: "Verdana"; font-size: 16pt }
-		H2.western { font-family: "Utopia", serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H3.western { font-family: "Utopia", serif; font-size: 13pt }
-		H3.cjk { font-family: "Verdana"; font-size: 13pt }
-		H3.ctl { font-family: "Verdana"; font-size: 13pt }
-		BLOCKQUOTE { border: 1px solid #dddddd; padding: 0.1in }
-		BLOCKQUOTE.western { font-family: "Utopia", serif; font-size: 10pt }
-		BLOCKQUOTE.cjk { font-family: "Verdana"; font-size: 10pt }
-		BLOCKQUOTE.ctl { font-family: "Verdana"; font-size: 10pt }
-	-->
-	</STYLE>
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20080806;13012500">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 CLASS="western">Installation of the glidein pool Collector 
+<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of
+the glidein pool Collector </FONT></FONT>
 </H1>
-<table>
-<tr>
-<td valign=top>
-<H2 CLASS="western">1. Description 
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD VALIGN=TOP>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein pool
+			Collector node will be the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
+			Central Manager</A> for the glidein pool, i.e. it&nbsp; will run
+			the Condor Collector and Negotiator daemons.<BR>These daemons
+			define the glidein pool; if this node dies, the pool dies with it.</FONT></FONT></P>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
+			requirements </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs
+			<B>one or two fast CPUs</B> (one for the Collector and one for the
+			Negotiator) and a moderate amount of <B>memory</B> (<B>1GB</B>
+			should be enough).<BR>It must have <B>reliable network</B>
+			connectivity and must be <B>on the public internet,</B> with <B>no
+			firewalls</B>; all worker nodes will be continuously sending UDP
+			packets to the Collector.<BR>The machine must be <B>very stable</B>;
+			if the Collector dies, the glidein pool dies with it (There are
+			Condor techniques to minimize this damage, but you should still
+			try to choose the stablest machine you can afford.)<BR>The <B>disk</B>
+			needed is just for Condor binaries and log files (<B>5GB</B>
+			should be enough)</FONT></FONT></TD>
+		<TD>
+			<P><IMG SRC="overview_collector.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
+			
+		</TD>
+	</TR>
+</TABLE>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed software
+</FONT></FONT>
 </H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The glidein pool
-Collector node will be the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
-Central Manager</A> for the glidein pool, i.e. it&nbsp; will run the
-Condor Collector and Negotiator daemons.<BR>These daemons define the
-glidein pool; if this node dies, the pool dies with it.</P>
-<H2 CLASS="western">2. Hardware requirements 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">This machine needs
-<B>one or two fast CPUs</B> (one for the Collector and one for the
-Negotiator) and a moderate amount of <B>memory</B> (<B>1GB</B> should
-be enough).<BR>It must have <B>reliable network</B> connectivity and
-must be <B>on the public internet,</B> with <B>no firewalls</B>; all
-worker nodes will be continuously sending UDP packets to the
-Collector.<BR>The machine must be <B>very stable</B>; if the
-Collector dies, the glidein pool dies with it (There are Condor
-techniques to minimize this damage, but you should still try to
-choose the stablest machine you can afford.)<BR>The <B>disk</B>
-needed is just for Condor binaries and log files (<B>5GB</B> should
-be enough)</P>
-<td valign=center>
-<img src="overview_collector.png">
-</table>
-<H2 CLASS="western">3. Needed software 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
 OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
 client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-distribution</A>.</P>
-<H2 CLASS="western">4. Installation instructions 
+distribution</A>.</FONT></FONT></P>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
+instructions </FONT></FONT>
 </H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The pool Collector an
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The pool Collector an
 be installed either as root as a non privileged user. If you decide
 to use a non-privileged user, make sure that user has access to the
 needed <A HREF="gsi_config.html">GSI credentials</A>. The whole
-process is managed by a install script described below. 
+process is managed by a install script described below. </FONT></FONT>
 </P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Move into</P>
-<BLOCKQUOTE CLASS="western">glideinWMS/install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">and execute</P>
-<BLOCKQUOTE CLASS="western">./glideinWMS_install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will be presented
-with this screen:</P>
-<BLOCKQUOTE CLASS="western">What do you want to install?<BR>(May
-select several options at one, using a , separated list)<BR>[1]
-glideinWMS Collector<BR>[2] Glidein Factory<BR>[3] GCB<BR>[4] pool
-Collector<BR>[5] Schedd node<BR>[6] Condor for VO Frontend<BR>[7] VO
-Frontend<BR>[8] Components</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Select <B>4</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Now follow the
-instructions and install all the software components.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Most of the questions
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
+with this screen:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+want to install?<BR>(May select several options at one, using a ,
+separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
+Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>4</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
+instructions and install all the software components.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Most of the questions
 should be fairly straightforward (see an example installation
-snapshot in <A HREF="collector_root_install_snapshot.txt">collector_root_install_snapshot.txt</A>).</P>
-<H3 CLASS="western">4.1 Example config files 
+snapshot in <A HREF="collector_root_install_snapshot.txt">collector_root_install_snapshot.txt</A>).</FONT></FONT></P>
+<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.1 Example config files </FONT></FONT>
 </H3>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You can find the
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can find the
 complete config files
-in<BR><A HREF="example-config/glide-pool-collector/mymachine/condor_config">example-config/glide-pool-collector/mymachine/condor_config</A><BR>and<BR><A HREF="example-config/glide-pool-collector/mymachine/condor_config.local">example-config/glide-pool-collector/mymachine/condor_config.local</A></P>
+in<BR><A HREF="example-config/glide-pool-collector/mymachine/condor_config">example-config/glide-pool-collector/mymachine/condor_config</A><BR>and<BR><A HREF="example-config/glide-pool-collector/mymachine/condor_config.local">example-config/glide-pool-collector/mymachine/condor_config.local</A></FONT></FONT></P>
 <HR SIZE=1>
-<P CLASS="western"><A HREF="index.html">Back to the index</A><BR><BR><BR><BR>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
+to the index</A><BR><BR></FONT></FONT><BR><BR>
 </P>
 </BODY>
 </HTML>

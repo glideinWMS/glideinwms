@@ -1,140 +1,124 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE></TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.0  (Unix)">
+	<TITLE>Installation of a VO Frontend</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="20071113;16540800">
-	<META NAME="CHANGED" CONTENT="20071114;13081900">
-	<STYLE>
-	<!--
-		@page { size: 8.5in 11in }
-		P { margin-bottom: 0in }
-		P.western { font-family: "Utopia", serif; font-size: 10pt }
-		P.cjk { font-family: "Verdana"; font-size: 10pt }
-		P.ctl { font-family: "Verdana"; font-size: 10pt }
-		H1.western { font-family: "Utopia", serif; font-size: 16pt }
-		H1.cjk { font-family: "Verdana"; font-size: 16pt }
-		H1.ctl { font-family: "Verdana"; font-size: 16pt }
-		H2.western { font-family: "Utopia", serif; font-size: 14pt; font-style: italic }
-		H2.cjk { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H2.ctl { font-family: "Verdana"; font-size: 14pt; font-style: italic }
-		H3.western { font-family: "Utopia", serif; font-size: 13pt }
-		H3.cjk { font-family: "Verdana"; font-size: 13pt }
-		H3.ctl { font-family: "Verdana"; font-size: 13pt }
-		BLOCKQUOTE { border: 1px solid #dddddd; padding: 0.1in }
-		BLOCKQUOTE.western { font-family: "Utopia", serif; font-size: 10pt }
-		BLOCKQUOTE.cjk { font-family: "Verdana"; font-size: 10pt }
-		BLOCKQUOTE.ctl { font-family: "Verdana"; font-size: 10pt }
-	-->
-	</STYLE>
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20080806;12593100">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1 CLASS="western">Installation of a VO Frontend 
+<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
+VO Frontend </FONT></FONT>
 </H1>
-<table>
-<tr>
-<td valign=top>
-<H2 CLASS="western">1. Description 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The VO Frontend will
-match user jobs with glidein factory ads. It is responsible for the
-submission of new glideins.</P>
-<H2 CLASS="western">2. Hardware requirements 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">This machine needs <B>a
-fast CPU</B> and a moderate amount of <B>memory</B> (<B>1GB </B>should
-be enough).<BR>The <B>disk</B> needed is just for binaries, config
-files and log files (<B>2GB</B> should be enough)</P>
-<H2 CLASS="western">3. Needed software 
-</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Any <A HREF="http://www.cs.wisc.edu/condor/manual/v6.9/1_5Availability.html">Condor-supported
-OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
-client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-distribution</A>.</P>
-<td valign=center>
-<img src="overview_frontend.png">
-</table>
-<H2 CLASS="western">4. Base tools installation instructions</H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The VO Frontend will
-need the OSG client and the Condor binaries.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You can co-locate it
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD VALIGN=TOP>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend will
+			match user jobs with glidein factory ads. It is responsible for
+			the submission of new glideins.</FONT></FONT></P>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
+			requirements </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
+			fast CPU</B> and a moderate amount of <B>memory</B> (<B>1GB </B>should
+			be enough).<BR>The <B>disk</B> needed is just for binaries, config
+			files and log files (<B>2GB</B> should be enough)</FONT></FONT></P>
+			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed
+			software </FONT></FONT>
+			</H2>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v6.9/1_5Availability.html">Condor-supported
+			OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
+			client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
+			distribution</A>.</FONT></FONT></TD>
+		<TD>
+			<P><IMG SRC="overview_frontend.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
+			
+		</TD>
+	</TR>
+</TABLE>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Base tools
+installation instructions</FONT></FONT></H2>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend will
+need the OSG client and the Condor binaries.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can co-locate it
 with on <A HREF="schedd_install.html">a submitter node</A> or <A HREF="collector_install.html">the
 glidein pool Collector node</A>, or install a local copy. If you do
 want to install a local copy, a install script is available. Possibly
-do it as a non privileged user, like <B>gfrontend</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Move into</P>
-<BLOCKQUOTE CLASS="western">glideinWMS/install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">and execute</P>
-<BLOCKQUOTE CLASS="western">./glideinWMS_install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will be presented
-with this screen:</P>
-<BLOCKQUOTE CLASS="western">What do you want to install?<BR>(May
-select several options at one, using a , separated list)<BR>[1]
-glideinWMS Collector<BR>[2] Glidein Factory<BR>[3] GCB<BR>[4] pool
-Collector<BR>[5] Schedd node<BR>[6] Condor for VO Frontend<BR>[7] VO
-Frontend<BR>[8] Components</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Select <B>6</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Now follow the
+do it as a non privileged user, like <B>gfrontend</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
+with this screen:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+want to install?<BR>(May select several options at one, using a ,
+separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
+Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>6</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions and install all the software components. An example
-snapshot can be found in <A HREF="frontend_condor_install_snapshot.txt">frontend_condor_install_snapshot.txt</A>.</P>
-<H2 CLASS="western">5. VO Frontend installation 
+snapshot can be found in <A HREF="frontend_condor_install_snapshot.txt">frontend_condor_install_snapshot.txt</A>.</FONT></FONT></P>
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. VO Frontend
+installation </FONT></FONT>
 </H2>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Before installing the
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Before installing the
 VO frontend, create a valid x509 proxy in
 <B>~/.globus/x509_service_proxy</B>. You will also need to keep it
 valid for the life of the frontend. How you keep this proxy valid
 (via MyProxy, kx509, voms-proxy-init from a local certificate, scp
 from other nodes, or other methods), is beyond the scope of this
-document.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">The VO frontend
-itself should be installed as a non privileged user, for example the
-user <B>gfrontend</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Move into</P>
-<BLOCKQUOTE CLASS="western">glideinWMS/install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">and execute</P>
-<BLOCKQUOTE CLASS="western">./glideinWMS_install</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will be presented
-with this screen:</P>
-<BLOCKQUOTE CLASS="western">What do you want to install?<BR>(May
-select several options at one, using a , separated list)<BR>[1]
-glideinWMS Collector<BR>[2] Glidein Factory<BR>[3] GCB<BR>[4] pool
-Collector<BR>[5] Schedd node<BR>[6] Condor for VO Frontend<BR>[7] VO
-Frontend<BR>[8] Components</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Select <B>7</B>.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Now follow the
-instructions and install all the software components.</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">Most of the questions
+document.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO frontend itself
+should be installed as a non privileged user, for example the user
+<B>gfrontend</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
+with this screen:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+want to install?<BR>(May select several options at one, using a ,
+separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
+Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>7</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
+instructions and install all the software components.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Most of the questions
 should be fairly straightforward (see an example installation
-snapshot in <A HREF="frontend_fg_install_snapshot.txt">frontend_fg_install_snapshot.txt</A>).</P>
-<P CLASS="western" STYLE="margin-bottom: 0.2in">You will need to
+snapshot in <A HREF="frontend_fg_install_snapshot.txt">frontend_fg_install_snapshot.txt</A>).</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will need to
 specify the selection and matching criteria for the user jobs. The
-suggested values</P>
-<BLOCKQUOTE CLASS="western">jobs_constraint =
-(JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<BR>match_string
+suggested values</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>jobs_constraint
+= (JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<BR>match_string
 = glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;] in
-job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;)</BLOCKQUOTE>
-<P CLASS="western" STYLE="margin-bottom: 0.2in"> should be fine for
-some basic matchmatching, providing that your user jobs add</P>
-<BLOCKQUOTE CLASS="western">+DESIRED_Sites =
-“site1,site2,...siteN”<BR>requirements=stringListMember(GLIDEIN_Site,
-DESIRED_Sites)</BLOCKQUOTE>
-<P CLASS="western">In alternative, you can create the config file by
-hand. Look at the <A HREF="../manual/frontend/index.html#management">glideinWMS
-manual</A> for more details.</P>
-<H3 CLASS="western">5.1. Starting the VO Frontend 
+job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;)</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>should be fine for some
+basic matchmatching, providing that your user jobs add</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
+= “site1,site2,...siteN”<BR>requirements=stringListMember(GLIDEIN_Site,
+DESIRED_Sites)</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>In alternative, you can
+create the config file by hand. Look at the <A HREF="../manual/frontend/index.html#management">glideinWMS
+manual</A> for more details.</FONT></FONT></P>
+<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>5.1. Starting the VO
+Frontend </FONT></FONT>
 </H3>
-<P CLASS="western">Decide how often should the VO Frontend query the
-schedds and the WMS collector, how often should it advertise itself,
-and finally execute <B>glideinWMS/factory/glideinFrontend.py:</B></P>
-<BLOCKQUOTE CLASS="western">
-~/glideinWMS/frontend/glideinFrontend.py 
-/home/gfrontend/myvofrontend1/etc/vofrontend.cfg &gt;/dev/null 2&gt;&amp;1
-&lt;/dev/null&amp;</BLOCKQUOTE>
-<P CLASS="western"><BR>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Use the startup script:</FONT></FONT></P>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
+/home/gfrontend/myvofrontend1/<BR>./frontend_startup start</FONT></FONT></P></BLOCKQUOTE>
+<P><BR><BR>
 </P>
 <HR SIZE=1>
-<P CLASS="western"><A HREF="index.html">Back to the index</A><BR><BR>
-</P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
+to the index</A></FONT></FONT></P>
 </BODY>
 </HTML>
