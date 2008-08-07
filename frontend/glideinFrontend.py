@@ -220,6 +220,9 @@ def main(config_file):
 #
 ############################################################
 
+def termsignal(signr,frame):
+    raise KeyboardInterrupt, "Received signal %s"%signr
+
 if __name__ == '__main__':
     # check that the GSI environment is properly set
     if not os.environ.has_key('X509_USER_PROXY'):
@@ -230,7 +233,7 @@ if __name__ == '__main__':
     # make sure you use GSI for authentication
     os.environ['_CONDOR_SEC_DEFAULT_AUTHENTICATION_METHODS']='GSI'
 
-    signal.signal(signal.SIGTERM,signal.getsignal(signal.SIGINT))
-    signal.signal(signal.SIGQUIT,signal.getsignal(signal.SIGINT))
+    signal.signal(signal.SIGTERM,termsignal)
+    signal.signal(signal.SIGQUIT,termsignal)
     main(sys.argv[1])
  
