@@ -2313,6 +2313,8 @@ def setup_collector(default_poolname):
         config_fd.write("NEGOTIATOR_INTERVAL = 60\n")
         config_fd.write("# Prevent preemption\n")
         config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
+        config_fd.write("# negotiator/GCB optimization\n")
+        config_fd.write("NEGOTIATOR_INFORM_STARTD = False\n")
     finally:
         config_fd.close()
 
@@ -2472,7 +2474,10 @@ def setup_main_schedd():
         config_fd.write("# Prevent checking on ImageSize\n")
         config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
         config_fd.write("# Prevent preemption\n")
-        config_fd.write("MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7\n")
+        config_fd.write("MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7\n\n")
+        config_fd.write("#GCB optimization\n")
+        config_fd.write("SCHEDD_SEND_VACATE_VIA_TCP = True\n")
+        config_fd.write("STARTD_SENDS_ALIVES = True\n")
     finally:
         config_fd.close()
 
