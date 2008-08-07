@@ -216,6 +216,12 @@ COLLECTOR_NAME = Test pool
 ############################################################
 ## Negotiator tuning
 ############################################################
+# Prefer newer claims as they are more likely to be alive
 NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom
+# Increase negotiation frequency, as new glideins do not trigger a reschedule
+NEGOTIATOR_INTERVAL = 60
 # Prevent preemption
 PREEMPTION_REQUIREMENTS = False
+# negotiator/GCB optimization
+NEGOTIATOR_INFORM_STARTD = False
+

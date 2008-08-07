@@ -250,6 +250,11 @@ APPEND_REQ_VANILLA = (Memory>=1)
 
 # Prevent preemption
 MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
+
+#GCB optimization
+SCHEDD_SEND_VACATE_VIA_TCP = True
+STARTD_SENDS_ALIVES = True
+
 #####################################
 # Tell schedd daemons where is GCB
 #####################################
