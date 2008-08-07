@@ -1,5 +1,7 @@
 v1_4	Better support for RESS and BDII
 	 Including automatic downtime handling
+	User STARTD_SENDS_ALIVES=True by default.
+	Disable glidein UDP port by default. 
 	Global files can now be loaded after entry
 	Added support for job wrapper scripts.
 	Fix monitor locking.
