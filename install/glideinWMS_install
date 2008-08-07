@@ -2307,7 +2307,10 @@ def setup_collector(default_poolname):
         config_fd.write("############################################################\n")
         config_fd.write("## Negotiator tuning\n")
         config_fd.write("############################################################\n")
+        config_fd.write("# Prefer newer claims as they are more likely to be alive\n")
         config_fd.write("NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom\n")
+        config_fd.write("# Increase negotiation frequency, as new glideins do not trigger a reschedule \n")
+        config_fd.write("NEGOTIATOR_INTERVAL = 60\n")
         config_fd.write("# Prevent preemption\n")
         config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
     finally:
