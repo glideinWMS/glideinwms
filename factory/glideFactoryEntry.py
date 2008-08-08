@@ -91,7 +91,7 @@ def perform_work(factory_name,glidein_name,entry_name,
 
     if condorStatus!=None: # temporary glitch, no sanitization this round
         #glideFactoryLib.factoryConfig.activity_log.write("Sanitize")
-        glideFactoryLib.sanitizeGlideins(condorQ,condorStatus)
+        glideFactoryLib.sanitizeGlideinsSimple(condorQ)
     
     #glideFactoryLib.factoryConfig.activity_log.write("Work done")
     return 0
@@ -410,10 +410,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.47 2008/08/06 17:32:25 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.48 2008/08/08 14:25:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.48  2008/08/08 14:25:47  sfiligoi
+#  Sanitize without condor_status data
+#
 #  Revision 1.47  2008/08/06 17:32:25  sfiligoi
 #  Fix typo
 #
