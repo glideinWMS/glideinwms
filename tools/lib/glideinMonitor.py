@@ -146,7 +146,7 @@ def getMonitorVM(pool_name,jobVM):
         raise RuntimeError, "Slot %s does not support monitoring!"%jobVM
     if not (job_data['HAS_MONITOR_VM']==True):
         raise RuntimeError, "Slot %s does not support monitoring! HAS_MONITOR_VM not True."%jobVM
-    if not (job_data['IS_MONITOR_VM']!=False):
+    if not (job_data['IS_MONITOR_VM']==False):
         raise RuntimeError, "Slot %s is a monitoring slot itself! Cannot monitor."%jobVM
     if not job_data.has_key('Monitoring_Name'):
         raise RuntimeError, "Slot %s does not publish the monitoring slot!"%jobVM
@@ -166,7 +166,7 @@ def validateMonitorVMStatus(condor_status,monitorVM):
     if ((not condor_status.has_key('HAS_MONITOR_VM')) or
         (condor_status['HAS_MONITOR_VM']!=True)):
         raise RuntimeError, "Monitor slot %s does not allow monitoring"%monitorVM
-    if not (job_data['IS_MONITOR_VM']!=True):
+    if not (job_data['IS_MONITOR_VM']==True):
         raise RuntimeError, "Slot %s is not a monitoring slot!"%monitorVM
 
     if condor_status['State']=='Claimed':
