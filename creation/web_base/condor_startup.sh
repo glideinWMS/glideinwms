@@ -206,6 +206,7 @@ STARTER_JOB_ENVIRONMENT = $job_env
 GLIDEIN_VARIABLES = $glidein_variables
 
 MASTER_NAME = glidein_$$
+STARTD_NAME = glidein_$$
 GLIDEIN_MASTER_NAME = "glidein_$$"
 
 EOF
@@ -291,6 +292,7 @@ if [ "$use_multi_monitor" -ne 1 ]; then
     # must use a different name
     cat >> "$CONDOR_CONFIG" <<EOF
 MASTER_NAME = monitor_$$
+STARTD_NAME = monitor_$$
 GLIDEIN_MASTER_NAME = "monitor_$$"
 EOF
 
