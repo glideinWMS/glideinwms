@@ -77,7 +77,8 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
             format_arr=["-format '<c>' ClusterId"] #clusterid is always there, so this will always be printed out
             for format_el in format_list:
                 attr_name,attr_type=format_el
-                format_arr.append('-format \'<a n="%s"><%s>%%s</%s></a>\' %s'%(attr_name,attr_type,attr_type,attr_name))
+                attr_format={'s':'%s','i':'%i','r':'%f','b':'%i'}[attr_type]
+                format_arr.append('-format \'<a n="%s"><%s>%s</%s></a>\' %s'%(attr_name,attr_type,attr_format,attr_type,attr_name))
             format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
             format_str=string.join(format_arr," ")
 
@@ -332,7 +333,7 @@ def xml2list_start_element(name, attrs):
     elif name=="b":
         xml2list_intype="b"
         if attrs.has_key('v'):
-            xml2list_inattr["val"] = (attrs["v"]!="f")
+            xml2list_inattr["val"] = (attrs["v"] in ('T','t','1'))
         else:
             xml2list_inattr["val"] = None # extended syntax... value in text area
     elif name=="un":
@@ -375,7 +376,7 @@ def xml2list_char_data(data):
         if xml2list_inattr["val"]!=None:
             pass #nothing to do, value was in attribute
         else:
-            xml2list_inattr["val"]=(data[0] in ('T','t'))
+            xml2list_inattr["val"]=(data[0] in ('T','t','1'))
     elif xml2list_intype=="un":
         pass #nothing to do, value was in attribute
     else:
