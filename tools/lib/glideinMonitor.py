@@ -166,7 +166,7 @@ def validateMonitorVMStatus(condor_status,monitorVM):
     if ((not condor_status.has_key('HAS_MONITOR_VM')) or
         (condor_status['HAS_MONITOR_VM']!=True)):
         raise RuntimeError, "Monitor slot %s does not allow monitoring"%monitorVM
-    if not (job_data['IS_MONITOR_VM']==True):
+    if not (condor_status['IS_MONITOR_VM']==True):
         raise RuntimeError, "Slot %s is not a monitoring slot!"%monitorVM
 
     if condor_status['State']=='Claimed':
