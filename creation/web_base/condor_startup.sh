@@ -257,13 +257,18 @@ else
     fi
 
     # also needs to create "monitor" dir for log and execute dirs
-    mkdir monitor
+    mkdir monitor monitor/log monitor/execute 
     if [ $? -ne 0 ]; then
-	echo "Error creating monitor dir" 1>&2
+	echo "Error creating monitor dirs" 1>&2
 	exit 1
     fi
 fi
 
+mkdir log execute 
+if [ $? -ne 0 ]; then
+    echo "Error creating condor dirs" 1>&2
+    exit 1
+fi
 
 # ##################################
 
