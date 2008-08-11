@@ -207,8 +207,6 @@ GLIDEIN_VARIABLES = $glidein_variables
 
 MASTER_NAME = glidein_$$
 STARTD_NAME = glidein_$$
-GLIDEIN_MASTER_NAME = "glidein_$$@\$(FULL_HOSTNAME)"
-GLIDEIN_STARTD_NAME = "glidein_$$@\$(FULL_HOSTNAME)"
 
 EOF
 # ##################################
@@ -256,8 +254,6 @@ else
 # use a different name for monitor
 MASTER_NAME = monitor_$$
 STARTD_NAME = monitor_$$
-GLIDEIN_MASTER_NAME = "monitor_$$@\$(FULL_HOSTNAME)"
-GLIDEIN_STARTD_NAME = "monitor_$$@\$(FULL_HOSTNAME)"
 
 # use plural names, since there may be more than one if multiple job VMs
 Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
