@@ -205,8 +205,8 @@ GLIDEIN_START_TIME = $now
 STARTER_JOB_ENVIRONMENT = $job_env
 GLIDEIN_VARIABLES = $glidein_variables
 
-MASTER_NAME = ${GLIDEIN_Site}_$$
-GLIDEIN_MASTER_NAME = "${GLIDEIN_Site}_$$"
+MASTER_NAME = glidein_$$
+GLIDEIN_MASTER_NAME = "glidein_$$"
 
 EOF
 # ##################################
@@ -214,6 +214,58 @@ if [ $? -ne 0 ]; then
     echo "Error customizing the condor_config" 1>&2
     exit 1
 fi
+
+monitor_mode=`grep -i "^MONITOR_MODE " $config_file | awk '{print $2}'`
+
+if [ "$monitor_mode" == "MULTI" ]; then
+    use_multi_monitor=1
+else
+    use_multi_monitor=0
+fi
+
+
+if [ "$use_multi_monitor" -eq 1 ]; then
+    condor_config_multi_include="${PWD}/`grep -i '^condor_config_multi_include ' $description_file | awk '{print $2}'`"
+    echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
+    cat $condor_config_multi_include >> "$CONDOR_CONFIG"
+    if [ $? -ne 0 ]; then
+	echo "Error appending multi_include to condor_config" 1>&2
+	exit 1
+    fi
+else
+    condor_config_main_include="${PWD}/`grep -i '^condor_config_main_include ' $description_file | awk '{print $2}'`"
+    condor_config_monitor_include="${PWD}/`grep -i '^condor_config_monitor_include ' $description_file | awk '{print $2}'`"
+    echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
+
+    # using two different configs... one for monitor and one for main
+    condor_config_monitor=${CONDOR_CONFIG}.monitor
+    cp "$CONDOR_CONFIG" "$condor_config_monitor"
+    if [ $? -ne 0 ]; then
+	echo "Error copying condor_config into condor_config.monitor" 1>&2
+	exit 1
+    fi
+    cat $condor_config_monitor_include >> "$condor_config_monitor"
+    if [ $? -ne 0 ]; then
+	echo "Error appending monitor_include to condor_config.monitor" 1>&2
+	exit 1
+    fi
+
+    cat $condor_config_main_include >> "$CONDOR_CONFIG"
+    if [ $? -ne 0 ]; then
+	echo "Error appending main_include to condor_config" 1>&2
+	exit 1
+    fi
+
+    # also needs to create "monitor" dir for log and execute dirs
+    mkdir monitor
+    if [ $? -ne 0 ]; then
+	echo "Error creating monitor dir" 1>&2
+	exit 1
+    fi
+fi
+
+
+# ##################################
 
 if [ "$debug_mode" == "1" ]; then
   echo "--- condor_config ---" 1>&2
@@ -225,12 +277,36 @@ if [ "$debug_mode" == "1" ]; then
   #env 1>&2
 fi
 
+if [ "$use_multi_monitor" -ne 1 ]; then
+    # start monitoring satrtd
+    # use the appropriate configuration file
+    tmp_condor_config=$CONDOR_CONFIG
+    export CONDOR_CONFIG=$condor_config_monitor
+
+    # must use a different name
+    cat >> "$CONDOR_CONFIG" <<EOF
+MASTER_NAME = monitor_$$
+GLIDEIN_MASTER_NAME = "monitor_$$"
+EOF
+
+    monitor_start_time=`date +%s`
+    echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
+    $CONDOR_DIR/sbin/condor_master -pidfile $PWD/monitor/condor_master.pid 
+    ret=$?
+    if [ "$ret" -ne 0 ]; then
+	echo 'Failed to start monitoring condor... still going ahead' 1>&2
+    fi
+
+    # clean back
+    export CONDOR_CONFIG=$tmp_condor_config
+fi
+
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
-$CONDOR_DIR/sbin/condor_master -r $retmins -dyn -f 
-ret=$?
+$CONDOR_DIR/sbin/condor_master -r $retmins -f 
+condor_ret=$?
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
@@ -261,4 +337,22 @@ if [ "$debug_mode" == "1" ]; then
     done
 fi
 
-exit $ret
+if [ "$use_multi_monitor" -ne 1 ]; then
+    # terminate monitoring startd
+    # use the appropriate configuration file
+    tmp_condor_config=$CONDOR_CONFIG
+    export CONDOR_CONFIG=$condor_config_monitor
+
+    monitor_start_time=`date +%s`
+    echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
+    $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid 
+    ret=$?
+    if [ "$ret" -ne 0 ]; then
+	echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
+    fi
+
+    # clean back
+    export CONDOR_CONFIG=$tmp_condor_config
+fi
+
+exit $condor_ret

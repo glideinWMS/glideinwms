@@ -6,8 +6,8 @@
 ##
 ######################################################################
 
-LOG = $(LOCAL_DIR)/log
-EXECUTE = $(LOCAL_DIR)/execute
+LOG = $(WORK_DIR)/log
+EXECUTE = $(WORK_DIR)/execute
 COLLECTOR_HOST = $(HEAD_NODE)
 FILESYSTEM_DOMAIN = $(HOSTNAME)
 UID_DOMAIN = $(HOSTNAME)
@@ -62,9 +62,6 @@ STARTD_ATTRS = GLIDEIN_MASTER_NAME, IS_GLIDEIN, GLIDEIN_ToRetire, GLIDEIN_Expire
 # effectively disable checking of new binaries
 MASTER_CHECK_NEW_EXEC_INTERVAL = 3600000
 
-# No need to be nice... I got the slot
-JOB_RENICE_INCREMENT = 0
-
 #If the daemon crashes, run away fast
 MASTER_BACKOFF_CEILING = 600
 
@@ -98,51 +95,9 @@ DENY_NEGOTIATOR = anonymous@*
 
 LOCAL_CONFIG_FILE       = 
 
-NUM_CPUS = 2
-VIRTUAL_MACHINE_TYPE_1 = cpus=1, memory=1%, swap=1%, disk=1%
-NUM_VIRTUAL_MACHINES_TYPE_1 = 1
-VIRTUAL_MACHINE_TYPE_2 = cpus=1, memory=99%, swap=99%, disk=99%
-NUM_VIRTUAL_MACHINES_TYPE_2 = 1
-
-STARTD_RESOURCE_PREFIX = vm
-
-# Allow cross-VM expressions
-STARTD_VM_EXPRS = State, EnteredCurrentState, Activity, EnteredCurrentActivity, RemoteUser, Name, GlobalJobId
-
-#VM1_START_CONDITION = ($(WMS_TEST_START) && (WMSGroup =?= "test"))
-#VM2_START_CONDITION = ($(WMS_DEFAULT_START) && (WMSGroup =!= "Held"))
-#TIMEOUT_START_CONDITION = ((GLIDEIN_TORETIRE+WMSMaxTime+1200)<GLIDEIN_EXPIRE)
-
-#START = (((VirtualMachineID == 1) && $(VM1_START_CONDITION)) ||((VirtualMachineID == 2) && $(VM2_START_CONDITION))) && $(TIMEOUT_START_CONDITION)
-
 GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start))
 
-HAS_MONITOR_VM=True
-IS_MONITOR_VM = (VirtualMachineID == 1)
-VM2_Monitoring_Name = VM1_Name
-# use plural names, since there may be more than one if multiple job VMs
-VM1_Monitored_Names = VM2_Name
-VM1_Monitored_GlobalJobIds = VM2_GlobalJobId
-
-STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM
-VM1_STARTD_ATTRS = Monitored_Names,Monitored_GlobalJobIds
-VM2_STARTD_ATTRS = Monitoring_Name
-
-VM1_VM2_MATCH = (vm2_State =?= "Claimed") && (vm2_RemoteUser =?= User)
-VM1_START_CONDITION = ($(VM1_VM2_MATCH)) && ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
-VM2_START_CONDITION = $(GLIDEIN_START_CONDITION)
-START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachineID == 2) && ($(VM2_START_CONDITION)))
-
-IsOwner = (VirtualMachineID == 1) && (START =?= False)
-
 RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank))
-
-# Max time a job can run in the glidein
-MaxJobRetirementTime=$(GLIDEIN_Job_Max_Time)
-SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
-
-# How long will it wait in an unclaimed state before exiting
-STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
 
 # randomize update interval to minimize packet loss
 UPDATE_INTERVAL = $RANDOM_INTEGER(270, 370, 1)

@@ -1,0 +1,31 @@
+######################################################################
+##
+##  condor_config.multi_config.include
+##
+##  Condor include file for multiple 
+##
+######################################################################
+
+WORK_DIR=$(LOCAL_DIR)
+
+# No need to be nice... I got the slot
+JOB_RENICE_INCREMENT = 0
+
+HAS_MONITOR_VM=True
+IS_MONITOR_VM = False
+Monitoring_Name = VM1_Name
+
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,Monitoring_Name
+
+START = $(GLIDEIN_START_CONDITION)
+
+IsOwner = False
+
+# Max time a job is guaranteed to run in the glidein
+MaxJobRetirementTime=$(GLIDEIN_Job_Max_Time)
+SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
+
+# How long will it wait in an unclaimed state before exiting
+STARTD_NOCLAIM_SHUTDOWN = $(GLIDEIN_Max_Idle)
+
+

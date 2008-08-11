@@ -1,0 +1,31 @@
+######################################################################
+##
+##  condor_config.multi_config.include
+##
+##  Condor include file for multiple 
+##
+######################################################################
+
+WORK_DIR=$(LOCAL_DIR)/monitor
+
+# This is monitoring slot, be nice
+JOB_RENICE_INCREMENT = 20
+
+HAS_MONITOR_VM=True
+IS_MONITOR_VM=True
+# use plural names, since there may be more than one if multiple job VMs
+Monitored_Names = VM2_Name
+Monitored_GlobalJobIds = VM2_GlobalJobId
+
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,Monitored_Names,Monitored_GlobalJobIds
+
+START = (JOB_Is_Monitor=?=True)
+
+IsOwner = (START =?= False)
+
+# Max time a job is guaranteed to run in the glidein
+# This is a monitoring job, so low limits
+MaxJobRetirementTime=10
+SHUTDOWN_GRACEFUL_TIMEOUT=10
+
+

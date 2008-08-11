@@ -70,9 +70,12 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
 
         #load system files
-        for file_name in ('parse_starterlog.awk', "condor_config"):
+        for file_name in ('parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.monitor.include" ):
             self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['description'].add("condor_config","condor_config")
+        self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
+        self.dicts['description'].add("condor_config.dedicated_starter.include","condor_config_main_include")
+        self.dicts['description'].add("condor_config.monitor.include","condor_config_monitor_include")
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user files in stage
@@ -445,10 +448,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.55 2008/08/06 16:44:42 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.56 2008/08/11 16:13:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.56  2008/08/11 16:13:21  sfiligoi
+#  Add support for separate monitor startd
+#
 #  Revision 1.55  2008/08/06 16:44:42  sfiligoi
 #  Add rate and sleep config options
 #
