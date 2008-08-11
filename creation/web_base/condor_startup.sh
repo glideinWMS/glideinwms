@@ -252,11 +252,27 @@ else
 	exit 1
     fi
 
+    cat >> "$condor_config_monitor" <<EOF
+# use a different name for monitor
+MASTER_NAME = monitor_$$
+STARTD_NAME = monitor_$$
+GLIDEIN_MASTER_NAME = "monitor_$$"
+GLIDEIN_STARTD_NAME = "monitor_$$"
+
+# use plural names, since there may be more than one if multiple job VMs
+Monitored_Names = "glidein_$$"
+EOF
+
     cat $condor_config_main_include >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
 	echo "Error appending main_include to condor_config" 1>&2
 	exit 1
     fi
+
+    cat >> "$CONDOR_CONFIG" <<EOF
+
+Monitoring_Name = "monitor_$$"
+EOF
 
     # also needs to create "monitor" dir for log and execute dirs
     mkdir monitor monitor/log monitor/execute 
@@ -290,17 +306,6 @@ if [ "$use_multi_monitor" -ne 1 ]; then
     tmp_condor_config=$CONDOR_CONFIG
     export CONDOR_CONFIG=$condor_config_monitor
 
-    # must use a different name
-    cat >> "$CONDOR_CONFIG" <<EOF
-MASTER_NAME = monitor_$$
-STARTD_NAME = monitor_$$
-GLIDEIN_MASTER_NAME = "monitor_$$"
-GLIDEIN_STARTD_NAME = "monitor_$$"
-
-# use plural names, since there may be more than one if multiple job VMs
-Monitored_Names = "glidein_$$"
-EOF
-
     monitor_start_time=`date +%s`
     echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
     $CONDOR_DIR/sbin/condor_master -pidfile $PWD/monitor/condor_master.pid 
@@ -311,10 +316,6 @@ EOF
 
     # clean back
     export CONDOR_CONFIG=$tmp_condor_config
-else
-    cat >> "$CONDOR_CONFIG" <<EOF
-Monitoring_Name = "monitor_$$"
-EOF
 fi
 
 start_time=`date +%s`
