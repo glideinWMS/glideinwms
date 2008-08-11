@@ -75,13 +75,13 @@ def monitor(jid,schedd_name,pool_name,
     constraint="(ClusterId=?=%s) && (ProcId=?=%s)"%(jid_cluster,jid_proc)
 
     remoteVM=getRemoteVM(pool_name,schedd_name,constraint)
-    monitorVM=getMonitorVM(remoteVM)
+    monitorVM=getMonitorVM(pool_name,remoteVM)
 
-    condor_status=getCondorStatus(pool_name,remoteVM,monitorVM)
-    validateCondorStatus(condor_status,remoteVM,monitorVM)
+    condor_status=getMonitorVMStatus(pool_name,monitorVM)
+    validateMonitorVMStatus(condor_status,monitorVM)
 
-    if condor_status[monitorVM].has_key('GLEXEC_STARTER'):
-        glexec_starter=condor_status[monitorVM]['GLEXEC_STARTER']
+    if condor_status.has_key('GLEXEC_STARTER'):
+        glexec_starter=condor_status['GLEXEC_STARTER']
     else:
         glexec_starter=False #if not defined, assume no gLExec
 
@@ -119,6 +119,8 @@ def monitor(jid,schedd_name,pool_name,
 
 ######## Internal ############
 
+
+
 def getRemoteVM(pool_name,schedd_name,constraint):
     cq=condorMonitor.CondorQ(schedd_name=schedd_name,pool_name=pool_name)
     data=cq.fetch(constraint)
@@ -134,40 +136,50 @@ def getRemoteVM(pool_name,schedd_name,constraint):
     
     return el['RemoteHost']
 
-def getMonitorVM(remoteVM):
-    rvm_arr=string.split(remoteVM,"@",1)
-    if len(rvm_arr)!=2:
-        raise RuntimeError, "Not running on a multi-VM resource"
-    vm,host=rvm_arr
-    if vm!="vm2":
-        raise RuntimeError, "Not running on a supported glidein (%s!=vm2)"%vm
-    return "%s@%s"%("vm1",host)
-
-def getCondorStatus(pool_name,jobVM,monitorVM):
+def getMonitorVM(pool_name,jobVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
-    data=cs.fetch(constraint='(Name=="%s") || (Name=="%s")'%(jobVM,monitorVM))
-    return data
-
-def validateCondorStatus(condor_status,jobVM,monitorVM):
-    if not condor_status.has_key(jobVM):
+    data=cs.fetch(constraint='(Name=="%s")'%jobVM,format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('Monitoring_Name','s')])
+    if not data.has_key(jobVM):
         raise RuntimeError, "Job claims it runs on %s, but cannot find it!"%jobVM
-    if not condor_status.has_key(monitorVM):
-        raise RuntimeError, "No monitoring VM found (should be %s)"%monitorVM
+    job_data=data['jobVM']
+    if (not job_data.has_key('HAS_MONITOR_VM')) or (not job_data.has_key('IS_MONITOR_VM')):
+        raise RuntimeError, "Slot %s does not support monitoring!"%jobVM
+    if not (job_data['HAS_MONITOR_VM']==True):
+        raise RuntimeError, "Slot %s does not support monitoring! HAS_MONITOR_VM not True."%jobVM
+    if not (job_data['IS_MONITOR_VM']!=False):
+        raise RuntimeError, "Slot %s is a monitoring slot itself! Cannot monitor."%jobVM
+    if not job_data.has_key('Monitoring_Name'):
+        raise RuntimeError, "Slot %s does not publish the monitoring slot!"%jobVM
 
-    if ((not condor_status[monitorVM].has_key('HAS_MONITOR_VM')) or
-        (condor_status[monitorVM]['HAS_MONITOR_VM']!=True)):
-        raise RuntimeError, "The startd does not allow monitoring"
+    return job_data['Monitoring_Name']
 
-    if condor_status[monitorVM]['State']=='Claimed':
+def getMonitorVMStatus(pool_name,monitorVM):
+    cs=condorMonitor.CondorStatus(pool_name=pool_name)
+    data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
+                  format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('State','s'),('Activity','s'),('vm2_State','s'),('vm2_Activity','s'),('GLEXEC_STARTER','b')])
+    if not data.has_key(monitorVM):
+        raise RuntimeError, "Monitor slot %s does not exist!"%monitorVM
+
+    return data[monitorVM]
+
+def validateMonitorVMStatus(condor_status,monitorVM):
+    if ((not condor_status.has_key('HAS_MONITOR_VM')) or
+        (condor_status['HAS_MONITOR_VM']!=True)):
+        raise RuntimeError, "Monitor slot %s does not allow monitoring"%monitorVM
+    if not (job_data['IS_MONITOR_VM']!=True):
+        raise RuntimeError, "Slot %s is not a monitoring slot!"%monitorVM
+
+    if condor_status['State']=='Claimed':
         raise RuntimeError, "Job cannot be monitored right now"
-
-    if ((not condor_status[monitorVM].has_key('vm2_State')) or
-        (condor_status[monitorVM]['vm2_State']!='Claimed')):
-        raise RuntimeError, "Job cannot be yet monitored"
-
-    if ((not condor_status[monitorVM].has_key('vm2_State')) or
-        (condor_status[monitorVM]['vm2_Activity']=='Retiring')):
+    if condor_status['Activity']=='Retiring':
         raise RuntimeError, "Job cannot be monitored anymore"
+
+    if condor_status.has_key('vm2_State'):
+        # only if has vm2_State are cross VM states checked
+        if condor_status['vm2_State']!='Claimed':
+            raise RuntimeError, "Job cannot be yet monitored"
+        if condor_status['vm2_Activity']=='Retiring':
+            raise RuntimeError, "Job cannot be monitored anymore"
 
     return
 
