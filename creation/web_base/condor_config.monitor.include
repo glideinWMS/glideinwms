@@ -21,7 +21,7 @@ IS_MONITOR_VM=True
 
 STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,Monitored_Names
 
-START = (JOB_Is_Monitor=?=True)
+START = ((GLIDEIN_Is_Monitor=?=True) || (JOB_Is_Monitor=?=True))
 
 IsOwner = (START =?= False)
 
