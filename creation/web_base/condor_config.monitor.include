@@ -1,8 +1,8 @@
 ######################################################################
 ##
-##  condor_config.multi_config.include
+##  condor_config.monitor.include
 ##
-##  Condor include file for multiple 
+##  Condor include file for monitor starter 
 ##
 ######################################################################
 
@@ -18,11 +18,8 @@ NUM_VIRTUAL_MACHINES_TYPE_1 = 1
 
 HAS_MONITOR_VM=True
 IS_MONITOR_VM=True
-# use plural names, since there may be more than one if multiple job VMs
-Monitored_Names = VM2_Name
-Monitored_GlobalJobIds = VM2_GlobalJobId
 
-STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,Monitored_Names,Monitored_GlobalJobIds
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,Monitored_Names
 
 START = (JOB_Is_Monitor=?=True)
 

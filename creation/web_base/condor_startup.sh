@@ -208,6 +208,7 @@ GLIDEIN_VARIABLES = $glidein_variables
 MASTER_NAME = glidein_$$
 STARTD_NAME = glidein_$$
 GLIDEIN_MASTER_NAME = "glidein_$$"
+GLIDEIN_STARTD_NAME = "glidein_$$"
 
 EOF
 # ##################################
@@ -294,6 +295,10 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 MASTER_NAME = monitor_$$
 STARTD_NAME = monitor_$$
 GLIDEIN_MASTER_NAME = "monitor_$$"
+GLIDEIN_STARTD_NAME = "monitor_$$"
+
+# use plural names, since there may be more than one if multiple job VMs
+Monitored_Names = "glidein_$$"
 EOF
 
     monitor_start_time=`date +%s`
@@ -306,6 +311,10 @@ EOF
 
     # clean back
     export CONDOR_CONFIG=$tmp_condor_config
+else
+    cat >> "$CONDOR_CONFIG" <<EOF
+Monitoring_Name = "monitor_$$"
+EOF
 fi
 
 start_time=`date +%s`

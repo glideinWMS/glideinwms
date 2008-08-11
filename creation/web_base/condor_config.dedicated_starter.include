@@ -1,8 +1,8 @@
 ######################################################################
 ##
-##  condor_config.multi_config.include
+##  condor_config.dedicated_starter.include
 ##
-##  Condor include file for multiple 
+##  Condor include file for main starter 
 ##
 ######################################################################
 
@@ -18,7 +18,6 @@ NUM_VIRTUAL_MACHINES_TYPE_1 = 1
 
 HAS_MONITOR_VM=True
 IS_MONITOR_VM = False
-Monitoring_Name = VM1_Name
 
 STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,Monitoring_Name
 
