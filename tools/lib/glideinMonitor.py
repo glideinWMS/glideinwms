@@ -141,7 +141,7 @@ def getMonitorVM(pool_name,jobVM):
     data=cs.fetch(constraint='(Name=="%s")'%jobVM,format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('Monitoring_Name','s')])
     if not data.has_key(jobVM):
         raise RuntimeError, "Job claims it runs on %s, but cannot find it!"%jobVM
-    job_data=data['jobVM']
+    job_data=data[jobVM]
     if (not job_data.has_key('HAS_MONITOR_VM')) or (not job_data.has_key('IS_MONITOR_VM')):
         raise RuntimeError, "Slot %s does not support monitoring!"%jobVM
     if not (job_data['HAS_MONITOR_VM']==True):
