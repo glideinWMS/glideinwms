@@ -30,7 +30,7 @@ import condorManager
 # the argv contains the arguments not parsed by the function
 def parseArgs(argv):
     outdict={'schedd_name':None,'pool_name':None,
-             'timeout':60} #default
+             'timeout':130} #default
     jid=None
     alen=len(argv)
     i=0
