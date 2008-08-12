@@ -111,7 +111,7 @@ def createCmdMonitorFile(monitor_file_name,monitor_control_relname,
 
         if monitor_startd:
             # job running in a different execute dir
-            script_lines.append("outdir=`ls -dlt ../../execute* | tail -1 | awk '{print $9}'`")
+            script_lines.append("outdir=`ls -dlt ../../../execute* | tail -1 | awk '{print $9}'`")
             script_lines.append("(cd $outdir/dir*; if [ $? -eq 0 ]; then %s; else echo Internal error; fi)"%argv2cmd(argv))
         else:
             # job running in a different subdir of the execute dir
