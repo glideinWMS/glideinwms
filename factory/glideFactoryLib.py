@@ -293,7 +293,7 @@ def sanitizeGlideinsSimple(condorq):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
-    stale_list=extractStale(condorq,status)
+    stale_list=extractStaleSimple(condorq)
     if len(stale_list)>0:
         factoryConfig.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
@@ -650,10 +650,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.30 2008/08/05 19:53:14 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.31 2008/08/12 21:16:49 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.31  2008/08/12 21:16:49  sfiligoi
+#  Fix typo
+#
 #  Revision 1.30  2008/08/05 19:53:14  sfiligoi
 #  Add support for entry max_jobs, max_idle and max_held
 #
