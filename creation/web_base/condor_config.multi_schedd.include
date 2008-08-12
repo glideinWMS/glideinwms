@@ -25,11 +25,13 @@ STARTD_VM_EXPRS = RemoteUser, Name, GlobalJobId
 
 HAS_MONITOR_VM=True
 IS_MONITOR_VM = (VirtualMachineID == 1)
+USES_MONITOR_STARTD=False
+
 VM2_Monitoring_Name = VM1_Name
 # use plural names, since there may be more than one if multiple job VMs
 VM1_Monitored_Names = VM2_Name
 
-STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM
+STARTD_ATTRS = $(STARTD_ATTRS), IS_MONITOR_VM, HAS_MONITOR_VM,USES_MONITOR_STARTD
 VM1_STARTD_ATTRS = Monitored_Names
 VM2_STARTD_ATTRS = Monitoring_Name
 
