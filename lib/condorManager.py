@@ -57,3 +57,18 @@ def condorRemoveOne(cluster_or_uname,schedd_name=None,pool_name=None):
         rm_opts="-pool %s %s"%(pool_name,rm_opts)
     return condorExe.exe_cmd("condor_rm",rm_opts)
 
+##############################################
+#
+# Issue a condor_reschedule
+#
+def condorReschedule(schedd_name=None,pool_name=None):
+    cmd_opts=""
+    if schedd_name!=None:
+        cmd_opts="-name %s %s"%(schedd_name,cmd_opts)
+    if pool_name!=None:
+        cmd_opts="-pool %s %s"%(pool_name,cmd_opts)
+    condorExe.exe_cmd("condor_reschedule",cmd_opts)
+    return
+
+
+
