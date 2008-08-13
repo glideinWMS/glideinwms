@@ -1,3 +1,9 @@
+v1_4_1	Improved pseudo-interactive monitoring
+	  By default use a separate startd for montoring
+	  Old multi-VM mode can be enabled by MONITOR_MODE=MULTI
+	Fixed factory handling held jobs
+	Improved installer defaults
+
 v1_4	Better support for RESS and BDII
 	 Including automatic downtime handling
 	User STARTD_SENDS_ALIVES=True by default.
