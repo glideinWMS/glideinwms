@@ -1981,7 +1981,10 @@ def install_condor():
 
             fd.write("stop() {\n")
             fd.write('        echo -n "Shutting down condor: "\n')
-            fd.write("        pkill -9 -u %s 'condor_.*' 2>/dev/null 1>&2 && success || failure\n"%CONDOR_USER)
+            fd.write("        killall -q -9 condor_master condor_schedd condor_shadow condor_collector condor_negotiator condor_procd condor_gridmanager gahp_server 2>/dev/null 1>&2\n")
+            fd.write("        sleep 1\n")
+            fd.write("        # If a master is still alive, we have a problem\n")
+            fd.write("        killall condor_master 2>/dev/null 1>&2 && failure || success\n")
             fd.write("        RETVAL=$?\n")
             fd.write("        echo\n")
             fd.write("}\n\n")
