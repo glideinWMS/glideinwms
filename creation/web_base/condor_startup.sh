@@ -347,11 +347,11 @@ echo
 # get the real name
 log_dir='log'
 
-echo ===   Stats of main starter log   ===
+echo ===   Stats of main   ===
 if [ -f "${main_starter_log}" ]; then
   awk -f parse_starterlog.awk ${main_starter_log}
 fi
-echo === End Stats of vm2 ===
+echo === End Stats of main ===
 
 if [ "$debug_mode" == "1" ]; then
     ls -l log 1>&2
