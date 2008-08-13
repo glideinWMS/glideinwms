@@ -107,7 +107,7 @@ def monitor(jid,schedd_name,pool_name,
                          monitorVM,timeout,x509_file)
         jid=condorManager.condorSubmitOne(sname,schedd_name,pool_name)
         try:
-            checkFile(mcname,timeout)
+            checkFile(mcname,schedd_name,pool_name,timeout,reschedule_freq=10)
             printFile(mfout,stdout_fd)
             printFile(mferr,stderr_fd)
         except:
@@ -207,12 +207,17 @@ def createSubmitFile(work_dir,sfile,mlog,
     finally:
         fd.close()
 
-def checkFile(fname,timeout):
+def checkFile(fname,schedd_name,pool_name,
+              timeout,reschedule_freq):
     deadline=time.time()+timeout
+    last_reschedule=time.time()
     while (time.time()<deadline):
+        if (time.time()-last_reschedule)>=reschedule_freq:
+            condorManager.condorReschedule(schedd_name,pool_name)
+            last_reschedule=time.time()
+        time.sleep(1)
         if os.path.exists(fname):
             return True
-        time.sleep(1)
     raise RuntimeError, "Command did not reply within timeout (%ss)"%timeout
 
 def printFile(fname,outfd):
