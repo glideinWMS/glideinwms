@@ -169,8 +169,10 @@ def validateMonitorVMStatus(condor_status,monitorVM):
     if not (condor_status['IS_MONITOR_VM']==True):
         raise RuntimeError, "Slot %s is not a monitoring slot!"%monitorVM
 
-    if condor_status['State']=='Claimed':
-        raise RuntimeError, "Job cannot be monitored right now"
+    # Since we will be queueing anyhow, do not check if it is ready right now 
+    #if condor_status['State']=='Claimed':
+    #    raise RuntimeError, "Job cannot be monitored right now"
+
     if condor_status['Activity']=='Retiring':
         raise RuntimeError, "Job cannot be monitored anymore"
 
