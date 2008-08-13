@@ -13,9 +13,16 @@ STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 import gWftLogParser
 
-USAGE="Usage: cat_StarterLog.py <logname>"
+USAGE="Usage: cat_StarterLog.py [-monitor] <logname>"
 
 def main():
+    if sys.argv[1]=='-monitor':
+        fname=sys.argv[2]
+        condor_log_id="((StarterLog.monitor)|(StarterLog.vm1))"
+    else:
+        fname=sys.argv[1]
+        condor_log_id="((StarterLog)|(StarterLog.vm2))"
+        
     try:
         print gWftLogParser.get_CondorLog(sys.argv[1],"((StarterLog)|(StarterLog.vm2))")
     except:
