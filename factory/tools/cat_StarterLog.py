@@ -17,7 +17,7 @@ USAGE="Usage: cat_StarterLog.py <logname>"
 
 def main():
     try:
-        print gWftLogParser.get_CondorLog(sys.argv[1],"StarterLog.vm2")
+        print gWftLogParser.get_CondorLog(sys.argv[1],"((StarterLog)|(StarterLog.vm2))")
     except:
         sys.stderr.write("%s\n"%USAGE)
         sys.exit(1)
