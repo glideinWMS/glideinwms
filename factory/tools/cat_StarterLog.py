@@ -24,7 +24,7 @@ def main():
         condor_log_id="((StarterLog)|(StarterLog.vm2))"
         
     try:
-        print gWftLogParser.get_CondorLog(sys.argv[1],"((StarterLog)|(StarterLog.vm2))")
+        print gWftLogParser.get_CondorLog(fname,condor_log_id)
     except:
         sys.stderr.write("%s\n"%USAGE)
         sys.exit(1)
