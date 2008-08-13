@@ -164,6 +164,17 @@ function b64uuencode {
     fi
 }
 
+function cond_print_log {
+    # $1 = fname
+    # $2 = fpath
+    if [ -f  "$2" ]; then
+	echo "$1" 1>&2
+	echo "======== gzip | uuencode =============" 1>&2
+	gzip --stdout "$2" | b64uuencode 1>&2
+	echo
+    fi
+}
+
 condor_vars=`grep -i "^CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
 condor_vars_entry=`grep -i "^CONDOR_VARS_ENTRY_FILE " $config_file | awk '{print $2}'`
 
@@ -312,6 +323,12 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 
     # clean back
     export CONDOR_CONFIG=$tmp_condor_config
+
+    main_starter_log='log/StarterLog'
+    monitor_starter_log='monitor/log/StarterLog'
+else
+    main_starter_log='log/StarterLog.vm2'
+    monitor_starter_log='log/StarterLog.vm1'
 fi
 
 start_time=`date +%s`
@@ -328,26 +345,25 @@ echo
 
 # log dir is always different
 # get the real name
-log_dir=`/bin/ls -d log*`
+log_dir='log'
 
-echo ===   Stats of vm2   ===
-if [ -f "${log_dir}/StarterLog.vm2" ]; then
-  awk -f parse_starterlog.awk ${log_dir}/StarterLog.vm2
+echo ===   Stats of main starter log   ===
+if [ -f "${main_starter_log}" ]; then
+  awk -f parse_starterlog.awk ${main_starter_log}
 fi
 echo === End Stats of vm2 ===
 
 if [ "$debug_mode" == "1" ]; then
-    ls -l log*/* 1>&2
+    ls -l log 1>&2
     echo
-    for fname in MasterLog StartdLog StarterLog.vm2 StarterLog.vm1; do
-     fpath="${log_dir}/${fname}"
-     if [ -f  "$fpath" ]; then
-       echo "$fname" 1>&2
-       echo "======== gzip | uuencode =============" 1>&2
-       gzip --stdout "$fpath" | b64uuencode 1>&2
-       echo
-     fi
-    done
+    cond_print_log MasterLog log/MasterLog
+    cond_print_log StartdLog log/StartdLog
+    cond_print_log StarterLog ${main_starter_log}
+    if [ "$use_multi_monitor" -ne 1 ]; then
+	cond_print_log MasterLog.monitor monitor/log/MasterLog
+	cond_print_log StartdLog.monitor monitor/log/StartdLog
+    fi
+    cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
 
 if [ "$use_multi_monitor" -ne 1 ]; then
