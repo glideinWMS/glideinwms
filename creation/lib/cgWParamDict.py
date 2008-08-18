@@ -140,7 +140,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
                 os.close(fd)
                 
                 import pubCrypto
-                key_obj=RSAKey()
+                key_obj=pubCrypto.RSAKey()
                 key_obj.new(int(self.params.security.key_length))
                 key_obj.save(rsa_key_fname)            
         else:
@@ -471,10 +471,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.58 2008/08/18 22:22:46 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.59 2008/08/18 22:32:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.59  2008/08/18 22:32:56  sfiligoi
+#  Fix typo
+#
 #  Revision 1.58  2008/08/18 22:22:46  sfiligoi
 #  Fix typo
 #
