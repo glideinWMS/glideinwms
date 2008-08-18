@@ -106,6 +106,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
+        glidein_dict.add('PubKey',params.security.pub_key)
         self.active_entry_list=[]
         for entry in params.entries.keys():
             if eval(params.entries[entry].enabled,{},{}):
@@ -122,6 +123,28 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cgWDictFile.glideinMainDicts.reuse(self,other)
+
+    def save(self,set_readonly=True):
+        cgWDictFile.glideinMainDicts.save(self,set_readonly)
+        if params.security.pub_key=='None':
+            pass # nothing to do
+        elif params.security.pub_key=='RSA':
+            rsa_key_fname=os.path.join(self.submit_dir,cgWConsts.RSA_KEY)
+
+            if not os.path.isfile(rsa_key_fname):
+                # create the key only once
+
+                # touch the file with correct flags first
+                # I have no way to do it in  RSAKey class
+                fd=os.open(rsa_key_fname,os.O_CREAT,0600)
+                os.close(fd)
+                
+                import pubCrypto
+                key_obj=RSAKey()
+                key_obj.new(int(params.security.key_length))
+                key_obj.save(rsa_key_fname)            
+        else:
+            raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%params.security.pub_key
 
 class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
     def __init__(self,
@@ -448,10 +471,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.56 2008/08/11 16:13:21 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.57 2008/08/18 22:19:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.57  2008/08/18 22:19:37  sfiligoi
+#  Add params.security.pub_key
+#
 #  Revision 1.56  2008/08/11 16:13:21  sfiligoi
 #  Add support for separate monitor startd
 #

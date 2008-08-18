@@ -69,6 +69,7 @@ SUBMIT_WRAPPER="job_submit.sh"
 LOCAL_START_WRAPPER="local_start.sh"
 XML_CONFIG_FILE="glideinWMS.xml"
 INFOSYS_FILE="infosys.descript"
+RSA_KEY="rsa.key"
 
 INITD_STARTUP_FILE="factory_startup"
 
@@ -113,10 +114,13 @@ def get_entry_name_from_entry_monitor_dir(entry_monitor_dir):
 #
 # CVS info
 #
-# $Id: cgWConsts.py,v 1.17 2008/07/28 18:29:48 sfiligoi Exp $
+# $Id: cgWConsts.py,v 1.18 2008/08/18 22:19:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWConsts.py,v $
+#  Revision 1.18  2008/08/18 22:19:37  sfiligoi
+#  Add params.security.pub_key
+#
 #  Revision 1.17  2008/07/28 18:29:48  sfiligoi
 #  Add AFTER_FILE_LISTFILE
 #

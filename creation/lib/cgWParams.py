@@ -233,7 +233,11 @@ class Params:
         monitor_default["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)
         monitor_default["want_split_terminated_graphs"]=("True","Bool","Should create split terminated log graphs (CPU intensive)?",None)
         
-        self.defaults["monitor"]=monitor_default
+        security_default=xmlParse.OrderedDict()
+        security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
+        security_default["key_length"]=("2048","bits","Key length in bits",None)
+        
+        self.defaults["security"]=security_default
         
         condor_defaults=xmlParse.OrderedDict()
         condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
@@ -500,10 +504,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.34 2008/08/06 16:44:42 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.35 2008/08/18 22:19:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.35  2008/08/18 22:19:37  sfiligoi
+#  Add params.security.pub_key
+#
 #  Revision 1.34  2008/08/06 16:44:42  sfiligoi
 #  Add rate and sleep config options
 #
