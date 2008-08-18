@@ -126,9 +126,9 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
 
     def save(self,set_readonly=True):
         cgWDictFile.glideinMainDicts.save(self,set_readonly)
-        if params.security.pub_key=='None':
+        if self.params.security.pub_key=='None':
             pass # nothing to do
-        elif params.security.pub_key=='RSA':
+        elif self.params.security.pub_key=='RSA':
             rsa_key_fname=os.path.join(self.submit_dir,cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
@@ -141,10 +141,10 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
                 
                 import pubCrypto
                 key_obj=RSAKey()
-                key_obj.new(int(params.security.key_length))
+                key_obj.new(int(self.params.security.key_length))
                 key_obj.save(rsa_key_fname)            
         else:
-            raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%params.security.pub_key
+            raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%self.params.security.pub_key
 
 class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
     def __init__(self,
@@ -471,10 +471,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.57 2008/08/18 22:19:37 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.58 2008/08/18 22:22:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.58  2008/08/18 22:22:46  sfiligoi
+#  Fix typo
+#
 #  Revision 1.57  2008/08/18 22:19:37  sfiligoi
 #  Add params.security.pub_key
 #

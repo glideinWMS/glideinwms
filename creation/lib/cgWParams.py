@@ -233,6 +233,8 @@ class Params:
         monitor_default["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)
         monitor_default["want_split_terminated_graphs"]=("True","Bool","Should create split terminated log graphs (CPU intensive)?",None)
         
+        self.defaults["monitor"]=monitor_default
+        
         security_default=xmlParse.OrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
@@ -504,10 +506,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.35 2008/08/18 22:19:37 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.36 2008/08/18 22:21:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.36  2008/08/18 22:21:27  sfiligoi
+#  Fix typo
+#
 #  Revision 1.35  2008/08/18 22:19:37  sfiligoi
 #  Add params.security.pub_key
 #
