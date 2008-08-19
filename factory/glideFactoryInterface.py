@@ -138,7 +138,7 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
                         # don't quote ints
                         fd.write('%s%s = %s\n'%(prefix,attr,el))
                     else:
-                        escaped_el=string.replace(str(el),'"','\\"')
+                        escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
                         fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
         finally:
             fd.close()
@@ -253,10 +253,13 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 #
 # CVS info
 #
-# $Id: glideFactoryInterface.py,v 1.20 2008/08/19 15:10:56 sfiligoi Exp $
+# $Id: glideFactoryInterface.py,v 1.21 2008/08/19 18:01:20 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryInterface.py,v $
+#  Revision 1.21  2008/08/19 18:01:20  sfiligoi
+#  Add protection for newlines
+#
 #  Revision 1.20  2008/08/19 15:10:56  sfiligoi
 #  Use PubKey
 #
