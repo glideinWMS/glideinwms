@@ -183,7 +183,7 @@ def advertizeWork(factory_pool,
                         # don't quote ints
                         fd.write('%s%s = %s\n'%(prefix,attr,el))
                     else:
-                        escaped_el=string.replace(str(el),'"','\\"')
+                        escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
                         fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
         finally:
             fd.close()
