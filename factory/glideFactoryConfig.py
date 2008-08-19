@@ -89,6 +89,7 @@ class GlideinDescript(ConfigFile):
         ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
                             repr) # convert everything in strings
 
+    def load_pub_key(self):
         if self.data['PubKeyType']=='RSA':
             import pubCrypto
             self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
@@ -124,10 +125,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.9 2008/08/19 15:10:56 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.10 2008/08/19 18:03:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.10  2008/08/19 18:03:17  sfiligoi
+#  Make loading of pub key optional
+#
 #  Revision 1.9  2008/08/19 15:10:56  sfiligoi
 #  Use PubKey
 #

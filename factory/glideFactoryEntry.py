@@ -334,6 +334,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
 
     os.chdir(startup_dir)
     glideinDescript=glideFactoryConfig.GlideinDescript()
+    glideinDescript.load_pub_key()
     if not (entry_name in string.split(glideinDescript.data['Entries'],',')):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
@@ -415,10 +416,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.51 2008/08/19 15:10:56 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.52 2008/08/19 18:03:17 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.52  2008/08/19 18:03:17  sfiligoi
+#  Make loading of pub key optional
+#
 #  Revision 1.51  2008/08/19 15:10:56  sfiligoi
 #  Use PubKey
 #
