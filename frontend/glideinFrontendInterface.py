@@ -152,11 +152,12 @@ def findGlideinClientMonitoring(factory_pool,client_name,
 
 # glidein_params is a dictionary of values to publish
 #  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
-# similar for glidein_params and glidein_monitors
+# similar for glidein_monitors
 def advertizeWork(factory_pool,
                   client_name,request_name,
                   glidein_name,min_nr_glideins,max_run_glideins,
-                  glidein_params={},glidein_monitors={}):
+                  glidein_params={},glidein_monitors={},
+                  glidein_pub_key_id=None,encoded_x509_proxy=None): #x509_data needs pub_key_id
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -171,6 +172,10 @@ def advertizeWork(factory_pool,
             fd.write('ClientName = "%s"\n'%client_name)
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
+            if pub_key_id!=None:
+                fd.write('ReqPubPubKeyID = "%s"\n'%pub_key_id)
+                if encoded_x509_proxy!=None:
+                    fd.write('ReqEncX509Proxy = "%s"\n'%string.replace(encoded_x509_proxy,'\n','\\n'))
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
 
