@@ -106,7 +106,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
-        glidein_dict.add('PubKey',params.security.pub_key)
+        glidein_dict.add('PubKeyType',params.security.pub_key)
         self.active_entry_list=[]
         for entry in params.entries.keys():
             if eval(params.entries[entry].enabled,{},{}):
@@ -471,10 +471,13 @@ def symlink_file(infile,outfile):
 #
 # CVS info
 #
-# $Id: cgWParamDict.py,v 1.59 2008/08/18 22:32:56 sfiligoi Exp $
+# $Id: cgWParamDict.py,v 1.60 2008/08/19 15:10:43 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParamDict.py,v $
+#  Revision 1.60  2008/08/19 15:10:43  sfiligoi
+#  Rename PubKey to PubKeyType
+#
 #  Revision 1.59  2008/08/18 22:32:56  sfiligoi
 #  Fix typo
 #
