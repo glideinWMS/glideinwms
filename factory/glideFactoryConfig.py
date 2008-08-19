@@ -1,5 +1,6 @@
 import string
 import os.path
+import md5
 
 ############################################################
 #
@@ -99,6 +100,7 @@ class GlideinDescript(ConfigFile):
             self.data['PubKeyValue']='None'
         else:
             raise RuntimeError, 'Invalid PubKeyType value(%s), must be None or RSA'%self.data['PubKeyType']
+        self.data['PubKeyID']=md5.new(string.join((self.data['PubKeyType'],self.data['PubKeyValue'])).hexdigest()
         return
 
 class JobDescript(EntryConfigFile):
@@ -125,10 +127,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.10 2008/08/19 18:03:17 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.11 2008/08/19 21:53:02 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.11  2008/08/19 21:53:02  sfiligoi
+#  Add PubKeyID
+#
 #  Revision 1.10  2008/08/19 18:03:17  sfiligoi
 #  Make loading of pub key optional
 #

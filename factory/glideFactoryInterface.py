@@ -106,7 +106,7 @@ advertizeGlideinCounter=0
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
 def advertizeGlidein(factory_name,glidein_name,entry_name,
-                     pub_key_type,pub_key_value,
+                     pub_key_id,pub_key_type,pub_key_value,
                      glidein_attrs={},glidein_params={},glidein_monitors={}):
     global factoryConfig,advertizeGlideinCounter
 
@@ -122,6 +122,7 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
+            fd.write('PubKeyID = "%s"\n'%pub_key_id)
             fd.write('PubKeyType = "%s"\n'%pub_key_type)
             fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_value,'\n','\\n'))
             fd.write('DaemonStartTime = %li\n'%start_time)
@@ -253,10 +254,13 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 #
 # CVS info
 #
-# $Id: glideFactoryInterface.py,v 1.21 2008/08/19 18:01:20 sfiligoi Exp $
+# $Id: glideFactoryInterface.py,v 1.22 2008/08/19 21:53:02 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryInterface.py,v $
+#  Revision 1.22  2008/08/19 21:53:02  sfiligoi
+#  Add PubKeyID
+#
 #  Revision 1.21  2008/08/19 18:01:20  sfiligoi
 #  Add protection for newlines
 #
