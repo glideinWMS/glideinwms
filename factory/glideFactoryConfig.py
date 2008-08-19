@@ -89,6 +89,17 @@ class GlideinDescript(ConfigFile):
         ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
                             repr) # convert everything in strings
 
+        if self.data['PubKeyType']=='RSA':
+            import pubCrypto
+            self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
+            pub_rsa_key=self.rsa_key.PubRSAKey()
+            self.data['PubKeyValue']=pub_rsa_key.get()
+        elif self.data['PubKeyType']=='None':
+            self.data['PubKeyValue']='None'
+        else:
+            raise RuntimeError, 'Invalid PubKeyType value(%s), must be None or RSA'%self.data['PubKeyType']
+        return
+
 class JobDescript(EntryConfigFile):
     def __init__(self,entry_name):
         global factoryConfig
@@ -100,7 +111,6 @@ class JobAttributes(JoinConfigFile):
         global factoryConfig
         JoinConfigFile.__init__(self,entry_name,factoryConfig.job_attrs_file,
                                 lambda s:s) # values are in python format
-
 
 class JobParams(JoinConfigFile):
     def __init__(self,entry_name):
@@ -114,10 +124,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.8 2007/05/18 19:10:57 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.9 2008/08/19 15:10:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.9  2008/08/19 15:10:56  sfiligoi
+#  Use PubKey
+#
 #  Revision 1.8  2007/05/18 19:10:57  sfiligoi
 #  Add CVS tags
 #

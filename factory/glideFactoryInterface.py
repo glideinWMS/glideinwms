@@ -105,7 +105,9 @@ advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name,glidein_name,entry_name,glidein_attrs={},glidein_params={},glidein_monitors={}):
+def advertizeGlidein(factory_name,glidein_name,entry_name,
+                     pub_key_type,pub_key_value,
+                     glidein_attrs={},glidein_params={},glidein_monitors={}):
     global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -120,6 +122,8 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,glidein_attrs={},glide
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
+            fd.write('PubKeyType = "%s"\n'%pub_key_type)
+            fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_value,'\n','\\n'))
             fd.write('DaemonStartTime = %li\n'%start_time)
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             advertizeGlideinCounter+=1
@@ -249,10 +253,13 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 #
 # CVS info
 #
-# $Id: glideFactoryInterface.py,v 1.19 2007/05/18 19:10:57 sfiligoi Exp $
+# $Id: glideFactoryInterface.py,v 1.20 2008/08/19 15:10:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryInterface.py,v $
+#  Revision 1.20  2008/08/19 15:10:56  sfiligoi
+#  Use PubKey
+#
 #  Revision 1.19  2007/05/18 19:10:57  sfiligoi
 #  Add CVS tags
 #

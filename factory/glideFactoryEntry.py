@@ -209,6 +209,9 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
 
+    pub_key_type=glideinDescript.data['PubKeyType']
+    pub_key_value=glideinDescript.data['PubKeyValue']
+
     current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
 
     glidein_monitors={}
@@ -218,7 +221,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,pub_key_type,pub_key_value,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 
@@ -412,10 +415,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.50 2008/08/12 21:16:49 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.51 2008/08/19 15:10:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.51  2008/08/19 15:10:56  sfiligoi
+#  Use PubKey
+#
 #  Revision 1.50  2008/08/12 21:16:49  sfiligoi
 #  Fix typo
 #
