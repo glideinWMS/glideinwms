@@ -41,7 +41,7 @@ function check_gcb {
     ret=$?
     if [ "$ret" -eq 0 ]; then
 	# try only if nc does indeed exists
-	nc -z -w 2 $vg_gcb_ip $vg_gcb_port
+	nc -z -w 2 $vg_gcb_ip $vg_gcb_port  >/dev/null 2>&1
 	ret=$?
 	if [ $ret -ne 0 ]; then
 	    echo "Cannot talk to GCB $vg_gcb_ip:$vg_gcb_port via nc" 1>&2
