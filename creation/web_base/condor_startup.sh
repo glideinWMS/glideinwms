@@ -315,7 +315,11 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 
     monitor_start_time=`date +%s`
     echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
-    $CONDOR_DIR/sbin/condor_master -pidfile $PWD/monitor/condor_master.pid 
+
+    # set the worst case limit
+    # should never hit it, but let's be safe and shutdown automatically at some point
+    let "monretmins=( $GLIDEIN_Retire_Time + $GLIDEIN_Job_Max_Time ) / 60 - 1"
+    $CONDOR_DIR/sbin/condor_master -f -r $monretmins -pidfile $PWD/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
     ret=$?
     if [ "$ret" -ne 0 ]; then
 	echo 'Failed to start monitoring condor... still going ahead' 1>&2
