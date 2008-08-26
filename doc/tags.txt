@@ -1,3 +1,7 @@
+v1_4_2	Fix glexec setup script bug.
+	Improve pseudo-interactive monitoring.
+	  The changes introduced in v1_4_1 could leave behind zombies.
+
 v1_4_1	Improved pseudo-interactive monitoring
 	  By default use a separate startd for montoring
 	  Old multi-VM mode can be enabled by MONITOR_MODE=MULTI
