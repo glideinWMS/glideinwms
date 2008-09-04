@@ -1684,6 +1684,15 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
 ###################################
 
 def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url_template):
+    monitoringConfig.get_graph_lock()
+    try:
+        create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template)
+    finally:
+        monitoringConfig.release_graph_lock()
+    return
+
+
+def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template):
     subdir_list.sort()
 
     mill_range_groups=getAllMillRangeGroups()
@@ -1947,6 +1956,14 @@ def cleanup_rrd_name(s):
 
 
 def createGraphHtml(html_name,png_fname, rrd2graph_args):
+    monitoringConfig.get_graph_lock()
+    try:
+        createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args)
+    finally:
+        monitoringConfig.release_graph_lock()
+    return
+
+def createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args):
     base_png_dir,base_png_fname=os.path.split(png_fname)
     base_png_dir2,base_png_subdir2=os.path.split(base_png_dir)
 
@@ -1978,10 +1995,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.207 2008/09/04 17:15:05 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.208 2008/09/04 17:26:44 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.208  2008/09/04 17:26:44  sfiligoi
+#  Apply locks to a few html creating portions
+#
 #  Revision 1.207  2008/09/04 17:15:05  sfiligoi
 #  Create disk_lock and graph_lock and apply them properly to all rrd operations
 #
