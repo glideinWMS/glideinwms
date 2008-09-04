@@ -73,6 +73,8 @@ class MonitoringConfig:
                           ]
         
         # The name of the attribute that identifies the glidein
+        self.lock_fname="monitor.lock"
+        self.lock_fd=None
         self.monitor_dir="monitor/"
         self.log_dir="log/"
 
@@ -119,6 +121,26 @@ class MonitoringConfig:
                                                                                                    ('badput="%i"'%waste_mill['badput'])))
         finally:
             fd.close()
+
+    def get_lock(self):
+        if self.lock_fd!=None:
+          raise RuntimeError, "Lock already in use; cannot get" # should never happen
+        self.lock_fd=open(self.lock_fname,"w")
+        try:
+          fcntl.flock(self.lock_fd,fcntl.LOCK_EX)
+        except:
+           self.lock_fd.close()
+           self.lock_fd=None
+           raise
+
+        return
+
+    def release_lock(self):
+        if self.lock_fd==None:
+          raise RuntimeError, "Lock not in use; cannot release" # should never happen
+        self.lock_fd.close()
+        self.lock_fd=None
+        return
 
     def write_file(self,relative_fname,str):
         fname=os.path.join(self.monitor_dir,relative_fname)
@@ -1805,12 +1827,21 @@ def create_rrd(rrd_obj,rrdfname,
     for archive in rrd_archives:
         args.append("RRA:%s:%g:%i:%i"%archive)
 
-    rrd_obj.create(*args)
+    monitoringConfig.get_lock()
+    try:
+      rrd_obj.create(*args)
+    finally:
+      monitoringConfig.release_lock()
     return
 
 def update_rrd(rrd_obj,rrdfname,
                time,val):
-    rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
+    monitoringConfig.get_lock()
+    try:
+     rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
+    finally:
+      monitoringConfig.release_lock()
+
     return
 
 #
@@ -1923,10 +1954,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.204 2008/08/05 20:48:25 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.205 2008/09/04 17:04:04 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.205  2008/09/04 17:04:04  sfiligoi
+#  Add locks to rrd monitoring
+#
 #  Revision 1.204  2008/08/05 20:48:25  sfiligoi
 #  Add want_split_terminated_graphsa
 #
