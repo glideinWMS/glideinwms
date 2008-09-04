@@ -76,7 +76,7 @@ class MonitoringConfig:
         self.graph_lock_fd=None
 
         # The name of the attribute that identifies the glidein
-        self.lock_dir="."
+        self.lock_dir="." # if None, will not lock
         self.monitor_dir="monitor/"
         self.log_dir="log/"
 
@@ -125,6 +125,9 @@ class MonitoringConfig:
             fd.close()
 
     def get_disk_lock(self):
+        if self.lock_dir==None:
+            return # locking not needed
+
         if self.disk_lock_fd!=None:
             raise RuntimeError, "Disk lock already in use; cannot get" # should never happen
         disk_lock_fname=os.path.join(self.lock_dir,'monitor.disk.lock')
@@ -139,6 +142,9 @@ class MonitoringConfig:
         return
     
     def release_disk_lock(self):
+        if self.lock_dir==None:
+            return # locking not needed
+
         if self.disk_lock_fd==None:
             raise RuntimeError, "Disk lock not in use; cannot release" # should never happen
         self.disk_lock_fd.close()
@@ -146,6 +152,9 @@ class MonitoringConfig:
         return
     
     def get_graph_lock(self):
+        if self.lock_dir==None:
+            return # locking not needed
+
         if self.graph_lock_fd!=None:
             raise RuntimeError, "Graph lock already in use; cannot get" # should never happen
         graph_lock_fname=os.path.join(self.lock_dir,'monitor.graph.lock')
@@ -160,6 +169,9 @@ class MonitoringConfig:
         return
     
     def release_graph_lock(self):
+        if self.lock_dir==None:
+            return # locking not needed
+
         if self.graph_lock_fd==None:
             raise RuntimeError, "Graph lock not in use; cannot release" # should never happen
         self.graph_lock_fd.close()
@@ -1995,10 +2007,13 @@ def createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.208 2008/09/04 17:26:44 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.209 2008/09/04 18:03:45 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.209  2008/09/04 18:03:45  sfiligoi
+#  Add option to disable locking
+#
 #  Revision 1.208  2008/09/04 17:26:44  sfiligoi
 #  Apply locks to a few html creating portions
 #
