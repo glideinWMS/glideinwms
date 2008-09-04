@@ -72,9 +72,11 @@ class MonitoringConfig:
                           ('large',400,150),
                           ]
         
+        self.disk_lock_fd=None
+        self.graph_lock_fd=None
+
         # The name of the attribute that identifies the glidein
-        self.lock_fname="monitor.lock"
-        self.lock_fd=None
+        self.lock_dir="."
         self.monitor_dir="monitor/"
         self.log_dir="log/"
 
@@ -122,24 +124,46 @@ class MonitoringConfig:
         finally:
             fd.close()
 
-    def get_lock(self):
-        if self.lock_fd!=None:
-          raise RuntimeError, "Lock already in use; cannot get" # should never happen
-        self.lock_fd=open(self.lock_fname,"w")
+    def get_disk_lock(self):
+        if self.disk_lock_fd!=None:
+            raise RuntimeError, "Disk lock already in use; cannot get" # should never happen
+        disk_lock_fname=os.path.join(self.lock_dir,'monitor.disk.lock')
+        self.disk_lock_fd=open(disk_lock_fname,"w")
         try:
-          fcntl.flock(self.lock_fd,fcntl.LOCK_EX)
+            fcntl.flock(self.disk_lock_fd,fcntl.LOCK_EX)
         except:
-           self.lock_fd.close()
-           self.lock_fd=None
-           raise
-
+            self.disk_lock_fd.close()
+            self.disk_lock_fd=None
+            raise
+        
         return
-
-    def release_lock(self):
-        if self.lock_fd==None:
-          raise RuntimeError, "Lock not in use; cannot release" # should never happen
-        self.lock_fd.close()
-        self.lock_fd=None
+    
+    def release_disk_lock(self):
+        if self.disk_lock_fd==None:
+            raise RuntimeError, "Disk lock not in use; cannot release" # should never happen
+        self.disk_lock_fd.close()
+        self.disk_lock_fd=None
+        return
+    
+    def get_graph_lock(self):
+        if self.graph_lock_fd!=None:
+            raise RuntimeError, "Graph lock already in use; cannot get" # should never happen
+        graph_lock_fname=os.path.join(self.lock_dir,'monitor.graph.lock')
+        self.graph_lock_fd=open(graph_lock_fname,"w")
+        try:
+            fcntl.flock(self.graph_lock_fd,fcntl.LOCK_EX)
+        except:
+            self.graph_lock_fd.close()
+            self.graph_lock_fd=None
+            raise
+        
+        return
+    
+    def release_graph_lock(self):
+        if self.graph_lock_fd==None:
+            raise RuntimeError, "Graph lock not in use; cannot release" # should never happen
+        self.graph_lock_fd.close()
+        self.graph_lock_fd=None
         return
 
     def write_file(self,relative_fname,str):
@@ -1827,20 +1851,20 @@ def create_rrd(rrd_obj,rrdfname,
     for archive in rrd_archives:
         args.append("RRA:%s:%g:%i:%i"%archive)
 
-    monitoringConfig.get_lock()
+    monitoringConfig.get_disk_lock()
     try:
       rrd_obj.create(*args)
     finally:
-      monitoringConfig.release_lock()
+      monitoringConfig.release_disk_lock()
     return
 
 def update_rrd(rrd_obj,rrdfname,
                time,val):
-    monitoringConfig.get_lock()
+    monitoringConfig.get_disk_lock()
     try:
      rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
     finally:
-      monitoringConfig.release_lock()
+      monitoringConfig.release_disk_lock()
 
     return
 
@@ -1954,10 +1978,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.206 2008/09/04 17:05:50 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.207 2008/09/04 17:15:05 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.207  2008/09/04 17:15:05  sfiligoi
+#  Create disk_lock and graph_lock and apply them properly to all rrd operations
+#
 #  Revision 1.206  2008/09/04 17:05:50  sfiligoi
 #  Add missing import
 #
