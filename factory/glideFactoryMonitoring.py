@@ -8,7 +8,7 @@
 #
 
 import os,os.path
-import re,time,copy,string,math,random
+import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
 from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
 
@@ -1954,10 +1954,13 @@ def createGraphHtml(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.205 2008/09/04 17:04:04 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.206 2008/09/04 17:05:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.206  2008/09/04 17:05:50  sfiligoi
+#  Add missing import
+#
 #  Revision 1.205  2008/09/04 17:04:04  sfiligoi
 #  Add locks to rrd monitoring
 #
