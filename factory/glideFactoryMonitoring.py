@@ -72,9 +72,6 @@ class MonitoringConfig:
                           ('large',400,150),
                           ]
         
-        self.disk_lock_fd=None
-        self.graph_lock_fd=None
-
         # The name of the attribute that identifies the glidein
         self.lock_dir="." # if None, will not lock
         self.monitor_dir="monitor/"
@@ -126,58 +123,32 @@ class MonitoringConfig:
 
     def get_disk_lock(self):
         if self.lock_dir==None:
-            return # locking not needed
+            return open("/dev/null","r") # locking not needed, but need to return a file
 
-        if self.disk_lock_fd!=None:
-            raise RuntimeError, "Disk lock already in use; cannot get" # should never happen
         disk_lock_fname=os.path.join(self.lock_dir,'monitor.disk.lock')
-        self.disk_lock_fd=open(disk_lock_fname,"w")
+        disk_lock_fd=open(disk_lock_fname,"w")
         try:
-            fcntl.flock(self.disk_lock_fd,fcntl.LOCK_EX)
+            fcntl.flock(disk_lock_fd,fcntl.LOCK_EX)
         except:
-            self.disk_lock_fd.close()
-            self.disk_lock_fd=None
+            disk_lock_fd.close()
             raise
         
-        return
-    
-    def release_disk_lock(self):
-        if self.lock_dir==None:
-            return # locking not needed
-
-        if self.disk_lock_fd==None:
-            raise RuntimeError, "Disk lock not in use; cannot release" # should never happen
-        self.disk_lock_fd.close()
-        self.disk_lock_fd=None
-        return
+        return disk_lock_fd
     
     def get_graph_lock(self):
         if self.lock_dir==None:
-            return # locking not needed
+            return open("/dev/null","r") # locking not needed, but need to return a file
 
-        if self.graph_lock_fd!=None:
-            raise RuntimeError, "Graph lock already in use; cannot get" # should never happen
         graph_lock_fname=os.path.join(self.lock_dir,'monitor.graph.lock')
-        self.graph_lock_fd=open(graph_lock_fname,"w")
+        graph_lock_fd=open(graph_lock_fname,"w")
         try:
-            fcntl.flock(self.graph_lock_fd,fcntl.LOCK_EX)
+            fcntl.flock(graph_lock_fd,fcntl.LOCK_EX)
         except:
-            self.graph_lock_fd.close()
-            self.graph_lock_fd=None
+            graph_lock_fd.close()
             raise
         
-        return
+        return graph_lock_fd
     
-    def release_graph_lock(self):
-        if self.lock_dir==None:
-            return # locking not needed
-
-        if self.graph_lock_fd==None:
-            raise RuntimeError, "Graph lock not in use; cannot release" # should never happen
-        self.graph_lock_fd.close()
-        self.graph_lock_fd=None
-        return
-
     def write_file(self,relative_fname,str):
         fname=os.path.join(self.monitor_dir,relative_fname)
         #print "Writing "+fname
@@ -1696,11 +1667,11 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
 ###################################
 
 def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url_template):
-    monitoringConfig.get_graph_lock()
+    lck=monitoringConfig.get_graph_lock()
     try:
         create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template)
     finally:
-        monitoringConfig.release_graph_lock()
+        lck.close()
     return
 
 
@@ -1872,20 +1843,20 @@ def create_rrd(rrd_obj,rrdfname,
     for archive in rrd_archives:
         args.append("RRA:%s:%g:%i:%i"%archive)
 
-    monitoringConfig.get_disk_lock()
+    lck=monitoringConfig.get_disk_lock()
     try:
       rrd_obj.create(*args)
     finally:
-      monitoringConfig.release_disk_lock()
+      lck.close()
     return
 
 def update_rrd(rrd_obj,rrdfname,
                time,val):
-    monitoringConfig.get_disk_lock()
+    lck=monitoringConfig.get_disk_lock()
     try:
      rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
     finally:
-      monitoringConfig.release_disk_lock()
+      lck.close()
 
     return
 
@@ -1956,8 +1927,13 @@ def rrd2graph(rrd_obj,fname,
 
     args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
 
+    
     try:
-      rrd_obj.graph(*args)
+        lck=monitoringConfig.get_graph_lock()
+        try:
+            rrd_obj.graph(*args)
+        finally:
+            lck.close()
     except:
       print "Failed graph: %s"%str(args)
 
@@ -1968,11 +1944,11 @@ def cleanup_rrd_name(s):
 
 
 def createGraphHtml(html_name,png_fname, rrd2graph_args):
-    monitoringConfig.get_graph_lock()
+    lck=monitoringConfig.get_graph_lock()
     try:
         createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args)
     finally:
-        monitoringConfig.release_graph_lock()
+        lck.close()
     return
 
 def createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args):
@@ -2007,10 +1983,13 @@ def createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.209 2008/09/04 18:03:45 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.210 2008/09/04 18:46:14 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.210  2008/09/04 18:46:14  sfiligoi
+#  Add lock around graph creation and improve locking in general
+#
 #  Revision 1.209  2008/09/04 18:03:45  sfiligoi
 #  Add option to disable locking
 #
