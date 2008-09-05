@@ -27,7 +27,7 @@ import glideinFrontendPidLib
 import logSupport
 
 ############################################################
-def iterate_one(frontend_name,factory_pool,
+def iterate_one(frontend_name,factory_pool,factory_constraint,
                 x509_proxy,
                 schedd_names,job_constraint,match_str,job_attributes,
                 max_idle,reserve_idle,
@@ -37,7 +37,7 @@ def iterate_one(frontend_name,factory_pool,
     global activity_log
 
     # query condor
-    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
+    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint)
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
 
@@ -172,7 +172,7 @@ def iterate_one(frontend_name,factory_pool,
 
 ############################################################
 def iterate(log_dir,sleep_time,
-            frontend_name,factory_pool,
+            frontend_name,factory_pool,factory_constraint,
             x509_proxy,
             schedd_names,job_constraint,match_str,job_attributes,
             max_idle,reserve_idle,
@@ -200,7 +200,7 @@ def iterate(log_dir,sleep_time,
                 while 1:
                     activity_log.write("Iteration at %s" % time.ctime())
                     try:
-                        done_something=iterate_one(frontend_name,factory_pool,
+                        done_something=iterate_one(frontend_name,factory_pool,factory_constraint,
                                                    x509_proxy,
                                                    schedd_names,job_constraint,match_str,job_attributes,
                                                    max_idle,reserve_idle,
@@ -243,6 +243,7 @@ def iterate(log_dir,sleep_time,
 ############################################################
 def main(config_file):
     config_dict={'loop_delay':60,
+                 'factory_constraint':None,
                  'job_constraint':'JobUniverse==5',
                  'match_string':'1',
                  'job_attributes':None,
@@ -252,7 +253,7 @@ def main(config_file):
                  'x509_proxy':None}
     execfile(config_file,config_dict)
     iterate(config_dict['log_dir'],config_dict['loop_delay'],
-            config_dict['frontend_name'],config_dict['factory_pool'],
+            config_dict['frontend_name'],config_dict['factory_pool'],config_dict['factory_constraint'],
             config_dict['x509_proxy'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],config_dict['job_attributes'],
             config_dict['max_idle_glideins_per_entry'],config_dict['reserve_idle_glideins_per_entry'],
