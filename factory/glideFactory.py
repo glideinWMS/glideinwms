@@ -139,6 +139,9 @@ def main(startup_dir):
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
+    # disable locking... else I can get in deadlock with entries
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.lock_dir=None
+
     # create log files in the glidein log directory
     activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_info"))
     warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_err"))
@@ -203,10 +206,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.71 2008/08/05 21:20:16 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.71.2.1 2008/09/05 15:42:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.71.2.1  2008/09/05 15:42:13  sfiligoi
+#  Explicity disable locking to prevent deadlocks
+#
 #  Revision 1.71  2008/08/05 21:20:16  sfiligoi
 #  Improve signal handling
 #
