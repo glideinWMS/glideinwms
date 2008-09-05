@@ -1,3 +1,8 @@
+v1_4_3	Improve scalability 
+ 	  by adding locks into monitoring
+	  Now only one rdd update can proceed at a time, and
+	  only one graphing operation can proceed at a time
+
 v1_4_2	Fix glexec setup script bug.
 	Improve pseudo-interactive monitoring.
 	  The changes introduced in v1_4_1 could leave behind zombies.
