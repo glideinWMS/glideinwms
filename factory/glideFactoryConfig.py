@@ -100,7 +100,7 @@ class GlideinDescript(ConfigFile):
             self.data['PubKeyValue']='None'
         else:
             raise RuntimeError, 'Invalid PubKeyType value(%s), must be None or RSA'%self.data['PubKeyType']
-        self.data['PubKeyID']=md5.new(string.join((self.data['PubKeyType'],self.data['PubKeyValue'])).hexdigest()
+        self.data['PubKeyID']=md5.new(string.join((self.data['PubKeyType'],self.data['PubKeyValue']))).hexdigest()
         return
 
 class JobDescript(EntryConfigFile):
@@ -127,10 +127,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.11 2008/08/19 21:53:02 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.12 2008/09/05 21:07:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.12  2008/09/05 21:07:19  sfiligoi
+#  Fix typo
+#
 #  Revision 1.11  2008/08/19 21:53:02  sfiligoi
 #  Add PubKeyID
 #
