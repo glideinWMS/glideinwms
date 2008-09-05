@@ -27,19 +27,17 @@ import glideinFrontendPidLib
 import logSupport
 
 ############################################################
-def iterate_one(frontend_name,factory_pool,
-                x509_proxy,
+def iterate_one(frontend_name,factory_pool,glidein_constraints,
                 schedd_names,job_constraint,match_str,job_attributes,
                 max_idle,reserve_idle,
                 max_vms_idle,curb_vms_idle,
                 max_running,reserve_running_fraction,
                 glidein_params):
     global activity_log
-
-    # query condor
-    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool)
+    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,glidein_constraints)
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
+
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
@@ -60,39 +58,6 @@ def iterate_one(frontend_name,factory_pool,
 
     activity_log.write("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
 
-    # get the proxy
-    if x509_proxy!=None:
-        try:
-            x509_fd=open(x509_proxy,'r')
-            try:
-                x509_data=x509_fd.read()
-            finally:
-                x509_fd.close()
-        except:
-            warning_log.write("Not advertizing, failed to read proxy '%s'"%x509_proxy)
-            return
-        
-        import pubCrypto
-        
-        # ignore glidein factories that do not have a public key
-        # have no way to give them the proxy
-        for glidename in glidein_dict.keys():
-            glidein_el=glidein_dict[glidename]
-            if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                activity_log.write("Ignoring factory '%s': no pub key support, but x509_proxy specified"%glidename)
-                del glidein_dict[glidename]
-            elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
-                try:
-                    glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n'))
-                except:
-                    activity_log.write("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
-                    warining_log.write("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
-                    del glidein_dict[glidename] # no valid key
-            else:
-                activity_log.write("Ignoring factory '%s': unsupported pub key type '%s', but x509_proxy specified"%(glidename,glidein_el['attrs']['PubKeyType']))
-                del glidein_dict[glidename] # not trusted
-                
-
     activity_log.write("Match")
     for dt in condorq_dict_types.keys():
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,condorq_dict_types[dt]['dict'],glidein_dict)
@@ -103,8 +68,7 @@ def iterate_one(frontend_name,factory_pool,
     
     for glidename in condorq_dict_types['Idle']['count'].keys():
         request_name=glidename
-        glidein_el=glidein_dict[glidename]
-
+        
         count_jobs={}
         for dt in condorq_dict_types.keys():
             count_jobs[dt]=condorq_dict_types[dt]['count'][glidename]
@@ -159,12 +123,7 @@ def iterate_one(frontend_name,factory_pool,
               glidein_monitors[t]=count_jobs[t]
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
-          if x509_proxy!=None:
-              encoded_x509_data=glidein_el['attrs']['PubKeyObj'].encode(x509_data)
-              glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                     glidein_pub_key_id=glidein_el['attrs']['PubKeyID'],encoded_x509_proxy=encoded_x509_data)
-          else:
-              glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
+          glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
           warning_log.write("Advertize %s failed"%request_name)
 
@@ -172,8 +131,7 @@ def iterate_one(frontend_name,factory_pool,
 
 ############################################################
 def iterate(log_dir,sleep_time,
-            frontend_name,factory_pool,
-            x509_proxy,
+            frontend_name,factory_pool,glidein_constraints,
             schedd_names,job_constraint,match_str,job_attributes,
             max_idle,reserve_idle,
             max_vms_idle,curb_vms_idle,
@@ -200,8 +158,7 @@ def iterate(log_dir,sleep_time,
                 while 1:
                     activity_log.write("Iteration at %s" % time.ctime())
                     try:
-                        done_something=iterate_one(frontend_name,factory_pool,
-                                                   x509_proxy,
+                        done_something=iterate_one(frontend_name,factory_pool,glidein_constraints,
                                                    schedd_names,job_constraint,match_str,job_attributes,
                                                    max_idle,reserve_idle,
                                                    max_vms_idle,curb_vms_idle,
@@ -243,17 +200,16 @@ def iterate(log_dir,sleep_time,
 ############################################################
 def main(config_file):
     config_dict={'loop_delay':60,
+                 'glidein_constraint':None,
                  'job_constraint':'JobUniverse==5',
                  'match_string':'1',
                  'job_attributes':None,
                  'max_idle_glideins_per_entry':10,'reserve_idle_glideins_per_entry':5,
                  'max_idle_vms_per_entry':50,'curb_idle_vms_per_entry':10,
-                 'max_running_jobs':10000,
-                 'x509_proxy':None}
+                 'max_running_jobs':10000}
     execfile(config_file,config_dict)
     iterate(config_dict['log_dir'],config_dict['loop_delay'],
-            config_dict['frontend_name'],config_dict['factory_pool'],
-            config_dict['x509_proxy'],
+            config_dict['frontend_name'],config_dict['factory_pool'],config_dict['glidein_constraint'],
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],config_dict['job_attributes'],
             config_dict['max_idle_glideins_per_entry'],config_dict['reserve_idle_glideins_per_entry'],
             config_dict['max_idle_vms_per_entry'],config_dict['curb_idle_vms_per_entry'],
