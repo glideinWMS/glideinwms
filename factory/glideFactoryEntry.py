@@ -74,8 +74,12 @@ def perform_work(factory_name,glidein_name,entry_name,
     if 1:
         condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
-    log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
-    log_stats.load()
+    lck=glideFactoryMonitoring.monitoringConfig.get_disk_lock()
+    try:
+      log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
+      log_stats.load()
+    finally:
+      lck.close()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
@@ -417,10 +421,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.53 2008/08/19 21:53:02 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.54 2008/09/05 16:15:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.54  2008/09/05 16:15:41  sfiligoi
+#  Use lock to limit disk use when parsing files
+#
 #  Revision 1.53  2008/08/19 21:53:02  sfiligoi
 #  Add PubKeyID
 #
@@ -429,6 +436,9 @@ if __name__ == '__main__':
 #
 #  Revision 1.51  2008/08/19 15:10:56  sfiligoi
 #  Use PubKey
+#
+#  Revision 1.50.2.1  2008/09/05 16:12:40  sfiligoi
+#  Use lock to limit disk use when parsing files
 #
 #  Revision 1.50  2008/08/12 21:16:49  sfiligoi
 #  Fix typo
