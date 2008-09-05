@@ -74,8 +74,12 @@ def perform_work(factory_name,glidein_name,entry_name,
     if 1:
         condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
-    log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
-    log_stats.load()
+    lck=glideFactoryMonitoring.monitoringConfig.get_disk_lock()
+    try:
+      log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
+      log_stats.load()
+    finally:
+      lck.close()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
@@ -209,10 +213,6 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
 
-    pub_key_type=glideinDescript.data['PubKeyType']
-    pub_key_value=glideinDescript.data['PubKeyValue']
-    pub_key_id=glideinDescript.data['PubKeyID']
-
     current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
 
     glidein_monitors={}
@@ -222,7 +222,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,pub_key_id,pub_key_type,pub_key_value,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 
@@ -335,7 +335,6 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
 
     os.chdir(startup_dir)
     glideinDescript=glideFactoryConfig.GlideinDescript()
-    glideinDescript.load_pub_key()
     if not (entry_name in string.split(glideinDescript.data['Entries'],',')):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
@@ -417,18 +416,12 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.53 2008/08/19 21:53:02 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.50.2.1 2008/09/05 16:12:40 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
-#  Revision 1.53  2008/08/19 21:53:02  sfiligoi
-#  Add PubKeyID
-#
-#  Revision 1.52  2008/08/19 18:03:17  sfiligoi
-#  Make loading of pub key optional
-#
-#  Revision 1.51  2008/08/19 15:10:56  sfiligoi
-#  Use PubKey
+#  Revision 1.50.2.1  2008/09/05 16:12:40  sfiligoi
+#  Use lock to limit disk use when parsing files
 #
 #  Revision 1.50  2008/08/12 21:16:49  sfiligoi
 #  Fix typo
