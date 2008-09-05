@@ -590,7 +590,12 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,p
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
+            try:
+                submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
+            except condorExe.ExeError,e:
+                factoryConfig.logWarning("condor_submit failed: %s"%e);
+                submit_out=[]
+                
             cluster,count=extractJobId(submit_out)
             for j in range(count):
                 submitted_jids.append((cluster,j))
@@ -650,10 +655,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.31 2008/08/12 21:16:49 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.31.2.1 2008/09/05 20:19:50 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.31.2.1  2008/09/05 20:19:50  sfiligoi
+#  Protect from condor_submit failures
+#
 #  Revision 1.31  2008/08/12 21:16:49  sfiligoi
 #  Fix typo
 #
