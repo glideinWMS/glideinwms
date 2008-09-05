@@ -1329,14 +1329,22 @@ def vofrontend_install():
         fd.write("# List of schedds containing jobs\n")
         fd.write("schedd_names=%r\n\n"%schedds) # this way I get the correct python formatting
 
+        fd.write("# If not all the factory adds has to be considered,\n")
+        fd.write("# specify the appropriate constraint\n")
+        fd.write("# for example: 'GLIDEIN_Expose_Grid_Env=?=\"True\"'\n")
+        fd.write("factory_constraint=None\n\n")
+
         fd.write("# If not all the jobs of the schedd has to be considered,\n")
         fd.write("# specify the appropriate constraint\n")
+        fd.write("# for example: '(JobUniverse==5)'\n")
         fd.write("job_constraint=%r\n\n"%job_constraint)
 
         fd.write("# What job attributes should I extract?\n")
+        fd.write("# for example: [('DESIRED_Sites', 's')]\n")
         fd.write("job_attributes=%s\n\n"%job_attributes)
 
         fd.write("# String for matching jobs to glideins\n")
+        fd.write('# for example: \'glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")\'\n');
         fd.write("match_string=%r\n\n"%match_str)
 
         fd.write("# How much pressure should I apply to the entry points\n")
