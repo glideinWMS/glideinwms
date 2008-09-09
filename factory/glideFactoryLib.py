@@ -103,7 +103,7 @@ class FactoryConfig:
                 # silently ignore
                 pass
         if log_in_activity:
-            self.logActivity("WARNING: %s"%srt)
+            self.logActivity("WARNING: %s"%str)
 
 
 # global configuration of the module
@@ -657,10 +657,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.32 2008/09/05 20:54:50 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.33 2008/09/09 20:22:27 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.33  2008/09/09 20:22:27  sfiligoi
+#  Fix typo
+#
 #  Revision 1.32  2008/09/05 20:54:50  sfiligoi
 #  Merge in 1.31.2.2
 #

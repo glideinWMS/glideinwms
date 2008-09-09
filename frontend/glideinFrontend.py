@@ -50,7 +50,7 @@ class LogFiles:
             # silently ignore
             pass
         if log_in_activity:
-            self.logActivity("WARNING: %s"%srt)
+            self.logActivity("WARNING: %s"%str)
 
 # someone needs to initialize this
 # type LogFiles
