@@ -26,6 +26,36 @@ import glideinFrontendLib
 import glideinFrontendPidLib
 import logSupport
 
+class LogFiles:
+    def __init__(self,log_dir):
+        self.dir_log=dir_log
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
+        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)",
+                                              7*24*3600,
+                                              self.activity_log,self.warning_log)
+
+    def logActivity(self,str):
+        try:
+            self.activity_log.write(str+"\n")
+        except:
+            # logging must never throw an exception!
+            self.logWarning("logActivity failed, was logging: %s"+str,False)
+
+    def logWarning(self,str, log_in_activity=True):
+        try:
+            self.warning_log.write(str+"\n")
+        except:
+            # logging must throw an exception!
+            # silently ignore
+            pass
+        if log_in_activity:
+            self.logActivity("WARNING: %s"%srt)
+
+# someone needs to initialize this
+# type LogFiles
+log_files=None
+
 ############################################################
 def iterate_one(frontend_name,factory_pool,factory_constraint,
                 x509_proxy,
@@ -34,10 +64,11 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                 max_vms_idle,curb_vms_idle,
                 max_running,reserve_running_fraction,
                 glidein_params):
-    global activity_log
+    global log_files
 
     # query condor
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint)
+
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
 
@@ -49,7 +80,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                         'OldIdle':{'dict':condorq_dict_old_idle},
                         'Running':{'dict':condorq_dict_running}}
 
-    activity_log.write("Jobs found total %i idle %i (old %i) running %i"%(glideinFrontendLib.countCondorQ(condorq_dict),glideinFrontendLib.countCondorQ(condorq_dict_idle),glideinFrontendLib.countCondorQ(condorq_dict_old_idle),glideinFrontendLib.countCondorQ(condorq_dict_running)))
+    log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(glideinFrontendLib.countCondorQ(condorq_dict),glideinFrontendLib.countCondorQ(condorq_dict_idle),glideinFrontendLib.countCondorQ(condorq_dict_old_idle),glideinFrontendLib.countCondorQ(condorq_dict_running)))
 
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
@@ -58,7 +89,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                        'Idle':{'dict':status_dict_idle},
                        'Running':{'dict':status_dict_running}}
 
-    activity_log.write("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
+    log_files.logActivity("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
 
     # get the proxy
     if x509_proxy!=None:
@@ -93,13 +124,14 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                 del glidein_dict[glidename] # not trusted
                 
 
-    activity_log.write("Match")
+    log_files.logActivity("Match")
+
     for dt in condorq_dict_types.keys():
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,condorq_dict_types[dt]['dict'],glidein_dict)
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
 
     total_running=condorq_dict_types['Running']['total']
-    activity_log.write("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
+    log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
     
     for glidename in condorq_dict_types['Idle']['count'].keys():
         request_name=glidename
@@ -149,9 +181,9 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*(0.99+reserve_running_fraction)+1)
-        activity_log.write("For %s Idle %i (effective %i old %i) Running %i"%(glidename,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
-        activity_log.write("Glideins for %s Total %s Idle %i Running %i"%(glidename,count_status['Total'],count_status['Idle'],count_status['Running']))
-        activity_log.write("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
+        log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i"%(glidename,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
+        log_files.logActivity("Glideins for %s Total %s Idle %i Running %i"%(glidename,count_status['Total'],count_status['Idle'],count_status['Running']))
+        log_files.logActivity("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
 
         try:
           glidein_monitors={}
@@ -166,7 +198,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
           else:
               glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
-          warning_log.write("Advertize %s failed"%request_name)
+          log_files.logWarning("Advertize %s failed"%request_name)
 
     return
 
@@ -179,15 +211,10 @@ def iterate(log_dir,sleep_time,
             max_vms_idle,curb_vms_idle,
             max_running,reserve_running_fraction,
             glidein_params):
-    global activity_log,warning_log
+    global log_files
     startup_time=time.time()
 
-    activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
-    warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
-    cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)",
-                                     7*24*3600,
-                                     activity_log,warning_log)
-    
+    log_files=LogFiles(log_dir)
 
     # create lock file
     fd=glideinFrontendPidLib.register_frontend_pid(log_dir)
@@ -195,10 +222,10 @@ def iterate(log_dir,sleep_time,
     try:
         try:
             try:
-                activity_log.write("Starting up")
+                log_files.logActivity("Starting up")
                 is_first=1
                 while 1:
-                    activity_log.write("Iteration at %s" % time.ctime())
+                    log_files.logActivity("Iteration at %s" % time.ctime())
                     try:
                         done_something=iterate_one(frontend_name,factory_pool,factory_constraint,
                                                    x509_proxy,
@@ -216,27 +243,27 @@ def iterate(log_dir,sleep_time,
                             # if not the first pass, just warn
                             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                             sys.exc_info()[2])
-                            warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+                            log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
                 
                     is_first=0
-                    activity_log.write("Sleep")
+                    log_files.logActivity("Sleep")
                     time.sleep(sleep_time)
             except KeyboardInterrupt:
-                activity_log.write("Received signal...exit")
+                log_files.logActivity("Received signal...exit")
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+                log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
                 raise
         finally:
             try:
-                activity_log.write("Deadvertize my ads")
+                log_files.logActivity("Deadvertize my ads")
                 glideinFrontendInterface.deadvertizeAllWork(factory_pool,frontend_name)
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                warning_log.write("Failed to deadvertize my ads")
-                warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+                log_files.logWarning("Failed to deadvertize my ads")
+                log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
     finally:
         fd.close()
 
