@@ -172,8 +172,8 @@ def advertizeWork(factory_pool,
             fd.write('ClientName = "%s"\n'%client_name)
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
-            if pub_key_id!=None:
-                fd.write('ReqPubPubKeyID = "%s"\n'%pub_key_id)
+            if glidein_pub_key_id!=None:
+                fd.write('ReqPubPubKeyID = "%s"\n'%glidein_pub_key_id)
                 if encoded_x509_proxy!=None:
                     fd.write('ReqEncX509Proxy = "%s"\n'%string.replace(encoded_x509_proxy,'\n','\\n'))
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
