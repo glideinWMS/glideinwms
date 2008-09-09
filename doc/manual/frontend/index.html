@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080717;16204100">
+	<META NAME="CHANGED" CONTENT="20080909;13502500">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
@@ -90,11 +91,19 @@ to define the following objects:</P>
 	being a string (like
 	<FONT FACE="monospace">['schedd1@cmssubmit1.fnal.gov','schedd2@cmssubmit1.fnal.gov','cmssubmit2.fnal.gov']</FONT>)
 	
+	<LI><FONT FACE="monospace"><B>factory_constraint</B></FONT><BR>A
+	<A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/condor_q.html#SECTION0010263000000000000000">Condor
+	constraint</A> to be used with condor_status when looking for
+	glidein factories in the WMS collector. (like
+	'<FONT FACE="monospace">GLIDEIN_Expose_Grid_Env=?=&quot;True&quot;'</FONT>,
+	i.e. consider only glidein factories that pass on the Grid
+	environment)<BR>If you want to consider all glidein factories, this
+	can be set to None. 
 	<LI><FONT FACE="monospace"><B>job_constraint</B></FONT><BR>A <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/condor_q.html#SECTION0010263000000000000000">Condor
 	constraint</A> to be used with condor_q when looking for user jobs.
-	(like <FONT FACE="monospace">&quot;JobUniverse==5&quot;</FONT>, i.e.
-	consider only Vanilla jobs)<BR>If you want to consider all user
-	jobs, this can be set to None. 
+	(like '<FONT FACE="monospace">JobUniverse=?=5'</FONT>, i.e. consider
+	only Vanilla jobs)<BR>If you want to consider all user jobs, this
+	can be set to None. 
 	<LI><FONT FACE="monospace"><B>match_string</B></FONT><BR>This is the
 	matchmaking policy the frontend will use. See the <A HREF="#match_expr">Implementation
 	section</A> for more information. 
