@@ -37,7 +37,7 @@ class LogFiles:
 
     def logActivity(self,str):
         try:
-            self.activity_log.wrtie(str+"\n")
+            self.activity_log.write(str+"\n")
         except:
             # logging must never throw an exception!
             self.logWarning("logActivity failed, was logging: %s"%str,False)
