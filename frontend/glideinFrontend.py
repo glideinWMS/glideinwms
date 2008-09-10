@@ -19,6 +19,7 @@ import sys
 import fcntl
 import traceback
 import time
+import string
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideinFrontendInterface
@@ -116,7 +117,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n'))
                 except:
-                    log_files.logWarning("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
+                    log_files.logWarning("Ignoring factory '%s': invalid RSA key, but x509_proxy specified"%glidename)
                     del glidein_dict[glidename] # no valid key
             else:
                 log_files.logActivity("Ignoring factory '%s': unsupported pub key type '%s', but x509_proxy specified"%(glidename,glidein_el['attrs']['PubKeyType']))
