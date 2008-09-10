@@ -116,7 +116,6 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n'))
                 except:
-                    log_files.logActivity("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
                     log_files.logWarning("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
                     del glidein_dict[glidename] # no valid key
             else:
