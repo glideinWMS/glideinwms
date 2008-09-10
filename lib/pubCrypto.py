@@ -6,13 +6,43 @@ import os,binascii
 def default_callback(*args):
     return "default"
 
+
+######################
+#
+# Available paddings:
+# M2Crypto.RSA.no_padding
+# M2Crypto.RSA.pkcs1_padding
+# M2Crypto.RSA.sslv23_padding
+# M2Crypto.RSA.pkhas1_oaep_padding
+#
+# Available sign algos:
+#  'sha1'
+#  'sha224'
+#  'sha256',
+#  'ripemd160'
+#  'md5'
+#
+# Available ciphers:
+#  too many to list them all
+#     try 'man env'
+#  a few of them are
+#   'aes_128_cbc'
+#   'aes_128_ofb
+#   'aes_256_cbc'
+#   'aes_256_cfb'
+#   'bf_cbc'
+#   '3des_cbc'
+#
+######################
+
+
 ##########################################################################
 # Public part of the RSA key    
 class PubRSAKey:
     def __init__(self,
                  key_str=None,key_fname=None,
                  encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
-                 sign_algo='sha1'):
+                 sign_algo='sha256'):
         self.rsa_key=None
         self.has_private=False
         self.encryption_padding=encryption_padding
@@ -102,10 +132,10 @@ class PubRSAKey:
 class RSAKey(PubRSAKey):
     def __init__(self,
                  key_str=None,key_fname=None,
-                 private_cipher='aes_128_cbc',
+                 private_cipher='aes_256_cbc',
                  private_callback=default_callback,
                  encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
-                 sign_algo='sha1'):
+                 sign_algo='sha256'):
         self.private_cipher=private_cipher
         self.private_callback=private_callback
         PubRSAKey.__init__(self,key_str,key_fname,encryption_padding,sign_algo)
