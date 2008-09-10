@@ -37,7 +37,7 @@ class LogFiles:
 
     def logActivity(self,str):
         try:
-            self.activity_log.write(str+"\n")
+            self.log_files.logActivity(str+"\n")
         except:
             # logging must never throw an exception!
             self.logWarning("logActivity failed, was logging: %s"+str,False)
@@ -110,17 +110,17 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
         for glidename in glidein_dict.keys():
             glidein_el=glidein_dict[glidename]
             if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                activity_log.write("Ignoring factory '%s': no pub key support, but x509_proxy specified"%glidename)
+                log_files.logActivity("Ignoring factory '%s': no pub key support, but x509_proxy specified"%glidename)
                 del glidein_dict[glidename]
             elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n'))
                 except:
-                    activity_log.write("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
+                    log_files.logActivity("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
                     warining_log.write("Ignoring factory '%s': invlaid RSA key, but x509_proxy specified"%glidename)
                     del glidein_dict[glidename] # no valid key
             else:
-                activity_log.write("Ignoring factory '%s': unsupported pub key type '%s', but x509_proxy specified"%(glidename,glidein_el['attrs']['PubKeyType']))
+                log_files.logActivity("Ignoring factory '%s': unsupported pub key type '%s', but x509_proxy specified"%(glidename,glidein_el['attrs']['PubKeyType']))
                 del glidein_dict[glidename] # not trusted
                 
 
