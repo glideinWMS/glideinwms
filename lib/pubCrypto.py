@@ -11,7 +11,7 @@ def default_callback(*args):
 class PubRSAKey:
     def __init__(self,
                  key_str=None,key_fname=None,
-                 encryption_padding=M2Crypto.RSA.pkcs1_padding,
+                 encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
                  sign_algo='sha1'):
         self.rsa_key=None
         self.has_private=False
@@ -104,7 +104,7 @@ class RSAKey(PubRSAKey):
                  key_str=None,key_fname=None,
                  private_cipher='aes_128_cbc',
                  private_callback=default_callback,
-                 encryption_padding=M2Crypto.RSA.pkcs1_padding,
+                 encryption_padding=M2Crypto.RSA.pkcs1_oaep_padding,
                  sign_algo='sha1'):
         self.private_cipher=private_cipher
         self.private_callback=private_callback
