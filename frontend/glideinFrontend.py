@@ -115,7 +115,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
                 del glidein_dict[glidename]
             elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
                 try:
-                    glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n'))
+                    glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
                 except:
                     log_files.logWarning("Ignoring factory '%s': invalid RSA key, but x509_proxy specified"%glidename)
                     del glidein_dict[glidename] # no valid key
