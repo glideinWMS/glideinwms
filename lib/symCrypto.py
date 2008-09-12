@@ -78,6 +78,9 @@ class SymKey:
 
     ###########################################
     # get the stored key
+    def is_valid(self):
+        return (self.key_str!=None)
+
     def get(self):
         return (self.key_str,self.iv_str)
 
