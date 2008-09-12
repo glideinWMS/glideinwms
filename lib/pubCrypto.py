@@ -30,7 +30,7 @@ def default_callback(*args):
 #
 # Available ciphers:
 #  too many to list them all
-#     try 'man env'
+#     try 'man enc'
 #  a few of them are
 #   'aes_128_cbc'
 #   'aes_128_ofb
