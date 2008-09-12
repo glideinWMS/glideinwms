@@ -61,17 +61,17 @@ class SymKey:
                 iv_str=str(iv_str) # just in case it was unicode"
         elif key_iv_code!=None:
             key_iv_code=str(key_iv_code) # just in case it was unicode
-            if len(key_iv_code)!=(self.key_len*2+self.iv_len*2+len("key:,iv:")):
-                raise ValueError, "Key_iv_code must be exactly %i long, got %i"%(self.key_len*2+self.iv_len*2+len("key:,iv:"),len(key_iv_code))
             ki_arr=key_iv_code.split(',')
-            if len(ki_arr)!=2:
-                raise ValueError, "Invalid format, coma not found"
-            if ki_arr[0][:4]!='key:':
+            if len(ki_arr)!=3:
+                raise ValueError, "Invalid format, comas not found"
+            if ki_arr[0]!=('cypher:%s'%self.cypher_name):
+                raise ValueError, "Invalid format, not my cypher(%s)"%self.cypher_name
+            if ki_arr[1][:4]!='key:':
                 raise ValueError, "Invalid format, key not found"
-            if ki_arr[1][:3]!='iv:':
+            if ki_arr[2][:3]!='iv:':
                 raise ValueError, "Invalid format, iv not found"
             # call itself, but with key and iv decoded
-            return self.load(key_str=ki_arr[0][4:],iv_str=ki_arr[1][3:])
+            return self.load(key_str=ki_arr[1][4:],iv_str=ki_arr[2][3:])
         #else keep None
             
         self.key_str=key_str
@@ -83,7 +83,7 @@ class SymKey:
         return (self.key_str,self.iv_str)
 
     def get_code(self):
-        return "key:%s,iv:%s"%(self.key_str,self.iv_str)
+        return "cypher:%s,key:%s,iv:%s"%(self.cypher_name,self.key_str,self.iv_str)
 
     ###########################################
     # generate key function
