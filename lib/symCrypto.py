@@ -101,7 +101,7 @@ class SymKey:
     # encrypt data inline
 
     def encrypt(self,data):
-        if self.key_str==None:
+        if not self.is_valid():
             raise KeyError,"No key"
         
         b=M2Crypto.BIO.MemoryBuffer()
@@ -125,7 +125,7 @@ class SymKey:
     ###########################################
     # decrypt data inline
     def decrypt(self,data):
-        if self.key_str==None:
+        if not self.is_valid():
             raise KeyError,"No key"
         
         b=M2Crypto.BIO.MemoryBuffer()
@@ -148,10 +148,17 @@ class SymKey:
 
 # allows to change the crypto after instantiation
 class MutableSymKey(SymKey):
+    def __init__(self,
+                 cypher_name=None,key_len=None,iv_len=None,
+                 key_str=None,iv_str=None,
+                 key_iv_code=None):
+        self.redefine(cypher_name,key_len,iv_len,
+                      key_str,iv_str,key_iv_code)
+
     ###########################################
     # load a new crypto type and a new key
     def redefine(self,
-                 cypher_name,key_len,iv_len,
+                 cypher_name=None,key_len=None,iv_len=None,
                  key_str=None,iv_str=None,
                  key_iv_code=None):
         self.cypher_name=cypher_name
@@ -162,8 +169,13 @@ class MutableSymKey(SymKey):
 
     ###########################################
     # get the stored key and the crypto name
+
+    # redefine, as null crypto name could be used in this class
+    def is_valid(self):
+        return (self.key_str!=None) and (self.cypher_name!=None)
+
     def get_wcrypto(self):
-        return (self.sypher_name,self.key_str,self.iv_str)
+        return (self.cypher_name,self.key_str,self.iv_str)
 
 
 ##########################################################################
