@@ -37,7 +37,6 @@ class SymKey:
         self.load(key_str,iv_str,key_iv_code)
         return
 
-    
     ###########################################
     # load a new key
     def load(self,
@@ -144,6 +143,26 @@ class SymKey:
     def decrypt_hex(self,data):
         return self.decrypt(binascii.a2b_hex(data))
 
+# allows to change the crypto after instantiation
+class MutableSymKey(SymKey):
+    ###########################################
+    # load a new crypto type and a new key
+    def redefine(self,
+                 cypher_name,key_len,iv_len,
+                 key_str=None,iv_str=None,
+                 key_iv_code=None):
+        self.cypher_name=cypher_name
+        self.key_len=key_len
+        self.iv_len=iv_len
+        self.load(key_str,iv_str,key_iv_code)
+        return
+
+    ###########################################
+    # get the stored key and the crypto name
+    def get_wcrypto(self):
+        return (self.sypher_name,self.key_str,self.iv_str)
+
+
 ##########################################################################
 # Parametrized sym algo classes
 
@@ -162,6 +181,38 @@ class ParametryzedSymKey(SymKey):
             raise KeyError,"Unsupported cypher %s"%cypher_name
         cypher_params=cypher_dict[cypher_name]
         SymKey.__init__(self,cypher_name,cypher_params[0],cypher_params[1],key_str,iv_str,key_iv_code)
+        
+# get cypher name from key_iv_code
+class AutoSymKey(MutableSymKey):
+    def __init__(self,
+                 key_iv_code=None):
+        self.auto_load(key_iv_code)
+
+    ###############################################
+    # load a new key_iv_key and extract the cypther
+    def auto_load(self,key_iv_code=None):
+        if key_iv_code==None:
+            self.cypher_name=None
+            self.key_str=None
+        else:
+            key_iv_code=str(key_iv_code) # just in case it was unicode
+            ki_arr=key_iv_code.split(',')
+            if len(ki_arr)!=3:
+                raise ValueError, "Invalid format, comas not found"
+            if ki_arr[0][:7]!='cypher:':
+                raise ValueError, "Invalid format, cypher not found"
+            cypher_name=ki_arr[0][7:]
+            if ki_arr[1][:4]!='key:':
+                raise ValueError, "Invalid format, key not found"
+            key_str=ki_arr[1][4:]
+            if ki_arr[2][:3]!='iv:':
+                raise ValueError, "Invalid format, iv not found"
+            iv_str=ki_arr[2][3:]
+
+
+            cypher_params=cypher_dict[cypher_name]
+            self.redefine(cypher_name,cypher_params[0],cypher_params[1],key_str,iv_str)
+        
         
 ##########################################################################
 # Explicit sym algo classes
@@ -210,7 +261,7 @@ class SymDESKey(ParametryzedSymKey):
 #    
 #    encrypted = sk.encrypt_hex(plaintext)
 #
-#    sk2=SymAES256Key(key_iv_code=key_iv_code)
+#    sk2=AutoSymKey(key_iv_code=key_iv_code)
 #    decrypted = sk2.decrypt_hex(encrypted)
 #
 #    assert plaintext == decrypted
