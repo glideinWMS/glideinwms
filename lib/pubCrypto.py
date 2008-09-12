@@ -1,3 +1,10 @@
+##########################################
+#
+# This module defines classes to perform
+# public key cryptography
+#
+##########################################
+
 import M2Crypto
 import os,binascii
 
@@ -5,7 +12,6 @@ import os,binascii
 # good for service key processing where human not present
 def default_callback(*args):
     return "default"
-
 
 ######################
 #
@@ -52,7 +58,7 @@ class PubRSAKey:
         return
 
     ###########################################
-    # Load functions
+    # Load key functions
 
     def load(self,
              key_str=None,key_fname=None):
@@ -75,7 +81,7 @@ class PubRSAKey:
         return
 
     ###########################################
-    # Save functions
+    # Save key functions
 
     def save(self,key_fname):
         bio = M2Crypto.BIO.openfile(key_fname, 'wb')
@@ -102,8 +108,9 @@ class PubRSAKey:
         return self.rsa_key.save_pub_key_bio(bio)
 
     ###########################################
-    # encrypt/verify
+    # encrypt/verify data inline
 
+    # len(data) must be less than len(key)
     def encrypt(self,data):
         if self.rsa_key==None:
             raise KeyError,"No RSA key"
@@ -113,6 +120,10 @@ class PubRSAKey:
     # like encrypt, but base64 encoded 
     def encrypt_base64(self,data):
         return binascii.b2a_base64(self.encrypt(data))
+
+    # like encrypt, but hex encoded 
+    def encrypt_hex(self,data):
+        return binascii.b2a_hex(self.encrypt(data))
 
     # verify that the signature gets you the data
     # return a Bool
@@ -125,6 +136,10 @@ class PubRSAKey:
     # like verify, but the signature is base64 encoded
     def verify_base64(self,data,signature):
         return self.verify(data,binascii.a2b_base64(signature))
+
+    # like verify, but the signature is hex encoded
+    def verify_hex(self,data,signature):
+        return self.verify(data,binascii.a2b_hex(signature))
 
 
 ##########################################################################
@@ -153,7 +168,7 @@ class RSAKey(PubRSAKey):
         return PubRSAKey(key_str=public_key,encryption_padding=self.encryption_padding,sign_algo=self.sign_algo)
 
     ###########################################
-    # Load functions
+    # Load key functions
 
     # meant to be internal
     # load uses it
@@ -163,7 +178,7 @@ class RSAKey(PubRSAKey):
         return
 
     ###########################################
-    # Save functions
+    # Save key functions
 
     # meant to be internal
     # save and get use it
@@ -174,13 +189,13 @@ class RSAKey(PubRSAKey):
         return self.rsa_key.save_key_bio(bio,self.private_cipher,self.private_callback)
 
     ###########################################
-    # generate function
+    # generate key function
     def new(self,key_length,exponent=65537):
         self.rsa_key= M2Crypto.RSA.gen_key(key_length, exponent)
         return
         
     ###########################################
-    # sign/decrypt
+    # sign/decrypt data inline
 
     def decrypt(self,data):
         if self.rsa_key==None:
@@ -192,6 +207,10 @@ class RSAKey(PubRSAKey):
     def decrypt_base64(self,data):
         return self.decrypt(binascii.a2b_base64(data))
 
+    # like decrypt, but hex encoded 
+    def decrypt_hex(self,data):
+        return self.decrypt(binascii.a2b_hex(data))
+
     # synonim with private_encrypt
     def sign(self,data):
         if self.rsa_key==None:
@@ -202,6 +221,10 @@ class RSAKey(PubRSAKey):
     # like sign, but base64 encoded 
     def sign_base64(self,data):
         return binascii.b2a_base64(self.sign(data))
+
+    # like sign, but hex encoded 
+    def sign_hex(self,data):
+        return binascii.b2a_hex(self.sign(data))
 
 #def generate():
 #    privkey_file = "priv.pem"
