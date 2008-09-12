@@ -192,9 +192,10 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
           if x509_proxy!=None:
-              encoded_x509_data=glidein_el['attrs']['PubKeyObj'].encrypt_base64(x509_data)
               glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                     glidein_pub_key_id=glidein_el['attrs']['PubKeyID'],encoded_x509_proxy=encoded_x509_data)
+                                                     glidein_pub_key_id=glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
+                                                     None, # should reuse it, but none will work for now
+                                                     {'x509_proxy':x509_data})
           else:
               glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:

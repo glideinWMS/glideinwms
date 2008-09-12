@@ -35,6 +35,7 @@ class FrontendConfig:
 
         # String to prefix for the parameters
         self.glidein_param_prefix = "GlideinParam"
+        self.encrypted_param_prefix = "GlideinEncParam"
 
         # String to prefix for the monitors
         self.glidein_monitor_prefix = "GlideinMonitor"
@@ -157,7 +158,9 @@ def advertizeWork(factory_pool,
                   client_name,request_name,
                   glidein_name,min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
-                  glidein_pub_key_id=None,encoded_x509_proxy=None): #x509_data needs pub_key_id
+                  factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
+                  glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
+                  glidein_params_to_encrypt=None):  #params_to_encrypt need pub_key
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -172,16 +175,31 @@ def advertizeWork(factory_pool,
             fd.write('ClientName = "%s"\n'%client_name)
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
-            if glidein_pub_key_id!=None:
-                fd.write('ReqPubPubKeyID = "%s"\n'%glidein_pub_key_id)
-                if encoded_x509_proxy!=None:
-                    fd.write('ReqEncX509Proxy = "%s"\n'%string.replace(encoded_x509_proxy,'\n','\\n'))
+
+            encrypted_params={} # none by default
+            if (factory_pub_key_id!=None) and (factory_pub_key!=None):
+                import pubCrypto,symCrypto
+
+                if glidein_symKey==None:
+                    glidein_symKey=symCrypto.SymAES256Key()
+                if not glidein_symKey.is_valid():
+                    glidein_symKey.new()
+                glidein_symKey_str=glidein_symKey.get_code()
+                
+                fd.write('ReqPubKeyID = "%s"\n'%factory_pub_key_id)
+                if encrypted_key_code!=None:
+                    fd.write('ReqEncKeyCode = "%s"\n'%factory_pub_key.encrypt_hex(glidein_symKey_str))
+                    if encrypted_params!=None:
+                        for attr in glidein_params_to_encrypt.keys():
+                            encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt[attr]
+                        
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
 
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,glidein_params),
-                                  (frontendConfig.glidein_monitor_prefix,glidein_monitors)):
+                                  (frontendConfig.glidein_monitor_prefix,glidein_monitors),
+                                  (frontendConfig.encrypted_param_prefix,encrypted_params)):
                 for attr in data.keys():
                     el=data[attr]
                     if type(el)==type(1):
