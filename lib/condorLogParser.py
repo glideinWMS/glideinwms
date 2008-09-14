@@ -734,6 +734,56 @@ def parseSubmitLogFastRawTimings(fname):
     fd.close()
     return jobs,first_time,last_time
 
+# read a condor submit log
+# for each new event, call a callback
+#   def callback(new_status_str,timestamp_str,job_str)
+def parseSubmitLogFastRawCallback(fname,callback):
+    jobs={}
+
+    size = os.path.getsize(fname)
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
+
+    idx=0
+
+    while (idx+5)<size: # else we are at the end of the file
+        # format
+        # 023 (123.2332.000) MM/DD HH:MM:SS
+        
+        # first 3 chars are status
+        status=buf[idx:idx+3]
+        idx+=5
+        # extract job id 
+        i1=buf.find(")",idx)
+        if i1<0:
+            break
+        jobid=buf[idx:i1-4]
+        idx=i1+2
+        #extract time
+        line_time=buf[idx:idx+14]
+        idx+=16
+
+        if jobs.has_key(jobid):
+            new_status=get_new_status(jobs[jobid],status)
+            if new_status!=status:
+                callback(new_status,line_time,jobid)
+                if new_status in ('005','009'):
+                    del jobs[jobid] #end of live, don't need it anymore
+                else:
+                    jobs[jobid]=new_status
+        else:
+            jobs[jobid]=status
+            callback(status,line_time,jobid)
+
+        i1=buf.find("...",idx)
+        if i1<0:
+            break
+        idx=i1+4 #the 3 dots plus newline
+
+    buf.close()
+    fd.close()
+    return
+
 # convert the log representation into (ClusterId,ProcessId)
 # Return (-1,-1) in case of error
 def rawJobId2Nr(str):
