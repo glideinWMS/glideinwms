@@ -846,7 +846,7 @@ def diffTimeswWrap(start_time,end_time,year,wrap_time):
     return int(end_ctime)-int(start_ctime)
 
 # reduce the syayus to either Wait, Idle, Running, Held, Completed or Removed
-def interpretStatus(status):
+def interpretStatus(status,default_status='Idle'):
     if status==5:
         return "Completed"
     elif status==9:
@@ -857,8 +857,10 @@ def interpretStatus(status):
         return "Held"
     elif status==0:
         return "Wait"
-    else:
+    elif status==17:
         return "Idle"
+    else:
+        return default_status
 
 # given a dictionary of job statuses (like the one got from parseSubmitLogFastRaw)
 # will return a dictionary of sstatus counts
