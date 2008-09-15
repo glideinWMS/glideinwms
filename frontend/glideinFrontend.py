@@ -215,6 +215,14 @@ def iterate(log_dir,sleep_time,
     global log_files
     startup_time=time.time()
 
+    if x509_proxy==None:
+        published_frontend_name=frontend_name
+    else:
+        # if using a VO proxy, label it as such
+        # this way we don't risk of using the wrong proxy on the other side
+        # if/when we decide to stop using the proxy
+        published_frontend_name='XPVO_%s'%frontend_name
+
     log_files=LogFiles(log_dir)
 
     # create lock file
@@ -228,7 +236,7 @@ def iterate(log_dir,sleep_time,
                 while 1:
                     log_files.logActivity("Iteration at %s" % time.ctime())
                     try:
-                        done_something=iterate_one(frontend_name,factory_pool,factory_constraint,
+                        done_something=iterate_one(published_frontend_name,factory_pool,factory_constraint,
                                                    x509_proxy,
                                                    schedd_names,job_constraint,match_str,job_attributes,
                                                    max_idle,reserve_idle,
@@ -259,7 +267,7 @@ def iterate(log_dir,sleep_time,
         finally:
             try:
                 log_files.logActivity("Deadvertize my ads")
-                glideinFrontendInterface.deadvertizeAllWork(factory_pool,frontend_name)
+                glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
