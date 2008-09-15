@@ -108,9 +108,10 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     factory_name=glideinDescript.data['FactoryName']
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
+    pub_key_obj=glideinDescript.data['PubKeyObj']
 
     #glideFactoryLib.factoryConfig.activity_log.write("Find work")
-    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name)
+    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,pub_key_obj)
     glideFactoryLib.logWorkRequests(work)
     
     if len(work.keys())==0:
@@ -421,10 +422,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.56 2008/09/15 16:40:41 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.57 2008/09/15 17:28:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.57  2008/09/15 17:28:46  sfiligoi
+#  Improve key handling and put in Entry
+#
 #  Revision 1.56  2008/09/15 16:40:41  sfiligoi
 #  Better encapsulation
 #

@@ -71,9 +71,9 @@ def findWork(factory_name,glidein_name,entry_name,
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
     if pub_key_obj!=None:
-        # get only classads that have my key
+        # get only classads that have my key or no key at all
         # any other key will not work
-        status_constraint+=' && (ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)'%pub_key_obj.get_pub_key_id()
+        status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
     status=condorMonitor.CondorStatus("any")
     status.glidein_name=glidein_name
     status.entry_name=entry_name
@@ -99,12 +99,15 @@ def findWork(factory_name,glidein_name,entry_name,
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=kel[attr]
         if pub_key_obj!=None:
-            try:
-                sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
-            except:
-                continue # bad key, ignore entry
+            if kel.has_key('ReqPubKeyID'):
+                try:
+                    sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
+                except:
+                    continue # bad key, ignore entry
+            else:
+                sym_key_obj=None # no key used, will not decrypt
         else:
-            sym_key_obj=None
+            sym_key_obj=None # have no key, will not decrypt
 
         for (key,prefix) in (("params_decrypted",factoryConfig.encrypted_param_prefix),):
             plen=len(prefix)
@@ -282,10 +285,13 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 #
 # CVS info
 #
-# $Id: glideFactoryInterface.py,v 1.25 2008/09/15 17:11:21 sfiligoi Exp $
+# $Id: glideFactoryInterface.py,v 1.26 2008/09/15 17:28:46 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryInterface.py,v $
+#  Revision 1.26  2008/09/15 17:28:46  sfiligoi
+#  Improve key handling and put in Entry
+#
 #  Revision 1.25  2008/09/15 17:11:21  sfiligoi
 #  Add decoding of encrypted params
 #
