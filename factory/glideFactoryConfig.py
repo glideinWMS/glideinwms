@@ -112,10 +112,11 @@ class GlideinKey:
     def get_pub_key_id(self):
         return self.pub_key_id[0:]
 
+    # extracts the symkey from encrypted fronted attribute
     # returns a SymKey child object
     def extract_sym_key(self,enc_sym_key):
         if self.pub_key_type=='RSA':
-            sym_key_code=self.rsa_key.decrypt_hex(data)
+            sym_key_code=self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)
         else:
             raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type        
@@ -160,10 +161,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.16 2008/09/15 17:32:36 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.17 2008/09/15 17:38:06 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.17  2008/09/15 17:38:06  sfiligoi
+#  Fix typo
+#
 #  Revision 1.16  2008/09/15 17:32:36  sfiligoi
 #  Make GlideinKey more flexible by allowing to specify the key file
 #
