@@ -90,10 +90,11 @@ class GlideinKey:
 
     def load(self):
         if self.pub_key_type=='RSA':
-            import pubCrypto,md5
+            import pubCrypto,symCrypto,md5
             self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
             self.pub_key_id=md5.new(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
+            self.sym_class=symCrypto.AutoSymKey
         else:
             raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
 
@@ -109,9 +110,11 @@ class GlideinKey:
     def get_pub_key_id(self):
         return self.pub_key_id[0:]
 
-    def decrypt(self,data):
+    # returns a SymKey child object
+    def extract_sym_key(self,enc_sym_key):
         if self.pub_key_type=='RSA':
-            return self.rsa_key.decrypt_hex(data)
+            sym_key_code=self.rsa_key.decrypt_hex(data)
+            return self.sym_class(sym_key_code)
         else:
             raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type        
 
@@ -155,10 +158,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.14 2008/09/15 16:40:41 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.15 2008/09/15 17:11:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.15  2008/09/15 17:11:21  sfiligoi
+#  Add decoding of encrypted params
+#
 #  Revision 1.14  2008/09/15 16:40:41  sfiligoi
 #  Better encapsulation
 #

@@ -35,6 +35,7 @@ class FactoryConfig:
 
         # String to prefix for the parameters
         self.glidein_param_prefix = "GlideinParam"
+        self.encrypted_param_prefix = "GlideinEncParam"
 
         # String to prefix for the monitoring
         self.glidein_monitor_prefix = "GlideinMonitor"
@@ -72,7 +73,7 @@ def findWork(factory_name,glidein_name,entry_name,
     if pub_key_obj!=None:
         # get only classads that have my key
         # any other key will not work
-        status_constraint+=' && (ReqPubKeyID=?="%s")'%pub_key_obj.get_pub_key_id()
+        status_constraint+=' && (ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)'%pub_key_obj.get_pub_key_id()
     status=condorMonitor.CondorStatus("any")
     status.glidein_name=glidein_name
     status.entry_name=entry_name
@@ -80,14 +81,14 @@ def findWork(factory_name,glidein_name,entry_name,
 
     data=status.fetchStored()
 
-    reserved_names=("ReqName","ReqGlidein","ClientName")
+    reserved_names=("ReqName","ReqGlidein","ClientName","ReqPubKeyID","ReqEncKeyCode")
 
     out={}
 
     # copy over requests and parameters
     for k in data.keys():
         kel=data[k]
-        el={"requests":{},"params":{},"monitor":{},"internals":{}}
+        el={"requests":{},"params":{},"params_decrypted":{},"monitor":{},"internals":{}}
         for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
                              ("params",factoryConfig.glidein_param_prefix),
                              ("monitor",factoryConfig.glidein_monitor_prefix)):
@@ -97,8 +98,29 @@ def findWork(factory_name,glidein_name,entry_name,
                     continue # skip reserved names
                 if attr[:plen]==prefix:
                     el[key][attr[plen:]]=kel[attr]
+        if pub_key_obj!=None:
+            try:
+                sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
+            except:
+                continue # bad key, ignore entry
+        else:
+            sym_key_obj=None
+
+        for (key,prefix) in (("params_decrypted",factoryConfig.encrypted_param_prefix),):
+            plen=len(prefix)
+            for attr in kel.keys():
+                if attr in reserved_names:
+                    continue # skip reserved names
+                if attr[:plen]==prefix:
+                    el[key][attr[plen:]]=None # define it even if I don't understand the content
+                    if sym_key_obj!=None:
+                        try:
+                            el[key][attr[plen:]]=sym_key_obj.decrypt_hex(kel[attr])
+                        except:
+                            pass # oh well, I don't understand it
+
         for attr in kel.keys():
-            if attr in ("ClientName","ReqName","LastHeardFrom"):
+            if attr in ("ClientName","ReqName","LastHeardFrom","ReqPubKeyID"):
                 el["internals"][attr]=kel[attr]
         
         out[k]=el
@@ -260,10 +282,13 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 #
 # CVS info
 #
-# $Id: glideFactoryInterface.py,v 1.24 2008/09/15 16:40:41 sfiligoi Exp $
+# $Id: glideFactoryInterface.py,v 1.25 2008/09/15 17:11:21 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryInterface.py,v $
+#  Revision 1.25  2008/09/15 17:11:21  sfiligoi
+#  Add decoding of encrypted params
+#
 #  Revision 1.24  2008/09/15 16:40:41  sfiligoi
 #  Better encapsulation
 #
