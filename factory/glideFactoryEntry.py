@@ -226,7 +226,9 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,pub_key_id,pub_key_type,pub_key_value,myJobAttributes,jobParams.data.copy(),glidein_monitors.copy())
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
+                                               myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
+                                               pub_key_type,pub_key_value,pub_key_id)
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 
@@ -421,10 +423,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.54 2008/09/05 16:15:41 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.55 2008/09/15 16:04:34 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.55  2008/09/15 16:04:34  sfiligoi
+#  Make sending PubKeyType optional
+#
 #  Revision 1.54  2008/09/05 16:15:41  sfiligoi
 #  Use lock to limit disk use when parsing files
 #

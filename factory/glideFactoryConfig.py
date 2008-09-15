@@ -89,18 +89,23 @@ class GlideinDescript(ConfigFile):
         global factoryConfig
         ConfigFile.__init__(self,factoryConfig.glidein_descript_file,
                             repr) # convert everything in strings
+        if self.data['PubKeyType']=='None':
+            self.data['PubKeyType']=None
 
+    # define PubKeyValue and PubKeyID
     def load_pub_key(self):
         if self.data['PubKeyType']=='RSA':
             import pubCrypto
             self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
             pub_rsa_key=self.rsa_key.PubRSAKey()
             self.data['PubKeyValue']=pub_rsa_key.get()
-        elif self.data['PubKeyType']=='None':
-            self.data['PubKeyValue']='None'
+            self.data['PubKeyID']=md5.new(string.join((self.data['PubKeyType'],self.data['PubKeyValue']))).hexdigest()
+        elif self.data['PubKeyType']==None:
+            self.data['PubKeyValue']=None
+            self.data['PubKeyID']=None
         else:
             raise RuntimeError, 'Invalid PubKeyType value(%s), must be None or RSA'%self.data['PubKeyType']
-        self.data['PubKeyID']=md5.new(string.join((self.data['PubKeyType'],self.data['PubKeyValue']))).hexdigest()
+
         return
 
 class JobDescript(EntryConfigFile):
@@ -127,10 +132,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.12 2008/09/05 21:07:19 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.13 2008/09/15 16:04:34 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.13  2008/09/15 16:04:34  sfiligoi
+#  Make sending PubKeyType optional
+#
 #  Revision 1.12  2008/09/05 21:07:19  sfiligoi
 #  Fix typo
 #

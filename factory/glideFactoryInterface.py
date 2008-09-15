@@ -106,8 +106,8 @@ advertizeGlideinCounter=0
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
 def advertizeGlidein(factory_name,glidein_name,entry_name,
-                     pub_key_id,pub_key_type,pub_key_value,
-                     glidein_attrs={},glidein_params={},glidein_monitors={}):
+                     glidein_attrs={},glidein_params={},glidein_monitors={},
+                     pub_key_type=None,pub_key_value=None,pub_key_id=None):
     global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -122,9 +122,10 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
-            fd.write('PubKeyID = "%s"\n'%pub_key_id)
-            fd.write('PubKeyType = "%s"\n'%pub_key_type)
-            fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_value,'\n','\\n'))
+            if pub_key_type!=None:
+                fd.write('PubKeyID = "%s"\n'%pub_key_id)
+                fd.write('PubKeyType = "%s"\n'%pub_key_type)
+                fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_value,'\n','\\n'))
             fd.write('DaemonStartTime = %li\n'%start_time)
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             advertizeGlideinCounter+=1
@@ -254,10 +255,13 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 #
 # CVS info
 #
-# $Id: glideFactoryInterface.py,v 1.22 2008/08/19 21:53:02 sfiligoi Exp $
+# $Id: glideFactoryInterface.py,v 1.23 2008/09/15 16:04:34 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryInterface.py,v $
+#  Revision 1.23  2008/09/15 16:04:34  sfiligoi
+#  Make sending PubKeyType optional
+#
 #  Revision 1.22  2008/08/19 21:53:02  sfiligoi
 #  Add PubKeyID
 #
