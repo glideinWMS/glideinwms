@@ -19,12 +19,15 @@ sys.path.append(os.path.join(sys.path[0],"../frontend"))
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryInterface
+import glideFactoryConfig
 import glideinFrontendInterface
 import xmlFormat
 
 pool_name=None
 remove_condor_stats=True
 remove_internals=True
+
+key_obj=None
 
 # parse arguments
 alen=len(sys.argv)
@@ -40,6 +43,9 @@ while (i<alen):
     elif ael=='-internals':
         i=i+1
         remove_internals=not int(sys.argv[i])
+    elif ael=='-rsa_key':
+        i=i+1
+        key_obj=glideFactoryConfig.GlideinKey('RSA',sys.argv[i])
     else:
         raise RuntimeError,"Unknown option '%s'"%ael
     i=i+1
@@ -67,7 +73,7 @@ for glidein in glideins:
         
     entry_name,glidein_name,factory_name=string.split(glidein,"@")
 
-    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name)
+    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,key_obj)
     glidein_el['clients']=clients_obj
     clients=clients_obj.keys()
     for client in clients:
