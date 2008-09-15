@@ -193,7 +193,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
               glidein_monitors['Glideins%s'%t]=count_status[t]
           if x509_proxy!=None:
               glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                     glidein_pub_key_id=glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
+                                                     glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
                                                      None, # should reuse it, but none will work for now
                                                      {'x509_proxy':x509_data})
           else:

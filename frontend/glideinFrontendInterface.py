@@ -191,7 +191,7 @@ def advertizeWork(factory_pool,
                     fd.write('ReqEncKeyCode = "%s"\n'%factory_pub_key.encrypt_hex(glidein_symKey_str))
                     if encrypted_params!=None:
                         for attr in glidein_params_to_encrypt.keys():
-                            encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt[attr]
+                            encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt[attr])
                         
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
