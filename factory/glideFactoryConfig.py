@@ -84,14 +84,16 @@ class JoinConfigFile(ConfigFile):
 ############################################################
 
 class GlideinKey:
-    def __init__(self,pub_key_type):
+    def __init__(self,pub_key_type,key_fname=None):
         self.pub_key_type=pub_key_type
-        self.load()
+        self.load(key_fname)
 
-    def load(self):
+    def load(self,key_fname=None):
         if self.pub_key_type=='RSA':
             import pubCrypto,symCrypto,md5
-            self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
+            if key_fname==None:
+                key_fname='rsa.key'
+            self.rsa_key=pubCrypto.RSAKey(key_fname=key_fname)
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
             self.pub_key_id=md5.new(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
             self.sym_class=symCrypto.AutoSymKey
@@ -158,10 +160,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.15 2008/09/15 17:11:21 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.16 2008/09/15 17:32:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.16  2008/09/15 17:32:36  sfiligoi
+#  Make GlideinKey more flexible by allowing to specify the key file
+#
 #  Revision 1.15  2008/09/15 17:11:21  sfiligoi
 #  Add decoding of encrypted params
 #
