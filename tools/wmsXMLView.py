@@ -81,6 +81,10 @@ for glidein in glideins:
         if clientsmon_obj.has_key(client):
             clients_obj[client]['factory_monitor']=clientsmon_obj[client]['monitor']
 
+        for pd_key in clients_obj[client]["params_decrypted"].keys():
+            if clients_obj[client]["params_decrypted"][pd_key]==None:
+                clients_obj[client]["params_decrypted"][pd_key]="ENCRYPTED"
+
 
 #print data
 sub_dict={'clients':{'dict_name':'clients','el_name':'client','subtypes_params':{'class':{}}}}
