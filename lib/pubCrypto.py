@@ -37,7 +37,7 @@ def default_callback(*args):
 #   'aes_256_cbc'
 #   'aes_256_cfb'
 #   'bf_cbc'
-#   '3des_cbc'
+#   'des3'
 #
 ######################
 
