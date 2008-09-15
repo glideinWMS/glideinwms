@@ -187,7 +187,7 @@ def advertizeWork(factory_pool,
                 glidein_symKey_str=glidein_symKey.get_code()
                 
                 fd.write('ReqPubKeyID = "%s"\n'%factory_pub_key_id)
-                if encrypted_key_code!=None:
+                if factory_pub_key!=None:
                     fd.write('ReqEncKeyCode = "%s"\n'%factory_pub_key.encrypt_hex(glidein_symKey_str))
                     if encrypted_params!=None:
                         for attr in glidein_params_to_encrypt.keys():
