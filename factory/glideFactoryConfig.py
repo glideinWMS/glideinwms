@@ -1,6 +1,5 @@
 import string
 import os.path
-import md5
 
 ############################################################
 #
@@ -84,6 +83,38 @@ class JoinConfigFile(ConfigFile):
 #
 ############################################################
 
+class GlideinKey:
+    def __init__(self,pub_key_type):
+        self.pub_key_type=pub_key_type
+        self.load()
+
+    def load(self):
+        if self.pub_key_type=='RSA':
+            import pubCrypto,md5
+            self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
+            self.pub_rsa_key=self.rsa_key.PubRSAKey()
+            self.pub_key_id=md5.new(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
+        else:
+            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
+
+    def get_pub_key_type(self):
+        return self.pub_key_type[0:]
+
+    def get_pub_key_value(self):
+        if self.pub_key_type=='RSA':
+            return self.pub_rsa_key.get()
+        else:
+            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
+
+    def get_pub_key_id(self):
+        return self.pub_key_id[0:]
+
+    def decrypt(self,data):
+        if self.pub_key_type=='RSA':
+            return self.rsa_key.decrypt_hex(data)
+        else:
+            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type        
+
 class GlideinDescript(ConfigFile):
     def __init__(self):
         global factoryConfig
@@ -92,20 +123,12 @@ class GlideinDescript(ConfigFile):
         if self.data['PubKeyType']=='None':
             self.data['PubKeyType']=None
 
-    # define PubKeyValue and PubKeyID
+    # define PubKeyObj
     def load_pub_key(self):
-        if self.data['PubKeyType']=='RSA':
-            import pubCrypto
-            self.rsa_key=pubCrypto.RSAKey(key_fname='rsa.key')
-            pub_rsa_key=self.rsa_key.PubRSAKey()
-            self.data['PubKeyValue']=pub_rsa_key.get()
-            self.data['PubKeyID']=md5.new(string.join((self.data['PubKeyType'],self.data['PubKeyValue']))).hexdigest()
-        elif self.data['PubKeyType']==None:
-            self.data['PubKeyValue']=None
-            self.data['PubKeyID']=None
+        if self.data['PubKeyType']!=None:
+            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'])
         else:
-            raise RuntimeError, 'Invalid PubKeyType value(%s), must be None or RSA'%self.data['PubKeyType']
-
+            self.data['PubKeyObj']=None
         return
 
 class JobDescript(EntryConfigFile):
@@ -132,10 +155,13 @@ class JobParams(JoinConfigFile):
 #
 # CVS info
 #
-# $Id: glideFactoryConfig.py,v 1.13 2008/09/15 16:04:34 sfiligoi Exp $
+# $Id: glideFactoryConfig.py,v 1.14 2008/09/15 16:40:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryConfig.py,v $
+#  Revision 1.14  2008/09/15 16:40:41  sfiligoi
+#  Better encapsulation
+#
 #  Revision 1.13  2008/09/15 16:04:34  sfiligoi
 #  Make sending PubKeyType optional
 #

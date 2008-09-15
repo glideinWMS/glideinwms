@@ -213,9 +213,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
 
-    pub_key_type=glideinDescript.data['PubKeyType']
-    pub_key_value=glideinDescript.data['PubKeyValue']
-    pub_key_id=glideinDescript.data['PubKeyID']
+    pub_key_obj=glideinDescript.data['PubKeyObj']
 
     current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
 
@@ -228,7 +226,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
-                                               pub_key_type,pub_key_value,pub_key_id)
+                                               pub_key_obj)
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 
@@ -423,10 +421,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.55 2008/09/15 16:04:34 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.56 2008/09/15 16:40:41 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.56  2008/09/15 16:40:41  sfiligoi
+#  Better encapsulation
+#
 #  Revision 1.55  2008/09/15 16:04:34  sfiligoi
 #  Make sending PubKeyType optional
 #
