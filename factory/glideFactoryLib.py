@@ -202,7 +202,7 @@ def update_x509_proxy_file(client_id, proxy_data):
 
     if not os.path.isfile(fname):
         # new file, create
-        fd=os.open(fname,0600,os.O_CREAT|os.O_WRONLY,0600)
+        fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
         try:
             os.write(fd,proxy_data)
         finally:
@@ -230,7 +230,7 @@ def update_x509_proxy_file(client_id, proxy_data):
         pass # just protect
     
     # create new file
-    fd=os.open(fname+".new",0600,os.O_CREAT|os.O_WRONLY,0600)
+    fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
     try:
         os.write(fd,proxy_data)
     finally:
@@ -709,10 +709,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.35 2008/09/16 16:22:09 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.36 2008/09/16 16:25:47 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.36  2008/09/16 16:25:47  sfiligoi
+#  Fix typo
+#
 #  Revision 1.35  2008/09/16 16:22:09  sfiligoi
 #  Fix typo
 #
