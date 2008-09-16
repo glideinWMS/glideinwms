@@ -147,7 +147,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             if decrypted_params['x509_proxy']==None:
                 glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
                 continue #skip request
-            x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(entry_name,client_int_name,decrypted_params['x509_proxy'])
+            x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(work_key,decrypted_params['x509_proxy'])
             
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
@@ -430,10 +430,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.58 2008/09/16 15:39:24 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.59 2008/09/16 16:10:12 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.59  2008/09/16 16:10:12  sfiligoi
+#  Fix typo
+#
 #  Revision 1.58  2008/09/16 15:39:24  sfiligoi
 #  Use x509 received from frontend
 #
