@@ -1114,6 +1114,16 @@ class glideinMainDicts(glideinCommonDicts):
         self.stage_dir=stage_dir
         self.erase()
 
+    def create_dirs(self):
+        glideinCommonDicts.create_dirs(self)
+        try:
+            proxy_dir=os.path.join(self.submit_dir,'client_proxies')
+            os.mkdir(proxy_dir)
+            os.chmod(proxy_dir,0700)
+        except OSError,e:
+            shutil.rmtree(self.submit_dir)
+            raise RuntimeError,"Failed to create dir: %s"%e
+
     def get_summary_signature(self): # you can discover most of the other things from this
         return self.dicts['summary_signature']
 
@@ -1315,10 +1325,13 @@ class glideinDicts:
 #
 # CVS info
 #
-# $Id: cgWDictFile.py,v 1.88 2008/07/28 18:44:35 sfiligoi Exp $
+# $Id: cgWDictFile.py,v 1.89 2008/09/16 15:47:16 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWDictFile.py,v $
+#  Revision 1.89  2008/09/16 15:47:16  sfiligoi
+#  Create proxy_dirs
+#
 #  Revision 1.88  2008/07/28 18:44:35  sfiligoi
 #  Add after_file_list
 #
