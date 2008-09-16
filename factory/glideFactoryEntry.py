@@ -128,7 +128,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     for work_key in work.keys():
         # merge work and default params
         params=work[work_key]['params']
-        decrypted_params=work[work_key]['decrypted_params']
+        decrypted_params=work[work_key]['params_decrypted']
 
         # add default values if not defined
         for k in jobParams.data.keys():
@@ -430,10 +430,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.59 2008/09/16 16:10:12 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.60 2008/09/16 16:20:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.60  2008/09/16 16:20:24  sfiligoi
+#  Fix typo
+#
 #  Revision 1.59  2008/09/16 16:10:12  sfiligoi
 #  Fix typo
 #
