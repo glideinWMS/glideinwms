@@ -193,6 +193,57 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
     status.load(status_glidein_constraint)
     return status
 
+
+#
+# Create/update the proxy file
+# returns the proxy fname
+def update_x509_proxy_file(client_id, proxy_data):
+    fname=os.path.realpath('client_proxies/x509_%s.proxy'%escapeParam(client_id))
+
+    if not os.path.isfile(fname):
+        # new file, create
+        fd=os.open(fname,0600,os.O_CREAT|os.O_WRITE,0600)
+        try:
+            os.write(fd,proxy_data)
+        finally:
+            os.close(fd)
+        return fname
+
+    # old file exists, check if same content
+    fl=open(fname,'r')
+    try:
+        old_data=fl.read()
+    finally:
+        fl.close()
+    if proxy_data==old_data:
+        # nothing changed, done
+        return fname
+
+    #
+    # proxy changed, neeed to update
+    #
+
+    # remove any previous backup file
+    try:
+        os.remove(fname+".old")
+    except:
+        pass # just protect
+    
+    # create new file
+    fd=os.open(fname+".new",0600,os.O_CREAT|os.O_WRITE,0600)
+    try:
+        os.write(fd,proxy_data)
+    finally:
+        os.close(fd)
+
+    # move the old file to a tmp and the new one into the official name
+    try:
+        os.rename(fname,fname+".old")
+    except:
+        pass # just protect
+    os.rename(fname+".new",fname)
+    return fname
+    
 #
 # Main function
 #   Will keep the required number of Idle glideins
@@ -200,7 +251,7 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,params):
+def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fname,params):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -232,7 +283,7 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,pa
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         factoryConfig.logActivity("Need more glideins: %s"%stat_str)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,params)
+        submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fname,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
     # We have enough glideins in the queue
@@ -333,6 +384,7 @@ def logWorkRequests(work):
         if work[work_key]['requests'].has_key('IdleGlideins'):
             factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
             factoryConfig.logActivity("  Params: %s"%work[work_key]['params'])
+            factoryConfig.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
             factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
             factoryConfig.qc_stats.logClientMonitor(work[work_key]['internals']["ClientName"],work[work_key]['monitor'],work[work_key]['internals'])
 
@@ -563,7 +615,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,params):
+def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fname,params):
     global factoryConfig
 
     submitted_jids=[]
@@ -593,7 +645,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,p
                 nr_to_submit=factoryConfig.max_cluster_size
 
             try:
-                submit_out=condorExe.iexe_cmd('./job_submit.sh "%s" "%s" %i %s -- %s'%(entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
+                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" %i %s -- %s'%(x509_proxy_fname,entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
                 factoryConfig.logWarning("condor_submit failed: %s"%e);
                 submit_out=[]
@@ -657,10 +709,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.33 2008/09/09 20:22:27 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.34 2008/09/16 15:39:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.34  2008/09/16 15:39:24  sfiligoi
+#  Use x509 received from frontend
+#
 #  Revision 1.33  2008/09/09 20:22:27  sfiligoi
 #  Fix typo
 #

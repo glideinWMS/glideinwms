@@ -54,7 +54,7 @@ def perform_work(factory_name,glidein_name,entry_name,
                  client_name,client_int_name,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
-                 params):
+                 x509_proxy_fname,params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -88,7 +88,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,params)
+    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fname,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
@@ -128,6 +128,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     for work_key in work.keys():
         # merge work and default params
         params=work[work_key]['params']
+        decrypted_params=work[work_key]['decrypted_params']
 
         # add default values if not defined
         for k in jobParams.data.keys():
@@ -141,6 +142,13 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             client_int_name="DummyName"
             client_int_req="DummyReq"
 
+        x509_proxy_fname=os.environ['X509_USER_PROXY'] # by default use factory proxy
+        if decrypted_params.has_key('x509_proxy'):
+            if decrypted_params['x509_proxy']==None:
+                glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
+                continue #skip request
+            x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(entry_name,client_int_name,decrypted_params['x509_proxy'])
+            
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
             if idle_glideins>factory_max_idle:
@@ -161,7 +169,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
-                                         jobDescript,params)
+                                         jobDescript,x509_proxy_fname,params)
         #else, it is malformed and should be skipped
 
     return done_something
@@ -422,10 +430,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactoryEntry.py,v 1.57 2008/09/15 17:28:46 sfiligoi Exp $
+# $Id: glideFactoryEntry.py,v 1.58 2008/09/16 15:39:24 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryEntry.py,v $
+#  Revision 1.58  2008/09/16 15:39:24  sfiligoi
+#  Use x509 received from frontend
+#
 #  Revision 1.57  2008/09/15 17:28:46  sfiligoi
 #  Improve key handling and put in Entry
 #
