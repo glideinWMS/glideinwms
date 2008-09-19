@@ -179,7 +179,14 @@ def create_status_history():
                                                        [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
 
     # create split graphs
-    colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
+    colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
+    colors_intensity=['ff','d0','a0','80','e8','b8']
+    colors=[]
+    for ci_i in colors_intensity:
+        si_arr=['00',ci_i]
+        for cb_i in colors_base:
+            colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
+
     for fname,tp,a in attr_rrds:
         rrd_fnames=[]
         idx=0
@@ -459,10 +466,13 @@ img2html=glideFactoryMonitoring.img2html
 #
 # CVS info
 #
-# $Id: glideFactoryMonitorAggregator.py,v 1.36 2008/07/29 17:09:25 sfiligoi Exp $
+# $Id: glideFactoryMonitorAggregator.py,v 1.36.2.1 2008/09/19 17:47:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitorAggregator.py,v $
+#  Revision 1.36.2.1  2008/09/19 17:47:36  sfiligoi
+#  Improve colors in split graphs
+#
 #  Revision 1.36  2008/07/29 17:09:25  sfiligoi
 #  Fix lock handling
 #

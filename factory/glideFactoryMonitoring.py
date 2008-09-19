@@ -742,7 +742,14 @@ class condorQStats:
         frontend_list.sort()
 
         # create human readable files for total aggregating multiple entries 
-        colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
+        colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
+        colors_intensity=['ff','d0','a0','80','e8','b8']
+        colors=[]
+        for ci_i in colors_intensity:
+            si_arr=['00',ci_i]
+            for cb_i in colors_base:
+                colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
+
         attr_rrds=monitoringConfig.find_disk_attributes("total")
         for fname,tp,a in attr_rrds:
             rrd_fnames=[]
@@ -1597,9 +1604,30 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
     time_range_groups_keys=time_range_groups.keys()
     time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
     
-    colors=['00ff00','00ffff','ffff00','ff00ff','0000ff','ff0000']
-    in_colors=['00ff00','00ffff','00c000','0000c0','00ffc0','0000ff'] # other options 00c0c0,00c0ff
-    out_colors=['ff0000','ffff00','c00000','ff00ff','ffc000','ffc0c0'] # opther option c000c0
+    colors_intensity=['ff','d0','a0','80','e8','b8']
+    dimcolors_intensity=['c0','a0','80','60','b0','90']
+
+    colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
+    colors=[]
+    for ci_i in colors_intensity:
+        si_arr=['00',ci_i]
+        for cb_i in colors_base:
+            colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
+
+    in_colors_base=[(0,1,0),(0,1,1),(0,2,0),(0,0,2),(0,1,2),(0,0,1)]
+    in_colors=[]
+    for ci_i in range(len(colors_intensity)):
+        si_arr=['00',colors_intensity[ci_i],dimcolors_intensity[ci_i]]
+        for cb_i in in_colors_base:
+            in_colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
+
+    out_colors_base=[(1,0,0),(1,1,0),(2,0,0),(1,0,1),(1,2,0),(1,2,2)]
+    out_colors=[]
+    for ci_i in range(len(colors_intensity)):
+        si_arr=['00',colors_intensity[ci_i],dimcolors_intensity[ci_i]]
+        for cb_i in out_colors_base:
+            out_colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
+
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
             diff_rrd_files=[]
             count_rrd_files=[]
@@ -1983,10 +2011,13 @@ def createGraphHtml_Notlocked(html_name,png_fname, rrd2graph_args):
 #
 # CVS info
 #
-# $Id: glideFactoryMonitoring.py,v 1.210 2008/09/04 18:46:14 sfiligoi Exp $
+# $Id: glideFactoryMonitoring.py,v 1.210.2.1 2008/09/19 17:47:36 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryMonitoring.py,v $
+#  Revision 1.210.2.1  2008/09/19 17:47:36  sfiligoi
+#  Improve colors in split graphs
+#
 #  Revision 1.210  2008/09/04 18:46:14  sfiligoi
 #  Add lock around graph creation and improve locking in general
 #
