@@ -1,3 +1,9 @@
+v1_4_4	Add factory_constraint parameter to the frontend.
+	Add support for GLEXEC_JOB.
+	Add new protection against condor_submit errors.
+	Warnings go into the info file, too. Easier to correlate errors this way.
+	Better colors in graphs.
+
 v1_4_3	Improve scalability 
  	  by adding locks into monitoring
 	  Now only one rdd update can proceed at a time, and
