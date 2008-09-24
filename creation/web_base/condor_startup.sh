@@ -3,6 +3,13 @@
 # This script starts the condor daemons
 # expects a config file as a parameter
 
+# first of all, clean up any CONDOR variable
+condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
+for v in $condor_vars; do
+ unset $v
+done
+echo "Removed condor variables $condor_vars" 1>&2
+
 
 # pstr = variable representing an appendix
 pstr='"'
