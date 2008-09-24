@@ -63,7 +63,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
-            self.add("globus_rsl",rsl)
+            if gridtype=='gt2':
+               self.add("globus_rsl",rsl)
+            elif gridtype=='gt4':
+               self.add("globus_xml",rsl)
+            else:
+               raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
         self.add("Executable",exe_fname)
 
         self.add("Arguments","-fail") # just a placeholder for now
@@ -256,10 +261,13 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 #
 # CVS info
 #
-# $Id: cgWCreate.py,v 1.39.2.1 2008/09/23 20:29:03 sfiligoi Exp $
+# $Id: cgWCreate.py,v 1.39.2.2 2008/09/24 21:15:39 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWCreate.py,v $
+#  Revision 1.39.2.2  2008/09/24 21:15:39  sfiligoi
+#  Proper treatment of gt4 rsl
+#
 #  Revision 1.39.2.1  2008/09/23 20:29:03  sfiligoi
 #  Add support for the new glexec/starter scripts
 #
