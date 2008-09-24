@@ -63,7 +63,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
-            self.add("globus_rsl",rsl)
+            if gridtype=='gt2':
+               self.add("globus_rsl",rsl)
+            elif gridtype=='gt4':
+               self.add("globus_xml",rsl)
+            else:
+               raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
         self.add("Executable",exe_fname)
 
         self.add("Arguments","-fail") # just a placeholder for now
@@ -251,83 +256,3 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 
     return
 
-
-###########################################################
-#
-# CVS info
-#
-# $Id: cgWCreate.py,v 1.40 2008/09/23 20:29:41 sfiligoi Exp $
-#
-# Log:
-#  $Log: cgWCreate.py,v $
-#  Revision 1.40  2008/09/23 20:29:41  sfiligoi
-#  Add support for the new glexec/starter scripts
-#
-#  Revision 1.39  2008/08/06 18:40:55  sfiligoi
-#  Add gcb_broker_query to the condor tarball
-#
-#  Revision 1.38  2008/07/24 20:09:15  sfiligoi
-#  Fix typo
-#
-#  Revision 1.37  2008/07/24 20:04:20  sfiligoi
-#  Improve factory_startup
-#
-#  Revision 1.36  2008/07/24 19:58:10  sfiligoi
-#  Improve factory_startup
-#
-#  Revision 1.34  2008/07/24 18:45:43  sfiligoi
-#  Add infosysdown to the factory startup script
-#
-#  Revision 1.33  2008/07/17 18:54:22  sfiligoi
-#  Improve error propagation
-#
-#  Revision 1.31  2008/07/16 16:11:21  sfiligoi
-#  Add info to factory_startup
-#
-#  Revision 1.29  2008/07/15 21:25:58  sfiligoi
-#  Use -force_name
-#
-#  Revision 1.28  2008/07/11 17:33:08  sfiligoi
-#  Add downtime handling to the startup script
-#
-#  Revision 1.27  2008/07/10 20:00:20  sfiligoi
-#  Add reconfig to the startup script
-#
-#  Revision 1.24  2008/07/09 18:40:02  sfiligoi
-#  Use checkFactory
-#
-#  Revision 1.22  2008/07/09 16:29:31  sfiligoi
-#  Add color to initd_startup
-#
-#  Revision 1.17  2008/07/08 20:49:07  sfiligoi
-#  Add init.d startup file
-#
-#  Revision 1.16  2008/06/30 18:37:33  sfiligoi
-#  Add the missing ondor_glexec_wrapper
-#
-#  Revision 1.15  2007/12/14 19:57:26  sfiligoi
-#  Remove old create_condor_tar
-#
-#  Revision 1.14  2007/12/13 23:26:20  sfiligoi
-#  Get attributes out of stage and only into submit
-#
-#  Revision 1.13  2007/12/13 22:35:10  sfiligoi
-#  Move entry specific arguments into the creation stage
-#
-#  Revision 1.7  2007/12/13 20:19:45  sfiligoi
-#  Move condor jdl into entry subdir, and implement it via a dictionary
-#
-#  Revision 1.5  2007/12/12 00:35:36  sfiligoi
-#  Move creation of glidein and job_descript files from cgWCreate to cgWParamDict
-#
-#  Revision 1.3  2007/12/11 15:35:35  sfiligoi
-#  Make condor in memory
-#
-#  Revision 1.2  2007/10/18 19:04:06  sfiligoi
-#  Remove useless parameter
-#
-#  Revision 1.1  2007/10/12 20:25:40  sfiligoi
-#  Add creation of dynamic files into a different module
-#
-#
-###########################################################
