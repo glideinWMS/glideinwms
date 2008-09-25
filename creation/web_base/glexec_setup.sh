@@ -59,7 +59,20 @@ else
     exit 1
 fi
 
-add_config_line "GLEXEC_STARTER" "True"
+
+glexec_job=`grep '^GLEXEC_JOB ' $glidein_config | awk '{print $2}'`
+if [ -z "$glexec_job" ]; then
+    # default to the old mode
+    glexec_job=False
+fi
+
+if [ "$glexec_job" == "True" ]; then
+    add_config_line "GLEXEC_STARTER" "False"
+    add_config_line "GLEXEC_JOB" "True"
+else
+    add_config_line "GLEXEC_STARTER" "True"
+    add_config_line "GLEXEC_JOB" "False"
+fi
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 
 ####################################################################
