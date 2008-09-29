@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080813;15593500">
+	<META NAME="CHANGED" CONTENT="20080929;11224100">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -40,7 +41,8 @@ below. A set of configuration example is provided, too.</P>
 		condition</A> 
 		<LI><A HREF="#time_limit">Limiting time spent on a Grid resource</A>
 		
-		<LI><A HREF="#multi-monitor">Old-style pseudo interactive monitoring</A>
+		<LI><A HREF="#multi-monitor">Old-style pseudo interactive
+		monitoring</A> 
 		<LI><A HREF="#custom_code">Adding custom code/files to the glideins</A>
 		
 	</UL>
@@ -351,6 +353,8 @@ worker nodes. gLExec is a service that, taken</P>
 	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>path
 	to glexec</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT></DD><DT>
+	<BR><BR>
+	</DT><DT>
 	For most current gLExec installation this comes down to:</DT><DD><P>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GLEXEC_BIN</B></FONT><FONT FACE="monospace">&quot;
@@ -364,12 +368,31 @@ code&quot;</A> section.
 </P>
 <DL>
 	<DT>You will also need to properly configure the <B>shadow config
-	files</B>, by adding: 
+	files on the submit machine</B>, by adding: 
 	</DT><DD><P>
 	<FONT FACE="monospace">GLEXEC_STARTER = True<BR>GLEXEC = /bin/false </FONT>
 	</P></DD></DL>
 <P>
 to the condor_config.</P>
+<P>As of version 7.1.3 of Condor, a new, better glexec operation mode
+is supported; in the old operation mode, condor_startd invoked
+condor_starter through glexec. The result was that condor_starter was
+running under the same UID as the user job, leaving it vulnerable to
+attack from a malicious user. The new operating mode solves this by
+having condor_starter run the user jobs via glexec; this adds a
+little more overhead to handle the user jobs, but makes the system
+much more secure.</P>
+<DL>
+	<DT>To enable the new operation mode, use</DT><DD><P>
+	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>attr
+	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>GLEXEC_JOB</B></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=</FONT><FONT FACE="monospace"><B>&quot;True&quot;
+	publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;</FONT>
+		</P></DD></DL>
+<P>
+<B>Warning</B>: Use it only if you use Condor 7.1.3 or later, as it
+will not work on any older Condor version!</P>
 <DL>
 	<DD><H4><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
 	<DD><P>gLExec installations on at least one site had problems with
@@ -380,12 +403,9 @@ to the condor_config.</P>
 		<FONT FACE="monospace">DELEGATE_JOB_GSI_CREDENTIALS=False<BR>SEC_DEFAULT_ENCRYPTION=PREFERRED
 		</FONT>
 		</P></DD></DL>
-</DL>
-<P>
-to the <B>shadow configuration file</B> 
-</P>
-<DL>
-	<DD><P>and set in the glidein creation file:</P></DD><DL>
+	<DD><P>
+	to <B>the shadow configuration </B>file <BR>and set in the glidein
+	creation file:</P></DD><DL>
 		<DD><P>
 		<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR>&nbsp;
 		&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;
@@ -616,12 +636,13 @@ regulate this:</FONT></P>
 	<B>type</B>=&quot;<B>int</B>&quot; <B>publish</B>=&quot;<B>False</B>&quot;
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
 	</P></DD></DL>
-<H3><A NAME="multi-monitor"></A>
-<FONT FACE="monospace">Old-style pseudo-interactive monitoring</FONT></H3>
+<H3>
+<A NAME="multi-monitor"></A><FONT FACE="monospace">Old-style
+pseudo-interactive monitoring</FONT></H3>
 <P><FONT FACE="monospace">Since v1_4_1, the pseudo-interactive
 monitoring uses a dedicated startd in the glideins for monitoring
 purposes. This allows for monitoring even when the job starter enters
-the <I>“Retiring”</I> activity.</FONT></P>
+the “<I>Retiring”</I> activity.</FONT></P>
 <P><FONT FACE="monospace">The side effect is that you do not have
 anymore the cross-VM statistics and the names of the slots is also
 different.</FONT></P>
@@ -630,9 +651,9 @@ different.</FONT></P>
 	<DD><P><FONT FACE="monospace">&lt;<B>attr name=&quot;MONITOR_MODE&quot;
 	const=&quot;True&quot; glidein_publish=&quot;False&quot;
 	job_publish=&quot;False&quot; parameter=&quot;True&quot;
-	publish=&quot;False&quot; type=&quot;string&quot; value=&quot;MULTI&quot;/&gt;</B></FONT></P>
-</DL>
-<H3><A NAME="custom_code"></A><FONT FACE="monospace">Adding custom
+	publish=&quot;False&quot; type=&quot;string&quot; value=&quot;MULTI&quot;/&gt;</B></FONT></P></DD></DL>
+<H3>
+<A NAME="custom_code"></A><FONT FACE="monospace">Adding custom
 code/files to the glideins</FONT></H3>
 <P><FONT FACE="monospace">While provided code should cover most of
 the general purpose use cases, some administrators may have
