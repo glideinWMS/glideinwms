@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080806;13091300">
+	<META NAME="CHANGED" CONTENT="20080929;16530100">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein based WMS</H1>
@@ -31,9 +32,9 @@ Management System (WMS).</P>
 		<LI><A HREF="factory/index.html#implementation">Glidein Factory</A>
 		
 		<UL>
-			<LI><A HREF="factory/index.html#create_entry">Configuration</A> 
+			<LI><A HREF="factory/index.html#create_entry">Configuration</A>
+			<A HREF="frontend/index.html#implementation">Frontend</A> 
 		</UL>
-		<LI><A HREF="frontend/index.html#implementation">VO Frontend</A> 
 	</UL>
 	<LI><A HREF="#condor">The Condor Pool</A> 
 	<UL>
@@ -109,7 +110,7 @@ class-ad contains
 	already in the queues, etc.) 
 	</P>
 </UL>
-<P>Look at the picture below for a generic description.<BR><BR><IMG SRC="factory_publish.png" NAME="graphics3" ALIGN=BOTTOM BORDER=0><BR><BR>Please
+<P>Look at the picture below for a generic description.<BR><BR><IMG SRC="factory_publish.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=899 HEIGHT=683 BORDER=0><BR><BR>Please
 notice that the glidein attributes can be completely arbitrary; the
 only predefined attributes are the glidein and factory name, plus the
 convention that anything that starts with <FONT FACE="monospace"><B>GlideinParam</B></FONT>
@@ -118,7 +119,7 @@ is a monitoring attribute.<BR><BR>Once the&nbsp;factory starts
 serving frontends, it will publish also another ClassAd for every
 frontend served. This ClassAd contains only monitoring information,
 and is not used by the glideinWMS itself.<BR>Find below a graphical
-representation of these ClassAds.<BR><IMG SRC="factory_client_publish.png" NAME="graphics4" ALIGN=BOTTOM BORDER=0></P>
+representation of these ClassAds.<BR><IMG SRC="factory_client_publish.png" NAME="graphics4" ALIGN=BOTTOM WIDTH=629 HEIGHT=503 BORDER=0></P>
 <H3><A NAME="frontend_classads"></A>The VO Frontend Class-Ad</H3>
 <P>A VO frontend will obtain the list all available glideins and
 select the ones that fit its needs, based on the published
@@ -286,7 +287,24 @@ the following lines:</P>
 SEC_CLIENT_AUTHENTICATION = OPTIONAL
 SEC_READ_INTEGRITY = OPTIONAL
 SEC_CLIENT_INTEGRITY = OPTIONAL</PRE><P>
-<BR>Please note that you do not need to worry about glidein security
+As of Condor version 7.1.3 condor also supports a more efficient
+authentication mechanism between the condor_schedd/condor_shadow and
+condor_startd/condor_starter. This method uses the match ClaimId as a
+shared password for authentication between these daemons. Since using
+a shared secret is much cheaper that using GSI authentication, this
+should be used every time it is feasible.</P>
+<DL>
+	<DT>To enable it, add the following lines:</DL>
+<PRE>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = True</PRE>
+<DL>
+	<DT>
+	<BR>
+	<DT>Use this option for the schedd only; <B>do not</B> add this
+	option to either the negotiator or collector as it will not work.</DL>
+<P>
+Obviously, this will only work with Condor versions 7.1.3 and above.<BR><BR><BR>
+</P>
+<P>Please note that you do not need to worry about glidein security
 configuration at a global level; the <A HREF="factory/entry.html#security">glidein
 factory</A> will make sure the settings are correct in the glideins.<BR><BR><BR>
 </P>

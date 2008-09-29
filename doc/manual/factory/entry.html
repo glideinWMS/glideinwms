@@ -6,7 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080929;11224100">
+	<META NAME="CHANGED" CONTENT="20080929;16500100">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -33,7 +33,7 @@ below. A set of configuration example is provided, too.</P>
 		<UL>
 			<LI><A HREF="glexec_troubleshooting">Troubleshooting</A> 
 		</UL>
-		<LI><A HREF="#gcb">Private networks and&nbsp;firewalls</A> 
+		<LI><A HREF="#gcb">Private networks and firewalls</A> 
 		<LI><A HREF="#security">Security handles</A> 
 		<LI><A HREF="#tcp">Using TCP to send updates to the Collector</A> 
 		<LI><A HREF="#multicol">Multiple collectors</A> 
@@ -505,13 +505,13 @@ machines.
 </P>
 <H3><A NAME="security"></A>Security handles</H3>
 <P>As mentioned in the <A HREF="../index.html#pool_glidein">startup
-page</A>,&nbsp;the glidein pool must be properly configured to
-protect it from hackers and malicious users. The same page also
-describes what needs to be done on the collector machine.<BR>The
-glidein itself can also be configured. The default configuration
-works fine for most&nbsp; users, but you may need to change
-them.<BR><BR>The values are set using the&nbsp;&nbsp;<FONT FACE="monospace"><B>&lt;attr
-/&gt;</B></FONT> option, and the default values are:</P>
+page</A>, the glidein pool must be properly configured to protect it
+from hackers and malicious users. The same page also describes what
+needs to be done on the collector machine.<BR>The glidein itself can
+also be configured. The default configuration works fine for most
+users, but you may need to change them.<BR><BR>The values are set
+using the <FONT FACE="monospace"><B>&lt;attr /&gt;</B></FONT> option,
+and the default values are:</P>
 <UL>
 	<LI><FONT FACE="monospace"><B>SEC_DEFAULT_ENCRYPTION</B></FONT>=<FONT FACE="monospace">OPTIONAL</FONT>
 	
@@ -520,7 +520,29 @@ them.<BR><BR>The values are set using the&nbsp;&nbsp;<FONT FACE="monospace"><B>&
 	<LI><P><FONT FACE="monospace"><B>DELEGATE_JOB_GSI_CREDENTIALS</B></FONT>=<FONT FACE="monospace">False</FONT>
 		</P>
 </UL>
-<H3><A NAME="tcp"></A>Using TCP to send updates to the Collector</H3>
+<P>As of Condor version 7.1.3 condor also supports a more efficient
+authentication mechanism between the condor_schedd/condor_shadow and
+condor_startd/condor_starter. This method uses the match ClaimId as a
+shared password for authentication between these daemons. Since using
+a shared secret is much cheaper that using GSI authentication, this
+should be used every time it is feasible.</P>
+<P>To enable this option, you need to set an attribute using the
+<FONT FACE="monospace"><B>&lt;attr /&gt;</B></FONT> option:</P>
+<UL>
+	<LI><FONT FACE="monospace"><B>USE_MATCH_AUTH</B></FONT>=<FONT FACE="monospace">True</FONT>
+	 
+</UL>
+<DL>
+	<DT><BR>
+	<DT>You will also need to enable this on the <B>submit machin</B>e,
+	by adding<DD><P>
+	<FONT FACE="monospace">SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION =
+	True</FONT></P></DD><DT>
+	to the <B>schedd condor_config</B>. Do not add this option to either
+	the negotiator or collector as it will not work.<DT>
+	Obviously, this will only work with Condor versions 7.1.3 and above.</DL>
+<H3>
+<A NAME="tcp"></A>Using TCP to send updates to the Collector</H3>
 <DL>
 	<DT>By default, Condor uses UDP packets to communicate between the
 	glideins and the Collector. While more efficient than TCP, UDP
