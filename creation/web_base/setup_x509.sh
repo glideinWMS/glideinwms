@@ -147,21 +147,28 @@ function get_x509_expiration {
 
 # create a condor_mapfile starting from a grid-mapfile
 function create_condormapfile {
+    id=`id -un`
+
     # make sure there is nothing in place already
     rm -f "$X509_CONDORMAP"
     touch "$X509_CONDORMAP"
     chmod go-wx "$X509_CONDORMAP"
 
     # copy with formatting the glide-mapfile into condor_mapfile
-    while read file
+    # fileter out lines starting with the comment (#)
+    grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
     do
+      if [ -n "$file" ]; then # ignore empty lines
 	echo "GSI $file" >> "$X509_CONDORMAP"
-    done < "$X509_GRIDMAP"
-    
+      fi
+    done
 
-    # add default rules
+    # add local user
+    echo "FS $id localuser" >> "$X509_CONDORMAP"
+
+    # deny any other type of traffic 
     echo "GSI (.*) anonymous" >> "$X509_CONDORMAP"
-    echo "FS (.*) \1" >> "$X509_CONDORMAP"
+    echo "FS (.*) anonymous" >> "$X509_CONDORMAP"
 
     return 0
 }
