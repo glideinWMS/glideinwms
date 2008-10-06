@@ -6,15 +6,93 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081003;13115400">
+	<META NAME="CHANGED" CONTENT="20081006;15513600">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>The Factory Entry Daemons</H1>
-<P><A NAME="ref"></A><BR>This page will describe the internals of the
-Factory Entry Daemons.<BR><BR>Not documented in this release. 
+<H2>Description</H2>
+<P>This document describes the internals of a glideinWMS Factory
+Entry Daemon.</P>
+<H2>Index</H2>
+<UL>
+	<LI><P><A HREF="#overview">Glidein Factory Overview</A></P>
+	<LI><P><A HREF="#flow">Program flow</A></P>
+	<UL>
+		<LI><P><A HREF="#flow_work">Find and perform work</A></P>
+		<LI><P><A HREF="#flow_advertise">Advertise myself</A></P>
+		<LI><P><A HREF="#flow_stats">Write statistics</A></P>
+	</UL>
+</UL>
+<H2><A NAME="overview"></A>Glidein Factory Overview</H2>
+<P>A Glidein Factory is composed of a Factory daemon and several
+Factory Entry Daemons. Each Entry Daemon is autonomous; it advertises
+itself and processes the incoming requests.<BR>See the picture below
+for a logical overview.<BR><BR><BR><IMG SRC="entry_points_overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=818 HEIGHT=539 BORDER=0><BR><BR>All
+daemons of a Glidein Factory share the same directory tree. The root
+of the tree contains the common startup and configuration files,
+while each entry point has a few additional configuration files on
+its own. Each entry point is completely described by these files on
+disk.</P>
+<H2><A NAME="flow"></A>Program flow</H2>
+<P>The Factory Entry Daemon is based on the polling principle; it
+runs in an eternal loop as described in the picture below.</P>
+<P><IMG SRC="flow_entry_main.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=491 HEIGHT=357 BORDER=0><BR>The
+configuration is read only once, at daemon startup, so a restart is
+needed for every configuration change.<BR>However, the daemon does
+check the downtime file at every iteration, so a change to the
+downtime configuration file does not need any further action on the
+daemon.</P>
+<P>Most stages are self explanatory, so they will not be described to
+further detail. However a few need more detail; in particular:</P>
+<UL>
+	<LI><P><A HREF="#flow_work">Find and perform work</A></P>
+	<LI><P><A HREF="#flow_advertise">Advertise myself</A></P>
+	<LI><P><A HREF="#flow_stats">Write statistics</A></P>
+</UL>
+<H3><A NAME="flow_work"></A>Find and perform work</H3>
+<P>This stage is composed of three logical parts, as shown in the
+picture below:</P>
+<UL>
+	<LI><P>Find the requests by querying the Condor Collector</P>
+	<LI><P>For each request:</P>
+	<UL>
+		<LI><P>Keep the required number of idle jobs in the Condor Schedd
+		(G) queue</P>
+		<LI><P>Extract the statistics</P>
+	</UL>
+</UL>
+<P><IMG SRC="flow_entry_work.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=613 HEIGHT=479 BORDER=0></P>
+<P>This stage requires two input fields, the configuration data and
+the downtime flag, and returns the request-specific job statistics.</P>
+<P>It also communicates with external Condor daemons. To talk to
+them, it currently uses the condor command line tools:</P>
+<UL>
+	<LI><P>condor_status to query the Condor Collector</P>
+	<LI><P>condor_q to query the Condor Schedd</P>
+	<LI><P>condor_submit to submit new jobs to and to release held jobs
+	in the Condor Schedd 
+	</P>
+</UL>
+<H3><A NAME="flow_advertise"></A>Advertise myself</H3>
+<P><BR><BR>
 </P>
-<TABLE BORDER=0 width=100% CELLPADDING=2 CELLSPACING=2>
-	<TR valign=top>
+<H3><A NAME="flow_stats"></A>Write statistics</H3>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<H2>Source code distribution</H2>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
 		<TD>
 			<H2 ALIGN=LEFT>Repository</H2>
 			<H3 ALIGN=LEFT>CVSROOT</H3>
