@@ -6,7 +6,9 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080730;16340800">
+	<META NAME="CHANGED" CONTENT="20081006;12123700">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -22,8 +24,10 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 	<LI><A HREF="#philosophy">The Glidein Factory philosophy</A> 
 	<LI><A HREF="#implementation">Implementation details</A> 
 	<UL>
-		<LI><A HREF="#glidein_daemons">The Glidein Factory Daemons</A>
+		<LI><A HREF="#glidein_daemons">The Glidein Factory Daemon</A>
 		(<A HREF="factory_internals.html">internals</A>) 
+		<LI><A HREF="#entry_daemons">The Factory Entry Daemons</A>
+		(<A HREF="entry_internals.html">internals</A>) 
 		<LI><A HREF="#glidein_startup">The glidein startup script</A>
 		(<A HREF="glidein_internals.html">internals</A>) 
 	</UL>
@@ -33,7 +37,7 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 		tree</A> 
 		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
 		<LI><A HREF="#downtimes">Downtime handling</A> 
-                <LI><A HREF="#localtest">Testing with a local glidein</A>
+		<LI><A HREF="#localtest">Testing with a local glidein</A> 
 	</UL>
 	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
 	<UL>
@@ -47,10 +51,9 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 </UL>
 <H2><A NAME="overview"></A>Overview</H2>
 <P><A NAME="glidein_entry_point"></A>The main task of the Glidein
-Factory is to advertise itself,&nbsp;listen for requests
-from&nbsp;<A HREF="../frontend/index.html">frontend clients</A> and
-submit <A HREF="../index.html#glideins">glideins</A>. Look at the
-picture below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=881 HEIGHT=359 BORDER=0><BR><BR>A
+Factory is to advertise itself, listen for requests from <A HREF="../frontend/index.html">frontend
+clients</A> and submit <A HREF="../index.html#glideins">glideins</A>.
+Look at the picture below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=881 HEIGHT=359 BORDER=0><BR><BR>A
 single glidein factory can handle multiple kinds of glideins, also
 called <B>glidein entry points</B> (as they usually point to
 different Grid resources). For each entry point, it will advertise a
@@ -82,14 +85,21 @@ advertise the fact that it does not need those glideins anymore. In
 practical terms, this means asking the factory to keep exactly 0 idle
 glideins in the queue.</P>
 <H2><A NAME="implementation"></A>Implementation details</H2>
-<H3><A NAME="glidein_daemons"></A>The Glidein Factory Daemons</H3>
-<P>The Glidein Factory is composed of several Entry Point Daemons,
-each advertising itself and processing the incoming requests. The
-factory was thus implemented so that each entry point is run by a
-separate process. In fact, a Glidein Factory is essentially a
-collection of Entry Point Daemons, each representing a glidein entry
-point, spawned (and monitored) by a single Glidein Factory Daemon.
-See the picture below for a logical overview.<BR><BR><BR><IMG SRC="entry_points_overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=818 HEIGHT=539 BORDER=0><BR><BR>All
+<H3><A NAME="glidein_daemons"></A>The Glidein Factory Daemon</H3>
+<P>The Glidein Factory is composed of several entry points. The
+Factory Daemon is really just a small process tasked to start and
+monitor the Factory Entry Daemons. See picture in the 
+<a href="#entry_daemons">next section</a>
+for a logical overview.</P>
+<P>All daemons of a Glidein Factory share the same directory tree.
+The root of the tree contains the main configuration files used by
+the Factory daemon.</P>
+<P>More details about the Glidein Factory Daemon internals can be
+found <A HREF="factory_internals.html">here</A>.</P>
+<H3><A NAME="entry_daemons"></A>The Factory Entry Daemons</H3>
+<P>The Glidein Factory is composed of several Factory Entry Daemons,
+each advertising itself and processing the incoming requests. See the
+picture below for a logical overview.<BR><BR><BR><IMG SRC="entry_points_overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=818 HEIGHT=539 BORDER=0><BR><BR>All
 daemons of a Glidein Factory share the same directory tree. The root
 of the tree contains the common startup and configuration files,
 while each entry point has a few additional configuration files on
@@ -97,11 +107,10 @@ its own. Each entry point is completely described by these files on
 disk; the Entry Point Daemons only extract information about entry
 point attributes and supported parameters needed for advertising.
 When glidein jobs are submitted, only the frontend provided
-parameters need to be given to the&nbsp;glidein startup script, as
-the script itself will autonomously gather all the other
-information.<BR><BR>More details about the Entry Point&nbsp;Daemon
-internals can be found <A HREF="factory_internals.html">here</A>.&nbsp;
-</P>
+parameters need to be given to the glidein startup script, as the
+script itself will autonomously gather all the other
+information.<BR><BR>More details about the Factory Entry Daemon
+internals can be found <A HREF="entry_internals.html">here</A>.</P>
 <H3><A NAME="glidein_startup"></A>The glidein startup script</H3>
 <P>As said in the <A HREF="../index.html#glideins">overview</A>,&nbsp;
 a glidein is essentially a properly configured Condor startd.
