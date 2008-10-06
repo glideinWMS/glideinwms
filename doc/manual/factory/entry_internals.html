@@ -6,7 +6,10 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081006;15513600">
+	<META NAME="CHANGED" CONTENT="20081006;16411500">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -25,12 +28,13 @@ Entry Daemon.</P>
 		<LI><P><A HREF="#flow_advertise">Advertise myself</A></P>
 		<LI><P><A HREF="#flow_stats">Write statistics</A></P>
 	</UL>
+	<LI><P><A HREF="#source">Source code distribution</A></P>
 </UL>
 <H2><A NAME="overview"></A>Glidein Factory Overview</H2>
 <P>A Glidein Factory is composed of a Factory daemon and several
 Factory Entry Daemons. Each Entry Daemon is autonomous; it advertises
 itself and processes the incoming requests.<BR>See the picture below
-for a logical overview.<BR><BR><BR><IMG SRC="entry_points_overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=818 HEIGHT=539 BORDER=0><BR><BR>All
+for a logical overview.<BR><BR><BR><IMG SRC="entry_points_overview.png"><BR><BR>All
 daemons of a Glidein Factory share the same directory tree. The root
 of the tree contains the common startup and configuration files,
 while each entry point has a few additional configuration files on
@@ -39,7 +43,7 @@ disk.</P>
 <H2><A NAME="flow"></A>Program flow</H2>
 <P>The Factory Entry Daemon is based on the polling principle; it
 runs in an eternal loop as described in the picture below.</P>
-<P><IMG SRC="flow_entry_main.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=491 HEIGHT=357 BORDER=0><BR>The
+<P><IMG SRC="flow_entry_main.png"><BR>The
 configuration is read only once, at daemon startup, so a restart is
 needed for every configuration change.<BR>However, the daemon does
 check the downtime file at every iteration, so a change to the
@@ -56,39 +60,66 @@ further detail. However a few need more detail; in particular:</P>
 <P>This stage is composed of three logical parts, as shown in the
 picture below:</P>
 <UL>
-	<LI><P>Find the requests by querying the Condor Collector</P>
+	<LI><P>Find the requests by querying the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+	Collector</A></P>
 	<LI><P>For each request:</P>
 	<UL>
-		<LI><P>Keep the required number of idle jobs in the Condor Schedd
-		(G) queue</P>
+		<LI><P>Keep the required number of idle jobs in the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+		Schedd (G)</A> queue</P>
 		<LI><P>Extract the statistics</P>
 	</UL>
 </UL>
-<P><IMG SRC="flow_entry_work.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=613 HEIGHT=479 BORDER=0></P>
+<P><IMG SRC="flow_entry_work.png"></P>
 <P>This stage requires two input fields, the configuration data and
 the downtime flag, and returns the request-specific job statistics.</P>
 <P>It also communicates with external Condor daemons. To talk to
 them, it currently uses the condor command line tools:</P>
 <UL>
-	<LI><P>condor_status to query the Condor Collector</P>
-	<LI><P>condor_q to query the Condor Schedd</P>
-	<LI><P>condor_submit to submit new jobs to and to release held jobs
-	in the Condor Schedd 
+	<LI><P><A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_status.html">condor_status</A>
+	to query the Condor Collector</P>
+	<LI><P><A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">condor_q</A>
+	to query the Condor Schedd</P>
+	<LI><P><A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_submit.html">condor_submit</A>
+	to submit new jobs to and to release held jobs in the Condor Schedd 
 	</P>
 </UL>
+<P>The requests are inserted into the Condor Collector by the <A HREF="../frontend/index.html">VO
+frontends</A>. The picture below shows the format of the request as
+present in the Collector.</P>
+<P><IMG SRC="../frontend_publish.png"></P>
 <H3><A NAME="flow_advertise"></A>Advertise myself</H3>
-<P><BR><BR>
+<P>The advertise stage advertises the existence of the Entry Daemon
+and its statistics to the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+Collector</A>. <BR>Two classes of ClassAds are sent, one for the
+Entry Daemon itself, and one for every processed event. The two types
+of ClassAds are shown in the pictures below.</P>
+<P><IMG SRC="../factory_publish.png"><BR CLEAR=LEFT><BR><BR>
 </P>
+<P><IMG SRC="../factory_client_publish.png"><BR CLEAR=LEFT><BR><BR>
+</P>
+<P>The current implementation uses a Condor provided command line
+tool, namely <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_advertise.html">condor_advertise</A>,
+for this task.</P>
 <H3><A NAME="flow_stats"></A>Write statistics</H3>
-<P><BR><BR>
+<P>The write statistics stage converts the in-memory statistics into
+files in the Web exported monitoring area, as shown in the picture
+below. 
 </P>
-<P><BR><BR>
+<P><IMG SRC="flow_entry_stats.png"><BR CLEAR=LEFT>The
+XML status and the <A HREF="http://oss.oetiker.ch/rrdtool/">RRD</A>
+updates are done synchronously with the rest of the application. 
 </P>
-<P><BR><BR>
-</P>
-<H2>Source code distribution</H2>
-<P><BR><BR>
-</P>
+<P>HTML and graph creation is instead done in a separate thread, and
+may not be performed in all cycles. If the graphs are not created in
+one iteration, there is no data loss, just the graphed information on
+the Web is older. This way the daemon can maintain the desired number
+of jobs in the queue and keep all the history even when graph
+creation exceeds the CPU and IO resources of the machine.</P>
+<P>The current implementation will use the Python <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool
+library</A>, if available. Else, it will fall back to the command
+line tool.</P>
+<H2><A NAME="source"></A>Source code distribution</H2>
+<P>To be written.</P>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
