@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081006;16411500">
+	<META NAME="CHANGED" CONTENT="20081007;9400100">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -93,9 +94,9 @@ and its statistics to the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1
 Collector</A>. <BR>Two classes of ClassAds are sent, one for the
 Entry Daemon itself, and one for every processed event. The two types
 of ClassAds are shown in the pictures below.</P>
-<P><IMG SRC="../factory_publish.png"><BR CLEAR=LEFT><BR><BR>
+<P><IMG SRC="../factory_publish.png"><BR><BR><BR>
 </P>
-<P><IMG SRC="../factory_client_publish.png"><BR CLEAR=LEFT><BR><BR>
+<P><IMG SRC="../factory_client_publish.png"><BR><BR><BR>
 </P>
 <P>The current implementation uses a Condor provided command line
 tool, namely <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_advertise.html">condor_advertise</A>,
@@ -105,7 +106,7 @@ for this task.</P>
 files in the Web exported monitoring area, as shown in the picture
 below. 
 </P>
-<P><IMG SRC="flow_entry_stats.png"><BR CLEAR=LEFT>The
+<P><IMG SRC="flow_entry_stats.png"><BR>The
 XML status and the <A HREF="http://oss.oetiker.ch/rrdtool/">RRD</A>
 updates are done synchronously with the rest of the application. 
 </P>
@@ -119,7 +120,20 @@ creation exceeds the CPU and IO resources of the machine.</P>
 library</A>, if available. Else, it will fall back to the command
 line tool.</P>
 <H2><A NAME="source"></A>Source code distribution</H2>
-<P>To be written.</P>
+<P>The Factory Entry Daemons are implemented as python scripts, and
+it does not need to be pre-compiled.</P>
+<P>The code is spread over several python modules, some specific to the
+factory other shared between different parts of the glideinWMS. There
+are also some external dependencies, namely the 
+<a href="http://oss.oetiker.ch/rrdtool/">rrdtool</a> and 
+<a href="http://chandlerproject.org/bin/view/Projects/MeTooCrypto">M2Crypto</a>
+python libraries and the 
+<a href="http://www.cs.wisc.edu/condor/">Condor</a>
+command line binaries. The picture below shows the dependency tree.</P>
+<P><IMG SRC="modules_entry.png"><BR CLEAR=LEFT>glideFactoryEntry.py
+is executable.</P>
+<P><BR><BR>
+</P>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
