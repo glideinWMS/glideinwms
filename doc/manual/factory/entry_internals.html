@@ -121,18 +121,23 @@ library</A>, if available. Else, it will fall back to the command
 line tool.</P>
 <H2><A NAME="source"></A>Source code distribution</H2>
 <P>The Factory Entry Daemons are implemented as python scripts, and
-it does not need to be pre-compiled.</P>
+they don't need to be pre-compiled.</P>
 <P>The code is spread over several python modules, some specific to the
-factory other shared between different parts of the glideinWMS. There
-are also some external dependencies, namely the 
+factory other shared between different parts of the glideinWMS. 
+A shell script is also used.
+<BR>There are also some external dependencies, namely the 
 <a href="http://oss.oetiker.ch/rrdtool/">rrdtool</a> and 
 <a href="http://chandlerproject.org/bin/view/Projects/MeTooCrypto">M2Crypto</a>
 python libraries and the 
 <a href="http://www.cs.wisc.edu/condor/">Condor</a>
-command line binaries. The picture below shows the dependency tree.</P>
+command line binaries.</P>
+<P>The picture below shows the dependency tree.</P>
 <P><IMG SRC="modules_entry.png"><BR CLEAR=LEFT>glideFactoryEntry.py
 is executable.</P>
-<P>The glideinWMS common libraries are in glideinWMS/lib directory.</P>
+<P>The glideinWMS common libraries are in glideinWMS/lib directory.<BR>
+The shell script is located in the root directory of the factory tree,
+copied there during the <a href="index.html#create_entry">creation of the tree itself</a>.
+</P>
 <P>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
