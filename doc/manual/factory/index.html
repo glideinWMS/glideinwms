@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081006;12123700">
+	<META NAME="CHANGED" CONTENT="20081006;13284300">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -88,9 +89,8 @@ glideins in the queue.</P>
 <H3><A NAME="glidein_daemons"></A>The Glidein Factory Daemon</H3>
 <P>The Glidein Factory is composed of several entry points. The
 Factory Daemon is really just a small process tasked to start and
-monitor the Factory Entry Daemons. See picture in the 
-<a href="#entry_daemons">next section</a>
-for a logical overview.</P>
+monitor the Factory Entry Daemons. See picture in the <A HREF="#entry_daemons">next
+section</A> for a logical overview.</P>
 <P>All daemons of a Glidein Factory share the same directory tree.
 The root of the tree contains the main configuration files used by
 the Factory daemon.</P>
@@ -104,7 +104,7 @@ daemons of a Glidein Factory share the same directory tree. The root
 of the tree contains the common startup and configuration files,
 while each entry point has a few additional configuration files on
 its own. Each entry point is completely described by these files on
-disk; the Entry Point Daemons only extract information about entry
+disk; the Factory Entry Daemons only extract information about entry
 point attributes and supported parameters needed for advertising.
 When glidein jobs are submitted, only the frontend provided
 parameters need to be given to the glidein startup script, as the
