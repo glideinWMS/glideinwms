@@ -6,7 +6,8 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081010;15160300">
+	<META NAME="CHANGED" CONTENT="20081010;16195000">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
@@ -152,7 +153,7 @@ the signature file.</P>
 <P>Once the signature files are fetched, the content of the
 description files is loaded into memory for further processing.</P>
 <P>See the figure below of an overview.</P>
-<P><IMG SRC="flow_glidein_sign.png"><BR CLEAR=LEFT>You
+<P><IMG SRC="flow_glidein_sign.png"><BR>You
 have probably noticed that the name of the signature file is
 extracted before validating the integrity of the description file.
 This can result in a compromised signature being fetched.</P>
@@ -160,7 +161,25 @@ This can result in a compromised signature being fetched.</P>
 signature file is indeed downloaded, the signature of the signature
 will not match and the glidein will terminate with a failure.</P>
 <H3><A NAME="flow_file"></A>Download and process a file</H3>
-<P>To be written</P>
+<P>The glidein startup script will download and process several
+files. This stage will download one of these files.</P>
+<P>File downloading and processing can be conditional; if a
+conditional variable name is given and  such conditional variable
+evaluates to False (0) in the configuration file, the stage is
+effectively a NOOP.</P>
+<P>The stage flow requires a fetch of a file over the network and the
+validation against the proper signature file. If for some reason the
+signature does not match, the glidein will terminate with a
+failure.<BR>Some files need further processing; they are either
+tarballs that need to be unpacked, or executables that need to be
+run. This stage will take the appropriate action.</P>
+<P>Finally, the invoker of this stage may request for the file
+processing to be recorded in the configuration file, by providing an
+output variable name. 
+</P>
+<P>See figure below for an overview.</P>
+<P><IMG SRC="flow_glidein_file.png"><BR>
+</P>
 <H3><A NAME="flow_condor"></A>Configure and start Condor</H3>
 <P>To be written</P>
 <H2><A NAME="source"></A>Source code distribution</H2>
