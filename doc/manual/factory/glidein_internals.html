@@ -6,7 +6,10 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081008;16174900">
+	<META NAME="CHANGED" CONTENT="20081010;15160300">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Internals</H1>
@@ -16,9 +19,9 @@
 	<LI><P><A HREF="#overview">Overview of the glidein mechanism</A></P>
 	<LI><P><A HREF="#flow">Program flow</A></P>
 	<UL>
-		<LI><P><A HREF="#flow_work">Find and perform work</A></P>
-		<LI><P><A HREF="#flow_advertise">Advertise myself</A></P>
-		<LI><P><A HREF="#flow_stats">Write statistics</A></P>
+		<LI><P><A HREF="#flow_sign">Get signatures and file info</A></P>
+		<LI><P><A HREF="#flow_file">Download and process a file</A></P>
+		<LI><P><A HREF="#flow_condor">Configure and start Condor</A></P>
 	</UL>
 	<LI><P><A HREF="#source">Source code distribution</A></P>
 	<LI><P><A HREF="#config">Configuration files</A></P>
@@ -40,17 +43,21 @@ same as in a dedicated pool.</P>
 <P>In glideinWMS, the <A HREF="index.html">Glidein Factory</A> is the
 one that submits the glideins to the Grid resources, as shown in the
 picture below.</P>
-<P><IMG SRC="overview.png"><BR CLEAR=LEFT>This
+<P><IMG SRC="overview.png"><BR>This
 document describes how a glidein configures and starts the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
 Startd</A>.</P>
 <P>The glidein a factory sends is thus just a wrapper. However, it
 must perform several tasks, including:</P>
 <UL>
 	<LI><P>check that the working environment on the worker node is
-	reasonable (else user jobs will fail) </P>
-	<LI><P>obtain the Condor binaries </P>
-	<LI><P>configure Condor </P>
-	<LI><P>prepare the environment for Condor and the user jobs </P>
+	reasonable (else user jobs will fail) 
+	</P>
+	<LI><P>obtain the Condor binaries 
+	</P>
+	<LI><P>configure Condor 
+	</P>
+	<LI><P>prepare the environment for Condor and the user jobs 
+	</P>
 	<LI><P>start Condor 
 	</P>
 </UL>
@@ -96,9 +103,13 @@ customize the glidein logic at will.<BR>However, if not all files
 need to be executable; plain files, like configuration files, and
 tarballs are also supported.</P>
 <H2><A NAME="flow"></A>Program flow</H2>
-<P>As said in the overview, a glidein is basically a wrapper that
-downloads other files, executing some of them. At the high level,
-three types of files are handled:</P>
+<P>The glidein startup script is tasked to setup the working
+environment, configure Condor and launch the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+Startd</A>.<BR>As said in the overview, a glidein is basically a
+wrapper that downloads other files, executing some of them. <BR>A
+private working directory is used to minimize interference with other
+processes running on the same node.</P>
+<P>At the high level, three types of files are handled:</P>
 <UL>
 	<LI><P>Signature files</P>
 	<LI><P>Files containing lists of other files</P>
@@ -108,14 +119,52 @@ three types of files are handled:</P>
 <P>The files are also split between general, or factory wide, and
 entry-specific ones. Since order can be important, especially when
 executables are involved, the glidein allows for global helper files
-to be loaded before and/or after the entry-specific ones.<BR>One
-executable is special; this is the helper script that starts the
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+to be loaded (and executed) before and/or after the entry-specific
+ones.<BR>One executable is special; this is the helper script that
+starts the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
 Startd</A>. This one must be the last to be run, so it is handled in
 a special way.</P>
 <P>See the picture below for an overview.</P>
-<P><IMG SRC="flow_glidein_main.png"><BR CLEAR=LEFT>To
-be finished...</P>
+<P><IMG SRC="flow_glidein_main.png"><BR>You
+may have noticed that after the initial setup, all further
+communication between stages is carried out by a locally created
+config file. The reason for this is due to the fact that environment
+changes can only propagate in one direction, from parent to child.
+Since most of the setup is done by external executables that would be
+unacceptable, so the config file was introduced</P>
+<P>Some of the stages are pretty self explanatory, but most need
+further details. In particular:</P>
+<UL>
+	<LI><P><A HREF="#flow_sign">Get signatures and file info</A></P>
+	<LI><P><A HREF="#flow_file">Download and process a file</A></P>
+	<LI><P><A HREF="#flow_condor">Configure and start Condor</A></P>
+</UL>
+<H3><A NAME="flow_sign"></A>Get signatures and file info</H3>
+<P>The retrieval of the signature files is a multi step process. The
+main reason being that the startup script does not know the name of
+the signature file.<BR>Instead, the glidein startup script receives
+the name the file that contains the names of all the other important
+files. So that file is fetched first.<BR>Once the name of the
+signature file is know, it is fetched and validated against the
+provided SHA1 signature.<BR>Once the signature file can be trusted,
+the description file is verified, too, using the signature present in
+the signature file.</P>
+<P>Once the signature files are fetched, the content of the
+description files is loaded into memory for further processing.</P>
+<P>See the figure below of an overview.</P>
+<P><IMG SRC="flow_glidein_sign.png"><BR CLEAR=LEFT>You
+have probably noticed that the name of the signature file is
+extracted before validating the integrity of the description file.
+This can result in a compromised signature being fetched.</P>
+<P>However, this is <B>not</B> a security vulnerability. If the wrong
+signature file is indeed downloaded, the signature of the signature
+will not match and the glidein will terminate with a failure.</P>
+<H3><A NAME="flow_file"></A>Download and process a file</H3>
+<P>To be written</P>
+<H3><A NAME="flow_condor"></A>Configure and start Condor</H3>
+<P>To be written</P>
+<H2><A NAME="source"></A>Source code distribution</H2>
+<P>To be written</P>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
