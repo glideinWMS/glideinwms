@@ -1,16 +1,9 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Glidein Internals</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081010;16195000">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Internals</H1>
@@ -37,7 +30,7 @@ Startd</A> submitted as a Grid job. Once a glidein starts on a worker
 node, it will join a specified Condor pool, making the obtained
 Grid-batch slot a slot in the Condor pool. At this point, a regular
 Condor job can start there as if was a dedicated resource. <BR>See
-the picture below for a schematic overview.<BR><IMG SRC="../glideins.png"><BR>Condor
+the picture below for a schematic overview.<BR><IMG SRC="../glideins.png">Condor
 glideins are a convenient way to expand a Condor pool. Apart from the
 task of submitting new glideins as needed, everything else stays the
 same as in a dedicated pool.</P>
@@ -77,10 +70,11 @@ the glidein implements its own security on top of it.
 security is implemented using SHA1 signatures. The signature checking
 is implemented in two steps:</P>
 <OL>
-	<LI>The signatures of all the files to be transfered are saved in a
-	signature file and stored on the Web server. The signature of the
-	signature file is then passed as one of the parameters of the
-	glidein job. 
+	<LI><P STYLE="margin-bottom: 0in">The signatures of all the files to
+	be transfered are saved in a signature file and stored on the Web
+	server. The signature of the signature file is then passed as one of
+	the parameters of the glidein job. 
+	</P>
 	<LI><P>The glidein startup script loads the signature file from the
 	Web server and verifies its signature. All other downloads,
 	including the file containing the list of other files, is checked
@@ -164,7 +158,7 @@ will not match and the glidein will terminate with a failure.</P>
 <P>The glidein startup script will download and process several
 files. This stage will download one of these files.</P>
 <P>File downloading and processing can be conditional; if a
-conditional variable name is given and  such conditional variable
+conditional variable name is given and such conditional variable
 evaluates to False (0) in the configuration file, the stage is
 effectively a NOOP.</P>
 <P>The stage flow requires a fetch of a file over the network and the
@@ -178,10 +172,29 @@ processing to be recorded in the configuration file, by providing an
 output variable name. 
 </P>
 <P>See figure below for an overview.</P>
-<P><IMG SRC="flow_glidein_file.png"><BR>
-</P>
+<P><IMG SRC="flow_glidein_file.png"></P>
 <H3><A NAME="flow_condor"></A>Configure and start Condor</H3>
-<P>To be written</P>
+<P>As mentioned before, most of the work in a glidein is carried on
+by the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
+Startd</A>. This stage the condor_startd is configured and
+launched.<BR>To do this, the script parses the Condor variable
+description files and extracts the needed values from the glidein
+configuration file. If no values is provided, the default is used.</P>
+<P>Once all the variables are collectod, the condor_config is
+created.<BR>The script now launches two Condor startds, by means of a
+condor_master. The first one is a monitoring startd and is not
+managed.<BR>The second one is instead the main, job startd, and the
+glidein code blocks on it. This startd will do the bulk of the
+processing, advertising  itself to a collector and accepting user
+jobs.</P>
+<P>Once the main startd ends, the monitoring startd is killed and the
+log files parsed for job statistics that will be printed in standard
+output. For debugging purposes, the whole log files are then
+compressed and streamed to the standard error.</P>
+<P>See figure below for an overview.</P>
+<P><IMG SRC="flow_glidein_condor.png"><BR CLEAR=LEFT>
+<BR><BR>
+</P>
 <H2><A NAME="source"></A>Source code distribution</H2>
 <P>To be written</P>
 <P><BR><BR>
@@ -193,11 +206,13 @@ output variable name.
 			<H3 ALIGN=LEFT>CVSROOT</H3>
 			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
 			<H2 ALIGN=LEFT>Package(s)</H2>
-			<P ALIGN=LEFT>glideinWMS/creation</TD>
+			<P ALIGN=LEFT>glideinWMS/creation</P>
+		</TD>
 		<TD>
 			<H2 ALIGN=LEFT>Author(s)</H2>
 			<P ALIGN=LEFT>Since Aug. 14th 2006 - Igor Sfiligoi (Fermilab
-			Computing Division)</TD>
+			Computing Division)</P>
+		</TD>
 	</TR>
 </TABLE>
 <P><BR><BR>
