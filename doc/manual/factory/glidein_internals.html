@@ -4,6 +4,8 @@
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Glidein Internals</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20081014;14370600">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Internals</H1>
@@ -185,18 +187,31 @@ created.<BR>The script now launches two Condor startds, by means of a
 condor_master. The first one is a monitoring startd and is not
 managed.<BR>The second one is instead the main, job startd, and the
 glidein code blocks on it. This startd will do the bulk of the
-processing, advertising  itself to a collector and accepting user
+processing, advertising itself to a collector and accepting user
 jobs.</P>
 <P>Once the main startd ends, the monitoring startd is killed and the
 log files parsed for job statistics that will be printed in standard
 output. For debugging purposes, the whole log files are then
 compressed and streamed to the standard error.</P>
 <P>See figure below for an overview.</P>
-<P><IMG SRC="flow_glidein_condor.png"><BR CLEAR=LEFT>
-<BR><BR>
+<P><IMG SRC="flow_glidein_condor.png"><BR><BR><BR>
 </P>
 <H2><A NAME="source"></A>Source code distribution</H2>
-<P>To be written</P>
+<P>The glidein code is composed of a set of shell code scripts,
+mostly using <A HREF="http://tldp.org/LDP/abs/html/">bash</A>,
+although <A HREF="http://www.gnu.org/software/grep/doc/grep_13.html#SEC13">grep</A>
+and <A HREF="http://www.vectorsite.net/tsawk.html">awk</A> are used
+extensively, too.</P>
+<P>The files are located in <BR><TT>glideinWMS/creation/web_base</TT></P>
+<P>but are copied to the factory configuration directory during the
+<A HREF="index.html#create_entry">factory configuration</A>.</P>
+<P>The picture below shows the dependency tree of the most used
+scripts. The optional scripts are grayed out.</P>
+<P><IMG SRC="scripts_glidein.png"><BR CLEAR=LEFT><BR><BR>
+</P>
+<P>
+</P>
+<H2><A NAME="config">Configuration files</A></H2>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
