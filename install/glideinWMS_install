@@ -1030,7 +1030,7 @@ def gfactory_install():
                 fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
                 fd.write('      <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
             else:
-                fd.write('      <attr name="GLIDEIN_ORDER" value="NONE" const="True" parameter="False" glidein_publish="False" publish="True" job_publish="False" type="string"/>\n')
+                fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
