@@ -38,7 +38,7 @@ cvs checkout: Updating glideinWMS/doc/install
 U glideinWMS/doc/install/collector_install.html
 U glideinWMS/doc/install/collector_install_byhand.html
 U glideinWMS/doc/install/collector_root_install_snapshot.txt
-U glideinWMS/doc/install/condor_v6.9.2_install.html
+U glideinWMS/doc/install/condor_v7.0.5_install.html
 U glideinWMS/doc/install/factory_gf_install_snapshot.txt
 U glideinWMS/doc/install/factory_install.html
 U glideinWMS/doc/install/factory_install_byhand.html
@@ -186,12 +186,12 @@ Installing condor
 
 You will now need the Condor tarball
 You can find it on http://www.cs.wisc.edu/condor/
-Versions v6.8.6 and v6.9.2 has been tested, but you
+Versions v6.8.6 and v7.0.5 has been tested, but you
 should always use the latest one
 
-Where do you have the Condor tarball? /home/gcbuser/condor-6.9.2-linux-x86-rhel3.tar.gz
+Where do you have the Condor tarball? /home/gcbuser/condor-7.0.5-linux-x86-rhel3.tar.gz
 Checking...
-Seems condor version 6.9.2
+Seems condor version 7.0.5
 
 Where do you want to install it?: [/opt/glidecondor] /home/gcbuser/gcbcondor
 Directory '/home/gcbuser/gcbcondor' does not exist, should I create it?: (y/n) y
