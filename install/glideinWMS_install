@@ -1763,7 +1763,7 @@ def install_condor():
         print
         print "You will now need the Condor tarball"
         print "You can find it on http://www.cs.wisc.edu/condor/"
-        print "Version v7.0.3 have been tested, but you"
+        print "Versions v7.0.5 and 7.1.3 have been tested, but you"
         print "should always use the latest one"
         print
         condor_tarball=raw_input("Where do you have the Condor tarball? ")
