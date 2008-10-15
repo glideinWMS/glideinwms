@@ -7,6 +7,9 @@ vNext	Added support for secure info passing between
         gcb_setup is now loaded by default
           Can use GCB_ORDER=NONE to disable it
           Warning: Explicit listing of gcb_setup may create problems.
+        glexec_setup is now loaded by default
+	  Can use GLEXEC_BIN-NONE to disable it
+          Warning: Explicit listing of glexec_setup may create problems.
 
 v1_4_4	Add factory_constraint parameter to the frontend.
 	Add support for GLEXEC_JOB.
