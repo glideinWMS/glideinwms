@@ -5,7 +5,11 @@
 	<TITLE>Glidein Internals</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20081014;14370600">
+	<META NAME="CHANGED" CONTENT="20081014;15252700">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Internals</H1>
@@ -21,10 +25,6 @@
 	</UL>
 	<LI><P><A HREF="#source">Source code distribution</A></P>
 	<LI><P><A HREF="#config">Configuration files</A></P>
-	<UL>
-		<LI><P><A HREF="#config_global">Shared configuration files</A></P>
-		<LI><P><A HREF="#config_local">Entry-specific configuration files</A></P>
-	</UL>
 </UL>
 <H2><A NAME="overview"></A>Overview of the glidein mechanism</H2>
 <P>A glidein is, simply put, a properly configured <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
@@ -207,11 +207,29 @@ extensively, too.</P>
 <A HREF="index.html#create_entry">factory configuration</A>.</P>
 <P>The picture below shows the dependency tree of the most used
 scripts. The optional scripts are grayed out.</P>
-<P><IMG SRC="scripts_glidein.png"><BR CLEAR=LEFT><BR><BR>
-</P>
-<P>
-</P>
-<H2><A NAME="config">Configuration files</A></H2>
+<P><IMG SRC="scripts_glidein.png"></P>
+<H2><A NAME="config"></A>Configuration files</H2>
+<P>The glidein gets the configuration parameters from two sources;
+from configuration files and from command line arguments.</P>
+<P>Two configuration file (classes) are copied
+from<BR><TT>glideinWMS/creation/web_base</TT></P>
+<UL>
+	<LI><P><TT>condor_config(*)</TT> - contains the base condor configuration. It
+	will be extended at runtime by the glidein scripts.</P>
+	<LI><P><TT>condor_vars(*)</TT> - contains the description and the defaults
+	for the variables used by the glidein. Any meaningful parameter
+	should be documented here.</P>
+</UL>
+<P>Another set of configuration files is generated during the <A HREF="index.html#create_entry">factory
+configuration</A>:</P>
+<UL>
+	<LI><P><TT>constants</TT> – contains the values for a set of variables</P>
+	<LI><P><TT>grid-mapfile</TT> – contains the DNs of the trusted services</P>
+	<LI><P><TT>file-list.lst</TT> – contains the list of files to download</P>
+	<LI><P><TT>description.cfg</TT> – contains the logical to actual name
+	mapping</P>
+	<LI><P><TT>signature.sha1</TT>	– contains the signatures of the files</P>
+</UL>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
