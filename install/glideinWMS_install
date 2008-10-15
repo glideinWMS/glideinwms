@@ -984,6 +984,8 @@ def gfactory_install():
             glexec_path=raw_input("gLExec path for '%s': [OSG] "%entry_name)
             if glexec_path=="":
                 glexec_path='OSG'
+        else:
+            glexec_path="NONE"
             
             
         entries_list[entry_name]={'gatekeeper':gatekeeper_name,'rsl':rsl_name,'gridtype':'gt2',
@@ -1028,9 +1030,6 @@ def gfactory_install():
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" value="%s" const="True" parameter="True" glidein_publish="True" publish="True" job_publish="True" type="string"/>\n'%(gridenv_yn=='y'))
             if len(gcb_list)>0:
                 fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
-                fd.write('      <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
-            else:
-                fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1049,12 +1048,14 @@ def gfactory_install():
                 fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
-                if glexec_yn=="y":
-                    fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
+                # Put GCB_ORDER in the entries so that it is easy to disable it selectively
+                if len(gcb_list)>0:
+                    fd.write('            <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
+                else:
+                    fd.write('            <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
+                fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
-                if glexec_yn=="y": #not needed else
-                    fd.write('           <file executable="True" absfname="%s/creation/web_base/glexec_setup.sh" untar="False" const="True"/>\n'%glideinWMS_base_dir)
                 fd.write('         </files>\n')
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
@@ -3385,6 +3386,11 @@ def get_ress_glidein_entries(vo,             #vo can be None
                              config_glexec): # bool, ask for glexec dir
     import condorMonitor
 
+    if config_glexec:
+        def_glexec_bin='OSG'
+    else:
+        def_glexec_bin='NONE'
+
     while 1:
         default_ress_url='osg-ress-1.fnal.gov'
         ress_url=raw_input("Which RESS server should I use?: [%s] "%default_ress_url)
@@ -3436,7 +3442,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
         work_dir="OSG"
         ress_id={'type':'RESS','server':ress_url,'name':condor_id}
         entry_el={'gatekeeper':gatekeeper_name,'rsl':rsl,'gridtype':'gt2',
-                  'work_dir':work_dir,'site_name':site_name,'glexec_path':'OSG',
+                  'work_dir':work_dir,'site_name':site_name,'glexec_path':def_glexec_bin,
                   'is_ids':[ress_id]}
 
         cluster_arr=cluster_name.split('.')
@@ -3549,6 +3555,11 @@ def get_bdii_glidein_entries(vo,             #vo can be None
                              config_glexec): # bool, ask for glexec dir
     import ldapMonitor
 
+    if config_glexec:
+        def_glexec_bin='/opt/glite/sbin/glexec'
+    else:
+        def_glexec_bin='NONE'
+
     while 1:
         default_bdii_url='exp-bdii.cern.ch'
         bdii_url=raw_input("Which BDII server should I use?: [%s] "%default_bdii_url)
@@ -3618,9 +3629,17 @@ def get_bdii_glidein_entries(vo,             #vo can be None
                 bdii_entries[key_name_tmp]=bdii_entries[cluster_id]
                 del bdii_entries[cluster_id]
 
+        guess_glexec_bin=def_glexec_bin
+        if guess_glexec_bin!='NONE':
+           if el2['GlueCEHostingCluster'][0][-3:] in ('gov','edu'):
+             # these should be OSG
+             guess_glexec_bin='OSG'
+           else:
+             # I assume everybody else uses glite software
+             guess_glexec_bin='/opt/glite/sbin/glexec'
 
         bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
-                                'work_dir':work_dir,'site_name':site_name,'glexec_path':'.',
+                                'work_dir':work_dir,'site_name':site_name,'glexec_path':guess_glexec_bin,
                                 'is_ids':[bdii_id]}
         
     for t in bdii_entries.keys():
