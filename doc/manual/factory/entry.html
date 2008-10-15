@@ -430,7 +430,7 @@ will not work on any older Condor version!</P>
 	restrictive firewall. To solve this, Condor provides GCB. <BR>The
 	detailed description of GCB is beyond the scope of this manual and
 	you should refer to the Condor documentation available at
-	<A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#sec:GCB</A>.
+	<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473000000000000000">http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473000000000000000</A>.
 	Here you will find only the parameters needed to enable it in the
 	glideins.<BR><BR>To use Condor with GCB, you need to specify:</DT><DD><P>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
@@ -488,7 +488,7 @@ where:</P>
 	frontends</A> to provide their own GCB servers, by setting
 	<FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>const</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;</FONT>
-	.<BR><BR>If you are more sophisticate, and want to use <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00483500000000000000">GCB
+	.<BR><BR>If you are more sophisticate, and want to use <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473500000000000000">GCB
 	routing tables</A>, too, add:</DT><DD><P>
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>path
@@ -552,7 +552,7 @@ should be used every time it is feasible.</P>
 	<FONT FACE="monospace"><B>UPDATE_COLLECTOR_WITH_TCP</B>=True</FONT></P></DD></DL>
 <P>
 <BR>Please be aware that this will configure the glideins only; you
-still need to properly configure the Collector machine. See <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_8Networking.html#SECTION00484000000000000000">Condor
+still need to properly configure the Collector machine. See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor
 documentation</A> for more details.</P>
 <H3><A NAME="multicol"></A>Multiple Collectors</H3>
 <P>By default, Condor uses only one Collector for the <A HREF="../index.html#pool_glidein%3Eglidein%20(user)%20pool%3C/a%3E.However,%20if%20the%20load%20becomes%20too%20high,%20you%20can%20configure%20multiple%20collectors%20in%20a%20chain.%3Cbr%3E%3Cbr%3EYou%20will%20need%20a%20master%20and%20a%20set%20of%20slave%20collectors.%20The%20slave%20collectors%20forward%20the%20startd%20adds%20to%20the%20master%20collector.%3Cbr%3EThe%20negotiator%20and%20the%20schedds%20will%20talk%20to%20the%20master%20collector,%20while%20the%20startds%20will%20talkto%20one%20of%20the%20slave%20ones.%20%3Cbr%3E%3Cbr%3ESetting%20up%20slave%20collector%20in%20the%20%3Ca%20href=">glidein
@@ -618,7 +618,7 @@ least some period of time.<BR><BR>The glideins have two mechanisms to
 regulate this:</FONT></P>
 <OL>
 	<LI><FONT FACE="monospace">After a specified amount of time, the
-	glidein will enter the <A HREF="http://www.cs.wisc.edu/condor/manual/v6.8/3_6Startd_Policy.html#17710">RETIRING
+	glidein will enter the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00457400000000000000">RETIRING
 	state</A>. This means, it will wait for the current job to finish
 	(or kill it if it does not end within a configurable timeout) and
 	exit immediately afterwards. This obviously implies that no new jobs
