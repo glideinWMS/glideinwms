@@ -1,3 +1,13 @@
+vNext	Added support for secure info passing between
+          VO frontend and gfactory
+          Requires M2Crypto Python module
+        VO frontend can now give the gfactory int own proxy
+          to be used for pilot submission
+          Requires the encryption mentioned above
+        gcb_setup is now loaded by default
+          Can use GCB_ORDER=NONE to disable it
+          Warning: Explicit listing of gcb_setup may create problems.
+
 v1_4_4	Add factory_constraint parameter to the frontend.
 	Add support for GLEXEC_JOB.
 	Add support for USE_MATCH_AUTH.
