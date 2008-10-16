@@ -236,7 +236,7 @@ class Params:
         self.defaults["monitor"]=monitor_default
         
         security_default=xmlParse.OrderedDict()
-        security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
+        security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
         
         self.defaults["security"]=security_default
@@ -506,10 +506,13 @@ def find_condor_base_dir():
 #
 # CVS info
 #
-# $Id: cgWParams.py,v 1.36 2008/08/18 22:21:27 sfiligoi Exp $
+# $Id: cgWParams.py,v 1.37 2008/10/16 17:28:56 sfiligoi Exp $
 #
 # Log:
 #  $Log: cgWParams.py,v $
+#  Revision 1.37  2008/10/16 17:28:56  sfiligoi
+#  Make public key optional
+#
 #  Revision 1.36  2008/08/18 22:21:27  sfiligoi
 #  Fix typo
 #
