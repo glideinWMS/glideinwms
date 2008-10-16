@@ -194,6 +194,17 @@ done < condor_vars.lst.tmp
 
 #let "max_job_time=$job_max_hours * 3600"
 
+# randomize the retire time, to smooth starts and terminations
+org_GLIDEIN_Retire_Time=$GLIDEIN_Retire_Time
+let "random100=$RANDOM%100"
+let "GLIDEIN_Retire_Time=$GLIDEIN_Retire_Time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
+
+# but protect from going too low
+if [ "$GLIDEIN_Retire_Time" -lt "600" ]; then
+  GLIDEIN_Retire_Time=600
+fi
+echo "Retire time set to $GLIDEIN_Retire_Time" 1>&2
+
 now=`date +%s`
 let "x509_duration=$X509_EXPIRE - $now - 1"
 
