@@ -3391,40 +3391,51 @@ def get_ress_glidein_entries(vo,             #vo can be None
     else:
         def_glexec_bin='NONE'
 
-    while 1:
-        default_ress_url='osg-ress-1.fnal.gov'
-        ress_url=raw_input("Which RESS server should I use?: [%s] "%default_ress_url)
-        if ress_url=="":
-            ress_url=default_ress_url
-        try:
-            ress_ip=socket.gethostbyname(ress_url)
-        except:
-            print "'%s' is not a valid host name!"%ress_url
-            continue
-        #found and verified
-        break
 
     default_reqs=""
     if vo!=None:
         default_reqs='StringlistMember("VO:%s",GlueCEAccessControlBaseRule)'%vo
 
-    
-    select_reqs=raw_input("Select Condor RESS constraint: [%s] "%default_reqs)
-    if select_reqs=="":
-        select_reqs=default_reqs
-
     default_python_filter="(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))"
-    python_filter=raw_input("Define a python filter: [%s] "%default_python_filter)
-    if python_filter=="":
-        python_filter=default_python_filter
-    python_filter_obj=compile(python_filter,"<string>","eval")
 
-    # Get gatekeepers from RESS
-    ress_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)'%select_reqs
-    condor_obj=condorMonitor.CondorStatus(pool_name=ress_url)
-    condor_obj.load(constraint=ress_constraint)
-    condor_data=condor_obj.fetchStored()
-    del condor_obj
+    while 1:
+        while 1:
+            default_ress_url='osg-ress-1.fnal.gov'
+            ress_url=raw_input("Which RESS server should I use?: [%s] "%default_ress_url)
+            if ress_url=="":
+                ress_url=default_ress_url
+            try:
+                ress_ip=socket.gethostbyname(ress_url)
+            except:
+                print "'%s' is not a valid host name!"%ress_url
+                continue
+            #found and verified
+            break
+
+    
+        select_reqs=raw_input("Select Condor RESS constraint: [%s] "%default_reqs)
+        if select_reqs=="":
+            select_reqs=default_reqs
+
+        python_filter=raw_input("Define a python filter: [%s] "%default_python_filter)
+        if python_filter=="":
+            python_filter=default_python_filter
+        python_filter_obj=compile(python_filter,"<string>","eval")
+
+        # change defaults in case I need to do it again
+        default_reqs=select_reqs
+        default_python_filter=python_filter
+
+        # Get gatekeepers from RESS
+        ress_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)'%select_reqs
+        condor_obj=condorMonitor.CondorStatus(pool_name=ress_url)
+        try:
+            condor_obj.load(constraint=ress_constraint)
+            condor_data=condor_obj.fetchStored()
+        except:
+            continue # try again
+        del condor_obj
+        break # have the data, cont
 
     cluster_count={}
     ress_entries={}
