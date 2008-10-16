@@ -10,6 +10,8 @@ vNext	Added support for secure info passing between
         glexec_setup is now loaded by default
 	  Can use GLEXEC_BIN-NONE to disable it
           Warning: Explicit listing of glexec_setup may create problems.
+	Randomized the retire time to smooth terminations.
+	  Can be controlled via GLIDEIN_Retire_Time_Spread.
 	Some monitoring tweaks.
 
 v1_4_4	Add factory_constraint parameter to the frontend.
