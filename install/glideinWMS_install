@@ -3398,7 +3398,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
             ress_url=default_ress_url
         try:
             ress_ip=socket.gethostbyname(ress_url)
-        except KeyError:
+        except:
             print "'%s' is not a valid host name!"%ress_url
             continue
         #found and verified
@@ -3567,7 +3567,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
             bdii_url=default_bdii_url
         try:
             bdii_ip=socket.gethostbyname(bdii_url)
-        except KeyError:
+        except:
             print "'%s' is not a valid host name!"%bdii_url
             continue
         #found and verified
