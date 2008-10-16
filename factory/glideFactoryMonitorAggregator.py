@@ -256,9 +256,9 @@ def create_status_history():
                     fd.write("</tr></table>\n")
                     fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
-                    for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
+                    for l in [('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
+                              ('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
                               ('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
-                              ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
                         for s in l:
@@ -462,88 +462,3 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
 # import in local namespace
 img2html=glideFactoryMonitoring.img2html
 
-###########################################################
-#
-# CVS info
-#
-# $Id: glideFactoryMonitorAggregator.py,v 1.37 2008/09/19 17:49:36 sfiligoi Exp $
-#
-# Log:
-#  $Log: glideFactoryMonitorAggregator.py,v $
-#  Revision 1.37  2008/09/19 17:49:36  sfiligoi
-#  Improve colors in split graphs
-#
-#  Revision 1.36  2008/07/29 17:09:25  sfiligoi
-#  Fix lock handling
-#
-#  Revision 1.35  2008/07/16 21:36:48  sfiligoi
-#  Use total number of glideins from client
-#
-#  Revision 1.34  2008/07/02 16:05:13  sfiligoi
-#  Improve graph titles
-#
-#  Revision 1.33  2008/07/01 18:48:51  sfiligoi
-#  Add links to img html
-#
-#  Revision 1.32  2008/06/26 13:50:06  sfiligoi
-#  Add WasteTime
-#
-#  Revision 1.31  2008/06/23 19:01:20  sfiligoi
-#  Fix link in status page
-#
-#  Revision 1.30  2008/05/30 16:20:01  sfiligoi
-#  Fix typo
-#
-#  Revision 1.29  2008/05/30 16:17:30  sfiligoi
-#  Add link to log index
-#
-#  Revision 1.28  2008/05/30 16:09:48  sfiligoi
-#  Create create_log_total_index and use it both for entries and the factory
-#
-#  Revision 1.27  2008/05/30 15:44:01  sfiligoi
-#  Make create_log_split_graphs more flexible
-#
-#  Revision 1.26  2008/05/30 15:24:26  sfiligoi
-#  Add creating of split log graphs
-#
-#  Revision 1.25  2008/05/30 15:07:07  sfiligoi
-#  Add creating of cummulative log graphs
-#
-#  Revision 1.23  2008/05/30 14:44:18  sfiligoi
-#  Add creation of log rrds
-#
-#  Revision 1.13  2008/05/23 17:42:18  sfiligoi
-#  Add creation of the log_summary
-#
-#  Revision 1.11  2008/05/20 16:51:14  sfiligoi
-#  Properly calculate the InfoAge totals
-#
-#  Revision 1.9  2008/05/12 00:30:55  sfiligoi
-#  Add new attrs to total
-#
-#  Revision 1.8  2008/05/12 00:10:55  sfiligoi
-#  Add new attrs to total
-#
-#  Revision 1.7  2008/05/12 00:09:49  sfiligoi
-#  Add new attrs to total
-#
-#  Revision 1.6  2008/05/05 19:51:06  sfiligoi
-#  Always re-create the index files to account for reconfigs
-#
-#  Revision 1.5  2007/09/26 20:04:21  sfiligoi
-#  Disable history XMLs
-#
-#  Revision 1.4  2007/07/03 19:46:18  sfiligoi
-#  Add support for MaxRunningGlideins
-#
-#  Revision 1.3  2007/05/24 14:34:51  sfiligoi
-#  Add links between pages
-#
-#  Revision 1.2  2007/05/23 22:04:51  sfiligoi
-#  Finalize aggregate monitoring
-#
-#  Revision 1.1  2007/05/23 19:42:06  sfiligoi
-#  Aggregator monitoring for the factory
-#
-#
-###########################################################

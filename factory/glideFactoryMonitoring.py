@@ -714,7 +714,7 @@ class condorQStats:
 
                         fd.write("<h2>Glidein stats</h2>\n")
                         fd.write("<table>")
-                        for s in ['Idle','Running','Held']:
+                        for s in ['Running','Idle','Held']:
                             fd.write('<tr valign="top">')
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                             if s=='Running':
@@ -820,9 +820,9 @@ class condorQStats:
 
                     fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
-                    for l in [('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
+                    for l in [('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
+                              ('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
                               ('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
-                              ('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
                               ('Held','Split_Status_Attribute_Held')]:
                         fd.write('<tr valign="top">')
                         for s in l:
@@ -861,7 +861,7 @@ class condorLogSummary:
         self.updated_year=time.localtime(self.updated)[0]
         self.current_stats_data={}     # will contain dictionary client->dirSummary.data
         self.stats_diff={}             # will contain the differences
-        self.job_statuses=('Wait','Idle','Running','Held','Completed','Removed') #const
+        self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
 
         self.files_updated=None
         self.history_files_updated=None
@@ -1628,7 +1628,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
         for cb_i in out_colors_base:
             out_colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
 
-    for s in ('Wait','Idle','Running','Held','Completed','Removed'):
+    for s in ('Running','Idle','Wait','Held','Completed','Removed'):
             diff_rrd_files=[]
             count_rrd_files=[]
 
@@ -1759,7 +1759,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</tr></table>\n")
                         
                         fd.write("<p>\n<table>\n")
-                        for s in ('Wait','Idle','Running','Held','Completed','Removed'):
+                        for s in ('Running','Idle','Wait','Held','Completed','Removed'):
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
                                 for p in ('','Split_'):
