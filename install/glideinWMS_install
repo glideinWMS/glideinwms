@@ -3433,6 +3433,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
             condor_obj.load(constraint=ress_constraint)
             condor_data=condor_obj.fetchStored()
         except:
+            print "Failed to talk to '%s'"%ress_url
             continue # try again
         del condor_obj
         break # have the data, cont
