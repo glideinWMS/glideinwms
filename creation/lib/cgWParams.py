@@ -240,7 +240,7 @@ class Params:
         monitor_default["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)
         monitor_default["factory"]=copy.deepcopy(monitor_opts_default)
         monitor_default["factory"]["want_split_terminated_graphs"]["want_split_terminated_graphs"]="True" # even if CPU intensive, it is just one
-        monitor_default["entries"]=copy.deepcopy(monitor_opts_default)
+        monitor_default["entry"]=copy.deepcopy(monitor_opts_default)
         self.defaults["monitor"]=monitor_default
         
         security_default=xmlParse.OrderedDict()

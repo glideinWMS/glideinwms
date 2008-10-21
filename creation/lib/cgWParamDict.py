@@ -115,7 +115,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('DowntimesFile',params.downtimes.absfname)
-        for el in (('Factory',params.monitor.factory),('Entries',params.monitor.entries)):
+        for el in (('Factory',params.monitor.factory),('Entry',params.monitor.entry)):
             prefix=el[0]
             dict=el[1]
             val="Basic"
