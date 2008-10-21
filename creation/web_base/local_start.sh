@@ -2,8 +2,11 @@
 
 if [ $# -lt 2 ]; then
  echo "At least 2 args expected!" 1>&2
- echo "Usage: local_start.sh entry_name mode [params]*"
- 1>&2
+ echo "Usage: local_start.sh entry_name mode [params]* --" 1>&2
+ echo "" 1>&2
+ echo "For example: " 1>&2
+ echo "  Assuming you want to point the glidein to  collector.mydomain.org:9621,collector.mydomain.org:9622" 1>&2
+ echo "  ./local_start.sh gp9 fast -param_GLIDEIN_Collector collector.dot,mydomain.dot,org.colon,9621.comma,collector.dot,mydomain.dot,org.colon,9622 --" 1>&2
  exit 1
 fi
 GLIDEIN_ENTRY_NAME="$1"
