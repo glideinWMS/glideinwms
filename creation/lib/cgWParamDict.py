@@ -115,7 +115,20 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('DowntimesFile',params.downtimes.absfname)
-        glidein_dict.add('WantSplitTermMonitorGraphs',str(bool(eval(params.monitor.want_split_terminated_graphs,{},{}))))
+        for el in (('Factory',params.monitor.factory),('Entries',params.monitor.entries)):
+            prefix=el[0]
+            dict=el[1]
+            val="Basic"
+            if bool(eval(dict.want_split_graphs)):
+                val+=",Split"
+                # only if split enabled, can the split terminated be enabled
+                if bool(eval(dict.want_split_terminated_graphs)):
+                    val+=",SplitTerm"
+            if bool(eval(dict.want_trend_graphs)):
+                val+=",Trend"
+            if bool(eval(dict.want_infoage_graphs)):
+                val+=",InfoAge"
+            glidein_dict.add('%sWantedMonitorGraphs'%prefix,val)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class

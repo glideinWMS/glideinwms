@@ -229,10 +229,18 @@ class Params:
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
         self.defaults["stage"]=stage_defaults
 
+        monitor_opts_default=xmlParse.OrderedDict()
+        monitor_opts_default["want_split_graphs"]=("True","Bool","Should create split graphs?",None)
+        monitor_opts_default["want_split_terminated_graphs"]=["False","Bool","Should create split terminated log graphs (CPU intensive)?",None]
+        monitor_opts_default["want_trend_graphs"]=("True","Bool","Should create trend graphs?",None)
+        monitor_opts_default["want_infoage_graphs"]=("True","Bool","Should create infoage graphs?",None)
+
+        
         monitor_default=xmlParse.OrderedDict()
         monitor_default["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)
-        monitor_default["want_split_terminated_graphs"]=("True","Bool","Should create split terminated log graphs (CPU intensive)?",None)
-        
+        monitor_default["factory"]=copy.deepcopy(monitor_opts_default)
+        monitor_default["factory"]["want_split_terminated_graphs"]["want_split_terminated_graphs"]="True" # even if CPU intensive, it is just one
+        monitor_default["entries"]=copy.deepcopy(monitor_opts_default)
         self.defaults["monitor"]=monitor_default
         
         security_default=xmlParse.OrderedDict()
@@ -502,112 +510,4 @@ def find_condor_base_dir():
     else:
         return os.path.dirname(condorExe.condor_bin_path)
 
-###########################################################
-#
-# CVS info
-#
-# $Id: cgWParams.py,v 1.37 2008/10/16 17:28:56 sfiligoi Exp $
-#
-# Log:
-#  $Log: cgWParams.py,v $
-#  Revision 1.37  2008/10/16 17:28:56  sfiligoi
-#  Make public key optional
-#
-#  Revision 1.36  2008/08/18 22:21:27  sfiligoi
-#  Fix typo
-#
-#  Revision 1.35  2008/08/18 22:19:37  sfiligoi
-#  Add params.security.pub_key
-#
-#  Revision 1.34  2008/08/06 16:44:42  sfiligoi
-#  Add rate and sleep config options
-#
-#  Revision 1.33  2008/08/05 20:38:55  sfiligoi
-#  Add WantSplitTermMonitorGraphs
-#
-#  Revision 1.28  2008/08/05 18:03:51  sfiligoi
-#  Add max_jobs, max_idle and max_held to the parameters
-#
-#  Revision 1.27  2008/08/05 17:59:06  sfiligoi
-#  Add max_jobs, max_idle and max_held to the parameters
-#
-#  Revision 1.26  2008/07/29 18:49:44  sfiligoi
-#  Add entry verbosity
-#
-#  Revision 1.23  2008/07/28 17:44:42  sfiligoi
-#  Add after_entry option to file
-#
-#  Revision 1.22  2008/07/24 18:04:25  sfiligoi
-#  Add final newline to the XML file when saving
-#
-#  Revision 1.21  2008/07/23 16:43:27  sfiligoi
-#  Remove a spurious print
-#
-#  Revision 1.20  2008/07/23 16:37:33  sfiligoi
-#  Slight change in syntax
-#
-#  Revision 1.19  2008/07/23 16:03:49  sfiligoi
-#  Add infosys_refs
-#
-#  Revision 1.18  2008/07/21 15:42:42  sfiligoi
-#  Add support for rewriting the config file
-#
-#  Revision 1.17  2008/07/16 15:47:15  sfiligoi
-#  Improve error handling
-#
-#  Revision 1.16  2008/07/15 20:49:46  sfiligoi
-#  Improve usage printout
-#
-#  Revision 1.15  2008/07/10 19:21:17  sfiligoi
-#  Make it executable from any disk location
-#
-#  Revision 1.14  2008/07/10 18:57:47  sfiligoi
-#  Move all path changes out of the libraries
-#
-#  Revision 1.13  2008/07/07 17:55:07  sfiligoi
-#  Add support for downtimes files
-#
-#  Revision 1.12  2008/07/03 18:24:56  sfiligoi
-#  Put loop_delay and advertise_delay into the XML
-#
-#  Revision 1.11  2008/07/03 18:04:13  sfiligoi
-#  Document TMPDIR
-#
-#  Revision 1.10  2007/12/28 20:48:20  sfiligoi
-#  Add enabled to entry and use it to tell the factory which entries to use.
-#
-#  Revision 1.9  2007/12/12 00:51:27  sfiligoi
-#  Implement equality method
-#
-#  Revision 1.8  2007/12/11 19:16:06  sfiligoi
-#  Simplify attribute handling
-#
-#  Revision 1.7  2007/12/11 18:07:30  sfiligoi
-#  Use the special value as the default for cond_attr
-#
-#  Revision 1.6  2007/12/05 21:48:09  sfiligoi
-#  Temporary hack to make xmlFormat to work with OrderedDict
-#
-#  Revision 1.5  2007/12/05 21:02:26  sfiligoi
-#  Fix type comparisons
-#
-#  Revision 1.4  2007/12/05 20:38:00  sfiligoi
-#  User OrderedDict
-#
-#  Revision 1.3  2007/10/12 21:41:45  sfiligoi
-#  Proper error message handling
-#
-#  Revision 1.2  2007/10/12 21:22:56  sfiligoi
-#  Remove the use of sys.exit
-#
-#  Revision 1.1  2007/10/12 19:25:11  sfiligoi
-#  Moved to the lib subdir
-#
-#  Revision 1.3  2007/10/12 19:18:48  sfiligoi
-#  Move find_condor_base_dir to the right place
-#
-#  Revision 1.2  2007/10/12 19:08:24  sfiligoi
-#  Add log
-#
-#
-###########################################################
+
