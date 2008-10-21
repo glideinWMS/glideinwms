@@ -356,7 +356,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
     # use config values to configure the factory
-    glideFactoryMonitoring.monitoringConfig.want_split_terminated_graphs=eval(glideinDescript.data['WantSplitTermMonitorGraphs'],{},{})
+    glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['WantSplitTermMonitorGraphs'],',')
     glideFactoryLib.factoryConfig.max_submits=int(jobDescript.data['MaxSubmitRate'])
     glideFactoryLib.factoryConfig.max_cluster_size=int(jobDescript.data['SubmitCluster'])
     glideFactoryLib.factoryConfig.submit_sleep=float(jobDescript.data['SubmitSleep'])

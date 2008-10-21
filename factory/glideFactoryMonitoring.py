@@ -77,7 +77,7 @@ class MonitoringConfig:
         self.monitor_dir="monitor/"
         self.log_dir="log/"
 
-        self.want_split_terminated_graphs=True
+        self.wanted_graphs=['Basic']
 
         try:
             import rrdtool
@@ -749,9 +749,11 @@ class condorQStats:
             si_arr=['00',ci_i]
             for cb_i in colors_base:
                 colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
-                
-        attr_rrds=monitoringConfig.find_disk_attributes("total")
-        for fname,tp,a in attr_rrds:
+
+
+        if 'Split' in monitoringConfig.wanted_graphs:
+          attr_rrds=monitoringConfig.find_disk_attributes("total")
+          for fname,tp,a in attr_rrds:
             rrd_fnames=[]
             idx=0
             for fe in frontend_list:
@@ -820,24 +822,47 @@ class condorQStats:
 
                     fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
-                    for l in [('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
-                              ('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
-                              ('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
-                              ('Held','Split_Status_Attribute_Held')]:
+                    larr=[]
+                    if 'Split' in monitoringConfig.wanted_graphs:
+                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
+                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
+                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
+                    else:
+                        larr.append(('Running',))
+                        larr.append(('Idle',))
+
+                    if 'Held' in monitoringConfig.wanted_graphs:
+                        if 'Split' in monitoringConfig.wanted_graphs:
+                            larr.append(('Held','Split_Status_Attribute_Held'))
+                        else:
+                            larr.append(('Held',))
+                    for l in larr:
                         fd.write('<tr valign="top">')
                         for s in l:
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')                            
+                        fd.write('</tr>\n')
                     fd.write("</table>")
                     fd.write("<h2>Frontend (client) stats</h2>\n")
                     fd.write("<table>")
-                    for l in [('ClientIdle','Split_ClientMonitor_Attribute_Idle'),
-                              ('ClientRunning','Split_ClientMonitor_Attribute_Running'),
-                              ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
+                     larr=[]
+                    if 'Split' in monitoringConfig.wanted_graphs:
+                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
+                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
+                    else:
+                        larr.append(('ClientIdle',))
+                        larr.append(('ClientRunning',))
+
+                    if 'InfoAge' in monitoringConfig.wanted_graphs:
+                        if 'Split' in monitoringConfig.wanted_graphs:
+                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
+                        else:
+                            larr.append(('InfoAge',))
+
+                    for l in larr:
                         fd.write('<tr valign="top">')
                         for s in l:
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')                            
+                        fd.write('</tr>\n')
                     fd.write("</table>")
                     fd.write("</body>\n</html>\n")
                     fd.close()
@@ -1297,6 +1322,10 @@ class condorLogSummary:
         frontend_list=monitoringConfig.find_disk_frontends()
         create_log_split_graphs(graph_ref_time,"logsummary","frontend_%s",frontend_list)
 
+        larr=['Log']
+        if 'Trend' in monitoringConfig.wanted_graphs:
+            larr.append('Log50')
+
         # create support index files
         for client_name in self.stats_diff.keys():
             fe_dir="frontend_"+client_name
@@ -1343,31 +1372,32 @@ class condorLogSummary:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Count.%s.%s.png"%(s,period,size)))
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Diff.%s.%s.png"%(s,period,size)))
-                                fd.write('<td>%s</td>'%img2html("Log50_%s_Diff.%s.%s.png"%(s,period,size)))
+                                if 'Trend' in monitoringConfig.wanted_graphs:
+                                    fd.write('<td>%s</td>'%img2html("Log50_%s_Diff.%s.%s.png"%(s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
                         fd.write('<td></td>')
-                        for l in ('Log','Log50'):
+                        for l in larr:
                             fd.write('<td>%s</td>'%img2html("%s_Removed_Diff.%s.%s.png"%(l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log50'):
+                            for l in larr:
                                 fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log50'):
+                            for l in larr:
                                 for w in ('Waste','WasteTime'):
                                     fd.write('<td>%s</td>'%img2html("%s_Completed_Entered_%s_%s.%s.%s.png"%(l,w,s,period,size)))
                             fd.write('</tr>\n')
                         
                         fd.write("</table>\n</p>\n")
 
-                        if client_name==None:
+                        if (client_name==None) and ('Split' in monitoringConfig.wanted_graphs):
                             # total has also the split graphs
                             fd.write("<p><hr><p><table>")
                             for s in self.job_statuses:
@@ -1534,9 +1564,10 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
         monitoringConfig.graph_rrds(ref_time,base_lock_name,
                                     "%s/Log_%s_Diff"%(fe_dir,s),
                                     "Difference in %s glideins"%s, rrd_files)
-        monitoringConfig.graph_rrds(ref_time,base_lock_name,
-                                    "%s/Log50_%s_Diff"%(fe_dir,s),
-                                    "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=50)
+        if 'Trend' in monitoringConfig.wanted_graphs:
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                        "%s/Log50_%s_Diff"%(fe_dir,s),
+                                        "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=50)
 
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             monitoringConfig.graph_rrds(ref_time,base_lock_name,
@@ -1583,9 +1614,10 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,
                                                 "%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                 "%s glideins"%t,t_rrds)
-                    monitoringConfig.graph_rrds(ref_time,base_lock_name,
-                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
-                                                "Trend %s glideins"%t,t_rrds,trend_fraction=50)
+                    if 'Trend' in monitoringConfig.wanted_graphs:
+                        monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                                    "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                    "Trend %s glideins"%t,t_rrds,trend_fraction=50)
 
 
 ###################################
@@ -1593,6 +1625,9 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
 def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list):
     if len(subdir_list)==0:
         return # nothing more to do, wait for some subdirs
+
+    if not ('Split' in monitoringConfig.wanted_graphs):
+        return # do not create split graphs
 
     subdir_list.sort()
 
@@ -1654,11 +1689,12 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
             monitoringConfig.graph_rrds(ref_time,base_lock_name,
                                         "total/Split_Log_%s_Diff"%s,
                                         "Difference in %s glideins"%s, diff_rrd_files)
-            monitoringConfig.graph_rrds(ref_time,base_lock_name,
-                                        "total/Split_Log50_%s_Diff"%s,
-                                        "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
+            if 'Trend' in monitoringConfig.wanted_graphs:
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                            "total/Split_Log50_%s_Diff"%s,
+                                            "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
 
-    if monitoringConfig.want_split_terminated_graphs:
+    if 'SplitTerm' in monitoringConfig.wanted_graphs:
         # create the completed split graphs
         for t in ("Lasted",
               "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
@@ -1686,9 +1722,10 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,
                                             "total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
                                             "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                monitoringConfig.graph_rrds(ref_time,base_lock_name,
-                                            "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
-                                            "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
+                if 'Trend' in monitoringConfig.wanted_graphs:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,
+                                                "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
+                                                "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
 
 
 
@@ -1714,6 +1751,14 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
     time_range_groups_keys=time_range_groups.keys()
     time_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
     
+    parr=['']
+    if 'Split' in monitoringConfig.wanted_graphs:
+        parr.append('Split_')
+
+    larr=['Log']
+    if 'Trend' in monitoringConfig.wanted_graphs:
+        larr.append('Log50')
+
     fe_dir="total"
     for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
@@ -1762,36 +1807,36 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         for s in ('Running','Idle','Wait','Held','Completed','Removed'):
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
-                                for p in ('','Split_'):
+                                for p in parr:
                                     fd.write('<td>%s</td>'%img2html("%sLog_%s_Count.%s.%s.png"%(p,s,period,size)))
                                 fd.write('</tr>\n')
                                 fd.write('<tr valign="top">')
-                                for l in ('Log','Log50'):
-                                    for p in ('','Split_'):
+                                for l in larr:
+                                    for p in parr:
                                         fd.write('<td>%s</td>'%img2html("%s%s_%s_Diff.%s.%s.png"%(p,l,s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
-                        for l in ('Log','Log50'):
-                            for p in ('','Split_'):
+                        for l in larr:
+                            for p in parr:
                                 fd.write('<td>%s</td>'%img2html("%s%s_Removed_Diff.%s.%s.png"%(p,l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log50'):
+                            for l in larr:
                                 fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput'):
                             fd.write('<tr valign="top">')
-                            for l in ('Log','Log50'):
+                            for l in larr:
                                 for w in ('Waste','WasteTime'):
                                     fd.write('<td>%s</td>'%img2html("%s_Completed_Entered_%s_%s.%s.%s.png"%(l,w,s,period,size)))
                             fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
 
-                        if monitoringConfig.want_split_terminated_graphs:                        
+                        if 'SplitTerm' in monitoringConfig.wanted_graphs:                        
                             fd.write("<p>\n<h2>Terminated glideins by %s</h2>\n"%subdir_label)
 
                             for s in ('Entered_Lasted',):
@@ -1799,7 +1844,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 range_groups_keys=time_range_groups_keys
                                 for r in range_groups_keys:
                                     fd.write('<tr valign="top">')
-                                    for l in ('Log','Log50'):
+                                    for l in larr:
                                         fd.write('<td>%s</td><td></td>'%img2html("Split_%s_Completed_%s_%s.%s.%s.png"%(l,s,r,period,size)))
                                     fd.write('</tr>\n')                        
                                 fd.write("</table>\n</p>\n")
@@ -1810,7 +1855,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 range_groups_keys=mill_range_groups_keys
                                 for r in range_groups_keys:
                                     fd.write('<tr valign="top">')
-                                    for l in ('Log','Log50'):
+                                    for l in larr:
                                         for w in ('Waste','WasteTime'):
                                             fd.write('<td>%s</td>'%img2html("Split_%s_Completed_Entered_%s_%s_%s.%s.%s.png"%(l,w,s,r,period,size)))
                                     fd.write('</tr>\n')                        

@@ -187,7 +187,8 @@ def create_status_history():
         for cb_i in colors_base:
             colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
 
-    for fname,tp,a in attr_rrds:
+    if 'Split' in monitoringConfig.wanted_graphs:
+      for fname,tp,a in attr_rrds:
         rrd_fnames=[]
         idx=0
         for entry in monitorAggregatorConfig.entries:
@@ -211,10 +212,10 @@ def create_status_history():
                                                            tstr,
                                                            rrd_fnames)
         
-
-        # create support index files
-        fe="Factory Total"
-        for rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
+        
+    # create support index files
+    fe="Factory Total"
+    for rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
             period=rp[0]
             for sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
                 size=sz[0]
@@ -256,10 +257,23 @@ def create_status_history():
                     fd.write("</tr></table>\n")
                     fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
-                    for l in [('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'),
-                              ('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'),
-                              ('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'),
-                              ('Held','Split_Status_Attribute_Held')]:
+
+                    larr=[]
+                    if 'Split' in monitoringConfig.wanted_graphs:
+                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
+                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
+                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
+                    else:
+                        larr.append(('Running',))
+                        larr.append(('Idle',))
+
+                    if 'Held' in monitoringConfig.wanted_graphs:
+                        if 'Split' in monitoringConfig.wanted_graphs:
+                            larr.append(('Held','Split_Status_Attribute_Held'))
+                        else:
+                            larr.append(('Held',))
+
+                    for l in larr:
                         fd.write('<tr valign="top">')
                         for s in l:
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
@@ -267,9 +281,22 @@ def create_status_history():
                     fd.write("</table>")
                     fd.write("<h2>Frontend (client) stats</h2>\n")
                     fd.write("<table>")
-                    for l in [('ClientIdle','Split_ClientMonitor_Attribute_Idle'),
-                              ('ClientRunning','Split_ClientMonitor_Attribute_Running'),
-                              ('InfoAge','Split_ClientMonitor_Attribute_InfoAge')]:
+
+                    larr=[]
+                    if 'Split' in monitoringConfig.wanted_graphs:
+                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
+                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
+                    else:
+                        larr.append(('ClientIdle',))
+                        larr.append(('ClientRunning',))
+
+                    if 'InfoAge' in monitoringConfig.wanted_graphs:
+                        if 'Split' in monitoringConfig.wanted_graphs:
+                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
+                        else:
+                            larr.append(('InfoAge',))
+
+                    for l in larr:
                         fd.write('<tr valign="top">')
                         for s in l:
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))

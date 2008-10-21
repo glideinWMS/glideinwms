@@ -157,7 +157,7 @@ def main(startup_dir):
 
     sleep_time=int(glideinDescript.data['LoopDelay'])
     advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
-    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.want_split_terminated_graphs=eval(glideinDescript.data['WantSplitTermMonitorGraphs'],{},{})
+    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['FactoryWantedMonitorGraphs'],',')
     
     entries=string.split(glideinDescript.data['Entries'],',')
     entries.sort()
@@ -206,10 +206,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.72 2008/09/05 15:53:23 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.73 2008/10/21 22:25:01 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.73  2008/10/21 22:25:01  sfiligoi
+#  Use the new monitoring switches
+#
 #  Revision 1.72  2008/09/05 15:53:23  sfiligoi
 #  Explicity disable locking to prevent deadlocks
 #
