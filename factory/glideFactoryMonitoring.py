@@ -844,7 +844,7 @@ class condorQStats:
                     fd.write("</table>")
                     fd.write("<h2>Frontend (client) stats</h2>\n")
                     fd.write("<table>")
-                     larr=[]
+                    larr=[]
                     if 'Split' in monitoringConfig.wanted_graphs:
                         larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
                         larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
