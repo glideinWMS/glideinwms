@@ -224,9 +224,9 @@ class Params:
         self.defaults["submit"]=submit_defaults
 
         one_log_retention_defaults=xmlParse.OrderedDict()
-        one_log_retention_defaults["min_days"]=("3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None)
-        one_log_retention_defaults["max_days"]=("7.0","days","Max number of days the logs should be preserved",None)
-        one_log_retention_defaults["max_mbytes"]=("100.0","Mbytes","Max number of Mbytes the logs can use",None)
+        one_log_retention_defaults["min_days"]=["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
+        one_log_retention_defaults["max_days"]=["7.0","days","Max number of days the logs should be preserved",None]
+        one_log_retention_defaults["max_mbytes"]=["100.0","Mbytes","Max number of Mbytes the logs can use",None]
 
         log_retention_defaults=xmlParse.OrderedDict()
         log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
