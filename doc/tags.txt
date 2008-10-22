@@ -13,6 +13,8 @@ vNext	Added support for secure info passing between
 	Randomized the retire time to smooth terminations.
 	  Can be controlled via GLIDEIN_Retire_Time_Spread.
 	Some monitoring tweaks.
+	  Added more switches; xml incompatible with v1_4+
+	The factory config file is now read only.
 
 v1_4_4	Add factory_constraint parameter to the frontend.
 	Add support for GLEXEC_JOB.
