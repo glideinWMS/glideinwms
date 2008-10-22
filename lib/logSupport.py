@@ -74,6 +74,9 @@ class DirCleanup:
         fnames=os.listdir(self.dirname)
         count_removes=0
         for fname in fnames:
+            if self.fname_expression_obj.match(fname)==None:
+                continue # ignore files that do not match
+            
             fpath=os.path.join(self.dirname,fname)
             fstat=os.lstat(fpath)
             fmode=fstat[stat.ST_MODE]
@@ -82,8 +85,60 @@ class DirCleanup:
                 continue #ignore directories
             update_time=fstat[stat.ST_MTIME]
             if update_time<treshold_time:
-                if self.fname_expression_obj.match(fname)==None:
-                    continue # ignore files that do not match
+                try:
+                    os.unlink(fpath)
+                except:
+                   if self.warning_log!=None:
+                       self.warning_log.write("Could not remove %s"%fpath)
+                count_removes=count_removes+1
+        if count_removes>0:
+            if self.activity_log!=None:
+                self.activity_log.write("Removed %i files."%count_removes)
+
+        return
+
+# this class is used for cleanup
+class DirCleanupWSpace(DirCleanup):
+    def __init__(self,
+                 dirname,
+                 fname_expression, # regular expression, used with re.match
+                 maxlife,          # max lifetime after which it is deleted
+                 minlife,maxspace, # max space allowed for the sum of files, unless they are too young
+                 activity_log,warning_log): # if None, no logging
+        self.dirname=dirname
+        self.fname_expression=fname_expression
+        self.fname_expression_obj=re.compile(fname_expression)
+        self.maxlife=maxlife
+        self.minlife=minlife
+        self.maxspace=maxspace
+        self.activity_log=activity_log
+        self.warning_log=warning_log
+        return
+
+    def cleanup(self):
+        used_space=0L
+        treshold_time=time.time()-self.maxlife
+        min_treshold_time=time.time()-self.minlife
+        fnames=os.listdir(self.dirname)
+        count_removes=0
+        for fname in fnames:
+            if self.fname_expression_obj.match(fname)==None:
+                continue # ignore files that do not match
+            fpath=os.path.join(self.dirname,fname)
+            fstat=os.lstat(fpath)
+            fmode=fstat[stat.ST_MODE]
+            isdir=stat.S_ISDIR(fmode)
+            if isdir:
+                continue #ignore directories
+
+            update_time=fstat[stat.ST_MTIME]
+            if update_time>=min_treshold_time:
+                continue # too young, don't touch it
+            
+            fsize=fstat[stat.ST_SIZE]
+            used_space+=fsize
+            
+            if (used_size>self.maxspace) or (update_time<treshold_time):
                 try:
                     os.unlink(fpath)
                 except:
