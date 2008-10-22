@@ -221,7 +221,9 @@ class Params:
 
         submit_defaults=xmlParse.OrderedDict()
         submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
+        submit_defaults["log_retention_days"]=("7.0","days","Number of days the logs from factory and entries should be preserved",None)
         submit_defaults["job_log_retention_days"]=("7.0","days","Number of days the job logs should be preserved",None)
+        submit_defaults["condor_log_retention_days"]=("31.0","days","Number of days the condor logs should be preserved",None)
 
         self.defaults["submit"]=submit_defaults
 
