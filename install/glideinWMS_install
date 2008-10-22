@@ -561,6 +561,9 @@ def gcb_install():
         config_fd.write("#GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_RELAY_SERVER_MAX_LOG=640000\n\n")
 
         config_fd.write("# How many connections should it serve\n")
+        config_fd.write("# By multiplying the two you get the number of used ports\n")
+        config_fd.write("# If you increase it, make sure your machine supports enough port\n")
+        config_fd.write("#   see /proc/sys/net/ipv4/ip_local_port_range\n")
         config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_MAX_RELAY_SERVERS=200\n")
         config_fd.write("GCB_BROKER_ENV = $(GCB_BROKER_ENV);GCB_MAX_CLIENTS_PER_RELAY_SERVER=100\n\n")
 
