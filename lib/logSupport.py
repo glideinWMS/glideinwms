@@ -105,14 +105,9 @@ class DirCleanupWSpace(DirCleanup):
                  maxlife,          # max lifetime after which it is deleted
                  minlife,maxspace, # max space allowed for the sum of files, unless they are too young
                  activity_log,warning_log): # if None, no logging
-        self.dirname=dirname
-        self.fname_expression=fname_expression
-        self.fname_expression_obj=re.compile(fname_expression)
-        self.maxlife=maxlife
+        DirCleanup.__init__(self,dirname,fname_expression,fname_expression,activity_log,warning_log)
         self.minlife=minlife
         self.maxspace=maxspace
-        self.activity_log=activity_log
-        self.warning_log=warning_log
         return
 
     def cleanup(self):
