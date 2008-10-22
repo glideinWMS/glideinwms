@@ -218,7 +218,12 @@ class Params:
         self.defaults["factory_name"]=(socket.gethostname(),'ID', 'Factory name',None)
         self.defaults["glidein_name"]=(None,'ID', 'Glidein name',None)
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
-        self.defaults["submit"]=xmlParse.OrderedDict({"base_dir":(os.environ["HOME"],"base_dir","Submit base dir",None)})
+
+        submit_defaults=xmlParse.OrderedDict()
+        submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
+        submit_defaults["job_log_retention_days"]=("7.0","days","Number of days the job logs should be preserved",None)
+
+        self.defaults["submit"]=submit_defaults
 
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
