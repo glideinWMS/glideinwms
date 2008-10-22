@@ -116,10 +116,12 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('DowntimesFile',down_fname)
-        glidein_dict.add('LogRetentionDays',params.submit.log_retention_days)
-        glidein_dict.add('JobLogRetentionDays',params.submit.job_log_retention_days)
-        glidein_dict.add('SummaryLogRetentionDays',params.submit.summary_log_retention_days)
-        glidein_dict.add('CondorLogRetentionDays',params.submit.condor_log_retention_days)
+        for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'Summarylog'),("condor_logs",'CondorLog')):
+            param_lname,str_lname=lel
+            for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
+                param_tname,str_tname=tel
+                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),params.log_retention[param_lname][param_tname])
+
         for el in (('Factory',params.monitor.factory),('Entry',params.monitor.entry)):
             prefix=el[0]
             dict=el[1]

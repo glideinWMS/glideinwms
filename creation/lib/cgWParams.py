@@ -221,12 +221,22 @@ class Params:
 
         submit_defaults=xmlParse.OrderedDict()
         submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
-        submit_defaults["log_retention_days"]=("7.0","days","Number of days the logs from factory and entries should be preserved",None)
-        submit_defaults["job_log_retention_days"]=("7.0","days","Number of days the job logs should be preserved",None)
-        submit_defaults["summary_log_retention_days"]=("31.0","days","Number of days the summary job logs should be preserved",None)
-        submit_defaults["condor_log_retention_days"]=("31.0","days","Number of days the condor logs should be preserved",None)
-
         self.defaults["submit"]=submit_defaults
+
+        one_log_retention_defaults=xmlParse.OrderedDict()
+        one_log_retention_defaults["min_days"]=("3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None)
+        one_log_retention_defaults["max_days"]=("7.0","days","Max number of days the logs should be preserved",None)
+        one_log_retention_defaults["max_mbytes"]=("100.0","Mbytes","Max number of Mbytes the logs can use",None)
+
+        log_retention_defaults=xmlParse.OrderedDict()
+        log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
+        log_retention_defaults["job_logs"]=copy.deepcopy(one_log_retention_defaults)
+        log_retention_defaults["job_logs"]["min_days"][0]="2.0"
+        log_retention_defaults["summary_logs"]=copy.deepcopy(one_log_retention_defaults)
+        log_retention_defaults["summary_logs"]["max_days"][0]="31.0"
+        log_retention_defaults["condor_logs"]=copy.deepcopy(one_log_retention_defaults)
+        log_retention_defaults["condor_logs"]["max_days"][0]="14.0"
+        self.defaults["log_retention"]=log_retention_defaults
 
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
