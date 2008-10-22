@@ -368,7 +368,7 @@ class Params:
         finally:
             fd.close()
         if set_ro:
-            os.chmod(os.stat(fname)[0]&0444)
+            os.chmod(fname,os.stat(fname)[0]&0444)
         return
     
     #save into a file (making a backup)
@@ -391,14 +391,14 @@ class Params:
         try:
             os.rename(fname,backup_name)
             # make it user writable
-            os.chmod((os.stat(backup_name)[0]&0666)|0200)
+            os.chmod(backup_name,(os.stat(backup_name)[0]&0666)|0200)
         except:
             pass # just protect
         
         # finally rename to the proper name
         os.rename(tmp_name,fname)
         if set_ro:
-            os.chmod(os.stat(fname)[0]&0444)
+            os.chmod(fname,os.stat(fname)[0]&0444)
 
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
