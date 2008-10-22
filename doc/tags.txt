@@ -8,13 +8,14 @@ vNext	Added support for secure info passing between
           Can use GCB_ORDER=NONE to disable it
           Warning: Explicit listing of gcb_setup may create problems.
         glexec_setup is now loaded by default
-	  Can use GLEXEC_BIN-NONE to disable it
+	  Can use GLEXEC_BIN=NONE to disable it
           Warning: Explicit listing of glexec_setup may create problems.
 	Randomized the retire time to smooth terminations.
 	  Can be controlled via GLIDEIN_Retire_Time_Spread.
 	Some monitoring tweaks.
 	  Added more switches; xml incompatible with v1_4+
 	The factory config file is now read only.
+	Added switches to limit log file growth.
 
 v1_4_4	Add factory_constraint parameter to the frontend.
 	Add support for GLEXEC_JOB.
