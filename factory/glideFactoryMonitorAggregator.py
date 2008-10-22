@@ -187,7 +187,7 @@ def create_status_history():
         for cb_i in colors_base:
             colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
 
-    if 'Split' in monitoringConfig.wanted_graphs:
+    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
       for fname,tp,a in attr_rrds:
         rrd_fnames=[]
         idx=0
@@ -259,7 +259,7 @@ def create_status_history():
                     fd.write("<table>")
 
                     larr=[]
-                    if 'Split' in monitoringConfig.wanted_graphs:
+                    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
                         larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
                         larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
                         larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
@@ -267,8 +267,8 @@ def create_status_history():
                         larr.append(('Running',))
                         larr.append(('Idle',))
 
-                    if 'Held' in monitoringConfig.wanted_graphs:
-                        if 'Split' in monitoringConfig.wanted_graphs:
+                    if 'Held' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
+                        if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
                             larr.append(('Held','Split_Status_Attribute_Held'))
                         else:
                             larr.append(('Held',))
@@ -283,15 +283,15 @@ def create_status_history():
                     fd.write("<table>")
 
                     larr=[]
-                    if 'Split' in monitoringConfig.wanted_graphs:
+                    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
                         larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
                         larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
                     else:
                         larr.append(('ClientIdle',))
                         larr.append(('ClientRunning',))
 
-                    if 'InfoAge' in monitoringConfig.wanted_graphs:
-                        if 'Split' in monitoringConfig.wanted_graphs:
+                    if 'InfoAge' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
+                        if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
                             larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
                         else:
                             larr.append(('InfoAge',))
