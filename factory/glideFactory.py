@@ -148,12 +148,12 @@ def main(startup_dir):
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
-    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
-                                     7*24*3600,
-                                     activity_log,warning_log)
-
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
+
+    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
+                                     float(glideinDescript.data['LogRetentionDays'])*24*3600,
+                                     activity_log,warning_log)
 
     sleep_time=int(glideinDescript.data['LoopDelay'])
     advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
@@ -206,10 +206,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: glideFactory.py,v 1.73 2008/10/21 22:25:01 sfiligoi Exp $
+# $Id: glideFactory.py,v 1.74 2008/10/22 19:03:28 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactory.py,v $
+#  Revision 1.74  2008/10/22 19:03:28  sfiligoi
+#  Use LogRetentionDays
+#
 #  Revision 1.73  2008/10/21 22:25:01  sfiligoi
 #  Use the new monitoring switches
 #
