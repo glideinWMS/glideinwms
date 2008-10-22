@@ -118,7 +118,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         for el in (('Factory',params.monitor.factory),('Entry',params.monitor.entry)):
             prefix=el[0]
             dict=el[1]
-            val="Basic"
+            val="Basic,Held"
             if bool(eval(dict.want_split_graphs)):
                 val+=",Split"
                 # only if split enabled, can the split terminated be enabled
