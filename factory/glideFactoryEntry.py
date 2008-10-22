@@ -353,20 +353,28 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
-    logCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
-                                        float(glideinDescript.data['LogRetentionDays'])*24*3600,
-                                        activity_log,warning_log)
+    logCleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
+                                              float(glideinDescript.data['LogRetentionMaxDays'])*24*3600,
+                                              float(glideinDescript.data['LogRetentionMinDays'])*24*3600,
+                                              float(glideinDescript.data['LogRetentionMaxMBs'])*1024*1024,
+                                              activity_log,warning_log)
 
-    jobCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
-                                        float(glideinDescript.data['JobLogRetentionDays'])*24*3600,
-                                        activity_log,warning_log)
-    summaryCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(completed_jobs_\..*\.log)",
-                                        float(glideinDescript.data['SummaryLogRetentionDays'])*24*3600,
-                                        activity_log,warning_log)
+    jobCleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
+                                              float(glideinDescript.data['JobLogRetentionMaxDays'])*24*3600,
+                                              float(glideinDescript.data['JobLogRetentionMinDays'])*24*3600,
+                                              float(glideinDescript.data['JobLogRetentionMaxMBs'])*1024*1024,
+                                              activity_log,warning_log)
+    summaryCleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(completed_jobs_\..*\.log)",
+                                                  float(glideinDescript.data['SummaryLogRetentionMaxDays'])*24*3600,
+                                                  float(glideinDescript.data['SummaryLogRetentionMinDays'])*24*3600,
+                                                  float(glideinDescript.data['SummaryLogRetentionMaxMBs'])*1024*1024,
+                                                  activity_log,warning_log)
 
-    condorCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(condor_activity_\..*\.log)|(condor_activity_\..*\.log.ftstpk)",
-                                           float(glideinDescript.data['CondorLogRetentionDays'])*24*3600,
-                                           activity_log,warning_log)
+    condorCleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(condor_activity_\..*\.log)|(condor_activity_\..*\.log.ftstpk)",
+                                                 float(glideinDescript.data['CondorLogRetentionMaxDays'])*24*3600,
+                                                 float(glideinDescript.data['CondorLogRetentionMinDays'])*24*3600,
+                                                 float(glideinDescript.data['CondorLogRetentionMaxMBs'])*1024*1024,
+                                                 activity_log,warning_log)
 
     # use config values to configure the factory
     glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['EntryWantedMonitorGraphs'],',')

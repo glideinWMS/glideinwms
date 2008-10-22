@@ -151,9 +151,11 @@ def main(startup_dir):
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
 
-    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
-                                     float(glideinDescript.data['LogRetentionDays'])*24*3600,
-                                     activity_log,warning_log)
+    cleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
+                                           float(glideinDescript.data['LogRetentionMaxDays'])*24*3600,
+                                           float(glideinDescript.data['LogRetentionMinDays'])*24*3600,
+                                           float(glideinDescript.data['LogRetentionMaxMBs'])*1024*1024,
+                                           activity_log,warning_log)
 
     sleep_time=int(glideinDescript.data['LoopDelay'])
     advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
