@@ -43,10 +43,10 @@ def main(params):
 
         # save config into file
         cfgfile=os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE)
-        params.save_into_file(cfgfile)
+        params.save_into_file(cfgfile,set_ro=True)
         # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
         cfgfile=cgWConsts.insert_timestr(cfgfile)
-        params.save_into_file(cfgfile)
+        params.save_into_file(cfgfile,set_ro=True)
 
         # create the init.d starup file
         cgWCreate.create_initd_startup(os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.INITD_STARTUP_FILE),
@@ -134,10 +134,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.138 2008/07/23 16:40:59 sfiligoi Exp $
+# $Id: create_glidein,v 1.139 2008/10/22 17:11:32 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.139  2008/10/22 17:11:32  sfiligoi
+#  Make config files read only
+#
 #  Revision 1.138  2008/07/23 16:40:59  sfiligoi
 #  Add missing exits in case of error
 #

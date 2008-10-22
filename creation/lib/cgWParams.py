@@ -360,18 +360,20 @@ class Params:
 
     #save into a file
     #The file should be usable for reload
-    def save_into_file(self,fname):
+    def save_into_file(self,fname,set_ro=False):
         fd=open(fname,"w")
         try:
             fd.write(self.get_xml())
             fd.write("\n")
         finally:
             fd.close()
+        if set_ro:
+            os.chmod(os.stat(fname)[0]&0444)
         return
     
     #save into a file (making a backup)
     #The file should be usable for reload
-    def save_into_file_wbackup(self,fname):
+    def save_into_file_wbackup(self,fname,set_ro=False):
         # rewrite config file (write tmp file first)
         tmp_name="%s.tmp"%fname
         try:
@@ -388,11 +390,15 @@ class Params:
             pass # just protect
         try:
             os.rename(fname,backup_name)
+            # make it user writable
+            os.chmod((os.stat(backup_name)[0]&0666)|0200)
         except:
             pass # just protect
         
         # finally rename to the proper name
         os.rename(tmp_name,fname)
+        if set_ro:
+            os.chmod(os.stat(fname)[0]&0444)
 
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
@@ -509,5 +515,4 @@ def find_condor_base_dir():
         return None
     else:
         return os.path.dirname(condorExe.condor_bin_path)
-
 
