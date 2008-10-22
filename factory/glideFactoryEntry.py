@@ -344,14 +344,6 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
     glideFactoryMonitoring.monitoringConfig.log_dir=os.path.join(startup_dir,"entry_%s/log"%entry_name)
 
-    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
-                                     7*24*3600,
-                                     activity_log,warning_log)
-
-    jobCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
-                                     float(glideinDescript.data['JobLogRetentionDays'])*24*3600,
-                                     activity_log,warning_log)
-
     os.chdir(startup_dir)
     glideinDescript=glideFactoryConfig.GlideinDescript()
     glideinDescript.load_pub_key()
@@ -360,6 +352,14 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
+
+    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
+                                     7*24*3600,
+                                     activity_log,warning_log)
+
+    jobCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
+                                     float(glideinDescript.data['JobLogRetentionDays'])*24*3600,
+                                     activity_log,warning_log)
 
     # use config values to configure the factory
     glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['EntryWantedMonitorGraphs'],',')
