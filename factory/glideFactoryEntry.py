@@ -278,7 +278,7 @@ def iterate_one(do_advertize,in_downtime,
     return done_something
 
 ############################################################
-def iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
+def iterate(parent_pid,cleanupObjs,sleep_time,advertize_rate,
             glideinDescript,jobDescript,jobAttributes,jobParams):
     is_first=1
     count=0;
@@ -322,7 +322,9 @@ def iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
                                                 sys.exc_info()[2])
                 glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
                 
-        cleanupObj.cleanup()
+        for cleanupObj in cleanupObjs:
+            cleanupObj.cleanup()
+
         glideFactoryLib.factoryConfig.activity_log.write("Sleep %is"%sleep_time)
         time.sleep(sleep_time)
         count=(count+1)%advertize_rate
@@ -342,8 +344,12 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
     glideFactoryMonitoring.monitoringConfig.log_dir=os.path.join(startup_dir,"entry_%s/log"%entry_name)
 
-    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)|(factory_info\..*)|(factory_err\..*)",
+    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
                                      7*24*3600,
+                                     activity_log,warning_log)
+
+    jobCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
+                                     float(glideinDescript.data['JobLogRetentionDays'])*24*3600,
                                      activity_log,warning_log)
 
     os.chdir(startup_dir)
@@ -380,7 +386,9 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
         try:
             try:
                 glideFactoryLib.factoryConfig.activity_log.write("Starting up")
-                iterate(parent_pid,cleanupObj,sleep_time,advertize_rate,
+                iterate(parent_pid,
+                        (cleanupObj,jobCleanupObj),
+                        sleep_time,advertize_rate,
                         glideinDescript,jobDescript,jobAttributes,jobParams)
             except KeyboardInterrupt:
                 glideFactoryLib.factoryConfig.activity_log.write("Received signal...exit")
