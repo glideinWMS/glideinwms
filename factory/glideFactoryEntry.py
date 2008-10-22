@@ -353,13 +353,20 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
 
-    cleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
-                                     7*24*3600,
-                                     activity_log,warning_log)
+    logCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(factory_info\..*)|(factory_err\..*)",
+                                        float(glideinDescript.data['LogRetentionDays'])*24*3600,
+                                        activity_log,warning_log)
 
     jobCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
-                                     float(glideinDescript.data['JobLogRetentionDays'])*24*3600,
-                                     activity_log,warning_log)
+                                        float(glideinDescript.data['JobLogRetentionDays'])*24*3600,
+                                        activity_log,warning_log)
+    summaryCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(completed_jobs_\..*\.log)",
+                                        float(glideinDescript.data['SummaryLogRetentionDays'])*24*3600,
+                                        activity_log,warning_log)
+
+    condorCleanupObj=logSupport.DirCleanup(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(condor_activity_\..*\.log)|(condor_activity_\..*\.log.ftstpk)",
+                                           float(glideinDescript.data['CondorLogRetentionDays'])*24*3600,
+                                           activity_log,warning_log)
 
     # use config values to configure the factory
     glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['EntryWantedMonitorGraphs'],',')
@@ -387,7 +394,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
             try:
                 glideFactoryLib.factoryConfig.activity_log.write("Starting up")
                 iterate(parent_pid,
-                        (cleanupObj,jobCleanupObj),
+                        (jobCleanupObj,logCleanupObj,summaryCleanupObj,condorCleanupObj),
                         sleep_time,advertize_rate,
                         glideinDescript,jobDescript,jobAttributes,jobParams)
             except KeyboardInterrupt:
