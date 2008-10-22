@@ -1351,6 +1351,10 @@ def vofrontend_install():
         fd.write('# for example: \'glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")\'\n');
         fd.write("match_string=%r\n\n"%match_str)
 
+        fd.write("# If you want to send a proxy to the factory, specify it here\n")
+        fd.write("# The factory must support encryption for this\n")
+        fd.write("# x509_proxy = 'your fname here'\n\n")
+        
         fd.write("# How much pressure should I apply to the entry points\n")
         fd.write("max_idle_glideins_per_entry=100\n")
         fd.write("# Add a few more to account for Condor-G errors\n")
