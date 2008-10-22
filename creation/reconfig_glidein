@@ -43,9 +43,9 @@ def main(params,old_params):
     glidein_dicts_obj.save()
     glidein_dicts_obj.set_readonly(True)
 
-    # save config into file
+    # save config into file (with backup, since the old one already exists)
     cfgfile=os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE)
-    params.save_into_file(cfgfile,set_ro=True)
+    params.save_into_file_wbackup(cfgfile,set_ro=True)
     # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
     cfgfile=cgWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
