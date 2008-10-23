@@ -264,6 +264,7 @@ class Params:
         security_default=xmlParse.OrderedDict()
         security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
+        security_default["allow_proxy"]=("factory,frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
         
         self.defaults["security"]=security_default
         
