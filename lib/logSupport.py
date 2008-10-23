@@ -146,7 +146,7 @@ class DirCleanupWSpace(DirCleanup):
             fsize=fstat[stat.ST_SIZE]
             used_space+=fsize
 
-        for fpath in files_fpaths:
+        for fpath in fpaths:
             fstat=files_wstats[fpath]
 
             update_time=fstat[stat.ST_MTIME]
