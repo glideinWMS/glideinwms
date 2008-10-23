@@ -70,9 +70,35 @@ class DirCleanup:
         return
 
     def cleanup(self):
-        treshold_time=time.time()-self.maxlife
-        fnames=os.listdir(self.dirname)
         count_removes=0
+
+        treshold_time=time.time()-self.maxlife
+        files_wstats=self.get_files_wstates()
+
+        for fpath in files_wstats.keys():
+            fstat=files_wstats[fpath]
+
+            update_time=fstat[stat.ST_MTIME]
+            if update_time<treshold_time:
+                try:
+                    os.unlink(fpath)
+                    count_removes+=1
+                except:
+                   if self.warning_log!=None:
+                       self.warning_log.write("Could not remove %s"%fpath)
+
+        if count_removes>0:
+            if self.activity_log!=None:
+                self.activity_log.write("Removed %i files."%count_removes)
+
+        return
+
+    # INTERNAL
+    # return a dictionary of fpaths each havinf the os.lstat output
+    def get_files_wstats(self):
+        out_data={}
+
+        fnames=os.listdir(self.dirname)
         for fname in fnames:
             if self.fname_expression_obj.match(fname)==None:
                 continue # ignore files that do not match
@@ -83,19 +109,10 @@ class DirCleanup:
             isdir=stat.S_ISDIR(fmode)
             if isdir:
                 continue #ignore directories
-            update_time=fstat[stat.ST_MTIME]
-            if update_time<treshold_time:
-                try:
-                    os.unlink(fpath)
-                except:
-                   if self.warning_log!=None:
-                       self.warning_log.write("Could not remove %s"%fpath)
-                count_removes=count_removes+1
-        if count_removes>0:
-            if self.activity_log!=None:
-                self.activity_log.write("Removed %i files."%count_removes)
+            out_data[fpath]=fstat
 
-        return
+        return out_data
+        
 
 # this class is used for cleanup
 class DirCleanupWSpace(DirCleanup):
@@ -111,40 +128,43 @@ class DirCleanupWSpace(DirCleanup):
         return
 
     def cleanup(self):
-        used_space=0L
-        treshold_time=time.time()-self.maxlife
-        min_treshold_time=time.time()-self.minlife
-        fnames=os.listdir(self.dirname)
         count_removes=0
         count_removes_bytes=0L
-        for fname in fnames:
-            if self.fname_expression_obj.match(fname)==None:
-                continue # ignore files that do not match
-            fpath=os.path.join(self.dirname,fname)
-            fstat=os.lstat(fpath)
-            fmode=fstat[stat.ST_MODE]
-            isdir=stat.S_ISDIR(fmode)
-            if isdir:
-                continue #ignore directories
+        
+        min_treshold_time=time.time()-self.minlife
+        treshold_time=time.time()-self.maxlife
 
-            update_time=fstat[stat.ST_MTIME]
-            if update_time>=min_treshold_time:
-                continue # too young, don't touch it
-            
+        files_wstats=self.get_files_wstates()
+        fpaths=files_wstats.keys()
+        # order based on time (older first)
+        fpaths.sort(lambda i,j:cmp(files_wstats[i][stat.ST_MTIME],files_wstats[j][stat.ST_MTIME]))
+
+        # first calc the amount of space currently used
+        used_space=0L        
+        for fpath in files_fpaths:
+            fstat=files_wstats[fpath]
             fsize=fstat[stat.ST_SIZE]
             used_space+=fsize
-            
-            if (used_size>self.maxspace) or (update_time<treshold_time):
+
+        for fpath in files_fpaths:
+            fstat=files_wstats[fpath]
+
+            update_time=fstat[stat.ST_MTIME]
+            fsize=fstat[stat.ST_SIZE]
+
+            if ((update_time<treshold_time) or
+                ((update_time<min_treshold_time) and (used_space>self.maxspace))):
                 try:
                     os.unlink(fpath)
+                    count_removes+=1
+                    count_removes_bytes+=fsize
+                    used_space-=fsize
                 except:
                    if self.warning_log!=None:
                        self.warning_log.write("Could not remove %s"%fpath)
-                count_removes=count_removes+1
-                count_removes_bytes+=fsize
+                
         if count_removes>0:
             if self.activity_log!=None:
                 self.activity_log.write("Removed %i files for %.2fMB."%(count_removes,count_removes_bytes/(1024.0*1024.0)))
-
         return
 
