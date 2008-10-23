@@ -141,7 +141,7 @@ class DirCleanupWSpace(DirCleanup):
 
         # first calc the amount of space currently used
         used_space=0L        
-        for fpath in files_fpaths:
+        for fpath in fpaths:
             fstat=files_wstats[fpath]
             fsize=fstat[stat.ST_SIZE]
             used_space+=fsize
