@@ -73,7 +73,7 @@ class DirCleanup:
         count_removes=0
 
         treshold_time=time.time()-self.maxlife
-        files_wstats=self.get_files_wstates()
+        files_wstats=self.get_files_wstats()
 
         for fpath in files_wstats.keys():
             fstat=files_wstats[fpath]
@@ -134,7 +134,7 @@ class DirCleanupWSpace(DirCleanup):
         min_treshold_time=time.time()-self.minlife
         treshold_time=time.time()-self.maxlife
 
-        files_wstats=self.get_files_wstates()
+        files_wstats=self.get_files_wstats()
         fpaths=files_wstats.keys()
         # order based on time (older first)
         fpaths.sort(lambda i,j:cmp(files_wstats[i][stat.ST_MTIME],files_wstats[j][stat.ST_MTIME]))
