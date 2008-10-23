@@ -115,6 +115,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('Entries',string.join(self.active_entry_list,','))
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
+        validate_job_proxy_source(params.security.allow_proxy)
         glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
         glidein_dict.add('DowntimesFile',down_fname)
         for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
@@ -489,3 +490,13 @@ def symlink_file(infile,outfile):
     except IOError, e:
         raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
 
+#################################
+# Check that it is a string list
+# containing only valid entries
+def validate_job_proxy_source(allow_proxy):
+    recognized_sources=('factory','frontend')
+    ap_list=allow_proxy.split(',')
+    for source in ap_list:
+        if not (source in recognized_sources):
+            raise RuntimeError, "'%s' not a valid proxy source (valid list = %s)"%(source,recognized_sources)
+    return
