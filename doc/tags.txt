@@ -1,4 +1,4 @@
-vNext	Added support for secure info passing between
+v1_5	Added support for secure info passing between
           VO frontend and gfactory
           Requires M2Crypto Python module
         VO frontend can now give the gfactory int own proxy
