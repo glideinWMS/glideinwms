@@ -109,6 +109,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
+    allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     #glideFactoryLib.factoryConfig.activity_log.write("Find work")
     work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,pub_key_obj)
@@ -148,6 +149,14 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
                 continue #skip request
             x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(work_key,decrypted_params['x509_proxy'])
+            if not ('frontend' in allowed_proxy_source):
+                glideFactoryLib.factoryConfig.warning_log.write("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
+                continue #skip request
+        else:
+            if not ('factory' in allowed_proxy_source):
+                glideFactoryLib.factoryConfig.warning_log.write("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
+                continue #skip request
+                
             
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
@@ -221,6 +230,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     factory_name=glideinDescript.data['FactoryName']
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
+    allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
@@ -233,6 +243,8 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
+        myJobAttributes['GLIDEIN_Require_Proxy']=not ('factory' in allowed_proxy_source)
+        myJobAttributes['GLIDEIN_Allow_Proxy']=('frontend' in allowed_proxy_source)
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
                                                pub_key_obj)
