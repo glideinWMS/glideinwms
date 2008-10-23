@@ -115,7 +115,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('Entries',string.join(self.active_entry_list,','))
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        glidein_dict.add('AllowedProxyType',params.security.allow_proxy)
+        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
         glidein_dict.add('DowntimesFile',down_fname)
         for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
