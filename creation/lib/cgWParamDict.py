@@ -39,7 +39,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
 
     def create_dirs(self):
         cgWDictFile.glideinMainDicts.create_dirs(self)
-        self.internal_create_dirs()
+        self.create_pd_dirs()
 
     def delete_dirs(self):
         cgWDictFile.glideinMainDicts.delete_dirs(self)
@@ -184,7 +184,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
     def create_dirs(self):
         cgWDictFile.glideinEntryDicts.create_dirs(self)
-        self.internal_create_dirs()
+        self.create_pd_dirs()
 
     def delete_dirs(self):
         cgWDictFile.glideinEntryDicts.delete_dirs(self)
