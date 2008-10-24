@@ -163,8 +163,8 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
                 fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
                 fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n'))
                 if allowed_proxy_source!=None:
-                    fd.write('GlideinAllowx509_Proxy = "%s"\n'%('frontend' in allowed_proxy_source))
-                    fd.write('GlideinRequirex509_Proxy = "%s"\n'%(not ('factory' in allowed_proxy_source)))
+                    fd.write('GlideinAllowx509_Proxy = %s\n'%('frontend' in allowed_proxy_source))
+                    fd.write('GlideinRequirex509_Proxy = %s\n'%(not ('factory' in allowed_proxy_source)))
             fd.write('DaemonStartTime = %li\n'%start_time)
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             advertizeGlideinCounter+=1
