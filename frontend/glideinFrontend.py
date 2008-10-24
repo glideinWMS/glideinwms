@@ -68,7 +68,7 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
     global log_files
 
     # query condor
-    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint)
+    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint,x509_proxy!=None)
 
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])

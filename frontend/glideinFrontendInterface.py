@@ -58,10 +58,19 @@ frontendConfig=FrontendConfig()
 
 
 def findGlideins(factory_pool,
-                 additional_constraint=None):
+                 additional_constraint=None,
+                 have_proxy=False):
     global frontendConfig
     
     status_constraint='(GlideinMyType=?="%s")'%(frontendConfig.factory_id)
+
+    if have_proxy:
+        # must support secure message passing and must allow proxies
+        status_constraint+='&& (PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False)'
+    else:
+        # cannot use factories that require a proxy
+        status_constraint+='&& (GlideinRequirex509_Proxy=!=True)'
+
     if additional_constraint!=None:
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
