@@ -151,6 +151,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         if self.params.security.pub_key=='None':
             pass # nothing to do
         elif self.params.security.pub_key=='RSA':
+            import pubCrypto
             rsa_key_fname=os.path.join(self.submit_dir,cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
@@ -161,7 +162,6 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
                 fd=os.open(rsa_key_fname,os.O_CREAT,0600)
                 os.close(fd)
                 
-                import pubCrypto
                 key_obj=pubCrypto.RSAKey()
                 key_obj.new(int(self.params.security.key_length))
                 key_obj.save(rsa_key_fname)            
