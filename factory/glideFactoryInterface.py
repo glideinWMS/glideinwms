@@ -281,37 +281,3 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
         os.remove(tmpnam)
 
 
-###########################################################
-#
-# CVS info
-#
-# $Id: glideFactoryInterface.py,v 1.26 2008/09/15 17:28:46 sfiligoi Exp $
-#
-# Log:
-#  $Log: glideFactoryInterface.py,v $
-#  Revision 1.26  2008/09/15 17:28:46  sfiligoi
-#  Improve key handling and put in Entry
-#
-#  Revision 1.25  2008/09/15 17:11:21  sfiligoi
-#  Add decoding of encrypted params
-#
-#  Revision 1.24  2008/09/15 16:40:41  sfiligoi
-#  Better encapsulation
-#
-#  Revision 1.23  2008/09/15 16:04:34  sfiligoi
-#  Make sending PubKeyType optional
-#
-#  Revision 1.22  2008/08/19 21:53:02  sfiligoi
-#  Add PubKeyID
-#
-#  Revision 1.21  2008/08/19 18:01:20  sfiligoi
-#  Add protection for newlines
-#
-#  Revision 1.20  2008/08/19 15:10:56  sfiligoi
-#  Use PubKey
-#
-#  Revision 1.19  2007/05/18 19:10:57  sfiligoi
-#  Add CVS tags
-#
-#
-###########################################################
