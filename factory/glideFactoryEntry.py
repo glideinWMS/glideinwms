@@ -112,7 +112,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     #glideFactoryLib.factoryConfig.activity_log.write("Find work")
-    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,pub_key_obj)
+    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,pub_key_obj,allowed_proxy_source)
     glideFactoryLib.logWorkRequests(work)
     
     if len(work.keys())==0:
@@ -231,7 +231,6 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
     current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
@@ -243,11 +242,9 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        myJobAttributes['GLIDEIN_Require_Proxy']=not ('factory' in allowed_proxy_source)
-        myJobAttributes['GLIDEIN_Allow_Proxy']=('frontend' in allowed_proxy_source)
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
-                                               pub_key_obj)
+                                               pub_key_obj,allowed_proxy_source)
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
 
