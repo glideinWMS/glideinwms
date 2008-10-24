@@ -14,8 +14,7 @@ import cgWConsts
 
 # internal, can only be used for multiple inheritance
 class glideinCommonDicts:
-    def create_dirs(self):
-        cgWDictFile.glideinCommonDicts.create_dirs(self)
+    def create_pd_dirs(self):
         try:
             os.mkdir(self.monitor_dir)
         except OSError,e:
@@ -29,8 +28,7 @@ class glideinCommonDicts:
             shutil.rmtree(self.monitor_dir)
             raise RuntimeError,"Failed to create symlink %s: %s"%(os.path.join(self.submit_dir,"monitor"),e)
 
-    def delete_dirs(self):
-        cgWDictFile.glideinCommonDicts.delete_dirs(self)
+    def delete_pd_dirs(self):
         shutil.rmtree(self.monitor_dir)
 
 class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
@@ -38,6 +36,14 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir)
         self.monitor_dir=params.monitor_dir
         self.params=params
+
+    def create_dirs(self):
+        cgWDictFile.glideinMainDicts.create_dirs(self)
+        self.internal_create_dirs()
+
+    def delete_dirs(self):
+        cgWDictFile.glideinMainDicts.delete_dirs(self)
+        self.delete_pd_dirs()
 
     def populate(self,params=None):
         if params==None:
@@ -175,6 +181,14 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         cgWDictFile.glideinEntryDicts.__init__(self,glidein_main_dicts,entry_name)
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,entry_name)
         self.params=glidein_main_dicts.params
+
+    def create_dirs(self):
+        cgWDictFile.glideinEntryDicts.create_dirs(self)
+        self.internal_create_dirs()
+
+    def delete_dirs(self):
+        cgWDictFile.glideinEntryDicts.delete_dirs(self)
+        self.delete_pd_dirs()
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
