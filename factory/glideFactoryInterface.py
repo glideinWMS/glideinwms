@@ -56,7 +56,7 @@ factoryConfig=FactoryConfig()
 
 
 def findWork(factory_name,glidein_name,entry_name,
-             pub_key_obj=None):
+             pub_key_obj=None,allowed_proxy_source=None):
     """
     Look for requests.
     Look for classAds that have my (factory, glidein name, entry name).
@@ -74,6 +74,12 @@ def findWork(factory_name,glidein_name,entry_name,
         # get only classads that have my key or no key at all
         # any other key will not work
         status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
+        if not ('factory' in allowed_proxy_source):
+            # the proxy is required, so look for it 
+            status_constraint+=' && (GlideinEncParamx509_proxy =!= UNDEFINED)'
+        if not ('frontend' in allowed_proxy_source):
+            # the proxy is not allowed, so ignore such requests 
+            status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED)'
     status=condorMonitor.CondorStatus("any")
     status.glidein_name=glidein_name
     status.entry_name=entry_name
@@ -137,7 +143,7 @@ advertizeGlideinCounter=0
 # similar for glidein_params and glidein_monitor_monitors
 def advertizeGlidein(factory_name,glidein_name,entry_name,
                      glidein_attrs={},glidein_params={},glidein_monitors={},
-                     pub_key_obj=None):
+                     pub_key_obj=None,allowed_proxy_source=None):
     global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -156,6 +162,9 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
                 fd.write('PubKeyID = "%s"\n'%pub_key_obj.get_pub_key_id())
                 fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
                 fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n'))
+                if allowed_proxy_source!=None:
+                    fd.write('GlideinAllowx509_Proxy = "%s"\n'%('frontend' in allowed_proxy_source))
+                    fd.write('GlideinRequirex509_Proxy = "%s"\n'%(not ('factory' in allowed_proxy_source)))
             fd.write('DaemonStartTime = %li\n'%start_time)
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             advertizeGlideinCounter+=1
