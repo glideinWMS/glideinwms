@@ -1,3 +1,6 @@
+vNext	Added flag that allows/requires proxies from frontend.
+	Fixed bug in factory installation with encryption.
+
 v1_5	Added support for secure info passing between
           VO frontend and gfactory
           Requires M2Crypto Python module
