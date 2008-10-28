@@ -11,7 +11,7 @@ function check_blacklist {
 	exit 1
     fi
     emyname=`echo $myname | sed 's/\./\\\./g'`
-    grep -q -e "'^$emyname'" "$blacklist_file"
+    grep -q -e "^'$emyname'" "$blacklist_file"
     if [ $? -eq 0 ]; then
 	echo "My name '$myname' is in blacklist! Exiting."
 	exit 1
@@ -23,7 +23,7 @@ function check_blacklist {
 	return 0
     fi
     emyip=`echo $myip | sed 's/\./\\\./g'`
-    grep -q -e "'$emyip'" "$blacklist_file"
+    grep -q -e "^'$emyip'" "$blacklist_file"
     if [ $? -eq 0 ]; then
 	echo "My ip '$myip' is in blacklist! Exiting."
 	exit 1
