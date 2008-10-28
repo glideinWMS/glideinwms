@@ -1,5 +1,6 @@
 vNext	Added flag that allows/requires proxies from frontend.
 	Fixed bug in factory installation with encryption.
+	The glidein now finds out about OSG squid.
 
 v1_5	Added support for secure info passing between
           VO frontend and gfactory
