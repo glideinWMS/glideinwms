@@ -189,7 +189,7 @@ if [ -z "$proxy_url" ]; then
 fi
 
 if [ "$proxy_url" == "OSG" ]; then
-  proxy_url="$OSG_SQUID_LOCATION"
+  proxy_url="$OSG_SQUID_LOCATION:3128"
 fi
 
 if [ -z "sign_id" ]; then
