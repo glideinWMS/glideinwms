@@ -188,6 +188,10 @@ if [ -z "$proxy_url" ]; then
   proxy_url="None"
 fi
 
+if [ "$proxy_url" == "OSG" ]; then
+  proxy_url="$OSG_SQUID_LOCATION"
+fi
+
 if [ -z "sign_id" ]; then
     warn "Missing signature." 1>&2
     usage
