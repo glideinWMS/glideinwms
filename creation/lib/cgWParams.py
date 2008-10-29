@@ -186,7 +186,7 @@ class Params:
         old_default_dicts_params=xmlFormat.DEFAULT_DICTS_PARAMS
         xmlFormat.DEFAULT_IGNORE_NONES=True
         # these are used internally, do not need to be ordered
-        xml_format=self.xml_format()
+        xml_format=self.get_xml_format()
         xmlFormat.DEFAULT_LISTS_PARAMS=xml_format['lists_params']
         xmlFormat.DEFAULT_DICTS_PARAMS=xml_format['dicts_params']
         # hack needed to make xmlFormat to properly do the formating
