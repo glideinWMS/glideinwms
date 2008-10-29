@@ -23,38 +23,18 @@ import cWParams
 
 ######################################################
 # Params used by create_glideins and recreate_glideins
-class GlideinParams(cWParams.Params):
+class GlideinParams(cWParams.CommonParams):
     # populate self.defaults
     def init_defaults(self):
-        self.attr_defaults=xmlParse.OrderedDict()
-        self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
-        self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
-        self.attr_defaults["parameter"]=("True","Bool","Should it be a parameter for the glidein?",None)
-        self.attr_defaults["glidein_publish"]=("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None)
-        self.attr_defaults["job_publish"]=("False","Bool","Should the glidein publish it to the job? (Used only if parameter is True.)",None)
-        self.attr_defaults["const"]=("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None)
-        self.attr_defaults["type"]=("string","string|int","What kind on data is value.",None)
+        self.init_support_defaults()
 
-        self.file_defaults=xmlParse.OrderedDict()
-        self.file_defaults["absfname"]=(None,"fname","File name on the local disk.",None)
-        self.file_defaults["relfname"]=(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None)
-        self.file_defaults["const"]=("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None)
-        self.file_defaults["executable"]=("False",'Bool','Is this an executable that needs to be run in the glidein?',None)
-        self.file_defaults["wrapper"]=("False",'Bool','Is this a wrapper script that needs to be sourced in the glidein job wrapper?',None)
+        # ordering is specific to factory
         self.file_defaults["after_entry"]=("False",'Bool','Should this file be loaded after the entry ones?',None)
-        self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
 
         self.infosys_defaults=xmlParse.OrderedDict()
         self.infosys_defaults["type"]=(None,"RESS|BDII","Type of information system",None)
         self.infosys_defaults["server"]=(None,"host","Location of the infosys server",None)
         self.infosys_defaults["ref"]=(None,"id","Referenced for the entry point in the infosys",None)
-
-
-        untar_defaults=xmlParse.OrderedDict()
-        untar_defaults["cond_attr"]=("TRUE","attrname","If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",None)
-        untar_defaults["dir"]=(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None)
-        untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
-        self.file_defaults["untar_options"]=untar_defaults
 
         downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
 
