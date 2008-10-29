@@ -37,8 +37,6 @@ class GlideinParams(cWParams.CommonParams):
         self.infosys_defaults["server"]=(None,"host","Location of the infosys server",None)
         self.infosys_defaults["ref"]=(None,"id","Referenced for the entry point in the infosys",None)
 
-        downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
-
         entry_config_defaults=xmlParse.OrderedDict()
 
         entry_config_max_jobs_defaults=xmlParse.OrderedDict()
@@ -78,7 +76,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=sub_defaults['files']
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
-        self.entry_defaults["downtimes"]=downtimes_defaults
+        self.entry_defaults["downtimes"]=self.downtimes_defaults
         
 
         ###############################
@@ -141,7 +139,7 @@ class GlideinParams(cWParams.CommonParams):
         condor_defaults["base_dir"]=(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
         self.defaults["condor"]=condor_defaults
 
-        self.defaults["downtimes"]=downtimes_defaults
+        self.defaults["downtimes"]=self.downtimes_defaults
 
         self.defaults["attrs"]=sub_defaults['attrs']
         self.defaults["files"]=copy.deepcopy(sub_defaults['files'])

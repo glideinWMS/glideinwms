@@ -313,6 +313,9 @@ class CommonParams(Params):
         untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
         self.file_defaults["untar_options"]=untar_defaults
 
+        self.downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
+        return
+
 
 ####################################################################
 # return attribute value in the proper python format
