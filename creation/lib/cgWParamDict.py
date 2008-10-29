@@ -7,7 +7,7 @@
 #######################################################
 
 import os,os.path,shutil,string
-import cgWParams
+import cWParams
 import cgWDictFile
 import cgWCreate
 import cgWConsts
@@ -418,7 +418,7 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
     do_publish=eval(attr_obj.publish,{},{})
     is_parameter=eval(attr_obj.parameter,{},{})
     is_const=eval(attr_obj.const,{},{})
-    attr_val=cgWParams.extract_attr_val(attr_obj)
+    attr_val=cWParams.extract_attr_val(attr_obj)
     
     if do_publish: # publish in factory ClassAd
         if is_parameter: # but also push to glidein
