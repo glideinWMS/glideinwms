@@ -293,12 +293,10 @@ class CommonParams(Params):
         # attributes are generic, shared between frontend and factory
         self.attr_defaults=xmlParse.OrderedDict()
         self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
-        self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
-        self.attr_defaults["parameter"]=("True","Bool","Should it be a parameter for the glidein?",None)
+        self.attr_defaults["parameter"]=("True","Bool","Should it be passed as a parameter?",None)
         self.attr_defaults["glidein_publish"]=("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None)
         self.attr_defaults["job_publish"]=("False","Bool","Should the glidein publish it to the job? (Used only if parameter is True.)",None)
-        self.attr_defaults["const"]=("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None)
-        self.attr_defaults["type"]=("string","string|int","What kind on data is value.",None)
+        self.attr_defaults["type"]=["string","string|int","What kind on data is value.",None]
 
         # most file attributes are generic, shared between frontend and factory
         self.file_defaults=xmlParse.OrderedDict()

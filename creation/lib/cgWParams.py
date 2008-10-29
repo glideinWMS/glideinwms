@@ -28,8 +28,9 @@ class GlideinParams(cWParams.CommonParams):
     def init_defaults(self):
         self.init_support_defaults()
 
-        # ordering is specific to factory
-        self.file_defaults["after_entry"]=("False",'Bool','Should this file be loaded after the entry ones?',None)
+        # publishing specific to factory
+        self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
+        self.attr_defaults["const"]=("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None)
 
         self.infosys_defaults=xmlParse.OrderedDict()
         self.infosys_defaults["type"]=(None,"RESS|BDII","Type of information system",None)
@@ -75,8 +76,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
         self.entry_defaults["config"]=entry_config_defaults
         self.entry_defaults["attrs"]=sub_defaults['attrs']
-        self.entry_defaults["files"]=copy.deepcopy(sub_defaults['files'])
-        del self.entry_defaults["files"][3]["after_entry"] # this is the entry, so after entry does not make sense
+        self.entry_defaults["files"]=sub_defaults['files']
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=downtimes_defaults
         
@@ -144,7 +144,10 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["downtimes"]=downtimes_defaults
 
         self.defaults["attrs"]=sub_defaults['attrs']
-        self.defaults["files"]=sub_defaults['files']
+        self.defaults["files"]=copy.deepcopy(sub_defaults['files'])
+        # ordering is specific to global section of factory
+        self.defaults["files"][3]["after_entry"]=("False",'Bool','Should this file be loaded after the entry ones?',None)
+
         self.defaults["entries"]=(xmlParse.OrderedDict(),"Dictionary of entries","Each entry contains",self.entry_defaults)
         
         return
