@@ -97,8 +97,8 @@ class HashMD5(Hash):
 def get_md5(data):
     return get_hash('md5',data)
 
-def extract_md5(fname):
-    return extract_hash('md5',fname)
+def extract_md5(fname,block_size=1000000):
+    return extract_hash('md5',fname,block_size)
 
 class HashSHA1(Hash):
     def __init__(self):
@@ -107,8 +107,8 @@ class HashSHA1(Hash):
 def get_sha1(data):
     return get_hash('sha1',data)
 
-def extract_sha1(fname):
-    return extract_hash('sha1',fname)
+def extract_sha1(fname,block_size=1000000):
+    return extract_hash('sha1',fname,block_size)
 
 class HashSHA256(Hash):
     def __init__(self):
@@ -117,6 +117,6 @@ class HashSHA256(Hash):
 def get_sha256(data):
     return get_hash('sha256',data)
 
-def extract_sha256(fname):
-    return extract_hash('sha256',fname)
+def extract_sha256(fname,block_size=1000000):
+    return extract_hash('sha256',fname,block_size)
 
