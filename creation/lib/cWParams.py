@@ -329,6 +329,26 @@ def extract_attr_val(attr_obj):
         return int(attr_obj.value)
 
 
+################################################
+# Check is a string can be used as a valid name
+# Whitelist based
+def is_valid_name(name):
+    # empty name is not valid
+    if name==None:
+        return False
+    if name=="":
+        return False
+    
+    # only allow ascii charactersm, the numbers, . and _
+    # no spaces, not special characters or other punctuation
+    valid_chars=string.ascii_letters+string.digits+'._'
+
+    for c in name:
+        if not (c in valid_chars):
+            return False
+    return True
+
+
 ############################################################
 #
 # P R I V A T E - Do not use

@@ -32,8 +32,11 @@ class VOFrontendParams(cWParams.CommonParams):
         # but there could be exceptions
         self.file_defaults["after_entry"]=("True",'Bool','Should this file be loaded after the factory entry ones?',None)
 
+        # publishing specific to frontend
+        self.attr_defaults["conditional"]=("True","Bool","Should I only publish if the factory tell us it supports it?",None)
+
         group_config_defaults=xmlParse.OrderedDict()
-        group_config_defaults['max_runnint_jobs']=('10000',"nr_jobs","Maximum number of concurrent glideins that should be running.",None)
+        group_config_defaults['max_running_jobs']=('10000',"nr_jobs","What is the max number of running jobs I want to get to",None)
         
         group_config_glideins_defaults=xmlParse.OrderedDict()
         group_config_glideins_defaults["max"]=['100',"nr_jobs","How much pressure should I apply to the entry points",None]
@@ -71,9 +74,9 @@ class VOFrontendParams(cWParams.CommonParams):
         # Start defining the defaults
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
 
-        submit_defaults=xmlParse.OrderedDict()
-        submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
-        self.defaults["submit"]=submit_defaults
+        work_defaults=xmlParse.OrderedDict()
+        work_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Frontend base dir",None)
+        self.defaults["work"]=submit_work
 
         log_retention_defaults=xmlParse.OrderedDict()
         log_retention_defaults["min_days"]=["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
@@ -87,27 +90,25 @@ class VOFrontendParams(cWParams.CommonParams):
         stage_defaults=xmlParse.OrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/vofrontend/stage","base_dir","Stage base dir",None)
         stage_defaults["web_base_url"]=("http://%s/vofrontend/stage"%socket.gethostname(),'base_url','Base Web server URL',None)
-        stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
+        stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from work dir?",None)
         self.defaults["stage"]=stage_defaults
 
         monitor_opts_default=xmlParse.OrderedDict()
         monitor_opts_default["want_split_graphs"]=("True","Bool","Should create split graphs?",None)
-        monitor_opts_default["want_split_terminated_graphs"]=["False","Bool","Should create split terminated log graphs (CPU intensive)?",None]
         monitor_opts_default["want_trend_graphs"]=("True","Bool","Should create trend graphs?",None)
         monitor_opts_default["want_infoage_graphs"]=("True","Bool","Should create infoage graphs?",None)
 
         
         monitor_default=xmlParse.OrderedDict()
-        monitor_default["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Monitoring base dir",None)
+        monitor_default["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
         monitor_default["factory"]=copy.deepcopy(monitor_opts_default)
         monitor_default["factory"]["want_split_terminated_graphs"][0]="True" # even if CPU intensive, it is just one
         monitor_default["group"]=copy.deepcopy(monitor_opts_default)
         self.defaults["monitor"]=monitor_default
         
         security_default=xmlParse.OrderedDict()
-        security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)
-        security_default["key_length"]=("2048","bits","Key length in bits",None)
-        security_default["allow_proxy"]=("factory,frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
+        security_default["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
+        security_default["x509_proxy"]=(None,"fname","Where the x509 proxy will be found (if None, use factory one)",None)
         
         self.defaults["security"]=security_default
         
@@ -136,16 +137,15 @@ class VOFrontendParams(cWParams.CommonParams):
         if self.frontend_name==None:
             raise RuntimeError, "Missing frontend name"
 
-        glidein_subdir="glidein_%s"%self.glidein_name
-        self.stage_dir=os.path.join(self.stage.base_dir,glidein_subdir)
-        self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
-        self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
-        self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+        frontend_subdir="frontend_%s"%self.frontend_name
+        self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
+        self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
+        self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
+        self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
     # return xml formatting
     def get_xml_format(self):
-        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
-                                'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
+        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'groups':{'el_name':'group','subtypes_params':{'class':{}}}}}
 
 

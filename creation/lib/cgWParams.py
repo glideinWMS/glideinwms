@@ -159,12 +159,22 @@ class GlideinParams(cWParams.CommonParams):
         # glidein name does not have a reasonable default
         if self.glidein_name==None:
             raise RuntimeError, "Missing glidein name"
+        if not cWParams.is_valid_name(self.glidein_name):
+            raise RuntimeError, "Invalid glidein name '%s'"%self.glidein_name
 
         glidein_subdir="glidein_%s"%self.glidein_name
         self.stage_dir=os.path.join(self.stage.base_dir,glidein_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+
+        if not cWParams.is_valid_name(self.factory_name):
+            raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
+
+        entry_names=self.entries.keys()
+        for entry_name in entry_names:
+            if not cWParams.is_valid_name(entry_name):
+                raise RuntimeError, "Invalid entry name '%s'"%entry_name
 
     # return xml formatting
     def get_xml_format(self):
