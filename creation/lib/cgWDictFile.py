@@ -378,7 +378,7 @@ class DescriptionDictFile(DictFileTwoKeys):
 class SHA1DictFile(DictFile):
     def add_from_file(self,filepath,allow_overwrite=False,
                       key=None): # if key==None, use basefname
-        sha1=hashDict.extract_sha1(filepath)
+        sha1=hashCrypto.extract_sha1(filepath)
         if key==None:
             key=os.path.basename(filepath)
         self.add(key,sha1,allow_overwrite)
