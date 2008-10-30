@@ -411,7 +411,7 @@ class SummarySHA1DictFile(DictFile):
                       fname2=None, # if fname2==None, use basefname
                       allow_overwrite=False,
                       key=None):   # if key==None, use basefname
-        sha1=hashCrypt.extract_sha1(filepath)
+        sha1=hashCrypto.extract_sha1(filepath)
         if key==None:
             key=os.path.basename(filepath)        
         if fname2==None:
