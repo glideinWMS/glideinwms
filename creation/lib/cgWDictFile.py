@@ -5,8 +5,9 @@
 #
 #######################################################
 
-import os,os.path,shutil,string,popen2,copy
-import sets,cStringIO
+import os,os.path,shutil,string,copy
+import hashCrypto
+import cStringIO
 import cgWConsts
 
 ########################################
@@ -371,34 +372,13 @@ class DescriptionDictFile(DictFileTwoKeys):
 
         return self.add(arr[1],arr[0])
     
-##############################
-# Execute a command in a shell
-def exe_cmd(cmd):
-    childout, childin, childerr = popen2.popen3(cmd)
-    childin.close()
-    tempOut = childout.readlines()
-    childout.close()
-    tempErr = childerr.readlines()
-    childerr.close()
-    if (len(tempErr)!=0):
-        raise RuntimeError, "Error running '%s'\n%s"%(cmd,tempErr)
-    return tempOut
-#################################
-# Calculate SHA1 for the file
-def calc_sha1(filepath):
-    # older versions of python don't support sha1 natively :(
-    try:
-        sha1=string.split(exe_cmd("sha1sum %s"%filepath)[0])[0]
-    except RuntimeError, e:
-        raise RuntimeError, "Error calculating SHA1 for %s: %s"%(filepath,e)
-    return sha1
 ##################################
 
 # signatures
 class SHA1DictFile(DictFile):
     def add_from_file(self,filepath,allow_overwrite=False,
                       key=None): # if key==None, use basefname
-        sha1=calc_sha1(filepath)
+        sha1=hashDict.extract_sha1(filepath)
         if key==None:
             key=os.path.basename(filepath)
         self.add(key,sha1,allow_overwrite)
@@ -431,7 +411,7 @@ class SummarySHA1DictFile(DictFile):
                       fname2=None, # if fname2==None, use basefname
                       allow_overwrite=False,
                       key=None):   # if key==None, use basefname
-        sha1=calc_sha1(filepath)
+        sha1=hashCrypt.extract_sha1(filepath)
         if key==None:
             key=os.path.basename(filepath)        
         if fname2==None:
@@ -1321,175 +1301,3 @@ class glideinDicts:
     def new_entry(self,entry_name):
         return glideinEntryDicts(self.main_dicts,entry_name)
     
-###########################################################
-#
-# CVS info
-#
-# $Id: cgWDictFile.py,v 1.89 2008/09/16 15:47:16 sfiligoi Exp $
-#
-# Log:
-#  $Log: cgWDictFile.py,v $
-#  Revision 1.89  2008/09/16 15:47:16  sfiligoi
-#  Create proxy_dirs
-#
-#  Revision 1.88  2008/07/28 18:44:35  sfiligoi
-#  Add after_file_list
-#
-#  Revision 1.87  2008/07/28 18:18:44  sfiligoi
-#  Improve file headers
-#
-#  Revision 1.86  2008/07/28 18:13:58  sfiligoi
-#  Fix typo
-#
-#  Revision 1.85  2008/07/28 18:05:48  sfiligoi
-#  Improve file headers
-#
-#  Revision 1.84  2008/07/23 19:50:13  sfiligoi
-#  Change formatting of infosys file
-#
-#  Revision 1.83  2008/07/23 19:30:18  sfiligoi
-#  Add InfoSysDictFile, used for entries
-#
-#  Revision 1.82  2008/01/26 02:20:06  sfiligoi
-#  Allow overwrite of placeholders
-#
-#  Revision 1.81  2008/01/26 02:13:13  sfiligoi
-#  Allow overwrite of placeholders
-#
-#  Revision 1.80  2008/01/26 02:10:56  sfiligoi
-#  Allow overwrite of placeholders
-#
-#  Revision 1.79  2008/01/25 21:45:35  sfiligoi
-#  Move the grid-mapfile before setup_x509.sh; this added the remove method to DictFile and is_placeholder to FileDictFile
-#
-#  Revision 1.78  2007/12/31 15:37:03  sfiligoi
-#  Properly handle partial evaluation of booleans
-#
-#  Revision 1.77  2007/12/31 15:33:48  sfiligoi
-#  Fix bug
-#
-#  Revision 1.76  2007/12/28 20:46:21  sfiligoi
-#  Implement reuse of description and signature.
-#
-#  Revision 1.75  2007/12/26 15:31:11  sfiligoi
-#  Add support for new entries in reuse
-#
-#  Revision 1.74  2007/12/26 11:27:47  sfiligoi
-#  Add want_comments
-#
-#  Revision 1.72  2007/12/26 11:11:36  sfiligoi
-#  Compare on saved string
-#
-#  Revision 1.70  2007/12/26 10:06:37  sfiligoi
-#  Allow updates with identical values on readonly objects
-#
-#  Revision 1.68  2007/12/26 09:53:42  sfiligoi
-#  Improve file_list reuse
-#
-#  Revision 1.66  2007/12/26 09:16:51  sfiligoi
-#  Improve reuse
-#
-#  Revision 1.65  2007/12/22 20:53:20  sfiligoi
-#  Add missing module
-#
-#  Revision 1.64  2007/12/22 20:48:14  sfiligoi
-#  consts, untar_cfg and vars dicts now get saved via file_list
-#
-#  Revision 1.63  2007/12/22 20:33:35  sfiligoi
-#  Add string load/save
-#
-#  Revision 1.62  2007/12/21 21:16:04  sfiligoi
-#  Add fname_idx to Dict.__init__
-#
-#  Revision 1.61  2007/12/21 21:06:56  sfiligoi
-#  Add load_from_str and save_into_str
-#
-#  Revision 1.58  2007/12/21 18:46:33  sfiligoi
-#  Add save_into_fd and load_from_fd
-#
-#  Revision 1.54  2007/12/21 12:14:09  sfiligoi
-#  Load now uses file_list
-#
-#  Revision 1.53  2007/12/20 16:42:14  sfiligoi
-#  Update reuse
-#
-#  Revision 1.52  2007/12/17 21:50:17  sfiligoi
-#  Fix untar cfg handling
-#
-#  Revision 1.51  2007/12/17 20:50:28  sfiligoi
-#  Move subsystems into the file_list and add untar_cfg
-#
-#  Revision 1.50  2007/12/17 20:32:02  sfiligoi
-#  Add a deafult header to all files, this way we don't have empty files
-#
-#  Revision 1.48  2007/12/17 15:57:39  sfiligoi
-#  Fix get_immutable_files
-#
-#  Revision 1.46  2007/12/14 22:46:33  sfiligoi
-#  Temporary fix for special file handling
-#
-#  Revision 1.42  2007/12/14 22:28:08  sfiligoi
-#  Change file_list format and remove script_list (merged into file_list now)
-#
-#  Revision 1.41  2007/12/14 18:35:43  sfiligoi
-#  First steps toward reuse, and fixed CondorJDLDictFile.is_equal
-#
-#  Revision 1.39  2007/12/14 16:28:53  sfiligoi
-#  Move directory creation into the Dict classes
-#
-#  Revision 1.38  2007/12/14 14:36:11  sfiligoi
-#  Make saving optional if the dictionary has not been changed
-#
-#  Revision 1.35  2007/12/13 23:26:20  sfiligoi
-#  Get attributes out of stage and only into submit
-#
-#  Revision 1.33  2007/12/13 20:18:15  sfiligoi
-#  Add CondorJDLDictFile class, add set_readonly to save, and add glideinEntryDicts.save_final
-#
-#  Revision 1.31  2007/12/12 00:07:30  sfiligoi
-#  Add glidein and job_descript dictionaries
-#
-#  Revision 1.30  2007/12/11 23:47:52  sfiligoi
-#  Rename entry_dirs to have local scope
-#
-#  Revision 1.29  2007/12/11 23:31:47  sfiligoi
-#  Create entry_dirs in a single place
-#
-#  Revision 1.28  2007/12/11 23:03:01  sfiligoi
-#  Add entry order in glideins and make erase more general
-#
-#  Revision 1.27  2007/12/11 19:16:06  sfiligoi
-#  Simplify attribute handling
-#
-#  Revision 1.23  2007/12/10 21:23:15  sfiligoi
-#  Move sha1 calculations at the final stage
-#
-#  Revision 1.22  2007/12/10 19:47:06  sfiligoi
-#  Move file list maintenance to the proper place
-#
-#  Revision 1.21  2007/12/10 19:38:18  sfiligoi
-#  Put file handling in cgWDictFile
-#
-#  Revision 1.20  2007/12/03 23:57:27  sfiligoi
-#  Properly initialize file_list
-#
-#  Revision 1.16  2007/12/03 21:52:13  sfiligoi
-#  Move sha1 calculations into ...SHA1DictFile.add_from_file
-#
-#  Revision 1.15  2007/12/03 21:41:40  sfiligoi
-#  Implement the save methods, add sha1 calculation and fix DictFileTwoKeys.add
-#
-#  Revision 1.14  2007/12/03 20:15:00  sfiligoi
-#  Change create_description in refresh_description and use it
-#
-#  Revision 1.13  2007/12/03 19:49:20  sfiligoi
-#  Added create_description, plus a little bit of cleanup
-#
-#  Revision 1.2  2007/11/27 19:58:51  sfiligoi
-#  Move dicts initialization into cgWDictFile and entry subdir definition in cgWConsts
-#
-#  Revision 1.1  2007/10/25 22:28:27  sfiligoi
-#  FIle dictionary classes
-#
-#
-###########################################################
