@@ -58,7 +58,7 @@ class VOFrontendParams(cWParams.CommonParams):
         match_defaults=xmlParse.OrderedDict()
         match_defaults["factory_query_expr"]=('True','CondorExpr','Expression for selecting user jobs',None)
         match_defaults["job_query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
-        match_defaults["job_query_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
+        match_defaults["job_match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
         match_defaults["match_expr"]=('True','PythonExpr', 'Expression for matching jobs to factory entries',None)
 
         self.group_defaults=xmlParse.OrderedDict()
