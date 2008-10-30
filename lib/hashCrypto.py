@@ -69,11 +69,11 @@ class Hash:
 
     # like extract, but base64 encoded 
     def extract_base64(self,fname,block_size=1000000):
-        return binascii.b2a_base64(self.extract(data))
+        return binascii.b2a_base64(self.extract(fname,block_size))
 
     # like extract, but hex encoded 
     def extract_hex(self,fname,block_size=1000000):
-        return binascii.b2a_hex(self.extract(data))
+        return binascii.b2a_hex(self.extract(fname,block_size))
 
 #########################################
 
