@@ -136,12 +136,19 @@ class VOFrontendParams(cWParams.CommonParams):
         # glidein name does not have a reasonable default
         if self.frontend_name==None:
             raise RuntimeError, "Missing frontend name"
+        if not cWParams.is_valid_name(self.frontend_name):
+            raise RuntimeError, "Invalid frontend name '%s'"%self.frontend_name
 
         frontend_subdir="frontend_%s"%self.frontend_name
         self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
         self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
+
+        group_names=self.entries.keys()
+        for group_name in group_names:
+            if not cWParams.is_valid_name(group_name):
+                raise RuntimeError, "Invalid group name '%s'"%group_name
 
     # return xml formatting
     def get_xml_format(self):
