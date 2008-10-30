@@ -30,7 +30,7 @@ class Hash:
 
     def redefine(self,
                  hash_algo):
-        self.hash_also=hash_algo
+        self.hash_algo=hash_algo
         return
 
     ###########################################
