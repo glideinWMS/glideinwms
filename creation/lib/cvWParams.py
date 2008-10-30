@@ -76,7 +76,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         work_defaults=xmlParse.OrderedDict()
         work_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Frontend base dir",None)
-        self.defaults["work"]=submit_work
+        self.defaults["work"]=work_defaults
 
         log_retention_defaults=xmlParse.OrderedDict()
         log_retention_defaults["min_days"]=["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
