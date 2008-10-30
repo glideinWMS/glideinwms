@@ -144,7 +144,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
-        group_names=self.entries.keys()
+        group_names=self.groups.keys()
         for group_name in group_names:
             if not cWParams.is_valid_name(group_name):
                 raise RuntimeError, "Invalid group name '%s'"%group_name
