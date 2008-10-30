@@ -50,6 +50,31 @@ class Hash:
     def compute_hex(self,data):
         return binascii.b2a_hex(self.compute(data))
 
+    ###########################################
+    # extract hash from a file
+
+    # len(data) must be less than len(key)
+    def extract(self,fname,block_size=1000000):
+        h=M2Crypto.EVP.MessageDigest(self.hash_algo)
+        fd=open(fname,'rb')
+        try:
+            while 1:
+                data=fd.read(block_size)
+                if data=='':
+                    break # no more data, stop reading
+                h.update(data)               
+        finally:
+            fd.close()
+        return h.final()
+
+    # like extract, but base64 encoded 
+    def extract_base64(self,fname,block_size=1000000):
+        return binascii.b2a_base64(self.extract(data))
+
+    # like extract, but hex encoded 
+    def extract_hex(self,fname,block_size=1000000):
+        return binascii.b2a_hex(self.extract(data))
+
 #########################################
 
 # compute hash inline
@@ -60,16 +85,7 @@ def get_hash(hash_algo,data):
 # compute hash from file
 def extract_hash(hash_algo,fname,block_size=1000000):
     h=Hash(hash_algo)
-    fd=open(fname,'rb')
-    try:
-        while 1:
-            data=fd.read(block_size)
-            if data=='':
-                break # no more data, stop reading
-            h.update(data)               
-    finally:
-        fd.close()
-    return h.compute_hex(data)
+    return h.extract_hex(fname,block_size)
 
 ##########################################################################
 # Explicit hash algo section
