@@ -1643,10 +1643,11 @@ def install_vdt(minimal):
     else:
         platform_str="-pretend-platform %s"%platform
     print
-    print "The VDT installation will start in a moment"
+    print "The VDT installation will start in a moment."
+    print "CA certificates are installed as part of this procedure; ignore the VDT warning message."
     if not minimal:
-        print "Please do not enable Condor, as we will install it separatelly"
-        time.sleep(2)
+        print "Please do not enable Condor, as we will install it separatelly."
+    time.sleep(2)
     print
 
     # install the VDT client
