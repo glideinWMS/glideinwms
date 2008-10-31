@@ -146,7 +146,7 @@ def create_status_history():
     # remember to call update_locks before exiting this function
 
     # create graphs for RRDs
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/Idle",
                                                        "Idle glideins",
                                                        [("Requested","total/Requested_Attribute_Idle.rrd","AREA","00FFFF"),
@@ -154,26 +154,26 @@ def create_status_history():
                                                         ("Wait","total/Status_Attribute_Wait.rrd","LINE2","FF00FF"),
                                                         ("Pending","total/Status_Attribute_Pending.rrd","LINE2","00FF00"),
                                                         ("IdleOther","total/Status_Attribute_IdleOther.rrd","LINE2","FF0000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/Running",
                                                        "Running glideins",
                                                        [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00"),
                                                         ("ClientGlideins","total/ClientMonitor_Attribute_GlideinsTotal.rrd","LINE2","000000"),
                                                         ("ClientRunning","total/ClientMonitor_Attribute_GlideinsRunning.rrd","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/Held",
                                                        "Held glideins",
                                                        [("Held","total/Status_Attribute_Held.rrd","AREA","c00000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/ClientIdle",
                                                        "Idle client",
                                                        [("Idle","total/ClientMonitor_Attribute_Idle.rrd","AREA","00FFFF"),
                                                         ("Requested","total/Requested_Attribute_Idle.rrd","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/ClientRunning",
                                                        "Running client jobs",
                                                        [("Running","total/ClientMonitor_Attribute_Running.rrd","AREA","00FF00")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/InfoAge",
                                                        "Client info age",
                                                        [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
@@ -207,7 +207,7 @@ def create_status_history():
             tstr="%s glideins"%a
         else:
             tstr="%s %s glideins"%(tp,a)
-        glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status",
+        glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                            "total/Split_%s"%fname,
                                                            tstr,
                                                            rrd_fnames)
