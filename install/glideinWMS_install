@@ -1629,7 +1629,7 @@ def install_vdt(minimal):
     print "The platforms known to work are: %s"%string.join(tested_platforms,',')
     while 1:
         platform=raw_input("Which platform do you want to use (leave empty for autodetect): ")
-        if paltform=="":
+        if platform=="":
             break # no force 
         if not (platform in tested_platforms):
             yn=raw_input("Platform '%s' is not one of the tested ones. Are you sure you want to use it?: (y/n) "%platform)
@@ -1638,7 +1638,7 @@ def install_vdt(minimal):
         # user selected a platform
         break
 
-    if paltform=="":
+    if platform=="":
         platform_str=""
     else:
         platform_str="-pretend-platform %s"%platform
