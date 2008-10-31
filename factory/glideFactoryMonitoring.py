@@ -411,12 +411,14 @@ class MonitoringConfig:
                                   pname_other_list,gname_other_list,
                                   base_fname,ext_str,parent,
                                   rrd2graph_args):
+       long_fname=os.path.join(self.monitor_dir,base_fname)
        base_png_name=base_fname+".%s.%s.png"%(pname,gname)
        long_png_name=os.path.join(self.monitor_dir,base_png_name)
        html_name=long_png_name+ext_str
 
        base_dir,short_png_name=os.path.split(long_png_name)
        base_dir2=os.path.split(base_dir)[0]
+       short_fname=os.path.split(long_fname)[1]
 
        printout_args=[]
        for arg in rrd2graph_args[1:]: # ignore the first one, was the fname
@@ -429,10 +431,10 @@ class MonitoringConfig:
 
        gname_other_links=[]
        for g in gname_other_list:
-           gname_other_links.append('<a href="%s.%s.%s.png%s">%s</a>'%(base_fname,pname,g,ext_str,g))
+           gname_other_links.append('<a href="%s.%s.%s.png%s">%s</a>'%(short_fname,pname,g,ext_str,g))
        pname_other_links=[]
        for p in pname_other_list:
-           pname_other_links.append('<a href="%s.%s.%s.png%s">%s</a>'%(base_fname,p,gname,ext_str,p))
+           pname_other_links.append('<a href="%s.%s.%s.png%s">%s</a>'%(short_fname,p,gname,ext_str,p))
        
        fd=open(html_name,"w")
        try:
