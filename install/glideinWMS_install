@@ -113,7 +113,7 @@ def main():
 #-------------------------------------------------------------------------------
 def main_install_components():
     install_options={'a':{"title":"OSG VDT client",
-                          "proc":install_vdt,"order":1},
+                          "proc":query_vdt,"order":1},
                      'b':{"title":"Base Condor installation",
                           "proc":install_condor,"order":2}}
 
