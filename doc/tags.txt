@@ -1,4 +1,5 @@
 vNext	Fixed VDT installation
+	Minor monitoring improvements.
 
 v1_5_1	Added flag that allows/requires proxies from frontend.
 	Fixed bug in factory installation with encryption.
