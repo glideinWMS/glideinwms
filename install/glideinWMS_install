@@ -1527,85 +1527,193 @@ def query_vdt():
     global VDT_BASE_PATH
 
     while 1:
-        yn=raw_input("Do you have already a OSG VDT installation?: (y/n) ")
+        yn=raw_input("Do you have already a VDT installation?: (y/n) ")
         if (yn!="y") and (yn!="n"):
             print "Please answer y or n"
             continue 
 
         if yn=="y":
-            user_dir=raw_input("Where is the OSG VDT installed?: ")
+            user_dir=raw_input("Where is the VDT installed?: ")
             user_dir=os.path.abspath(user_dir)
             if not os.path.isfile("%s/setup.sh"%user_dir):
                 print "Directory '%s' not a VDT area (does not contain setup.sh)"%user_dir
                 continue
             if not os.path.isfile("%s/globus/bin/grid-proxy-info"%user_dir):
-                print "Directory '%s' not a OSG VDT area (does not contain globus/bin/grid-proxy-info)"%user_dir
+                print "Directory '%s' not a Grid VDT area (does not contain globus/bin/grid-proxy-info)"%user_dir
                 continue
             # found and verified the installation
-            print "Using OSG VDT installation in %s"%user_dir
+            print "Using VDT installation in %s"%user_dir
             print
             VDT_BASE_PATH=user_dir
             return
         else:
-            yn=raw_input("Do you want to install the OSG VDT client?: (y/n) ")
+            yn=raw_input("Do you want to install the full OSG VDT client?: (y/n) ")
             if (yn!="y"):
-                continue # do not install, ask again 
+                yn=raw_input("Do you want to install a minimal Grid VDT client?: (y/n) ")
+                if (yn!="y"):
+                    continue # do not install, ask again 
+                else:
+                    # install the minimal Grid VDT client
+                    try:
+                        install_vdt(minimal=True)
+                    except RuntimeError,e:
+                        print "%s"%e
+                        continue # ask again
+                    return
             else:
               # install OSG VDT client
               try:
-                install_vdt()
+                install_vdt(minimal=False)
               except RuntimeError,e:
                 print "%s"%e
                 continue # ask again
               return
 
+# add a bunch of lines to crontab
+###################################
+def cron_append(lines,tmp_dir='/tmp'):
+    tmp_fname="%s/tmp_%s_%s.tmp"%(tmp_dir,os.getpid(),time.time())
+    try:
+        os.system("crontab -l >%s"%tmp_fname)
+        fd=open(tmp_fname,'a')
+        try:
+            fd.writelines(lines)
+        finally:
+            fd.close()
+        os.system("crontab %s"%tmp_fname)
+    finally:
+        if os.path.isfile(tmp_fname):
+            os.unlink(tmp_fname)
+
+
 # Install OSG client
 ################################
-def install_vdt():
+MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','VOMS-Client','CA-Certificates-Updater']
+
+def install_vdt(minimal):
     global VDT_BASE_PATH
     def_vdt_base_path="/opt/vdt"
-    user_dir=create_empty_dir("Where do you want the OSG VDT installed?: ",def_vdt_base_path)
-    
-    # install pacman
-    err=os.system("cd %s&&wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.26.tar.gz&&tar --no-same-owner -xzvf pacman-3.26.tar.gz&&rm -f  pacman-3.26.tar.gz"%user_dir)
-    if err!=0:
-        raise RuntimeError,"Failed to install pacman!"
+    user_dir=create_empty_dir("Where do you want the VDT installed?: ",def_vdt_base_path)
+
+    while 1:
+        default_pacman_version="pacman-3.26"
+        pacman_version=raw_input("What pacman version should I use?: [%s] "%default_pacman_version)
+        if pacman_version=="":
+            pacman_version=default_pacman_version
+
+        # install pacman
+        err=os.system("cd %s&&wget http://physics.bu.edu/pacman/sample_cache/tarballs/%s.tar.gz&&tar --no-same-owner -xzvf %s.tar.gz&&rm -f  %s.tar.gz"%(user_dir,pacman_version,pacman_version,pacman_version))
+        if err!=0:
+            print "Failed to install pacman!"
+            continue
+        break
+
     print
 
+    if minimal:
+        default_cache_location="http://vdt.cs.wisc.edu/vdt_1101_cache"
+        cache_location=raw_input("What VDT cache should I use?: [%s] "%default_cache_location)
+        if cache_location=="":
+            cache_location=default_cache_location
+
+        package_list=[]
+        for p in MINIMAL_VDT_PACKAGES:
+            package_list.append("%s:%s"%(cache_location,p))
+    else:
+        package_list=['OSG:client']
+
     # ask user about the appropriate platform
-    tested_platforms=('linux-rhel-3','SL-3','linux-rhel-4','SL-4','linux-fedora-4','SL-5')
-    print "OSG client installation tends to be very picky about the platforms it installs under"
+    tested_platforms=('linux-rhel-3','SL-3','linux-rhel-4','SL-4','linux-fedora-4','linux-rhel-5','SL-5')
+    print "VDT client installation tends to be very picky about the platforms it installs under"
     print "Most of the time, one needs to pretent to be one of the tested platforms"
     print "The platforms known to work are: %s"%string.join(tested_platforms,',')
     while 1:
-        platform=raw_input("Which platform do you want to use: ")
+        platform=raw_input("Which platform do you want to use (leave empty for autodetect): ")
+        if paltform=="":
+            break # no force 
         if not (platform in tested_platforms):
             yn=raw_input("Platform '%s' is not one of the tested ones. Are you sure you want to use it?: (y/n) "%platform)
             if (yn!="y"):
                 continue # not sure, reask
         # user selected a platform
         break
+
+    if paltform=="":
+        platform_str=""
+    else:
+        platform_str="-pretend-platform %s"%platform
     print
-    print "The OSG VDT installation will start in a moment"
-    print "Please do not enable Condor, as we will install it separatelly"
-    time.sleep(2)
+    print "The VDT installation will start in a moment"
+    if not minimal:
+        print "Please do not enable Condor, as we will install it separatelly"
+        time.sleep(2)
     print
 
-    # install the OSG client
-    err=os.system("cd %s/pacman-3.26;source setup.sh;cd %s&&pacman -trust-all-caches -pretend-platform %s -get OSG:client"%(user_dir,user_dir,platform))
-    if err!=0:
-        raise RuntimeError,"Failed to install the OSG client!"
+    # install the VDT client
+    for p in package_list:
+        err=os.system("cd %s/%s;source setup.sh;cd %s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,p))
+        if err!=0:
+            raise RuntimeError,"Failed to install the VDT client!"
 
     
     # remove the condor component
     # ignore any error
-    os.system("cd %s/pacman-3.26;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,user_dir))
+    if not minimal:
+        os.system("cd %s/%s;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,pacman_version,user_dir))
 
-    # initialize the OSG client (only if root)
+    # initialize CA CRL config 
+    default_crl_url="http://software.grid.iu.edu/pacman/cadist/ca-certs-version"
+    crl_url=raw_input("Where should I fetch the CAs from?: [%s] "%default_crl_url)
+    if crl_url=="":
+        crl_url=default_crl_url
+
+    fd=open("%s/vdt/etc/vdt-update-certs.conf","a")
+    try:
+        fd.write("\n#CA URL provided during glideinWMS installation\n")
+        fd.write("cacerts_url = %s\n"%crl_url)
+    finally:
+        fd.close()
+        
+    err=os.system("cd %s;source setup.sh;source vdt-questions.sh; ./vdt/sbin/vdt-setup-ca-certificates"%user_dir)
+    if err!=0:
+        raise RuntimeError,"Failed to initalize the CAs!"
+
+    # initialize the VDT client
     if os.getuid()==0:
-        err=os.system("cd %s;source setup.sh;vdt-control --on"%user_dir)
+        # automatic if root
+        err=os.system("cd %s;source setup.sh;vdt-control --enable vdt-update-certs&&vdt-control --on"%user_dir)
         if err!=0:
-            raise RuntimeError,"Failed to initalize the OSG client!"
+            raise RuntimeError,"Failed to initalize the VDT client!"
+    else:
+        # else need to do it by hand
+        # make VDT create the template
+        err=os.system("cd %s;source setup.sh;vdt-register-service --enable --name fetch-crl&&vdt-register-service --enable --name vdt-rotate-logs&&vdt-register-service --enable --name vdt-update-certs"%user_dir)
+        if err!=0:
+            raise RuntimeError,"Failed to initalize the VDT client!"
+
+        # extract the lines to put in cron
+        fd=open("%s/vdt/services/state"%user_dir,'r')
+        try:
+            lines=fd.readlines()
+        finally:
+            fd.close()
+
+        cron_lines=[]
+        for line in lines:
+            els=line.split(None,8)
+            if len(els)!=9:
+                continue # ignore, not a good line
+            if (els[1]!='cron') or (els[2]!='enable'):
+                continue # not a cron line
+            cron_lines.append(string.join(els[3:]))
+            # also run it once by hand
+            print "Initializing %s"%els[0]
+            os.system(els[8])
+
+        # add them to cron
+        print "Adding $i lines to crontab"%len(cron_lines)
+        cron_append(cron_lines,tmp_dir=user_dir)
+        print
         
     if os.getuid()==0: # different if root or not
         # as root
@@ -1651,7 +1759,7 @@ def install_vdt():
 
     # everything went well, register
     print
-    print "OSG VDT client installed"
+    print "VDT client installed"
     print
     
     VDT_BASE_PATH=user_dir
