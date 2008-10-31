@@ -1682,7 +1682,7 @@ def install_vdt(minimal):
     # initialize the VDT client
     if os.getuid()==0:
         # automatic if root
-        err=os.system("cd %s;source setup.sh;vdt-control --enable vdt-update-certs&&vdt-control --on"%user_dir)
+        err=os.system("cd %s;source setup.sh;vdt-control --on"%user_dir)
         if err!=0:
             raise RuntimeError,"Failed to initalize the VDT client!"
     else:
@@ -1712,7 +1712,7 @@ def install_vdt(minimal):
             os.system(els[8])
 
         # add them to cron
-        print "Adding $i lines to crontab"%len(cron_lines)
+        print "Adding %i lines to crontab"%len(cron_lines)
         cron_append(cron_lines,tmp_dir=user_dir)
         print
         
