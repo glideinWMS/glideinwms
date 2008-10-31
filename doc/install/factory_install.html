@@ -1,12 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Installation of the WMS Collector and collocated glidein Factory</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20071107;13514400">
+	<META NAME="CHANGED" CONTENT="20081031;14041800">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080806;12595100">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of
@@ -30,14 +30,18 @@ the WMS Collector and collocated glidein Factory </FONT></FONT>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs
 			<B>one or two CPUs</B> (one for the Condor damons, and one for the
 			glidein factory daemons) and a moderate amount of <B>memory</B>
-			(<B>512MB</B> should be enough).<BR>It must must be on the <B>public
+			(<B>1GB</B> should be enough).<BR>It must must be on the <B>public
 			internet</B>, with <B>at least one port open to the world</B>; all
 			worker nodes will load data from this node trough HTTP.<BR>The
-			<B>disk</B> needed is just for binaries, config files, log files
-			and Web monitoring data (<B>10GB</B> should be enough).</FONT></FONT></TD>
+			<B>disk</B> needed is for binaries, config files, log files and
+			Web monitoring data (For just a few sites, <B>10GB</B> could be
+			enough, larger installations will need <B>100+GB</B> to maintain a
+			reasonable history). Monitoring can be pretty I/O intensive when
+			serving many sites, so get the fastest disk you can afford.</FONT></FONT></P>
+		</TD>
 		<TD>
 			<P><IMG SRC="overview_WMS_factory.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-			
+						</P>
 		</TD>
 	</TR>
 </TABLE>
@@ -65,16 +69,16 @@ The install script has pointers to the relevant URLs where you can
 download them, so be prepared to have a second terminal to perform
 the downloads.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
 with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
 want to install?<BR>(May select several options at one, using a ,
 separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
 Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>1</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions and install all the software components. </FONT></FONT>
@@ -111,16 +115,16 @@ document.</FONT></FONT></P>
 itself should be installed as a non privileged user, for example the
 user <B>gfactory</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
 with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
 want to install?<BR>(May select several options at one, using a ,
 separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
 Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>2</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions and install all the software components.</FONT></FONT></P>
@@ -131,8 +135,8 @@ only part that is not completely automatic is the listing of GCB
 nodes.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>At this point you can
 start the factory with</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-/home/gfactory/glideinsubmit/glidein_v1_0<BR>./factory_startup start</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
+/home/gfactory/glideinsubmit/glidein_v1_0<BR>./factory_startup start</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>where the directory is
 the one written out by the installation script.</FONT></FONT></P>
 <H3><FONT FACE="Verdana"><FONT SIZE=3>5.1 Manual configuration</FONT></FONT></H3>
@@ -144,8 +148,8 @@ you can find a working example.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Once a configuration
 file has been created, you can create the glidein factory by
 executing</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-glideinWMS/creation<BR>./create_glidein config_v1.xml</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
+glideinWMS/creation<BR>./create_glidein config_v1.xml</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The startup procedure
 is the same as described above.</FONT></FONT></P>
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>6 Glidein Factory
@@ -173,21 +177,21 @@ monitoring</FONT></FONT></H3>
 the factory as a whole, or just a single entry point.<BR><BR>The
 factory monitoring is located at a URL like the one below</FONT></FONT></P>
 <DL>
-	<DD><P><FONT FACE="Liberation Serif"><FONT SIZE=3>http://node1.my.company.org/glidefactory/monitor/glidein_v1_0/</FONT></FONT></P>
-</DL>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Moreover, each entry
+	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="Liberation Serif"><FONT SIZE=3>http://node1.my.company.org/glidefactory/monitor/glidein_v1_0/</FONT></FONT></DD></DL>
+<P>
+<FONT FACE="Liberation Serif"><FONT SIZE=3>Moreover, each entry
 point, has its own history on the Web.<BR><BR>Assuming you have a
 SanDiego entry, it can be monitored at</FONT></FONT></P>
 <DL>
-	<DD><P><FONT FACE="Liberation Serif"><FONT SIZE=3>http://nopde1.my.company.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</FONT></FONT></P>
-</DL>
-<H3><FONT FACE="Verdana"><FONT SIZE=3>6.2 Glidein factory monitoring
-via WMS tools</FONT></FONT></H3>
+	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="Liberation Serif"><FONT SIZE=3>http://nopde1.my.company.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</FONT></FONT></DD></DL>
+<H3>
+<FONT FACE="Verdana"><FONT SIZE=3>6.2 Glidein factory monitoring via
+WMS tools</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can get the
 equivalent of the Web page snaphot by using </FONT></FONT>
 </P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-glideinWMS/tools/<BR>python wmsXMLView.py</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
+glideinWMS/tools/<BR>python wmsXMLView.py</FONT></FONT></BLOCKQUOTE>
 <H3><FONT FACE="Verdana"><FONT SIZE=3>6.3 Glidein factory entry log
 files </FONT></FONT>
 </H3>
@@ -195,7 +199,7 @@ files </FONT></FONT>
 writes two log files per entry point <B>factory_info.YYYYMMDD.log</B>
 and <B>factory_err.YYYYMMDD.log</B>.<BR><BR>Assuming you have a
 SanDiego entry, the log files are in</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>All errors are reported
 in the <B>factory_err.YYYYMMDD.log</B>. file, while
 <B>factory_info.YYYYMMDD.log </B>contains entries about what the
@@ -205,7 +209,7 @@ factory is doing.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Each glidein creates 2
 files on exit; job.<B>ID</B>.out and job.<B>ID</B>.err.<BR><BR>Assuming
 you have a SanDiego entries, the log files are in</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Problems are usually
 reasonably easy to spot.</FONT></FONT></P>
 <H3><FONT FACE="Verdana"><FONT SIZE=3>6.5 Glidein factory ClassAds in
@@ -215,10 +219,11 @@ the WMS Collector </FONT></FONT>
 also advertises summary information in the WMS collector.<BR><BR>Use
 <B>condor_status</B>:</FONT></FONT></P>
 <DL>
-	<DD><P><FONT FACE="Liberation Serif"><FONT SIZE=3>condor_status -any</FONT></FONT></P>
-</DL>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and look for
-<B>glidefactory</B> and <B>glidefactoryclient</B> ads.</FONT></FONT></P>
+	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="Liberation Serif"><FONT SIZE=3>condor_status
+	-any</FONT></FONT></DD></DL>
+<P>
+<FONT FACE="Liberation Serif"><FONT SIZE=3>and look for <B>glidefactory</B>
+and <B>glidefactoryclient</B> ads.</FONT></FONT></P>
 <HR SIZE=1>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
 to the index</A><BR><BR><BR></FONT></FONT><BR><BR>

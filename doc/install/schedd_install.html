@@ -1,12 +1,12 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Installation of a scheduler node in the glideinWMS</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20071113;14435800">
+	<META NAME="CHANGED" CONTENT="20081031;13592700">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080806;13025200">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
@@ -26,19 +26,21 @@ scheduler node in the glideinWMS </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
 			reasonably recent CPUs</B> and <B>a large amount of memory</B>
-			(<B>2+GB</B> recommended, <B>~1.5MB per running job</B>).<BR>The
-			amount of <B>disk</B> needed <B>depends on the user jobs</B>;
-			Condor itself uses very little (5 GB should be enough)</FONT></FONT></P>
+			(min <B>2GB</B>, recommended <B>16GB</B>, <B>~1.5MB per running
+			job</B>).<BR>The amount of <B>disk</B> needed <B>depends on the
+			user jobs</B>; Condor itself uses very little (5 GB should be
+			enough for Condor alone)</FONT></FONT></P>
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed
 			software </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
 			OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
 			client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-			distribution</A>.</FONT></FONT></TD>
+			distribution</A>.</FONT></FONT></P>
+		</TD>
 		<TD>
 			<P><IMG SRC="overview_schedd.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-			
+						</P>
 		</TD>
 	</TR>
 </TABLE>
@@ -50,16 +52,16 @@ software should be installed as root. The whole process is managed by
 a install script described below. </FONT></FONT>
 </P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
 with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
 want to install?<BR>(May select several options at one, using a ,
 separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
 Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>5</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions and install all the software components.</FONT></FONT></P>
@@ -92,14 +94,14 @@ accordingly.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3><BR>One useful
 attribute that all glideins publish is GLIDEIN_Site. If a user wants
 to restrict its job to a list of sites, he can do it be using:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
 = &quot;Site1,Site4,Site7,Site22&quot;<BR>Requirements =
-stringListMember(GLIDEIN_Site,DESIRED_Sites)</FONT></FONT></P></BLOCKQUOTE>
+stringListMember(GLIDEIN_Site,DESIRED_Sites)</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Some glideins may also
 need to properly identify the final user, using GSI authentication. A
 user should thus add the following line:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>x509userproxy
-= <I>&lt;path to X509 proxy&gt;</I></FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>x509userproxy
+= <I>&lt;path to X509 proxy&gt;</I></FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>to their Condor
 submission file.</FONT></FONT></P>
 <P><BR><BR>
@@ -107,7 +109,7 @@ submission file.</FONT></FONT></P>
 <P><BR><BR>
 </P>
 <HR SIZE=1>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
-to the index</A></FONT></FONT></P>
+<P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
+to the index</FONT></FONT></A></P>
 </BODY>
 </HTML>
