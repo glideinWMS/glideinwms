@@ -1667,7 +1667,7 @@ def install_vdt(minimal):
     if crl_url=="":
         crl_url=default_crl_url
 
-    fd=open("%s/vdt/etc/vdt-update-certs.conf","a")
+    fd=open("%s/vdt/etc/vdt-update-certs.conf"%user_dir,"a")
     try:
         fd.write("\n#CA URL provided during glideinWMS installation\n")
         fd.write("cacerts_url = %s\n"%crl_url)
