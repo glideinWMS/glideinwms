@@ -190,7 +190,12 @@ class RSAKey(PubRSAKey):
 
     ###########################################
     # generate key function
-    def new(self,key_length,exponent=65537):
+    # if no key_length provided, use the length of the existing one
+    def new(self,key_length=None,exponent=65537):
+        if key_length==None:
+            if self.rsa_key==None:
+                raise KeyError,"No RSA key and no key length provided"
+            key_length=len(self.rsa_key)
         self.rsa_key= M2Crypto.RSA.gen_key(key_length, exponent)
         return
         
