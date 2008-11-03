@@ -59,11 +59,15 @@ DEFAULT_IGNORE_NONES=False
 #
 ##########################################################
 
+SIMPLE_TYPES=(types.IntType,types.LongType,types.FloatType,types.BooleanType)+types.StringTypes
+
 def xml_quoteattr(el):
     if el==None:
         val = '"None"'
-    elif type(el) in (types.BooleanType,)+types.StringTypes:
+    elif type(el) in types.StringTypes:
         val = xml.sax.saxutils.quoteattr(el)
+    elif type(el) in (types.BooleanType,):
+        val = '"%s"'%el
     elif type(el) is types.FloatType:
         val = '"%.12g"' % el
     else:
@@ -99,17 +103,13 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if type(el) in (types.IntType,types.LongType):
-            head_arr.append(' %s="%i"' % (attr,el))
-        elif type(el) is types.FloatType:
-            head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in (types.BooleanType,)+types.StringTypes:
-            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
-        elif el==None:
+        if el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
                 head_arr.append(' %s="None"' % attr)
+        elif type(el) in SIMPLE_TYPES:
+            head_arr.append(' %s=%s' % (attr,xml_quoteattr(el)))
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s)" % (attr,debug_str)
         
@@ -121,15 +121,18 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
         keys = dir(inst)
     for attr in keys:
         el = inst[attr]
-        if type(el) in (types.IntType,types.LongType):
-            head_arr.append(' %s="%i"' % (attr,el))
-        elif type(el) is types.FloatType:
-            head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in (types.BooleanType,)+types.StringTypes:
+        if el==None:
+            if DEFAULT_IGNORE_NONES:
+                continue # ignore nones
+            else:
+                head_arr.append(' %s="None"' % attr)
+        elif type(el) in types.StringTypes:
             if attr in text_params:
                 text_attrs.append(attr)
             else:
                 head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
+        elif type(el) in SIMPLE_TYPES:
+            head_arr.append(' %s=%s' % (attr,xml_quoteattr(el)))
         elif type(el) in (types.ListType,types.TupleType):
             if attr in lists_params.keys():
                 list_attrs.append(attr)
@@ -152,11 +155,6 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
                 inst_attrs.append(attr)
         elif type(el) is types.InstanceType:
             inst_attrs.append(attr)
-        elif el==None:
-            if DEFAULT_IGNORE_NONES:
-                continue # ignore nones
-            else:
-                head_arr.append(' %s="None"' % attr)
         else:
             raise RuntimeError,"Unsupported type (%s) for attr %s (%s)" % (type(el),attr,debug_str)
     if (len(inst_attrs)==0) and (len(dict_attrs)==0) and (len(list_attrs)==0) and (len(tree_attrs)==0) and (len(text_attrs)==0):
@@ -282,17 +280,13 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if type(el) in (types.IntType,types.LongType):
-            head_arr.append(' %s="%i"' % (attr,el))
-        elif type(el) is types.FloatType:
-            head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in (types.BooleanType,)+types.StringTypes:
-            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
-        elif el==None:
+        if el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
                 head_arr.append(' %s="None"' % attr)
+        elif type(el) in SIMPLE_TYPES:
+            head_arr.append(' %s=%s' % (attr,xml_quoteattr(el)))
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>')
@@ -309,7 +303,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
     
     for idx in keys:
         el = dict[idx]
-        if ((type(el) in ((types.IntType,types.LongType,types.FloatType,types.BooleanType)+types.StringTypes)) or
+        if ((type(el) in SIMPLE_TYPES) or
             (el==None)):
             if el==None:
                 if DEFAULT_IGNORE_NONES:
@@ -363,17 +357,13 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if type(el) in (types.IntType,types.LongType):
-            head_arr.append(' %s="%i"' % (attr,el))
-        elif type(el) is types.FloatType:
-            head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in (types.BooleanType,)+types.StringTypes:
-            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
-        elif el==None:
+        if el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
                 head_arr.append(' %s="None"' % attr)
+        elif type(el) in SIMPLE_TYPES:
+            head_arr.append(' %s=%s' % (attr,xml_quoteattr(el)))
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>\n')
@@ -390,7 +380,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
     
     for idx in keys:
         el = dict[idx]
-        if ((type(el) in ((types.IntType,types.LongType,types.FloatType,types.BooleanType)+types.StringTypes)) or
+        if ((type(el) in SIMPLE_TYPES) or
             (el==None)):
             if el==None:
                 if DEFAULT_IGNORE_NONES:
@@ -457,17 +447,13 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if type(el) in (types.IntType,types.LongType):
-            head_arr.append(' %s="%i"' % (attr,el))
-        elif type(el) is types.FloatType:
-            head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in (types.BooleanType,)+types.StringTypes:
-            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
-        elif el==None:
+        if el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
                 head_arr.append(' %s="None"' % attr)
+        elif type(el) in SIMPLE_TYPES:
+            head_arr.append(' %s=%s' % (attr,xml_quoteattr(el)))
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>')
@@ -483,7 +469,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
         els = list
 
     for el in els:
-        if ((type(el) in ((types.IntType,types.LongType,types.FloatType,types.BooleanType)+types.StringTypes)) or
+        if ((type(el) in SIMPLE_TYPE) or
             (el==None)):
             if el==None:
                 if DEFAULT_IGNORE_NONES:
@@ -537,17 +523,13 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
     params_keys.sort()
     for attr in params_keys:
         el = params[attr]
-        if type(el) in (types.IntType,types.LongType):
-            head_arr.append(' %s="%i"' % (attr,el))
-        elif type(el) is types.FloatType:
-            head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in (types.BooleanType,)+types.StringTypes:
-            head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
-        elif el==None:
+        if el==None:
             if DEFAULT_IGNORE_NONES:
                 continue # ignore nones
             else:
                 head_arr.append(' %s="None"' % attr)
+        elif type(el) in SIMPLE_TYPES:
+            head_arr.append(' %s=%s' % (attr,xml_quoteattr(el)))
         else:
             raise RuntimeError,"Param attr %s is not a simple type (%s) (%s)" % (attr,type(el),debug_str)
     head_arr.append('>\n')
@@ -563,7 +545,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
         els = list
 
     for el in els:
-        if ((type(el) in ((types.IntType,types.LongType,types.FloatType,types.BooleanType)+types.StringTypes)) or
+        if ((type(el) in SIMPLE_TYPE) or
             (el==None)):
             if el==None:
                 if DEFAULT_IGNORE_NONES:
