@@ -111,7 +111,10 @@ def findWork(factory_name,glidein_name,entry_name,
                 try:
                     sym_key_obj=pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
                 except:
-                    continue # bad key, ignore entry
+                    if get_only_matching:
+                        continue # bad key, ignore entry
+                    else:
+                        sym_key_obj=None # leave it encrypted
             else:
                 sym_key_obj=None # no key used, will not decrypt
         else:
