@@ -56,7 +56,8 @@ factoryConfig=FactoryConfig()
 
 
 def findWork(factory_name,glidein_name,entry_name,
-             pub_key_obj=None,allowed_proxy_source=('factory','frontend')):
+             pub_key_obj=None,allowed_proxy_source=('factory','frontend'),
+             get_only_matching=True): # if this is false, return also glideins I cannot use):
     """
     Look for requests.
     Look for classAds that have my (factory, glidein name, entry name).
@@ -70,16 +71,17 @@ def findWork(factory_name,glidein_name,entry_name,
     global factoryConfig
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
-    if pub_key_obj!=None:
-        # get only classads that have my key or no key at all
-        # any other key will not work
-        status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
-        if not ('factory' in allowed_proxy_source):
-            # the proxy is required, so look for it 
-            status_constraint+=' && (GlideinEncParamx509_proxy =!= UNDEFINED)'
-        if not ('frontend' in allowed_proxy_source):
-            # the proxy is not allowed, so ignore such requests 
-            status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED)'
+    if get_only_matching:
+        if pub_key_obj!=None:
+            # get only classads that have my key or no key at all
+            # any other key will not work
+            status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
+            if not ('factory' in allowed_proxy_source):
+                # the proxy is required, so look for it 
+                status_constraint+=' && (GlideinEncParamx509_proxy =!= UNDEFINED)'
+            if not ('frontend' in allowed_proxy_source):
+                # the proxy is not allowed, so ignore such requests 
+                status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED)'
     status=condorMonitor.CondorStatus("any")
     status.glidein_name=glidein_name
     status.entry_name=entry_name
