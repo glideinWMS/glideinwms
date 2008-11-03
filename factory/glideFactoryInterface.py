@@ -56,7 +56,7 @@ factoryConfig=FactoryConfig()
 
 
 def findWork(factory_name,glidein_name,entry_name,
-             pub_key_obj=None,allowed_proxy_source=None):
+             pub_key_obj=None,allowed_proxy_source=('factory','frontend')):
     """
     Look for requests.
     Look for classAds that have my (factory, glidein name, entry name).
