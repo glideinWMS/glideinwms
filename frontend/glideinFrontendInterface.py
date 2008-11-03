@@ -65,7 +65,7 @@ def findGlideins(factory_pool,
     
     status_constraint='(GlideinMyType=?="%s")'%(frontendConfig.factory_id)
 
-    if not get_only_matching:
+    if get_only_matching:
         if have_proxy:
             # must support secure message passing and must allow proxies
             status_constraint+='&& (PubKeyType=?="RSA") && (GlideinAllowx509_Proxy=!=False)'
