@@ -1,4 +1,5 @@
 vNext	Fixed VDT installation
+	Factory now changes public key at each restart.
 	Minor monitoring improvements.
 
 v1_5_1	Added flag that allows/requires proxies from frontend.
