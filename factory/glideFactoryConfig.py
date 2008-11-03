@@ -99,7 +99,7 @@ class GlideinKey:
             if recreate:
                 # recreate it
                 self.rsa_key.new()
-                self.key_obj.save(key_fname)
+                self.rsa_key.save(key_fname)
 
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
             self.pub_key_id=md5.new(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
