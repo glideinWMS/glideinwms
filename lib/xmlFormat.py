@@ -62,7 +62,7 @@ DEFAULT_IGNORE_NONES=False
 def xml_quoteattr(el):
     if el==None:
         val = '"None"'
-    elif type(el) in types.StringTypes+types.BooleanType:
+    elif type(el) in (types.BooleanType,)+types.StringTypes:
         val = xml.sax.saxutils.quoteattr(el)
     elif type(el) is types.FloatType:
         val = '"%.12g"' % el
@@ -103,7 +103,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in types.StringTypes+types.BooleanType:
+        elif type(el) in (types.BooleanType,)+types.StringTypes:
             head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
@@ -125,7 +125,7 @@ def class2head(inst,inst_name,params,dicts_params,lists_params,tree_params,text_
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in types.StringTypes+types.BooleanType:
+        elif type(el) in (types.BooleanType,)+types.StringTypes:
             if attr in text_params:
                 text_attrs.append(attr)
             else:
@@ -286,7 +286,7 @@ def dict2string(dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,p
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in types.StringTypes+types.BooleanType:
+        elif type(el) in (types.BooleanType,)+types.StringTypes:
             head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
@@ -367,7 +367,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in types.StringTypes+types.BooleanType:
+        elif type(el) in (types.BooleanType,)+types.StringTypes:
             head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
@@ -461,7 +461,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in types.StringTypes+types.BooleanType:
+        elif type(el) in (types.BooleanType,)+types.StringTypes:
             head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
@@ -541,7 +541,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
             head_arr.append(' %s="%i"' % (attr,el))
         elif type(el) is types.FloatType:
             head_arr.append(' %s="%.12g"' % (attr,el))
-        elif type(el) in types.StringTypes+types.BooleanType:
+        elif type(el) in (types.BooleanType,)+types.StringTypes:
             head_arr.append(' %s=%s' % (attr,xml.sax.saxutils.quoteattr(el)))
         elif el==None:
             if DEFAULT_IGNORE_NONES:
