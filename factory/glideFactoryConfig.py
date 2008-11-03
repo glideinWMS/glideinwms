@@ -84,16 +84,23 @@ class JoinConfigFile(ConfigFile):
 ############################################################
 
 class GlideinKey:
-    def __init__(self,pub_key_type,key_fname=None):
+    def __init__(self,pub_key_type,key_fname=None,recreate=False):
         self.pub_key_type=pub_key_type
-        self.load(key_fname)
+        self.load(key_fname,recreate)
 
-    def load(self,key_fname=None):
+    def load(self,key_fname=None,recreate=False):
         if self.pub_key_type=='RSA':
             import pubCrypto,symCrypto,md5
             if key_fname==None:
                 key_fname='rsa.key'
+
             self.rsa_key=pubCrypto.RSAKey(key_fname=key_fname)
+
+            if recreate:
+                # recreate it
+                self.rsa_key.new()
+                self.key_obj.save(rsa_key_fname)
+
             self.pub_rsa_key=self.rsa_key.PubRSAKey()
             self.pub_key_id=md5.new(string.join((self.pub_key_type,self.pub_rsa_key.get()))).hexdigest()
             self.sym_class=symCrypto.AutoSymKey
@@ -130,9 +137,9 @@ class GlideinDescript(ConfigFile):
             self.data['PubKeyType']=None
 
     # define PubKeyObj
-    def load_pub_key(self):
+    def load_pub_key(self,recreate=False):
         if self.data['PubKeyType']!=None:
-            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'])
+            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'],recreate=recreate)
         else:
             self.data['PubKeyObj']=None
         return
