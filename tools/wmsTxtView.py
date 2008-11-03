@@ -18,7 +18,7 @@ sys.path.append(os.path.join(sys.path[0],"../factory"))
 sys.path.append(os.path.join(sys.path[0],"../frontend"))
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
-import glideFactoryInterface
+#import glideFactoryInterface
 import glideinFrontendInterface
 
 pool_name=None
@@ -41,7 +41,7 @@ while (i<alen):
     i=i+1
 
 # get data
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name)
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name,get_only_matching=False)
 
 # Get a dictionary of
 #  RequestedIdle
