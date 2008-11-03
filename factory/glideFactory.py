@@ -148,24 +148,31 @@ def main(startup_dir):
     glideFactoryLib.factoryConfig.activity_log=activity_log
     glideFactoryLib.factoryConfig.warning_log=warning_log
     
-    glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
-    glideinDescript=glideFactoryConfig.GlideinDescript()
-    glideinDescript.load_pub_key(recreate=True)
+    try:
+        glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
+        glideinDescript=glideFactoryConfig.GlideinDescript()
+        glideinDescript.load_pub_key(recreate=True)
 
-    cleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
-                                           float(glideinDescript.data['LogRetentionMaxDays'])*24*3600,
-                                           float(glideinDescript.data['LogRetentionMinDays'])*24*3600,
-                                           float(glideinDescript.data['LogRetentionMaxMBs'])*1024*1024,
-                                           activity_log,warning_log)
+        cleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
+                                               float(glideinDescript.data['LogRetentionMaxDays'])*24*3600,
+                                               float(glideinDescript.data['LogRetentionMinDays'])*24*3600,
+                                               float(glideinDescript.data['LogRetentionMaxMBs'])*1024*1024,
+                                               activity_log,warning_log)
+        
+        sleep_time=int(glideinDescript.data['LoopDelay'])
+        advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
+        glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['FactoryWantedMonitorGraphs'],',')
+        
+        entries=string.split(glideinDescript.data['Entries'],',')
+        entries.sort()
 
-    sleep_time=int(glideinDescript.data['LoopDelay'])
-    advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
-    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['FactoryWantedMonitorGraphs'],',')
-    
-    entries=string.split(glideinDescript.data['Entries'],',')
-    entries.sort()
-
-    glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir,"monitor"),entries)
+        glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir,"monitor"),entries)
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+        print tb
+        raise
 
     # create lock file
     fd=glideFactoryPidLib.register_factory_pid(startup_dir)
