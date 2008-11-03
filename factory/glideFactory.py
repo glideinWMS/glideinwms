@@ -150,6 +150,7 @@ def main(startup_dir):
     
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
+    glideinDescript.load_pub_key(recreate=True)
 
     cleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"log"),"(factory_info\..*)|(factory_err\..*)",
                                            float(glideinDescript.data['LogRetentionMaxDays'])*24*3600,
