@@ -469,7 +469,7 @@ def list2string(list,list_name,el_name,el_attr_name=None,params={},subtypes_para
         els = list
 
     for el in els:
-        if ((type(el) in SIMPLE_TYPE) or
+        if ((type(el) in SIMPLE_TYPES) or
             (el==None)):
             if el==None:
                 if DEFAULT_IGNORE_NONES:
@@ -545,7 +545,7 @@ def list2file(fd,list,list_name,el_name,el_attr_name=None,params={},subtypes_par
         els = list
 
     for el in els:
-        if ((type(el) in SIMPLE_TYPE) or
+        if ((type(el) in SIMPLE_TYPES) or
             (el==None)):
             if el==None:
                 if DEFAULT_IGNORE_NONES:
