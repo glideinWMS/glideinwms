@@ -5,7 +5,7 @@
 	<TITLE>Installation of the glidein pool Collector</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20071109;16562400">
-	<META NAME="CHANGED" CONTENT="20081107;12530900">
+	<META NAME="CHANGED" CONTENT="20081107;13375400">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -82,7 +82,10 @@ Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCK
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>4</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions and install all the software components. Most of the
-questions should be fairly straightforward.</FONT></FONT></P>
+questions should be fairly straightforward. The part that is not
+completely automatic is the configuration of the GSI security; you
+will need to provide the DN(s) of the glideins, the DNs of all the
+submit machines and the DN of the VO frontend.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
 answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
 <PRE STYLE="margin-left: 0.39in; margin-right: 0.39in">Do you have already a VDT installation?: (y/n) <B>n</B>
@@ -148,6 +151,9 @@ Is this a trusted Condor daemon?: (y/n) <B>y</B>
 DN: <B>/DC=org/DC=doegrids/OU=Services/CN=gfactory/gfactory1.my.org</B>
 nickname: [condor002] <B>pilot</B>
 Is this a trusted Condor daemon?: (y/n) <B>y</B>
+DN: <B>/DC=org/DC=doegrids/OU=Services/CN=frontend/frontend1.my.org</B>
+nickname: [condor002] <B>frontend</B>
+Is this a trusted Condor daemon?: (y/n) <B>n</B>
 DN: <I>enter</I>
 What name would you like to use for this pool?: [My pool] <B>TestPool</B>
 How many slave collectors do you want?: [10] <B>10</B></PRE>
