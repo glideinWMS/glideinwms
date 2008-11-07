@@ -1,12 +1,16 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Installation of the glidein pool Collector</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20071109;16562400">
+	<META NAME="CHANGED" CONTENT="20081107;10185100">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080806;13012500">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of
@@ -19,27 +23,29 @@ the glidein pool Collector </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein pool
 			Collector node will be the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
-			Central Manager</A> for the glidein pool, i.e. it&nbsp; will run
-			the Condor Collector and Negotiator daemons.<BR>These daemons
-			define the glidein pool; if this node dies, the pool dies with it.</FONT></FONT></P>
+			Central Manager</A> for the glidein pool, i.e. it will run the
+			Condor Collector and Negotiator daemons.<BR>These daemons define
+			the glidein pool; if this node dies, the pool dies with it.</FONT></FONT></P>
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
 			requirements </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs
 			<B>one or two fast CPUs</B> (one for the Collector and one for the
 			Negotiator) and a moderate amount of <B>memory</B> (<B>1GB</B>
-			should be enough).<BR>It must have <B>reliable network</B>
-			connectivity and must be <B>on the public internet,</B> with <B>no
-			firewalls</B>; all worker nodes will be continuously sending UDP
-			packets to the Collector.<BR>The machine must be <B>very stable</B>;
-			if the Collector dies, the glidein pool dies with it (There are
-			Condor techniques to minimize this damage, but you should still
-			try to choose the stablest machine you can afford.)<BR>The <B>disk</B>
+			should be enough for most tasks; really big pools may need
+			more).<BR>It must have <B>reliable network</B> connectivity and
+			must be <B>on the public internet,</B> with <B>no firewalls</B>;
+			all worker nodes will be continuously sending UDP packets to the
+			Collector.<BR>The machine must be <B>very stable</B>; if the
+			Collector dies, the glidein pool dies with it (There are Condor
+			techniques to minimize this damage, but you should still try to
+			choose the stablest machine you can afford.)<BR>The <B>disk</B>
 			needed is just for Condor binaries and log files (<B>5GB</B>
-			should be enough)</FONT></FONT></TD>
+			should be enough)</FONT></FONT></P>
+		</TD>
 		<TD>
 			<P><IMG SRC="overview_collector.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-			
+						</P>
 		</TD>
 	</TR>
 </TABLE>
@@ -53,34 +59,101 @@ distribution</A>.</FONT></FONT></P>
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
 instructions </FONT></FONT>
 </H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The pool Collector an
-be installed either as root as a non privileged user. If you decide
-to use a non-privileged user, make sure that user has access to the
-needed <A HREF="gsi_config.html">GSI credentials</A>. The whole
-process is managed by a install script described below. </FONT></FONT>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The pool Collector can
+be installed either as root as a non privileged user. Either case,
+make sure that user has access to the needed <A HREF="gsi_config.html">GSI
+credentials</A>.<BR>There is no real advantage to install as root, so
+non-privileged installation is recommended.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The whole process is
+managed by a install script described below. </FONT></FONT>
 </P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
 with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
 want to install?<BR>(May select several options at one, using a ,
 separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
 Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>4</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Most of the questions
-should be fairly straightforward (see an example installation
-snapshot in <A HREF="collector_root_install_snapshot.txt">collector_root_install_snapshot.txt</A>).</FONT></FONT></P>
-<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.1 Example config files </FONT></FONT>
-</H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can find the
-complete config files
-in<BR><A HREF="example-config/glide-pool-collector/mymachine/condor_config">example-config/glide-pool-collector/mymachine/condor_config</A><BR>and<BR><A HREF="example-config/glide-pool-collector/mymachine/condor_config.local">example-config/glide-pool-collector/mymachine/condor_config.local</A></FONT></FONT></P>
+instructions and install all the software components. Most of the
+questions should be fairly straightforward.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
+answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
+<BLOCKQUOTE>
+<pre>
+Do you have already a VDT installation?: (y/n) <b>n</b>
+Do you want to install the full OSG VDT client?: (y/n) <b>n</b>
+Do you want to install a minimal Grid VDT client?: (y/n) <b>y</b>
+Where do you want the VDT installed?: [/opt/vdt] <b>/home/collector/vdt</b>
+Directory '/home/collector/vdt' does not exist, should I create it?: (y/n) <b>y</b>
+What pacman version should I use?: [pacman-3.26] <b>pacman-3.26</b>
+
+What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <b>http://vdt.cs.wisc.edu/vdt_1101_cache</b>
+
+VDT client installation tends to be very picky about the platforms it installs under
+Most of the time, one needs to pretent to be one of the tested platforms
+The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
+Which platform do you want to use (leave empty for autodetect): <i>enter</i>
+
+VDT 1.10.1 installs a variety of software, each with its own license.
+In order to continue, you must agree to the licenses.
+You can view the licenses online at:
+
+     http://vdt.cs.wisc.edu/licenses/1.10.1
+
+After the installation has completed, you will also be able to
+view the licenses in the "licenses" directory.
+
+Do you agree to the licenses? [y/n] <b>y</b>
+
+Where would you like to install CA files?
+
+Choices:
+        l (local) - install into $VDT_LOCATION/globus/share/certificates
+        n (no)    - do not install
+<b>l</b>
+
+Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <b>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</b>
+
+Where do you have the Condor tarball? <b>/home/collector/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</b>
+
+Where do you want to install it?: [/opt/glidecondor] <b>/home/collector/condor</b>
+Directory '/home/collector/condor' does not exist, should I create it?: (y/n) <b>y</b>
+Installing condor in '/home/collector/condor'
+
+If something goes wrong with Condor, who should get email about it?: <b>troubles@my.org</b>
+
+Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
+
+To use the GSI security, you either need a valid GSI proxy or
+a valid x509 certificate and relative key
+Will you be using a proxy or a cert? (proxy/cert) <b>cert</b>
+Where is your certificate located?: <b>/home/collector/grid-security/servicecert.pem</b>
+Where is your certificate key located?: <b>/home/collector/grid-security/servicekey.pem</b>
+My DN = '/DC=org/DC=doegrids/OU=Services/CN=collector/master1.my.org'
+
+You will most probably need other DNs in the condor grid mapfile
+Please add all the DNs that can be used to connect to the
+Condor daemons running on this node
+
+Please insert all such DNs, together with a user nickname.
+An empty DN entry means you are done.
+DN: <b>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</b>
+nickname: [condor001] <b>submit</b>
+Is this a trusted Condor daemon?: (y/n) <b>y</b>
+DN: <b>/DC=org/DC=doegrids/OU=Services/CN=gfactory/gfactory1.my.org</b>
+nickname: [condor002] <b>pilot</b>
+Is this a trusted Condor daemon?: (y/n) <b>y</b>
+DN: <i>enter</i>
+What name would you like to use for this pool?: [My pool] <b>TestPool</b>
+How many slave collectors do you want?: [10] <b>10</b>
+</pre>
+</BLOCKQUOTE>
 <HR SIZE=1>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
 to the index</A><BR><BR></FONT></FONT><BR><BR>
