@@ -5,7 +5,7 @@
 	<TITLE>Installation of the glidein pool Collector</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20071109;16562400">
-	<META NAME="CHANGED" CONTENT="20081107;10185100">
+	<META NAME="CHANGED" CONTENT="20081107;12530900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -57,16 +57,17 @@ OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/W
 client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
 distribution</A>.</FONT></FONT></P>
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
-instructions </FONT></FONT>
-</H2>
+instructions</FONT></FONT></H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The pool Collector can
 be installed either as root or as a non privileged user. Either case,
 make sure that the user has access to the needed <A HREF="gsi_config.html">GSI
 credentials</A>.<BR>There is no real advantage to install as root, so
 non-privileged installation is recommended if installed separately.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The whole process is
-managed by a install script described below. </FONT></FONT>
-</P>
+managed by a install script described below. You will need to provide
+a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
+tarball</A>, so you may as well download it before starting the
+installer.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
@@ -84,21 +85,19 @@ instructions and install all the software components. Most of the
 questions should be fairly straightforward.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
 answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<BLOCKQUOTE>
-<pre>
-Do you have already a VDT installation?: (y/n) <b>n</b>
-Do you want to install the full OSG VDT client?: (y/n) <b>n</b>
-Do you want to install a minimal Grid VDT client?: (y/n) <b>y</b>
-Where do you want the VDT installed?: [/opt/vdt] <b>/home/collector/vdt</b>
-Directory '/home/collector/vdt' does not exist, should I create it?: (y/n) <b>y</b>
-What pacman version should I use?: [pacman-3.26] <b>pacman-3.26</b>
+<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in">Do you have already a VDT installation?: (y/n) <B>n</B>
+Do you want to install the full OSG VDT client?: (y/n) <B>n</B>
+Do you want to install a minimal Grid VDT client?: (y/n) <B>y</B>
+Where do you want the VDT installed?: [/opt/vdt] <B>/home/collector/vdt</B>
+Directory '/home/collector/vdt' does not exist, should I create it?: (y/n) <B>y</B>
+What pacman version should I use?: [pacman-3.26] <B>pacman-3.26</B>
 
-What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <b>http://vdt.cs.wisc.edu/vdt_1101_cache</b>
+What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <B>http://vdt.cs.wisc.edu/vdt_1101_cache</B>
 
 VDT client installation tends to be very picky about the platforms it installs under
 Most of the time, one needs to pretent to be one of the tested platforms
 The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
-Which platform do you want to use (leave empty for autodetect): <i>enter</i>
+Which platform do you want to use (leave empty for autodetect): <I>enter</I>
 
 VDT 1.10.1 installs a variety of software, each with its own license.
 In order to continue, you must agree to the licenses.
@@ -107,34 +106,34 @@ You can view the licenses online at:
      http://vdt.cs.wisc.edu/licenses/1.10.1
 
 After the installation has completed, you will also be able to
-view the licenses in the "licenses" directory.
+view the licenses in the &quot;licenses&quot; directory.
 
-Do you agree to the licenses? [y/n] <b>y</b>
+Do you agree to the licenses? [y/n] <B>y</B>
 
 Where would you like to install CA files?
 
 Choices:
         l (local) - install into $VDT_LOCATION/globus/share/certificates
         n (no)    - do not install
-<b>l</b>
+<B>l</B>
 
-Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <b>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</b>
+Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <B>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</B>
 
-Where do you have the Condor tarball? <b>/home/collector/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</b>
+Where do you have the Condor tarball? <B>/home/collector/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</B>
 
-Where do you want to install it?: [/opt/glidecondor] <b>/home/collector/condor</b>
-Directory '/home/collector/condor' does not exist, should I create it?: (y/n) <b>y</b>
+Where do you want to install it?: [/opt/glidecondor] <B>/home/collector/condor</B>
+Directory '/home/collector/condor' does not exist, should I create it?: (y/n) <B>y</B>
 Installing condor in '/home/collector/condor'
 
-If something goes wrong with Condor, who should get email about it?: <b>troubles@my.org</b>
+If something goes wrong with Condor, who should get email about it?: <B>troubles@my.org</B>
 
-Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
+Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <B>y</B>
 
 To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
-Will you be using a proxy or a cert? (proxy/cert) <b>cert</b>
-Where is your certificate located?: <b>/home/collector/grid-security/servicecert.pem</b>
-Where is your certificate key located?: <b>/home/collector/grid-security/servicekey.pem</b>
+Will you be using a proxy or a cert? (proxy/cert) <B>cert</B>
+Where is your certificate located?: <B>/home/collector/grid-security/servicecert.pem</B>
+Where is your certificate key located?: <B>/home/collector/grid-security/servicekey.pem</B>
 My DN = '/DC=org/DC=doegrids/OU=Services/CN=collector/master1.my.org'
 
 You will most probably need other DNs in the condor grid mapfile
@@ -143,17 +142,15 @@ Condor daemons running on this node
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
-DN: <b>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</b>
-nickname: [condor001] <b>submit</b>
-Is this a trusted Condor daemon?: (y/n) <b>y</b>
-DN: <b>/DC=org/DC=doegrids/OU=Services/CN=gfactory/gfactory1.my.org</b>
-nickname: [condor002] <b>pilot</b>
-Is this a trusted Condor daemon?: (y/n) <b>y</b>
-DN: <i>enter</i>
-What name would you like to use for this pool?: [My pool] <b>TestPool</b>
-How many slave collectors do you want?: [10] <b>10</b>
-</pre>
-</BLOCKQUOTE>
+DN: <B>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</B>
+nickname: [condor001] <B>submit</B>
+Is this a trusted Condor daemon?: (y/n) <B>y</B>
+DN: <B>/DC=org/DC=doegrids/OU=Services/CN=gfactory/gfactory1.my.org</B>
+nickname: [condor002] <B>pilot</B>
+Is this a trusted Condor daemon?: (y/n) <B>y</B>
+DN: <I>enter</I>
+What name would you like to use for this pool?: [My pool] <B>TestPool</B>
+How many slave collectors do you want?: [10] <B>10</B></PRE>
 <HR SIZE=1>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
 to the index</A><BR><BR></FONT></FONT><BR><BR>
