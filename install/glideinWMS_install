@@ -1973,8 +1973,8 @@ def install_condor():
         # installation files not needed anymore
         shutil.rmtree(tar_dir)
 
-    yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [n] ")
-    if yn=='y':
+    yn=raw_input("Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] ")
+    if yn!='n':
       CONDOR_UPD_CONFIG_FILE="%s/etc/condor_config.local"%user_condor_base_dir
       config_fd=open("%s/etc/condor_config"%user_condor_base_dir,"a")
       try:
