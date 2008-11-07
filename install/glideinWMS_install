@@ -1740,8 +1740,8 @@ def install_vdt(minimal):
     else:
         # as regular user
         
-        # put rrd path in .bashrc
-        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+        # put rrd path in .profile
+        fd=open("%s/.profile"%os.environ['HOME'],"a")
         try:
             fd.write("\n# OSG vdt client settings\n")
             fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
@@ -2096,8 +2096,8 @@ def install_condor():
         # as regular user
 
         #########################################
-        # put condor config in .bashrc
-        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+        # put condor config in .profile
+        fd=open("%s/.profile"%os.environ['HOME'],"a")
         try:
             fd.write("\n# Condor settings\n")
             fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
@@ -3383,8 +3383,8 @@ def query_rrd():
             else:
                 # as regular user
 
-                # put rrd path in .bashrc
-                fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+                # put rrd path in .profile
+                fd=open("%s/.profile"%os.environ['HOME'],"a")
                 try:
                     fd.write("\n# rrd settings\n")
                     fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%rrd_path)
