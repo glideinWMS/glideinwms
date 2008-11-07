@@ -1,3 +1,5 @@
+vNext	Installer uses .profile and not .bashrc.
+
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.
 	Minor monitoring improvements.
