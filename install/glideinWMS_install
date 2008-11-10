@@ -341,8 +341,8 @@ def wms_install():
         create_secondary_schedd_support_files()
     
     while 1:
-        nr_schedds_default=4
-        nr_schedds_str=raw_input("How many secondary schedds do you want?: [4] ")
+        nr_schedds_default=9
+        nr_schedds_str=raw_input("How many secondary schedds do you want?: [9] ")
         if nr_schedds_str=="":
             nr_schedds_str="%s"%nr_schedds_default
         try:
