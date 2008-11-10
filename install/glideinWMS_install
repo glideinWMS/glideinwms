@@ -290,7 +290,6 @@ def schedd_node_install():
 #-------------------------------------------------------------------------------
 def wms_install():
     global VDT_BASE_PATH
-    global HTTPD_PORT
     global RRD_BIN_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
@@ -304,9 +303,6 @@ def wms_install():
 
     if VDT_BASE_PATH==None:
         query_vdt()
-
-    if HTTPD_PORT==None:
-        query_httpd()
 
     #################################
     # Create the web dir owned by the
