@@ -290,7 +290,6 @@ def schedd_node_install():
 #-------------------------------------------------------------------------------
 def wms_install():
     global VDT_BASE_PATH
-    global RRD_BIN_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
     global QUILL_CONFIG_DONE
@@ -303,57 +302,6 @@ def wms_install():
 
     if VDT_BASE_PATH==None:
         query_vdt()
-
-    #################################
-    # Create the web dir owned by the
-    # gfactory user
-    while 1:
-        default_gfactory_user='gfactory'
-        gfactory_user=raw_input("Under which user will the Glidein Factory deamons run?: [%s] "%default_gfactory_user)
-        if gfactory_user=="":
-            gfactory_user=default_gfactory_user
-        try:
-            gfactory_pwd=pwd.getpwnam(gfactory_user)
-        except KeyError:
-            print "'%s' is not a valid user!"%gfactory_user
-            continue
-        #found and verified
-        break
-
-    default_web_dir='/var/www/html/glidefactory'
-    web_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_dir,empty_required=False)
-    os.chown(web_dir,gfactory_pwd[2],gfactory_pwd[3])
-    if web_dir!=default_web_dir:
-        # if not the default, make a symlink to that location
-        if os.path.islink(default_web_dir):
-            os.unlink(default_web_dir) # remove the old symlink
-        elif os.path.exists(default_web_dir):
-            # an old dir exists, rename
-            os.rename(default_web_dir,default_web_dir+".old_"+time.strftime("%Y%m%d.%H%M"))
-
-        os.symlink(web_dir,default_web_dir)
-
-    # create stage and monitor subdirs
-    for sdir_name in ("stage","monitor"):
-        sdir_fullpath=os.path.join(web_dir,sdir_name)
-        if not os.path.exists(sdir_fullpath):
-            os.mkdir(sdir_fullpath)
-        os.chown(sdir_fullpath,gfactory_pwd[2],gfactory_pwd[3])
-
-    ####################################
-    # Create an empty top level page
-    if not os.path.exists('/var/www/html/index.html'):
-        fd=open('/var/www/html/index.html',"w")
-        try:
-            fd.write('<html>\n')
-            fd.write('<body>\n')
-            fd.write('</body>\n')
-            fd.write('</html>\n')
-        finally:
-            fd.close()
-    
-    if RRD_BIN_PATH==None:
-        query_rrd()
 
     condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
@@ -772,6 +720,57 @@ def gfactory_install():
         # found and verified the installation
         break
 
+    #if RRD_BIN_PATH==None:
+    #    query_rrd()
+
+    #################################
+    # Create the web dir owned by the
+    # gfactory user
+    #while 1:
+    #    default_gfactory_user='gfactory'
+    #    gfactory_user=raw_input("Under which user will the Glidein Factory deamons run?: [%s] "%default_gfactory_user)
+    #    if gfactory_user=="":
+    #        gfactory_user=default_gfactory_user
+    #    try:
+    #        gfactory_pwd=pwd.getpwnam(gfactory_user)
+    #    except KeyError:
+    #        print "'%s' is not a valid user!"%gfactory_user
+    #        continue
+    #    #found and verified
+    #    break
+
+    #default_web_dir='/var/www/html/glidefactory'
+    #web_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_dir,empty_required=False)
+    #os.chown(web_dir,gfactory_pwd[2],gfactory_pwd[3])
+    #if web_dir!=default_web_dir:
+    #    # if not the default, make a symlink to that location
+    #    if os.path.islink(default_web_dir):
+    #        os.unlink(default_web_dir) # remove the old symlink
+    #    elif os.path.exists(default_web_dir):
+    #        # an old dir exists, rename
+    #        os.rename(default_web_dir,default_web_dir+".old_"+time.strftime("%Y%m%d.%H%M"))
+    #
+    #    os.symlink(web_dir,default_web_dir)
+
+    # create stage and monitor subdirs
+    #for sdir_name in ("stage","monitor"):
+    #    sdir_fullpath=os.path.join(web_dir,sdir_name)
+    #    if not os.path.exists(sdir_fullpath):
+    #        os.mkdir(sdir_fullpath)
+    #    os.chown(sdir_fullpath,gfactory_pwd[2],gfactory_pwd[3])
+
+    ####################################
+    # Create an empty top level page
+    #if not os.path.exists('/var/www/html/index.html'):
+    #    fd=open('/var/www/html/index.html',"w")
+    #    try:
+    #        fd.write('<html>\n')
+    #        fd.write('<body>\n')
+    #        fd.write('</body>\n')
+    #        fd.write('</html>\n')
+    #    finally:
+    #        fd.close()
+    
     # Web base directory
     # always use default
     def_web_base_dir="/var/www/html/glidefactory"
