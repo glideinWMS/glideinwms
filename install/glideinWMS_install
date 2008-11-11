@@ -3311,7 +3311,7 @@ def check_import(module_name):
     while 1:
         err=os.system("python -c 'import %s'"%module_name)
         if err!=0:
-            print "Python module %s not found!"%module name
+            print "Python module %s not found!"%module_name
             yn=raw_input("Do you want to retry?: (y/n) ")
             if yn!='y':
                 raise RuntimeError, "Failed to load %s"%module_name
