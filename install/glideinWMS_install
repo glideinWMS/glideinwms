@@ -596,9 +596,6 @@ def gfactory_install():
     check_import('M2Crypto')
     
     if VDT_BASE_PATH==None:
-        query_vdt()
-
-    if VDT_BASE_PATH==None:
         if os.environ.has_key('OSG_VDT_BASE'):
             VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
 
