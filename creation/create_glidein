@@ -18,7 +18,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import cgWParams
 import cgWDictFile
-import cgWConsts
+import cgWConsts,cWConsts
 import cgWCreate
 import cgWParamDict
 
@@ -45,7 +45,7 @@ def main(params):
         cfgfile=os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE)
         params.save_into_file(cfgfile,set_ro=True)
         # make two copies, the second one should have a unique name, so it does not get overwritten on reconfig
-        cfgfile=cgWConsts.insert_timestr(cfgfile)
+        cfgfile=cWConsts.insert_timestr(cfgfile)
         params.save_into_file(cfgfile,set_ro=True)
 
         # create the init.d starup file
@@ -134,10 +134,13 @@ if __name__ == '__main__':
 #
 # CVS info
 #
-# $Id: create_glidein,v 1.140 2008/10/29 14:40:55 sfiligoi Exp $
+# $Id: create_glidein,v 1.141 2008/11/11 21:10:13 sfiligoi Exp $
 #
 # Log:
 #  $Log: create_glidein,v $
+#  Revision 1.141  2008/11/11 21:10:13  sfiligoi
+#  Use cWConsts
+#
 #  Revision 1.140  2008/10/29 14:40:55  sfiligoi
 #  Make Params an abstract class and move glidein specific stuff into GlideinParams
 #
