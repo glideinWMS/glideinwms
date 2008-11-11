@@ -217,7 +217,7 @@ To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
 Will you be using a proxy or a cert? (proxy/cert) <B>proxy</B>
 Where is your proxy located?: <B>/home/gfactory/.globus/x509_service_proxy</B>
-My DN = '/DC=org/DC=doegrids/OU=People/CN=gfactory/gfactory1.my.org'
+My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
 
 You will most probably need other DNs in the condor grid mapfile
 Please add all the DNs that can be used to connect to the
@@ -276,8 +276,66 @@ GSI security; you will need to provide the DNs of all the submit
 nodes.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
 answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">Do you have already a VDT installation?: (y/n) <B>n</B>
-Do you want to install the full OSG VDT client?: (y/n) <B>n</B></PRE><P>
+<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the Glidein Factory you need a valid GSI proxy.
+Where is your proxy located?: [/home/gfactory/.globus/x509_service_proxy] <B>/home/gfactory/.globus/x509_service_proxy</B>
+
+Where will you host your config and log files?: [/home/gfactory/glideinsubmit] <B>/home/gfactory/glideinsubmit</B>
+Where will the web data be hosted?: [/var/www/html/glidefactory] <B>/var/www/html/glidefactory</B>
+Directory '/var/www/html/glidefactory' not empty.
+Should I use it anyhow?: (y/n) <B>y</B>
+What Web URL will you use?: [http://gfactory1.my.org/glidefactory/] <B>http://gfactory1.my.org/glidefactory/</B>
+Give a name to this Glidein Factory?: [gfactory1] <B>gfactory1</B>
+Give a name to this Glidein instance?: [v1_0] <B>v1_0</B>
+What is the Condor base directory?: [/home/gfactory/glidecondor] <B>/home/gfactory/glidecondor</B>
+The following glidein schedds have been found:
+ [1] schedd_glideins1@gfactory1.my.org
+ [2] schedd_glideins2@gfactory1.my.org
+ [3] schedd_glideins3@gfactory1.my.org
+ [4] schedd_glideins4@gfactory1.my.org
+ [5] schedd_glideins5@gfactory1.my.org
+ [6] schedd_glideins6@gfactory1.my.org
+ [7] schedd_glideins7@gfactory1.my.org
+ [8] schedd_glideins8@gfactory1.my.org
+ [9] schedd_glideins9@gfactory1.my.org
+Do you want to use all of them?: (y/n) <B>y</B>
+Using ['schedd_glideins1@gfactory1.my.org', 'schedd_glideins2@gfactory1.my.org', 'schedd_glideins3@gfactory1.my.org', 'schedd_glideins4@gfactory1.my.org', 'schedd_glideins5@gfactory1.my.org', 'schedd_glideins6@gfactory1.my.org', 'schedd_glideins7@gfactory1.my.org', 'schedd_glideins8@gfactory1.my.org', 'schedd_glideins9@gfactory1.my.org']
+
+Please list all the GCB servers you will be using
+Leave an empty line when finished
+GCB node: <B>gcb1.my.org</B>
+GCB node: <i>enter</i>
+My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
+
+You will most probably need other DNs in the grid mapfile
+Please add all the DNs that this glidein will connect to
+(usually the Pool Collector and the Submit nodes)
+
+Please insert all such DNs, together with a user nickname.
+An empty DN entry means you are done.
+DN: <B>/DC=org/DC=doegrids/OU=Services/CN-collector1.my.org</B>
+nickname: [condor001] <B>collector</B>
+DN: <B>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</B>
+nickname: [condor002] <B>schedd1</B>
+DN:
+Do you want to use gLExec?: (y/n) <B>y</B>
+Do you want to fetch entries from RESS?: (y/n) [n] <B>y</B>
+
+Which RESS server should I use?: [osg-ress-1.fnal.gov]
+Select Condor RESS constraint: [StringlistMember("VO:you",GlueCEAccessControlBaseRule)] <B>StringlistMember("VO:you",GlueCEAccessControlBaseRule)</B>
+Define a python filter: [(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))] <B>(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))</B>
+Found 49 additional entries
+Do you want to use them all?: (y/n) <B>y</B>
+Do you want to fetch entries from BDII?: (y/n) [n] <B>n</B>
+Please list all additional glidein entry points,
+Entry name (leave empty when finished): <i>enter</i>
+Do you want to expose the Grid env. to the user jobs?: (y/n) <B>y</B>
+Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n] <B>n</B>
+To create the glidein, you need to run
+/home/gfactory/glideinWMS/creation/create_glidein
+
+Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
+Remember to set X509_USER_PROXY before starting the daemon
+</PRE><P>
 <FONT FACE="Liberation Serif"><FONT SIZE=3>If you followed the
 example above, you ended up with a configuration file in
 </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>/home/gfactory/glideinsubmit/glidein_v1_0.cfg/glideinWMS.xml</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>.
