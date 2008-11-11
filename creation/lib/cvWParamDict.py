@@ -18,31 +18,31 @@ class frontendCommonDicts:
         try:
             os.mkdir(self.monitor_dir)
         except OSError,e:
-            cgWDictFile.frontendCommonDicts.delete_dirs(self)
+            cvWDictFile.frontendCommonDicts.delete_dirs(self)
             raise RuntimeError,"Failed to create dir: %s"%e
 
         try:
             os.symlink(self.monitor_dir,os.path.join(self.submit_dir,"monitor"))
         except OSError, e:
-            cgWDictFile.frontendCommonDicts.delete_dirs(self)
+            cvWDictFile.frontendCommonDicts.delete_dirs(self)
             shutil.rmtree(self.monitor_dir)
             raise RuntimeError,"Failed to create symlink %s: %s"%(os.path.join(self.submit_dir,"monitor"),e)
 
     def delete_pd_dirs(self):
         shutil.rmtree(self.monitor_dir)
 
-class frontendMainDicts(frontendCommonDicts,cgWDictFile.frontendMainDicts):
+class frontendMainDicts(frontendCommonDicts,cvWDictFile.frontendMainDicts):
     def __init__(self,params):
-        cgWDictFile.frontendMainDicts.__init__(self,params.submit_dir,params.stage_dir)
+        cvWDictFile.frontendMainDicts.__init__(self,params.submit_dir,params.stage_dir)
         self.monitor_dir=params.monitor_dir
         self.params=params
 
     def create_dirs(self):
-        cgWDictFile.frontendMainDicts.create_dirs(self)
+        cvWDictFile.frontendMainDicts.create_dirs(self)
         self.create_pd_dirs()
 
     def delete_dirs(self):
-        cgWDictFile.frontendMainDicts.delete_dirs(self)
+        cvWDictFile.frontendMainDicts.delete_dirs(self)
         self.delete_pd_dirs()
 
     def populate(self,params=None):
@@ -150,10 +150,10 @@ class frontendMainDicts(frontendCommonDicts,cgWDictFile.frontendMainDicts):
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
-        return cgWDictFile.frontendMainDicts.reuse(self,other)
+        return cvWDictFile.frontendMainDicts.reuse(self,other)
 
     def save(self,set_readonly=True):
-        cgWDictFile.frontendMainDicts.save(self,set_readonly)
+        cvWDictFile.frontendMainDicts.save(self,set_readonly)
         if self.params.security.pub_key=='None':
             pass # nothing to do
         elif self.params.security.pub_key=='RSA':
@@ -174,28 +174,28 @@ class frontendMainDicts(frontendCommonDicts,cgWDictFile.frontendMainDicts):
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%self.params.security.pub_key
 
-class frontendGroupDicts(frontendCommonDicts,cgWDictFile.frontendGroupDicts):
+class frontendGroupDicts(frontendCommonDicts,cvWDictFile.frontendGroupDicts):
     def __init__(self,
                  frontend_main_dicts, # must be an instance of frontendMainDicts
                  group_name):
-        cgWDictFile.frontendGroupDicts.__init__(self,frontend_main_dicts,group_name)
+        cvWDictFile.frontendGroupDicts.__init__(self,frontend_main_dicts,group_name)
         self.monitor_dir=cgWConsts.get_group_monitor_dir(frontend_main_dicts.monitor_dir,group_name)
         self.params=frontend_main_dicts.params
 
     def create_dirs(self):
-        cgWDictFile.frontendGroupDicts.create_dirs(self)
+        cvWDictFile.frontendGroupDicts.create_dirs(self)
         self.create_pd_dirs()
 
     def delete_dirs(self):
-        cgWDictFile.frontendGroupDicts.delete_dirs(self)
+        cvWDictFile.frontendGroupDicts.delete_dirs(self)
         self.delete_pd_dirs()
 
     def erase(self):
-        cgWDictFile.frontendGroupDicts.erase(self)
+        cvWDictFile.frontendGroupDicts.erase(self)
         self.dicts['condor_jdl']=cgWCreate.GlideinSubmitDictFile(self.submit_dir,cgWConsts.SUBMIT_FILE)
         
     def load(self): #will use frontend_main_dicts data, so it must be loaded first
-        cgWDictFile.frontendGroupDicts.load(self)
+        cvWDictFile.frontendGroupDicts.load(self)
         self.dicts['condor_jdl'].load()
 
     def save_final(self,set_readonly=True):
@@ -264,7 +264,7 @@ class frontendGroupDicts(frontendCommonDicts,cgWDictFile.frontendGroupDicts):
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change group monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
-        return cgWDictFile.frontendGroupDicts.reuse(self,other)
+        return cvWDictFile.frontendGroupDicts.reuse(self,other)
 
         
 ################################################
@@ -274,7 +274,7 @@ class frontendGroupDicts(frontendCommonDicts,cgWDictFile.frontendGroupDicts):
 #
 ################################################
 
-class frontendDicts(cgWDictFile.frontendDicts):
+class frontendDicts(cvWDictFile.frontendDicts):
     def __init__(self,params,
                  group_list=None): # if None, get it from params
         if group_list==None:
@@ -319,7 +319,7 @@ class frontendDicts(cgWDictFile.frontendDicts):
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
-        return cgWDictFile.frontendDicts.reuse(self,other)
+        return cvWDictFile.frontendDicts.reuse(self,other)
 
     ###########
     # PRIVATE
