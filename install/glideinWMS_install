@@ -680,6 +680,9 @@ def gfactory_install():
         if web_base_url=="":
             web_base_url=default_web_base_url
 
+        if web_base_url[-1]!='/':
+            web_base_url+='/'
+
         if web_base_url[:7]=="http://":
             web_url_type="http"
             web_base_url_noproto=web_base_url[7:]
@@ -712,7 +715,7 @@ def gfactory_install():
             try:
                 fc=ftplist.FTP(web_base_url_host)
                 rc=fc.login()
-                rc=fc.cwd(web_base_url_path+"/stage")
+                rc=fc.cwd(web_base_url_path+"stage/")
                 fc.close()
             except:
                 print "Failed connecting to: %s"%web_base_url
@@ -735,7 +738,7 @@ def gfactory_install():
                 else:
                     hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
                 hc.connect()
-                hc.request("GET", "/%s/stage"%web_base_url_path)
+                hc.request("GET", "/%sstage/"%web_base_url_path)
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:
