@@ -207,7 +207,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
-    def populate(self,schedd_name,params=None):
+    def populate(self,params=None):
         if params==None:
             params=self.params
 
