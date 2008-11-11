@@ -34,6 +34,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         # publishing specific to frontend
         self.attr_defaults["conditional"]=("True","Bool","Should I only publish if the factory tell us it supports it?",None)
+        self.attr_defaults["type"][1]="string|int|expr"
 
         group_config_defaults=xmlParse.OrderedDict()
         group_config_defaults['max_running_jobs']=('10000',"nr_jobs","What is the max number of running jobs I want to get to",None)
