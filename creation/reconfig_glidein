@@ -20,7 +20,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import cgWParams
 import cgWDictFile
-import cgWConsts
+import cgWConsts,cWConsts
 import cgWCreate
 import cgWParamDict
 
@@ -47,7 +47,7 @@ def main(params,old_params):
     cfgfile=os.path.join(glidein_dicts_obj.main_dicts.submit_dir,cgWConsts.XML_CONFIG_FILE)
     params.save_into_file_wbackup(cfgfile,set_ro=True)
     # make two copies, the second one should have a unique name, so it does not get overwritten on further reconfig
-    cfgfile=cgWConsts.insert_timestr(cfgfile)
+    cfgfile=cWConsts.insert_timestr(cfgfile)
     params.save_into_file(cfgfile,set_ro=True)
 
     print "Reconfigured glidein '%s'"%params.glidein_name

@@ -10,7 +10,7 @@ import os,os.path,shutil,string
 import cWParams
 import cgWDictFile
 import cgWCreate
-import cgWConsts
+import cgWConsts,cWConsts
 
 # internal, can only be used for multiple inheritance
 class glideinCommonDicts:
@@ -50,22 +50,22 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             params=self.params
 
         # put default files in place first
-        self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
-        self.dicts['file_list'].add_placeholder(cgWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
-        self.dicts['file_list'].add_placeholder(cgWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh
+        self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh
         
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh','setup_x509.sh'):
-            self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         #load condor tarball
         if params.condor.tar_file!=None: # condor tarball available
-            self.dicts['file_list'].add_from_file(cgWConsts.CONDOR_FILE,(cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),params.condor.tar_file)
+            self.dicts['file_list'].add_from_file(cgWConsts.CONDOR_FILE,(cWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),params.condor.tar_file)
         else: # create a new tarball
             condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
-            condor_fname=cgWConsts.insert_timestr(cgWConsts.CONDOR_FILE)
+            condor_fname=cWConsts.insert_timestr(cgWConsts.CONDOR_FILE)
             self.dicts['file_list'].add_from_fd(cgWConsts.CONDOR_FILE,(condor_fname,"untar","TRUE",cgWConsts.CONDOR_ATTR),condor_fd)
             condor_fd.close()
             params.subparams.data['condor']['tar_file']=os.path.join(self.dicts['file_list'].dir,condor_fname)
@@ -73,7 +73,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
 
         #load system files
         for file_name in ('parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.monitor.include" ):
-            self.dicts['file_list'].add_from_file(file_name,(cgWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
+            self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
         self.dicts['description'].add("condor_config.dedicated_starter.include","condor_config_main_include")
@@ -88,19 +88,19 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         for attr_name in params.attrs.keys():
             add_attr_unparsed(attr_name, params.attrs[attr_name],self.dicts,"main")
 
-        if self.dicts['file_list'].is_placeholder(cgWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
-            self.dicts['file_list'].remove(cgWConsts.GRIDMAP_FILE)
+        if self.dicts['file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
+            self.dicts['file_list'].remove(cWConsts.GRIDMAP_FILE)
 
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
         # add additional system scripts
         for script_name in ('collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
-            self.dicts['after_file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
         for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-            self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
         # if a user does not provide a file name, use the default one
@@ -214,9 +214,9 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         entry_params=params.entries[self.entry_name]
 
         # put default files in place first
-        self.dicts['file_list'].add_placeholder(cgWConsts.CONSTS_FILE,allow_overwrite=True)
+        self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cgWConsts.VARS_FILE,allow_overwrite=True)
-        self.dicts['file_list'].add_placeholder(cgWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
+        self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
 
         # follow by the blacklist file
         file_name="nodes.blacklist"
@@ -225,7 +225,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"validate_node.sh"):
-            self.dicts['file_list'].add_from_file(script_name,(cgWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         #load system files
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
@@ -369,7 +369,7 @@ def add_file_unparsed(file,dicts):
         if is_wrapper:
             raise RuntimeError, "A wrapper file cannot be executable: %s"%file
 
-        dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"exec","TRUE",'FALSE'),absfname)
     elif is_wrapper: # a sourceable script for the wrapper
         if not is_const:
             raise RuntimeError, "A file cannot be a wrapper if it is not constant: %s"%file
@@ -377,7 +377,7 @@ def add_file_unparsed(file,dicts):
         if do_untar:
             raise RuntimeError, "A tar file cannot be a wrapper: %s"%file
 
-        dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"wrapper","TRUE",'FALSE'),absfname)
     elif do_untar: # a tarball
         if not is_const:
             raise RuntimeError, "A file cannot be untarred if it is not constant: %s"%file
@@ -392,12 +392,12 @@ def add_file_unparsed(file,dicts):
         cond_attr=file.untar_options.cond_attr
 
 
-        dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
+        dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),"untar",cond_attr,config_out),absfname)
         dicts['untar_cfg'].add(relfname,wnsubdir)
     else: # not executable nor tarball => simple file
         if is_const:
             val='regular'
-            dicts[file_list_idx].add_from_file(relfname,(cgWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
+            dicts[file_list_idx].add_from_file(relfname,(cWConsts.insert_timestr(relfname),val,'TRUE','FALSE'),absfname)
         else:
             val='nocache'
             dicts[file_list_idx].add_from_file(relfname,(relfname,val,'TRUE','FALSE'),absfname) # no timestamp if it can be modified
