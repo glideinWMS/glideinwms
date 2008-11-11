@@ -593,10 +593,11 @@ def gfactory_install():
         raise RuntimeError,"Cannot find %s/creation"%glideinWMS_base_dir
 
     if VDT_BASE_PATH==None:
-        if not os.environ.has_key('OSG_VDT_BASE'):
-            raise "Cannot find the OSG VDT client! (OSG_VDT_BASE not defined)"
-        else:
+        if os.environ.has_key('OSG_VDT_BASE'):
             VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
 
 
     ###################################
@@ -642,6 +643,32 @@ def gfactory_install():
         # found it
         break
 
+    
+    while 1:
+        default_web_base_dir='/var/www/html/glidefactory'
+        web_base_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_base_dir,empty_required=False)
+
+        # create stage and monitor subdirs, if needed
+        for sdir_name in ("stage","monitor"):
+            sdir_fullpath=os.path.join(web_base_dir,sdir_name)
+            if not os.path.exists(sdir_fullpath):
+                try:
+                    os.mkdir(sdir_fullpath)
+                except:
+                    print "Cannot create dir '%s'"%sdir_fullpath
+                    continue
+
+                test_fname=os.path.join(sdir_fullpath,"test.txt")
+                try:
+                    fd=open(test_fname,"w")
+                    fd.close()
+                    os.unlink(test_fname)
+                except:
+                    print "Dir '%s' not writable."%sdir_fullpath
+                    continue
+        break # everything worked, go on 
+        
+
     # Web URL
     if HTTPD_PORT==None:
         default_web_base_url="http://%s/glidefactory/"%full_host_name
@@ -685,7 +712,7 @@ def gfactory_install():
             try:
                 fc=ftplist.FTP(web_base_url_host)
                 rc=fc.login()
-                rc=fc.cwd(web_base_url_path)
+                rc=fc.cwd(web_base_url_path+"/stage")
                 fc.close()
             except:
                 print "Failed connecting to: %s"%web_base_url
@@ -708,7 +735,7 @@ def gfactory_install():
                 else:
                     hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
                 hc.connect()
-                hc.request("GET", "/"+web_base_url_path)
+                hc.request("GET", "/%s/stage"%web_base_url_path)
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:
@@ -722,67 +749,6 @@ def gfactory_install():
 
     #if RRD_BIN_PATH==None:
     #    query_rrd()
-
-    #################################
-    # Create the web dir owned by the
-    # gfactory user
-    #while 1:
-    #    default_gfactory_user='gfactory'
-    #    gfactory_user=raw_input("Under which user will the Glidein Factory deamons run?: [%s] "%default_gfactory_user)
-    #    if gfactory_user=="":
-    #        gfactory_user=default_gfactory_user
-    #    try:
-    #        gfactory_pwd=pwd.getpwnam(gfactory_user)
-    #    except KeyError:
-    #        print "'%s' is not a valid user!"%gfactory_user
-    #        continue
-    #    #found and verified
-    #    break
-
-    #default_web_dir='/var/www/html/glidefactory'
-    #web_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_dir,empty_required=False)
-    #os.chown(web_dir,gfactory_pwd[2],gfactory_pwd[3])
-    #if web_dir!=default_web_dir:
-    #    # if not the default, make a symlink to that location
-    #    if os.path.islink(default_web_dir):
-    #        os.unlink(default_web_dir) # remove the old symlink
-    #    elif os.path.exists(default_web_dir):
-    #        # an old dir exists, rename
-    #        os.rename(default_web_dir,default_web_dir+".old_"+time.strftime("%Y%m%d.%H%M"))
-    #
-    #    os.symlink(web_dir,default_web_dir)
-
-    # create stage and monitor subdirs
-    #for sdir_name in ("stage","monitor"):
-    #    sdir_fullpath=os.path.join(web_dir,sdir_name)
-    #    if not os.path.exists(sdir_fullpath):
-    #        os.mkdir(sdir_fullpath)
-    #    os.chown(sdir_fullpath,gfactory_pwd[2],gfactory_pwd[3])
-
-    ####################################
-    # Create an empty top level page
-    #if not os.path.exists('/var/www/html/index.html'):
-    #    fd=open('/var/www/html/index.html',"w")
-    #    try:
-    #        fd.write('<html>\n')
-    #        fd.write('<body>\n')
-    #        fd.write('</body>\n')
-    #        fd.write('</html>\n')
-    #    finally:
-    #        fd.close()
-    
-    # Web base directory
-    # always use default
-    def_web_base_dir="/var/www/html/glidefactory"
-    while 1:
-        web_base_dir=raw_input("What is the Web base directory?: [%s] "%def_web_base_dir)
-        if web_base_dir=="":
-            web_base_dir=def_web_base_dir
-        if not os.path.exists(web_base_dir):
-            print "Directory %s does not exist!"%web_base_dir
-            continue
-        # found and verified
-        break
 
     # Factory name
     def_factory_name=fhn_arr[0]
@@ -1587,7 +1553,11 @@ MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','VOMS-Client','CA-Certificates-Updater
 
 def install_vdt(minimal):
     global VDT_BASE_PATH
-    def_vdt_base_path="/opt/vdt"
+    if os.getuid()==0:
+        def_vdt_base_path="/opt/vdt"
+    else:
+        def_vdt_base_path="%s/vdt"%os.environ['HOME']
+    
     user_dir=create_empty_dir("Where do you want the VDT installed?: ",def_vdt_base_path)
 
     while 1:
@@ -1916,7 +1886,11 @@ def install_condor():
     # Ask for the install dir
     # and verify it
 
-    def_condor_base_dir="/opt/glidecondor"
+    if os.getuid()==0:
+        def_condor_base_dir="/opt/glidecondor"
+    else:
+        def_condor_base_dir="%s/glidecondor"%os.environ['HOME']
+    
     user_condor_base_dir=create_empty_dir("Where do you want to install it?: ",def_condor_base_dir)
     tar_dir="%s/tar"%user_condor_base_dir
     os.mkdir(tar_dir)
@@ -3264,6 +3238,18 @@ def install_httpd():
             os.rename("/etc/httpd/conf.d/%s"%fname,"/etc/httpd/conf.d/%s.org_%s"%(fname,time.strftime("%Y%m%d.%H%M")))
 
     
+    ####################################
+    # Create an empty top level page
+    if not os.path.exists('/var/www/html/index.html'):
+        fd=open('/var/www/html/index.html',"w")
+        try:
+            fd.write('<html>\n')
+            fd.write('<body>\n')
+            fd.write('</body>\n')
+            fd.write('</html>\n')
+        finally:
+            fd.close()
+
     ################################
     # start httpd
     err=os.system('/etc/init.d/httpd start')
