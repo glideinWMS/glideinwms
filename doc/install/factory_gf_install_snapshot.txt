@@ -1,3 +1,13 @@
+###################################################
+# Warning:
+# This document is not being maintained anymore
+#
+# It is here just for historic purposes
+#
+###################################################
+
+
+
 [gfactory@node1 ~]$ export CVSROOT=:pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only
 [gfactory@node1 ~]$ cvs co -r v1_0 glideinWMS
 [gfactory@node1 ~]$ cd glideinWMS/install

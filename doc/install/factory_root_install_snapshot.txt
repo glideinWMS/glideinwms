@@ -1,3 +1,13 @@
+###################################################
+# Warning:
+# This document is not being maintained anymore
+#
+# It is here just for historic purposes
+#
+###################################################
+
+
+
 [root@cmssrv13 ~]# cd glideinWMS/install/
 [root@cmssrv13 install]# ./glideinWMS_install
 Welcome to the glideinWMS Installation Helper

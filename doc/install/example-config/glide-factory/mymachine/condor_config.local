@@ -1,3 +1,10 @@
+###################################################
+## Warning:
+## This document is not being maintained anymore
+##
+## It is here just for historic purposes
+##
+####################################################
 
 ########################################################
 # Whatever condor_configure put into condor_config.local
@@ -6,7 +13,7 @@
 
 ##  What machine is your central manager?
 
-CONDOR_HOST = cmssrv13.fnal.gov
+CONDOR_HOST = gfactory1.my.org
 
 
 ##  Pathnames:
