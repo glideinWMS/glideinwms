@@ -13,12 +13,27 @@
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
-<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of
-the WMS Collector and collocated glidein Factory </FONT></FONT>
+<H1>Installation of
+the WMS&nbsp;Collector and collocated glidein&nbsp;Factory
 </H1>
+<hr>
+<table>
+<tr valign="center" align="center">
+<td>[</td><td align="left"><a href="#description">Description</a></td>
+<td>|</td><td><a href="#hardware">Hardware requirements</a></td>
+<td>|</td><td><a href="#software">Needed software</a></td>
+<td>|</td><td><a href="#system">System services</a></td>
+<td>|</td><td><a href="#condor">glideinWMS Collector installation</a></td>
+<td>|</td><td><a href="#factory">Glidein Factory installation</a></td>
+<td>|</td><td align="right"><a href="#monitoring">Glidein Factory monitoring</a></td>
+<td>]</td>
+</tr>
+</table>
+<hr>
 <TABLE CELLPADDING=2 CELLSPACING=2>
 	<TR>
 		<TD VALIGN=TOP>
+	                <a name="description">
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein Factory
@@ -28,6 +43,7 @@ the WMS Collector and collocated glidein Factory </FONT></FONT>
 			Submit node</A> for the glidein factory, running Condor schedds
 			used for Grid submission.<BR>On top of that, this node also hosts
 			the glidein factory daemons.</FONT></FONT></P>
+	                <a name="hardware">
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
 			requirements </FONT></FONT>
 			</H2>
@@ -49,6 +65,7 @@ the WMS Collector and collocated glidein Factory </FONT></FONT>
 		</TD>
 	</TR>
 </TABLE>
+<a name="software">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed software
 </FONT></FONT>
 </H2>
@@ -62,7 +79,9 @@ distribution</A>.<BR>The <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool
 package</A> (v1.2.18 or later)<BR>The <A HREF="http://freshmeat.net/projects/m2crypto">M2Crypto
 python library</A> (v0.17 or later)<BR>The <A HREF="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
 software</A>.</FONT></FONT></P>
+<a name="system">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. System services</FONT></FONT></H2>
+<a name="system_httpd">
 <H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.1 HTTP server</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein Factory
 needs a HTTP server, like <A HREF="http://www.apache.org/">Apache</A>
@@ -96,6 +115,7 @@ PostgreSQL database<BR>[f] Quill-specific PostgreSQL database</FONT></FONT></BLO
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>c</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions. Most of the questions should be fairly straightforward.</FONT></FONT></P>
+<a name="system_rrdtool">
 <H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.2 RRDTool</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will also need the
 python module for <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool</A>
@@ -115,7 +135,8 @@ can be downloaded from:<BR><A HREF="http://oss.oetiker.ch/rrdtool/pub/">http://o
 process has several dependencies that make it complicated. Use this
 option only if you cannot install from RPMs (or similar). </FONT></FONT>
 </P>
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.3 m2crypto</FONT></FONT></H3>
+<a name="system_m2crypto">
+<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.3 M2Crypto</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will need the
 <A HREF="http://freshmeat.net/projects/m2crypto">M2Crypto python
 library</A>. A few systems include it in the software distribution;
@@ -135,6 +156,7 @@ into the PYTHONPATH, possibly in the .profile or in the .cshrc:</FONT></FONT></P
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>export
 PYTHONPATH=$PYTHONPATH:<I>&lt;base
 dir&gt;</I>/usr/lib/python2.3/site-packages/M2Crypto</FONT></FONT></BLOCKQUOTE>
+<a name="condor">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. glideinWMS
 Collector installation guide</FONT></FONT></H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glideinWMS
@@ -239,8 +261,9 @@ condor_master</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>To start them again:</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd &lt;install
 dir&gt;; ./start_condor.sh</FONT></FONT></BLOCKQUOTE>
+<a name="factory">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>6. Glidein Factory
-installation guide </FONT></FONT>
+installation guide</FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein Factory
 needs a x509 proxy to communicate with the rest of the world. You
@@ -351,6 +374,7 @@ dir&gt;</I> is the one written out by the installation script.</FONT></FONT></P>
 factory, use</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3><I>&lt;install
 dir&gt;</I>/factory_startup stop</FONT></FONT></BLOCKQUOTE>
+<a name="factory_manual">
 <H3><FONT FACE="Verdana"><FONT SIZE=3>6.1 Manual configuration</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein factory can
 also be configured manually.<BR>The complete guide can be found in
@@ -363,6 +387,7 @@ file is ready, you can create the glidein Factory by executing</FONT></FONT></P>
 glideinWMS/creation<BR>./create_glidein <I>&lt;config file&gt;</I></FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The startup procedure
 is the same as described above.</FONT></FONT></P>
+<a name="factory_update">
 <H3>6.2 Changing the factory configuration</H3>
 <P>Occasionally, you may need to change the glidein Factory
 configuration. This is done by updating the configuration file and
@@ -377,39 +402,50 @@ dir&gt;/</I>factory_startup reconfig <I>&lt;work config&gt;</I></FONT></FONT></B
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>If the factory was
 running, the procedure will stop the factory before reconfiguring it,
 and restart it afterwards.</FONT></FONT></P>
+<a name="monitoring">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>7. Glidein Factory
 monitoring </FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>There are several ways
 to monitor the entry points of the glidein factory:</FONT></FONT></P>
 <UL>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>Using the Web
-	monitoring</FONT></FONT></P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>Using the WMS
-	tools</FONT></FONT></P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>Looking at the
-	glidein factory log files </FONT></FONT>
+	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+	      <a href="#monitoring_web">
+	      Using the Web
+	      monitoring</a></FONT></FONT></P>
+	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+	      <a href="#monitoring_tools">
+	      Using the WMS
+	      tools</a></FONT></FONT></P>
+	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+	      <a href="#monitoring_logs">
+	      Looking at the
+	      glidein factory log files</a></FONT></FONT>
 	</P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>Looking at the
-	glidein outputs </FONT></FONT>
+	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+	      <a href="#monitoring_glideins">
+	      Looking at the
+	      glidein outputs</a></FONT></FONT>
 	</P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>Checking the WMS
-	collector ads</FONT></FONT></P>
+	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+	      <a href="#monitoring_condor">
+	      Checking the WMS
+	      collector ads</a></FONT></FONT></P>
 </UL>
+<a name="monitoring_web">
 <H3><FONT FACE="Verdana"><FONT SIZE=3>7.1 Glidein factory entry Web
 monitoring</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can either monitor
 the factory as a whole, or just a single entry point.<BR><BR>The
 factory monitoring is located at a URL like the one below</FONT></FONT></P>
-<DL>
-	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="Liberation Serif"><FONT SIZE=3>http://node1.my.company.org/glidefactory/monitor/glidein_v1_0/</FONT></FONT></DD></DL>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</FONT></FONT></BLOCKQUOTE>
 <P>
 <FONT FACE="Liberation Serif"><FONT SIZE=3>Moreover, each entry
 point, has its own history on the Web.<BR><BR>Assuming you have a
 SanDiego entry, it can be monitored at</FONT></FONT></P>
-<DL>
-	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="Liberation Serif"><FONT SIZE=3>http://nopde1.my.company.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</FONT></FONT></DD></DL>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</FONT></FONT></BLOCKQUOTE>
 <H3>
+<a name="monitoring_tools">
 <FONT FACE="Verdana"><FONT SIZE=3>7.2 Glidein factory monitoring via
 WMS tools</FONT></FONT></H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can get the
@@ -417,6 +453,7 @@ equivalent of the Web page snaphot by using </FONT></FONT>
 </P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
 glideinWMS/tools/<BR>python wmsXMLView.py</FONT></FONT></BLOCKQUOTE>
+<a name="monitoring_logs">
 <H3><FONT FACE="Verdana"><FONT SIZE=3>7.3 Glidein factory entry log
 files </FONT></FONT>
 </H3>
@@ -429,6 +466,7 @@ SanDiego entry, the log files are in</FONT></FONT></P>
 in the <B>factory_err.YYYYMMDD.log</B>. file, while
 <B>factory_info.YYYYMMDD.log </B>contains entries about what the
 factory is doing.</FONT></FONT></P>
+<a name="monitoring_glideins">
 <H3><FONT FACE="Verdana"><FONT SIZE=3>7.4 Glidein output </FONT></FONT>
 </H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Each glidein creates 2
@@ -437,15 +475,15 @@ you have a SanDiego entries, the log files are in</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Problems are usually
 reasonably easy to spot.</FONT></FONT></P>
+<a name="monitoring_condor">
 <H3><FONT FACE="Verdana"><FONT SIZE=3>7.5 Glidein factory ClassAds in
 the WMS Collector </FONT></FONT>
 </H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein factory
 also advertises summary information in the WMS collector.<BR><BR>Use
 <B>condor_status</B>:</FONT></FONT></P>
-<DL>
-	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="Liberation Serif"><FONT SIZE=3>condor_status
-	-any</FONT></FONT></DD></DL>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>condor_status
+	-any</FONT></FONT></BLOCKQUOTE>
 <P>
 <FONT FACE="Liberation Serif"><FONT SIZE=3>and look for <B>glidefactory</B>
 and <B>glidefactoryclient</B> ads.</FONT></FONT></P>
