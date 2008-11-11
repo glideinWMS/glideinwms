@@ -6,7 +6,7 @@
 #######################################################
 
 import os,os.path,shutil,string,copy
-import cgWConsts
+import cgWConsts,cWConsts
 import cWDictFile
 
 
@@ -19,21 +19,21 @@ import cWDictFile
 # internal, do not use from outside the module
 def get_common_dicts(submit_dir,stage_dir):
     common_dicts={'attrs':cWDictFile.ReprDictFile(submit_dir,cgWConsts.ATTRS_FILE),
-                  'description':cWDictFile.DescriptionDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.DESCRIPTION_FILE),fname_idx=cgWConsts.DESCRIPTION_FILE),
-                  'consts':cWDictFile.StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.CONSTS_FILE),fname_idx=cgWConsts.CONSTS_FILE),
+                  'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
+                  'consts':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
                   'params':cWDictFile.ReprDictFile(submit_dir,cgWConsts.PARAMS_FILE),
-                  'vars':cWDictFile.VarsDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.VARS_FILE),fname_idx=cgWConsts.VARS_FILE),
-                  'untar_cfg':cWDictFile.StrDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.UNTAR_CFG_FILE),fname_idx=cgWConsts.UNTAR_CFG_FILE),
-                  'file_list':cWDictFile.FileDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.FILE_LISTFILE),fname_idx=cgWConsts.FILE_LISTFILE),
-                  "signature":cWDictFile.SHA1DictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.SIGNATURE_FILE),fname_idx=cgWConsts.SIGNATURE_FILE)}
+                  'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cgWConsts.VARS_FILE),fname_idx=cgWConsts.VARS_FILE),
+                  'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
+                  'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
+                  "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
     refresh_description(common_dicts)
     return common_dicts
 
 def get_main_dicts(submit_dir,stage_dir):
     main_dicts=get_common_dicts(submit_dir,stage_dir)
-    main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(submit_dir,cgWConsts.SUMMARY_SIGNATURE_FILE)
+    main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(submit_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['glidein']=cWDictFile.StrDictFile(submit_dir,cgWConsts.GLIDEIN_FILE)
-    main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cgWConsts.insert_timestr(cgWConsts.AFTER_FILE_LISTFILE),fname_idx=cgWConsts.AFTER_FILE_LISTFILE)
+    main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTER_FILE_LISTFILE)
     return main_dicts
 
 def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
@@ -59,9 +59,9 @@ def load_common_dicts(dicts,           # update in place
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
     file_el=dicts['file_list']
     # all others are keyed in the file_list
-    dicts['consts'].load(fname=file_el[cgWConsts.CONSTS_FILE][0])
+    dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cgWConsts.VARS_FILE][0])
-    dicts['untar_cfg'].load(fname=file_el[cgWConsts.UNTAR_CFG_FILE][0])
+    dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['glidein'].load()
@@ -104,9 +104,9 @@ def refresh_file_list(dicts,is_main, # update in place
     if is_main:
         entry_str=""
     file_dict=dicts['file_list']
-    file_dict.add(cgWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str,dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str,dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cgWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str,dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str,dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
