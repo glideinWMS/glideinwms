@@ -592,6 +592,12 @@ def gfactory_install():
     if not os.path.isdir("%s/creation"%glideinWMS_base_dir):
         raise RuntimeError,"Cannot find %s/creation"%glideinWMS_base_dir
 
+    check_import('rrdtool')
+    check_import('M2Crypto')
+    
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
     if VDT_BASE_PATH==None:
         if os.environ.has_key('OSG_VDT_BASE'):
             VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
@@ -3297,6 +3303,21 @@ def install_rpm_httpd():
         raise RuntimeError, "Failed to install httpd via rpm '%s'!"%rpm_fname
 
     return
+
+#
+# Check if a python module can be imported
+###########################################
+def check_import(module_name):
+    while 1:
+        err=os.system("python -c 'import %s'"%module_name)
+        if err!=0:
+            print "Python module %s not found!"%module name
+            yn=raw_input("Do you want to retry?: (y/n) ")
+            if yn!='y':
+                raise RuntimeError, "Failed to load %s"%module_name
+            continue
+
+        return
 
 # Look for a rrdtool in the path
 # Ask the user if there is none
