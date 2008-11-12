@@ -54,9 +54,9 @@ class monitorDirSupport:
 
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts,monitorDirSupport):
-    def __init__(self,params):
+    def __init__(self,params,workdir_name):
         monitorDirSupport.__init__(self,params.monitor_dir)
-        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir)
+        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
         self.params=params
 
     def populate(self,params=None):
@@ -333,7 +333,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.params)
+        return glideinMainDicts(self.params,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
         return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
