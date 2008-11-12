@@ -882,8 +882,8 @@ class fileCommonDicts:
 # helper class, used below
 class fileDirSupport(workDirSupport,stageDirSupport):
     def __init__(self,work_dir,stage_dir,workdir_name):
-        workDirSupport.__init__(self,work_dir,workdir_name)
-        stageDirSupport.__init__(self,stage_dir)
+        workDirSupport.__init__(work_dir,workdir_name)
+        stageDirSupport.__init__(stage_dir)
         
     def create_dirs(self):
         self.create_file_dirs()
