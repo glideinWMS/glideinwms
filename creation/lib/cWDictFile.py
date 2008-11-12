@@ -853,19 +853,6 @@ class stageDirSupport:
         shutil.rmtree(self.stage_dir)
 
 
-class monitorDirSupport:
-    def __init__(self,monitor_dir):
-        self.monitor_dir=monitor_dir
-        
-    def create_monitor_dir(self):
-        try:
-            os.mkdir(self.monitor_dir)
-        except OSError,e:
-            raise RuntimeError,"Failed to create dir: %s"%e
-
-    def delete_monitor_dir(self):
-        shutil.rmtree(self.stage_dir)
-
 ################################################
 #
 # Dictionaries of files classes
@@ -1078,11 +1065,11 @@ class fileDicts:
         self.work_dir=work_dir
         self.workdir_name=workdir_name
         self.stage_dir=stage_dir
-        self.main_dicts=new_MainDicts()
+        self.main_dicts=self.new_MainDicts()
         self.sub_list=sub_list[:]
         self.sub_dicts={}
         for sub_name in sub_list:
-            self.sub_dicts[sub_name]=new_SubDicts(sub_name)
+            self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
         return
 
     def set_readonly(self,readonly=True):

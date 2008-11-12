@@ -55,7 +55,7 @@ class monitorDirSupport:
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts,monitorDirSupport):
     def __init__(self,params):
-        monitorDirSupport.__init__(params.monitor_dir)
+        monitorDirSupport.__init__(self,params.monitor_dir)
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir)
         self.params=params
 
@@ -193,7 +193,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts,monitorDirSupport):
                  glidein_main_dicts, # must be an instance of glideinMainDicts
                  sub_name):
         monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,sub_name)
-        monitorDirSupport.__init__(monitor_dir)
+        monitorDirSupport.__init__(self,monitor_dir)
         cgWDictFile.glideinEntryDicts.__init__(self,glidein_main_dicts,sub_name)
         self.params=glidein_main_dicts.params
 
