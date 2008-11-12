@@ -240,136 +240,63 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
 #
 ################################################
 
-# internal, do not use directly from outside the module
-class glideinCommonDicts:
-    def __init__(self):
-        self.dicts=None
-        self.submit_dir=None
-        self.stage_dir=None
-        raise RuntimeError, "glideinCommonDicts should never be directly used"
-        
-    def keys(self):
-        return self.dicts.keys()
+################################################
+#
+# This Class contains the main dicts
+#
+################################################
 
-    def has_key(self,key):
-        return self.dicts.has_key(key)
-
-    def __getitem__(self,key):
-        return self.dicts[key]        
-
-    def set_readonly(self,readonly=True):
-        for el in self.dicts.values():
-            el.set_readonly(readonly)
-
-    def create_dirs(self):
-        try:
-            os.mkdir(self.submit_dir)
-            try:
-                os.mkdir(os.path.join(self.submit_dir,'log'))
-                os.mkdir(self.stage_dir)
-            except:
-                shutil.rmtree(self.submit_dir)
-                raise
-        except OSError,e:
-            raise RuntimeError,"Failed to create dir: %s"%e
-
-    def delete_dirs(self):
-        shutil.rmtree(self.submit_dir)
-        shutil.rmtree(self.stage_dir)
-
-
-class glideinMainDicts(glideinCommonDicts):
-    def __init__(self,submit_dir,stage_dir):
-        self.submit_dir=submit_dir
-        self.stage_dir=stage_dir
-        self.erase()
-
-    def create_dirs(self):
-        glideinCommonDicts.create_dirs(self)
-        try:
-            proxy_dir=os.path.join(self.submit_dir,'client_proxies')
-            os.mkdir(proxy_dir)
-            os.chmod(proxy_dir,0700)
-        except OSError,e:
-            shutil.rmtree(self.submit_dir)
-            raise RuntimeError,"Failed to create dir: %s"%e
-
-    def get_summary_signature(self): # you can discover most of the other things from this
-        return self.dicts['summary_signature']
-
-    def erase(self):
-        self.dicts=get_main_dicts(self.submit_dir,self.stage_dir)
-    
+class glideinMainDicts(cWDictFile.fileMainDicts):
+    ######################################
+    # Redefine methods needed by parent
     def load(self):
         load_main_dicts(self.dicts)
 
     def save(self,set_readonly=True):
         save_main_dicts(self.dicts,set_readonly=set_readonly)
 
-    def is_equal(self,other,             # other must be of the same class
-                 compare_submit_dir=False,compare_stage_dir=False,
-                 compare_fnames=False): 
-        if compare_submit_dir and (self.submit_dir!=other.submit_dir):
-            return False
-        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
-            return False
-        for k in self.dicts.keys():
-            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
-                return False
-        return True
+    ####################
+    # Internal
+    ####################
 
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
-        if self.submit_dir!=other.submit_dir:
-            raise RuntimeError,"Cannot change main submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
-
-        reuse_main_dicts(self.dicts,other.dicts)
-        
-class glideinEntryDicts(glideinCommonDicts):
-    def __init__(self,
-                 glidein_main_dicts, # must be an instance of glideinMainDicts
-                 entry_name):
-        self.entry_name=entry_name
-        self.glidein_main_dicts=glidein_main_dicts
-        self.submit_dir=cgWConsts.get_entry_submit_dir(glidein_main_dicts.submit_dir,entry_name)
-        self.stage_dir=cgWConsts.get_entry_stage_dir(glidein_main_dicts.stage_dir,entry_name)
-        self.erase()
-
-    def erase(self):
-        self.dicts=get_entry_dicts(self.submit_dir,self.stage_dir,self.entry_name)
+    # Child must overwrite this
+    def get_main_dicts(self):
+        return get_main_dicts(self.work_dir,self.stage_dir)
     
-    def load(self): #will use glidein_main_dicts data, so it must be loaded first
-        load_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature())
+        
+################################################
+#
+# This Class contains the entry dicts
+#
+################################################
+
+class glideinEntryDicts(cWDictFile.fileSubDicts):
+    ######################################
+    # Redefine methods needed by parent
+    def load(self):
+        load_entry_dicts(self.dicts,self.entry_name,self.summary_signature)
 
     def save(self,set_readonly=True):
-        save_entry_dicts(self.dicts,self.entry_name,self.glidein_main_dicts.get_summary_signature(),set_readonly=set_readonly)
+        save_entry_dicts(self.dicts,self.sub_name,self.summary_signature,set_readonly=set_readonly)
 
     def save_final(self,set_readonly=True):
-        pass # not needed here, but may be needed by children
+        pass # nothing to do
     
-    def is_equal(self,other,             # other must be of the same class
-                 compare_entry_name=False,
-                 compare_glidein_main_dicts=False, # if set to True, will do a complete check on the related objects
-                 compare_fnames=False): 
-        if compare_entry_name and (self.entry_name!=other.entry_name):
-            return False
-        if compare_glidein_main_dicts and (self.glidein_main_dicts.is_equal(other.glidein_main_dicts,compare_submit_dir=True,compare_stage_dir=True,compare_fnames=compare_fnames)):
-            return False
-        for k in self.dicts.keys():
-            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
-                return False
-        return True
+    ####################
+    # Internal
+    ####################
 
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
-        if self.submit_dir!=other.submit_dir:
-            raise RuntimeError,"Cannot change entry submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change entry stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
-
-        reuse_entry_dicts(self.dicts,other.dicts,self.entry_name)
+    def get_sub_work_dir(self,base_dir):
+        return cgWConsts.get_entry_submit_dir(base_dir,self.sub_name)
+    
+    def get_sub_stage_dir(self,base_dir):
+        return cgWConsts.get_entry_stage_dir(base_dir,self.sub_name)
+    
+    def get_sub_dicts(self):
+        return get_entry_dicts(self.work_dir,self.stage_dir,self.sub_name)
+    
+    def reuse_nocheck(self):
+        reuse_entry_dicts(self.dicts,other.dicts,self.sub_name)
         
 ################################################
 #
@@ -378,116 +305,22 @@ class glideinEntryDicts(glideinCommonDicts):
 #
 ################################################
 
-class glideinDicts:
-    def __init__(self,submit_dir,stage_dir,entry_list=[]):
-        self.submit_dir=submit_dir
-        self.stage_dir=stage_dir
-        self.main_dicts=glideinMainDicts(self.submit_dir,self.stage_dir)
-        self.entry_list=entry_list[:]
-        self.entry_dicts={}
-        for entry_name in entry_list:
-            self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
-        return
-
-    def set_readonly(self,readonly=True):
-        self.main_dicts.set_readonly(readonly)
-        for el in self.entry_dicts.values():
-            el.set_readonly(readonly)
-
-    def erase(self,destroy_old_entries=True): # if false, the entry names will be preserved
-        self.main_dicts.erase()
-        if destroy_old_entries:
-            self.entry_list=[]
-            self.entry_dicts={}
-        else:
-            for entry_name in self.entry_list:
-                self.entry_dicts[entry_name].erase()
-        return
-
-    def load(self,destroy_old_entries=True): # if false, overwrite the entries you load, but leave the others as they are
-        self.main_dicts.load()
-        if destroy_old_entries:
-            self.entry_list=[]
-            self.entry_dicts={}
-        # else just leave as it is, will rewrite just the loaded ones
-
-        for sign_key in self.main_dicts.get_summary_signature().keys:
-            if sign_key!='main': # main is special, not an entry
-                entry_name=cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
-                if not(entry_name in self.entry_list):
-                    self.entry_list.append(entry_name)
-                self.entry_dicts[entry_name]=self.new_entry(entry_name)
-                self.entry_dicts[entry_name].load()
-
-
-
-    def save(self,set_readonly=True):
-        for entry_name in self.entry_list:
-            self.entry_dicts[entry_name].save(set_readonly=set_readonly)
-        self.main_dicts.save(set_readonly=set_readonly)
-        for entry_name in self.entry_list:
-            self.entry_dicts[entry_name].save_final(set_readonly=set_readonly)
-   
-    def create_dirs(self):
-        self.main_dicts.create_dirs()
-        try:
-            for entry_name in self.entry_list:
-                self.entry_dicts[entry_name].create_dirs()
-        except:
-            self.main_dicts.delete_dirs() # this will clean up also any created entries
-            raise
-        
-    def delete_dirs(self):
-        self.main_dicts.delete_dirs() # this will clean up also all entries
-
-    def is_equal(self,other,             # other must be of the same class
-                 compare_submit_dir=False,compare_stage_dir=False,
-                 compare_fnames=False): 
-        if compare_submit_dir and (self.submit_dir!=other.submit_dir):
-            return False
-        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
-            return False
-        if not self.main_dicts.is_equal(other.main_dicts,compare_submit_dir=False,compare_stage_dir=False,compare_fnames=compare_fnames):
-            return False
-        my_entries=self.entry_list[:]
-        other_entries=other.entry_list[:]
-        if len(my_entries)!=len(other_entries):
-            return False
-
-        my_entries.sort()
-        other_entries.sort()
-        if my_entries!=other_entries: # need to be in the same order to make a comparison
-            return False
-        
-        for k in my_entries:
-            if not self.entry_dicts[k].is_equal(other.entry_dicts[k],compare_entry_name=False,
-                                                compare_glidein_main_dicts=False,compare_fname=compare_fnames):
-                return False
-        return True
-
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
-        if self.submit_dir!=other.submit_dir:
-            raise RuntimeError,"Cannot change submit base_dir! '%s'!='%s'"%(self.submit_dir,other.submit_dir)
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
-
-        # compare main dictionaires
-        self.main_dicts.reuse(other.main_dicts)
-
-        # compare entry dictionaires
-        for k in self.entry_list:
-            if k in other.entry_list:
-                self.entry_dicts[k].reuse(other.entry_dicts[k])
-            else:
-                # nothing to reuse, but must create dir
-                self.entry_dicts[k].create_dirs()
+class glideinDicts(cWDictFile.fileDicts):
+    def __init__(self,work_dir,stage_dir,entry_list=[],workdir_name='submit'):
+        cWDictFile.fileDicts.__init__(work_dir,stage_dir,entry_list,workdir_name)
 
     ###########
     # PRIVATE
     ###########
 
-    # return a new entry object
-    def new_entry(self,entry_name):
-        return glideinEntryDicts(self.main_dicts,entry_name)
+    ######################################
+    # Redefine methods needed by parent
+    def new_MainDicts(self):
+        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name)
+
+    def new_SubDicts(self,sub_name):
+        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
+
+    def get_sub_name_from_sub_stage_dir(self,sign_key):
+        return cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
     

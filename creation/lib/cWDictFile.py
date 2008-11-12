@@ -818,3 +818,383 @@ class CondorJDLDictFile(DictFile):
         else:
             return False
 
+########################################################################################################################
+
+class workDirSupport:
+    def __init__(self,work_dir,workdir_name):
+        self.work_dir=work_dir
+        self.workdir_name=workdir_name
+        
+    def create_work_dir(self):
+        try:
+            os.mkdir(self.work_dir)
+            try:
+                os.mkdir(os.path.join(self.work_dir,'log'))
+            except:
+                shutil.rmtree(self.work_dir)
+                raise
+        except OSError,e:
+            raise RuntimeError,"Failed to create dir: %s"%e
+
+    def delete_work_dir(self):
+        shutil.rmtree(self.work_dir)
+
+class stageDirSupport:
+    def __init__(self,stage_dir):
+        self.stage_dir=stage_dir
+        
+    def create_stage_dir(self):
+        try:
+            os.mkdir(self.stage_dir)
+        except OSError,e:
+            raise RuntimeError,"Failed to create dir: %s"%e
+
+    def delete_stage_dir(self):
+        shutil.rmtree(self.stage_dir)
+
+
+class monitorDirSupport:
+    def __init__(self,monitor_dir):
+        self.monitor_dir=monitor_dir
+        
+    def create_monitor_dir(self):
+        try:
+            os.mkdir(self.monitor_dir)
+        except OSError,e:
+            raise RuntimeError,"Failed to create dir: %s"%e
+
+    def delete_monitor_dir(self):
+        shutil.rmtree(self.stage_dir)
+
+################################################
+#
+# Dictionaries of files classes
+# Only abstract classes defined here
+#
+################################################
+
+
+# helper class, used below
+class fileCommonDicts:
+    def __init__(self):
+        self.dicts=None
+        
+    def keys(self):
+        return self.dicts.keys()
+
+    def has_key(self,key):
+        return self.dicts.has_key(key)
+
+    def __getitem__(self,key):
+        return self.dicts[key]        
+
+    def set_readonly(self,readonly=True):
+        for el in self.dicts.values():
+            el.set_readonly(readonly)
+
+# helper class, used below
+class fileDirSupport(workDirSupport,stageDirSupport):
+    def __init__(self,work_dir,stage_dir,workdir_name):
+        workDirSupport.__init__(work_dir,workdir_name)
+        stageDirSupport.__init__(stage_dir)
+        
+    def create_dirs(self):
+        self.create_file_dirs()
+
+    def delete_dirs(self):
+        self.delete_file_dirs()
+
+    ############
+    # Private
+    ############
+
+    # Can be redefined by child
+    def create_file_dirs(self):
+        self.create_work_dir()
+        try:
+            self.create_stage_dir()
+        except:
+            self.delete_work_dir()
+            raise
+
+    # Can be redefined by child
+    def delete_file_dirs(self):
+        self.delete_stage_dir()
+        self.delete_work_dir()
+
+################################################
+#
+# This Class contains the main dicts
+#
+################################################
+
+class fileMainDicts(fileCommonDicts,fileDirSupport):
+    def __init__(self,
+                 work_dir,stage_dir,
+                 workdir_name):
+        fileCommonDicts.__init(self)
+        fileDirSupport.__init(self,work_dir,stage_dir,workdir_name)
+        self.erase()
+
+    def create_dirs(self):
+        fileDirSupport.create_dirs(self)
+        try:
+            proxy_dir=os.path.join(self.work_dir,'client_proxies')
+            os.mkdir(proxy_dir)
+            os.chmod(proxy_dir,0700)
+        except OSError,e:
+            fileDirSupport.delete_dirs(self)
+            raise RuntimeError,"Failed to create dir: %s"%e
+
+    def get_summary_signature(self): # you can discover most of the other things from this
+        return self.dicts['summary_signature']
+
+    def erase(self):
+        self.dicts=self.get_main_dicts()
+
+    # child must overwrite this
+    def load(self):
+        raise RuntimeError, "Undefined"
+        load_main_dicts(self.dicts)
+
+    # child must overwrite this
+    def save(self,set_readonly=True):
+        raise RuntimeError, "Undefined"
+        save_main_dicts(self.dicts,set_readonly=set_readonly)
+
+    def is_equal(self,other,             # other must be of the same class
+                 compare_work_dir=False,compare_stage_dir=False,
+                 compare_fnames=False): 
+        if compare_work_dir and (self.work_dir!=other.work_dir):
+            return False
+        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
+            return False
+        for k in self.dicts.keys():
+            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
+                return False
+        return True
+
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.work_dir!=other.work_dir:
+            raise RuntimeError,"Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
+        if self.stage_dir!=other.stage_dir:
+            raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+
+        reuse_main_dicts(self.dicts,other.dicts)
+
+    ####################
+    # Internal
+    ####################
+
+    # Child must overwrite this
+    def get_main_dicts(self):
+        raise RuntimeError, "Undefined"
+    
+################################################
+#
+# This Class contains the sub dicts
+#
+################################################
+
+class fileSubDicts(fileCommonDicts,fileDirSupport):
+    def __init__(self,base_work_dir,base_stage_dir,sub_name,
+                 summary_signature,workdir_name):
+        self.sub_name=sub_name
+
+        fileCommonDicts.__init__(self)
+
+        work_dir=self.get_sub_work_dir(base_work_dir)
+        stage_dir=self.get_sub_stage_dir(base_stage_dir)
+        fileDirSupport.__init__(self,work_dir,stage_dir,workdir_name)
+
+        self.sub_name=sub_name
+        self.summary_signature=summary_signature
+        self.erase()
+
+    def erase(self):
+        self.dicts=self.get_sub_dicts()
+    
+    # child must overwrite this
+    def load(self):
+        raise "Undefined"
+
+    # child must overwrite this
+    def save(self,set_readonly=True):
+        raise "Undefined"
+
+    # child can overwrite this
+    def save_final(self,set_readonly=True):
+        pass # not always needed, use default of empty
+    
+    def is_equal(self,other,             # other must be of the same class
+                 compare_sub_name=False,
+                 compare_fnames=False): 
+        if compare_sub_name and (self.sub_name!=other.sub_name):
+            return False
+        for k in self.dicts.keys():
+            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
+                return False
+        return True
+
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.work_dir!=other.work_dir:
+            raise RuntimeError,"Cannot change sub %s base_dir! '%s'!='%s'"%(self.wordir_name,self.work_dir,other.work_dir)
+        if self.stage_dir!=other.stage_dir:
+            raise RuntimeError,"Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+
+        reuse_sub_dicts(self.dicts,other.dicts,self.sub_name)
+        
+    ####################
+    # Internal
+    ####################
+
+    # Child should overwrite this
+    def get_sub_work_dir(self,base_dir):
+        return base_dir+"/sub_"+self.sub_name
+
+    # Child should overwrite this
+    def get_sub_stage_dir(self,base_dir):
+        return base_dir+"/sub_"+self.sub_name
+
+    # Child must overwrite this
+    def get_sub_dicts(self):
+        raise RuntimeError, "Undefined"
+    
+    # Child must overwrite this
+    def reuse_nocheck(self):
+        raise RuntimeError, "Undefined"
+
+################################################
+#
+# This Class contains both the main and
+# the sub dicts
+#
+################################################
+
+class fileDicts:
+    def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work"):
+        self.work_dir=work_dir
+        self.workdir_name=workdir_name
+        self.stage_dir=stage_dir
+        self.main_dicts=new_MainDicts()
+        self.sub_list=sub_list[:]
+        self.sub_dicts={}
+        for sub_name in sub_list:
+            self.sub_dicts[sub_name]=new_SubDicts(sub_name)
+        return
+
+    def set_readonly(self,readonly=True):
+        self.main_dicts.set_readonly(readonly)
+        for el in self.sub_dicts.values():
+            el.set_readonly(readonly)
+
+    def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
+        self.main_dicts.erase()
+        if destroy_old_subs:
+            self.sub_list=[]
+            self.sub_dicts={}
+        else:
+            for sub_name in self.sub_list:
+                self.sub_dicts[sub_name].erase()
+        return
+
+    def load(self,destroy_old_subs=True): # if false, overwrite the subs you load, but leave the others as they are
+        self.main_dicts.load()
+        if destroy_old_subs:
+            self.sub_list=[]
+            self.sub_dicts={}
+        # else just leave as it is, will rewrite just the loaded ones
+
+        for sign_key in self.main_dicts.get_summary_signature().keys:
+            if sign_key!='main': # main is special, not an sub
+                sub_name=self.get_sub_name_from_sub_stage_dir(sign_key)
+                if not(sub_name in self.sub_list):
+                    self.sub_list.append(sub_name)
+                self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+                self.sub_dicts[sub_name].load()
+
+
+
+    def save(self,set_readonly=True):
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].save(set_readonly=set_readonly)
+        self.main_dicts.save(set_readonly=set_readonly)
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
+   
+    def create_dirs(self):
+        self.main_dicts.create_dirs()
+        try:
+            for sub_name in self.sub_list:
+                self.sub_dicts[sub_name].create_dirs()
+        except:
+            self.main_dicts.delete_dirs() # this will clean up also any created subs
+            raise
+        
+    def delete_dirs(self):
+        self.main_dicts.delete_dirs() # this will clean up also all subs
+
+    def is_equal(self,other,             # other must be of the same class
+                 compare_work_dir=False,compare_stage_dir=False,
+                 compare_fnames=False): 
+        if compare_work_dir and (self.work_dir!=other.work_dir):
+            return False
+        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
+            return False
+        if not self.main_dicts.is_equal(other.main_dicts,compare_work_dir=False,compare_stage_dir=False,compare_fnames=compare_fnames):
+            return False
+        my_subs=self.sub_list[:]
+        other_subs=other.sub_list[:]
+        if len(my_subs)!=len(other_subs):
+            return False
+
+        my_subs.sort()
+        other_subs.sort()
+        if my_subs!=other_subs: # need to be in the same order to make a comparison
+            return False
+        
+        for k in my_subs:
+            if not self.sub_dicts[k].is_equal(other.sub_dicts[k],compare_sub_name=False,
+                                              compare_fname=compare_fnames):
+                return False
+        return True
+
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        if self.work_dir!=other.work_dir:
+            raise RuntimeError,"Cannot change %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
+        if self.stage_dir!=other.stage_dir:
+            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+
+        # compare main dictionaires
+        self.main_dicts.reuse(other.main_dicts)
+
+        # compare sub dictionaires
+        for k in self.sub_list:
+            if k in other.sub_list:
+                self.sub_dicts[k].reuse(other.sub_dicts[k])
+            else:
+                # nothing to reuse, but must create dir
+                self.sub_dicts[k].create_dirs()
+
+    ###########
+    # PRIVATE
+    ###########
+
+    # this should be redefined by the child
+    # and return a child of fileMainDicts
+    def new_MainDicts(self):
+        return fileMainDicts(self.work_dir,self.stage_dir,self.workdir_name)
+
+    # this should be redefined by the child
+    # and return a child of fileSubDicts
+    def new_SubDicts(self,sub_name):
+        return fileSubDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
+
+    # this should be redefined by the child
+    def get_sub_name_from_sub_stage_dir(self,sign_key):
+        raise RuntimeError, "Undefined"
+ 
+

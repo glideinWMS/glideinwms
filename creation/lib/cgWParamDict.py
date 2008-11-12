@@ -8,42 +8,56 @@
 
 import os,os.path,shutil,string
 import cWParams
-import cgWDictFile
+import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
 # internal, can only be used for multiple inheritance
-class glideinCommonDicts:
-    def create_pd_dirs(self):
+# together with children of fileDirSupport
+class monitorDirSupport:
+    # must be initialized before fileDirSupport
+    def __init__(self,monitor_dir):
+        self.monitor_dir=monitor_dir
+        
+    ############
+    # Private
+    ############
+
+    def create_monitor_dir(self):
         try:
             os.mkdir(self.monitor_dir)
         except OSError,e:
-            cgWDictFile.glideinCommonDicts.delete_dirs(self)
             raise RuntimeError,"Failed to create dir: %s"%e
 
         try:
-            os.symlink(self.monitor_dir,os.path.join(self.submit_dir,"monitor"))
+            os.symlink(self.monitor_dir,os.path.join(self.work_dir,"monitor"))
         except OSError, e:
-            cgWDictFile.glideinCommonDicts.delete_dirs(self)
             shutil.rmtree(self.monitor_dir)
-            raise RuntimeError,"Failed to create symlink %s: %s"%(os.path.join(self.submit_dir,"monitor"),e)
+            raise RuntimeError,"Failed to create symlink %s: %s"%(os.path.join(self.work_dir,"monitor"),e)
 
-    def delete_pd_dirs(self):
+    def delete_monitor_dir(self):
         shutil.rmtree(self.monitor_dir)
 
-class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
+    ##################################################
+    # Redefine methods needed by fileDirSupport child
+    def create_file_dirs(self):
+        cWDictFile.create_file_dirs(self)
+        try:
+            self.create_monitor_dir()
+        except:
+            cWDictFile.delete_file_dirs(self)
+            raise
+
+    def delete_file_dirs(self):
+        self.delete_monitor_dir()
+        cWDictFile.delete_file_dirs(self)
+
+
+class glideinMainDicts(cgWDictFile.glideinMainDicts,monitorDirSupport):
     def __init__(self,params):
+        monitorDirSupport.__init__(params.monitor_dir)
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir)
-        self.monitor_dir=params.monitor_dir
         self.params=params
-
-    def create_dirs(self):
-        cgWDictFile.glideinMainDicts.create_dirs(self)
-        self.create_pd_dirs()
-
-    def delete_dirs(self):
-        cgWDictFile.glideinMainDicts.delete_dirs(self)
-        self.delete_pd_dirs()
 
     def populate(self,params=None):
         if params==None:
@@ -106,7 +120,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
         if down_fname==None:
-            down_fname=os.path.join(self.submit_dir,'factory.downtimes')
+            down_fname=os.path.join(self.work_dir,'factory.downtimes')
 
         # populate the glidein file
         glidein_dict=self.dicts['glidein']
@@ -114,11 +128,11 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
         glidein_dict.add('PubKeyType',params.security.pub_key)
-        self.active_entry_list=[]
-        for entry in params.entries.keys():
-            if eval(params.entries[entry].enabled,{},{}):
-                self.active_entry_list.append(entry)
-        glidein_dict.add('Entries',string.join(self.active_entry_list,','))
+        self.active_sub_list=[]
+        for sub in params.entries.keys():
+            if eval(params.entries[sub].enabled,{},{}):
+                self.active_sub_list.append(sub)
+        glidein_dict.add('Entries',string.join(self.active_sub_list,','))
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         validate_job_proxy_source(params.security.allow_proxy)
@@ -158,7 +172,7 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
             pass # nothing to do
         elif self.params.security.pub_key=='RSA':
             import pubCrypto
-            rsa_key_fname=os.path.join(self.submit_dir,cgWConsts.RSA_KEY)
+            rsa_key_fname=os.path.join(self.work_dir,cgWConsts.RSA_KEY)
 
             if not os.path.isfile(rsa_key_fname):
                 # create the key only once
@@ -174,25 +188,18 @@ class glideinMainDicts(glideinCommonDicts,cgWDictFile.glideinMainDicts):
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%self.params.security.pub_key
 
-class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
+class glideinEntryDicts(cgWDictFile.glideinEntryDicts,monitorDirSupport):
     def __init__(self,
                  glidein_main_dicts, # must be an instance of glideinMainDicts
-                 entry_name):
-        cgWDictFile.glideinEntryDicts.__init__(self,glidein_main_dicts,entry_name)
-        self.monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,entry_name)
+                 sub_name):
+        monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,sub_name)
+        monitorDirSupport.__init__(monitor_dir)
+        cgWDictFile.glideinEntryDicts.__init__(self,glidein_main_dicts,sub_name)
         self.params=glidein_main_dicts.params
-
-    def create_dirs(self):
-        cgWDictFile.glideinEntryDicts.create_dirs(self)
-        self.create_pd_dirs()
-
-    def delete_dirs(self):
-        cgWDictFile.glideinEntryDicts.delete_dirs(self)
-        self.delete_pd_dirs()
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
-        self.dicts['condor_jdl']=cgWCreate.GlideinSubmitDictFile(self.submit_dir,cgWConsts.SUBMIT_FILE)
+        self.dicts['condor_jdl']=cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE)
         
     def load(self): #will use glidein_main_dicts data, so it must be loaded first
         cgWDictFile.glideinEntryDicts.load(self)
@@ -200,10 +207,10 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
     def save_final(self,set_readonly=True):
         summary_signature=self.glidein_main_dicts['summary_signature']
-        entry_stage_dir=cgWConsts.get_entry_stage_dir("",self.entry_name)
+        sub_stage_dir=cgWConsts.get_entry_stage_dir("",self.sub_name)
         
-        self.dicts['condor_jdl'].finalize(summary_signature['main'][0],summary_signature[entry_stage_dir][0],
-                                          summary_signature['main'][1],summary_signature[entry_stage_dir][1])
+        self.dicts['condor_jdl'].finalize(summary_signature['main'][0],summary_signature[sub_stage_dir][0],
+                                          summary_signature['main'][1],summary_signature[sub_stage_dir][1])
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
@@ -211,7 +218,7 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         if params==None:
             params=self.params
 
-        entry_params=params.entries[self.entry_name]
+        sub_params=params.entries[self.sub_name]
 
         # put default files in place first
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
@@ -231,33 +238,33 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst.entry',change_self=False,set_not_changed=False)
         
         # put user files in stage
-        for file in entry_params.files:
+        for file in sub_params.files:
             add_file_unparsed(file,self.dicts)
 
         # put user attributes into config files
-        for attr_name in entry_params.attrs.keys():
-            add_attr_unparsed(attr_name, entry_params.attrs[attr_name],self.dicts,self.entry_name)
+        for attr_name in sub_params.attrs.keys():
+            add_attr_unparsed(attr_name, sub_params.attrs[attr_name],self.dicts,self.sub_name)
 
         # put standard attributes into config file
         # override anything the user set
         for dtype in ('attrs','consts'):
-            self.dicts[dtype].add("GLIDEIN_Gatekeeper",entry_params.gatekeeper,allow_overwrite=True)
-            self.dicts[dtype].add("GLIDEIN_GridType",entry_params.gridtype,allow_overwrite=True)
-            if entry_params.rsl!=None:
-                self.dicts[dtype].add('GLIDEIN_GlobusRSL',entry_params.rsl,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
+            if sub_params.rsl!=None:
+                self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
 
         # populate infosys
-        for infosys_ref in entry_params.infosys_refs:
+        for infosys_ref in sub_params.infosys_refs:
             self.dicts['infosys'].add_extended(infosys_ref['type'],infosys_ref['server'],infosys_ref['ref'],allow_overwrite=True)
 
         # populate complex files
-        populate_job_descript(self.submit_dir,self.dicts['job_descript'],
-                              self.entry_name,entry_params)
+        populate_job_descript(self.work_dir,self.dicts['job_descript'],
+                              self.sub_name,sub_params)
 
         self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
-                                          params.factory_name,params.glidein_name,self.entry_name,
-                                          entry_params.gridtype,entry_params.gatekeeper,entry_params.rsl,
-                                          params.web_url,entry_params.proxy_url,entry_params.work_dir)
+                                          params.factory_name,params.glidein_name,self.sub_name,
+                                          sub_params.gridtype,sub_params.gatekeeper,sub_params.rsl,
+                                          params.web_url,sub_params.proxy_url,sub_params.work_dir)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -276,21 +283,15 @@ class glideinEntryDicts(glideinCommonDicts,cgWDictFile.glideinEntryDicts):
 
 class glideinDicts(cgWDictFile.glideinDicts):
     def __init__(self,params,
-                 entry_list=None): # if None, get it from params
-        if entry_list==None:
-            entry_list=params.entries.keys()
+                 sub_list=None): # if None, get it from params
+        if sub_list==None:
+            sub_list=params.entries.keys()
 
         self.params=params
-        self.submit_dir=params.submit_dir
-        self.stage_dir=params.stage_dir
-        self.monitor_dir=params.monitor_dir
+        cgWDictFile.glideinDicts(self,params.submit_dir,params.stage_dir,sub_list)
 
-        self.main_dicts=glideinMainDicts(params)
-        self.entry_list=entry_list[:]
-        self.entry_dicts={}
-        for entry_name in entry_list:
-            self.entry_dicts[entry_name]=glideinEntryDicts(self.main_dicts,entry_name)
-        self.active_entry_list=[]
+        self.monitor_dir=params.monitor_dir
+        self.active_sub_list=[]
         return
 
     def populate(self,params=None): # will update params (or self.params)
@@ -298,21 +299,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
             params=self.params
         
         self.main_dicts.populate(params)
-        self.active_entry_list=self.main_dicts.active_entry_list
+        self.active_sub_list=self.main_dicts.active_sub_list
 
-        # make sure all the schedds are defined
-        # if not, define them, in place, so thet it get recorded
-        global_schedd_names=string.split(params.schedd_name,',')
-        global_schedd_idx=0
-        for entry_name in self.entry_list:
-            if params.entries[entry_name].schedd_name==None:
-                # use one of the global ones if specific not provided
-                schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
-                global_schedd_idx=global_schedd_idx+1
-                params.subparams.data['entries'][entry_name]['schedd_name']=schedd_name
-
-        for entry_name in self.entry_list:
-            self.entry_dicts[entry_name].populate(params)
+        self.local_populate(params)
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].populate(params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -325,10 +316,28 @@ class glideinDicts(cgWDictFile.glideinDicts):
     # PRIVATE
     ###########
 
-    # return a new entry object
-    def new_entry(self,entry_name):
-        return glideinEntryDicts(self.main_dicts,entry_name)
-    
+    def local_populate(self,params):
+        # make sure all the schedds are defined
+        # if not, define them, in place, so thet it get recorded
+        global_schedd_names=string.split(params.schedd_name,',')
+        global_schedd_idx=0
+        for sub_name in self.sub_list:
+            if params.entries[sub_name].schedd_name==None:
+                # use one of the global ones if specific not provided
+                schedd_name=global_schedd_names[global_schedd_idx%len(global_schedd_names)]
+                global_schedd_idx=global_schedd_idx+1
+                params.subparams.data['entries'][sub_name]['schedd_name']=schedd_name
+        return
+        
+
+    ######################################
+    # Redefine methods needed by parent
+    def new_MainDicts(self):
+        return glideinMainDicts(self.params)
+
+    def new_SubDicts(self,sub_name):
+        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
+
 ############################################################
 #
 # P R I V A T E - Do not use
@@ -465,34 +474,34 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 
 #######################
 # Populate job_descript
-def populate_job_descript(submit_dir,job_descript_dict,        # will be modified
-                          entry_name,entry_params):
+def populate_job_descript(work_dir,job_descript_dict,        # will be modified
+                          sub_name,sub_params):
     # if a user does not provide a file name, use the default one
-    down_fname=entry_params.downtimes.absfname
+    down_fname=sub_params.downtimes.absfname
     if down_fname==None:
-        down_fname=os.path.join(submit_dir,'entry.downtimes')
+        down_fname=os.path.join(work_dir,'entry.downtimes')
 
-    job_descript_dict.add('EntryName',entry_name)
-    job_descript_dict.add('GridType',entry_params.gridtype)
-    job_descript_dict.add('Gatekeeper',entry_params.gatekeeper)
-    if entry_params.rsl!=None:
-        job_descript_dict.add('GlobusRSL',entry_params.rsl)
-    job_descript_dict.add('Schedd',entry_params.schedd_name)
-    job_descript_dict.add('StartupDir',entry_params.work_dir)
-    if entry_params.proxy_url!=None:
-        job_descript_dict.add('ProxyURL',entry_params.proxy_url)
-    job_descript_dict.add('Verbosity',entry_params.verbosity)
+    job_descript_dict.add('EntryName',sub_name)
+    job_descript_dict.add('GridType',sub_params.gridtype)
+    job_descript_dict.add('Gatekeeper',sub_params.gatekeeper)
+    if sub_params.rsl!=None:
+        job_descript_dict.add('GlobusRSL',sub_params.rsl)
+    job_descript_dict.add('Schedd',sub_params.schedd_name)
+    job_descript_dict.add('StartupDir',sub_params.work_dir)
+    if sub_params.proxy_url!=None:
+        job_descript_dict.add('ProxyURL',sub_params.proxy_url)
+    job_descript_dict.add('Verbosity',sub_params.verbosity)
     job_descript_dict.add('DowntimesFile',down_fname)
-    job_descript_dict.add('MaxRunning',entry_params.config.max_jobs.running)
-    job_descript_dict.add('MaxIdle',entry_params.config.max_jobs.idle)
-    job_descript_dict.add('MaxHeld',entry_params.config.max_jobs.held)
-    job_descript_dict.add('MaxSubmitRate',entry_params.config.submit.max_per_cycle)
-    job_descript_dict.add('SubmitCluster',entry_params.config.submit.cluster_size)
-    job_descript_dict.add('SubmitSleep',entry_params.config.submit.sleep)
-    job_descript_dict.add('MaxRemoveRate',entry_params.config.remove.max_per_cycle)
-    job_descript_dict.add('RemoveSleep',entry_params.config.remove.sleep)
-    job_descript_dict.add('MaxReleaseRate',entry_params.config.release.max_per_cycle)
-    job_descript_dict.add('ReleaseSleep',entry_params.config.release.sleep)
+    job_descript_dict.add('MaxRunning',sub_params.config.max_jobs.running)
+    job_descript_dict.add('MaxIdle',sub_params.config.max_jobs.idle)
+    job_descript_dict.add('MaxHeld',sub_params.config.max_jobs.held)
+    job_descript_dict.add('MaxSubmitRate',sub_params.config.submit.max_per_cycle)
+    job_descript_dict.add('SubmitCluster',sub_params.config.submit.cluster_size)
+    job_descript_dict.add('SubmitSleep',sub_params.config.submit.sleep)
+    job_descript_dict.add('MaxRemoveRate',sub_params.config.remove.max_per_cycle)
+    job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
+    job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
+    job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
 
 
     
