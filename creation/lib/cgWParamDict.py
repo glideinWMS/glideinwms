@@ -188,29 +188,33 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts,monitorDirSupport):
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%self.params.security.pub_key
 
+################################################
+#
+# This Class contains the entry dicts
+#
+################################################
+
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts,monitorDirSupport):
-    def __init__(self,
-                 glidein_main_dicts, # must be an instance of glideinMainDicts
-                 sub_name):
-        monitor_dir=cgWConsts.get_entry_monitor_dir(glidein_main_dicts.monitor_dir,sub_name)
+    def __init__(self,params,sub_name,
+                 summary_signature,workdir_name):
+        monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
         monitorDirSupport.__init__(self,monitor_dir)
-        cgWDictFile.glideinEntryDicts.__init__(self,glidein_main_dicts,sub_name)
-        self.params=glidein_main_dicts.params
+        cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
+        self.params=params
 
     def erase(self):
         cgWDictFile.glideinEntryDicts.erase(self)
         self.dicts['condor_jdl']=cgWCreate.GlideinSubmitDictFile(self.work_dir,cgWConsts.SUBMIT_FILE)
         
-    def load(self): #will use glidein_main_dicts data, so it must be loaded first
+    def load(self):
         cgWDictFile.glideinEntryDicts.load(self)
         self.dicts['condor_jdl'].load()
 
     def save_final(self,set_readonly=True):
-        summary_signature=self.glidein_main_dicts['summary_signature']
         sub_stage_dir=cgWConsts.get_entry_stage_dir("",self.sub_name)
         
-        self.dicts['condor_jdl'].finalize(summary_signature['main'][0],summary_signature[sub_stage_dir][0],
-                                          summary_signature['main'][1],summary_signature[sub_stage_dir][1])
+        self.dicts['condor_jdl'].finalize(self.summary_signature['main'][0],self.summary_signature[sub_stage_dir][0],
+                                          self.summary_signature['main'][1],self.summary_signature[sub_stage_dir][1])
         self.dicts['condor_jdl'].save(set_readonly=set_readonly)
         
     
@@ -276,7 +280,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts,monitorDirSupport):
         
 ################################################
 #
-# This Class contains coth the main and
+# This Class contains both the main and
 # the entry dicts
 #
 ################################################
@@ -336,7 +340,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
         return glideinMainDicts(self.params,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
-        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
+        return glideinEntryDicts(self.params,sub_name,
+                                 self.main_dicts.get_summary_signature(),self.workdir_name)
 
 ############################################################
 #
@@ -505,14 +510,6 @@ def populate_job_descript(work_dir,job_descript_dict,        # will be modified
 
 
     
-#######################
-# Simply symlink a file
-def symlink_file(infile,outfile):
-    try:
-        os.symlink(infile,outfile)
-    except IOError, e:
-        raise RuntimeError, "Error symlink %s in %s: %s"%(infile,outfile,e)
-
 #################################
 # Check that it is a string list
 # containing only valid entries
