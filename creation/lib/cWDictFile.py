@@ -4,7 +4,7 @@
 #
 #######################################################
 
-import os,os.path,string,copy
+import os,os.path,string,shutil,copy
 import hashCrypto
 import cStringIO
 

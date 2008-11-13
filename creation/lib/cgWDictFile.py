@@ -5,7 +5,7 @@
 #
 #######################################################
 
-import os,os.path,shutil,string,copy
+import os,os.path,string,copy
 import cgWConsts,cWConsts
 import cWDictFile
 
