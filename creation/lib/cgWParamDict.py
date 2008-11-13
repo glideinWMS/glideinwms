@@ -6,15 +6,33 @@
 #
 #######################################################
 
-import os,os.path,string
+import os,os.path,shutil,string
 import cWParams
 import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
-class monitorDirSupport(cWDictFile.simpleDirSupport):
-    def __init__(self,monitor_dir):
-        cWDictFile.simpleDirSupport.__init__(self,monitor_dir,'monitor')
+class monitorDirSupport(cWDictFile.dirSupport):
+    def __init__(self,monitor_dir,work_dir):
+        self.monitor_dir=monitor_dir
+        self.work_dir=work_dir
+        self.monitor_symlink=os.path.join(self.work_dir,"monitor")
+        
+    def create_dir(self):
+        try:
+            os.mkdir(self.monitor_dir)
+        except OSError,e:
+            raise RuntimeError,"Failed to create monitor dir: %s"%e
+
+        try:
+            os.symlink(self.monitor_dir,self.monitor_symlink)
+        except OSError, e:
+            shutil.rmtree(self.monitor_dir)
+            raise RuntimeError,"Failed to create monitor symlink %s: %s"%(self.monitor_symlink,e)
+
+    def delete_dir(self):
+        os.unlink(self.monitor_symlink)
+        shutil.rmtree(self.monitor_dir)
 
 ################################################
 #
@@ -26,7 +44,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params,workdir_name):
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
         self.monitor_dir=params.monitor_dir
-        self.add_dir_obj(monitorDirSupport(self.monitor_dir))
+        self.add_dir_obj(monitorDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
 
     def populate(self,params=None):
@@ -169,7 +187,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
                  summary_signature,workdir_name):
         cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
-        self.add_dir_obj(monitorDirSupport(self.monitor_dir))
+        self.add_dir_obj(monitorDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
 
     def erase(self):
