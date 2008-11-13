@@ -12,17 +12,10 @@ import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
-# internal, can only be used for multiple inheritance
-# together with children of fileDirSupport
 class monitorDirSupport:
-    # must be initialized before fileDirSupport
     def __init__(self,monitor_dir):
         self.monitor_dir=monitor_dir
         
-    ############
-    # Private
-    ############
-
     def create_monitor_dir(self):
         try:
             os.mkdir(self.monitor_dir)
@@ -38,19 +31,34 @@ class monitorDirSupport:
     def delete_monitor_dir(self):
         shutil.rmtree(self.monitor_dir)
 
+# internal, can only be used for multiple inheritance
+# together with children of fileDirSupport
+class monfileDirSupport(monitorDirSupport):
+    # must be initialized before fileDirSupport
+
     ##################################################
     # Redefine methods needed by fileDirSupport child
     def create_dirs(self):
-        create_file_dirs(self)
+        self.create_monfile_dirs()
+
+    def delete_dirs(self):
+        self.delete_monfile_dir()
+
+    ############
+    # Private
+    ############
+
+    def create_monfile_dirs(self):
+        self.create_file_dirs()
         try:
             self.create_monitor_dir()
         except:
-            delete_file_dirs(self)
+            self.delete_file_dirs()
             raise
 
-    def delete_dirs(self):
+    def delete_monfile_dirs(self):
         self.delete_monitor_dir()
-        delete_file_dirs(self)
+        self.delete_file_dirs()
 
 
 ################################################
@@ -59,9 +67,9 @@ class monitorDirSupport:
 #
 ################################################
 
-class glideinMainDicts(monitorDirSupport,cgWDictFile.glideinMainDicts):
+class glideinMainDicts(monfileDirSupport,cgWDictFile.glideinMainDicts):
     def __init__(self,params,workdir_name):
-        monitorDirSupport.__init__(self,params.monitor_dir)
+        monfileDirSupport.__init__(self,params.monitor_dir)
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
         self.params=params
 
@@ -200,11 +208,11 @@ class glideinMainDicts(monitorDirSupport,cgWDictFile.glideinMainDicts):
 #
 ################################################
 
-class glideinEntryDicts(monitorDirSupport,cgWDictFile.glideinEntryDicts):
+class glideinEntryDicts(monfilerDirSupport,cgWDictFile.glideinEntryDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
         monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
-        monitorDirSupport.__init__(self,monitor_dir)
+        monfileDirSupport.__init__(self,monitor_dir)
         cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
         self.params=params
 
