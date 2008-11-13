@@ -73,7 +73,7 @@ class MonitoringConfig:
                           ]
         
         # The name of the attribute that identifies the glidein
-        self.lock_dir="." # if None, will not lock
+        self.lock_dir="./lock" # if None, will not lock
         self.monitor_dir="monitor/"
         self.log_dir="log/"
 
@@ -277,7 +277,7 @@ class MonitoringConfig:
                     archive_id,freq):
         rrd_archive=self.rrd_archives[archive_id]
 
-        lock_fname=os.path.join(self.monitor_dir,relative_lock_fname)
+        lock_fname=os.path.join(self.monitor_dir,os.path.join('lock',relative_lock_fname))
         try:
             if os.path.getmtime(lock_fname)>(ref_time-self.rrd_step*rrd_archive[2]*freq):
                 return # file too new to see any benefit from an update
@@ -312,7 +312,7 @@ class MonitoringConfig:
 
         rrd_archive=self.rrd_archives[archive_id]
 
-        lock_fname=os.path.join(self.monitor_dir,relative_lock_fname)
+        lock_fname=os.path.join(self.monitor_dir,os.path.join('lock',relative_lock_fname))
         try:
             if os.path.getmtime(lock_fname)>(ref_time-self.rrd_step*rrd_archive[2]*freq):
                 return None # file too new to see any benefit from an update
