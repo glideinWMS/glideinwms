@@ -894,6 +894,7 @@ class workDirSupport(dirSupport):
             os.mkdir(self.work_dir)
             try:
                 os.mkdir(os.path.join(self.work_dir,'log'))
+                os.mkdir(os.path.join(self.work_dir,'lock'))
             except:
                 shutil.rmtree(self.work_dir)
                 raise

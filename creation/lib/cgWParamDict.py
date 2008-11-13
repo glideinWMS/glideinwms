@@ -21,6 +21,11 @@ class monitorDirSupport(cWDictFile.dirSupport):
     def create_dir(self):
         try:
             os.mkdir(self.monitor_dir)
+            try:
+                os.mkdir(os.path.join(self.monitor_dir,'lock'))
+            except:
+                shutil.rmtree(self.monitor_dir)
+                raise            
         except OSError,e:
             raise RuntimeError,"Failed to create monitor dir: %s"%e
 
