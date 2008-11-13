@@ -25,7 +25,8 @@ class monitorDirSupport(cWDictFile.simpleDirSupport):
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params,workdir_name):
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
-        self.add_dir_obj(monitorDirSupport(params.monitor_dir))
+        self.monitor_dir=params.monitor_dir
+        self.add_dir_obj(monitorDirSupport(self.monitor_dir))
         self.params=params
 
     def populate(self,params=None):
@@ -167,8 +168,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
         cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
-        monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
-        self.add_dir_obj(monitorDirSupport(monitor_dir))
+        self.monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
+        self.add_dir_obj(monitorDirSupport(self.monitor_dir))
         self.params=params
 
     def erase(self):

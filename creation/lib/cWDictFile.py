@@ -850,7 +850,7 @@ class chmodDirSupport(simpleDirSupport):
                 
     def create_dir(self):
         simpleDirSupport.create_dir(self)
-        os.chmod(proxy_dir,self.chmod)
+        os.chmod(self.dir,self.chmod)
 
 # class for many directory creation
 class dirsSupport:
