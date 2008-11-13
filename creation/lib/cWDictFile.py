@@ -898,8 +898,8 @@ class dirsSupport:
         created_dirs=[]
         try:
             for dir_obj in self.dir_list:
-                dir_obj.create_dir()
-                created_dirs.append(dir_obj,fail_if_exists)
+                dir_obj.create_dir(fail_if_exists)
+                created_dirs.append(dir_obj)
         except:
             # on error, remove the dirs in reverse order
             created_dirs.reverse()
