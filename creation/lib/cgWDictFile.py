@@ -240,6 +240,10 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
 #
 ################################################
 
+class proxyDirSupport(cWDictFile.chmodDirSupport):
+    def __init__(self,proxy_dir):
+        cWDictFile.chmodDirSupport.__init__(self,proxy_dir,0700,'proxy')
+
 ################################################
 #
 # This Class contains the main dicts
@@ -247,6 +251,13 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
 ################################################
 
 class glideinMainDicts(cWDictFile.fileMainDicts):
+    def __init__(self,
+                 work_dir,stage_dir,
+                 workdir_name):
+        cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name)
+        proxy_dir=os.path.join(self.work_dir,'client_proxies')
+        self.add_dir_obj(proxyDirSupport(proxy_dir))
+    
     ######################################
     # Redefine methods needed by parent
     def load(self):
