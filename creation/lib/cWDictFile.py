@@ -866,7 +866,7 @@ class chmodDirSupport(simpleDirSupport):
 
 class symlinkSupport(dirSupport):
     def __init__(self,target_dir,symlink,dir_name):
-        self.dir=target_dir
+        self.target_dir=target_dir
         self.symlink=symlink
         self.dir_name=dir_name
         
