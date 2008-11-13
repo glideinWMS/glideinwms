@@ -266,6 +266,11 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
     def save(self,set_readonly=True):
         save_main_dicts(self.dicts,set_readonly=set_readonly)
 
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        cWDictFile.fileMainDicts.reuse(self,other)
+        reuse_main_dicts(self.dicts,other.dicts)
+
     ####################
     # Internal
     ####################
@@ -293,6 +298,11 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
     def save_final(self,set_readonly=True):
         pass # nothing to do
     
+    # reuse as much of the other as possible
+    def reuse(self,other):             # other must be of the same class
+        cWDictFile.fileSubDicts.reuse(self,other)
+        reuse_sub_dicts(self.dicts,other.dicts,self.sub_name)
+
     ####################
     # Internal
     ####################

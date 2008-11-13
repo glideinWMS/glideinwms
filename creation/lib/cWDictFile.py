@@ -1000,12 +1000,10 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     # child must overwrite this
     def load(self):
         raise RuntimeError, "Undefined"
-        load_main_dicts(self.dicts)
 
     # child must overwrite this
     def save(self,set_readonly=True):
         raise RuntimeError, "Undefined"
-        save_main_dicts(self.dicts,set_readonly=set_readonly)
 
     def is_equal(self,other,             # other must be of the same class
                  compare_work_dir=False,compare_stage_dir=False,
@@ -1025,6 +1023,7 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
             raise RuntimeError,"Cannot change main %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
         if self.stage_dir!=other.stage_dir:
             raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+        return # nothing else to be done in this
 
         reuse_main_dicts(self.dicts,other.dicts)
 
@@ -1095,7 +1094,8 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         if self.stage_dir!=other.stage_dir:
             raise RuntimeError,"Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
 
-        reuse_sub_dicts(self.dicts,other.dicts,self.sub_name)
+        return # nothing more to be done here
+
         
     ####################
     # Internal
