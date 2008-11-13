@@ -917,12 +917,12 @@ class dirsSupport:
 
 # multiple simple dirs
 class multiSimpleDirSupport(dirSupport,dirsSupport):
-    def __init__(self,dir_list,dir_name):
+    def __init__(self,list_of_dirs,dir_name):
         dirsSupport.__init__(self)
-        self.dir_list=dir_list
+        self.list_of_dirs=list_of_dirs
         self.dir_name=dir_name
 
-        for dir in dir_list:
+        for dir in list_of_dirs:
             self.add_dir_obj(simpleDirSupport(dir,self.dir_name))
         
     def create_dir(self,fail_if_exists=True):

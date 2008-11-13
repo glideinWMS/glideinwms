@@ -285,7 +285,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
     ######################################
     # Redefine methods needed by parent
     def load(self):
-        load_entry_dicts(self.dicts,self.entry_name,self.summary_signature)
+        load_entry_dicts(self.dicts,self.sub_name,self.summary_signature)
 
     def save(self,set_readonly=True):
         save_entry_dicts(self.dicts,self.sub_name,self.summary_signature,set_readonly=set_readonly)
