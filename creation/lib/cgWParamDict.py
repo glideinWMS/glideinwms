@@ -208,7 +208,7 @@ class glideinMainDicts(monfileDirSupport,cgWDictFile.glideinMainDicts):
 #
 ################################################
 
-class glideinEntryDicts(monfilerDirSupport,cgWDictFile.glideinEntryDicts):
+class glideinEntryDicts(monfileDirSupport,cgWDictFile.glideinEntryDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
         monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
