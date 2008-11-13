@@ -936,7 +936,7 @@ class multiSimpleDirSupport(dirSupport,dirsSupport):
 class workDirSupport(multiSimpleDirSupport):
     def __init__(self,work_dir,workdir_name):
         multiSimpleDirSupport.__init__(self,
-                                       (work_dir,os.path.join(work_dir,'log'),os.path.join(work_dir,'lock'))
+                                       (work_dir,os.path.join(work_dir,'log'),os.path.join(work_dir,'lock')),
                                        workdir_name)
 
 class stageDirSupport(simpleDirSupport):
