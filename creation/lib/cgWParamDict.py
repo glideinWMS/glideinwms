@@ -12,32 +12,22 @@ import cgWDictFile,cWDictFile
 import cgWCreate
 import cgWConsts,cWConsts
 
-class monitorDirSupport(cWDictFile.dirSupport):
+class monitorDirSupport(cWDictFile.dirSupport,cWDictFile.dirsSupport):
     def __init__(self,monitor_dir,work_dir):
+        cWDictFile.dirsSupport.__init__(self)
+
         self.monitor_dir=monitor_dir
         self.work_dir=work_dir
         self.monitor_symlink=os.path.join(self.work_dir,"monitor")
-        
-    def create_dir(self):
-        try:
-            os.mkdir(self.monitor_dir)
-            try:
-                os.mkdir(os.path.join(self.monitor_dir,'lock'))
-            except:
-                shutil.rmtree(self.monitor_dir)
-                raise            
-        except OSError,e:
-            raise RuntimeError,"Failed to create monitor dir: %s"%e
 
-        try:
-            os.symlink(self.monitor_dir,self.monitor_symlink)
-        except OSError, e:
-            shutil.rmtree(self.monitor_dir)
-            raise RuntimeError,"Failed to create monitor symlink %s: %s"%(self.monitor_symlink,e)
+        self.add_dir_obj(cWDictFile.simpleDirSupport(dir,self.monitor_dir))
+        self.add_dir_obj(cWDictFile.symlinkDirSupport(dir,self.work_dir,self.monitor_symlink))
+        
+    def create_dir(self,fail_if_exists=True):
+        self.create_dirs(fail_if_exists)
 
     def delete_dir(self):
-        os.unlink(self.monitor_symlink)
-        shutil.rmtree(self.monitor_dir)
+        self.delete_dirs()
 
 ################################################
 #

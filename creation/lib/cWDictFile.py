@@ -822,7 +822,7 @@ class CondorJDLDictFile(DictFile):
 
 # abstract class for a directory creation
 class dirSupport:
-    def create_dir(self):
+    def create_dir(self,fail_if_exists=True):
         raise RuntimeError, "Undefined"
 
     def delete_dir(self):
@@ -834,7 +834,13 @@ class simpleDirSupport(dirSupport):
         self.dir=dir
         self.dir_name=dir_name
         
-    def create_dir(self):
+    def create_dir(self,fail_if_exists=True):
+        if os.path.isdir(self.dir):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+            else:
+                return # already exists, nothing to do
+
         try:
             os.mkdir(self.dir)
         except OSError,e:
@@ -848,9 +854,36 @@ class chmodDirSupport(simpleDirSupport):
         simpleDirSupport.__init__(self,dir,dir_name)
         self.chmod=chmod
                 
-    def create_dir(self):
+    def create_dir(self,fail_if_exists=True):
+        if os.path.isdir(self.dir):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+            else:
+                return # already exists, nothing to do
+
         simpleDirSupport.create_dir(self)
         os.chmod(self.dir,self.chmod)
+
+class symlinkSupport(dirSupport):
+    def __init__(self,target_dir,symlink,dir_name):
+        self.dir=target_dir
+        self.symlink=symlink
+        self.dir_name=dir_name
+        
+    def create_dir(self,fail_if_exists=True):
+        if os.path.islink(self.symlink):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s symlink %s, already exists."%(self.dir_name,self.symlink)
+            else:
+                return # already exists, nothing to do
+
+        try:
+            os.symlink(self.target_dir,self.symlink)
+        except OSError,e:
+            raise RuntimeError,"Failed to create %s symlink: %s"%(self.dir_name,e)
+
+    def delete_dir(self):
+        os.unlink(self.symlink)
 
 # class for many directory creation
 class dirsSupport:
@@ -861,12 +894,12 @@ class dirsSupport:
     def add_dir_obj(self,dir_obj):
         self.dir_list.append(dir_obj)
         
-    def create_dirs(self):
+    def create_dirs(self,fail_if_exists=True):
         created_dirs=[]
         try:
             for dir_obj in self.dir_list:
                 dir_obj.create_dir()
-                created_dirs.append(dir_obj)
+                created_dirs.append(dir_obj,fail_if_exists)
         except:
             # on error, remove the dirs in reverse order
             created_dirs.reverse()
@@ -882,27 +915,29 @@ class dirsSupport:
         for i in idxs:
             self.dir_list[i].delete_dir()
 
-###########################################
+# multiple simple dirs
+class multiSimpleDirSupport(dirSupport,dirsSupport):
+    def __init__(self,dir_list,dir_name):
+        dirsSupport.__init__(self)
+        self.dir_list=dir_list
+        self.dir_name=dir_name
 
-class workDirSupport(dirSupport):
-    def __init__(self,work_dir,workdir_name):
-        self.work_dir=work_dir
-        self.workdir_name=workdir_name
+        for dir in dir_list:
+            self.add_dir_obj(simpleDirSupport(dir,self.dir_name))
         
-    def create_dir(self):
-        try:
-            os.mkdir(self.work_dir)
-            try:
-                os.mkdir(os.path.join(self.work_dir,'log'))
-                os.mkdir(os.path.join(self.work_dir,'lock'))
-            except:
-                shutil.rmtree(self.work_dir)
-                raise
-        except OSError,e:
-            raise RuntimeError,"Failed to create %s dir: %s"%(self.workdir_name,e)
+    def create_dir(self,fail_if_exists=True):
+        self.create_dirs(fail_if_exists)
 
     def delete_dir(self):
-        shutil.rmtree(self.work_dir)
+        self.delete_dirs()
+
+###########################################
+
+class workDirSupport(multiSimpleDirSupport):
+    def __init__(self,work_dir,workdir_name):
+        multiSimpleDirSupport.__init__(self,
+                                       (work_dir,os.path.join(work_dir,'log'),os.path.join(work_dir,'lock'))
+                                       workdir_name)
 
 class stageDirSupport(simpleDirSupport):
     def __init__(self,stage_dir):
