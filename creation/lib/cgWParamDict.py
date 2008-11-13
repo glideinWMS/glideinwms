@@ -40,17 +40,17 @@ class monitorDirSupport:
 
     ##################################################
     # Redefine methods needed by fileDirSupport child
-    def create_file_dirs(self):
-        cWDictFile.create_file_dirs(self)
+    def create_dirs(self):
+        create_file_dirs(self)
         try:
             self.create_monitor_dir()
         except:
-            cWDictFile.delete_file_dirs(self)
+            delete_file_dirs(self)
             raise
 
-    def delete_file_dirs(self):
+    def delete_dirs(self):
         self.delete_monitor_dir()
-        cWDictFile.delete_file_dirs(self)
+        delete_file_dirs(self)
 
 
 ################################################
