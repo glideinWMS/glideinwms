@@ -21,6 +21,7 @@ class monitorDirSupport(cWDictFile.dirSupport,cWDictFile.dirsSupport):
         self.monitor_symlink=os.path.join(self.work_dir,"monitor")
 
         self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_dir,"monitor"))
+        self.add_dir_obj(cWDictFile.simpleDirSupport(os.path.join(self.monitor_dir,'lock'),"monitor"))
         self.add_dir_obj(cWDictFile.symlinkSupport(self.monitor_dir,self.monitor_symlink,"monitor"))
         
     def create_dir(self,fail_if_exists=True):
