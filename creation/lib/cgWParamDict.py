@@ -53,7 +53,13 @@ class monitorDirSupport:
         cWDictFile.delete_file_dirs(self)
 
 
-class glideinMainDicts(cgWDictFile.glideinMainDicts,monitorDirSupport):
+################################################
+#
+# This Class contains the main dicts
+#
+################################################
+
+class glideinMainDicts(monitorDirSupport,cgWDictFile.glideinMainDicts):
     def __init__(self,params,workdir_name):
         monitorDirSupport.__init__(self,params.monitor_dir)
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
@@ -194,7 +200,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts,monitorDirSupport):
 #
 ################################################
 
-class glideinEntryDicts(cgWDictFile.glideinEntryDicts,monitorDirSupport):
+class glideinEntryDicts(monitorDirSupport,cgWDictFile.glideinEntryDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
         monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
