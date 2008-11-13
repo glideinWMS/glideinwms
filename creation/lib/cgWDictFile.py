@@ -301,7 +301,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         cWDictFile.fileSubDicts.reuse(self,other)
-        reuse_sub_dicts(self.dicts,other.dicts,self.sub_name)
+        reuse_entry_dicts(self.dicts,other.dicts,self.sub_name)
 
     ####################
     # Internal
