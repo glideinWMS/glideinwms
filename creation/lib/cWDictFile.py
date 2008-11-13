@@ -1175,11 +1175,11 @@ class fileDicts:
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)
    
-    def create_dirs(self):
-        self.main_dicts.create_dirs()
+    def create_dirs(self,fail_if_exists=True):
+        self.main_dicts.create_dirs(fail_if_exists)
         try:
             for sub_name in self.sub_list:
-                self.sub_dicts[sub_name].create_dirs()
+                self.sub_dicts[sub_name].create_dirs(fail_if_exists)
         except:
             self.main_dicts.delete_dirs() # this will clean up also any created subs
             raise
@@ -1220,11 +1220,13 @@ class fileDicts:
             raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
 
         # compare main dictionaires
+        self.main_dicts.create_dirs(fail_if_exists=False)
         self.main_dicts.reuse(other.main_dicts)
 
         # compare sub dictionaires
         for k in self.sub_list:
             if k in other.sub_list:
+                self.sub_dicts[k].create_dirs(fail_if_exists=False)
                 self.sub_dicts[k].reuse(other.sub_dicts[k])
             else:
                 # nothing to reuse, but must create dir
