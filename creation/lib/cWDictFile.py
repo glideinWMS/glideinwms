@@ -953,9 +953,6 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
         self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
-        proxy_dir=os.path.join(self.work_dir,'client_proxies')
-        self.add_dir_obj(proxyDirSupport(proxy_dir))
-        
         self.erase()
 
     def get_summary_signature(self): # you can discover most of the other things from this
