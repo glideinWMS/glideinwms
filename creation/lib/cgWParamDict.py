@@ -24,7 +24,7 @@ class monitorDirSupport(cWDictFile.dirSupport,cWDictFile.dirsSupport):
         self.add_dir_obj(cWDictFile.symlinkSupport(self.monitor_dir,self.monitor_symlink,"monitor"))
         
     def create_dir(self,fail_if_exists=True):
-        self.create_dirs(fail_if_exists)
+        return self.create_dirs(fail_if_exists)
 
     def delete_dir(self):
         self.delete_dirs()

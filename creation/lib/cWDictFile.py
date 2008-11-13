@@ -822,6 +822,7 @@ class CondorJDLDictFile(DictFile):
 
 # abstract class for a directory creation
 class dirSupport:
+    # returns a bool: True if the dir was created, false else
     def create_dir(self,fail_if_exists=True):
         raise RuntimeError, "Undefined"
 
@@ -839,12 +840,13 @@ class simpleDirSupport(dirSupport):
             if fail_if_exists:
                 raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
             else:
-                return # already exists, nothing to do
+                return False # already exists, nothing to do
 
         try:
             os.mkdir(self.dir)
         except OSError,e:
             raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+        return True
 
     def delete_dir(self):
         shutil.rmtree(self.dir)
@@ -855,14 +857,12 @@ class chmodDirSupport(simpleDirSupport):
         self.chmod=chmod
                 
     def create_dir(self,fail_if_exists=True):
-        if os.path.isdir(self.dir):
-            if fail_if_exists:
-                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
-            else:
-                return # already exists, nothing to do
+        res=simpleDirSupport.create_dir(self,fail_if_exists)
+        if res:
+            # only chdir if it was just created
+            os.chmod(self.dir,self.chmod)
+        return res
 
-        simpleDirSupport.create_dir(self)
-        os.chmod(self.dir,self.chmod)
 
 class symlinkSupport(dirSupport):
     def __init__(self,target_dir,symlink,dir_name):
@@ -875,12 +875,13 @@ class symlinkSupport(dirSupport):
             if fail_if_exists:
                 raise RuntimeError,"Cannot create %s symlink %s, already exists."%(self.dir_name,self.symlink)
             else:
-                return # already exists, nothing to do
+                return False # already exists, nothing to do
 
         try:
             os.symlink(self.target_dir,self.symlink)
         except OSError,e:
             raise RuntimeError,"Failed to create %s symlink: %s"%(self.dir_name,e)
+        return True
 
     def delete_dir(self):
         os.unlink(self.symlink)
@@ -898,8 +899,9 @@ class dirsSupport:
         created_dirs=[]
         try:
             for dir_obj in self.dir_list:
-                dir_obj.create_dir(fail_if_exists)
-                created_dirs.append(dir_obj)
+                res=dir_obj.create_dir(fail_if_exists)
+                if res:
+                    created_dirs.append(dir_obj)
         except:
             # on error, remove the dirs in reverse order
             created_dirs.reverse()
@@ -907,7 +909,8 @@ class dirsSupport:
                 dir_obj.delete_dir()
             # then rethrow exception
             raise
-        return
+
+        return len(created_dirs)!=0
 
     def delete_dirs(self):
         idxs=range(len(self.dir_list))
@@ -926,7 +929,7 @@ class multiSimpleDirSupport(dirSupport,dirsSupport):
             self.add_dir_obj(simpleDirSupport(dir,self.dir_name))
         
     def create_dir(self,fail_if_exists=True):
-        self.create_dirs(fail_if_exists)
+        return self.create_dirs(fail_if_exists)
 
     def delete_dir(self):
         self.delete_dirs()
@@ -1024,8 +1027,6 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
         if self.stage_dir!=other.stage_dir:
             raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
         return # nothing else to be done in this
-
-        reuse_main_dicts(self.dicts,other.dicts)
 
     ####################
     # Internal
