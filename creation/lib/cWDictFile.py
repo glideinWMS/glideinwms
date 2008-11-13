@@ -820,12 +820,76 @@ class CondorJDLDictFile(DictFile):
 
 ########################################################################################################################
 
-class workDirSupport:
+# abstract class for a directory creation
+class dirSupport:
+    def create_dir(self):
+        raise RuntimeError, "Undefined"
+
+    def delete_dir(self):
+        raise RuntimeError, "Undefined"
+
+
+class simpleDirSupport(dirSupport):
+    def __init__(self,dir,dir_name):
+        self.dir=dir
+        self.dir_name=dir_name
+        
+    def create_dir(self):
+        try:
+            os.mkdir(self.dir)
+        except OSError,e:
+            raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+
+    def delete_dir(self):
+        shutil.rmtree(self.dir)
+
+class chmodDirSupport(simpleDirSupport):
+    def __init__(self,dir,chmod,dir_name):
+        simpleDirSupport.__init__(self,dir,dir_name)
+        self.chmod=chmod
+                
+    def create_dir(self):
+        simpleDirSupport.create_dir(self)
+        os.chmod(proxy_dir,self.chmod)
+
+# class for many directory creation
+class dirsSupport:
+    def __init__(self):
+        self.dir_list=[]
+
+    # dir obj must support create_dir and delete_dir
+    def add_dir_obj(self,dir_obj):
+        self.dir_list.append(dir_obj)
+        
+    def create_dirs(self):
+        created_dirs=[]
+        try:
+            for dir_obj in self.dir_list:
+                dir_obj.create_dir()
+                created_dirs.append(dir_obj)
+        except:
+            # on error, remove the dirs in reverse order
+            created_dirs.reverse()
+            for dir_obj in created_dirs:
+                dir_obj.delete_dir()
+            # then rethrow exception
+            raise
+        return
+
+    def delete_dirs(self):
+        idxs=range(self.dir_list)
+        idxs.reverse()
+        for i in idxs:
+            self.dir_list[i].delete_dir()
+
+###########################################
+
+class workDirSupport(dirSupport):
     def __init__(self,work_dir,workdir_name):
         self.work_dir=work_dir
         self.workdir_name=workdir_name
         
-    def create_work_dir(self):
+    def create_dir(self):
         try:
             os.mkdir(self.work_dir)
             try:
@@ -834,24 +898,14 @@ class workDirSupport:
                 shutil.rmtree(self.work_dir)
                 raise
         except OSError,e:
-            raise RuntimeError,"Failed to create dir: %s"%e
+            raise RuntimeError,"Failed to create %s dir: %s"%(self.workdir_name,e)
 
-    def delete_work_dir(self):
+    def delete_dir(self):
         shutil.rmtree(self.work_dir)
 
-class stageDirSupport:
+class stageDirSupport(simpleDirSupport):
     def __init__(self,stage_dir):
-        self.stage_dir=stage_dir
-        
-    def create_stage_dir(self):
-        try:
-            os.mkdir(self.stage_dir)
-        except OSError,e:
-            raise RuntimeError,"Failed to create dir: %s"%e
-
-    def delete_stage_dir(self):
-        shutil.rmtree(self.stage_dir)
-
+        simpleDirSupport.__init__(self,stage_dir,'stage')
 
 ################################################
 #
@@ -879,59 +933,30 @@ class fileCommonDicts:
         for el in self.dicts.values():
             el.set_readonly(readonly)
 
-# helper class, used below
-class fileDirSupport(workDirSupport,stageDirSupport):
-    def __init__(self,work_dir,stage_dir,workdir_name):
-        workDirSupport.__init__(work_dir,workdir_name)
-        stageDirSupport.__init__(stage_dir)
-        
-    def create_dirs(self):
-        self.create_file_dirs()
-
-    def delete_dirs(self):
-        self.delete_file_dirs()
-
-    ############
-    # Private
-    ############
-
-    # Can be redefined by child
-    def create_file_dirs(self):
-        self.create_work_dir()
-        try:
-            self.create_stage_dir()
-        except:
-            self.delete_work_dir()
-            raise
-
-    # Can be redefined by child
-    def delete_file_dirs(self):
-        self.delete_stage_dir()
-        self.delete_work_dir()
-
 ################################################
 #
 # This Class contains the main dicts
 #
 ################################################
 
-class fileMainDicts(fileCommonDicts,fileDirSupport):
+class fileMainDicts(fileCommonDicts,dirsSupport):
     def __init__(self,
                  work_dir,stage_dir,
                  workdir_name):
         fileCommonDicts.__init__(self)
-        fileDirSupport.__init__(self,work_dir,stage_dir,workdir_name)
-        self.erase()
+        dirsSupport.__init__(self)
 
-    def create_dirs(self):
-        fileDirSupport.create_dirs(self)
-        try:
-            proxy_dir=os.path.join(self.work_dir,'client_proxies')
-            os.mkdir(proxy_dir)
-            os.chmod(proxy_dir,0700)
-        except OSError,e:
-            fileDirSupport.delete_dirs(self)
-            raise RuntimeError,"Failed to create dir: %s"%e
+        self.work_dir=work_dir
+        self.stage_dir=stage_dir
+        self.workdir_name=workdir_name
+
+        self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+        self.add_dir_obj(stageDirSupport(self.stage_dir))
+
+        proxy_dir=os.path.join(self.work_dir,'client_proxies')
+        self.add_dir_obj(proxyDirSupport(proxy_dir))
+        
+        self.erase()
 
     def get_summary_signature(self): # you can discover most of the other things from this
         return self.dicts['summary_signature']
@@ -984,18 +1009,24 @@ class fileMainDicts(fileCommonDicts,fileDirSupport):
 #
 ################################################
 
-class fileSubDicts(fileCommonDicts,fileDirSupport):
+class fileSubDicts(fileCommonDicts,dirsSupport):
     def __init__(self,base_work_dir,base_stage_dir,sub_name,
                  summary_signature,workdir_name):
-        self.sub_name=sub_name
-
         fileCommonDicts.__init__(self)
+        dirsSupport.__init__(self)
+
+        self.sub_name=sub_name
 
         work_dir=self.get_sub_work_dir(base_work_dir)
         stage_dir=self.get_sub_stage_dir(base_stage_dir)
-        fileDirSupport.__init__(self,work_dir,stage_dir,workdir_name)
 
-        self.sub_name=sub_name
+        self.work_dir=work_dir
+        self.stage_dir=stage_dir
+        self.workdir_name=workdir_name
+
+        self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+        self.add_dir_obj(stageDirSupport(self.stage_dir))
+
         self.summary_signature=summary_signature
         self.erase()
 
