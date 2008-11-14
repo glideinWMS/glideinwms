@@ -33,7 +33,7 @@ def get_common_dicts(work_dir,stage_dir):
 def get_main_dicts(work_dir,stage_dir):
     main_dicts=get_common_dicts(work_dir,stage_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
-    main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cgWConsts.GLIDEIN_FILE)
+    main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
     main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTERGROUP_FILE_LISTFILE)
     main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
 
@@ -41,7 +41,7 @@ def get_main_dicts(work_dir,stage_dir):
 
 def get_group_dicts(group_work_dir,group_stage_dir,group_name):
     group_dicts=get_common_dicts(group_work_dir,group_stage_dir)
-    group_dicts['group_descript']=cWDictFile.StrDictFile(group_work_dir,cgWConsts.JOB_DESCRIPT_FILE)
+    group_dicts['group_descript']=cWDictFile.StrDictFile(group_work_dir,cvWConsts.GROUP_DESCRIPT_FILE)
     return group_dicts
 
 ################################################
@@ -59,27 +59,29 @@ def load_common_dicts(dicts,           # update in place
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
-    file_el=dicts['file_list']
+    dicts['preentry_file_list'].load(fname=description_el.vals2['preentry_file_list'])
+    file_el=dicts['preentry_file_list']
     # all others are keyed in the file_list
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cgWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
-    main_dicts['glidein'].load()
+    main_dicts['frontend_descrpt'].load()
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
-    main_dicts['after_file_list'].load(fname=main_dicts['description'].vals2['after_file_list'])
+    main_dicts['aftergroup_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_file_list'])
+    main_dicts['aftergroup_preentry_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_preentry_file_list'])
     load_common_dicts(main_dicts,main_dicts['description'])
 
 def load_group_dicts(group_dicts,                   # update in place
                      group_name,summary_signature): 
-    group_dicts['job_descript'].load()
+    group_dicts['group_descript'].load()
     # load the description (name from summary_signature)
-    group_dicts['description'].load(fname=summary_signature[cgWConsts.get_group_stage_dir("",group_name)][1])
+    group_dicts['description'].load(fname=summary_signature[cvWConsts.get_group_stage_dir("",group_name)][1])
     # all others are keyed in the description
     load_common_dicts(group_dicts,group_dicts['description'])
 
@@ -92,7 +94,7 @@ def load_group_dicts(group_dicts,                   # update in place
 def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
-    for k in ('file_list','after_file_list'):
+    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             description_dict.add(dicts[k].get_fname(),k,allow_overwrite=True)
 
@@ -101,7 +103,7 @@ def refresh_file_list(dicts,is_main, # update in place
     group_str="_GROUP"
     if is_main:
         group_str=""
-    file_dict=dicts['file_list']
+    file_dict=dicts['preentry_file_list']
     file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%group_str,dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%group_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%group_str,dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
@@ -109,11 +111,11 @@ def refresh_file_list(dicts,is_main, # update in place
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('consts','vars','untar_cfg','file_list','after_file_list','description'):
+    for k in ('consts','vars','untar_cfg','preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list','description'):
         if dicts.has_key(k):
             signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
-    for k in ('file_list','after_file_list'):
+    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             filedict=dicts[k]
             for fname in filedict.get_immutable_files():
@@ -140,11 +142,11 @@ def save_common_dicts(dicts,     # will update in place, too
     # 'consts','untar_cfg','vars' will be loaded
     refresh_file_list(dicts,is_main)
     # save files in the file lists
-    for k in ('file_list','after_file_list'):
+    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             dicts[k].save_files(allow_overwrite=True)
     # then save the lists
-    for k in ('file_list','after_file_list'):
+    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
@@ -158,7 +160,7 @@ def save_common_dicts(dicts,     # will update in place, too
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
                     set_readonly=True):
-    main_dicts['glidein'].save(set_readonly=set_readonly)
+    main_dicts['frontend_descript'].save(set_readonly=set_readonly)
     save_common_dicts(main_dicts,True,set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
@@ -168,10 +170,9 @@ def save_main_dicts(main_dicts, # will update in place, too
 def save_group_dicts(group_dicts,                   # will update in place, too
                      group_name,summary_signature,  # update in place
                      set_readonly=True):
-    group_dicts['infosys'].save(set_readonly=set_readonly)
-    group_dicts['job_descript'].save(set_readonly=set_readonly)
+    group_dicts['group_descript'].save(set_readonly=set_readonly)
     save_common_dicts(group_dicts,False,set_readonly=set_readonly)
-    summary_signature.add_from_file(key=cgWConsts.get_group_stage_dir("",group_name),filepath=group_dicts['signature'].get_filepath(),fname2=group_dicts['description'].get_fname(),allow_overwrite=True)
+    summary_signature.add_from_file(key=cvWConsts.get_group_stage_dir("",group_name),filepath=group_dicts['signature'].get_filepath(),fname2=group_dicts['description'].get_fname(),allow_overwrite=True)
 
 ################################################
 #
@@ -201,7 +202,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # since the file names may have changed, refresh the file_list    
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
-    for k in ('file_list','after_file_list'):
+    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             all_reused=reuse_file_dict(dicts,other_dicts,k) and all_reused
 
@@ -220,15 +221,14 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     return all_reused
 
 def reuse_main_dicts(main_dicts, other_main_dicts):
-    reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
+    reuse_simple_dict(main_dicts, other_main_dicts,'frontend_descript')
     all_reused=reuse_common_dicts(main_dicts, other_main_dicts,True,True)
     # will not try to reuse the summary_signature... being in work_dir
     # can be rewritten and it is not worth the pain to try to prevent it
     return all_reused
 
 def reuse_group_dicts(group_dicts, other_group_dicts,group_name):
-    reuse_simple_dict(group_dicts, other_group_dicts,'job_descript')
-    reuse_simple_dict(group_dicts, other_group_dicts,'infosys')
+    reuse_simple_dict(group_dicts, other_group_dicts,'group_descript')
     all_reused=reuse_common_dicts(group_dicts, other_group_dicts,False,True)
     return all_reused
 
