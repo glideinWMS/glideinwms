@@ -1,4 +1,5 @@
-vNext	Installer uses .profile and not .bashrc.
+vNext	The XML file now supports comments.
+	Installer uses .profile and not .bashrc.
 	Refactored install options so that most tasks performed
           as a non-privileged user.
 
