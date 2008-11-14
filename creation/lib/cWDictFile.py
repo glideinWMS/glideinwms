@@ -855,8 +855,8 @@ class monitorDirSupport(dirSupport,dirsSupport):
 
         self.dir_name=dir_name
         self.monitor_dir=monitor_dir
-        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_dir,self.dir_name))
-        self.add_dir_obj(cWDictFile.simpleDirSupport(os.path.join(self.monitor_dir,'lock'),self.dir_name))
+        self.add_dir_obj(simpleDirSupport(self.monitor_dir,self.dir_name))
+        self.add_dir_obj(simpleDirSupport(os.path.join(self.monitor_dir,'lock'),self.dir_name))
         
     def create_dir(self,fail_if_exists=True):
         return self.create_dirs(fail_if_exists)
@@ -871,7 +871,7 @@ class monitorWLinkDirSupport(monitorDirSupport):
         self.work_dir=work_dir
         self.monitor_symlink=os.path.join(self.work_dir,work_subdir)
 
-        self.add_dir_obj(cWDictFile.symlinkSupport(self.monitor_dir,self.monitor_symlink,self.dir_name))
+        self.add_dir_obj(symlinkSupport(self.monitor_dir,self.monitor_symlink,self.dir_name))
         
 ################################################
 #
