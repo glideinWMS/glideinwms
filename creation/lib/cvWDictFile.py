@@ -33,15 +33,15 @@ def get_common_dicts(work_dir,stage_dir):
 def get_main_dicts(work_dir,stage_dir):
     main_dicts=get_common_dicts(work_dir,stage_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
-    main_dicts['glidein']=cWDictFile.StrDictFile(work_dir,cgWConsts.GLIDEIN_FILE)
-    main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTER_FILE_LISTFILE)
-    main_dicts['after_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cvWConsts.AFTER_PREENTRY_FILE_LISTFILE)
+    main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cgWConsts.GLIDEIN_FILE)
+    main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTERGROUP_FILE_LISTFILE)
+    main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
+
     return main_dicts
 
 def get_group_dicts(group_work_dir,group_stage_dir,group_name):
     group_dicts=get_common_dicts(group_work_dir,group_stage_dir)
-    group_dicts['job_descript']=cWDictFile.StrDictFile(group_work_dir,cgWConsts.JOB_DESCRIPT_FILE)
-    group_dicts['infosys']=cWDictFile.InfoSysDictFile(group_work_dir,cgWConsts.INFOSYS_FILE)
+    group_dicts['group_descript']=cWDictFile.StrDictFile(group_work_dir,cgWConsts.JOB_DESCRIPT_FILE)
     return group_dicts
 
 ################################################
@@ -77,10 +77,6 @@ def load_main_dicts(main_dicts): # update in place
 
 def load_group_dicts(group_dicts,                   # update in place
                      group_name,summary_signature): 
-    try:
-        group_dicts['infosys'].load()
-    except RuntimeError:
-         pass # ignore errors, this is optional
     group_dicts['job_descript'].load()
     # load the description (name from summary_signature)
     group_dicts['description'].load(fname=summary_signature[cgWConsts.get_group_stage_dir("",group_name)][1])
@@ -242,136 +238,73 @@ def reuse_group_dicts(group_dicts, other_group_dicts,group_name):
 #
 ################################################
 
-# internal, do not use directly from outside the module
-class frontendCommonDicts:
-    def __init__(self):
-        self.dicts=None
-        self.work_dir=None
-        self.stage_dir=None
-        raise RuntimeError, "frontendCommonDicts should never be directly used"
-        
-    def keys(self):
-        return self.dicts.keys()
+################################################
+#
+# This Class contains the main dicts
+#
+################################################
 
-    def has_key(self,key):
-        return self.dicts.has_key(key)
-
-    def __getitem__(self,key):
-        return self.dicts[key]        
-
-    def set_readonly(self,readonly=True):
-        for el in self.dicts.values():
-            el.set_readonly(readonly)
-
-    def create_dirs(self):
-        try:
-            os.mkdir(self.work_dir)
-            try:
-                os.mkdir(os.path.join(self.work_dir,'log'))
-                os.mkdir(self.stage_dir)
-            except:
-                shutil.rmtree(self.work_dir)
-                raise
-        except OSError,e:
-            raise RuntimeError,"Failed to create dir: %s"%e
-
-    def delete_dirs(self):
-        shutil.rmtree(self.work_dir)
-        shutil.rmtree(self.stage_dir)
-
-
-class frontendMainDicts(frontendCommonDicts):
-    def __init__(self,work_dir,stage_dir):
-        self.work_dir=work_dir
-        self.stage_dir=stage_dir
-        self.erase()
-
-    def create_dirs(self):
-        frontendCommonDicts.create_dirs(self)
-        try:
-            proxy_dir=os.path.join(self.work_dir,'client_proxies')
-            os.mkdir(proxy_dir)
-            os.chmod(proxy_dir,0700)
-        except OSError,e:
-            shutil.rmtree(self.work_dir)
-            raise RuntimeError,"Failed to create dir: %s"%e
-
-    def get_summary_signature(self): # you can discover most of the other things from this
-        return self.dicts['summary_signature']
-
-    def erase(self):
-        self.dicts=get_main_dicts(self.work_dir,self.stage_dir)
-    
+class frontendMainDicts(cWDictFile.fileMainDicts):
+    ######################################
+    # Redefine methods needed by parent
     def load(self):
         load_main_dicts(self.dicts)
 
     def save(self,set_readonly=True):
         save_main_dicts(self.dicts,set_readonly=set_readonly)
 
-    def is_equal(self,other,             # other must be of the same class
-                 compare_work_dir=False,compare_stage_dir=False,
-                 compare_fnames=False): 
-        if compare_work_dir and (self.work_dir!=other.work_dir):
-            return False
-        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
-            return False
-        for k in self.dicts.keys():
-            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
-                return False
-        return True
-
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
-        if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change main work base_dir! '%s'!='%s'"%(self.work_dir,other.work_dir)
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change main stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
-
+        cWDictFile.fileMainDicts.reuse(self,other)
         reuse_main_dicts(self.dicts,other.dicts)
-        
-class frontendGroupDicts(frontendCommonDicts):
-    def __init__(self,
-                 frontend_main_dicts, # must be an instance of frontendMainDicts
-                 group_name):
-        self.group_name=group_name
-        self.frontend_main_dicts=frontend_main_dicts
-        self.work_dir=cgWConsts.get_group_work_dir(frontend_main_dicts.work_dir,group_name)
-        self.stage_dir=cgWConsts.get_group_stage_dir(frontend_main_dicts.stage_dir,group_name)
-        self.erase()
 
-    def erase(self):
-        self.dicts=get_group_dicts(self.work_dir,self.stage_dir,self.group_name)
+    ####################
+    # Internal
+    ####################
+
+    # Child must overwrite this
+    def get_main_dicts(self):
+        return get_main_dicts(self.work_dir,self.stage_dir)
     
-    def load(self): #will use frontend_main_dicts data, so it must be loaded first
-        load_group_dicts(self.dicts,self.group_name,self.frontend_main_dicts.get_summary_signature())
+        
+################################################
+#
+# This Class contains the group dicts
+#
+################################################
+
+class frontendGroupDicts(cWDictFile.fileSubDicts):
+    ######################################
+    # Redefine methods needed by parent
+    def load(self):
+        load_group_dicts(self.dicts,self.sub_name,self.summary_signature)
 
     def save(self,set_readonly=True):
-        save_group_dicts(self.dicts,self.group_name,self.frontend_main_dicts.get_summary_signature(),set_readonly=set_readonly)
+        save_group_dicts(self.dicts,self.sub_name,self.summary_signature,set_readonly=set_readonly)
 
     def save_final(self,set_readonly=True):
-        pass # not needed here, but may be needed by children
+        pass # nothing to do
     
-    def is_equal(self,other,             # other must be of the same class
-                 compare_group_name=False,
-                 compare_frontend_main_dicts=False, # if set to True, will do a complete check on the related objects
-                 compare_fnames=False): 
-        if compare_group_name and (self.group_name!=other.group_name):
-            return False
-        if compare_frontend_main_dicts and (self.frontend_main_dicts.is_equal(other.frontend_main_dicts,compare_work_dir=True,compare_stage_dir=True,compare_fnames=compare_fnames)):
-            return False
-        for k in self.dicts.keys():
-            if not self.dicts[k].is_equal(other.dicts[k],compare_dir=False,compare_fname=compare_fnames):
-                return False
-        return True
-
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
-        if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change group work base_dir! '%s'!='%s'"%(self.work_dir,other.work_dir)
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change group stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
+        cWDictFile.fileSubDicts.reuse(self,other)
+        reuse_group_dicts(self.dicts,other.dicts,self.sub_name)
 
-        reuse_group_dicts(self.dicts,other.dicts,self.group_name)
+    ####################
+    # Internal
+    ####################
+
+    def get_sub_work_dir(self,base_dir):
+        return cvWConsts.get_group_submit_dir(base_dir,self.sub_name)
+    
+    def get_sub_stage_dir(self,base_dir):
+        return cvWConsts.get_group_stage_dir(base_dir,self.sub_name)
+    
+    def get_sub_dicts(self):
+        return get_group_dicts(self.work_dir,self.stage_dir,self.sub_name)
+    
+    def reuse_nocheck(self):
+        reuse_group_dicts(self.dicts,other.dicts,self.sub_name)
         
 ################################################
 #
@@ -380,116 +313,22 @@ class frontendGroupDicts(frontendCommonDicts):
 #
 ################################################
 
-class frontendDicts:
-    def __init__(self,work_dir,stage_dir,group_list=[]):
-        self.work_dir=work_dir
-        self.stage_dir=stage_dir
-        self.main_dicts=frontendMainDicts(self.work_dir,self.stage_dir)
-        self.group_list=group_list[:]
-        self.group_dicts={}
-        for group_name in group_list:
-            self.group_dicts[group_name]=frontendGroupDicts(self.main_dicts,group_name)
-        return
-
-    def set_readonly(self,readonly=True):
-        self.main_dicts.set_readonly(readonly)
-        for el in self.group_dicts.values():
-            el.set_readonly(readonly)
-
-    def erase(self,destroy_old_groups=True): # if false, the group names will be preserved
-        self.main_dicts.erase()
-        if destroy_old_groups:
-            self.group_list=[]
-            self.group_dicts={}
-        else:
-            for group_name in self.group_list:
-                self.group_dicts[group_name].erase()
-        return
-
-    def load(self,destroy_old_groups=True): # if false, overwrite the groups you load, but leave the others as they are
-        self.main_dicts.load()
-        if destroy_old_groups:
-            self.group_list=[]
-            self.group_dicts={}
-        # else just leave as it is, will rewrite just the loaded ones
-
-        for sign_key in self.main_dicts.get_summary_signature().keys:
-            if sign_key!='main': # main is special, not an group
-                group_name=cgWConsts.get_group_name_from_group_stage_dir(sign_key)
-                if not(group_name in self.group_list):
-                    self.group_list.append(group_name)
-                self.group_dicts[group_name]=self.new_group(group_name)
-                self.group_dicts[group_name].load()
-
-
-
-    def save(self,set_readonly=True):
-        for group_name in self.group_list:
-            self.group_dicts[group_name].save(set_readonly=set_readonly)
-        self.main_dicts.save(set_readonly=set_readonly)
-        for group_name in self.group_list:
-            self.group_dicts[group_name].save_final(set_readonly=set_readonly)
-   
-    def create_dirs(self):
-        self.main_dicts.create_dirs()
-        try:
-            for group_name in self.group_list:
-                self.group_dicts[group_name].create_dirs()
-        except:
-            self.main_dicts.delete_dirs() # this will clean up also any created groups
-            raise
-        
-    def delete_dirs(self):
-        self.main_dicts.delete_dirs() # this will clean up also all groups
-
-    def is_equal(self,other,             # other must be of the same class
-                 compare_work_dir=False,compare_stage_dir=False,
-                 compare_fnames=False): 
-        if compare_work_dir and (self.work_dir!=other.work_dir):
-            return False
-        if compare_stage_dir and (self.stage_dir!=other.stage_dir):
-            return False
-        if not self.main_dicts.is_equal(other.main_dicts,compare_work_dir=False,compare_stage_dir=False,compare_fnames=compare_fnames):
-            return False
-        my_groups=self.group_list[:]
-        other_groups=other.group_list[:]
-        if len(my_groups)!=len(other_groups):
-            return False
-
-        my_groups.sort()
-        other_groups.sort()
-        if my_groups!=other_groups: # need to be in the same order to make a comparison
-            return False
-        
-        for k in my_groups:
-            if not self.group_dicts[k].is_equal(other.group_dicts[k],compare_group_name=False,
-                                                compare_frontend_main_dicts=False,compare_fname=compare_fnames):
-                return False
-        return True
-
-    # reuse as much of the other as possible
-    def reuse(self,other):             # other must be of the same class
-        if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change work base_dir! '%s'!='%s'"%(self.work_dir,other.work_dir)
-        if self.stage_dir!=other.stage_dir:
-            raise RuntimeError,"Cannot change stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
-
-        # compare main dictionaires
-        self.main_dicts.reuse(other.main_dicts)
-
-        # compare group dictionaires
-        for k in self.group_list:
-            if k in other.group_list:
-                self.group_dicts[k].reuse(other.group_dicts[k])
-            else:
-                # nothing to reuse, but must create dir
-                self.group_dicts[k].create_dirs()
+class frontendDicts(cWDictFile.fileDicts):
+    def __init__(self,work_dir,stage_dir,group_list=[],workdir_name='submit'):
+        cWDictFile.fileDicts.__init__(work_dir,stage_dir,group_list,workdir_name)
 
     ###########
     # PRIVATE
     ###########
 
-    # return a new group object
-    def new_group(self,group_name):
-        return frontendGroupDicts(self.main_dicts,group_name)
+    ######################################
+    # Redefine methods needed by parent
+    def new_MainDicts(self):
+        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name)
+
+    def new_SubDicts(self,sub_name):
+        return frontendGroupDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
+
+    def get_sub_name_from_sub_stage_dir(self,sign_key):
+        return cvWConsts.get_group_name_from_group_stage_dir(sign_key)
     
