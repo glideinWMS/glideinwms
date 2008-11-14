@@ -10,6 +10,104 @@ import cgWConsts,cWConsts
 import cWDictFile
 
 
+# values are (Type,System,Ref)
+class InfoSysDictFile(cWDictFile.DictFile):
+    def file_header(self,want_comments):
+        if want_comments:
+            return (cWDictFile.DictFile.file_header(self,want_comments)+"\n"+
+                    ("# %s \t%30s \t%s \t\t%s\n"%('Type','Server','Ref','ID'))+
+                    ("#"*78))
+        else:
+            return None
+
+    # key can be None
+    # in that case it will be composed out of value
+    def add(self,key,val,allow_overwrite=0):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=3:
+            raise RuntimeError, "Values '%s' not (Type,System,Ref)"%str(val)
+
+        if key==None:
+            key="%s://%s/%s"%val
+        return cWDictFile.DictFile.add(self,key,val,allow_overwrite)
+
+    def add_extended(self,
+                     infosys_type,
+                     server_name,
+                     ref_str,
+                     allow_overwrite=0):
+        self.add(None,(infosys_type,server_name,ref_str))
+        
+    def format_val(self,key,want_comments):
+        return "%s \t%30s \t%s \t\t%s"%(self.vals[key][0],self.vals[key][1],self.vals[key][2],key)
+        
+
+    def parse_val(self,line):
+        if len(line)==0:
+            return #ignore emoty lines
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,3)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=4:
+            raise RuntimeError,"Not a valid var line (expected 4, found %i elements): '%s'"%(len(arr),line)
+
+        key=arr[-1]
+        return self.add(key,arr[:-1])
+
+
+class CondorJDLDictFile(cWDictFile.DictFile):
+    def __init__(self,dir,fname,sort_keys=False,order_matters=False,jobs_in_cluster=None,
+                 fname_idx=None):      # if none, use fname
+        cWDictFile.DictFile.__init__(self,dir,fname,sort_keys,order_matters,fname_idx)
+        self.jobs_in_cluster=jobs_in_cluster
+
+    def file_footer(self,want_comments):
+        if self.jobs_in_cluster==None:
+            return "Queue"
+        else:
+            return "Queue %s"%self.jobs_in_cluster
+
+    def format_val(self,key,want_comments):
+        return "%s = %s"%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,2)
+        if len(arr)==0:
+            return # empty line
+
+        if arr[0]=='Queue':
+            # this is the final line
+            if len(arr)==1:
+                # default
+                self.jobs_in_cluster=None
+            else:
+                self.jobs_in_cluster=arr[1]
+            return
+            
+        # should be a regular line
+        if len(arr)<2:
+            raise RuntimeError,"Not a valid Condor JDL line, too short: '%s'"%line
+        if arr[1]!='=':
+            raise RuntimeError,"Not a valid Condor JDL line, no =: '%s'"%line
+        
+        if len(arr)==2:
+            return self.add(arr[0],"") # key = <empty>
+        else:
+            return self.add(arr[0],arr[2])
+
+    def is_equal(self,other,         # other must be of the same class
+                 compare_dir=False,compare_fname=False,
+                 compare_keys=None): # if None, use order_matters
+        if self.jobs_in_cluster==other.jobs_in_cluster:
+            return cWDictFile.DictFile.is_equal(other,compare_dir,compare_fname,compare_keys)
+        else:
+            return False
+
 ################################################
 #
 # Functions that create default dictionaries
@@ -39,7 +137,7 @@ def get_main_dicts(submit_dir,stage_dir):
 def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
     entry_dicts=get_common_dicts(entry_submit_dir,entry_stage_dir)
     entry_dicts['job_descript']=cWDictFile.StrDictFile(entry_submit_dir,cgWConsts.JOB_DESCRIPT_FILE)
-    entry_dicts['infosys']=cWDictFile.InfoSysDictFile(entry_submit_dir,cgWConsts.INFOSYS_FILE)
+    entry_dicts['infosys']=InfoSysDictFile(entry_submit_dir,cgWConsts.INFOSYS_FILE)
     return entry_dicts
 
 ################################################

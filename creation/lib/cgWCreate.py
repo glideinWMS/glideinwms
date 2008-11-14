@@ -14,7 +14,7 @@ import traceback
 import tarfile
 import cStringIO
 import cgWConsts
-import cWDictFile
+import cgWDictFile
 
 ##############################
 # Create condor tarball and store it into a StringIO
@@ -51,7 +51,7 @@ def create_condor_tar_fd(condor_base_dir):
 
 ##########################################
 # Condor submit file dictionary
-class GlideinSubmitDictFile(cWDictFile.CondorJDLDictFile):
+class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def populate(self,
                  exe_fname,
                  factory_name,glidein_name,entry_name,
