@@ -286,15 +286,19 @@ class Params:
             os.chmod(fname,os.stat(fname)[0]&0444)
 
 ######################################################
+# Ordered dictionary with comment support
+class commentedOrderedDict(xmlParse.OrderedDict):
+    def __init__(self):
+        xmlParse.OrderedDict(self)
+        self["comment"]=(None,"string","Humman comment, not used by the code",None)
+
+######################################################
 # Define common defaults
 class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
-        self.comment_default=(None,"string","Comment, not used by the code",None)
-        
         # attributes are generic, shared between frontend and factory
-        self.attr_defaults=xmlParse.OrderedDict()
-        self.attr_defaults["comment"]=self.comment_default
+        self.attr_defaults=commentedOrderedDict()
         self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
         self.attr_defaults["parameter"]=("True","Bool","Should it be passed as a parameter?",None)
         self.attr_defaults["glidein_publish"]=("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None)
@@ -302,8 +306,7 @@ class CommonParams(Params):
         self.attr_defaults["type"]=["string","string|int","What kind on data is value.",None]
 
         # most file attributes are generic, shared between frontend and factory
-        self.file_defaults=xmlParse.OrderedDict()
-        self.file_defaults["comment"]=self.comment_default
+        self.file_defaults=commentedOrderedDict()
         self.file_defaults["absfname"]=(None,"fname","File name on the local disk.",None)
         self.file_defaults["relfname"]=(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None)
         self.file_defaults["const"]=("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None)
@@ -311,13 +314,13 @@ class CommonParams(Params):
         self.file_defaults["wrapper"]=("False",'Bool','Is this a wrapper script that needs to be sourced in the glidein job wrapper?',None)
         self.file_defaults["untar"]=("False",'Bool','Do I need to untar it? ',None)
 
-        untar_defaults=xmlParse.OrderedDict()
+        untar_defaults=commentedOrderedDict()
         untar_defaults["cond_attr"]=("TRUE","attrname","If not the special value TRUE, the attribute name used at runtime to determine if the file should be untarred or not.",None)
         untar_defaults["dir"]=(None,"dirname","Subdirectory in which to untar. (defaults to relname up to first .)",None)
         untar_defaults["absdir_outattr"]=(None,"attrname",'Attribute to be set to the abs dir name where the tarball was unpacked. Will be defined only if untar effectively done. (Not defined if None)',None)
         self.file_defaults["untar_options"]=untar_defaults
 
-        self.downtimes_defaults=xmlParse.OrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
+        self.downtimes_defaults=commentedOrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
         return
 
 

@@ -32,20 +32,20 @@ class GlideinParams(cWParams.CommonParams):
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
         self.attr_defaults["const"]=("True","Bool","Should it be constant? (Else it can be overriden by the frontend. Used only if parameter is True.)",None)
 
-        self.infosys_defaults=xmlParse.OrderedDict()
+        self.infosys_defaults=cWParams.commentedOrderedDict()
         self.infosys_defaults["type"]=(None,"RESS|BDII","Type of information system",None)
         self.infosys_defaults["server"]=(None,"host","Location of the infosys server",None)
         self.infosys_defaults["ref"]=(None,"id","Referenced for the entry point in the infosys",None)
 
-        entry_config_defaults=xmlParse.OrderedDict()
+        entry_config_defaults=cWParams.commentedOrderedDict()
 
-        entry_config_max_jobs_defaults=xmlParse.OrderedDict()
+        entry_config_max_jobs_defaults=cWParams.commentedOrderedDict()
         entry_config_max_jobs_defaults["running"]=('10000',"nr","Maximum number of concurrent glideins (per frontend) that can be submitted.",None)
         entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
         entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
         
-        entry_config_queue_defaults=xmlParse.OrderedDict()
+        entry_config_queue_defaults=cWParams.commentedOrderedDict()
         entry_config_queue_defaults["max_per_cycle"]=['100',"nr","Maximum number of jobs affected per cycle.",None]
         entry_config_queue_defaults["sleep"]=['0.2',"seconds","Sleep between interactions with the schedd.",None]
 
@@ -63,7 +63,7 @@ class GlideinParams(cWParams.CommonParams):
                       'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults)}
         
         
-        self.entry_defaults=xmlParse.OrderedDict()
+        self.entry_defaults=cWParams.commentedOrderedDict()
         self.entry_defaults["gatekeeper"]=(None,'gatekeeper', 'Grid gatekeeper/resource',None)
         self.entry_defaults["gridtype"]=('gt2','grid_type','Condor Grid type',None)
         self.entry_defaults["rsl"]=(None,'RSL','Globus gt2 RSL option',None)
@@ -85,16 +85,16 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["glidein_name"]=(None,'ID', 'Glidein name',None)
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
 
-        submit_defaults=xmlParse.OrderedDict()
+        submit_defaults=cWParams.commentedOrderedDict()
         submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
         self.defaults["submit"]=submit_defaults
 
-        one_log_retention_defaults=xmlParse.OrderedDict()
+        one_log_retention_defaults=cWParams.commentedOrderedDict()
         one_log_retention_defaults["min_days"]=["3.0","days","Min number of days the logs must be preserved (even if they use too much space)",None]
         one_log_retention_defaults["max_days"]=["7.0","days","Max number of days the logs should be preserved",None]
         one_log_retention_defaults["max_mbytes"]=["100.0","Mbytes","Max number of Mbytes the logs can use",None]
 
-        log_retention_defaults=xmlParse.OrderedDict()
+        log_retention_defaults=cWParams.commentedOrderedDict()
         log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0]="2.0"
@@ -107,34 +107,34 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
 
-        stage_defaults=xmlParse.OrderedDict()
+        stage_defaults=cWParams.commentedOrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Stage base dir",None)
         stage_defaults["web_base_url"]=("http://%s/glidefactory/stage"%socket.gethostname(),'base_url','Base Web server URL',None)
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
         self.defaults["stage"]=stage_defaults
 
-        monitor_opts_default=xmlParse.OrderedDict()
+        monitor_opts_default=cWParams.commentedOrderedDict()
         monitor_opts_default["want_split_graphs"]=("True","Bool","Should create split graphs?",None)
         monitor_opts_default["want_split_terminated_graphs"]=["False","Bool","Should create split terminated log graphs (CPU intensive)?",None]
         monitor_opts_default["want_trend_graphs"]=("True","Bool","Should create trend graphs?",None)
         monitor_opts_default["want_infoage_graphs"]=("True","Bool","Should create infoage graphs?",None)
 
         
-        monitor_default=xmlParse.OrderedDict()
+        monitor_default=cWParams.commentedOrderedDict()
         monitor_default["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
         monitor_default["factory"]=copy.deepcopy(monitor_opts_default)
         monitor_default["factory"]["want_split_terminated_graphs"][0]="True" # even if CPU intensive, it is just one
         monitor_default["entry"]=copy.deepcopy(monitor_opts_default)
         self.defaults["monitor"]=monitor_default
         
-        security_default=xmlParse.OrderedDict()
+        security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
         security_default["allow_proxy"]=("factory,frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
         
         self.defaults["security"]=security_default
         
-        condor_defaults=xmlParse.OrderedDict()
+        condor_defaults=cWParams.commentedOrderedDict()
         condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
         condor_defaults["base_dir"]=(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
         self.defaults["condor"]=condor_defaults
