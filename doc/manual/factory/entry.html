@@ -5,12 +5,7 @@
 	<TITLE>Glidein Factory Configuration</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20081028;9265300">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20081114;11102600">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -198,19 +193,19 @@ two parts:</P>
 	<FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>value</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>const=&quot;True&quot;</B></FONT>
 	<FONT FACE="monospace"><B>parameter=&quot;True&quot; publish=&quot;True&quot;
-	glidein_publish=&quot;True&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Attributes
+	glidein_publish=&quot;True&quot; comment=&quot;</B></FONT><FONT FACE="monospace"><I><SPAN STYLE="font-weight: normal">comment</SPAN></I></FONT><FONT FACE="monospace"><B>&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Attributes
 	you want to publish.<BR><BR>These are used by the <A HREF="../frontend/index.html#match_expr">VO
 	frontend matchmaking</A> and job matchmaking.<BR><BR>Example
 	attributes are:</P>
 	<PRE>&lt;attrs&gt;
- &lt;attr name=&quot;VOpilot&quot; value=&quot;CMS&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
+ &lt;attr name=&quot;VOpilot&quot; value=&quot;CMS&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”Just a test attribute”/&gt;
  &lt;attr name=&quot;CondorVersion&quot; value=&quot;v6.9.1&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
 &lt;/attrs&gt;</PRE>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attr
 	name=&quot;</B></FONT><FONT FACE="monospace"><I>attr name</I></FONT><FONT FACE="monospace"><B>&quot;</B></FONT>
 	<FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>value</I></FONT><FONT FACE="monospace">&quot;&nbsp;</FONT><FONT FACE="monospace"><B>const=&quot;False&quot;</B></FONT>
 	<FONT FACE="monospace"><B>parameter=&quot;True&quot;
-	job_publish=&quot;True&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Attributes
+	job_publish=&quot;True&quot; comment=&quot;</B></FONT><FONT FACE="monospace"><I><SPAN STYLE="font-weight: normal">comment</SPAN></I></FONT><FONT FACE="monospace"><B>&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Attributes
 	you want to push to push to the user jobs. 
 	</P>
 </UL>
@@ -297,7 +292,7 @@ following arguments:</P>
 	<FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>value</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>const=&quot;True&quot;</B></FONT>
 	<FONT FACE="monospace"><B>parameter=&quot;True&quot; publish=&quot;True&quot;
-	glidein_publish=&quot;True&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Attributes
+	glidein_publish=&quot;True&quot; comment=&quot;</B></FONT><FONT FACE="monospace"><I><SPAN STYLE="font-weight: normal">comment</SPAN></I></FONT><FONT FACE="monospace"><B>&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Attributes
 	you want to publish.<BR><BR>These are used by the <A HREF="../frontend/index.html#match_expr">VO
 	frontend matchmaking</A> and job matchmaking.<BR><BR>Example
 	attributes are:</P>
@@ -305,7 +300,7 @@ following arguments:</P>
  &lt;entries&gt;
  &lt;entry name=&quot;myentry&quot;&gt;
  &lt;attrs&gt;
- &lt;attr name=&quot;HasMySoftware&quot; value=&quot;True&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
+ &lt;attr name=&quot;HasMySoftware&quot; value=&quot;True&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My users cannot live without”/&gt;
  &lt;attr name=&quot;OS&quot; value=&quot;Linux&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
  &lt;/attrs&gt;</PRE>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entries</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entry
@@ -612,9 +607,16 @@ should be used every time it is feasible.</P>
 still need to properly configure the Collector machine. See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor
 documentation</A> for more details.</P>
 <H3><A NAME="multicol"></A>Multiple Collectors</H3>
-<P>By default, Condor uses only one Collector for the <A HREF="../index.html#pool_glidein%3Eglidein%20(user)%20pool%3C/a%3E.However,%20if%20the%20load%20becomes%20too%20high,%20you%20can%20configure%20multiple%20collectors%20in%20a%20chain.%3Cbr%3E%3Cbr%3EYou%20will%20need%20a%20master%20and%20a%20set%20of%20slave%20collectors.%20The%20slave%20collectors%20forward%20the%20startd%20adds%20to%20the%20master%20collector.%3Cbr%3EThe%20negotiator%20and%20the%20schedds%20will%20talk%20to%20the%20master%20collector,%20while%20the%20startds%20will%20talkto%20one%20of%20the%20slave%20ones.%20%3Cbr%3E%3Cbr%3ESetting%20up%20slave%20collector%20in%20the%20%3Ca%20href=">glidein
-(user) pool</A>, one way to do it is to set the following env
-variables before starting up the condor_master: 
+<P>By default, Condor uses only one Collector for the <A HREF="../index.html#pool_glidein">glidein
+(user) pool</A>.However, if the load becomes too high, you can
+configure multiple collectors in a chain.<BR><BR>You will need a
+master and a set of slave collectors. The slave collectors forward
+the startd adds to the master collector.<BR>The negotiator and the
+schedds will talk to the master collector, while the startds will
+talk to one of the slave ones. <BR><BR>To set up slave collector in
+the <A HREF="../index.html#pool_glidein">glidein (user) pool</A>, one
+way is to set the following env variables before starting up the
+condor_master: 
 </P>
 <PRE STYLE="margin-left: 0.39in">COLH=`condor_config_val COLLECTOR_HOST`
 LD=`condor_config_val LOCAL_DIR`
@@ -639,13 +641,11 @@ export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
 	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>web_base/collector_setup.sh</B></FONT><FONT FACE="monospace">&quot;</FONT>
 	<FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">/&gt;</FONT></DD></DL>
 <H3>
-<A NAME="start_rank"></A><FONT FACE="monospace">Setting the glidein
-start and rank&nbsp;condition</FONT></H3>
-<P><FONT FACE="monospace">As with any Condor pool, you may need to
-set the startd <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
+<A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
+<P>As with any Condor pool, you may need to set the startd <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
 and <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00454000000000000000">rank</A>
-conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT>
-<FONT FACE="monospace">/&gt; options: </FONT>
+conditions. <BR>For a glidein, you can set this with the &lt;<B>attr</B>
+/&gt; options: 
 </P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace"><B>GLIDEIN_Start</B>=<I>expression</I>
@@ -655,8 +655,7 @@ conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="
 	</P>
 </UL>
 <DL>
-	<DT STYLE="margin-bottom: 0.2in"><FONT FACE="monospace"><BR>For
-	example:</FONT></DT><DD STYLE="margin-bottom: 0.2in">
+	<DT STYLE="margin-bottom: 0.2in"><BR>For example:</DT><DD STYLE="margin-bottom: 0.2in">
 	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;
 	&lt;<B>attrs</B>&gt;<BR>&nbsp; &nbsp; &lt;<B>attr
 	name</B>=&quot;<B>GLIDEIN_Start</B>&quot;
@@ -667,25 +666,22 @@ conditions. <BR>For a glidein, you can set this with the &lt;</FONT><FONT FACE="
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
 	</DD></DL>
 <H3>
-<A NAME="time_limit"></A><FONT FACE="monospace">Limiting time spent
-on a Grid resource</FONT></H3>
-<P><FONT FACE="monospace">The whole concept of gliding into Grid
-resources is based on the idea that you are getting those resources
-on a <B>temporary basis</B>. This implies that you need to leave the
-slot as soon as possible, else your jobs will simply be killed by the
-annoyed Grid administrators.<BR>On the other hand, submitting new
-glideins is not cost free, so you want to keep the resource for at
-least some period of time.<BR><BR>The glideins have two mechanisms to
-regulate this:</FONT></P>
+<A NAME="time_limit"></A>Limiting time spent on a Grid resource</H3>
+<P>The whole concept of gliding into Grid resources is based on the
+idea that you are getting those resources on a <B>temporary basis</B>.
+This implies that you need to leave the slot as soon as possible,
+else your jobs will simply be killed by the annoyed Grid
+administrators.<BR>On the other hand, submitting new glideins is not
+cost free, so you want to keep the resource for at least some period
+of time.<BR><BR>The glideins have two mechanisms to regulate this:</P>
 <OL>
-	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">After a
-	specified amount of time, the glidein will enter the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00457400000000000000">RETIRING
+	<LI><P STYLE="margin-bottom: 0in">After a specified amount of time,
+	the glidein will enter the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00457400000000000000">RETIRING
 	state</A>. This means, it will wait for the current job to finish
 	(or kill it if it does not end within a configurable timeout) and
 	exit immediately afterwards. This obviously implies that no new jobs
 	will start after it entered that state.<BR>The two timeouts can be
-	set with the &lt;</FONT><FONT FACE="monospace"><B>attr</B></FONT> <FONT FACE="monospace">/&gt;
-	options:</FONT> 
+	set with the &lt;<B>attr</B> /&gt; options: 
 	</P>
 	<UL>
 		<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace"><B>GLIDEIN_Retire_Time</B>=<I>nr_of_seconds</I>
@@ -695,23 +691,22 @@ regulate this:</FONT></P>
 		</FONT>
 		</P>
 	</UL>
-	<P STYLE="margin-bottom: 0in"><FONT FACE="monospace">The two default
-	to 2 and 100 hours. </FONT>
+	<P STYLE="margin-bottom: 0in">The two default to 2 and 100 hours. 
 	</P>
-	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">If a
-	glidein is not claimed within a configurable timeout, the glidein
-	will exit.<BR>The timeout can be set qith:</FONT> 
+	<LI><P STYLE="margin-bottom: 0in">If a glidein is not claimed within
+	a configurable timeout, the glidein will exit.<BR>The timeout can be
+	set qith: 
 	</P>
 	<UL>
 		<LI><P><FONT FACE="monospace"><B>GLIDEIN_Max_Idle</B>=<I>nr_of_seconds</I>
 		</FONT>
 		</P>
 	</UL>
-	<P><FONT FACE="monospace">The default is 20 minutes. </FONT>
+	<P>The default is 20 minutes. 
 	</P>
 </OL>
 <DL>
-	<DT STYLE="margin-bottom: 0.2in"><FONT FACE="monospace">An example:</FONT></DT><DD STYLE="margin-bottom: 0.2in">
+	<DT STYLE="margin-bottom: 0.2in">An example:</DT><DD STYLE="margin-bottom: 0.2in">
 	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;
 	&lt;<B>attrs</B>&gt;<BR>&nbsp; &nbsp; &lt;<B>attr
 	name</B>=&quot;<B>GLIDEIN_Max_Idle</B>&quot; <B>value</B>=&quot;<B>300</B>&quot;
@@ -725,16 +720,14 @@ regulate this:</FONT></P>
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
 	</DD></DL>
 <H3>
-<A NAME="multi-monitor"></A><FONT FACE="monospace">Old-style
-pseudo-interactive monitoring</FONT></H3>
-<P><FONT FACE="monospace">Since v1_4_1, the pseudo-interactive
-monitoring uses a dedicated startd in the glideins for monitoring
-purposes. This allows for monitoring even when the job starter enters
-the “<I>Retiring”</I> activity.</FONT></P>
-<P><FONT FACE="monospace">The side effect is that you do not have
-anymore the cross-VM statistics and the names of the slots is also
-different.</FONT></P>
-<P><FONT FACE="monospace">To enable the old mode, use:</FONT></P>
+<A NAME="multi-monitor"></A>Old-style pseudo-interactive monitoring</H3>
+<P>Since v1_4_1, the pseudo-interactive monitoring uses a dedicated
+startd in the glideins for monitoring purposes. This allows for
+monitoring even when the job starter enters the “<I>Retiring”</I>
+activity.</P>
+<P>The side effect is that you do not have anymore the cross-VM
+statistics and the names of the slots is also different.</P>
+<P>To enable the old mode, use:</P>
 <DL>
 	<DD STYLE="margin-bottom: 0.2in"><FONT FACE="monospace">&lt;<B>attr
 	name=&quot;MONITOR_MODE&quot; const=&quot;True&quot;
@@ -742,24 +735,24 @@ different.</FONT></P>
 	parameter=&quot;True&quot; publish=&quot;False&quot; type=&quot;string&quot;
 	value=&quot;MULTI&quot;/&gt;</B></FONT></DD></DL>
 <H3>
-<A NAME="custom_code"></A><FONT FACE="monospace">Adding custom
-code/files to the glideins</FONT></H3>
-<P><FONT FACE="monospace">While provided code should cover most of
-the general purpose use cases, some administrators may have
-additional needs. For these cases, the glidein creation command adds
-the following options:</FONT></P>
+<A NAME="custom_code"></A>Adding custom code/files to the glideins</H3>
+<P>While provided code should cover most of the general purpose use
+cases, some administrators may have additional needs. For these
+cases, the glidein creation command adds the following options:</P>
 <UL>
-	<LI><P><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
-	&nbsp;&lt;<B>file absfname</B>=&quot;<I>script name</I>&quot;
-	<B>executable</B>=&quot;<B>True</B>&quot;/&gt;<BR>Path to the custom
-	script.<BR><BR>The script will be copied in the Web-accessible area,
-	and when a glidein starts, the&nbsp;glidein startup script will pull
-	it and execute it. If any parameters are needed, they can be
-	specified using&nbsp;<B>&lt;attr /&gt;</B>, or stored in a file (see
-	below).<BR><BR>When invoked, the script will be given a single
-	argument; the name of the config file to use. That file will contain
-	all the glidein variables, one per line, with variable name first, a
-	(set of) space(s), followed by the actual value. For example:</FONT></P>
+	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>script
+	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>
+	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>Path
+	to the custom script.<BR><BR>The script will be copied in the
+	Web-accessible area, and when a glidein starts, the&nbsp;glidein
+	startup script will pull it and execute it. If any parameters are
+	needed, they can be specified using&nbsp;<B>&lt;attr /&gt;</B>, or
+	stored in a file (see below).<BR><BR>When invoked, the script will
+	be given a single argument; the name of the config file to use. That
+	file will contain all the glidein variables, one per line, with
+	variable name first, a (set of) space(s), followed by the actual
+	value. For example:</P>
 	<P><FONT FACE="monospace">GLIDEIN_Site &nbsp;fnal<BR>MYVAR &nbsp;X34_44</FONT></P>
 	<P><FONT FACE="monospace">It is scripts task to parse out those
 	values; a bash example would be:</FONT></P>
@@ -767,37 +760,41 @@ the following options:</FONT></P>
 	'/^MYVAR /{print $2}'`</FONT></P>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>script
-	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>wrapper</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>Path
+	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>wrapper</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT>&quot;<FONT FACE="monospace"><B>
+	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;</FONT>/&gt;<BR>Path
 	to the wrapper custom script.<BR><BR>The script will be copied in
 	the Web-accessible area, and will be sourced just before a user job
 	starts starts; i.e. it will become part of the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_3Configuration.html#14376">user
-	job wrapper</A>.</FONT></P>
-	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;<B>files</B>&gt;<BR>&nbsp;
-	&nbsp;&lt;<B>file absfname</B>=&quot;<I>loacl file name</I>&quot;
-	<B>relfname=</B>&quot;<I>target file name</I>&quot; <B>const=</B>&quot;<I>Bool</I>&quot;
-	<B>executable</B>=&quot;<B>False</B>&quot;/&gt;<BR>Path to the
-	config file.<BR><BR>The file will be copied in the Web-accessible
-	area, and pulled by the glidein startup script when a glidein
-	starts. It can be then used by any script (see above). <BR><BR>Please
-	be cautious in using the <B>const</B> flag; if set to <B>False</B>,
-	the content of the file will not be verified by the glidein startup
-	script and could be tampered in transit by a malicious user. So
-	never put sensitive data (like the switch to disable security
-	checks) in a changeable file.&nbsp; </FONT>
+	job wrapper</A>.</P>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>loacl
+	file name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>relfname=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>target
+	file name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>const=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>Bool</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>
+	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>Path
+	to the config file.<BR><BR>The file will be copied in the
+	Web-accessible area, and pulled by the glidein startup script when a
+	glidein starts. It can be then used by any script (see above).
+	<BR><BR>Please be cautious in using the <B>const</B> flag; if set to
+	<B>False</B>, the content of the file will not be verified by the
+	glidein startup script and could be tampered in transit by a
+	malicious user. So never put sensitive data (like the switch to
+	disable security checks) in a changeable file. 
 	</P>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>loacl
-	file name</I></FONT><FONT FACE="monospace">&quot;&nbsp;</FONT><FONT FACE="monospace"><B>untar</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;&gt;<BR>&nbsp;
+	file name</I></FONT><FONT FACE="monospace">&quot;&nbsp;</FONT><FONT FACE="monospace"><B>untar</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>
+	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;&gt;<BR>&nbsp;
 	&nbsp; &lt;</FONT><FONT FACE="monospace"><B>untar_options</B></FONT>
 	<FONT FACE="monospace"><B>cond_attr</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>conf_sw</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>dir
 	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>absdir_outattr</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>attr
-	name</I></FONT><FONT FACE="monospace">&quot;&gt;<BR>Sometimes it is
-	useful to transfer a whole set of files, or even directories, and
-	that is much easier to accomplish by means of a tar-ball. A
-	subsystem is the glidein way to describe a compressed tarball that
-	is delivered to the worker nodes, untarred in a separate directory
-	and advertised to the other scripts.<BR><BR>where:</FONT> 
+	name</I></FONT>&quot;&gt;<BR>Sometimes it is useful to transfer a
+	whole set of files, or even directories, and that is much easier to
+	accomplish by means of a tar-ball. A subsystem is the glidein way to
+	describe a compressed tarball that is delivered to the worker nodes,
+	untarred in a separate directory and advertised to the other
+	scripts.<BR><BR>where: 
 	</P>
 	<UL>
 		<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace"><B>absfname</B><BR>Path
@@ -821,10 +818,10 @@ the following options:</FONT></P>
 		</P>
 	</UL>
 </UL>
-<P><A NAME="ref"></A><FONT FACE="monospace">Please notice that files
-and subsystems will be downloaded before the scripts, and that the
-user provided scripts will be executed in the specified order, and
-before the Condor daemons are started up.</FONT></P>
+<P><A NAME="ref"></A>Please notice that files and subsystems will be
+downloaded before the scripts, and that the user provided scripts
+will be executed in the specified order, and before the Condor
+daemons are started up.</P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
 	<TR VALIGN=TOP>
 		<TD>
@@ -841,7 +838,7 @@ before the Condor daemons are started up.</FONT></P>
 		</TD>
 	</TR>
 </TABLE>
-<P><FONT FACE="monospace"><BR></FONT><BR><BR>
+<P><BR><BR><BR>
 </P>
 </BODY>
 </HTML>
