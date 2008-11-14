@@ -288,8 +288,8 @@ class Params:
 ######################################################
 # Ordered dictionary with comment support
 class commentedOrderedDict(xmlParse.OrderedDict):
-    def __init__(self):
-        xmlParse.OrderedDict(self)
+    def __init__(self, dict = None):
+        xmlParse.OrderedDict(self,dict)
         self["comment"]=(None,"string","Humman comment, not used by the code",None)
 
 ######################################################
