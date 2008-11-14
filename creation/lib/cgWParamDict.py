@@ -408,7 +408,7 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
 ###################################
 # Create the glidein descript file
 def populate_factory_descript(work_dir,
-                              glidein_dict,active_sub_lists,        # will be modified
+                              glidein_dict,active_sub_list,        # will be modified
                               params):
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
