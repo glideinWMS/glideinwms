@@ -196,7 +196,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
 
         # follow by the blacklist file
-        file_name="nodes.blacklist"
+        file_name=cWConsts.BLACKLIST_FILE
         self.dicts['file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
 
         # Load initial system scripts

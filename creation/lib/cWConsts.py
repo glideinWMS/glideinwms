@@ -40,12 +40,13 @@ SUMMARY_SIGNATURE_FILE="signatures.sha1"
 DESCRIPTION_FILE="description.cfg"
 
 CONSTS_FILE="constants.cfg"
-
 UNTAR_CFG_FILE="untar.cfg"
 
 FILE_LISTFILE="file_list.lst"
 AFTER_FILE_LISTFILE="after_file_list.lst"
 SIGNATURE_FILE="signature.sha1"
+
+BLACKLIST_FILE="nodes.blacklist"
 
 GRIDMAP_FILE='grid-mapfile'
 
