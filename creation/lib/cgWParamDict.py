@@ -24,6 +24,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
+        self.active_sub_list=[]
 
     def populate(self,params=None):
         if params==None:
@@ -83,47 +84,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
-        # if a user does not provide a file name, use the default one
-        down_fname=params.downtimes.absfname
-        if down_fname==None:
-            down_fname=os.path.join(self.work_dir,'factory.downtimes')
-
-        # populate the glidein file
-        glidein_dict=self.dicts['glidein']
-        glidein_dict.add('FactoryName',params.factory_name)
-        glidein_dict.add('GlideinName',params.glidein_name)
-        glidein_dict.add('WebURL',params.web_url)
-        glidein_dict.add('PubKeyType',params.security.pub_key)
-        self.active_sub_list=[]
-        for sub in params.entries.keys():
-            if eval(params.entries[sub].enabled,{},{}):
-                self.active_sub_list.append(sub)
-        glidein_dict.add('Entries',string.join(self.active_sub_list,','))
-        glidein_dict.add('LoopDelay',params.loop_delay)
-        glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        validate_job_proxy_source(params.security.allow_proxy)
-        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
-        glidein_dict.add('DowntimesFile',down_fname)
-        for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
-            param_lname,str_lname=lel
-            for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
-                param_tname,str_tname=tel
-                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),params.log_retention[param_lname][param_tname])
-
-        for el in (('Factory',params.monitor.factory),('Entry',params.monitor.entry)):
-            prefix=el[0]
-            dict=el[1]
-            val="Basic,Held"
-            if bool(eval(dict.want_split_graphs)):
-                val+=",Split"
-                # only if split enabled, can the split terminated be enabled
-                if bool(eval(dict.want_split_terminated_graphs)):
-                    val+=",SplitTerm"
-            if bool(eval(dict.want_trend_graphs)):
-                val+=",Trend"
-            if bool(eval(dict.want_infoage_graphs)):
-                val+=",InfoAge"
-            glidein_dict.add('%sWantedMonitorGraphs'%prefix,val)
+        # populate complex files
+        populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -442,6 +404,52 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
                     raise RuntimeError, "Cannot force job publishing"
             else:
                 dicts['vars'].add_extended(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
+
+###################################
+# Create the glidein descript file
+def populate_factory_descript(work_dir,
+                              glidein_dict,active_sub_lists,        # will be modified
+                              params):
+        # if a user does not provide a file name, use the default one
+        down_fname=params.downtimes.absfname
+        if down_fname==None:
+            down_fname=os.path.join(work_dir,'factory.downtimes')
+
+        glidein_dict.add('FactoryName',params.factory_name)
+        glidein_dict.add('GlideinName',params.glidein_name)
+        glidein_dict.add('WebURL',params.web_url)
+        glidein_dict.add('PubKeyType',params.security.pub_key)
+        del active_sub_list[:] # clean
+        for sub in params.entries.keys():
+            if eval(params.entries[sub].enabled,{},{}):
+                active_sub_list.append(sub)
+        glidein_dict.add('Entries',string.join(active_sub_list,','))
+        glidein_dict.add('LoopDelay',params.loop_delay)
+        glidein_dict.add('AdvertiseDelay',params.advertise_delay)
+        validate_job_proxy_source(params.security.allow_proxy)
+        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
+        glidein_dict.add('DowntimesFile',down_fname)
+        for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
+            param_lname,str_lname=lel
+            for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
+                param_tname,str_tname=tel
+                glidein_dict.add('%sRetention%s'%(str_lname,str_tname),params.log_retention[param_lname][param_tname])
+
+        for el in (('Factory',params.monitor.factory),('Entry',params.monitor.entry)):
+            prefix=el[0]
+            dict=el[1]
+            val="Basic,Held"
+            if bool(eval(dict.want_split_graphs)):
+                val+=",Split"
+                # only if split enabled, can the split terminated be enabled
+                if bool(eval(dict.want_split_terminated_graphs)):
+                    val+=",SplitTerm"
+            if bool(eval(dict.want_trend_graphs)):
+                val+=",Trend"
+            if bool(eval(dict.want_infoage_graphs)):
+                val+=",InfoAge"
+            glidein_dict.add('%sWantedMonitorGraphs'%prefix,val)
+
 
 #######################
 # Populate job_descript
