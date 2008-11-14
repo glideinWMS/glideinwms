@@ -289,6 +289,7 @@ class Params:
 # Ordered dictionary with comment support
 class commentedOrderedDict(xmlParse.OrderedDict):
     def __init__(self, dict = None):
+        # cannot call directly the parent due to the particular implementation restrictions
         self._keys = []
         xmlParse.UserDict.__init__(self, dict)
         self["comment"]=(None,"string","Humman comment, not used by the code",None)
