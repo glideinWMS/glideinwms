@@ -290,8 +290,11 @@ class Params:
 class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
+        self.comment_default=(None,"string","Comment, not used by the code",None)
+        
         # attributes are generic, shared between frontend and factory
         self.attr_defaults=xmlParse.OrderedDict()
+        self.attr_defaults["comment"]=self.comment_default
         self.attr_defaults["value"]=(None,"Value","Value of the attribute (string)",None)
         self.attr_defaults["parameter"]=("True","Bool","Should it be passed as a parameter?",None)
         self.attr_defaults["glidein_publish"]=("False","Bool","Should it be published by the glidein? (Used only if parameter is True.)",None)
@@ -300,6 +303,7 @@ class CommonParams(Params):
 
         # most file attributes are generic, shared between frontend and factory
         self.file_defaults=xmlParse.OrderedDict()
+        self.file_defaults["comment"]=self.comment_default
         self.file_defaults["absfname"]=(None,"fname","File name on the local disk.",None)
         self.file_defaults["relfname"]=(None,"fname","Name of the file once it gets to the worker node. (defaults to the last part of absfname)",None)
         self.file_defaults["const"]=("True","Bool","Will the file be constant? If True, the file will be signed. If False, it can be modified at any time and will not be cached.",None)
