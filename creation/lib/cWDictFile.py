@@ -864,7 +864,7 @@ class monitorDirSupport(dirSupport,dirsSupport):
     def delete_dir(self):
         self.delete_dirs()
 
-class monitorWLinkDirSupport(dirSupport,dirsSupport):
+class monitorWLinkDirSupport(monitorDirSupport):
     def __init__(self,monitor_dir,work_dir,work_subdir="monitor",monitordir_name="monitor"):
         monitorDirSupport.__init__(self,monitor_dir,monitordir_name)
 
