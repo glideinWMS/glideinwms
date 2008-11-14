@@ -846,9 +846,33 @@ class workDirSupport(multiSimpleDirSupport):
                                        workdir_name)
 
 class stageDirSupport(simpleDirSupport):
-    def __init__(self,stage_dir):
-        simpleDirSupport.__init__(self,stage_dir,'stage')
+    def __init__(self,stage_dir,dir_name='stage'):
+        simpleDirSupport.__init__(self,stage_dir,dir_name)
 
+class monitorDirSupport(dirSupport,dirsSupport):
+    def __init__(self,monitor_dir,dir_name="monitor"):
+        dirsSupport.__init__(self)
+
+        self.dir_name=dir_name
+        self.monitor_dir=monitor_dir
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_dir,self.dir_name))
+        self.add_dir_obj(cWDictFile.simpleDirSupport(os.path.join(self.monitor_dir,'lock'),self.dir_name))
+        
+    def create_dir(self,fail_if_exists=True):
+        return self.create_dirs(fail_if_exists)
+
+    def delete_dir(self):
+        self.delete_dirs()
+
+class monitorWLinkDirSupport(dirSupport,dirsSupport):
+    def __init__(self,monitor_dir,work_dir,work_subdir="monitor",monitordir_name="monitor"):
+        monitorDirSupport.__init__(self,monitor_dir,monitordir_name)
+
+        self.work_dir=work_dir
+        self.monitor_symlink=os.path.join(self.work_dir,work_subdir)
+
+        self.add_dir_obj(cWDictFile.symlinkSupport(self.monitor_dir,self.monitor_symlink,self.dir_name))
+        
 ################################################
 #
 # Dictionaries of files classes
