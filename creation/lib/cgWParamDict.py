@@ -383,11 +383,10 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
         else:
             raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
 
-    if is_parameter:
-        do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
-        do_job_publish=eval(attr_obj.job_publish,{},{})
+    do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
+    do_job_publish=eval(attr_obj.job_publish,{},{})
 
-        if do_glidein_publish or do_job_publish:
+    if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
             if dicts['vars'].has_key(attr_name):
                 # already in the var file, check if compatible
