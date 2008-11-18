@@ -39,6 +39,7 @@ SUMMARY_SIGNATURE_FILE="signatures.sha1"
 # these are in the stage dir, so they need to be renamed if changed
 DESCRIPTION_FILE="description.cfg"
 
+VARS_FILE="condor_vars.lst"
 CONSTS_FILE="constants.cfg"
 UNTAR_CFG_FILE="untar.cfg"
 

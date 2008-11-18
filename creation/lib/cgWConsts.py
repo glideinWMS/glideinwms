@@ -16,7 +16,6 @@ import cWConsts
 CONDOR_FILE="condor_bin.tgz"
 CONDOR_DIR="condor"
 CONDOR_ATTR="CONDOR_DIR"
-VARS_FILE="condor_vars.lst"
 
 CONDOR_STARTUP_FILE="condor_startup.sh"
 

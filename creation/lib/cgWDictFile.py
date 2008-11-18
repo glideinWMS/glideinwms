@@ -158,7 +158,7 @@ def load_common_dicts(dicts,           # update in place
     file_el=dicts['file_list']
     # all others are keyed in the file_list
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
-    dicts['vars'].load(fname=file_el[cgWConsts.VARS_FILE][0])
+    dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
@@ -203,7 +203,7 @@ def refresh_file_list(dicts,is_main, # update in place
         entry_str=""
     file_dict=dicts['file_list']
     file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%entry_str,dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%entry_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%entry_str,dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
