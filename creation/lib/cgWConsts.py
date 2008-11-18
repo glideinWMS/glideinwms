@@ -13,7 +13,7 @@ import cWConsts
 
 
 # these are in the stage dir, so they need to be renamed if changed
-AFTER_FILE_LISTFILE="after_"%cWConsts.FILE_LISTFILE
+AFTER_FILE_LISTFILE="after_%s"%cWConsts.FILE_LISTFILE
 
 CONDOR_FILE="condor_bin.tgz"
 CONDOR_DIR="condor"
