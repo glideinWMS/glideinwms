@@ -70,7 +70,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
 ################################################
 #
-# This Class contains the entry dicts
+# This Class contains the group dicts
 #
 ################################################
 
@@ -323,8 +323,8 @@ def populate_frontend_descript(work_dir,
             frontend_dict.add('X509Proxy',params.security.x509_proxy)
 
         active_sub_list[:] # erase all
-        for sub in params.entries.keys():
-            if eval(params.entries[sub].enabled,{},{}):
+        for sub in params.groups.keys():
+            if eval(params.groups[sub].enabled,{},{}):
                 active_sub_list.append(sub)
         frontend_dict.add('Groups',string.join(active_sub_list,','))
 
