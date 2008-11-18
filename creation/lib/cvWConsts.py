@@ -1,0 +1,59 @@
+####################################
+#
+# Keep all the constants used to
+# create frontend entries in this
+# module
+#
+# Author: Igor Sfiligoi
+#
+####################################
+
+import os.path
+import cWConsts
+
+PARAMS_FILE="params_const.cfg"
+EXPRS_FILE="params_expr.cfg"
+
+FRONTEND_DESCRIPT_FILE="frontend.descript"
+GROUP_DESCRIPT_FILE="group.descript"
+XML_CONFIG_FILE="frontend.xml"
+
+INITD_STARTUP_FILE="frontend_startup"
+
+###################################################
+#
+# These functions append constant parts to strings
+#
+###################################################
+
+def get_group_work_dir(work_dir,group_name):
+    group_work_dir=os.path.join(work_dir,"group_"+group_name)
+    return group_work_dir
+
+def get_group_name_from_group_work_dir(group_work_dir):
+    group_name_arr=os.path.basename(group_work_dir).split('_',1)
+    if group_name_arr[0]!='group':
+        raise ValueError('%s not a group_work_dir'%group_work_dir)
+    return group_name_arr[1]
+
+def get_group_stage_dir(stage_dir,group_name):
+    group_stage_dir=os.path.join(stage_dir,"group_"+group_name)
+    return group_stage_dir
+
+def get_group_name_from_group_stage_dir(group_stage_dir):
+    group_name_arr=os.path.basename(group_stage_dir).split('_',1)
+    if group_name_arr[0]!='group':
+        raise ValueError('%s not a group_stage_dir'%group_stage_dir)
+    return group_name_arr[1]
+
+def get_group_monitor_dir(monitor_dir,group_name):
+    group_monitor_dir=os.path.join(monitor_dir,"group_"+group_name)
+    return group_monitor_dir
+
+def get_group_name_from_group_monitor_dir(group_monitor_dir):
+    group_name_arr=os.path.basename(group_monitor_dir).split('_',1)
+    if group_name_arr[0]!='group':
+        raise ValueError('%s not a group_monitor_dir'%group_monitor_dir)
+    return group_name_arr[1]
+
+
