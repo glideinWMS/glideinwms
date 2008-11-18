@@ -18,11 +18,11 @@ import cWDictFile
 
 # internal, do not use from outside the module
 def get_common_dicts(work_dir,stage_dir):
-    common_dicts={'attrs':cWDictFile.ReprDictFile(work_dir,cgWConsts.ATTRS_FILE),
-                  'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
+    common_dicts={'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
                   'consts':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
-                  'params':cWDictFile.ReprDictFile(work_dir,cgWConsts.PARAMS_FILE),
-                  'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cgWConsts.VARS_FILE),fname_idx=cgWConsts.VARS_FILE),
+                  'params':cWDictFile.ReprDictFile(work_dir,cvWConsts.PARAMS_FILE),
+                  'exprs':cWDictFile.ReprDictFile(work_dir,cvWConsts.EXPRS_FILE),
+                  'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
                   'preentry_file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cvWConsts.PREENTRY_FILE_LISTFILE),
@@ -55,7 +55,7 @@ def load_common_dicts(dicts,           # update in place
                       description_el):
     # first work dir ones (mutable)
     dicts['params'].load()
-    dicts['attrs'].load()
+    dicts['exprs'].load()
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
@@ -63,7 +63,7 @@ def load_common_dicts(dicts,           # update in place
     file_el=dicts['preentry_file_list']
     # all others are keyed in the file_list
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
-    dicts['vars'].load(fname=file_el[cgWConsts.VARS_FILE][0])
+    dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
@@ -105,7 +105,7 @@ def refresh_file_list(dicts,is_main, # update in place
         group_str=""
     file_dict=dicts['preentry_file_list']
     file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS%s_FILE"%group_str,dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
-    file_dict.add(cgWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%group_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS%s_FILE"%group_str,dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG%s_FILE"%group_str,dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
@@ -155,7 +155,7 @@ def save_common_dicts(dicts,     # will update in place, too
 
     #finally save the mutable one(s)
     dicts['params'].save(set_readonly=set_readonly)
-    dicts['attrs'].save(set_readonly=set_readonly)
+    dicts['exprs'].save(set_readonly=set_readonly)
 
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
@@ -215,7 +215,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             dicts[k].set_readonly(True)
             
     # check the mutable ones
-    for k in ('attrs','params'):
+    for k in ('exprs','params'):
         reuse_simple_dict(dicts,other_dicts,k)
 
     return all_reused

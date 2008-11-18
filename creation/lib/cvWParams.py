@@ -33,8 +33,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.file_defaults["after_entry"]=("True",'Bool','Should this file be loaded after the factory entry ones?',None)
 
         # publishing specific to frontend
-        self.attr_defaults["conditional"]=("True","Bool","Should I only publish if the factory tell us it supports it?",None)
-        self.attr_defaults["type"][1]="string|int|expr"
+        self.attr_defaults["expression"]=("False","Bool","Is this a python expression (and not a simple value)?",None)
 
         group_config_defaults=cWParams.commentedOrderedDict()
         group_config_defaults['max_running_jobs']=('10000',"nr_jobs","What is the max number of running jobs I want to get to",None)

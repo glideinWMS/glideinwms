@@ -272,22 +272,24 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
     
     is_parameter=eval(attr_obj.parameter,{},{})
-    is_const=eval(attr_obj.const,{},{})
+    is_expr=eval(attr_obj.expression,{},{})
     attr_val=cWParams.extract_attr_val(attr_obj)
     
     if is_parameter:
-        if is_const:
-            dicts['consts'].add(attr_name,attr_val)
+        if is_expr:
+            dicts['exprs'].add(attr_name,attr_val)
         else:
-            raise RuntimeError, "Parameter attributes '%s' must be either a published or constant: %s"%(attr_name,attr_obj)
+            dicts['params'].add(attr_name,attr_val)
     else:
-        raise RuntimeError, "Attributes '%s' must be either a published or parameters: %s"%(attr_name,attr_obj) 
+        if is_expr:
+            RuntimeError, "Expression '%s' is not a parameter!"%attr_name
+        else:
+            dicts['consts'].add(attr_name,attr_val)
 
-    if is_parameter:
-        do_frontend_publish=eval(attr_obj.frontend_publish,{},{})
-        do_job_publish=eval(attr_obj.job_publish,{},{})
+    do_glidein_publish=eval(attr_obj.glidein_publish,{},{})
+    do_job_publish=eval(attr_obj.job_publish,{},{})
 
-        if do_frontend_publish or do_job_publish:
+    if do_glidein_publish or do_job_publish:
             # need to add a line only if will be published
             if dicts['vars'].has_key(attr_name):
                 # already in the var file, check if compatible
@@ -297,13 +299,13 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
                     ((attr_obj.type=="string") and (attr_var_type=='I'))):
                     raise RuntimeError, "Types not compatible (%s,%s)"%(attr_obj.type,attr_var_type)
                 attr_var_export=attr_var_el[4]
-                if do_frontend_publish and (attr_var_export=='N'):
-                    raise RuntimeError, "Cannot force frontend publishing"
+                if do_glidein_publish and (attr_var_export=='N'):
+                    raise RuntimeError, "Cannot force glidein publishing"
                 attr_var_job_publish=attr_var_el[5]
                 if do_job_publish and (attr_var_job_publish=='-'):
                     raise RuntimeError, "Cannot force job publishing"
             else:
-                dicts['vars'].add_extended(attr_name,attr_obj.type=="string",None,None,False,do_frontend_publish,do_job_publish)
+                dicts['vars'].add_extended(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
 
 ###################################
 # Create the frontend descript file
