@@ -9,7 +9,6 @@
 import os,os.path,shutil,string
 import cWParams
 import cvWDictFile,cWDictFile
-import cvWCreate
 import cvWConsts,cWConsts
 
 ################################################
