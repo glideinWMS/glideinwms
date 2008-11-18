@@ -34,8 +34,8 @@ def get_main_dicts(work_dir,stage_dir):
     main_dicts=get_common_dicts(work_dir,stage_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
-    main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTERGROUP_FILE_LISTFILE)
-    main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
+    main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_FILE_LISTFILE)
+    main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
 
     return main_dicts
 

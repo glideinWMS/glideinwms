@@ -131,7 +131,7 @@ def get_main_dicts(submit_dir,stage_dir):
     main_dicts=get_common_dicts(submit_dir,stage_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(submit_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['glidein']=cWDictFile.StrDictFile(submit_dir,cgWConsts.GLIDEIN_FILE)
-    main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.AFTER_FILE_LISTFILE),fname_idx=cWConsts.AFTER_FILE_LISTFILE)
+    main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cgWConsts.AFTER_FILE_LISTFILE),fname_idx=cgWConsts.AFTER_FILE_LISTFILE)
     return main_dicts
 
 def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
