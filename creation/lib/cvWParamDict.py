@@ -331,7 +331,7 @@ def populate_frontend_descript(work_dir,
         for tel in (("factory_query_expr",'FactoryQueryExpr'),("job_query_expr",'JobQueryExpr'),("match_expr",'MatchExpr')):
             param_tname,str_tname=tel
             frontend_dict.add(str_tname,params.match[param_tname])
-        frontend_dict.add['JobMatchAttrs']=repr(params.match.job_match_attrs)
+        frontend_dict.add('JobMatchAttrs',repr(params.match.job_match_attrs))
 
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
