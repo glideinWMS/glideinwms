@@ -54,7 +54,7 @@ def main(params,old_params):
     print "Active entries are:"
     for entry in frontend_dicts_obj.active_sub_list:
         print "  %s"%entry
-    print "Submit files are in %s"%frontend_dicts_obj.main_dicts.work_dir
+    print "Work files are in %s"%frontend_dicts_obj.main_dicts.work_dir
 
 
 ############################################################
@@ -98,7 +98,7 @@ if __name__ == '__main__':
         sys.exit(1)
         
     try:
-        old_config_file=os.path.join(params.submit_dir,cvWConsts.XML_CONFIG_FILE)
+        old_config_file=os.path.join(params.work_dir,cvWConsts.XML_CONFIG_FILE)
         if os.path.exists(old_config_file):
             try:
                 old_params=cvWParams.VOFrontendParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),[argv[0],old_config_file])

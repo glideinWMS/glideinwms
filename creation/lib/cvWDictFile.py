@@ -67,7 +67,7 @@ def load_common_dicts(dicts,           # update in place
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
-    main_dicts['frontend_descrpt'].load()
+    main_dicts['frontend_descript'].load()
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
