@@ -31,7 +31,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # put default files in place first
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cvWConsts.VARS_FILE,allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before factory runs setup_x509.sh
         
@@ -90,7 +90,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # put default files in place first
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
-        self.dicts['preentry_file_list'].add_placeholder(cvWConsts.VARS_FILE,allow_overwrite=True)
+        self.dicts['preentry_file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['preentry_file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
 
         # follow by the blacklist file
