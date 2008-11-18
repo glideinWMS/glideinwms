@@ -11,6 +11,10 @@
 import os.path
 import cWConsts
 
+AFTERGROUP_FILE_LISTFILE="aftergroup_%s"%cWConsts.FILE_LISTFILE
+PREENTRY_FILE_LISTFILE="preentry_%s"%cWConsts.FILE_LISTFILE
+AFTERGROUP_PREENTRY_FILE_LISTFILE="aftergroup_%s"%PREENTRY_FILE_LISTFILE
+
 PARAMS_FILE="params_const.cfg"
 EXPRS_FILE="params_expr.cfg"
 
