@@ -94,7 +94,7 @@ def load_group_dicts(group_dicts,                   # update in place
 def refresh_description(dicts): # update in place
     description_dict=dicts['description']
     description_dict.add(dicts['signature'].get_fname(),"signature",allow_overwrite=True)
-    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
+    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             description_dict.add(dicts[k].get_fname(),k,allow_overwrite=True)
 
@@ -111,11 +111,11 @@ def refresh_file_list(dicts,is_main, # update in place
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('consts','vars','untar_cfg','preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list','description'):
+    for k in ('consts','vars','untar_cfg','preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list','description'):
         if dicts.has_key(k):
             signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
-    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
+    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             filedict=dicts[k]
             for fname in filedict.get_immutable_files():
@@ -142,11 +142,11 @@ def save_common_dicts(dicts,     # will update in place, too
     # 'consts','untar_cfg','vars' will be loaded
     refresh_file_list(dicts,is_main)
     # save files in the file lists
-    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
+    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             dicts[k].save_files(allow_overwrite=True)
     # then save the lists
-    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
+    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             dicts[k].save(set_readonly=set_readonly)
     # calc and save the signatues
@@ -202,7 +202,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # since the file names may have changed, refresh the file_list    
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
-    for k in ('preentry_file_list','file_list','preentry_aftergroup_file_list','aftergroup_file_list'):
+    for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
         if dicts.has_key(k):
             all_reused=reuse_file_dict(dicts,other_dicts,k) and all_reused
 
