@@ -6,14 +6,6 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGED" CONTENT="20081031;14115200">
-	<STYLE TYPE="text/css">
-	<!--
-		TD P { margin-bottom: 0in; font-family: "Verdana"; font-size: 10pt }
-		H1 { font-family: "Verdana"; font-size: 16pt }
-		P { margin-bottom: 0in; font-family: "Verdana"; font-size: 10pt }
-		H2 { font-family: "Verdana"; font-size: 14pt }
-	-->
-	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>glideinWMS Installation Guide 
@@ -30,21 +22,18 @@
 			glideinWMS is a multi-step process.<BR><BR>You will need to
 			install several independent pieces:</P>
 			<UL>
-				<LI><P><A HREF="factory_install.html">The glidein WMS Collector
-				and collocated glidein Factory node</A> 
+				<LI><A HREF="factory_install.html">The glidein WMS Collector
+				and collocated glidein Factory node
 				</P>
-				<LI><P><A HREF="gcb_install.html">One or more GCB nodes</A> (only
+				<LI><A HREF="gcb_install.html">One or more GCB nodes</A> (only
 				if you are gliding into Grid sites with restrictive network
-				policies)</P>
-				<LI><P><A HREF="collector_install.html">The glidein pool
+				policies)
+				<LI><A HREF="collector_install.html">The glidein pool
 				Collector node</A> 
-				</P>
-				<LI><P><A HREF="schedd_install.html">One or more scheduler nodes
+				<LI><A HREF="schedd_install.html">One or more scheduler nodes
 				for user submission</A> 
-				</P>
-				<LI><P STYLE="margin-bottom: 0.2in"><A HREF="frontend_install.html">The
+				<LI><A HREF="frontend_install.html">The
 				VO Frontend</A> 
-				</P>
 			</UL>
 			<P>While the documents presented here assume you will install each
 			component on a different machine, there is nothing preventing you
@@ -65,92 +54,91 @@ for user submissions</A>.</P>
 <P STYLE="margin-bottom: 0.2in">The minimum recommended configuration
 would thus be composed of 3 nodes:</P>
 <UL>
-	<LI><P><A HREF="factory_install.html">The glidein WMS Collector and
+	<LI><A HREF="factory_install.html">The glidein WMS Collector and
 	collocated glidein Factory node</A> 
-	</P>
-	<LI><P>A node containing a <A HREF="gcb_install.html">GCB server</A>
+	
+	<LI>A node containing a <A HREF="gcb_install.html">GCB server</A>
 	and the <A HREF="frontend_install.html">VO Frontend</A> 
-	</P>
-	<LI><P STYLE="margin-bottom: 0.2in">A node containing the <A HREF="collector_install.html">glidein
+	
+	<LI>A node containing the <A HREF="collector_install.html">glidein
 	pool Collector</A> together with the <A HREF="schedd_install.html">scheduler
 	for user submissions</A> 
-	</P>
+	
 </UL>
 <P STYLE="margin-bottom: 0.2in">If you don't need a GCB, the minimum
 recommended setup is composed of 2 nodes:</P>
 <UL>
-	<LI><P><A HREF="factory_install.html">The glidein WMS Collector and
+	<LI><A HREF="factory_install.html">The glidein WMS Collector and
 	collocated glidein Factory node</A> 
-	</P>
-	<LI><P STYLE="margin-bottom: 0.2in">A node containing the <A HREF="frontend_install.html">VO
+	
+	<LI>A node containing the <A HREF="frontend_install.html">VO
 	Frontend</A>, the <A HREF="collector_install.html">glidein pool
 	Collector</A> together with the <A HREF="schedd_install.html">scheduler
 	for user submissions</A> 
-	</P>
+	
 </UL>
 <P STYLE="margin-bottom: 0.2in">If you want to scale above a few 1000
 glideins, it is recommended that you keep the <A HREF="schedd_install.html">scheduler
 for user submissions</A> on a dedicated node:</P>
 <UL>
-	<LI><P><A HREF="factory_install.html">The glidein WMS Collector and
+	<LI><A HREF="factory_install.html">The glidein WMS Collector and
 	collocated glidein Factory node</A> 
-	</P>
-	<LI><P>A node containing the <A HREF="collector_install.html">glidein
+	
+	<LI>A node containing the <A HREF="collector_install.html">glidein
 	pool Collector</A> together with the <A HREF="frontend_install.html">VO
 	Frontend</A> 
-	</P>
-	<LI><P>A node containing the <A HREF="schedd_install.html">scheduler
+	
+	<LI>A node containing the <A HREF="schedd_install.html">scheduler
 	for user submissions</A>  
-	</P>
-	<LI><P>A (optional) node containing a <A HREF="gcb_install.html">GCB
+	
+	<LI>A (optional) node containing a <A HREF="gcb_install.html">GCB
 	server</A> 
-	</P>
+	
 </UL>
-<H2><BR>The available documents are:</H2>
+<H2>The available documents are:</H2>
 <UL>
-	<LI><P><A HREF="factory_install.html">Installation of the WMS
+	<LI><A HREF="factory_install.html">Installation of the WMS
 	Collector and collocated glidein Factory</A> 
-	</P>
-	<LI><P><A HREF="gcb_install.html">Installation of a GCB node</A> 
-	</P>
-	<LI><P><A HREF="collector_install.html">Installation of the glidein
+	
+	<LI><A HREF="gcb_install.html">Installation of a GCB node</A> 
+	
+	<LI><A HREF="collector_install.html">Installation of the glidein
 	pool Collector</A> 
-	</P>
-	<LI><P><A HREF="schedd_install.html">Installation of the scheduler
+	
+	<LI><A HREF="schedd_install.html">Installation of the scheduler
 	node in the glideinWMS</A> 
-	</P>
-	<LI><P STYLE="margin-bottom: 0.2in"><A HREF="frontend_install.html">Installation
+	
+	<LI><A HREF="frontend_install.html">Installation
 	of a VO Frontend node</A> 
-	</P>
+	
 </UL>
-<P STYLE="margin-bottom: 0.2in"><BR><BR>
-</P>
-<H2><BR>Obsoleted documents are:</H2>
+
+<H2>Obsoleted documents are:</H2>
 <UL>
-	<LI><P><A HREF="factory_install_byhand.html">Installation of the WMS
+	<LI><A HREF="factory_install_byhand.html">Installation of the WMS
 	Collector and collocated glidein Factory</A> 
-	</P>
-	<LI><P><A HREF="gcb_install_byhand.html">Installation of a GCB node</A>
-		</P>
-	<LI><P><A HREF="collector_install_byhand.html">Installation of the
+	
+	<LI><A HREF="gcb_install_byhand.html">Installation of a GCB node</A>
+		
+	<LI><A HREF="collector_install_byhand.html">Installation of the
 	glidein pool Collector</A> 
-	</P>
-	<LI><P><A HREF="schedd_install_byhand.html">Installation of the
+	
+	<LI><A HREF="schedd_install_byhand.html">Installation of the
 	scheduler node in the glideinWMS</A> 
-	</P>
-	<LI><P><A HREF="frontend_install_byhand.html">Installation of a VO
+	
+	<LI><A HREF="frontend_install_byhand.html">Installation of a VO
 	Frontend node</A> 
-	</P>
-	<LI><P><A HREF="condor_v7.0.5_install.html">Condor v7.0.5
+	
+	<LI><A HREF="condor_v7.0.5_install.html">Condor v7.0.5
 	Installation</A> 
-	</P>
-	<LI><P><A HREF="quill_setup.html">Condor Quill setup</A> 
-	</P>
-	<LI><P><A HREF="gsi_config.html">Configuring GSI security in Condor</A>
-		</P>
-	<LI><P STYLE="margin-bottom: 0.2in"><A HREF="multi_schedd_config.html">Configuring
+	
+	<LI><A HREF="quill_setup.html">Condor Quill setup</A> 
+	
+	<LI><A HREF="gsi_config.html">Configuring GSI security in Condor</A>
+		
+	<LI><A HREF="multi_schedd_config.html">Configuring
 	multiple Schedds in Condor</A> 
-	</P>
+	
 </UL>
 <P><BR>
 </P>
