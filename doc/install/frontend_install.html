@@ -59,12 +59,16 @@ VO Frontend </FONT></FONT>
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Base tools
 installation instructions</FONT></FONT></H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend will
-need the OSG client and the Condor binaries.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can co-locate it
-with on <A HREF="schedd_install.html">a submitter node</A> or <A HREF="collector_install.html">the
-glidein pool Collector node</A>, or install a local copy. If you do
-want to install a local copy, a install script is available. Possibly
-do it as a non privileged user, like <B>gfrontend</B>.</FONT></FONT></P>
+need the OSG client and the Condor binaries. You can reuse an existing installation, if available, 
+like if you host the VO Frontend on the <A HREF="schedd_install.html">a submitter node</A>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Else you need
+to install a local copy. The suggested way is to install as the same non privileged user as the VO frontend (see <A HREF="#frontend">below</A>).
+<BR>
+The whole process is managed by
+a install script described below. You will need to provide
+a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
+tarball</A>, so you may as well download it before starting the
+installer.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
 <BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
@@ -78,22 +82,25 @@ Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
 Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>6</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components. An example
-snapshot can be found in <A HREF="frontend_condor_install_snapshot.txt">frontend_condor_install_snapshot.txt</A>.</FONT></FONT></P>
+instructions. The installation is straightforward.</FONT></FONT></P>
 <A NAME="frontend">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. VO Frontend
 installation </FONT></FONT>
 </H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Before installing the
-VO frontend, create a valid x509 proxy in
-<B>~/.globus/x509_service_proxy</B>. You will also need to keep it
-valid for the life of the frontend. How you keep this proxy valid
-(via MyProxy, kx509, voms-proxy-init from a local certificate, scp
-from other nodes, or other methods), is beyond the scope of this
-document.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO frontend itself
-should be installed as a non privileged user, for example the user
-<B>gfrontend</B>.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend
+needs a x509 proxy to communicate with the glidein Factory. You
+need to create such proxy before starting a VO Frontend and
+then keep it valid for the life of the frontend. If used for job
+submission (i.e. if it is passed to the glidein Factory),
+this proxy must at any point in time have a validity of at least the
+longest expected job being run by the glideinWMS (and not less than
+12 hours).<BR>How you keep this proxy valid (via MyProxy, kx509,
+voms-proxy-init from a local certificate, scp from other nodes, or
+other methods), is beyond the scope of this document.
+</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend
+should be installed as a non privileged user. The provided installer 
+can be used to create the configuration file, although some manual tunning will probably be needed.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
 <BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
@@ -107,13 +114,10 @@ Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
 Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>7</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Most of the questions
-should be fairly straightforward (see an example installation
-snapshot in <A HREF="frontend_fg_install_snapshot.txt">frontend_fg_install_snapshot.txt</A>).</FONT></FONT></P>
+instructions.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will need to
 specify the selection and matching criteria for the user jobs. The
-suggested values</FONT></FONT></P>
+suggested values</FONT></FONT>
 <BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>jobs_constraint
 = (JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<BR>match_string
 = glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;] in
@@ -123,16 +127,50 @@ basic matchmatching, providing that your user jobs add</FONT></FONT></P>
 <BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
 = “site1,site2,...siteN”<BR>requirements=stringListMember(GLIDEIN_Site,
 DESIRED_Sites)</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>In alternative, you can
-create the config file by hand. Look at the <A HREF="../manual/frontend/index.html#management">glideinWMS
-manual</A> for more details.</FONT></FONT></P>
+<FONT FACE="Liberation Serif"><FONT SIZE=3>
+(Look at the <A HREF="../manual/frontend/index.html#management">glideinWMS
+manual</A> for more details.)</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
+answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
+<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the VO Frontend you need a valid GSI proxy.
+Where is your proxy located?: [/home/frontend/.globus/x509_service_proxy] <B>/home/frontend/.globus/x509_service_proxy</B>
+
+Give a name to this VO Frontend?: [org_frontend1] <B>fe1</B>
+What node is the WMS collector running?: <B>gfactory1.my.org</B>
+
+What node is the pool collector running on?
+If you have a hierarchy of collectors, list them all
+(for example: master1.my.org:9621,master1.my.org:9622)
+Collector name(s): [collector1.my.org] <B>collector1.my.org:9620,collector1.my.org:9621,collector1.my.org:9622,collector1.my.org:9623</B>
+The following schedds have been found:
+ [1] schedd1.my.org
+ [2] schedd_jobs1@schedd1.my.org
+ [3] schedd_jobs2@schedd1.my.org
+ [4] schedd_jobs3@schedd1.my.org
+ [5] schedd_jobs4@schedd1.my.org
+Do you want to monitor all of them?: (y/n) <B>y</B>
+
+What expression do you want to use to match glideins to jobs?
+It is an arbitrary python boolean expression using the dictionaries
+  glidein and job
+A simple example expression would be:
+  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+If you want to match all (OK for simple setups),
+  just specify 1 (the default)
+Match string: [1] <B>glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;] in job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;)</B>
+Job attributes: [("DESIRED_Sites","s")] <B>("DESIRED_Sites","s")</B>
+What kind of jobs do you want to monitor?: [(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)] <B>(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)&&(DESIRED_Sites=!=UNDEFINED)</B>
+Where will you host your config and log files?: [/home/frontend/frontend_fe1] <B>/home/frontend/frontend_fe1</B>
+Directory '/home/factory_frontend_fe1' does not exist, should I create it?: (y/n) <B>y</B>
+</PRE>
+
 <H3><FONT FACE="Utopia, serif"><FONT SIZE=3>5.1. Starting the VO
 Frontend </FONT></FONT>
 </H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Use the startup script:</FONT></FONT></P>
 <BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-/home/gfrontend/myvofrontend1/<BR>./frontend_startup start</FONT></FONT></P></BLOCKQUOTE>
-<P><BR><BR>
+&lt;install dir&gt;<BR>./frontend_startup start</FONT></FONT></P></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The same script can be used to stop and restart the VO Frontend.</FONT></FONT>
 </P>
 <HR SIZE=1>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
