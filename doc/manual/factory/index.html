@@ -33,6 +33,7 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
 		<LI><A HREF="#downtimes">Downtime handling</A> 
 		<LI><A HREF="#localtest">Testing with a local glidein</A> 
+	        <LI><A HREF="#upgrade">Upgrading to a new version of glideinWMS</A>
 	</UL>
 	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
 	<UL>
@@ -312,6 +313,25 @@ command.
 <I>yourhost.your.domain</I> collector.</P>
 <P>Please make sure you have a valid Grid environment set up,
 including a valid proxy, as the glidein needs it in order to work.</P>
+
+<H3><A NAME="upgrade"></A>Upgrading to a new version of glideinWMS</H3>
+<P>
+Upgrading a factory configuration tree to a new version of glideinWMS can be done in two ways:
+<UL>
+<LI>Installing the new glideinWMS code in a separate directory, and create a new configuration
+    tree as explained <A HREF="#create_entry">above</A>.<BR>
+    The configuration file (glieinWMS.xml) of the existing configuration tree can be used as a
+    base for the new one; only the <I>glidein_ name</I> needs to be changed.
+    See the <A HREF="entry.html">configuration page</A> for more defaults.
+<LI>Overwrite the glideinWMS installation and <A HREF="#run_daemon">reconfig</A>.<BR>
+    If getting the code from CVS, a cvs update -r <I>version</I> will update the code.<BR>
+    <B>Warining:</B> Check the revision history before doing this. Not all versions are compatible.
+</UL>
+</P>
+<P>
+Which option you choose is really up to you; the second one is easier, but the first one is cleaner and easier to revert back.<BR>
+</P>
+
 <H2><A NAME="monitoring"></A>Glidein Factory Monitoring</H2>
 <P>Monitoring is an essential part of any service. One has to monitor
 to both maintain the health of the system and to tune the system for
