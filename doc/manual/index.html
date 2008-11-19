@@ -58,7 +58,7 @@ Startd</A> submitted as a Grid job. <BR>Once the glidein starts on a
 worker node, it will join the the specified Condor pool, making the
 obtained Grid-batch slot a slot in the Condor pool. At this point, a
 regular Condor job can start there as if was a dedicated resource.
-See the picture below for a schematic overview.<BR><IMG SRC="glideins.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=723 HEIGHT=237 BORDER=0><BR>Condor
+See the picture below for a schematic overview.<BR><IMG SRC="glideins.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0><BR>Condor
 glideins are a convenient way to expand a Condor pool. Apart from the
 task of submitting new glideins as needed, everything else&nbsp;stays
 the same as in a dedicated pool.</P>
@@ -78,7 +78,7 @@ the same as in a dedicated pool.</P>
 	</P>
 </UL>
 <P>The two pieces communicate via a common Condor Collector; see the
-image below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=642 HEIGHT=490 BORDER=0><BR>A
+image below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics2" ALIGN=BOTTOM BORDER=0><BR>A
 single WMS (identified by the Condor Collector) can serve multiple
 frontends via multiple factories. It is a truly many-to-many system.
 However, the current implementation does not support prioritization
@@ -134,7 +134,7 @@ published. Such a class-ad will contain
 	currently running, etc.) 
 	</P>
 </UL>
-<P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM WIDTH=809 HEIGHT=656 BORDER=0><BR>In
+<P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0><BR>In
 the current implementation, the only glidein rate setting parameter
 supported is <FONT FACE="monospace"><B>ReqIdleGlideins</B></FONT>,
 that tells the factory how many idle glideins to keep in the queue at
