@@ -12,9 +12,21 @@
 <H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
 GCB node </FONT></FONT>
 </H1>
+<hr>
+<table>
+<tr valign="center" align="center">
+<td>[</td><td><a href="#description">Description</a></td>
+<td>|</td><td><a href="#hardware">Hardware requirements</a></td>
+<td>|</td><td><a href="#software">Needed software</a></td>
+<td>|</td><td><a href="#condor">Installation instructions</a></td>
+<td>]</td>
+</tr>
+</table>
+<hr>
 <TABLE CELLPADDING=2 CELLSPACING=2>
 	<TR>
 		<TD VALIGN=TOP>
+                        <A NAME="description">
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This node will serve
@@ -23,6 +35,7 @@ GCB node </FONT></FONT>
 			firewalls or NATs, you will need one or more of these.<BR>GCB is
 			needed every time you have a firewall or a NAT; if this node dies,
 			all the glideins relying on it will die with it.</FONT></FONT></P>
+                        <A NAME="hardware">
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
 			requirements </FONT></FONT>
 			</H2>
@@ -46,17 +59,25 @@ GCB node </FONT></FONT>
 		</TD>
 	</TR>
 </TABLE>
+<A NAME="software">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed software
 </FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>A reasonably recent
 Linux OS (SL4 used at press time).<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
 distribution</A>.</FONT></FONT></P>
+<A NAME="condor">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
 instructions </FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The GCB should be
-installed as a non privileged user, for example the user <B>gcbuser</B>.</FONT></FONT></P>
+installed as a non privileged user.
+<BR>
+The whole process is managed by
+a install script described below. You will need to provide
+a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
+tarball</A>, so you may as well download it before starting the
+installer.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
 <BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
@@ -70,20 +91,25 @@ Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
 Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>3</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The installation is
-straightforward, as can be seen in the snaphot locate in
-<A HREF="gcb_install_snapshot.txt">gcb_install_snapshot.txt</A>.</FONT></FONT></P>
+instructions. The installation is straightforward.</FONT></FONT></P>
+<P STYLE="margin-right: 0.39in">
+The installer will also start the Condor daemons.<FONT FACE="Liberation Serif"><FONT SIZE=3>
+To stop the Condor daemons, issue</FONT></FONT></P>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>killall
+condor_master</FONT></FONT></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>To start them again:</FONT></FONT></P>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd &lt;install
+dir&gt;; ./start_condor.sh</FONT></FONT></BLOCKQUOTE>
 <H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.1 Verify it is running </FONT></FONT>
 </H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can check that the
 processes are running:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>ps -u
-gcbuser |grep gcb</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>ps -u `id -un` 
+|grep gcb</FONT></FONT></P></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You should see one
 gcb_broker and at least one gcb_relay_server.<BR><BR>You can also
 check that tey are working well, by pinging it with gcb_broker_query:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>~/gcbcondor/sbin/gcb_broker_query
+<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>&lt;install dir&gt;/sbin/gcb_broker_query
 <I>your_ip</I> freesockets</FONT></FONT></P></BLOCKQUOTE>
 <P><BR><BR>
 </P>
