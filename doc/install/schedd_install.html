@@ -64,7 +64,11 @@ scheduler node in the glideinWMS </FONT></FONT>
 instructions </FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The scheduler node
-software should be installed as root. The whole process is managed by
+software should be installed as root. While it is possible to run the schedds as a non-privileged user,
+it has some serious security implications; see the
+<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#sec:Non-Root">Condor manual</A> for details.
+<BR>
+The whole process is managed by
 a install script described below. You will need to provide
 a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
 tarball</A>, so you may as well download it before starting the
@@ -86,80 +90,102 @@ Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCK
 instructions and install all the software components. Most of the
 questions should be fairly straightforward. The part that is not
 completely automatic is the configuration of the GSI security; you
-will need to provide the DN of the glidein factory (if different from
-the collector one) and the DN of the VO frontend.</FONT></FONT></P>
+will need to provide the DN of the pool collector and the
+DN of the glidein factory.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
 answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
 <PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">Do you have already a VDT installation?: (y/n) <B>n</B>
 Do you want to install the full OSG VDT client?: (y/n) <B>n</B>
 Do you want to install a minimal Grid VDT client?: (y/n) <B>y</B>
-Where do you want the VDT installed?: [/opt/vdt] <B>/home/gfactory/vdt</B>
-Directory '/home/gfactory/vdt' does not exist, should I create it?: (y/n) <B>y</B>
-What pacman version should I use?: [pacman-3.26] <B>pacman-3.26</B>
+Where do you want the VDT installed?: [/opt/vdt] <B>/opt/vdt</B>
+Directory '/opt/vdt' does not exist, should I create it?: (y/n) <B>y</B>
+What pacman version should I use?: [pacman-3.26] <B>PACMAN-3.26</B>
 
 What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <B>http://vdt.cs.wisc.edu/vdt_1101_cache</B>
-
 VDT client installation tends to be very picky about the platforms it installs under
 Most of the time, one needs to pretent to be one of the tested platforms
 The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
 Which platform do you want to use (leave empty for autodetect): <I>enter</I>
 
-VDT 1.10.1 installs a variety of software, each with its own license.
-In order to continue, you must agree to the licenses.
-You can view the licenses online at:
-
-     http://vdt.cs.wisc.edu/licenses/1.10.1
-
-After the installation has completed, you will also be able to
-view the licenses in the &quot;licenses&quot; directory.
-
 Do you agree to the licenses? [y/n] <B>y</B>
+
+Do you want to update the CA certification revocation lists (CRLs) automatically? [y/n] <B>y</B>
+
+Would you like to setup daily rotation of VDT log files?
+
+Possible answers:
+    y: Yes, I want the service to run automatically (once enabled)
+    n: No, I do NOT want the service to run automatically
+
+<B>y</B>
 
 Where would you like to install CA files?
 
 Choices:
+        r (root)  - install into /etc/grid-security/certificates
+                   (existing CA files will be preserved)
         l (local) - install into $VDT_LOCATION/globus/share/certificates
         n (no)    - do not install
 <B>l</B>
 
+Do you want to automatically update your CA Certificates? [y/n] <B>y</B>
+
 Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <B>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</B>
 
-Where do you have the Condor tarball? <B>/home/gfactory/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</B>
+VDT client installed
 
-Where do you want to install it?: [/opt/glidecondor] <B>/home/gfactroy/glidecondor</B>
-Directory '/home/gfactory/glidecondor' does not exist, should I create it?: (y/n) <B>y</B>
-Installing condor in '/home/gfactroy/glidecondor'
+Installing condor
+
+Which user should Condor run under?: [condor] <B>condor</B>
+
+You will now need the Condor tarball
+You can find it on http://www.cs.wisc.edu/condor/
+Versions v7.0.5 and 7.1.3 have been tested, but you
+should always use the latest one
+
+Where do you have the Condor tarball? <B>/root/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</B>
+
+Where do you want to install it?: [/opt/glidecondor] <B>/opt/glidecondor</B>
+Directory '/opt/glidecondor' does not exist, should I create it?: (y/n) <B>y</B>
+Installing condor in '/opt/glidecondor'
 
 If something goes wrong with Condor, who should get email about it?: <B>troubles@my.org</B>
 
 Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <B>y</B>
+Condor installed
+
+Configuring GSI security
 
 To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
-Will you be using a proxy or a cert? (proxy/cert) <B>proxy</B>
-Where is your proxy located?: <B>/home/gfactory/.globus/x509_service_proxy</B>
-My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
-
-You will most probably need other DNs in the condor grid mapfile
-Please add all the DNs that can be used to connect to the
-Condor daemons running on this node
+Will you be using a proxy or a cert? (proxy/cert) <B>cert</B>
+Where is your certificate located?: <B>/etc/grid-security/hostcert.pem</B>
+Where is your certificate key located?: <B>/etc/grid-security/hostkey.pem</B>
+My DN = '/DC=org/DC=doegrids/OU=Services/CN=submit1.my.org'
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
-DN: <B>/DC=org/DC=doegrids/OU=Services/CN=frontend1.my.org</B>
-nickname: [condor001] <B>vofrontend</B>
+DN: <B>/DC=org/DC=doegrids/OU=Services/CN=collector1.my.org</B>
+nickname: [condor001] <B>collector</B>
+Is this a trusted Condor daemon?: (y/n) y
+DN: <B>/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org</B>
+nickname: [condor002] <B>pilot</B>
 Is this a trusted Condor daemon?: (y/n) <B>y</B>
 DN: <I>enter</I>
 Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n] <B>n</B>
-What name would you like to use for this pool?: [My glideinWMS pool] <B>GlideinFactory</B>
-How many secondary schedds do you want?: [9] <B>9</B></PRE><P STYLE="margin-right: 0.39in">
-The installer will also start the Condor daemons.<FONT FACE="Liberation Serif"><FONT SIZE=3>
-To stop the Condor daemons, issue</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>killall
-condor_master</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>To start them again:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd &lt;install
-dir&gt;; ./start_condor.sh</FONT></FONT></BLOCKQUOTE>
+What node is the collector running (i.e. CONDOR_HOST)?: <B>collector1.my.org</B>
+Please list all the GCB servers you will be using
+Leave an empty line when finished
+GCB node: <B>gcb1.my.org</B>
+GCB node:<I>enter</I>
+How many secondary schedds do you want?: [9] <B>4</B>
+</PRE><P STYLE="margin-right: 0.39in">
+The installer will also start the Condor daemons.
+</P>
+<P>The installer also created init.d scripts in
+<BLOCKQUOTE><FONT FACE="Liberation Serif">
+<FONT SIZE=3>/etc/init.d/condor</FONT></FONT></BLOCKQUOTE>
+<P>Use it to stop and restart the schedd(s)</P>
 <A NAME="submit">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. Submitting user
 jobs </FONT></FONT>
@@ -184,10 +210,6 @@ user should thus add the following line:</FONT></FONT></P>
 = <I>&lt;path to X509 proxy&gt;</I></FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>to their Condor
 submission file.</FONT></FONT></P>
-<P><BR><BR>
-</P>
-<P><BR><BR>
-</P>
 <HR SIZE=1>
 <P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
 to the index</FONT></FONT></A></P>
