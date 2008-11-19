@@ -1,3 +1,11 @@
+###################################################
+# Warning:
+# This document is not being maintained anymore
+#
+# It is here just for historic purposes
+#
+###################################################
+
 [gfrontend@localhost ~]$ export X509_USER_PROXY=~/.globus/x509_service_proxy
 [gfrontend@localhost ~]$ export CVSROOT=:pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only
 [gfrontend@localhost ~]$ cvs co -r v1_0 glideinWMS
