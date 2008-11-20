@@ -58,11 +58,15 @@ VO Frontend </FONT></FONT>
 <A NAME="system">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Base tools
 installation instructions</FONT></FONT></H2>
+
+<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.1 VDT and Condor</FONT><FONT></H3>
+
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend will
 need the OSG client and the Condor binaries. You can reuse an existing installation, if available, 
 like if you host the VO Frontend on the <A HREF="schedd_install.html">a submitter node</A>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Else you need
-to install a local copy. The suggested way is to install as the same non privileged user as the VO frontend (see <A HREF="#frontend">below</A>).
+to install a local copy. The suggested way is to install as the same non privileged 
+<FONT FACE="Liberation Serif"><FONT SIZE=3><B>VO Frontend</B></FONT></FONT> user (see <A HREF="#frontend">below</A>).
 <BR>
 The whole process is managed by
 a install script described below. You will need to provide
@@ -83,6 +87,31 @@ Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></B
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>6</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions. The installation is straightforward.</FONT></FONT></P>
+
+<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.2 M2Crypto</FONT><FONT></H3>
+
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If you are passing the proxy
+from the VO Frontend to the glidein Factory, you will need the
+<A HREF="http://freshmeat.net/projects/m2crypto">M2Crypto python
+library</A>. A few systems include it in the software distribution;
+if possible install the system one.</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If your system does not
+come with m2crypto package, or you do not can/want install it as
+root, compile it from source as the </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>VO frontend</B></FONT></FONT> 
+<FONT FACE="Liberation Serif"><FONT SIZE=3>user (see <A HREF="#frontend">below</A>).<BR>
+The source code can be downloaded
+from:<BR><A HREF="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</A></FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The build process is
+very easy:</FONT></FONT></P>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>python
+setup.py build<BR>python setup.py install –root <I>&lt;base dir&gt;</I></FONT></FONT></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Finally add M2Crypto
+into the PYTHONPATH, possibly in the .profile or in the .cshrc:</FONT></FONT></P>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>export
+PYTHONPATH=$PYTHONPATH:<I>&lt;base
+dir&gt;</I>/usr/lib/python2.3/site-packages/M2Crypto</FONT></FONT></BLOCKQUOTE>
+
+
 <A NAME="frontend">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. VO Frontend
 installation </FONT></FONT>
