@@ -4,9 +4,7 @@
 #   This is the main of the glideinFactory
 #
 # Arguments:
-#   $1 = poll period (in seconds)
-#   $2 = advertize rate (every $2 loops)
-#   $3 = glidein submit_dir
+#   $1 = glidein submit_dir
 #
 # Author:
 #   Igor Sfiligoi (Apr 9th 2007 - moved old glideFactory to glideFactoryEntry)
