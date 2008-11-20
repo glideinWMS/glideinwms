@@ -1720,6 +1720,14 @@ def install_vdt(minimal):
         finally:
             fd.close()
             
+        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+        try:
+            fd.write("\n# OSG vdt client settings\n")
+            fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
+            fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
+        finally:
+            fd.close()
+            
         # and in .cshrc
         fd=open("%s/.cshrc"%os.environ['HOME'],"a")
         try:
@@ -2073,6 +2081,16 @@ def install_condor():
         #########################################
         # put condor config in .profile
         fd=open("%s/.profile"%os.environ['HOME'],"a")
+        try:
+            fd.write("\n# Condor settings\n")
+            fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
+            fd.write("  export PATH=%s/bin:${PATH}\n"%user_condor_base_dir)
+            fd.write("  export CONDOR_CONFIG=%s/etc/condor_config\n"%user_condor_base_dir)
+            fd.write("fi\n\n")
+        finally:
+            fd.close()
+        
+        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
         try:
             fd.write("\n# Condor settings\n")
             fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%user_condor_base_dir)
@@ -3387,6 +3405,15 @@ def query_rrd():
 
                 # put rrd path in .profile
                 fd=open("%s/.profile"%os.environ['HOME'],"a")
+                try:
+                    fd.write("\n# rrd settings\n")
+                    fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%rrd_path)
+                    fd.write("  export PATH=${PATH}:%s/bin\n"%rrd_path)
+                    fd.write("fi\n\n")
+                finally:
+                    fd.close()
+        
+                fd=open("%s/.bashrc"%os.environ['HOME'],"a")
                 try:
                     fd.write("\n# rrd settings\n")
                     fd.write("if ! echo ${PATH} | grep -q %s/bin ; then\n"%rrd_path)
