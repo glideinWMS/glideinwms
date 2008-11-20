@@ -83,6 +83,7 @@ def findWork(factory_name,glidein_name,entry_name,
                 # the proxy is not allowed, so ignore such requests 
                 status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED)'
     status=condorMonitor.CondorStatus("any")
+    status.require_integrity(True) #important, this dictates what gets submitted
     status.glidein_name=glidein_name
     status.entry_name=entry_name
     status.load(status_constraint)
