@@ -76,6 +76,7 @@ def findGlideins(factory_pool,
     if additional_constraint!=None:
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
+    status.require_integrity(True) #important, especially for proxy passing
     status.load(status_constraint)
 
     data=status.fetchStored()
