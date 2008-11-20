@@ -1,7 +1,7 @@
 ####################################
 #
 # Functions needed to create files
-# used by the glidein entry points
+# used by the VO Frontend 
 #
 # Author: Igor Sfiligoi
 #
@@ -13,8 +13,7 @@ import string
 import traceback
 import tarfile
 import cStringIO
-import cgWConsts
-import cgWDictFile
+import cvWConsts
 
 #########################################
 # Create init.d compatible startup file
@@ -77,7 +76,7 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         fd.write("        if [ $notrun -eq 0 ]; then\n")
         fd.write("          stop\n")
         fd.write("        fi\n")
-        fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
+        fd.write('        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" $1\n')
         fd.write('	  RETVAL=$?\n')
         fd.write("        reconfig_failed=$?\n")
         fd.write('        echo -n "Reconfiguring the frontend"\n')
@@ -126,7 +125,7 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         fd.write("        ;;\n")
         fd.write("        info)\n")
         fd.write("               shift\n")
-        fd.write('               "$glideinWMS_dir/creation/info_glidein" $@ "$frontend_dir/glideinWMS.xml"\n')
+        fd.write('               "$glideinWMS_dir/creation/info_frontend" $@ "$frontend_dir/%s"\n'%cvWConsts.XML_CONFIG_FILE)
         fd.write('	         RETVAL=$?\n')
         fd.write("        ;;\n")
         fd.write("        reconfig)\n")
