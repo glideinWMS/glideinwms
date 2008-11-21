@@ -1,5 +1,7 @@
 vNext	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
+	Frontend now requires integrity checks when talking to
+	  the WMS collector.
 	Refactored install options so that most tasks performed
           as a non-privileged user.
 	Using m2crypto for sha1 checks.
