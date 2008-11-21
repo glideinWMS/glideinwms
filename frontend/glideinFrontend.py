@@ -140,8 +140,8 @@ def main(startup_dir):
     glideinFrontendLib.frontendConfig.warning_log=warning_log
     
     try:
-        glideinFrontendConfig.frontendConfig.glidein_descript_file=os.path.join(startup_dir,glideinFrontendConfig.frontendConfig.glidein_descript_file)
-        glideinDescript=glideinFrontendConfig.GlideinDescript()
+        glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(startup_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
+        glideinDescript=glideinFrontendConfig.FrontendDescript()
         glideinDescript.load_pub_key(recreate=True)
 
         cleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"log"),"(frontend_info\..*)|(frontend_err\..*)",
