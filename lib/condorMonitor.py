@@ -9,7 +9,7 @@
 #
 
 import condorExe
-import string
+import os,string
 import xml.parsers.expat
 
 #
