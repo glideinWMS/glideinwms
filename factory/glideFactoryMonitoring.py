@@ -1454,7 +1454,7 @@ class condorLogSummary:
                         
                         fd.write("</tr></table>\n")
                         
-                        fd.write('<a name="glidein_status"\n')
+                        fd.write('<a name="glidein_status">\n')
                         fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
@@ -1470,7 +1470,7 @@ class condorLogSummary:
                             fd.write('<td>%s</td>'%img2html("%s_Removed_Diff.%s.%s.png"%(l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        fd.write('<a name="glidein_terminated"\n')
+                        fd.write('<a name="glidein_terminated">\n')
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
@@ -1893,7 +1893,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
 
                         fd.write("</tr></table>\n")
                         
-                        fd.write('<a name="glidein_status"\n')
+                        fd.write('<a name="glidein_status">\n')
                         fd.write("<p>\n<table>\n")
                         for s in ('Running','Idle','Wait','Held','Completed','Removed'):
                             if (not (s in ('Completed','Removed'))): # special treatement
@@ -1912,7 +1912,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 fd.write('<td>%s</td>'%img2html("%s%s_Removed_Diff.%s.%s.png"%(p,l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        fd.write('<a name="glidein_terminated"\n')
+                        fd.write('<a name="glidein_terminated">\n')
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
                         for s in ('Diff','Entered_Lasted'):
                             fd.write('<tr valign="top">')
@@ -1929,7 +1929,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</table>\n</p>\n")
 
                         if 'SplitTerm' in monitoringConfig.wanted_graphs:                        
-                            fd.write('<a name="split_glidein_terminated"\n')
+                            fd.write('<a name="split_glidein_terminated">\n')
                             fd.write("<p>\n<h2>Terminated glideins by %s</h2>\n"%subdir_label)
 
                             for s in ('Entered_Lasted',):
