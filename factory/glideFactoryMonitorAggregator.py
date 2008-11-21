@@ -255,6 +255,7 @@ def create_status_history():
 
 
                     fd.write("</tr></table>\n")
+                    fd.write('<a name="glidein_status">\n')
                     fd.write("<h2>Glidein stats</h2>\n")
                     fd.write("<table>")
 
@@ -279,6 +280,7 @@ def create_status_history():
                             fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
                         fd.write('</tr>\n')                            
                     fd.write("</table>")
+                    fd.write('<a name="client_status">\n')
                     fd.write("<h2>Frontend (client) stats</h2>\n")
                     fd.write("<table>")
 
