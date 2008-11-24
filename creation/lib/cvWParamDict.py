@@ -377,8 +377,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 # Populate values common to frontend and group dicts
 def populate_common_descript(descript_dict,        # will be modified
                              params):
-    group_descript_dict.add('Factories',params.match.factories)
-    group_descript_dict.add('JobSchedds',params.match.job_schedds)
+    descript_dict.add('Factories',params.match.factories)
+    descript_dict.add('JobSchedds',params.match.job_schedds)
 
 
 
