@@ -35,9 +35,10 @@ frontendConfig=FrontendConfig()
 # It also defines:
 #   self.config_file="name of file"
 class ConfigFile:
-    def __init__(self,config_file,convert_function=repr):
+    def __init__(self,config_dir,config_file,convert_function=repr):
+        self.config_dir=config_dir
         self.config_file=config_file
-        self.load(config_file,convert_function)
+        self.load(os.path.join(config_dir,config_file),convert_function)
 
     def load(self,fname,convert_function):
         self.data={}
@@ -61,18 +62,17 @@ class ConfigFile:
 
 # load from the group subdir
 class GroupConfigFile(ConfigFile):
-    def __init__(self,group_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,os.path.join("group_"+group_name,config_file),convert_function)
+    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
+        ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function)
         self.group_name=group_name
-        self.config_file_short=config_file
 
 # load both the main and group subdir config file
 # and join the results
 class JoinConfigFile(ConfigFile):
-    def __init__(self,group_name,config_file,convert_function=repr):
-        ConfigFile.__init__(self,config_file,convert_function)
+    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
+        ConfigFile.__init__(self,base_dir,config_file,convert_function)
         self.group_name=group_name
-        group_obj=GroupConfigFile(group_name,config_file,convert_function)
+        group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function)
         #merge by overriding whatever is found in the subdir
         for k in group_obj.data.keys():
             self.data[k]=group_obj.data[k]
@@ -84,27 +84,27 @@ class JoinConfigFile(ConfigFile):
 ############################################################
 
 class FrontendDescript(ConfigFile):
-    def __init__(self):
+    def __init__(self,config_dir):
         global frontendConfig
-        ConfigFile.__init__(self,frontendConfig.frontend_descript_file,
+        ConfigFile.__init__(self,config_dir,frontendConfig.frontend_descript_file,
                             repr) # convert everything in strings
 
 class ElementDescript(GroupConfigFile):
-    def __init__(self,group_name):
+    def __init__(self,base_dir,group_name):
         global frontendConfig
-        GroupConfigFile.__init__(self,group_name,frontendConfig.group_descript_file,
+        GroupConfigFile.__init__(self,base_dir,group_name,frontendConfig.group_descript_file,
                                  repr) # convert everything in strings
 
 class ParamsDescript(JoinConfigFile):
-    def __init__(self,group_name):
+    def __init__(self,base_dir,group_name):
         global frontendConfig
-        JoinConfigFile.__init__(self,group_name,frontendConfig.params_descript_file,
+        JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.params_descript_file,
                                 lambda s:s) # values are in python format
 
 class ExprsDescript(JoinConfigFile):
-    def __init__(self,group_name):
+    def __init__(self,base_dir,group_name):
         global frontendConfig
-        JoinConfigFile.__init__(self,group_name,frontendConfig.exprs_descript_file,
+        JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.exprs_descript_file,
                                 lambda s:s) # values are in python format
 
 

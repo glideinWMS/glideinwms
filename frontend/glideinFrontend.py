@@ -58,22 +58,22 @@ def aggregate_stats():
             rrd_thread.join()
 
     if not thread_alive:
-        glideinFrontendLib.frontendConfig.activity_log.write("Writing lazy stats")
+        glideinFrontendLib.log_files.logActivity("Writing lazy stats")
         rrd_thread=threading.Thread(target=create_history_thread)
         rrd_thread.start()
 
     return
 
 ############################################################
-def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
+def spawn(sleep_time,advertize_rate,work_dir,
           glideinDescript,groups):
 
     global STARTUP_DIR
     childs={}
-    glideinFrontendLib.frontendConfig.activity_log.write("Starting groups %s"%groups)
+    glideinFrontendLib.log_files.logActivity("Starting groups %s"%groups)
     try:
         for group_name in groups:
-            childs[group_name]=popen2.Popen3("%s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),os.getpid(),startup_dir,group_name),True)
+            childs[group_name]=popen2.Popen3("%s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),os.getpid(),work_dir,group_name),True)
 
         for group_name in childs.keys():
             childs[group_name].tochild.close()
@@ -86,7 +86,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
 
 
         while 1:
-            glideinFrontendLib.frontendConfig.activity_log.write("Checking groups %s"%groups)
+            glideinFrontendLib.log_files.logActivity("Checking groups %s"%groups)
             for group_name in childs.keys():
                 child=childs[group_name]
 
@@ -112,10 +112,10 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                     del childs[group_name]
                     raise RuntimeError,"Group '%s' exited, quit the whole frontend:\n%s\n%s"%(group_name,tempOut,tempErr)
 
-            glideinFrontendLib.frontendConfig.activity_log.write("Aggregate monitoring data")
+            glideinFrontendLib.log_files.logActivity("Aggregate monitoring data")
             aggregate_stats()
 
-            glideinFrontendLib.frontendConfig.activity_log.write("Sleep")
+            glideinFrontendLib.log_files.logActivity("Sleep")
             time.sleep(sleep_time)
     finally:        
         # cleanup at exit
@@ -127,57 +127,48 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
         
         
 ############################################################
-def main(startup_dir):
+def main(work_dir):
     startup_time=time.time()
 
     # disable locking... else I can get in deadlock with groups
     glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.lock_dir=None
 
     # create log files in the glidein log directory
-    activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/frontend_info"))
-    warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/frontend_err"))
-    glideinFrontendLib.frontendConfig.activity_log=activity_log
-    glideinFrontendLib.frontendConfig.warning_log=warning_log
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"log"))
     
     try:
-        glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(startup_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
-        glideinDescript=glideinFrontendConfig.FrontendDescript()
-        glideinDescript.load_pub_key(recreate=True)
+        glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
+        frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
+        frontendDescript.load_pub_key(recreate=True)
 
-        cleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"log"),"(frontend_info\..*)|(frontend_err\..*)",
-                                               float(glideinDescript.data['LogRetentionMaxDays'])*24*3600,
-                                               float(glideinDescript.data['LogRetentionMinDays'])*24*3600,
-                                               float(glideinDescript.data['LogRetentionMaxMBs'])*1024*1024,
-                                               activity_log,warning_log)
+        sleep_time=int(frontendDescript.data['LoopDelay'])
+        advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
+        glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.wanted_graphs=string.split(frontendDescript.data['FrontendWantedMonitorGraphs'],',')
         
-        sleep_time=int(glideinDescript.data['LoopDelay'])
-        advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
-        glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['FrontendWantedMonitorGraphs'],',')
-        
-        groups=string.split(glideinDescript.data['Groups'],',')
+        groups=string.split(frontendDescript.data['Groups'],',')
         groups.sort()
 
-        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(startup_dir,"monitor"),groups)
+        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups)
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideinFrontendLib.frontendConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+        glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
         print tb
         raise
 
     # create lock file
-    pid_obj=glideinFrontendPidLib.FrontendPidSupport(startup_dir)
+    pid_obj=glideinFrontendPidLib.FrontendPidSupport(work_dir)
     
     # start
     pid_obj.register()
     try:
         try:
-            spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
-                  glideinDescript,groups)
+            spawn(sleep_time,advertize_rate,work_dir,
+                  frontendDescript,groups)
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.frontendConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+            glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
             print tb
     finally:
         pid_obj.relinquish()
