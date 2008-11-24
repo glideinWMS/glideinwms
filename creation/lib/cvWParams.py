@@ -122,7 +122,7 @@ class VOFrontendParams(cWParams.CommonParams):
         
         self.defaults["match"]=copy.deepcopy(match_defaults)
         # by default we want to look only for vanilla universe jobs that are not monitoring jobs
-        self.defaults["match"]["job_query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
+        self.defaults["match"]["job"]["query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
 
         self.defaults["downtimes"]=self.downtimes_defaults
 
