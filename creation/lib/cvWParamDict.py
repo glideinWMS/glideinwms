@@ -360,7 +360,7 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 
     for tel in (("factory_query_expr",'FactoryQueryExpr'),("job_query_expr",'JobQueryExpr'),("match_expr",'MatchExpr')):
         param_tname,str_tname=tel
-        greoup_descript_dict.add(str_tname,params.match[param_tname])
+        group_descript_dict.add(str_tname,params.match[param_tname])
     group_descript_dict.add['JobMatchAttrs']=repr(params.match.job_match_attrs)
 
     group_descript_dict.add('DowntimesFile',down_fname)
