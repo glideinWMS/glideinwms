@@ -161,7 +161,7 @@ class PidWParentSupport(PidSupport):
     ###############################
 
     def format_pid_file_content(self):
-        return ("PID: %s\nParent PID:%s\nStarted: %s\n"%(self.mypid,self.parent_pid,time.ctime(self.started_time))
+        return ("PID: %s\nParent PID:%s\nStarted: %s\n"%(self.mypid,self.parent_pid,time.ctime(self.started_time)))
 
     def parse_pid_file_content(self,lines):
         if len(lines)<3:

@@ -11,10 +11,10 @@ import pidSupport
 
 ############################################################
 
-class FactoryPidSupport(PidSupport):
+class FactoryPidSupport(pidSupport.PidSupport):
     def __init__(self,startup_dir):
         lock_file=os.path.join(startup_dir,"lock/glideinWMS.lock")
-        PidSupport.__init__(self,lock_file)
+        pidSupport.PidSupport.__init__(self,lock_file)
 
 #raise an exception if not running
 def get_factory_pid(startup_dir):
@@ -26,10 +26,10 @@ def get_factory_pid(startup_dir):
 
 ############################################################
 
-class EntryPidSupport(PidWParentSupport):
+class EntryPidSupport(pidSupport.PidWParentSupport):
     def __init__(self,startup_dir,entry_name):
         lock_file=os.path.join(startup_dir,"%s/entry_%s/lock/factory.lock"%(startup_dir,entry_name))
-        PidWParentSupport.__init__(self,lock_file)
+        pidSupport.PidWParentSupport.__init__(self,lock_file)
 
 #raise an exception if not running
 def get_entry_pid(startup_dir,entry_name):
