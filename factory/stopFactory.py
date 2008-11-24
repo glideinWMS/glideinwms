@@ -11,6 +11,7 @@
 #
 
 import signal,sys,os,os.path,fcntl,string,time
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 import glideFactoryPidLib
 import glideFactoryConfig
 
@@ -55,7 +56,7 @@ def main(startup_dir):
     # first soft kill the factory (5s timeout)
     os.kill(factory_pid,signal.SIGTERM)
     for retries in range(25):
-        if glideFactoryPidLib.check_pid(factory_pid):
+        if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
             time.sleep(0.2)
         else:
             break # factory dead
@@ -63,7 +64,7 @@ def main(startup_dir):
     # now check the entries (5s timeout)
     entries_alive=False
     for entry in entry_keys:
-        if glideFactoryPidLib.check_pid(entry_pids[entry]):
+        if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
             #print "Entry '%s' still alive, sending SIGTERM"%entry
             os.kill(entry_pids[entry],signal.SIGTERM)
             entries_alive=True
@@ -71,7 +72,7 @@ def main(startup_dir):
         for retries in range(25):
             entries_alive=False
             for entry in entry_keys:
-                if glideFactoryPidLib.check_pid(entry_pids[entry]):
+                if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
                     entries_alive=True
             if entries_alive:
                 time.sleep(0.2)
@@ -79,11 +80,11 @@ def main(startup_dir):
                 break # all entries dead
         
     # final check for processes
-    if glideFactoryPidLib.check_pid(factory_pid):
+    if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
         print "Hard killed factory"
         os.kill(factory_pid,signal.SIGKILL)
     for entry in entry_keys:
-        if glideFactoryPidLib.check_pid(entry_pids[entry]):
+        if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
             print "Hard killed entry '%s'"%entry
             os.kill(entry_pids[entry],signal.SIGKILL)
     return 0

@@ -173,9 +173,10 @@ def main(startup_dir):
         raise
 
     # create lock file
-    fd=glideFactoryPidLib.register_factory_pid(startup_dir)
+    pid_obj=glideFactoryPidLib.FactoryPidSupport(startup_dir)
     
     # start
+    pid_obj.register()
     try:
         try:
             spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
@@ -186,7 +187,7 @@ def main(startup_dir):
             glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
             print tb
     finally:
-        fd.close()
+        pid_obj.relinquish()
     
 ############################################################
 #
