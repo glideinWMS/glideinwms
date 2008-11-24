@@ -140,7 +140,7 @@ class PidSupport:
 # if self.fd is valid or after a load
 class PidWParentSupport(PidSupport):
     def __init__(self,pid_fname):
-        PidSupport.__init__(self)
+        PidSupport.__init__(self,pid_fname)
         self.parent_pid=None
         
     # open the pid_file and gain the exclusive lock

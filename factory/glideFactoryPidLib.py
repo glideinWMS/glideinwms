@@ -37,5 +37,7 @@ def get_entry_pid(startup_dir,entry_name):
     pid_obj.load_registered()
     if pid_obj.mypid==None:
         raise RuntimeError, "Entry not running"
-    return pid_obj.mypid
+    if pid_obj.parent_pid==None:
+        raise RuntimeError, "Entry has no parent???"
+    return (pid_obj.mypid,pid_obj.parent_pid)
 
