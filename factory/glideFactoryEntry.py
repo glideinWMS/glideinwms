@@ -396,7 +396,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.release_sleep=float(jobDescript.data['ReleaseSleep'])
 
     # create lock file
-    fd=glideFactoryPidLib.register_entry_pid(startup_dir,entry_name,parent_pid)
+    pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
     
     # force integrity checks on all the operations
     # I need integrity checks also on reads, as I depend on them
@@ -406,6 +406,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
     # start
+    pid_obj.register(parent_pid)
     try:
         try:
             try:
@@ -440,7 +441,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                                                                        jobDescript.data['EntryName']))
                 glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
     finally:
-        fd.close()
+        pid_obj.relinquish()
 
     
 ############################################################
