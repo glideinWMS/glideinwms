@@ -369,7 +369,7 @@ def populate_common_descript(descript_dict,        # will be modified
     for tel in (("factory","Factory"),("job","Job")):
         param_tname,str_tname=tel
         descript_dict.add('%sQueryExpr'%str_tname,params.match[param_tname]['query_expr'])
-        descript_dict.add('%sMatchAttrs'%str_tname,repe(params.match[param_tname]['match_attrs']))
+        descript_dict.add('%sMatchAttrs'%str_tname,repr(params.match[param_tname]['match_attrs']))
     descript_dict.add('FactoryCollectors',params.match.factory.collectors)
     descript_dict.add('JobSchedds',params.match.job.schedds)
     

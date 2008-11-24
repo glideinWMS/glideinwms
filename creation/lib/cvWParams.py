@@ -56,7 +56,7 @@ class VOFrontendParams(cWParams.CommonParams):
         query_attrs_defaults['type']=('s','s|i|r|b','Attribute type',None)
 
         fj_match_defaults=cWParams.commentedOrderedDict()
-        fj_match_defaults["query_expr"]=('True','CondorExpr','Expression for selecting user jobs',None)
+        fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
         fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
 
         factory_match_defaults=copy.deepcopy(fj_match_defaults)
