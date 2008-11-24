@@ -40,9 +40,6 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.dicts['preentry_file_list'].add_from_file(file_name,(file_name,"nocache","TRUE",'BLACKLIST_FILE'),os.path.join(params.src_dir,file_name))
 
         # Load initial system scripts
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
-
-        # Load initial system scripts
         # These should be executed before the other scripts
         for script_name in ('cat_consts.sh',"validate_node.sh"):
             self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
@@ -102,9 +99,6 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         for script_name in ('cat_consts.sh',"validate_node.sh"):
             self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
-        #load system files
-        self.dicts['vars'].load(params.src_dir,'condor_vars.lst.group',change_self=False,set_not_changed=False)
-        
         # put user files in stage
         for file in sub_params.files:
             add_file_unparsed(file,self.dicts)
