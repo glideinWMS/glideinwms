@@ -324,11 +324,6 @@ def populate_frontend_descript(work_dir,
                 active_sub_list.append(sub)
         frontend_dict.add('Groups',string.join(active_sub_list,','))
 
-        for tel in (("factory_query_expr",'FactoryQueryExpr'),("job_query_expr",'JobQueryExpr'),("match_expr",'MatchExpr')):
-            param_tname,str_tname=tel
-            frontend_dict.add(str_tname,params.match[param_tname])
-        frontend_dict.add('JobMatchAttrs',repr(params.match.job_match_attrs))
-
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
 
@@ -359,12 +354,6 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
         down_fname=os.path.join(work_dir,'group.downtimes')
 
     group_descript_dict.add('GroupName',sub_name)
-
-    for tel in (("factory_query_expr",'FactoryQueryExpr'),("job_query_expr",'JobQueryExpr'),("match_expr",'MatchExpr')):
-        param_tname,str_tname=tel
-        group_descript_dict.add(str_tname,sub_params.match[param_tname])
-    group_descript_dict.add('JobMatchAttrs',repr(sub_params.match.job_match_attrs))
-
     group_descript_dict.add('DowntimesFile',down_fname)
     group_descript_dict.add('MaxRunning',sub_params.config.max_running_jobs)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
@@ -377,8 +366,14 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 # Populate values common to frontend and group dicts
 def populate_common_descript(descript_dict,        # will be modified
                              params):
-    descript_dict.add('Factories',params.match.factories)
-    descript_dict.add('JobSchedds',params.match.job_schedds)
+    for tel in (("factory","Factory"),("job","Job")):
+        param_tname,str_tname=tel
+        descript_dict.add('%sQueryExpr'%str_tname,params.match[param_tname]['query_expr'])
+        descript_dict.add('%sMatchAttrs'%str_tname,repe(params.match[param_tname]['match_attrs']))
+    descript_dict.add('FactoryCollectors',params.match.factory.collectors)
+    descript_dict.add('JobSchedds',params.match.job.schedds)
+    descript_dict.add('MatchExpr',params.match.match_expr))
+
 
 
 

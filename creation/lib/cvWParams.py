@@ -55,13 +55,19 @@ class VOFrontendParams(cWParams.CommonParams):
         query_attrs_defaults=cWParams.commentedOrderedDict()
         query_attrs_defaults['type']=('s','s|i|r|b','Attribute type',None)
 
+        fj_match_defaults=cWParams.commentedOrderedDict()
+        fj_match_defaults["query_expr"]=('True','CondorExpr','Expression for selecting user jobs',None)
+        fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
+
+        factory_match_defaults=copy.deepcopy(fj_match_defaults)
+        factory_match_defaults["collectors"]=(None,'list of names','List of glidein factory collectors (like gf1.my.org,fg2.my.org:9999)',None)
+
+        job_match_defaults=copy.deepcopy(fj_match_defaults)
+        job_match_defaults["schedds"]=(None,'list of names','List of job schedds (like sb1.my.org,schedd_3@sb1.my.org)',None)
+
         match_defaults=cWParams.commentedOrderedDict()
-        match_defaults["factories"]=(None,'list of names','List of glidein factory collectors (like gf1.my.org,fg2.my.org:9999)',None)
-        match_defaults["factory_query_expr"]=('True','CondorExpr','Expression for selecting user jobs',None)
-        match_defaults["factory_match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
-        match_defaults["job_schedds"]=(None,'list of names','List of job schedds (like sb1.my.org,schedd_3@sb1.my.org)',None)
-        match_defaults["job_query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
-        match_defaults["job_match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
+        match_defaults["factory"]=factory_match_defaults
+        match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Expression for matching jobs to factory entries',None)
 
         self.group_defaults=cWParams.commentedOrderedDict()
