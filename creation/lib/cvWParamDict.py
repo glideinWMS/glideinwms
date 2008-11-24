@@ -57,6 +57,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # populate complex files
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
+        populate_common_descript(self.dicts['frontend_descript'],params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -110,6 +111,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         # populate complex files
         populate_group_descript(self.work_dir,self.dicts['group_descript'],
                                 self.sub_name,sub_params)
+        populate_common_descript(self.dicts['group_descript'],sub_params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -369,6 +371,15 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
+
+
+#####################################################
+# Populate values common to frontend and group dicts
+def populate_common_descript(descript_dict,        # will be modified
+                             params):
+    group_descript_dict.add('Factories',params.match.factories)
+    group_descript_dict.add('JobSchedds',params.match.job_schedds)
+
 
 
 
