@@ -295,7 +295,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
     ####################
 
     def get_sub_work_dir(self,base_dir):
-        return cvWConsts.get_group_submit_dir(base_dir,self.sub_name)
+        return cvWConsts.get_group_work_dir(base_dir,self.sub_name)
     
     def get_sub_stage_dir(self,base_dir):
         return cvWConsts.get_group_stage_dir(base_dir,self.sub_name)
