@@ -376,7 +376,7 @@ def populate_common_descript(descript_dict,        # will be modified
         for attr_name in match_attrs.keys():
             attr_type=match_attrs[attr_name]['type']
             if not (attr_type in MATCH_ATTR_CONV.keys()):
-                raise RuntimeError, "match_attr type '%s' not one of %s"%MATCH_ATTR_CONV.keys()
+                raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
             ma_arr.append((attr_name,MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
     descript_dict.add('FactoryCollectors',params.match.factory.collectors)
