@@ -364,6 +364,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 
 #####################################################
 # Populate values common to frontend and group dicts
+MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
+
 def populate_common_descript(descript_dict,        # will be modified
                              params):
     for tel in (("factory","Factory"),("job","Job")):
@@ -372,7 +374,10 @@ def populate_common_descript(descript_dict,        # will be modified
         match_attrs=params.match[param_tname]['match_attrs']
         ma_arr=[]
         for attr_name in match_attrs.keys():
-            ma_arr.append((attr_name,match_attrs[attr_name]))
+            attr_type=match_attrs[attr_name]['type']
+            if not (attr_type in MATCH_ATTR_CONV.keys()):
+                raise RuntimeError, "match_attr type '%s' not one of %s"%MATCH_ATTR_CONV.keys()
+            ma_arr.append((attr_name,MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
     descript_dict.add('FactoryCollectors',params.match.factory.collectors)
     descript_dict.add('JobSchedds',params.match.job.schedds)
