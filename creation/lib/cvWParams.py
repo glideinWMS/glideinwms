@@ -53,7 +53,7 @@ class VOFrontendParams(cWParams.CommonParams):
                       'files':([],'List of files',"Each file group contains",self.file_defaults)}
 
         query_attrs_defaults=cWParams.commentedOrderedDict()
-        query_attrs_defaults['type']=('s','s|i|r|b','Attribute type',None)
+        query_attrs_defaults['type']=('string','string|int|real|bool','Attribute type',None)
 
         fj_match_defaults=cWParams.commentedOrderedDict()
         fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
