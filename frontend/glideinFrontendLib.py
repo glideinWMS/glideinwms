@@ -2,12 +2,47 @@
 # Description:
 #   This module implements the functions needed to keep the
 #   required number of idle glideins
+#   plus other miscelaneous functions
 #
 # Author:
 #   Igor Sfiligoi (Sept 19th 2006)
 #
 
+import os.path
 import condorMonitor,condorExe
+import logSupport
+
+class LogFiles:
+    def __init__(self,log_dir):
+        self.log_dir=log_dir
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
+        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)",
+                                              7*24*3600,
+                                              self.activity_log,self.warning_log)
+
+    def logActivity(self,str):
+        try:
+            self.activity_log.write(str+"\n")
+        except:
+            # logging must never throw an exception!
+            self.logWarning("logActivity failed, was logging: %s"%str,False)
+
+    def logWarning(self,str, log_in_activity=True):
+        try:
+            self.warning_log.write(str+"\n")
+        except:
+            # logging must throw an exception!
+            # silently ignore
+            pass
+        if log_in_activity:
+            self.logActivity("WARNING: %s"%str)
+
+# someone needs to initialize this
+# type LogFiles
+log_files=None
+
+#############################################################################################
 
 #
 # Return a dictionary of schedds containing interesting jobs
