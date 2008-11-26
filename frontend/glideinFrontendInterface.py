@@ -12,7 +12,7 @@ import condorMonitor
 import os
 import time
 import string
-
+import pubCrypto,symCrypto
 
 ############################################################
 #
@@ -193,8 +193,6 @@ def advertizeWork(factory_pool,
 
             encrypted_params={} # none by default
             if (factory_pub_key_id!=None) and (factory_pub_key!=None):
-                import pubCrypto,symCrypto
-
                 if glidein_symKey==None:
                     glidein_symKey=symCrypto.SymAES256Key()
                 if not glidein_symKey.is_valid():
