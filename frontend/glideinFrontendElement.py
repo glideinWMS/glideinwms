@@ -22,6 +22,8 @@ import time
 import string
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
+import symCrypto,pubCrypto
+
 import glideinFrontendInterface
 import glideinFrontendLib
 import glideinFrontendPidLib
@@ -37,9 +39,14 @@ def iterate_one_old(frontend_name,factory_pool,factory_constraint,
     pass
 
 def iterate_one(elementDescript,paramsDescript,exprsDescript):
-    glidein_dict={}
+    if elementDescript.frontend_data.has_key('X509Proxy'):
+        x509_proxy=elementDescript.frontend_data['X509Proxy']
+    else:
+        x509_proxy=None
 
     # query condor
+    glidein_dict={}
+    factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
     factory_pools=elementDescript.merged_data['FactoryCollectors']
     for factory_pool in factory_pools:
         factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint,x509_proxy!=None)
@@ -48,6 +55,10 @@ def iterate_one(elementDescript,paramsDescript,exprsDescript):
 
     schedd_names=elementDescript.merged_data['JobSchedds']
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
+
+
+    # get the parameters
+    glidein_params=paramsDescript.data+exprsDescript.data # obviously not right, but just a placeholder
 
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
 
@@ -82,8 +93,6 @@ def iterate_one(elementDescript,paramsDescript,exprsDescript):
             warning_log.write("Not advertizing, failed to read proxy '%s'"%x509_proxy)
             return
         
-        import pubCrypto
-        
         # ignore glidein factories that do not have a public key
         # have no way to give them the proxy
         for glideid in glidein_dict.keys():
@@ -108,6 +117,12 @@ def iterate_one(elementDescript,paramsDescript,exprsDescript):
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,condorq_dict_types[dt]['dict'],glidein_dict)
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
 
+    max_running=int(elementDescript.element_data['MaxRunning'])
+    max_idle=int(elementDescript.element_data['MaxIdlePerEntry'])
+    reserve_idle=int(elementDescript.element_data['ReserveIdlePerEntry'])
+    max_vms_idle=int(elementDescript.element_data['MaxIdleVMsPerEntry'])
+    curb_vms_idle=int(elementDescript.element_data['CurbIdleVMsPerEntry'])
+    
     total_running=condorq_dict_types['Running']['total']
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
     
