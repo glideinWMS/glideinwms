@@ -142,6 +142,9 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # validate data and add additional attributes if needed
     def derive(self):
+        if len(self.groups.keys()):
+            raise "No groups defined!"
+            
         self.validate_names()
 
         frontend_subdir="frontend_%s"%self.frontend_name
@@ -151,6 +154,16 @@ class VOFrontendParams(cWParams.CommonParams):
         self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
         self.derive_match_attrs()
+
+        has_collector=self.attrs.has_key('GLIDEIN_Collector')
+        if not has_collector:
+            # collector not defined at global level, must be defined in every group
+            has_collector=True
+            for  group_name in self.groups.keys():
+               has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
+
+        if not has_collector:
+            raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
