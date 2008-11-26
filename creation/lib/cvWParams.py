@@ -239,9 +239,9 @@ class VOFrontendParams(cWParams.CommonParams):
             match_obj=compile(match_str,"<string>","eval")
             eval(match_obj,env)
         except KeyError, e:
-            raise RuntimeError, "Invalid %s match_expr: Missing attribute %s"%(loc_str,e)
+            raise RuntimeError, "Invalid %s match_expr '%s': Missing attribute %s"%(loc_str,match_expr,e)
         except Exception, e:
-            raise RuntimeError, "Invalid %s match_expr: %s"%(loc_str,e)
+            raise RuntimeError, "Invalid %s match_expr '%s': %s"%(loc_str,match_expr,e)
             
         return
 
