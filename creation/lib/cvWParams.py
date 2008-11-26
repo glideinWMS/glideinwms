@@ -170,7 +170,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 job_attrs[attr_name]=self.match.job.match_attrs[attr_name]
             for attr_name in self.groups[group_name].match.job.match_attrs.keys():
                 job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
-            match_expr="(%s) and (%s)"
+            match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             self.validate_match('group %s'%group_name,match_expr,
                                 factory_attrs,job_attrs)
         return
