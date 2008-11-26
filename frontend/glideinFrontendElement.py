@@ -27,17 +27,28 @@ import glideinFrontendLib
 import glideinFrontendPidLib
 
 ############################################################
-def iterate_one(frontend_name,factory_pool,factory_constraint,
-                x509_proxy,
-                schedd_names,job_constraint,match_str,job_attributes,
-                max_idle,reserve_idle,
-                max_vms_idle,curb_vms_idle,
-                max_running,reserve_running_fraction,
-                glidein_params):
-    # query condor
-    glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint,x509_proxy!=None)
+def iterate_one_old(frontend_name,factory_pool,factory_constraint,
+                    x509_proxy,
+                    schedd_names,job_constraint,match_str,job_attributes,
+                    max_idle,reserve_idle,
+                    max_vms_idle,curb_vms_idle,
+                    max_running,reserve_running_fraction,
+                    glidein_params):
+    pass
 
+def iterate_one(elementDescript,paramsDescript,exprsDescript):
+    glidein_dict={}
+
+    # query condor
+    factory_pools=elementDescript.merged_data['FactoryCollectors']
+    for factory_pool in factory_pools:
+        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint,x509_proxy!=None)
+        for glidename in factory_glidein_dict.keys():
+            glidein_dict[(factory_pool,glidename)]=factory_glidein_dict[glidename]
+
+    schedd_names=elementDescript.merged_data['JobSchedds']
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
+
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
@@ -75,20 +86,20 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
         
         # ignore glidein factories that do not have a public key
         # have no way to give them the proxy
-        for glidename in glidein_dict.keys():
-            glidein_el=glidein_dict[glidename]
+        for glideid in glidein_dict.keys():
+            glidein_el=glidein_dict[glideid]
             if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s': no pub key support, but x509_proxy specified"%glidename)
-                del glidein_dict[glidename]
+                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': no pub key support, but x509_proxy specified"%(glideid[1],glideid[0]))
+                del glidein_dict[glideid]
             elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
                 except:
-                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s': invalid RSA key, but x509_proxy specified"%glidename)
-                    del glidein_dict[glidename] # no valid key
+                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glidein[0]))
+                    del glidein_dict[glideid] # no valid key
             else:
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s': unsupported pub key type '%s', but x509_proxy specified"%(glidename,glidein_el['attrs']['PubKeyType']))
-                del glidein_dict[glidename] # not trusted
+                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glidein[0],glidein_el['attrs']['PubKeyType']))
+                del glidein_dict[glideid] # not trusted
                 
 
     glideinFrontendLib.log_files.logActivity("Match")
@@ -100,13 +111,15 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
     total_running=condorq_dict_types['Running']['total']
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
     
-    for glidename in condorq_dict_types['Idle']['count'].keys():
-        request_name=glidename
-        glidein_el=glidein_dict[glidename]
+    for glideid in condorq_dict_types['Idle']['count'].keys():
+        factory_pool=glideid[0]
+        request_name=glideid[1]
+        glideid_str="%s@%s"%(request_name,factory_pool)
+        glidein_el=glidein_dict[glideid]
 
         count_jobs={}
         for dt in condorq_dict_types.keys():
-            count_jobs[dt]=condorq_dict_types[dt]['count'][glidename]
+            count_jobs[dt]=condorq_dict_types[dt]['count'][glideid]
 
         count_status={}
         for dt in status_dict_types.keys():
@@ -148,9 +161,9 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (modulo reserve)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*(0.99+reserve_running_fraction)+1)
-        glideinFrontendLib.log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i"%(glidename,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
-        glideinFrontendLib.log_files.logActivity("Glideins for %s Total %s Idle %i Running %i"%(glidename,count_status['Total'],count_status['Idle'],count_status['Running']))
-        glideinFrontendLib.log_files.logActivity("Advertize %s Request idle %i max_run %i"%(request_name,glidein_min_idle,glidein_max_run))
+        glideinFrontendLib.log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i"%(glideid_str,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
+        glideinFrontendLib.log_files.logActivity("Glideins for %s Total %s Idle %i Running %i"%(glideid_str,count_status['Total'],count_status['Idle'],count_status['Running']))
+        glideinFrontendLib.log_files.logActivity("Advertize %s Request idle %i max_run %i"%(glideid_str,glidein_min_idle,glidein_max_run))
 
         try:
           glidein_monitors={}
@@ -159,62 +172,33 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
           if x509_proxy!=None:
-              glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
                                                      glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
                                                      None, # should reuse it, but none will work for now
                                                      {'x509_proxy':x509_data})
           else:
-              glideinFrontendInterface.advertizeWork(factory_pool,frontend_name,request_name,glidename,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
+              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
-          glideinFrontendLib.log_files.logWarning("Advertize %s failed"%request_name)
+          glideinFrontendLib.log_files.logWarning("Advertize %s failed"%glideid_str)
 
     return
 
 ############################################################
-def iterate(group_name,
-            frontendDescript,elementDescript,paramsDescript,exprsDescript):
-#    log_dir,sleep_time,
-#            frontend_name,factory_pool,factory_constraint,
-#            x509_proxy,
-#            schedd_names,job_constraint,match_str,job_attributes,
-#            max_idle,reserve_idle,
-#            max_vms_idle,curb_vms_idle,
-#            max_running,reserve_running_fraction,
-#            glidein_params):
-    sleep_time=int(frontendDescript.data['LoopDelay'])
-    frontend_name=frontendDescript.data['FrontendName']
-
+def iterate(elementDescript,paramsDescript,exprsDescript):
     if x509_proxy==None:
-        published_frontend_name='%s@%s'%(group_name,frontend_name)
+        published_frontend_name='%s.%s'%(frontend_name,group_name)
     else:
         # if using a VO proxy, label it as such
         # this way we don't risk of using the wrong proxy on the other side
         # if/when we decide to stop using the proxy
-        published_frontend_name='XPVO_%s@%s'%(group_name,frontend_name)
-
-    factory_pools=string.split(frontendDescript.data['FactoryCollectors'],',')+string.split(elementDescript.data['FactoryCollectors'],',')
-    if len(factory_pools)==0:
-        raise RuntimeError, "Need at least one factory collector, none provided"
-    factory_constraint="(%s) && (%s)"%(frontendDescript.data['FactoryQueryExpr'],elementDescript.data['FactoryQueryExpr'])
-    factory_attributes=eval(frontendDescript.data['FactoryMatchAtttrs'])+eval(elementDescript.data['FactoryMatchAtttrs']) # to be finished... should remove duplicates
-
-    schedd_names=string.split(frontendDescript.data['JobSchedds'],',')+string.split(elementDescript.data['JobSchedds'],',')
-    if len(schedd_names)==0:
-        raise RuntimeError, "Need at least one job schedd, none provided"    
-    job_constraint="(%s) && (%s)"%(frontendDescript.data['JobQueryExpr'],elementDescript.data['jobQueryExpr'])
+        published_frontend_name='%s.XPVO_%s'%(frontend_name,group_name)
 
     try:
         is_first=1
         while 1: # will exit by exception
             glideinFrontendLib.log_files.logActivity("Iteration at %s" % time.ctime())
             try:
-                done_something=iterate_one(published_frontend_name,factory_pool,factory_constraint,
-                                           x509_proxy,
-                                           schedd_names,job_constraint,match_str,job_attributes,
-                                           max_idle,reserve_idle,
-                                           max_vms_idle,curb_vms_idle,
-                                           max_running,reserve_running_fraction,
-                                           glidein_params)
+                done_something=iterate_one(elementDescript,paramsDescript,exprsDescript)
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
@@ -239,10 +223,7 @@ def main(parent_PID, work_dir, group_name):
 
     glideinFrontendLib.log_files=LogFiles(os.path.join(work_dir,"group_%s/log"%group_name))
 
-    frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
-    if not (group_name in string.split(frontendDescript.data['Groups'],',')):
-        raise RuntimeError, "Group '%s' not supported: %s"%(group_name,frontendDescript.data['Groups'])
-    elementDescript=glideinFrontendConfig.ElementDescript(work_dir,group_name)
+    elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
     exprsDescript=glideinFrontendConfig.ExprsDescript(work_dir,group_name)
 
@@ -253,8 +234,7 @@ def main(parent_PID, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(group_name,
-                    frontendDescript,elementDescript,paramsDescript,exprsDescript)
+            iterate(elementDescript,paramsDescript,exprsDescript)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
@@ -265,15 +245,6 @@ def main(parent_PID, work_dir, group_name):
         pid_obj.relinquish()
 
         
-    a(    config_dict['log_dir'],config_dict['loop_delay'],
-            config_dict['frontend_name'],config_dict['factory_pool'],config_dict['factory_constraint'],
-            config_dict['x509_proxy'],
-            config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],config_dict['job_attributes'],
-            config_dict['max_idle_glideins_per_entry'],config_dict['reserve_idle_glideins_per_entry'],
-            config_dict['max_idle_vms_per_entry'],config_dict['curb_idle_vms_per_entry'],
-            config_dict['max_running_jobs'], 0.05,
-            config_dict['glidein_params'])
-
 ############################################################
 #
 # S T A R T U P
