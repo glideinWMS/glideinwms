@@ -144,8 +144,12 @@ class VOFrontendParams(cWParams.CommonParams):
         # glidein name does not have a reasonable default
         if self.frontend_name==None:
             raise RuntimeError, "Missing frontend name"
+        if self.frontend_name.find(' ')!=-1:
+            raise RuntimeError, "Invalid frontend name '%s', contains a space."%self.frontend_name
         if not cWParams.is_valid_name(self.frontend_name):
-            raise RuntimeError, "Invalid frontend name '%s'"%self.frontend_name
+            raise RuntimeError, "Invalid frontend name '%s', contains invalid characters."%self.frontend_name
+        if self.frontend_name.find('.')!=-1:
+            raise RuntimeError, "Invalid frontend name '%s', contains a point."%self.frontend_name
 
         frontend_subdir="frontend_%s"%self.frontend_name
         self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
@@ -155,8 +159,14 @@ class VOFrontendParams(cWParams.CommonParams):
 
         group_names=self.groups.keys()
         for group_name in group_names:
+            if group_name.find(' ')!=-1:
+                raise RuntimeError, "Invalid group name '%s', contains a space."%group_name
             if not cWParams.is_valid_name(group_name):
-                raise RuntimeError, "Invalid group name '%s'"%group_name
+                raise RuntimeError, "Invalid group name '%s', contains invalid characters."%group_name
+            if group_name[:4]=='XPVO':
+                raise RuntimeError, "Invalid group name '%s', starts with reserved sequence 'XPVO'."%group_name
+            if group_name.find('.')!=-1:
+                raise RuntimeError, "Invalid group name '%s', contains a point."%group_name
 
     # return xml formatting
     def get_xml_format(self):
