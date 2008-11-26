@@ -142,7 +142,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # validate data and add additional attributes if needed
     def derive(self):
-        if len(self.groups.keys()):
+        if len(self.groups.keys())==0:
             raise "No groups defined!"
             
         self.validate_names()
