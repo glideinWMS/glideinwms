@@ -210,7 +210,7 @@ class VOFrontendParams(cWParams.CommonParams):
                        match_str,factory_attrs,job_attrs):
         env={'glidein':{'attrs':{}},'job':{}}
         for attr_name in factory_attrs.keys():
-            attr_type=factory_attrs['type']
+            attr_type=factory_attrs[attr_name]['type']
             if attr_type=='string':
                 attr_val='a'
             elif attr_type=='int':
@@ -223,7 +223,7 @@ class VOFrontendParams(cWParams.CommonParams):
                 raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
             env['glidein']['attrs'][attr_name]=attr_val
         for attr_name in job_attrs.keys():
-            attr_type=job_attrs['type']
+            attr_type=job_attrs[attr_name]['type']
             if attr_type=='string':
                 attr_val='a'
             elif attr_type=='int':
