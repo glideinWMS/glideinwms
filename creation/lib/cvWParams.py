@@ -121,6 +121,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["security"]=security_default
         
         self.defaults["match"]=copy.deepcopy(match_defaults)
+        # change default match value
         # by default we want to look only for vanilla universe jobs that are not monitoring jobs
         self.defaults["match"]["job"]["query_expr"][0]='(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)'
 
@@ -141,6 +142,47 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # validate data and add additional attributes if needed
     def derive(self):
+        self.validate_names()
+
+        frontend_subdir="frontend_%s"%self.frontend_name
+        self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
+        self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
+        self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
+        self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
+
+        self.derive_match_attrs()
+
+    # verify match data and create the attributes if needed
+    def derive_match_attrs(self):
+        validate_match('frontend',self.match.match_expr,
+                       self.match.factory.match_attrs,self.match.job.match_attrs)
+
+        group_names=self.groups.keys()
+        for group_name in group_names:
+            # merge general and group matches
+            factory_attrs={}
+            for attr_name in self.match.factory.match_attrs.keys():
+                factory_attrs[attr_name]=self.match.factory.match_attrs[attr_name]
+            for attr_name in self.groups[group_name].match.factory.match_attrs.keys():
+                factory_attrs[attr_name]=self.groups[group_name].match.factory.match_attrs[attr_name]
+            job_attrs={}
+            for attr_name in self.match.job.match_attrs.keys():
+                job_attrs[attr_name]=self.match.job.match_attrs[attr_name]
+            for attr_name in self.groups[group_name].match.job.match_attrs.keys():
+                job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
+            match_expr="(%s) and (%s)"
+            validate_match('group %s'%group_name,match_expr,
+                           factory_attrs,job_attrs)
+        return
+
+    # return xml formatting
+    def get_xml_format(self):
+        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},},
+                'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
+                                'groups':{'el_name':'group','subtypes_params':{'class':{}}},
+                                'match_attrs':{'el_name':'match_attr','subtypes_params':{'class':{}}}}}
+
+    def validate_names(self):
         # glidein name does not have a reasonable default
         if self.frontend_name==None:
             raise RuntimeError, "Missing frontend name"
@@ -150,12 +192,6 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError, "Invalid frontend name '%s', contains invalid characters."%self.frontend_name
         if self.frontend_name.find('.')!=-1:
             raise RuntimeError, "Invalid frontend name '%s', contains a point."%self.frontend_name
-
-        frontend_subdir="frontend_%s"%self.frontend_name
-        self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
-        self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
-        self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
-        self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
         group_names=self.groups.keys()
         for group_name in group_names:
@@ -168,13 +204,46 @@ class VOFrontendParams(cWParams.CommonParams):
             if group_name.find('.')!=-1:
                 raise RuntimeError, "Invalid group name '%s', contains a point."%group_name
 
-    # return xml formatting
-    def get_xml_format(self):
-        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},},
-                'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
-                                'groups':{'el_name':'group','subtypes_params':{'class':{}}},
-                                'match_attrs':{'el_name':'match_attr','subtypes_params':{'class':{}}}}}
+        return
 
+    def validate_match(self,loc_str,
+                       match_str,factory_attrs,job_attrs):
+        env={'glidein':{'attrs':{}},'job':{}}
+        for attr_name in factory_attrs.keys():
+            attr_type=factory_attrs['type']
+            if attr_type=='string':
+                attr_val='a'
+            elif attr_type=='int':
+                attr_val=1
+            elif attr_type=='bool':
+                attr_val=True
+            elif attr_type=='real':
+                attr_val=1.0
+            else:
+                raise RuntimeError, "Invalid %s factory attr type '%s'"%(loc_str,attr_type)
+            env['glidein']['attrs'][attr_name]=attr_val
+        for attr_name in job_attrs.keys():
+            attr_type=job_attrs['type']
+            if attr_type=='string':
+                attr_val='a'
+            elif attr_type=='int':
+                attr_val=1
+            elif attr_type=='bool':
+                attr_val=True
+            elif attr_type=='real':
+                attr_val=1.0
+            else:
+                raise RuntimeError, "Invalid %s job attr type '%s'"%(loc_str,attr_type)
+            env['job'][attr_name]=attr_val
+        try:
+            match_obj=compile(match_str,"<string>","eval")
+            eval(match_obj,env)
+        except KeyError, e:
+            raise RuntimeError, "Invalid %s match_expr: Missing attribute %s"%(loc_str,e)
+        except Exception, e:
+            raise RuntimeError, "Invalid %s match_expr: %s"%(loc_str,e)
+            
+        return
 
 
 ############################################################
