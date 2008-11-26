@@ -154,8 +154,8 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
-        validate_match('frontend',self.match.match_expr,
-                       self.match.factory.match_attrs,self.match.job.match_attrs)
+        self.validate_match('frontend',self.match.match_expr,
+                            self.match.factory.match_attrs,self.match.job.match_attrs)
 
         group_names=self.groups.keys()
         for group_name in group_names:
@@ -171,8 +171,8 @@ class VOFrontendParams(cWParams.CommonParams):
             for attr_name in self.groups[group_name].match.job.match_attrs.keys():
                 job_attrs[attr_name]=self.groups[group_name].match.job.match_attrs[attr_name]
             match_expr="(%s) and (%s)"
-            validate_match('group %s'%group_name,match_expr,
-                           factory_attrs,job_attrs)
+            self.validate_match('group %s'%group_name,match_expr,
+                                factory_attrs,job_attrs)
         return
 
     # return xml formatting
