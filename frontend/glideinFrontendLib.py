@@ -111,15 +111,14 @@ def countCondorQ(condorq_dict):
 #
 # Get the number of jobs that match each glidein
 #
-# match_str = '(job["MIN_NAME"]<glidein["MIN_NAME"]) && (job["ARCH"]==glidein["ARCH"])'
+# match_obj = compile('(job["MIN_NAME"]<glidein["MIN_NAME"]) && (job["ARCH"]==glidein["ARCH"])',"<string>","eval")
 # condorq_dict = output of getidlqCondorQ
 # glidein_dict = output of interface.findGlideins
 #
 # Returns:
 #  dictionary of glidein name
 #   where elements are number of idle jobs matching
-def countMatch(match_str,condorq_dict,glidein_dict):
-    match_obj=compile(match_str,"<string>","eval")
+def countMatch(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
@@ -139,6 +138,18 @@ def countMatch(match_str,condorq_dict,glidein_dict):
         pass
     return out_glidein_counts
 
+
+#
+# Convert frontend param expression in a value
+#
+# expr_obj = compile('glidein["MaxTimeout"]+frontend["MaxTimeout"]+600',"<string>","eval")
+# frontend = the frontend const parameters
+# glidein  = glidein factory parameters
+#
+# Returns:
+#  The evaluated value
+def evalParamExpr(expr_obj,frontend,glidein):
+    return eval(expr_obj)
 
 #
 # Return a dictionary of collectors containing interesting classads

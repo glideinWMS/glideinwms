@@ -57,10 +57,7 @@ def iterate_one(elementDescript,paramsDescript):
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
 
 
-    # get the parameters
-    glidein_params=paramsDescript.const_data+paramsDescript.expr_data # obviously not right, but just a placeholder
-
-    status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
+    status_dict=glideinFrontendLib.getCondorStatus(paramsDescript.const_data['GLIDEIN_Collector'].split(','),1,[]) # in theory the collector could be an expression, but for now we require it to be a constant
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
@@ -114,7 +111,7 @@ def iterate_one(elementDescript,paramsDescript):
     glideinFrontendLib.log_files.logActivity("Match")
 
     for dt in condorq_dict_types.keys():
-        condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(match_str,condorq_dict_types[dt]['dict'],glidein_dict)
+        condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
 
     max_running=int(elementDescript.element_data['MaxRunning'])
@@ -179,6 +176,13 @@ def iterate_one(elementDescript,paramsDescript):
         glideinFrontendLib.log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i"%(glideid_str,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
         glideinFrontendLib.log_files.logActivity("Glideins for %s Total %s Idle %i Running %i"%(glideid_str,count_status['Total'],count_status['Idle'],count_status['Running']))
         glideinFrontendLib.log_files.logActivity("Advertize %s Request idle %i max_run %i"%(glideid_str,glidein_min_idle,glidein_max_run))
+
+        # get the parameters
+        glidein_params=copy.deepcopy(paramsDescript.const_data)
+        for k in paramsDescript.expr_data.keys():
+            kexpr=paramsDescript.expr_objs[k]
+            # convert kexpr -> kval
+            glidein_params[k]=glideinFrontendLib.evalParamExpr(kexpr,paramsDescript.const_data,glidein_el)
 
         try:
           glidein_monitors={}

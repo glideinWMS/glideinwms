@@ -106,11 +106,11 @@ class ParamsDescript(JoinConfigFile):
                                 lambda s:"('%s',%s)"%tuple(s.split(None,1))) # split the array
         self.const_data={}
         self.expr_data={} # original string
-        self.expr_obj={}  # compiled object
+        self.expr_objs={}  # compiled object
         for k in self.data.keys():
             type_str,val=self.data[k]
             if type_str=='EXPR':
-                self.expr_obj[k]=compile(val,"<string>","eval")
+                self.expr_objs[k]=compile(val,"<string>","eval")
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
