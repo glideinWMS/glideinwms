@@ -276,7 +276,7 @@ class VOFrontendParams(cWParams.CommonParams):
 # Use the class method instead
 #
 # return attribute value in the proper python format
-def extract_attr_val(self,attr_obj):
+def extract_attr_val(attr_obj):
     if (not attr_obj.type in ("string","int","expr")):
         raise RuntimeError, "Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type
     
