@@ -30,7 +30,7 @@ class SubParams:
     def __eq__(self,other):
         if other==None:
             return False
-        if not isinstance(other,SubParams):
+        if not isinstance(other,self.__class__):
             return False
         return self.data==other.data
 
@@ -137,12 +137,12 @@ class SubParams:
     def get_el(self,name):
         el=self.data[name]
         if isinstance(el,xmlParse.OrderedDict):
-            return SubParams(el)
+            return self.__class__(el)
         elif type(el)==type([]):
             outlst=[]
             for k in el:
                 if isinstance(k,xmlParse.OrderedDict):
-                    outlst.append(SubParams(k))
+                    outlst.append(self.__class__(k))
                 else:
                     outlst.append(k)
             return outlst
@@ -227,7 +227,7 @@ class Params:
             raise RuntimeError, "XML error parsing config file: %s"%e
         except IOError, e:
             raise RuntimeError, "Config file error: %s"%e
-        self.subparams=SubParams(self.data)
+        self.subparams=self.get_subparams_class()(self.data)
         return
 
     def __eq__(self,other):
@@ -285,6 +285,10 @@ class Params:
         if set_ro:
             os.chmod(fname,os.stat(fname)[0]&0444)
 
+    # used internally to define subtype class
+    def get_subparams_class(self):
+        return SubParams
+
 ######################################################
 # Ordered dictionary with comment support
 class commentedOrderedDict(xmlParse.OrderedDict):
@@ -294,8 +298,27 @@ class commentedOrderedDict(xmlParse.OrderedDict):
         xmlParse.UserDict.__init__(self, dict)
         self["comment"]=(None,"string","Humman comment, not used by the code",None)
 
+####################################################################
+# INTERNAL, don't use directly
+# Use the class definition instead
+#
+# return attribute value in the proper python format
+def extract_attr_val(attr_obj):
+    if (not attr_obj.type in ("string","int")):
+        raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
+
+    if attr_obj.type=="string":
+        return str(attr_obj.value)
+    else:
+        return int(attr_obj.value)
+
 ######################################################
 # Define common defaults
+class CommonSubParams(SubParams):
+    # return attribute value in the proper python format
+    def extract_attr_val(self,attr_obj):
+        return extract_attr_val(attr_obj)
+
 class CommonParams(Params):
     # populate self.defaults
     def init_support_defaults(self):
@@ -325,17 +348,12 @@ class CommonParams(Params):
         self.downtimes_defaults=commentedOrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
         return
 
+    def get_subparams_class(self):
+        return CommonSubParams
 
-    ####################################################################
     # return attribute value in the proper python format
     def extract_attr_val(self,attr_obj):
-        if (not attr_obj.type in ("string","int")):
-            raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
-
-        if attr_obj.type=="string":
-            return str(attr_obj.value)
-        else:
-            return int(attr_obj.value)
+        return extract_attr_val(attr_obj)
 
 ################################################
 # Check is a string can be used as a valid name

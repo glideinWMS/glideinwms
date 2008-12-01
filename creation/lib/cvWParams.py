@@ -21,6 +21,11 @@ import condorExe
 import cWParams
 
 
+class VOFrontendSubParams(cWParams.CommonSubParams):
+    # return attribute value in the proper python format
+    def extract_attr_val(self,attr_obj):
+        return extract_attr_val(attr_obj)
+
 ######################################################
 # Params used by create_glideins and recreate_glideins
 class VOFrontendParams(cWParams.CommonParams):
@@ -259,16 +264,23 @@ class VOFrontendParams(cWParams.CommonParams):
         return
 
 
-    ####################################################################
     # return attribute value in the proper python format
     def extract_attr_val(self,attr_obj):
-        if (not attr_obj.type in ("string","int","expr")):
-            raise RuntimeError, "Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type
+        return extract_attr_val(attr_obj)
 
-        if attr_obj.type in ("string","expr"):
-            return str(attr_obj.value)
-        else:
-            return int(attr_obj.value)
-
-
-
+    def get_subparams_class(self):
+        return VOFrontendSubParams
+    
+####################################################################
+# INTERNAL, do not use directly
+# Use the class method instead
+#
+# return attribute value in the proper python format
+def extract_attr_val(self,attr_obj):
+    if (not attr_obj.type in ("string","int","expr")):
+        raise RuntimeError, "Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type
+    
+    if attr_obj.type in ("string","expr"):
+        return str(attr_obj.value)
+    else:
+        return int(attr_obj.value)
