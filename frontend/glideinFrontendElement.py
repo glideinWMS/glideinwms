@@ -240,7 +240,7 @@ def iterate(elementDescript,paramsDescript):
 def main(parent_PID, work_dir, group_name):
     startup_time=time.time()
 
-    glideinFrontendLib.log_files=LogFiles(os.path.join(work_dir,"group_%s/log"%group_name))
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"group_%s/log"%group_name))
 
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)

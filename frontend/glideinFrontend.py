@@ -139,7 +139,6 @@ def main(work_dir):
     try:
         glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
         frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
-        frontendDescript.load_pub_key(recreate=True)
 
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
