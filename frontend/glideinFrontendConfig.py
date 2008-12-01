@@ -103,7 +103,7 @@ class ParamsDescript(JoinConfigFile):
     def __init__(self,base_dir,group_name):
         global frontendConfig
         JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.params_descript_file,
-                                lambda s:"('%s',%s)"%s.split(None,1)) # split the array
+                                lambda s:"('%s',%s)"%tuple(s.split(None,1))) # split the array
         self.const_data={}
         self.expr_data={}
         for k in self.data.keys():
