@@ -39,11 +39,14 @@ def iterate_one_old(frontend_name,factory_pool,factory_constraint,
                     glidein_params):
     pass
 
-def iterate_one(elementDescript,paramsDescript):
+def iterate_one(client_name,elementDescript,paramsDescript):
     if elementDescript.frontend_data.has_key('X509Proxy'):
         x509_proxy=elementDescript.frontend_data['X509Proxy']
     else:
         x509_proxy=None
+
+    frontend_name=elementDescript.frontend_data['FrontendName']
+    group_name=elementDescript.element_data['GroupName']
 
     # query condor
     glidein_dict={}
@@ -205,20 +208,25 @@ def iterate_one(elementDescript,paramsDescript):
 
 ############################################################
 def iterate(elementDescript,paramsDescript):
-    if x509_proxy==None:
-        published_frontend_name='%s.%s'%(frontend_name,group_name)
-    else:
-        # if using a VO proxy, label it as such
-        # this way we don't risk of using the wrong proxy on the other side
-        # if/when we decide to stop using the proxy
-        published_frontend_name='%s.XPVO_%s'%(frontend_name,group_name)
+    frontend_name=elementDescript.frontend_data['FrontendName']
+    group_name=elementDescript.element_data['GroupName']
+    published_frontend_name='%s.%s'%(frontend_name,group_name)
+
+    # may want to re-enable it
+    #if not elementDescript.frontend_data.has_key('X509Proxy'):
+    #    published_frontend_name='%s.%s'%(frontend_name,group_name)
+    #else:
+    #    # if using a VO proxy, label it as such
+    #    # this way we don't risk of using the wrong proxy on the other side
+    #    # if/when we decide to stop using the proxy
+    #    published_frontend_name='%s.XPVO_%s'%(frontend_name,group_name)
 
     try:
         is_first=1
         while 1: # will exit by exception
             glideinFrontendLib.log_files.logActivity("Iteration at %s" % time.ctime())
             try:
-                done_something=iterate_one(elementDescript,paramsDescript)
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript)
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
