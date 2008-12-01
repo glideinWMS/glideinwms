@@ -142,7 +142,7 @@ class ElementMergedDescription:
         self.merged_data={}
 
         for t in ('FactoryCollectors','JobSchedds'):
-            self.merged_data[t]=string.split(self.frontend_data[t],',')+string.split(self.element_data[t],',')
+            self.merged_data[t]=self.split_list(self.frontend_data[t])+self.split_list(self.element_data[t])
             if len(self.merged_data[t])==0:
                 raise RuntimeError,"Found empty %s!"%t
         for t in ('FactoryQueryExpr','JobQueryExpr'):
@@ -162,4 +162,9 @@ class ElementMergedDescription:
 
         return
 
+    def split_list(self,val):
+        if val=='None':
+            return []
+        else:
+            return string.split(val,',')
         
