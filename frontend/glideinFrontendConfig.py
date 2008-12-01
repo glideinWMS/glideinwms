@@ -105,10 +105,12 @@ class ParamsDescript(JoinConfigFile):
         JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.params_descript_file,
                                 lambda s:"('%s',%s)"%tuple(s.split(None,1))) # split the array
         self.const_data={}
-        self.expr_data={}
+        self.expr_data={} # original string
+        self.expr_obj={}  # compiled object
         for k in self.data.keys():
             type_str,val=self.data[k]
             if type_str=='EXPR':
+                self.expr_obj[k]=compile(val,"<string>","eval")
                 self.expr_data[k]=val
             elif type_str=='CONST':
                 self.const_data[k]=val
@@ -126,8 +128,8 @@ class ParamsDescript(JoinConfigFile):
 class ElementMergedDescription:
     def __init__(self,base_dir,group_name):
         self.frontend_data=FrontendDescript(base_dir).data
-        if not (group_name in string.split(frontend_data['Groups'],',')):
-            raise RuntimeError, "Group '%s' not supported: %s"%(group_name,frontend_data['Groups'])
+        if not (group_name in string.split(self.frontend_data['Groups'],',')):
+            raise RuntimeError, "Group '%s' not supported: %s"%(group_name,self.frontend_data['Groups'])
         
         self.element_data=ElementDescript(base_dir,group_name).data
         self.group_name=group_name
@@ -140,22 +142,22 @@ class ElementMergedDescription:
         self.merged_data={}
 
         for t in ('FactoryCollectors','JobSchedds'):
-            self.merged_data[t]=string.split(frontend_data[t],',')+string.split(element_data[t],',')
+            self.merged_data[t]=string.split(self.frontend_data[t],',')+string.split(self.element_data[t],',')
             if len(self.merged_data[t]):
                 raise RuntimeError,"Found empty %s!"%t
         for t in ('FactoryQueryExpr','JobQueryExpr'):
-            self.merged_data[t]="(%s) && (%s)"%(frontend_data[t],element_data[t])
+            self.merged_data[t]="(%s) && (%s)"%(self.frontend_data[t],self.element_data[t])
         for t in ('FactoryMatchAttrs','JobMatchAttrs'):
             attributes=[]
             names=[]
-            for el in eval(frontend_data[t])+eval(element_data[t]):
+            for el in eval(self.frontend_data[t])+eval(self.element_data[t]):
                 el_name=el[0]
                 if not (el_name in names):
                     attributes.append(el)
                     names.append(el_name)
             self.merged_data[t]=attributes
         for t in ('MatchExpr',):
-            self.merged_data[t]="(%s) and (%s)"%(frontend_data[t],element_data[t])
+            self.merged_data[t]="(%s) and (%s)"%(self.frontend_data[t],self.element_data[t])
             self.merged_data[t+'CompiledObj']=compile(self.merged_data[t],"<string>","eval")
 
         return
