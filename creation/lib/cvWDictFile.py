@@ -34,7 +34,7 @@ class ParamsDictFile(cWDictFile.DictFile):
 
     def add_extended(self,key,
                      is_expression,
-                     val):
+                     val,
                      allow_overwrite=0):
         if is_expresstion:
             type_str='EXPR'
