@@ -271,10 +271,7 @@ def add_attr_unparsed_real(attr_name,attr_obj,dicts):
     attr_val=cWParams.extract_attr_val(attr_obj)
     
     if is_parameter:
-        if is_expr:
-            dicts['exprs'].add(attr_name,attr_val)
-        else:
-            dicts['params'].add(attr_name,attr_val)
+        dicts['params'].add_extended(attr_name,is_expr,attr_val)
     else:
         if is_expr:
             RuntimeError, "Expression '%s' is not a parameter!"%attr_name

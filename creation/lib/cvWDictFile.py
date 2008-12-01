@@ -10,6 +10,58 @@ import cvWConsts,cWConsts
 import cWDictFile
 
 
+class ParamsDictFile(cWDictFile.DictFile):
+    def is_compatible(self,old_val,new_val):
+        return ((old_val[0]==new_val[0]) and (old_val[4]==new_val[4]))# at least the type and the export must be preserved
+    
+    def file_header(self,want_comments):
+        if want_comments:
+            return (cWDictFile.DictFile.file_header(self,want_comments)+"\n"+
+                    "# Param \tType \tValue                           \n"+
+                    "#################################################")
+        else:
+            return None
+
+    def add(self,key,val,allow_overwrite=0):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=2:
+            raise RuntimeError, "Values '%s' not (Type,Val)"%str(val)
+        if not (val[0] in ('EXPR','CONST')):
+            raise RuntimeError,"Invalid var type '%s', should be either EXPR or CONST val: %s"%(val[0],str(val))
+
+        return cWDictFile.DictFile.add(self,key,val,allow_overwrite)
+
+    def add_extended(self,key,
+                     is_expression,
+                     val):
+                     allow_overwrite=0):
+        if is_expresstion:
+            type_str='EXPR'
+        else:
+            type_str='CONST'
+            
+        self.add(key,(type_str,val),allow_overwrite)
+        
+    def format_val(self,key,want_comments):
+        return "%s \t%s \t%s"%(key,self.vals[key][0],repr(self.vals[key][1]))
+        
+
+    def parse_val(self,line):
+        if len(line)==0:
+            return #ignore empty lines
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,2)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=3:
+            raise RuntimeError,"Not a valid var line (expected 3, found %i elements): '%s'"%(len(arr),line)
+
+        key=arr[0]
+        return self.add(key,(arr[1],eval(arr[2])))
+
+
 ################################################
 #
 # Functions that create default dictionaries
@@ -20,8 +72,7 @@ import cWDictFile
 def get_common_dicts(work_dir,stage_dir):
     common_dicts={'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
                   'consts':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
-                  'params':cWDictFile.ReprDictFile(work_dir,cvWConsts.PARAMS_FILE),
-                  'exprs':cWDictFile.ReprDictFile(work_dir,cvWConsts.EXPRS_FILE),
+                  'params':ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE),
                   'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
@@ -55,7 +106,6 @@ def load_common_dicts(dicts,           # update in place
                       description_el):
     # first work dir ones (mutable)
     dicts['params'].load()
-    dicts['exprs'].load()
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
@@ -155,7 +205,6 @@ def save_common_dicts(dicts,     # will update in place, too
 
     #finally save the mutable one(s)
     dicts['params'].save(set_readonly=set_readonly)
-    dicts['exprs'].save(set_readonly=set_readonly)
 
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
@@ -215,7 +264,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             dicts[k].set_readonly(True)
             
     # check the mutable ones
-    for k in ('exprs','params'):
+    for k in ('params',):
         reuse_simple_dict(dicts,other_dicts,k)
 
     return all_reused
