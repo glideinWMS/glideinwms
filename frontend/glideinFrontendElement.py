@@ -38,7 +38,7 @@ def iterate_one_old(frontend_name,factory_pool,factory_constraint,
                     glidein_params):
     pass
 
-def iterate_one(elementDescript,paramsDescript,exprsDescript):
+def iterate_one(elementDescript,paramsDescript):
     if elementDescript.frontend_data.has_key('X509Proxy'):
         x509_proxy=elementDescript.frontend_data['X509Proxy']
     else:
@@ -58,7 +58,7 @@ def iterate_one(elementDescript,paramsDescript,exprsDescript):
 
 
     # get the parameters
-    glidein_params=paramsDescript.data+exprsDescript.data # obviously not right, but just a placeholder
+    glidein_params=paramsDescript.const_data+paramsDescript.expr_data # obviously not right, but just a placeholder
 
     status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
 
@@ -199,7 +199,7 @@ def iterate_one(elementDescript,paramsDescript,exprsDescript):
     return
 
 ############################################################
-def iterate(elementDescript,paramsDescript,exprsDescript):
+def iterate(elementDescript,paramsDescript):
     if x509_proxy==None:
         published_frontend_name='%s.%s'%(frontend_name,group_name)
     else:
@@ -213,7 +213,7 @@ def iterate(elementDescript,paramsDescript,exprsDescript):
         while 1: # will exit by exception
             glideinFrontendLib.log_files.logActivity("Iteration at %s" % time.ctime())
             try:
-                done_something=iterate_one(elementDescript,paramsDescript,exprsDescript)
+                done_something=iterate_one(elementDescript,paramsDescript)
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
@@ -240,7 +240,6 @@ def main(parent_PID, work_dir, group_name):
 
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
-    exprsDescript=glideinFrontendConfig.ExprsDescript(work_dir,group_name)
 
     # create lock file
     pid_obj=glideinFrontendPidLib.ElementPidSupport(work_dir,group_name)
@@ -249,7 +248,7 @@ def main(parent_PID, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(elementDescript,paramsDescript,exprsDescript)
+            iterate(elementDescript,paramsDescript)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
