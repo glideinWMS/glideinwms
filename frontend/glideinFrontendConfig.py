@@ -14,8 +14,7 @@ class FrontendConfig:
 
         self.frontend_descript_file = "frontend.descript"
         self.group_descript_file = "group.descript"
-        self.params_descript_file = "params_const.cfg"
-        self.exprs_descript_file = "params_expr.cfg"
+        self.params_descript_file = "params.cfg"
 
 # global configuration of the module
 frontendConfig=FrontendConfig()
@@ -104,14 +103,17 @@ class ParamsDescript(JoinConfigFile):
     def __init__(self,base_dir,group_name):
         global frontendConfig
         JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.params_descript_file,
-                                lambda s:s) # values are in python format
-
-class ExprsDescript(JoinConfigFile):
-    def __init__(self,base_dir,group_name):
-        global frontendConfig
-        JoinConfigFile.__init__(self,base_dir,group_name,frontendConfig.exprs_descript_file,
-                                lambda s:s) # values are in python format
-
+                                lambda s:"('%s',%s)"%s.split(None,1)) # split the array
+        self.const_data={}
+        self.expr_data={}
+        for k in self.data.keys():
+            type_str,val=self.data[k]
+            if type_str=='EXPR':
+                self.expr_data[k]=val
+            elif type_str=='CONST':
+                self.const_data[k]=val
+            else:
+                raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str,k)
 
 ############################################################
 #
