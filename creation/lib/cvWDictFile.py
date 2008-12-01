@@ -36,7 +36,7 @@ class ParamsDictFile(cWDictFile.DictFile):
                      is_expression,
                      val,
                      allow_overwrite=0):
-        if is_expresstion:
+        if is_expression:
             type_str='EXPR'
         else:
             type_str='CONST'
