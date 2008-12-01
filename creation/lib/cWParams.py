@@ -326,16 +326,16 @@ class CommonParams(Params):
         return
 
 
-####################################################################
-# return attribute value in the proper python format
-def extract_attr_val(attr_obj):
-    if (not attr_obj.type in ("string","int")):
-        raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
+    ####################################################################
+    # return attribute value in the proper python format
+    def extract_attr_val(self,attr_obj):
+        if (not attr_obj.type in ("string","int")):
+            raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
 
-    if attr_obj.type=="string":
-        return str(attr_obj.value)
-    else:
-        return int(attr_obj.value)
+        if attr_obj.type=="string":
+            return str(attr_obj.value)
+        else:
+            return int(attr_obj.value)
 
 ################################################
 # Check is a string can be used as a valid name
