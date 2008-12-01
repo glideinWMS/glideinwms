@@ -33,7 +33,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.file_defaults["after_entry"]=("True",'Bool','Should this file be loaded after the factory entry ones?',None)
 
         # publishing specific to frontend
-        self.attr_defaults["expression"]=("False","Bool","Is this a python expression (and not a simple value)?",None)
+        self.attr_defaults["type"]=["string","string|int|expr","What kind on data is value. (if expr, a python expression with access to frontend and glidein dictionaries)",None]
 
         group_config_defaults=cWParams.commentedOrderedDict()
         group_config_defaults['max_running_jobs']=('10000',"nr_jobs","What is the max number of running jobs I want to get to",None)
@@ -68,7 +68,7 @@ class VOFrontendParams(cWParams.CommonParams):
         match_defaults=cWParams.commentedOrderedDict()
         match_defaults["factory"]=factory_match_defaults
         match_defaults["job"]=job_match_defaults
-        match_defaults["match_expr"]=('True','PythonExpr', 'Expression for matching jobs to factory entries',None)
+        match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
 
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
@@ -259,10 +259,16 @@ class VOFrontendParams(cWParams.CommonParams):
         return
 
 
-############################################################
-#
-# P R I V A T E - Do not use
-# 
-############################################################
+    ####################################################################
+    # return attribute value in the proper python format
+    def extract_attr_val(self,attr_obj):
+        if (not attr_obj.type in ("string","int","expr")):
+            raise RuntimeError, "Wrong attribute type '%s', must be either 'int', 'string' or 'expr'"%attr_obj.type
+
+        if attr_obj.type in ("string","expr"):
+            return str(attr_obj.value)
+        else:
+            return int(attr_obj.value)
+
 
 

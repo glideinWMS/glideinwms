@@ -50,7 +50,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # put user attributes into config files
         for attr_name in params.attrs.keys():
-            add_attr_unparsed(attr_name, params.attrs[attr_name],self.dicts,"main")
+            add_attr_unparsed(attr_name, params,self.dicts,"main")
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
             self.dicts['preentry_file_list'].remove(cWConsts.GRIDMAP_FILE)
@@ -106,7 +106,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # put user attributes into config files
         for attr_name in sub_params.attrs.keys():
-            add_attr_unparsed(attr_name, sub_params.attrs[attr_name],self.dicts,self.sub_name)
+            add_attr_unparsed(attr_name, sub_params,self.dicts,self.sub_name)
 
         # populate complex files
         populate_group_descript(self.work_dir,self.dicts['group_descript'],
@@ -256,19 +256,21 @@ def add_file_unparsed(file,dicts):
 #######################
 # Register an attribute
 # attr_obj as described by Params.attr_defaults
-def add_attr_unparsed(attr_name,attr_obj,dicts,description):
+def add_attr_unparsed(attr_name,params,dicts,description):
     try:
-        add_attr_unparsed_real(attr_name,attr_obj,dicts)
+        add_attr_unparsed_real(attr_name,params,dicts)
     except RuntimeError,e:
         raise RuntimeError, "Error parsing attr %s[%s]: %s"%(description,attr_name,str(e))
 
-def add_attr_unparsed_real(attr_name,attr_obj,dicts):
+def add_attr_unparsed_real(attr_name,params,dicts):
+    attr_obj=params.attrs[attr_name]
+    
     if attr_obj.value==None:
         raise RuntimeError, "Attribute '%s' does not have a value: %s"%(attr_name,attr_obj)
-    
+
     is_parameter=eval(attr_obj.parameter,{},{})
-    is_expr=eval(attr_obj.expression,{},{})
-    attr_val=cWParams.extract_attr_val(attr_obj)
+    is_expr=(attr_obj.type=="expr")
+    attr_val=params.extract_attr_val(attr_obj)
     
     if is_parameter:
         dicts['params'].add_extended(attr_name,is_expr,attr_val)
