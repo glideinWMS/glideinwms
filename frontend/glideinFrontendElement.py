@@ -238,7 +238,7 @@ def iterate(elementDescript,paramsDescript):
         glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
 
 ############################################################
-def main(parent_PID, work_dir, group_name):
+def main(parent_pid, work_dir, group_name):
     startup_time=time.time()
 
     glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"group_%s/log"%group_name))

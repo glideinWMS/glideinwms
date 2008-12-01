@@ -125,7 +125,7 @@ class ParamsDescript(JoinConfigFile):
 
 # not everything is merged
 # the old element can still be accessed
-class ElementMergedDescription:
+class ElementMergedDescript:
     def __init__(self,base_dir,group_name):
         self.frontend_data=FrontendDescript(base_dir).data
         if not (group_name in string.split(self.frontend_data['Groups'],',')):
