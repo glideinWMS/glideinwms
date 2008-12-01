@@ -29,23 +29,23 @@ sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendLib
-import glideinFrontendMonitorAggregator
+#import glideinFrontendMonitorAggregator
 import logSupport
 
 # this thread will be used for lazy updates of rrd history conversions
 rrd_thread=None
 
 def create_history_thread():
-    glideinFrontendMonitorAggregator.create_status_history()
-    glideinFrontendMonitorAggregator.create_log_history()
+    #glideinFrontendMonitorAggregator.create_status_history()
+    #glideinFrontendMonitorAggregator.create_log_history()
     return
 
 ############################################################
 def aggregate_stats():
     global rrd_thread
     
-    status=glideinFrontendMonitorAggregator.aggregateStatus()
-    status=glideinFrontendMonitorAggregator.aggregateLogSummary()
+    #status=glideinFrontendMonitorAggregator.aggregateStatus()
+    #status=glideinFrontendMonitorAggregator.aggregateLogSummary()
 
     # keep just one thread per monitoring type running at any given time
     # if the old one is still running, do nothing (lazy)
@@ -131,7 +131,7 @@ def main(work_dir):
     startup_time=time.time()
 
     # disable locking... else I can get in deadlock with groups
-    glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.lock_dir=None
+    #glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.lock_dir=None
 
     # create log files in the glidein log directory
     glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"log"))
@@ -143,12 +143,12 @@ def main(work_dir):
 
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
-        glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.wanted_graphs=string.split(frontendDescript.data['FrontendWantedMonitorGraphs'],',')
+        #glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.wanted_graphs=string.split(frontendDescript.data['FrontendWantedMonitorGraphs'],',')
         
         groups=string.split(frontendDescript.data['Groups'],',')
         groups.sort()
 
-        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups)
+        #glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups)
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
