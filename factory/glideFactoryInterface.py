@@ -43,6 +43,9 @@ class FactoryConfig:
         # String to prefix for the requests
         self.client_req_prefix = "Req"
 
+        # String to prefix for the web passing
+        self.client_web_prefix = "Web"
+
 
 
 # global configuration of the module
@@ -99,6 +102,7 @@ def findWork(factory_name,glidein_name,entry_name,
         kel=data[k]
         el={"requests":{},"params":{},"params_decrypted":{},"monitor":{},"internals":{}}
         for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
+                             ("web",factoryConfig.client_web_prefix),
                              ("params",factoryConfig.glidein_param_prefix),
                              ("monitor",factoryConfig.glidein_monitor_prefix)):
             plen=len(prefix)
