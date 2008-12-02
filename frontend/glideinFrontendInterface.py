@@ -195,10 +195,10 @@ def advertizeWork(factory_pool,
 
             fd.write('WebURL = "%s"\n'%web_url)
             fd.write('WebSignType = "%s"\n'%signtype)
-            fd.write('FrontendDescriptFile = "%s"\n'%main_descript)
-            fd.write('FrontendDescriptSign = "%s"\n'%main_sign)
-            fd.write('GroupDescriptFile = "%s"\n'%group_descript)
-            fd.write('GroupDescriptSign = "%s"\n'%group_sign)
+            fd.write('WebDescriptFile = "%s"\n'%main_descript)
+            fd.write('WebDescriptSign = "%s"\n'%main_sign)
+            fd.write('WebGroupDescriptFile = "%s"\n'%group_descript)
+            fd.write('WebGroupDescriptSign = "%s"\n'%group_sign)
 
             encrypted_params={} # none by default
             if (factory_pub_key_id!=None) and (factory_pub_key!=None):
