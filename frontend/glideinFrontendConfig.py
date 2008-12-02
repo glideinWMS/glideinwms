@@ -137,7 +137,7 @@ class SignatureDescript:
                     continue # empty line
                 larr=string.split(line,None)
                 if len(larr)!=3:
-                    raise RuntimeError, "Invalid line (expected 3 elements, found %i)"$len(larr)
+                    raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
                 self.data[larr[2][:-1]]=(larr[0],larr[1])
         finally:
             fd.close()
