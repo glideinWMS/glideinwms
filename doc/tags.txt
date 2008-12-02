@@ -1,4 +1,9 @@
-vNext	The XML file now supports comments.
+vNext	Refactoring creation libs;
+	  create_frontend and create_glidein now share much code
+	Added create_frontend, recreate_frontend.
+	Frondend now has a stage web area and passes it to the factory
+
+v1_6+	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
 	Frontend now requires integrity checks when talking to
 	  the WMS collector.
