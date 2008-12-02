@@ -28,7 +28,7 @@ def get_element_pids(work_dir,frontend_pid):
             element_pid,element_ppid=glideinFrontendPidLib.get_element_pid(work_dir,group)
         except RuntimeError,e:
             print e
-            continue # report error and fgo to next group
+            continue # report error and go to next group
         if element_ppid!=frontend_pid:
             print "Group '%s' has an unexpected Parent PID: %s!=%s"%(group,element_ppid,frontend_pid)
             continue # report error and go to next group
