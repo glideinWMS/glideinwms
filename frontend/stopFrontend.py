@@ -18,9 +18,8 @@ import glideinFrontendConfig
 # this one should  never throw an exeption
 def get_element_pids(work_dir,frontend_pid):
     # get element pids
-    glideinFrontendConfig.frontendConfig.glidein_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.glidein_descript_file)
-    glideinDescript=glideinFrontendConfig.GlideinDescript()
-    groups=string.split(glideinDescript.data['Groups'],',')
+    frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
+    groups=string.split(frontendDescript.data['Groups'],',')
     groups.sort()
 
     element_pids={}
