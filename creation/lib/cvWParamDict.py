@@ -354,7 +354,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
 
     group_descript_dict.add('GroupName',sub_name)
     group_descript_dict.add('DowntimesFile',down_fname)
-    group_descript_dict.add('MaxRunning',sub_params.config.max_running_jobs)
+    group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
+    group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
     group_descript_dict.add('MaxIdlePerEntry',sub_params.config.idle_glideins_per_entry.max)
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)

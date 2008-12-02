@@ -41,16 +41,20 @@ class VOFrontendParams(cWParams.CommonParams):
         self.attr_defaults["type"]=["string","string|int|expr","What kind on data is value. (if expr, a python expression with access to frontend and glidein dictionaries)",None]
 
         group_config_defaults=cWParams.commentedOrderedDict()
-        group_config_defaults['max_running_jobs']=('10000',"nr_jobs","What is the max number of running jobs I want to get to",None)
         
-        group_config_glideins_defaults=cWParams.commentedOrderedDict()
-        group_config_glideins_defaults["max"]=['100',"nr_jobs","How much pressure should I apply to the entry points",None]
-        group_config_glideins_defaults["reserve"]=['5',"nr_jobs","How much to overcommit.",None]
-        group_config_defaults['idle_glideins_per_entry']=group_config_glideins_defaults
+        group_config_running_defaults=cWParams.commentedOrderedDict()
+        group_config_running_defaults["max"]=['10000',"nr_jobs","What is the max number of running glideins I want to get to",None]
+        group_config_running_defaults["relative_to_queue"]=['1.05',"fraction","Max relative to number of matching jobs in the queue.",None]
+        group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
+
+        group_config_idle_defaults=cWParams.commentedOrderedDict()
+        group_config_idle_defaults["max"]=['100',"nr_jobs","How much pressure should I apply to the entry points",None]
+        group_config_idle_defaults["reserve"]=['5',"nr_jobs","How much to overcommit.",None]
+        group_config_defaults['idle_glideins_per_entry']=group_config_idle_defaults
 
         group_config_vms_defaults=cWParams.commentedOrderedDict()
         group_config_vms_defaults["max"]=['100',"nr_jobs","How many idle VMs should I tollerate, before stopping submitting glideins",None]
-        group_config_vms_defaults["curb"]=['5',"nr_jobs","When to start curbing submissions.",None]
+        group_config_vms_defaults["curb"]=['5',"nr_jobs","How many idle VMs should I tollerate, before starting to curb submissions.",None]
         group_config_defaults['idle_vms_per_entry']=group_config_vms_defaults
 
         # not exported and order does not matter, can stay a regular dictionary
