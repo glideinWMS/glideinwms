@@ -119,7 +119,8 @@ def iterate_one(client_name,elementDescript,paramsDescript):
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
 
-    max_running=int(elementDescript.element_data['MaxRunning'])
+    max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
+    fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
     max_idle=int(elementDescript.element_data['MaxIdlePerEntry'])
     reserve_idle=int(elementDescript.element_data['ReserveIdlePerEntry'])
     max_vms_idle=int(elementDescript.element_data['MaxIdleVMsPerEntry'])
@@ -176,8 +177,8 @@ def iterate_one(client_name,elementDescript,paramsDescript):
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
-        # we don't need more slots than number of jobs in the queue (modulo reserve)
-        glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*(0.99+reserve_running_fraction)+1)
+        # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
+        glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
         glideinFrontendLib.log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i"%(glideid_str,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
         glideinFrontendLib.log_files.logActivity("Glideins for %s Total %s Idle %i Running %i"%(glideid_str,count_status['Total'],count_status['Idle'],count_status['Running']))
         glideinFrontendLib.log_files.logActivity("Advertize %s Request idle %i max_run %i"%(glideid_str,glidein_min_idle,glidein_max_run))
