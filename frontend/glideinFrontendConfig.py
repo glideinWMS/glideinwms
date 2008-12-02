@@ -197,6 +197,8 @@ class ElementMergedDescript:
         
 class GroupSignatureDescript:
     def __init__(self,base_dir,group_name):
+        self.group_name=group_name
+        
         sd=SignatureDescript(base_dir)
         self.signature_data=sd.data
         self.signature_type=sd.signature_type
