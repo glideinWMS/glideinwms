@@ -247,7 +247,10 @@ def iterate(elementDescript,paramsDescript):
     finally:
         glideinFrontendLib.log_files.logActivity("Deadvertize my ads")
         for factory_pool in factory_pools:
-            glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
+            try:
+                glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
+            except:
+                pass # just ignore errors... this was cleanup
 
 ############################################################
 def main(parent_pid, work_dir, group_name):
