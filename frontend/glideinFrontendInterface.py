@@ -168,8 +168,10 @@ def findGlideinClientMonitoring(factory_pool,client_name,
 # similar for glidein_monitors
 def advertizeWork(factory_pool,
                   client_name,frontend_name,group_name,
-                  request_name,
-                  glidein_name,min_nr_glideins,max_run_glideins,
+                  request_name,glidein_name,
+                  web_url, main_descript, group_descript,
+                  signtype, main_sign, group_sign,
+                  min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
                   factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
                   glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
@@ -186,10 +188,17 @@ def advertizeWork(factory_pool,
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
             fd.write('Name = "%s@%s"\n'%(request_name,client_name))
             fd.write('ClientName = "%s"\n'%client_name)
-            fd.write('FrontendName = "%s"\n'%frontend_name) # non standard, but descriptive
-            fd.write('FrontGroupName = "%s"\n'%group_name)  # non standard, but descriptive
+            fd.write('FrontendName = "%s"\n'%frontend_name) # non used by factory, but descriptive
+            fd.write('GroupName = "%s"\n'%group_name)  # non used by factory, but descriptive
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
+
+            fd.write('WebURL = "%s"\n'%web_url)
+            fd.write('WebSignType = "%s"\n'%signtype)
+            fd.write('FrontendDescriptFile = "%s"\n'%main_descript)
+            fd.write('FrontendDescriptSign = "%s"\n'%main_sign)
+            fd.write('GroupDescriptFile = "%s"\n'%group_descript)
+            fd.write('GroupDescriptSign = "%s"\n'%group_sign)
 
             encrypted_params={} # none by default
             if (factory_pub_key_id!=None) and (factory_pub_key!=None):

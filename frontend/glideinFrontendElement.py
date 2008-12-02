@@ -36,7 +36,7 @@ def iterate_one_old(frontend_name,factory_pool,factory_constraint,
                     glidein_params):
     pass
 
-def iterate_one(client_name,elementDescript,paramsDescript):
+def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
     if elementDescript.frontend_data.has_key('X509Proxy'):
         x509_proxy=elementDescript.frontend_data['X509Proxy']
     else:
@@ -44,6 +44,8 @@ def iterate_one(client_name,elementDescript,paramsDescript):
 
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
+
+    web_url=elementDescript.frontend_data['WebURL']
 
     # query condor
     glidein_dict={}
@@ -194,19 +196,27 @@ def iterate_one(client_name,elementDescript,paramsDescript):
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
           if x509_proxy!=None:
-              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
+                                                     web_url,
+                                                     signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                     signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                     glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
                                                      glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
                                                      None, # should reuse it, but none will work for now
                                                      {'x509_proxy':x509_data})
           else:
-              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
+              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
+                                                     web_url,
+                                                     signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                     signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                     glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except:
           glideinFrontendLib.log_files.logWarning("Advertize %s failed"%glideid_str)
 
     return
 
 ############################################################
-def iterate(elementDescript,paramsDescript):
+def iterate(elementDescript,paramsDescript,signatureDescript):
     sleep_time=int(elementDescript.frontend_data['LoopDelay'])
     
     factory_pools=elementDescript.merged_data['FactoryCollectors']
@@ -227,7 +237,7 @@ def iterate(elementDescript,paramsDescript):
         while 1: # will exit by exception
             glideinFrontendLib.log_files.logActivity("Iteration at %s" % time.ctime())
             try:
-                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript)
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript)
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
@@ -258,6 +268,7 @@ def main(parent_pid, work_dir, group_name):
 
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
+    signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
 
     # create lock file
     pid_obj=glideinFrontendPidLib.ElementPidSupport(work_dir,group_name)
@@ -266,7 +277,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(elementDescript,paramsDescript)
+            iterate(elementDescript,paramsDescript,signatureDescript)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
