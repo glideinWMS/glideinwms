@@ -16,6 +16,7 @@ class FrontendConfig:
         self.group_descript_file = "group.descript"
         self.params_descript_file = "params.cfg"
         self.signature_descript_file = "signatures.sha1"
+        self.signature_type = "sha1"
 
 # global configuration of the module
 frontendConfig=FrontendConfig()
@@ -124,6 +125,7 @@ class SignatureDescript:
         self.config_dir=config_dir
         self.config_file=frontendConfig.signature_descript_file
         self.load(os.path.join(self.config_dir,self.config_file))
+        self.signature_type=frontendConfig.signature_type
 
     def load(self,fname):
         self.data={}
@@ -138,13 +140,13 @@ class SignatureDescript:
                 larr=string.split(line,None)
                 if len(larr)!=3:
                     raise RuntimeError, "Invalid line (expected 3 elements, found %i)"%len(larr)
-                self.data[larr[2][:-1]]=(larr[0],larr[1])
+                self.data[larr[2]]=(larr[0],larr[1])
         finally:
             fd.close()
 
 ############################################################
 #
-# Merged configuration
+# Processed configuration
 #
 ############################################################
 
@@ -193,3 +195,17 @@ class ElementMergedDescript:
         else:
             return string.split(val,',')
         
+class GroupSignatureDescript:
+    def __init__(self,base_dir,group_name):
+        sd=SignatureDescript(base_dir)
+        self.signature_data=sd.data
+        self.signature_type=sd.signature_type
+
+        fd=sd.data['main']
+        self.frontend_descript_fname=fd[1]
+        self.frontend_descript_signature=fd[0]
+
+        gd=sd.data['group_%s'%group_name]
+        self.group_descript_fname=gd[1]
+        self.group_descript_signature=gd[0]
+
