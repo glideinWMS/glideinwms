@@ -209,6 +209,8 @@ def iterate_one(client_name,elementDescript,paramsDescript):
 
 ############################################################
 def iterate(elementDescript,paramsDescript):
+    sleep_time=int(elementDescript.frontend_data['LoopDelay'])
+    
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
     published_frontend_name='%s.%s'%(frontend_name,group_name)
