@@ -13,13 +13,10 @@
 #
 
 import signal
-import os
-import os.path
-import sys
+import sys,os,os.path,copy
 import fcntl
 import traceback
-import time
-import string
+import time,string
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import symCrypto,pubCrypto
