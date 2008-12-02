@@ -10,7 +10,8 @@
 #   Igor Sfiligoi Jul 17th 2008
 #
 
-import sys
+import sys,os.path
+sys.path.append(os.path.join(sys.path[0],"../lib"))
 import glideinFrontendPidLib
 
 config_dict={}
