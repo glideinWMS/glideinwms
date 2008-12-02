@@ -212,6 +212,8 @@ def iterate(elementDescript,paramsDescript):
     group_name=elementDescript.element_data['GroupName']
     published_frontend_name='%s.%s'%(frontend_name,group_name)
 
+    factory_pools=elementDescript.merged_data['FactoryCollectors']
+
     # may want to re-enable it
     #if not elementDescript.frontend_data.has_key('X509Proxy'):
     #    published_frontend_name='%s.%s'%(frontend_name,group_name)
@@ -243,7 +245,8 @@ def iterate(elementDescript,paramsDescript):
             time.sleep(sleep_time)
     finally:
         glideinFrontendLib.log_files.logActivity("Deadvertize my ads")
-        glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
+        for factory_pool in factory_pools:
+            glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
 
 ############################################################
 def main(parent_pid, work_dir, group_name):
