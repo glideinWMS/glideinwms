@@ -209,20 +209,18 @@ def iterate_one(client_name,elementDescript,paramsDescript):
 def iterate(elementDescript,paramsDescript):
     sleep_time=int(elementDescript.frontend_data['LoopDelay'])
     
-    frontend_name=elementDescript.frontend_data['FrontendName']
-    group_name=elementDescript.element_data['GroupName']
-    published_frontend_name='%s.%s'%(frontend_name,group_name)
-
     factory_pools=elementDescript.merged_data['FactoryCollectors']
 
-    # may want to re-enable it
-    #if not elementDescript.frontend_data.has_key('X509Proxy'):
-    #    published_frontend_name='%s.%s'%(frontend_name,group_name)
-    #else:
-    #    # if using a VO proxy, label it as such
-    #    # this way we don't risk of using the wrong proxy on the other side
-    #    # if/when we decide to stop using the proxy
-    #    published_frontend_name='%s.XPVO_%s'%(frontend_name,group_name)
+    frontend_name=elementDescript.frontend_data['FrontendName']
+    group_name=elementDescript.element_data['GroupName']
+
+    if not elementDescript.frontend_data.has_key('X509Proxy'):
+        published_frontend_name='%s.%s'%(frontend_name,group_name)
+    else:
+        # if using a VO proxy, label it as such
+        # this way we don't risk of using the wrong proxy on the other side
+        # if/when we decide to stop using the proxy
+        published_frontend_name='%s.XPVO_%s'%(frontend_name,group_name)
 
     try:
         is_first=1
