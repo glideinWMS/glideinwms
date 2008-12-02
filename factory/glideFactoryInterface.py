@@ -100,7 +100,7 @@ def findWork(factory_name,glidein_name,entry_name,
     # copy over requests and parameters
     for k in data.keys():
         kel=data[k]
-        el={"requests":{},"params":{},"params_decrypted":{},"monitor":{},"internals":{}}
+        el={"requests":{},"web":{},"params":{},"params_decrypted":{},"monitor":{},"internals":{}}
         for (key,prefix) in (("requests",factoryConfig.client_req_prefix),
                              ("web",factoryConfig.client_web_prefix),
                              ("params",factoryConfig.glidein_param_prefix),
