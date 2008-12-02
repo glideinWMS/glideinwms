@@ -57,8 +57,9 @@ def iterate_one(client_name,elementDescript,paramsDescript):
         for glidename in factory_glidein_dict.keys():
             glidein_dict[(factory_pool,glidename)]=factory_glidein_dict[glidename]
 
-    schedd_names=elementDescript.merged_data['JobSchedds']
-    condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
+    condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
+                                               elementDescript.merged_data['JobQueryExpr'],
+                                               elementDescript.merged_data['JobMatchAttrs'])
 
 
     status_dict=glideinFrontendLib.getCondorStatus(paramsDescript.const_data['GLIDEIN_Collector'].split(','),1,[]) # in theory the collector could be an expression, but for now we require it to be a constant
