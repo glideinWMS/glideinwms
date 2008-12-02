@@ -15,6 +15,7 @@ class FrontendConfig:
         self.frontend_descript_file = "frontend.descript"
         self.group_descript_file = "group.descript"
         self.params_descript_file = "params.cfg"
+        self.signature_descript_file = "signatures.sha1"
 
 # global configuration of the module
 frontendConfig=FrontendConfig()
@@ -34,13 +35,15 @@ frontendConfig=FrontendConfig()
 # It also defines:
 #   self.config_file="name of file"
 class ConfigFile:
-    def __init__(self,config_dir,config_file,convert_function=repr):
+    def __init__(self,config_dir,config_file,
+                 convert_function=repr,                           # convert val
+                 split_function=lambda s:tuple(s.split(None,1))): # s[0] - key, s[1] - val
         self.config_dir=config_dir
         self.config_file=config_file
-        self.load(os.path.join(config_dir,config_file),convert_function)
+        self.load(os.path.join(config_dir,config_file),convert_function,split_function)
         self.derive()
 
-    def load(self,fname,convert_function):
+    def load(self,fname,convert_function,split_function):
         self.data={}
         fd=open(fname,"r")
         try:
@@ -50,7 +53,7 @@ class ConfigFile:
                     continue # comment
                 if len(string.strip(line))==0:
                     continue # empty line
-                larr=string.split(line,None,1)
+                larr=split_function(line)
                 lname=larr[0]
                 if len(larr)==1:
                     lval=""
@@ -65,14 +68,18 @@ class ConfigFile:
 
 # load from the group subdir
 class GroupConfigFile(ConfigFile):
-    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
+    def __init__(self,base_dir,group_name,config_file,
+                 convert_function=repr,
+                 split_function=lambda s:tuple(s.split(None,1))):
         ConfigFile.__init__(self,os.path.join(base_dir,"group_"+group_name),config_file,convert_function)
         self.group_name=group_name
 
 # load both the main and group subdir config file
 # and join the results
 class JoinConfigFile(ConfigFile):
-    def __init__(self,base_dir,group_name,config_file,convert_function=repr):
+    def __init__(self,base_dir,group_name,config_file,
+                 convert_function=repr,
+                 split_function=lambda s:tuple(s.split(None,1))):
         ConfigFile.__init__(self,base_dir,config_file,convert_function)
         self.group_name=group_name
         group_obj=GroupConfigFile(base_dir,group_name,config_file,convert_function)
@@ -116,6 +123,19 @@ class ParamsDescript(JoinConfigFile):
                 self.const_data[k]=val
             else:
                 raise RuntimeError, "Unknown parameter type '%s' for '%s'!"%(type_str,k)
+
+class SignatureDescript(ConfigFile):
+    def __init__(self,config_dir):
+        global frontendConfig
+        ConfigFile.__init__(self,config_dir,frontendConfig.signature_descript_file,
+                            lambda s:repr(tuple(s.split(None,1))), # convert into pair of strings
+                            self.split_function)      
+
+    # internal
+    def split_function(self,s): # key at the end
+        r=s.rsplit(None,1)
+        r.reverse()
+        return tuple(r)
 
 ############################################################
 #
