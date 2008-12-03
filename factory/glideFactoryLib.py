@@ -251,7 +251,8 @@ def update_x509_proxy_file(client_id, proxy_data):
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fname,params):
+def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fname,
+                     client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -283,7 +284,9 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x5
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         factoryConfig.logActivity("Need more glideins: %s"%stat_str)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fname,params)
+        submitGlideins(condorq.entry_name,condorq.schedd_name,
+                       condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fname,
+                       client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
     # We have enough glideins in the queue
@@ -615,7 +618,8 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fname,params):
+def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fname,
+                   client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params):
     global factoryConfig
 
     submitted_jids=[]
@@ -645,7 +649,9 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
                 nr_to_submit=factoryConfig.max_cluster_size
 
             try:
-                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" %i %s -- %s'%(x509_proxy_fname,entry_name,client_name,nr_to_submit,submit_attrs_str,params_str))
+                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %s %s %s %s %i %s -- %s'%(x509_proxy_fname,entry_name,client_name,
+                                                                                                                                  client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,
+                                                                                                                                  nr_to_submit,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
                 factoryConfig.logWarning("condor_submit failed: %s"%e);
                 submit_out=[]
@@ -709,10 +715,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.36 2008/09/16 16:25:47 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.37 2008/12/03 22:27:37 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.37  2008/12/03 22:27:37  sfiligoi
+#  Pass the client web into to the glidein
+#
 #  Revision 1.36  2008/09/16 16:25:47  sfiligoi
 #  Fix typo
 #

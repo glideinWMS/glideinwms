@@ -54,7 +54,9 @@ def perform_work(factory_name,glidein_name,entry_name,
                  client_name,client_int_name,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
-                 x509_proxy_fname,params):
+                 x509_proxy_fname,
+                 client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,
+                 params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -88,7 +90,8 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fname,params)
+    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fname,
+                                                  client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
@@ -112,7 +115,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     #glideFactoryLib.factoryConfig.activity_log.write("Find work")
-    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,pub_key_obj,allowed_proxy_source)
+    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,['sha1'],pub_key_obj,allowed_proxy_source)
     glideFactoryLib.logWorkRequests(work)
     
     if len(work.keys())==0:
@@ -175,10 +178,18 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 idle_glideins=0
                 max_running=0
             
+
+            client_web_url=work[work_key]['web']['URL']
+            client_descript=work[work_key]['web']['DescriptFile']
+            client_group_descript=work[work_key]['web']['GroupDescriptFile']
+            client_sign=work[work_key]['web']['DescriptSign']
+            client_group_sign=work[work_key]['web']['GroupDescriptSign']
+
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
-                                         jobDescript,x509_proxy_fname,params)
+                                         jobDescript,x509_proxy_fname,
+                                         client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params)
         #else, it is malformed and should be skipped
 
     return done_something
