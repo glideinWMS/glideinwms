@@ -26,9 +26,9 @@ class FactoryConfig:
         # user should modify if needed
 
         # The name of the attribute that identifies the glidein
-        self.factory_id = "glidefactory"
-        self.client_id = "glideclient"
-        self.factoryclient_id = "glidefactoryclient"
+        self.factory_id = "glidefactory2"
+        self.client_id = "glideclient2"
+        self.factoryclient_id = "glidefactoryclient2"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
