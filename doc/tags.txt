@@ -1,4 +1,5 @@
-vNext	Refactoring creation libs;
+v2Next	Change type id, break backward compatibility
+	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code
 	Added create_frontend, recreate_frontend.
 	Frondend now has a stage web area and passes it to the factory
