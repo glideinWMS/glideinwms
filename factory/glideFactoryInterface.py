@@ -59,6 +59,7 @@ factoryConfig=FactoryConfig()
 
 
 def findWork(factory_name,glidein_name,entry_name,
+             supported_signtypes,
              pub_key_obj=None,allowed_proxy_source=('factory','frontend'),
              get_only_matching=True): # if this is false, return also glideins I cannot use):
     """
@@ -73,7 +74,9 @@ def findWork(factory_name,glidein_name,entry_name,
 
     global factoryConfig
     
-    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
+    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s") && (stringListMember(WebSignType,"%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name,string.join(supported_signtypes,","))
+    for signtype in supported_signtypes:
+        status_constraint+=
     if get_only_matching:
         if pub_key_obj!=None:
             # get only classads that have my key or no key at all
