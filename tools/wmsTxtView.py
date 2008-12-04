@@ -41,7 +41,7 @@ while (i<alen):
     i=i+1
 
 # get data
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,get_only_matching=False)
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,get_only_matching=False)
 
 # Get a dictionary of
 #  RequestedIdle
