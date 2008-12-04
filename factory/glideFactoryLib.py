@@ -248,11 +248,23 @@ def update_x509_proxy_file(client_id, proxy_data):
 # Main function
 #   Will keep the required number of Idle glideins
 #
+class ClientWeb:
+    def __init__(self,client_web_url,client_signtype,
+                 client_descript,client_group_descript,
+                 client_sign,client_group_sign):
+        self.url=client_web_url
+        self.signtype=client_signtype
+        self.descript=client_descript
+        self.group_descript=client_group_descript
+        self.sign=client_sign
+        self.group_sign=client_group_sign
+        return
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fname,
-                     client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params):
+                     client_web, # None means client did not pass one, backwards compatibility
+                     params):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -286,7 +298,7 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x5
         factoryConfig.logActivity("Need more glideins: %s"%stat_str)
         submitGlideins(condorq.entry_name,condorq.schedd_name,
                        condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fname,
-                       client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params)
+                       client_web,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
     # We have enough glideins in the queue
@@ -619,7 +631,8 @@ def escapeParam(param_str):
 
 # submit N new glideins
 def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fname,
-                   client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params):
+                   client_web, # None means client did not pass one, backwards compatibility
+                   params):
     global factoryConfig
 
     submitted_jids=[]
@@ -650,7 +663,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
 
             try:
                 submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %s %s %s %s %i %s -- %s'%(x509_proxy_fname,entry_name,client_name,
-                                                                                                                                  client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,
+                                                                                                                                  client_web.url,client_web.descript,client_web.group_descript,client_web.sign,client_web.group_sign,
                                                                                                                                   nr_to_submit,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
                 factoryConfig.logWarning("condor_submit failed: %s"%e);
@@ -711,73 +724,3 @@ def releaseGlideins(schedd_name,jid_list):
     factoryConfig.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
 
 
-###########################################################
-#
-# CVS info
-#
-# $Id: glideFactoryLib.py,v 1.37 2008/12/03 22:27:37 sfiligoi Exp $
-#
-# Log:
-#  $Log: glideFactoryLib.py,v $
-#  Revision 1.37  2008/12/03 22:27:37  sfiligoi
-#  Pass the client web into to the glidein
-#
-#  Revision 1.36  2008/09/16 16:25:47  sfiligoi
-#  Fix typo
-#
-#  Revision 1.35  2008/09/16 16:22:09  sfiligoi
-#  Fix typo
-#
-#  Revision 1.34  2008/09/16 15:39:24  sfiligoi
-#  Use x509 received from frontend
-#
-#  Revision 1.33  2008/09/09 20:22:27  sfiligoi
-#  Fix typo
-#
-#  Revision 1.32  2008/09/05 20:54:50  sfiligoi
-#  Merge in 1.31.2.2
-#
-#  Revision 1.31.2.2  2008/09/05 20:22:26  sfiligoi
-#  Warning now writes both in err and info
-#
-#  Revision 1.31.2.1  2008/09/05 20:19:50  sfiligoi
-#  Protect from condor_submit failures
-#
-#  Revision 1.31  2008/08/12 21:16:49  sfiligoi
-#  Fix typo
-#
-#  Revision 1.30  2008/08/05 19:53:14  sfiligoi
-#  Add support for entry max_jobs, max_idle and max_held
-#
-#  Revision 1.29  2008/07/29 18:53:24  sfiligoi
-#  Verbosity in not passed as an argument anymore
-#
-#  Revision 1.28  2008/06/23 19:33:28  sfiligoi
-#  Protect from too many held jobs (1000)
-#
-#  Revision 1.27  2008/05/11 19:44:19  sfiligoi
-#  Add wait and pending
-#
-#  Revision 1.26  2008/05/11 17:14:57  sfiligoi
-#  Add client monitor info to the web page
-#
-#  Revision 1.25  2008/03/28 17:41:45  sfiligoi
-#  Make condor_status non essential
-#
-#  Revision 1.24  2007/12/17 21:28:49  sfiligoi
-#  Change verbosity to std; with the new glidein_submit this makes more sense
-#
-#  Revision 1.23  2007/12/17 16:30:06  sfiligoi
-#  Automatically extract the schedd name. Must be always the same, so it makes no sense to pass it as a parameter.
-#
-#  Revision 1.22  2007/10/09 16:15:42  sfiligoi
-#  Use short client name
-#
-#  Revision 1.21  2007/07/03 19:46:18  sfiligoi
-#  Add support for MaxRunningGlideins
-#
-#  Revision 1.20  2007/05/18 19:10:57  sfiligoi
-#  Add CVS tags
-#
-#
-###########################################################

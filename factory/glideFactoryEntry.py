@@ -55,7 +55,7 @@ def perform_work(factory_name,glidein_name,entry_name,
                  idle_glideins,max_running,max_held,
                  jobDescript,
                  x509_proxy_fname,
-                 client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,
+                 client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
@@ -91,7 +91,7 @@ def perform_work(factory_name,glidein_name,entry_name,
 
     # use the extended params for submission
     nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fname,
-                                                  client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params)
+                                                  client_web,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted somthing, return immediately
@@ -179,17 +179,24 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 max_running=0
             
 
-            client_web_url=work[work_key]['web']['URL']
-            client_descript=work[work_key]['web']['DescriptFile']
-            client_group_descript=work[work_key]['web']['GroupDescriptFile']
-            client_sign=work[work_key]['web']['DescriptSign']
-            client_group_sign=work[work_key]['web']['GroupDescriptSign']
+            if work[work_key]['web'].has_key('URL'):
+                client_web_url=work[work_key]['web']['URL']
+                client_signtype=work[work_key]['web']['SignType']
+                client_descript=work[work_key]['web']['DescriptFile']
+                client_group_descript=work[work_key]['web']['GroupDescriptFile']
+                client_sign=work[work_key]['web']['DescriptSign']
+                client_group_sign=work[work_key]['web']['GroupDescriptSign']
+                client_web=glideinFactoryLib.ClientWeb(client_web_url,client_signtype,
+                                                       client_descript,client_group_descript,
+                                                       client_sign,client_group_sign)
+            else:
+                client_web=None
 
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
                                          jobDescript,x509_proxy_fname,
-                                         client_web_url,client_descript,client_group_descript,client_sign,client_group_sign,params)
+                                         client_web,params)
         #else, it is malformed and should be skipped
 
     return done_something
