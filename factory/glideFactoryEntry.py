@@ -115,7 +115,9 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     #glideFactoryLib.factoryConfig.activity_log.write("Find work")
-    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,['sha1'],pub_key_obj,allowed_proxy_source)
+    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,
+                                          glideFactoryLib.factoryConfig.supported_signtypes,
+                                          pub_key_obj,allowed_proxy_source)
     glideFactoryLib.logWorkRequests(work)
     
     if len(work.keys())==0:
@@ -260,7 +262,8 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,['sha1'],
+        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
+                                               glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
                                                pub_key_obj,allowed_proxy_source)
     except:

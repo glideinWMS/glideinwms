@@ -74,6 +74,8 @@ class FactoryConfig:
         self.qc_stats = None
         self.log_stats = None
 
+        self.supported_signtypes=['sha1']
+
     def config_submit_freq(self,sleepBetweenSubmits,maxSubmitsXCycle):
         self.submit_sleep=sleepBetweenSubmits
         self.max_submits=maxSubmitsXCycle
@@ -252,6 +254,8 @@ class ClientWeb:
     def __init__(self,client_web_url,client_signtype,
                  client_descript,client_group_descript,
                  client_sign,client_group_sign):
+        if not (client_signtype in factoryConfig.supported_signtypes):
+            raise ValueError, "Signtype '%s' not supported!"%client_signtype
         self.url=client_web_url
         self.signtype=client_signtype
         self.descript=client_descript
@@ -651,6 +655,12 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
         params_arr.append(escapeParam(str(params[k])))
     params_str=string.join(params_arr," ")
 
+    client_web_str=""
+    if client_web!=None:
+        client_web_str="-clientweb %s -clientsign %s -clientsigngroup %s -clientsigntype %s -clientdescript %s -clientdescriptgroup %s"%(
+            client_web.url,client_web.sign,client_web.group_sign,client_web.signtype,
+            client_web.descript,client_web.group_descript)
+
     try:
         nr_submitted=0
         while (nr_submitted<nr_glideins):
@@ -662,9 +672,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
                 nr_to_submit=factoryConfig.max_cluster_size
 
             try:
-                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %s %s %s %s %i %s -- %s'%(x509_proxy_fname,entry_name,client_name,
-                                                                                                                                  client_web.url,client_web.descript,client_web.group_descript,client_web.sign,client_web.group_sign,
-                                                                                                                                  nr_to_submit,submit_attrs_str,params_str))
+                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,nr_to_submit,client_web_str,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
                 factoryConfig.logWarning("condor_submit failed: %s"%e);
                 submit_out=[]
