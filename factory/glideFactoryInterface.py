@@ -78,8 +78,9 @@ def findWork(factory_name,glidein_name,entry_name,
 
     global factoryConfig
     
-    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s") && stringListMember(%s%s,"%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name,
-                                                                                                             factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
+    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
+    if supported_signtypes!=None:
+        status_constraint+=' && stringListMember(%s%s,"%s")'%(factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
 
     if get_only_matching:
         if pub_key_obj!=None:
