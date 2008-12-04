@@ -26,9 +26,9 @@ class FrontendConfig:
         # user should modify if needed
 
         # The name of the attribute that identifies the glidein
-        self.factory_id = "glidefactory2"
-        self.client_id = "glideclient2"
-        self.factoryclient_id = "glidefactoryclient2"
+        self.factory_id = "glidefactory"
+        self.client_id = "glideclient"
+        self.factoryclient_id = "glidefactoryclient"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -42,6 +42,9 @@ class FrontendConfig:
 
         # String to prefix for the requests
         self.client_req_prefix = "Req"
+
+        # The name of the signtype
+        self.factory_signtype_id = "SupportedSignTypes"
 
 
         self.condor_reserved_names=("MyType","TargetType","GlideinMyType","MyAddress",'UpdatesHistory','UpdatesTotal','UpdatesLost','UpdatesSequenced','UpdateSequenceNumber','DaemonStartTime')
@@ -58,12 +61,13 @@ frontendConfig=FrontendConfig()
 
 
 def findGlideins(factory_pool,
+                 signtype,
                  additional_constraint=None,
                  have_proxy=False,
                  get_only_matching=True): # if this is false, return also glideins I cannot use
     global frontendConfig
     
-    status_constraint='(GlideinMyType=?="%s")'%(frontendConfig.factory_id)
+    status_constraint='(GlideinMyType=?="%s") && stringListMember("%s",%s)'%(frontendConfig.factory_id,signtype,self.factory_signtype_id)
 
     if get_only_matching:
         if have_proxy:

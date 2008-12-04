@@ -27,15 +27,6 @@ import glideinFrontendLib
 import glideinFrontendPidLib
 
 ############################################################
-def iterate_one_old(frontend_name,factory_pool,factory_constraint,
-                    x509_proxy,
-                    schedd_names,job_constraint,match_str,job_attributes,
-                    max_idle,reserve_idle,
-                    max_vms_idle,curb_vms_idle,
-                    max_running,reserve_running_fraction,
-                    glidein_params):
-    pass
-
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
     if elementDescript.frontend_data.has_key('X509Proxy'):
         x509_proxy=elementDescript.frontend_data['X509Proxy']
@@ -52,7 +43,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
     factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
     factory_pools=elementDescript.merged_data['FactoryCollectors']
     for factory_pool in factory_pools:
-        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint,x509_proxy!=None)
+        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,signatureDescript.signature_type,factory_constraint,x509_proxy!=None)
         for glidename in factory_glidein_dict.keys():
             glidein_dict[(factory_pool,glidename)]=factory_glidein_dict[glidename]
 
