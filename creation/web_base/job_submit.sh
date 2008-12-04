@@ -2,7 +2,7 @@
 
 if [ $# -lt 4 ]; then
  echo "At least 4 args expected!" 1>&2
- echo "Usage: job_submit.sh entry_name client count [params]*"
+ echo "Usage: job_submit.sh entry_name client count [attrs]* -- [params]*"
  1>&2
  exit 1
 fi
