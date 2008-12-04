@@ -73,7 +73,7 @@ for glidein in glideins:
         
     entry_name,glidein_name,factory_name=string.split(glidein,"@")
 
-    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,key_obj,get_only_matching=False)
+    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,None,key_obj,get_only_matching=False)
     glidein_el['clients']=clients_obj
     clients=clients_obj.keys()
     for client in clients:
