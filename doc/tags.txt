@@ -1,8 +1,9 @@
-v2Next	Change type id, break backward compatibility
-	Refactoring creation libs;
+v2Next	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code
 	Added create_frontend, recreate_frontend.
-	Frondend now has a stage web area and passes it to the factory
+	Frontend now has a stage web area and passes it to the factory
+	  Factory publishes list of supported signtypes and
+            frontend uses this for factory selection
 
 v1_6+	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
