@@ -26,9 +26,9 @@ class FactoryConfig:
         # user should modify if needed
 
         # The name of the attribute that identifies the glidein
-        self.factory_id = "glidefactory2"
-        self.client_id = "glideclient2"
-        self.factoryclient_id = "glidefactoryclient2"
+        self.factory_id = "glidefactory"
+        self.client_id = "glideclient"
+        self.factoryclient_id = "glidefactoryclient"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -45,6 +45,10 @@ class FactoryConfig:
 
         # String to prefix for the web passing
         self.client_web_prefix = "Web"
+
+        # The name of the signtype
+        self.factory_signtype_id = "SupportedSignTypes"
+        self.client_web_signtype_suffix = "SignType"
 
 
 
@@ -74,9 +78,9 @@ def findWork(factory_name,glidein_name,entry_name,
 
     global factoryConfig
     
-    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s") && (stringListMember(WebSignType,"%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name,string.join(supported_signtypes,","))
-    for signtype in supported_signtypes:
-        status_constraint+=
+    status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s") && (stringListMember(%s%s,"%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name,
+                                                                                                             factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
+
     if get_only_matching:
         if pub_key_obj!=None:
             # get only classads that have my key or no key at all
@@ -155,6 +159,7 @@ advertizeGlideinCounter=0
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
 def advertizeGlidein(factory_name,glidein_name,entry_name,
+                     supported_signtypes,
                      glidein_attrs={},glidein_params={},glidein_monitors={},
                      pub_key_obj=None,allowed_proxy_source=None):
     global factoryConfig,advertizeGlideinCounter
@@ -171,6 +176,7 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
+            fd.write('%s = "%s"\n'%(factoryConfig.factory_signtype_id,string.join(supported_signtypes,',')))
             if pub_key_obj!=None:
                 fd.write('PubKeyID = "%s"\n'%pub_key_obj.get_pub_key_id())
                 fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
