@@ -67,7 +67,7 @@ def findGlideins(factory_pool,
                  get_only_matching=True): # if this is false, return also glideins I cannot use
     global frontendConfig
     
-    status_constraint='(GlideinMyType=?="%s") && stringListMember("%s",%s)'%(frontendConfig.factory_id,signtype,self.factory_signtype_id)
+    status_constraint='(GlideinMyType=?="%s") && stringListMember("%s",%s)'%(frontendConfig.factory_id,signtype,(frontendConfig.factory_signtype_id)
 
     if get_only_matching:
         if have_proxy:
