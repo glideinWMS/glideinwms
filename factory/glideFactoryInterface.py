@@ -101,7 +101,7 @@ def findWork(factory_name,glidein_name,entry_name,
 
     data=status.fetchStored()
 
-    reserved_names=("ReqName","ReqGlidein","ClientName","ReqPubKeyID","ReqEncKeyCode")
+    reserved_names=("ReqName","ReqGlidein","ClientName","FrontendName","GroupName","ReqPubKeyID","ReqEncKeyCode")
 
     out={}
 
@@ -147,7 +147,7 @@ def findWork(factory_name,glidein_name,entry_name,
                             pass # oh well, I don't understand it
 
         for attr in kel.keys():
-            if attr in ("ClientName","ReqName","LastHeardFrom","ReqPubKeyID"):
+            if attr in ("ClientName","FrontendName","GroupName","ReqName","LastHeardFrom","ReqPubKeyID"):
                 el["internals"][attr]=kel[attr]
         
         out[k]=el
