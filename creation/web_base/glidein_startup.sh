@@ -62,7 +62,7 @@ do case "$1" in
     -clientsigntype)        client_sign_type="$2";;
     -clientsigngroup)       client_sign_group_id="$2";;
     -clientdescript)        client_descript_file="$2";;
-    -clientdescriptentry)   client_descript_entry_file="$2";;
+    -clientdescriptgroup)   client_descript_group_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
