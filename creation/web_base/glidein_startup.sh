@@ -263,6 +263,7 @@ if [ -n "$client_repository_url" ]; then
 	  warn "Unsupported clientsigntype $client_sign_type found." 1>&2
 	  usage
       fi
+  fi
 fi
 
 startup_time=`date +%s`
