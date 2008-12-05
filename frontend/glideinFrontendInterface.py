@@ -9,7 +9,7 @@
 
 import condorExe
 import condorMonitor
-import os
+import os,os.path
 import time
 import string
 import pubCrypto,symCrypto
@@ -194,12 +194,13 @@ def advertizeWork(factory_pool,
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
             fd.write('Name = "%s@%s"\n'%(request_name,client_name))
             fd.write('ClientName = "%s"\n'%client_name)
-            fd.write('FrontendName = "%s"\n'%frontend_name) # non used by factory, but descriptive
-            fd.write('GroupName = "%s"\n'%group_name)  # non used by factory, but descriptive
+            fd.write('FrontendName = "%s"\n'%frontend_name)
+            fd.write('GroupName = "%s"\n'%group_name)
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
 
             fd.write('WebURL = "%s"\n'%web_url)
+            fd.write('WebGroupURL = "%s"\n'%os.path.join(web_url,"group_%s"%group_name))
             fd.write('WebSignType = "%s"\n'%signtype)
             fd.write('WebDescriptFile = "%s"\n'%main_descript)
             fd.write('WebDescriptSign = "%s"\n'%main_sign)
