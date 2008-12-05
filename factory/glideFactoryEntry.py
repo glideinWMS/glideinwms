@@ -189,10 +189,10 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 client_group_descript=work[work_key]['web']['GroupDescriptFile']
                 client_sign=work[work_key]['web']['DescriptSign']
                 client_group_sign=work[work_key]['web']['GroupDescriptSign']
-                client_web=glideinFactoryLib.ClientWeb(client_web_url,client_group,
-                                                       client_signtype,
-                                                       client_descript,client_group_descript,
-                                                       client_sign,client_group_sign)
+                client_web=glideFactoryLib.ClientWeb(client_web_url,client_group,
+                                                     client_signtype,
+                                                     client_descript,client_group_descript,
+                                                     client_sign,client_group_sign)
             else:
                 client_web=None
 

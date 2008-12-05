@@ -660,7 +660,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
     client_web_str=""
     if client_web!=None:
         client_web_str="-clientgroup %s -clientweb %s -clientsign %s -clientsigngroup %s -clientsigntype %s -clientdescript %s -clientdescriptgroup %s"%(
-            clinet_wer.group_name,client_web.url,client_web.sign,client_web.group_sign,client_web.signtype,
+            client_web.group_name,client_web.url,client_web.sign,client_web.group_sign,client_web.signtype,
             client_web.descript,client_web.group_descript)
 
     try:
