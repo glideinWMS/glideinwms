@@ -7,22 +7,30 @@ function warn {
 function usage {
     echo "Usage: glidein_startup.sh <options>"
     echo "where <options> is:"
-    echo "  -factory <name>       : name of this factory"
-    echo "  -name <name>          : name of this glidein"
-    echo "  -entry <name>         : name of this glidein entry"
-    echo "  -web <baseURL>        : base URL from where to fetch"
-    echo "  -proxy <proxyURL>     : URL of the local proxy"
-    echo "  -dir <dirID>          : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR)"
-    echo "  -sign <sign>          : signature of the signature file"
-    echo "  -signtype <id>        : type of signature (only sha1 supported for now)"
-    echo "  -signentry <sign>     : signature of the entry signature file"
-    echo "  -cluster <ClusterID>  : condorG ClusterId"
-    echo "  -subcluster <ProcID>  : condorG ProcId"
-    echo "  -schedd <name>        : condorG Schedd Name"
-    echo "  -descript <fname>     : description file name"
-    echo "  -descriptentry <fname>: description file name for entry"
-    echo "  -v <id>               : verbosity level (std, nodebug and fast supported)"
-    echo "  -param_* <arg>        : user specified parameters"
+    echo "  -factory <name>             : name of this factory"
+    echo "  -name <name>                : name of this glidein"
+    echo "  -entry <name>               : name of this glidein entry"
+    echo "  -clientname <name>          : name of the requesting client"
+    echo "  -web <baseURL>              : base URL from where to fetch"
+    echo "  -proxy <proxyURL>           : URL of the local proxy"
+    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR)"
+    echo "  -sign <sign>                : signature of the signature file"
+    echo "  -signtype <id>              : type of signature (only sha1 supported for now)"
+    echo "  -signentry <sign>           : signature of the entry signature file"
+    echo "  -cluster <ClusterID>        : condorG ClusterId"
+    echo "  -subcluster <ProcID>        : condorG ProcId"
+    echo "  -schedd <name>              : condorG Schedd Name"
+    echo "  -descript <fname>           : description file name"
+    echo "  -descriptentry <fname>      : description file name for entry"
+    echo "  -clientweb <baseURL>        : base URL from where to fetch client files"
+    echo "  -clientgroup <name>         : group name of the requesting client"
+    echo "  -ciientsign <sign>          : signature of the client signature file"
+    echo "  -clientsigntype <id>        : type of client signature (only sha1 supported for now)"
+    echo "  -clientsigngroup <sign>     : signature of the client group signature file"
+    echo "  -clientdescript <fname>     : client description file name"
+    echo "  -clientdescriptgroup <fname>: client description file name for group"
+    echo "  -v <id>                     : verbosity level (std, nodebug and fast supported)"
+    echo "  -param_* <arg>              : user specified parameters"
     exit 1
 }
 
@@ -36,6 +44,7 @@ do case "$1" in
     -factory)    glidein_factory="$2";;
     -name)       glidein_name="$2";;
     -entry)      glidein_entry="$2";;
+    -clientname) client_name="$2";;
     -web)        repository_url="$2";;
     -proxy)      proxy_url="$2";;
     -dir)        work_dir="$2";;
@@ -47,6 +56,13 @@ do case "$1" in
     -schedd)     condorg_schedd="$2";;
     -descript)   descript_file="$2";;
     -descriptentry)   descript_entry_file="$2";;
+    -clientweb)             client_repository_url="$2";;
+    -clientgroup)           client_group="$2";;
+    -clientsign)            client_sign_id="$2";;
+    -clientsigntype)        client_sign_type="$2";;
+    -clientsignentry)       client_sign_entry_id="$2";;
+    -clientdescript)        client_descript_file="$2";;
+    -clientdescriptentry)   client_descript_entry_file="$2";;
     -v)          debug_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
@@ -168,12 +184,12 @@ if [ -z "$descript_entry_file" ]; then
     usage
 fi
 
-if [ -z "glidein_name" ]; then
+if [ -z "$glidein_name" ]; then
     warn "Missing gliden name." 1>&2
     usage
 fi
 
-if [ -z "glidein_entry" ]; then
+if [ -z "$glidein_entry" ]; then
     warn "Missing glidein entry name." 1>&2
     usage
 fi
@@ -192,17 +208,17 @@ if [ "$proxy_url" == "OSG" ]; then
   proxy_url="$OSG_SQUID_LOCATION:3128"
 fi
 
-if [ -z "sign_id" ]; then
+if [ -z "$sign_id" ]; then
     warn "Missing signature." 1>&2
     usage
 fi
 
-if [ -z "sign_entry_id" ]; then
+if [ -z "$sign_entry_id" ]; then
     warn "Missing entry signature." 1>&2
     usage
 fi
 
-if [ -z sign_type ]; then
+if [ -z "$sign_type" ]; then
     sign_type="sha1"
 fi
 
@@ -214,6 +230,36 @@ else
     usage
 fi
     
+if [ -n "$client_repository_url" ]; then
+  # client data is optional, user url as a switch
+  if [ -z "$client_group" ]; then
+    warn "Missing client group name." 1>&2
+    usage
+  fi
+
+  if [ -z "$client_sign_type" ]; then
+      client_sign_type="sha1"
+  fi
+
+  if [ "$client_sign_type" == "sha1" ]; then
+    client_sign_sha1="$client_sign_id"
+    client_sign_group_sha1="$client_sign_group_id"
+  else
+    warn "Unsupported clientsigntype $client_sign_type found." 1>&2
+    usage
+  fi
+    
+  if [ -z "$client_descript_file" ]; then
+    warn "Missing client descript fname." 1>&2
+    usage
+  fi
+
+  if [ -z "$client_descript_group_file" ]; then
+    warn "Missing client descript fname for group." 1>&2
+    usage
+  fi
+
+fi
 
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
@@ -224,14 +270,27 @@ echo "condorg_schedd    = '$condorg_schedd'"
 echo "glidein_factory   = '$glidein_factory'"
 echo "glidein_name      = '$glidein_name'"
 echo "glidein_entry     = '$glidein_entry'"
+if [ -n '$client_name' ]; then
+    # client name not required as it is not used for anything but debug info
+    echo "client_name                 = '$client_name'"
+fi
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
-echo "sign_sha1         = '$sign_sha1'"
+echo "sign_type         = '$sign_type'"
 echo "proxy_url         = '$proxy_url'"
 echo "descript_fname    = '$descript_file'"
 echo "descript_entry_fname = '$descript_entry_file'"
 echo "sign_id           = '$sign_id'"
 echo "entry_sign_id     = '$sign_entry_id'"
+if [ -n "$client_repository_url" ]; then
+    echo "client_group                = '$client_group'"
+    echo "client_web_dir              = '$client_repository_url'"
+    echo "client_descript_fname       = '$client_descript_file'"
+    echo "client_descript_group_fname = '$client_descript_group_file'"
+    echo "client_sign_type            = '$client_sign_type'"
+    echo "client_sign_id              = '$client_sign_id'"
+    echo "client_entry_sign_id        = '$client_sign_group_id'"
+fi
 echo
 echo "Running on `uname -n`"
 echo "System: `uname -a`"
