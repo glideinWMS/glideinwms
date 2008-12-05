@@ -251,12 +251,14 @@ def update_x509_proxy_file(client_id, proxy_data):
 #   Will keep the required number of Idle glideins
 #
 class ClientWeb:
-    def __init__(self,client_web_url,client_signtype,
+    def __init__(self,client_web_url,client_group,
+                 client_signtype,
                  client_descript,client_group_descript,
                  client_sign,client_group_sign):
         if not (client_signtype in factoryConfig.supported_signtypes):
             raise ValueError, "Signtype '%s' not supported!"%client_signtype
         self.url=client_web_url
+        self.group_name=client_group
         self.signtype=client_signtype
         self.descript=client_descript
         self.group_descript=client_group_descript
@@ -657,8 +659,8 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
 
     client_web_str=""
     if client_web!=None:
-        client_web_str="-clientweb %s -clientsign %s -clientsigngroup %s -clientsigntype %s -clientdescript %s -clientdescriptgroup %s"%(
-            client_web.url,client_web.sign,client_web.group_sign,client_web.signtype,
+        client_web_str="-clientgroup %s -clientweb %s -clientsign %s -clientsigngroup %s -clientsigntype %s -clientdescript %s -clientdescriptgroup %s"%(
+            clinet_wer.group_name,client_web.url,client_web.sign,client_web.group_sign,client_web.signtype,
             client_web.descript,client_web.group_descript)
 
     try:

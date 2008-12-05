@@ -181,14 +181,16 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 max_running=0
             
 
-            if work[work_key]['web'].has_key('URL'):
+            if work[work_key]['web'].has_key('URL') and work[work_key]['internals'].has_key('GroupName'):
+                client_group=work[work_key]['internals']['GroupName']
                 client_web_url=work[work_key]['web']['URL']
                 client_signtype=work[work_key]['web']['SignType']
                 client_descript=work[work_key]['web']['DescriptFile']
                 client_group_descript=work[work_key]['web']['GroupDescriptFile']
                 client_sign=work[work_key]['web']['DescriptSign']
                 client_group_sign=work[work_key]['web']['GroupDescriptSign']
-                client_web=glideinFactoryLib.ClientWeb(client_web_url,client_signtype,
+                client_web=glideinFactoryLib.ClientWeb(client_web_url,client_group,
+                                                       client_signtype,
                                                        client_descript,client_group_descript,
                                                        client_sign,client_group_sign)
             else:
