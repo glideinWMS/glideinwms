@@ -272,7 +272,7 @@ echo "glidein_name      = '$glidein_name'"
 echo "glidein_entry     = '$glidein_entry'"
 if [ -n '$client_name' ]; then
     # client name not required as it is not used for anything but debug info
-    echo "client_name                 = '$client_name'"
+    echo "client_name       = '$client_name'"
 fi
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
