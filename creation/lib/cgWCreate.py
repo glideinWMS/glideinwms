@@ -98,7 +98,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
     def finalize(self,
                  sign,entry_sign,
                  descript,entry_descript):
-        arg_str="-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD)  -factory %s "%(self['+GlideinName'][1:-1],self['+GlideinEntryName'][1:-1],self['+GlideinFactory'][1:-1])
+        arg_str="-v $ENV(GLIDEIN_VERBOSITY) -cluster $(Cluster) -name %s -entry %s -clientname $ENV(GLIDEIN_CLIENT) -subcluster $(Process) -schedd $ENV(GLIDEIN_SCHEDD)  -factory %s "%(self['+GlideinName'][1:-1],self['+GlideinEntryName'][1:-1],self['+GlideinFactory'][1:-1])
         arg_str+="-web %s "%self['+GlideinWebBase'][1:-1]
         if self.has_key('+GlideinProxyURL'):
             arg_str+="-proxy %s "%self['+GlideinProxyURL'][1:-1]
