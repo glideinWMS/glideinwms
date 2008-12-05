@@ -168,12 +168,12 @@ if [ -z "$descript_entry_file" ]; then
     usage
 fi
 
-if [ -z "glidein_name" ]; then
+if [ -z "$glidein_name" ]; then
     warn "Missing gliden name." 1>&2
     usage
 fi
 
-if [ -z "glidein_entry" ]; then
+if [ -z "$glidein_entry" ]; then
     warn "Missing glidein entry name." 1>&2
     usage
 fi
@@ -192,17 +192,17 @@ if [ "$proxy_url" == "OSG" ]; then
   proxy_url="$OSG_SQUID_LOCATION:3128"
 fi
 
-if [ -z "sign_id" ]; then
+if [ -z "$sign_id" ]; then
     warn "Missing signature." 1>&2
     usage
 fi
 
-if [ -z "sign_entry_id" ]; then
+if [ -z "$sign_entry_id" ]; then
     warn "Missing entry signature." 1>&2
     usage
 fi
 
-if [ -z sign_type ]; then
+if [ -z "$sign_type" ]; then
     sign_type="sha1"
 fi
 
