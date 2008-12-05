@@ -60,7 +60,7 @@ do case "$1" in
     -clientgroup)           client_group="$2";;
     -clientsign)            client_sign_id="$2";;
     -clientsigntype)        client_sign_type="$2";;
-    -clientsignentry)       client_sign_entry_id="$2";;
+    -clientsigngroup)       client_sign_group_id="$2";;
     -clientdescript)        client_descript_file="$2";;
     -clientdescriptentry)   client_descript_entry_file="$2";;
     -v)          debug_mode="$2";;
@@ -281,7 +281,7 @@ echo "proxy_url         = '$proxy_url'"
 echo "descript_fname    = '$descript_file'"
 echo "descript_entry_fname = '$descript_entry_file'"
 echo "sign_id           = '$sign_id'"
-echo "entry_sign_id     = '$sign_entry_id'"
+echo "sign_entry_id     = '$sign_entry_id'"
 if [ -n "$client_repository_url" ]; then
     echo "client_group                = '$client_group'"
     echo "client_web_dir              = '$client_repository_url'"
@@ -289,7 +289,7 @@ if [ -n "$client_repository_url" ]; then
     echo "client_descript_group_fname = '$client_descript_group_file'"
     echo "client_sign_type            = '$client_sign_type'"
     echo "client_sign_id              = '$client_sign_id'"
-    echo "client_entry_sign_id        = '$client_sign_group_id'"
+    echo "client_sign_group_id        = '$client_sign_group_id'"
 fi
 echo
 echo "Running on `uname -n`"
