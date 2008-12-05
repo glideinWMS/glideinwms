@@ -11,6 +11,7 @@ function usage {
     echo "  -name <name>                : name of this glidein"
     echo "  -entry <name>               : name of this glidein entry"
     echo "  -clientname <name>          : name of the requesting client"
+    echo "  -clientgroup <name>         : group name of the requesting client"
     echo "  -web <baseURL>              : base URL from where to fetch"
     echo "  -proxy <proxyURL>           : URL of the local proxy"
     echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR)"
@@ -23,7 +24,7 @@ function usage {
     echo "  -descript <fname>           : description file name"
     echo "  -descriptentry <fname>      : description file name for entry"
     echo "  -clientweb <baseURL>        : base URL from where to fetch client files"
-    echo "  -clientgroup <name>         : group name of the requesting client"
+    echo "  -clientwebgroup <baseURL>   : base URL from where to fetch client group files"
     echo "  -ciientsign <sign>          : signature of the client signature file"
     echo "  -clientsigntype <id>        : type of client signature (only sha1 supported for now)"
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
@@ -45,6 +46,7 @@ do case "$1" in
     -name)       glidein_name="$2";;
     -entry)      glidein_entry="$2";;
     -clientname) client_name="$2";;
+    -clientgroup) client_group="$2";;
     -web)        repository_url="$2";;
     -proxy)      proxy_url="$2";;
     -dir)        work_dir="$2";;
@@ -57,7 +59,7 @@ do case "$1" in
     -descript)   descript_file="$2";;
     -descriptentry)   descript_entry_file="$2";;
     -clientweb)             client_repository_url="$2";;
-    -clientgroup)           client_group="$2";;
+    -clientwebgroup)        client_repository_group_url="$2";;
     -clientsign)            client_sign_id="$2";;
     -clientsigntype)        client_sign_type="$2";;
     -clientsigngroup)       client_sign_group_id="$2";;
@@ -232,18 +234,12 @@ fi
     
 if [ -n "$client_repository_url" ]; then
   # client data is optional, user url as a switch
-  if [ -z "$client_group" ]; then
-    warn "Missing client group name." 1>&2
-    usage
-  fi
-
   if [ -z "$client_sign_type" ]; then
       client_sign_type="sha1"
   fi
 
   if [ "$client_sign_type" == "sha1" ]; then
     client_sign_sha1="$client_sign_id"
-    client_sign_group_sha1="$client_sign_group_id"
   else
     warn "Unsupported clientsigntype $client_sign_type found." 1>&2
     usage
@@ -254,11 +250,19 @@ if [ -n "$client_repository_url" ]; then
     usage
   fi
 
-  if [ -z "$client_descript_group_file" ]; then
-    warn "Missing client descript fname for group." 1>&2
-    usage
-  fi
+  if [ -n "$client_repository_group_url" ]; then
+      # client group data is optional, user url as a switch
+      if [ -z "$client_descript_group_file" ]; then
+	  warn "Missing client descript fname for group." 1>&2
+	  usage
+      fi
 
+      if [ "$client_sign_type" == "sha1" ]; then
+	  client_sign_group_sha1="$client_sign_group_id"
+      else
+	  warn "Unsupported clientsigntype $client_sign_type found." 1>&2
+	  usage
+      fi
 fi
 
 startup_time=`date +%s`
@@ -274,6 +278,10 @@ if [ -n '$client_name' ]; then
     # client name not required as it is not used for anything but debug info
     echo "client_name       = '$client_name'"
 fi
+if [ -n '$client_group' ]; then
+    # client group not required as it is not used for anything but debug info
+    echo "client_group       = '$client_group'"
+fi
 echo "work_dir          = '$work_dir'"
 echo "web_dir           = '$repository_url'"
 echo "sign_type         = '$sign_type'"
@@ -283,13 +291,15 @@ echo "descript_entry_fname = '$descript_entry_file'"
 echo "sign_id           = '$sign_id'"
 echo "sign_entry_id     = '$sign_entry_id'"
 if [ -n "$client_repository_url" ]; then
-    echo "client_group                = '$client_group'"
     echo "client_web_dir              = '$client_repository_url'"
     echo "client_descript_fname       = '$client_descript_file'"
-    echo "client_descript_group_fname = '$client_descript_group_file'"
     echo "client_sign_type            = '$client_sign_type'"
     echo "client_sign_id              = '$client_sign_id'"
-    echo "client_sign_group_id        = '$client_sign_group_id'"
+    if [ -n "$client_repository_group_url" ]; then
+	echo "client_web_group_dir        = '$client_repository_group_url'"
+	echo "client_descript_group_fname = '$client_descript_group_file'"
+	echo "client_sign_group_id        = '$client_sign_group_id'"
+    fi
 fi
 echo
 echo "Running on `uname -n`"
