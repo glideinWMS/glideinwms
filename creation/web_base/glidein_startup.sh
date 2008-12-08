@@ -98,19 +98,106 @@ function create_add_config_line {
     cat > "$1" << EOF
 ###################################
 # Add a line to the config file
+# Arg: line to add
 function add_config_line {
-    id=\$1
-
     rm -f \${glidein_config}.old #just in case one was there
     mv \$glidein_config \${glidein_config}.old
     if [ \$? -ne 0 ]; then
         warn "Error renaming \$glidein_config into \${glidein_config}.old"
         exit 1
     fi
-    grep -v "^\$id " \${glidein_config}.old > \$glidein_config
+    grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
     echo "\$@" >> \$glidein_config
     rm -f \${glidein_config}.old
 }
+EOF
+}
+
+# Create a script that defines various id based functions 
+# This way other depending scripts can use it
+function create_get_id_selectors {
+    cat > "$1" << EOF
+############################################
+# Get entry/client/group work dir
+# Arg: type (main/entry/client/client_group)
+function get_work_dir {
+    if [ "\$1" == "main" ]; then
+        grep -v "^GLIDEIN_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "entry" ]; then
+        grep -v "^GLIDEIN_ENTRY_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "client" ]; then
+        grep -v "^GLIDECLIENT_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "client_group" ]; then
+        grep -v "^GLIDECLIENT_GROUP_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    fi
+    echo "[get_work_dir] Invalid id: \$1" 1>&2
+    return 1
+}
+
+################################################
+# Get entry/client/group description file name
+# Arg: type (main/entry/client/client_group)
+function get_descript_file {
+    if [ "\$1" == "main" ]; then
+        grep -v "^DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "entry" ]; then
+        grep -v "^DESCRIPTION_ENTRY_FILE " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "client" ]; then
+        grep -v "^GLIDECLIENT_DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "client_group" ]; then
+        grep -v "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    fi
+    echo "[get_descript_file] Invalid id: \$1" 1>&2
+    return 1
+}
+
+############################################
+# Get entry/client/group signature
+# Arg: type (main/entry/client/client_group)
+function get_signature {
+    if [ "\$1" == "main" ]; then
+        grep -v "^GLIDEIN_Signature " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "entry" ]; then
+        grep -v "^GLIDEIN_Entry_Signature " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "client" ]; then
+        grep -v "^GLIDECLIENT_Signature " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    elif [ "\$1" == "client_group" ]; then
+        grep -v "^GLIDECLIENT_Group_Signature " \${glidein_config} | awk '{print \$2}'
+        return \$?
+    fi
+    echo "[get_signature] Invalid id: \$1" 1>&2
+    return 1
+}
+
+############################################
+# Get entry/client/group prefix
+# Arg: type (main/entry/client/client_group)
+function get_prefix {
+    if [ "\$1" == "main" ]; then
+        echo ""
+    elif [ "\$1" == "entry" ]; then
+	echo "ENTRY_"
+    elif [ "\$1" == "client" ]; then
+	echo "GLIDECLIENT_"
+    elif [ "\$1" == "client_group" ]; then
+	echo "GLIDECLIENT_GROUP_"
+    else
+	echo "[get_prefix] Invalid id: \$1" 1>&2
+	return 1
+    fi
+}
+
 EOF
 }
 
@@ -202,6 +289,8 @@ if [ -z "$repository_url" ]; then
     usage
 fi
 
+repository_entry_url="${repository_url}/entry_${glidein_entry}"
+
 if [ -z "$proxy_url" ]; then
   proxy_url="None"
 fi
@@ -252,6 +341,11 @@ if [ -n "$client_repository_url" ]; then
 
   if [ -n "$client_repository_group_url" ]; then
       # client group data is optional, user url as a switch
+      if [ -z '$client_group' ]; then
+	  warn "Missing client group name." 1>&2
+	  usage
+      fi
+
       if [ -z "$client_descript_group_file" ]; then
 	  warn "Missing client descript fname for group." 1>&2
 	  usage
@@ -280,7 +374,6 @@ if [ -n '$client_name' ]; then
     echo "client_name       = '$client_name'"
 fi
 if [ -n '$client_group' ]; then
-    # client group not required as it is not used for anything but debug info
     echo "client_group       = '$client_group'"
 fi
 echo "work_dir          = '$work_dir'"
@@ -444,8 +537,31 @@ if [ $? -ne 0 ]; then
     glidein_exit 1
 fi
 
+if [ -n "$client_repository_url" ]; then
+    short_client_dir=client
+    client_dir="${work_dir}/${short_client_dir}"
+    mkdir "$client_dir"
+    if [ $? -ne 0 ]; then
+	warn "Cannot create '$client_dir'" 1>&2
+	glidein_exit 1
+    fi
+
+    if [ -n "$client_repository_group_url" ]; then
+	short_client_group_dir=${short_client_dir}/group_${client_group}
+	client_group_dir="${work_dir}/${short_client_group_dir}"
+	mkdir "$client_group_dir"
+	if [ $? -ne 0 ]; then
+	    warn "Cannot create '$client_group_dir'" 1>&2
+	    glidein_exit 1
+	fi
+    fi
+fi
+
 create_add_config_line add_config_line.source
 source add_config_line.source
+
+create_get_id_selectors get_id_selectors.source
+source get_id_selectors.source
 
 wrapper_list="$PWD/wrapper_list.lst"
 touch $wrapper_list
@@ -469,6 +585,8 @@ echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
+echo "GLIDEIN_WORK_DIR $work_dir" >> glidein_config
+echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
 echo "PROXY_URL $proxy_url" >> glidein_config
 echo "DESCRIPTION_FILE $descript_file" >> glidein_config
@@ -476,14 +594,17 @@ echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
 echo "GLIDEIN_Signature $sign_id" >> glidein_config
 echo "GLIDEIN_Entry_Signature $sign_entry_id" >> glidein_config
 if [ -n "$client_repository_url" ]; then
+    echo "GLIDECLIENT_WORK_DIR $client_dir" >> glidein_config
     echo "GLIDECLIENT_DESCRIPTION_FILE $client_descript_file" >> glidein_config
     echo "GLIDECLIENT_Signature $client_sign_id" >> glidein_config
     if [ -n "$client_repository_group_url" ]; then
+	echo "GLIDECLIENT_GROUP_WORK_DIR $client_group_dir" >> glidein_config
 	echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE $client_descript_group_file" >> glidein_config
 	echo "GLIDECLIENT_Group_Signature $client_sign_group_id" >> glidein_config
     fi
 fi
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
+echo "GET_ID_SELECTORS_SOURCE $PWD/get_id_selectors.source" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config
 params2file $params
@@ -504,19 +625,34 @@ else
   fi
 fi
 
+############################################
+# get the proper descript file based on id
+# Arg: type (main/entry/client/client_group)
+function get_repository_url {
+    if [ "$1" == "main" ]; then
+	echo $repository_url
+    elif [ "$1" == "entry" ]; then
+	echo $repository_entry_url
+    elif [ "$1" == "client" ]; then
+	echo $client_repository_url
+    elif [ "$1" == "client_group" ]; then
+	echo $client_repository_group_url
+    else
+	echo "[get_repository_url] Invalid id: $1" 1>&2
+	return 1
+    fi
+}
+
 #####################
 # Check signature
 function check_file_signature {
-    cfs_entry_dir="$1"
+    cfs_id="$1"
     cfs_fname="$2"
 
-    if [ "$cfs_entry_dir" == "main" ]; then
-	cfs_desc_fname="$cfs_fname"
-	cfs_signature="signature.sha1"
-    else
-	cfs_desc_fname="$cfs_entry_dir/$cfs_fname"
-	cfs_signature="$cfs_entry_dir/signature.sha1"
-    fi
+    cfs_work_dir=`get_work_dir $cfs_id`
+
+    cfs_desc_fname="${cfs_work_dir}/$cfs_fname"
+    cfs_signature="${cfs_work_dir}/signature.sha1"
 
     if [ $check_signature -gt 0 ]; then # check_signature is global for simplicity
 	tmp_signname="${cfs_signature}_$$_`date +%s`_$RANDOM"
@@ -525,20 +661,15 @@ function check_file_signature {
 	    rm -f $tmp_signname
 	    echo "No signature for $cfs_desc_fname." 1>&2
 	else
-	    if [ "$cfs_entry_dir" == "main" ]; then
-		sha1sum -c "$tmp_signname" 1>&2
-		cfs_rc=$?
-	    else
-		(cd "$cfs_entry_dir" && sha1sum -c "../$tmp_signname") 1>&2
-		cfs_rc=$?
-	    fi
+	    (cd "$cfs_work_dir" && sha1sum -c "$tmp_signname") 1>&2
+	    cfs_rc=$?
 	    if [ $cfs_rc -ne 0 ]; then
 		warn "File $cfs_desc_fname is corrupted." 1>&2
 		rm -f $tmp_signname
 		return 1
 	    fi
 	    rm -f $tmp_signname
-	    echo "Signature OK for $cfs_desc_fname." 1>&2
+	    echo "Signature OK for ${cfs_id}:${cfs_fname}." 1>&2
 	fi
     fi
     return 0
@@ -548,14 +679,11 @@ function check_file_signature {
 # Untar support func
 
 function get_untar_subdir {
-    gus_entry_dir="$1"
+    gus_id="$1"
     gus_fname="$2"
 
-    if [ "$gus_entry_dir" == "main" ]; then
-	gus_config_cfg="UNTAR_CFG_FILE"
-    else
-	gus_config_cfg="UNTAR_CFG_ENTRY_FILE"
-    fi
+    gus_prefix=`get_prefix $gus_id`
+    gus_config_cfg="${gus_prefix}UNTAR_CFG_FILE"
 
     gus_config_file=`grep "^$gus_config_cfg " glidein_config | awk '{print $2}'`
     if [ -z "$gus_config_file" ]; then
@@ -593,7 +721,7 @@ function fetch_file {
 }
 
 function fetch_file_try {
-    fft_entry_dir="$1"
+    fft_id="$1"
     fft_target_fname="$2"
     fft_real_fname="$3"
     fft_file_type="$4"
@@ -608,7 +736,7 @@ function fetch_file_try {
     fi
 
     if [ "$fft_get_ss" == "1" ]; then
-       fetch_file_base "$fft_entry_dir" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out"
+       fetch_file_base "$fft_id" "$fft_target_fname" "$fft_real_fname" "$fft_file_type" "$fft_config_out"
        fft_rc=$?
     fi
 
@@ -616,25 +744,21 @@ function fetch_file_try {
 }
 
 function fetch_file_base {
-    ffb_entry_dir="$1"
+    ffb_id="$1"
     ffb_target_fname="$2"
     ffb_real_fname="$3"
     ffb_file_type="$4"
     ffb_config_out="$5"
 
-    if [ "$ffb_entry_dir" == "main" ]; then
-	ffb_repository="$repository_url"
-	ffb_tmp_outname="$ffb_real_fname"
-	ffb_outname="$ffb_target_fname"
-	ffb_desc_fname="$fname"
-	ffb_signature="signature.sha1"
-    else
-	ffb_repository="$repository_url/$ffb_entry_dir"
-	ffb_tmp_outname="$ffb_entry_dir/$ffb_real_fname"
-	ffb_outname="$ffb_entry_dir/$ffb_target_fname"
-	ffb_desc_fname="$ffb_entry_dir/$fname"
-	ffb_signature="$ffb_entry_dir/signature.sha1"
-    fi
+    ffb_work_dir=`get_work_dir $ffb_id`
+
+    ffb_repository=`get_repository_url $ffb_id`
+
+    ffb_tmp_outname="$ffb_work_dir/$ffb_real_fname"
+    ffb_outname="$ffb_work_dir/$ffb_target_fname"
+    ffb_desc_fname="$ffb_work_dir/$fname"
+    ffb_signature="$ffb_work_dir/signature.sha1"
+
 
     ffb_nocache_str=""
     if [ "$ffb_file_type" == "nocache" ]; then
@@ -658,7 +782,7 @@ function fetch_file_base {
     fi
 
     # check signature
-    check_file_signature "$ffb_entry_dir" "$ffb_real_fname"
+    check_file_signature "$ffb_id" "$ffb_real_fname"
     if [ $? -ne 0 ]; then
       return 1
     fi
@@ -678,21 +802,21 @@ function fetch_file_base {
 	    warn "Error making '$ffb_outname' executable" 1>&2
 	    return 1
 	fi
-	if [ "$ffb_outname" != "$last_script" ]; then # last_script global for simplicity
+	if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
+	    echo "Skipping last script $last_script" 1>&2
+	else
             echo "Executing $ffb_outname"
-	    "./$ffb_outname" glidein_config "$ffb_entry_dir"
+	    "./$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
 	    if [ $ret -ne 0 ]; then
 		warn "Error running '$ffb_outname'" 1>&2
 		return 1
 	    fi
-	else
-	    echo "Skipping last script $last_script" 1>&2
 	fi
     elif [ "$ffb_file_type" == "wrapper" ]; then
 	echo "$PWD/$ffb_outname" >> "$wrapper_list"
     elif [ "$ffb_file_type" == "untar" ]; then
-	ffb_untar_dir=`get_untar_subdir "$ffb_entry_dir" "$ffb_target_fname"`
+	ffb_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
 	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$work_dir/$ffb_outname") 1>&2
 	ret=$?
 	if [ $ret -ne 0 ]; then
@@ -702,14 +826,15 @@ function fetch_file_base {
     fi
 
     if [ "$ffb_config_out" != "FALSE" ]; then
+	ffb_prefix=`get_prefix $ffb_id`
 	if [ "$ffb_file_type" == "untar" ]; then
 	    # when untaring the original file is less interesting than the untar dir
-	    add_config_line "$ffb_config_out" "$work_dir/$ffb_untar_dir"
+	    add_config_line "${ffb_prefix}${ffb_config_out}" "$work_dir/$ffb_untar_dir"
 	    if [ $? -ne 0 ]; then
 		glidein_exit 1
 	    fi
 	else
-	    add_config_line "$ffb_config_out" "$work_dir/$ffb_outname"
+	    add_config_line "${ffb_prefix}${ffb_config_out}" "$work_dir/$ffb_outname"
 	    if [ $? -ne 0 ]; then
 		glidein_exit 1
 	    fi
@@ -727,45 +852,32 @@ function fetch_file_base {
 # check_signature is global
 check_signature=0
 
-# Fetch description file
-fetch_file_regular "main" "$descript_file"
-signature_file_line=`grep "^signature " "$descript_file"`
-if [ $? -ne 0 ]; then
-    warn "No signature in description file." 1>&2
-    glidein_exit 1
-fi
-signature_file=`echo $signature_file_line|awk '{print $2}'`
+for gs_id in main entry client client_group
+do
+  gs_id_work_dir=`get_work_dir $gs_id`
 
-# Fetch signature file
-fetch_file_regular "main" "$signature_file"
-echo "$sign_sha1  $signature_file">signature.sha1.test
-sha1sum -c signature.sha1.test 1>&2
-if [ $? -ne 0 ]; then
-    warn "Corrupted signature file '$signature_file'." 1>&2
-    glidein_exit 1
-fi
-# for simplicity use a fixed name for signature file
-mv "$signature_file" "signature.sha1"
+  # Fetch description file
+  gs_id_descript_file=`get_descript_file $gs_id`
+  fetch_file_regular "$gs_id" "$gs_id_descript_file"
+  signature_file_line=`grep "^signature " "${gs_id_work_dir}/${gs_id_descript_file}"`
+  if [ $? -ne 0 ]; then
+      warn "No signature in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      glidein_exit 1
+  fi
+  signature_file=`echo $signature_file_line|awk '{print $2}'`
 
-# Fetch description file for entry
-fetch_file_regular "$short_entry_dir" "$descript_entry_file"
-signature_entry_file_line=`grep "^signature " "$entry_dir/$descript_entry_file"`
-if [ $? -ne 0 ]; then
-    warn "No signature in description file for entry." 1>&2
-    glidein_exit 1
-fi
-signature_entry_file=`echo $signature_entry_file_line|awk '{print $2}'`
-
-# Fetch entry signature file
-fetch_file_regular "$short_entry_dir" "$signature_entry_file"
-echo "$sign_entry_sha1  $signature_entry_file">"$entry_dir/signature.sha1.test"
-(cd $entry_dir; sha1sum -c signature.sha1.test) 1>&2
-if [ $? -ne 0 ]; then
-    warn "Corrupted entry signature file '$signature_entry_file'." 1>&2
-    glidein_exit 1
-fi
-# for simplicity use a fixed name for signature file
-mv "$entry_dir/$signature_entry_file" "$entry_dir/signature.sha1"
+  # Fetch signature file
+  gs_id_signature=`get_signature $gs_id`
+  fetch_file_regular "$gs_id" "$signature_file"
+  echo "$sign_sha1  ${gs_id_work_dir}/${signature_file}">signature.sha1.test
+  sha1sum -c signature.sha1.test 1>&2
+  if [ $? -ne 0 ]; then
+      warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'." 1>&2
+      glidein_exit 1
+  fi
+  # for simplicity use a fixed name for signature file
+  mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/${signature.sha1}"
+done
 
 # re-enable for everything else
 check_signature=1
@@ -774,74 +886,70 @@ check_signature=1
 # doing it so late should be fine, since nobody should have been able
 # to fake the signature file, even if it faked its name in
 # the description file
-check_file_signature "main" "$descript_file"
+for gs_id in main entry client client_group
+do
+  gs_id_descript_file=`get_descript_file $gs_id`
+  check_file_signature "$gs_id" "$gs_id_descript_file"
+  if [ $? -ne 0 ]; then
+      gs_id_work_dir=`get_work_dir $gs_id`
+      warn "Corrupted description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      glidein_exit 1
+  fi
+done
+
+###################################################
+# get last_script, as it is used by the fetch_file
+last_script=`grep "^last_script " "$descript_file"`
 if [ $? -ne 0 ]; then
-    warn "Corrupted description file." 1>&2
+    warn "last_script not in description file $descript_file." 1>&2
     glidein_exit 1
 fi
 
-check_file_signature "$short_entry_dir" "$descript_entry_file"
-if [ $? -ne 0 ]; then
-    warn "Corrupted description file for entry." 1>&2
-    glidien_exit 1
-fi
-
-
-##############################################
-# Extract other infor from the descript files
-for id in file_list after_file_list last_script
-do
-  id_line=`grep "^$id " "$descript_file"`
-  if [ $? -ne 0 ]; then
-    warn "No '$id' in description file." 1>&2
-    glidein_exit 1
-  fi
-  id_val=`echo $id_line|awk '{print $2}'`
-  eval $id=$id_val
-done
-
-# Repeat for entry
-
-for id in file_list 
-do
-  id_line=`grep "^$id " "$entry_dir/$descript_entry_file"`
-  if [ $? -ne 0 ]; then
-    warn "No '$id' in entry description file." 1>&2
-    glidein_exit 1
-  fi
-  id_var="${id}_entry"
-  id_val=`echo $id_line|awk '{print $2}'`
-  eval $id_var=$id_val
-done
 
 ##############################
-# Fetch list of support files
-fetch_file_regular "main" "$file_list"
-fetch_file_regular "$short_entry_dir" "$file_list_entry"
-fetch_file_regular "main" "$after_file_list"
-
-# Fetch files
-while read file
+# Fetch all the other files
+for gs_file_id in "main file_list" "client preentry_file_list" "client_group preentry_file_list" "client aftergroup_preentry_file_list" "entry file_list" "client file_list" "client_group file_list" "client aftergroup_file_list" "main after_file_list"
 do
-    if [ "${file:0:1}" != "#" ]; then
-	fetch_file "main" $file
-    fi
-done < "$file_list"
+  gs_id=`echo $gs_file_id |awk '{print $1}'`
 
-# Fetch entry files
-while read file
-do
-    if [ "${file:0:1}" != "#" ]; then
-	fetch_file "$short_entry_dir" $file
-    fi
-done < "$entry_dir/$file_list_entry"
+  if [ -z "$client_repository_url" ]; then
+      if [ "$gs_id" == "client" ]; then
+	  # no client file when no cilent_repository
+	  continue
+      fi
+  fi
+  if [ -z "$client_repository_group_url" ]; then
+      if [ "$gs_id" == "client_group" ]; then
+	      # no client group file when no cilent_repository_group
+	  continue
+      fi
+  fi
 
-while read file
-do
+  gs_file_list_id=`echo $gs_file_id |awk '{print $2}'`
+  
+  gs_id_work_dir=`get_work_dir $gs_id`
+  gs_id_descript_file=`get_descript_file $gs_id`
+  
+  # extract list file name
+  gs_file_list_line=`grep "^$gs_file_list_id " "$gs_id_descript_file"`
+  if [ $? -ne 0 ]; then
+      warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
+      glidein_exit 1
+  fi
+  gs_file_list=`echo $gs_file_list_line |awk '{print $2}'`
+
+  # fetch list file
+  fetch_file_regular "$gs_id" "$gs_file_list"
+
+  # Fetch files contained in list
+  while read file
+    do
     if [ "${file:0:1}" != "#" ]; then
-	fetch_file "main" $file
+	fetch_file "$gs_id" $file
     fi
-done < "$after_file_list"
+  done < "${gs_id_work_dir}/${gs_file_list}"
+
+done
 
 ###############################
 # Start the glidein main script
