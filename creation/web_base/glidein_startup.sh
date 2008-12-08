@@ -457,6 +457,14 @@ echo "# --- glidein_startup vals ---" >> glidein_config
 echo "GLIDEIN_Factory $glidein_factory" >> glidein_config
 echo "GLIDEIN_Name $glidein_name" >> glidein_config
 echo "GLIDEIN_Entry_Name $glidein_entry" >> glidein_config
+if [ -n '$client_name' ]; then
+    # client name not required as it is not used for anything but debug info
+    echo "GLIDECLIENT_Name $client_name" >> glidein_config
+fi
+if [ -n '$client_group' ]; then
+    # client group not required as it is not used for anything but debug info
+    echo "GLIDECLIENT_Group $client_group" >> glidein_config
+fi
 echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
@@ -467,6 +475,14 @@ echo "DESCRIPTION_FILE $descript_file" >> glidein_config
 echo "DESCRIPTION_ENTRY_FILE $descript_entry_file" >> glidein_config
 echo "GLIDEIN_Signature $sign_id" >> glidein_config
 echo "GLIDEIN_Entry_Signature $sign_entry_id" >> glidein_config
+if [ -n "$client_repository_url" ]; then
+    echo "GLIDECLIENT_DESCRIPTION_FILE $client_descript_file" >> glidein_config
+    echo "GLIDECLIENT_Signature $client_sign_id" >> glidein_config
+    if [ -n "$client_repository_group_url" ]; then
+	echo "GLIDECLIENT_DESCRIPTION_GROUP_FILE $client_descript_group_file" >> glidein_config
+	echo "GLIDECLIENT_Group_Signature $client_sign_group_id" >> glidein_config
+    fi
+fi
 echo "ADD_CONFIG_LINE_SOURCE $PWD/add_config_line.source" >> glidein_config
 echo "WRAPPER_LIST $wrapper_list" >> glidein_config
 echo "# --- User Parameters ---" >> glidein_config

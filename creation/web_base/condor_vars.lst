@@ -14,7 +14,6 @@ USE_MATCH_AUTH		C	-     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION	N	N	-
 GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
 GLIDEIN_Signature	S	-		+				Y	Y	@
-GLIDEIN_Client		S	-		+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
 GLIDEIN_Start		C	1		+				N	N	-
 GLIDEIN_Rank		C	1		+				N	N	-
@@ -26,6 +25,10 @@ GLIDEIN_Update_Interval I 	- 		UPDATE_INTERVAL			N	N	-
 GLIDEIN_Use_TCP		I 	-		UPDATE_COLLECTOR_WITH_TCP	N	N	-
 GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
 GLIDEIN_Expose_Grid_Env	C	False		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
+GLIDECLIENT_Name	S	-		+				N	Y	@
+GLIDECLIENT_Group	S	-		+				N	Y	@
+GLIDECLIENT_Signature	S	-		+				N	Y	@
+GLIDECLIENT_Group_Signature	S	-	+				N	Y	@
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 CONDORG_CLUSTER		I	-		GLIDEIN_ClusterId		Y	Y	@
 CONDORG_SUBCLUSTER	I	-		GLIDEIN_ProcId			Y	Y	@
