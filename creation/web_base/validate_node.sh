@@ -75,7 +75,7 @@ function check_quotas {
 # Assume all functions exit on error
 config_file=$1
 
-blacklist_file=`grep -i "^BLACKLIST_FILE " $config_file | awk '{print $2}'`
+blacklist_file=`grep -i "^ENTRY_BLACKLIST_FILE " $config_file | awk '{print $2}'`
 if [ -n "$blacklist_file" ]; then
   check_blacklist
 fi

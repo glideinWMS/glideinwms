@@ -183,7 +183,7 @@ function cond_print_log {
 }
 
 condor_vars=`grep -i "^CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
-condor_vars_entry=`grep -i "^CONDOR_VARS_ENTRY_FILE " $config_file | awk '{print $2}'`
+condor_vars_entry=`grep -i "^ENTRY_CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
 
 grep -v "^#" "$condor_vars" > condor_vars.lst.tmp 
 grep -v "^#" "$condor_vars_entry" >> condor_vars.lst.tmp 

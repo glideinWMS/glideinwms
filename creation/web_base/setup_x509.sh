@@ -181,7 +181,7 @@ function create_condormapfile {
 
 # Assume all functions exit on error
 config_file="$1"
-X509_GRIDMAP="$PWD/grid-mapfile"
+X509_GRIDMAP="$PWD/main/grid-mapfile"
 X509_CONDORMAP="$PWD/condor_mapfile"
 
 check_x509_certs
