@@ -4,6 +4,8 @@ v2Next	Refactoring creation libs;
 	Frontend now has a stage web area and passes it to the factory
 	  Factory publishes list of supported signtypes and
             frontend uses this for factory selection
+	  User provided code in the glidein API changed
+	    The 2nd arg is now one of main|entry|client|client_group
 
 v1_6+	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
