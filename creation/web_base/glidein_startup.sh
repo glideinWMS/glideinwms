@@ -529,6 +529,14 @@ if [ $? -ne 0 ]; then
     glidein_exit 1
 fi
 
+short_main_dir=main
+main_dir="${work_dir}/${short_main_dir}"
+mkdir "$main_dir"
+if [ $? -ne 0 ]; then
+    warn "Cannot create '$main_dir'" 1>&2
+    glidein_exit 1
+fi
+
 short_entry_dir=entry_${glidein_entry}
 entry_dir="${work_dir}/${short_entry_dir}"
 mkdir "$entry_dir"
@@ -547,7 +555,7 @@ if [ -n "$client_repository_url" ]; then
     fi
 
     if [ -n "$client_repository_group_url" ]; then
-	short_client_group_dir=${short_client_dir}/group_${client_group}
+	short_client_group_dir=client_group_${client_group}
 	client_group_dir="${work_dir}/${short_client_group_dir}"
 	mkdir "$client_group_dir"
 	if [ $? -ne 0 ]; then
@@ -585,7 +593,7 @@ echo "CONDORG_CLUSTER $condorg_cluster" >> glidein_config
 echo "CONDORG_SUBCLUSTER $condorg_subcluster" >> glidein_config
 echo "CONDORG_SCHEDD $condorg_schedd" >> glidein_config
 echo "DEBUG_MODE $set_debug" >> glidein_config
-echo "GLIDEIN_WORK_DIR $work_dir" >> glidein_config
+echo "GLIDEIN_WORK_DIR $main_dir" >> glidein_config
 echo "GLIDEIN_ENTRY_WORK_DIR $entry_dir" >> glidein_config
 echo "TMP_DIR $glide_tmp_dir" >> glidein_config
 echo "PROXY_URL $proxy_url" >> glidein_config
@@ -816,8 +824,9 @@ function fetch_file_base {
     elif [ "$ffb_file_type" == "wrapper" ]; then
 	echo "$PWD/$ffb_outname" >> "$wrapper_list"
     elif [ "$ffb_file_type" == "untar" ]; then
-	ffb_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
-	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$work_dir/$ffb_outname") 1>&2
+	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
+	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
+	(mkdir "$ffb_untar_dir" && cd "$ffb_untar_dir" && tar -xmzf "$ffb_outname") 1>&2
 	ret=$?
 	if [ $ret -ne 0 ]; then
 	    warn "Error untarring '$ffb_outname'" 1>&2
@@ -829,12 +838,12 @@ function fetch_file_base {
 	ffb_prefix=`get_prefix $ffb_id`
 	if [ "$ffb_file_type" == "untar" ]; then
 	    # when untaring the original file is less interesting than the untar dir
-	    add_config_line "${ffb_prefix}${ffb_config_out}" "$work_dir/$ffb_untar_dir"
+	    add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_untar_dir"
 	    if [ $? -ne 0 ]; then
 		glidein_exit 1
 	    fi
 	else
-	    add_config_line "${ffb_prefix}${ffb_config_out}" "$work_dir/$ffb_outname"
+	    add_config_line "${ffb_prefix}${ffb_config_out}" "$ffb_outname"
 	    if [ $? -ne 0 ]; then
 		glidein_exit 1
 	    fi
