@@ -878,8 +878,8 @@ do
   # Fetch signature file
   gs_id_signature=`get_signature $gs_id`
   fetch_file_regular "$gs_id" "$signature_file"
-  echo "$sign_sha1  ${gs_id_work_dir}/${signature_file}">signature.sha1.test
-  sha1sum -c signature.sha1.test 1>&2
+  echo "$sign_sha1  ${signature_file}">signature.sha1.test
+  (cd "${gs_id_work_dir}"&&sha1sum -c signature.sha1.test 1>&2
   if [ $? -ne 0 ]; then
       warn "Corrupted signature file '${gs_id_work_dir}/${signature_file}'." 1>&2
       glidein_exit 1
