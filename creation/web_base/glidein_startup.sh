@@ -885,7 +885,7 @@ do
       glidein_exit 1
   fi
   # for simplicity use a fixed name for signature file
-  mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/${signature.sha1}"
+  mv "${gs_id_work_dir}/${signature_file}" "${gs_id_work_dir}/signature.sha1"
 done
 
 # re-enable for everything else
