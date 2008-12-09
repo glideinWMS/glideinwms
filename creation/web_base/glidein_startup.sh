@@ -122,16 +122,16 @@ function create_get_id_selectors {
 # Arg: type (main/entry/client/client_group)
 function get_work_dir {
     if [ "\$1" == "main" ]; then
-        grep -v "^GLIDEIN_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "entry" ]; then
-        grep -v "^GLIDEIN_ENTRY_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_ENTRY_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "client" ]; then
-        grep -v "^GLIDECLIENT_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "client_group" ]; then
-        grep -v "^GLIDECLIENT_GROUP_WORK_DIR " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_GROUP_WORK_DIR " \${glidein_config} | awk '{print \$2}'
         return \$?
     fi
     echo "[get_work_dir] Invalid id: \$1" 1>&2
@@ -143,16 +143,16 @@ function get_work_dir {
 # Arg: type (main/entry/client/client_group)
 function get_descript_file {
     if [ "\$1" == "main" ]; then
-        grep -v "^DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "entry" ]; then
-        grep -v "^DESCRIPTION_ENTRY_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^DESCRIPTION_ENTRY_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "client" ]; then
-        grep -v "^GLIDECLIENT_DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_DESCRIPTION_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "client_group" ]; then
-        grep -v "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_DESCRIPTION_GROUP_FILE " \${glidein_config} | awk '{print \$2}'
         return \$?
     fi
     echo "[get_descript_file] Invalid id: \$1" 1>&2
@@ -164,16 +164,16 @@ function get_descript_file {
 # Arg: type (main/entry/client/client_group)
 function get_signature {
     if [ "\$1" == "main" ]; then
-        grep -v "^GLIDEIN_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "entry" ]; then
-        grep -v "^GLIDEIN_Entry_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDEIN_Entry_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "client" ]; then
-        grep -v "^GLIDECLIENT_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
     elif [ "\$1" == "client_group" ]; then
-        grep -v "^GLIDECLIENT_Group_Signature " \${glidein_config} | awk '{print \$2}'
+        grep "^GLIDECLIENT_Group_Signature " \${glidein_config} | awk '{print \$2}'
         return \$?
     fi
     echo "[get_signature] Invalid id: \$1" 1>&2
@@ -187,14 +187,14 @@ function get_prefix {
     if [ "\$1" == "main" ]; then
         echo ""
     elif [ "\$1" == "entry" ]; then
-	echo "ENTRY_"
+        echo "ENTRY_"
     elif [ "\$1" == "client" ]; then
-	echo "GLIDECLIENT_"
+        echo "GLIDECLIENT_"
     elif [ "\$1" == "client_group" ]; then
-	echo "GLIDECLIENT_GROUP_"
+        echo "GLIDECLIENT_GROUP_"
     else
-	echo "[get_prefix] Invalid id: \$1" 1>&2
-	return 1
+        echo "[get_prefix] Invalid id: \$1" 1>&2
+        return 1
     fi
 }
 
