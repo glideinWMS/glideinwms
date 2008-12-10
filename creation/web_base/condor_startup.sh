@@ -30,7 +30,10 @@ main_stage_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
 
 description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
 
-export CONDOR_CONFIG="${main_stage_dir}/`grep -i '^condor_config ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+export CONDOR_CONFIG="${PWD}/condor_config"
+
+cp "$in_condor_config" $CONDOR_CONFIG
 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
 
