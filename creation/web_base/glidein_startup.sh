@@ -863,6 +863,19 @@ check_signature=0
 
 for gs_id in main entry client client_group
 do
+  if [ -z "$client_repository_url" ]; then
+      if [ "$gs_id" == "client" ]; then
+	  # no client file when no cilent_repository
+	  continue
+      fi
+  fi
+  if [ -z "$client_repository_group_url" ]; then
+      if [ "$gs_id" == "client_group" ]; then
+	      # no client group file when no cilent_repository_group
+	  continue
+      fi
+  fi
+
   gs_id_work_dir=`get_work_dir $gs_id`
 
   # Fetch description file
@@ -897,6 +910,19 @@ check_signature=1
 # the description file
 for gs_id in main entry client client_group
 do
+  if [ -z "$client_repository_url" ]; then
+      if [ "$gs_id" == "client" ]; then
+	  # no client file when no cilent_repository
+	  continue
+      fi
+  fi
+  if [ -z "$client_repository_group_url" ]; then
+      if [ "$gs_id" == "client_group" ]; then
+	      # no client group file when no cilent_repository_group
+	  continue
+      fi
+  fi
+
   gs_id_descript_file=`get_descript_file $gs_id`
   check_file_signature "$gs_id" "$gs_id_descript_file"
   if [ $? -ne 0 ]; then
