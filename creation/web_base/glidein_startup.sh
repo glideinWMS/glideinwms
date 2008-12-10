@@ -942,7 +942,7 @@ do
   gs_id_descript_file=`get_descript_file $gs_id`
   
   # extract list file name
-  gs_file_list_line=`grep "^$gs_file_list_id " "$gs_id_descript_file"`
+  gs_file_list_line=`grep "^$gs_file_list_id " ""${gs_id_work_dir}/$gs_id_descript_file"`
   if [ $? -ne 0 ]; then
       warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
