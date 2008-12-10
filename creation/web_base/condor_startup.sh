@@ -376,7 +376,7 @@ log_dir='log'
 
 echo ===   Stats of main   ===
 if [ -f "${main_starter_log}" ]; then
-  awk -f parse_starterlog.awk ${main_starter_log}
+  awk -f "${main_stage_dir}/parse_starterlog.awk" ${main_starter_log}
 fi
 echo === End Stats of main ===
 
