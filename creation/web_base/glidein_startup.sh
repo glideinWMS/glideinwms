@@ -814,7 +814,7 @@ function fetch_file_base {
 	    echo "Skipping last script $last_script" 1>&2
 	else
             echo "Executing $ffb_outname"
-	    "./$ffb_outname" glidein_config "$ffb_id"
+	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
 	    if [ $ret -ne 0 ]; then
 		warn "Error running '$ffb_outname'" 1>&2
@@ -969,7 +969,8 @@ last_startup_time=`date +%s`
 let validation_time=$last_startup_time-$startup_time
 echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
 echo
-"./$last_script" glidein_config
+gs_id_work_dir=`get_work_dir main`
+"${gs_id_work_dir}/$last_script" glidein_config
 ret=$?
 last_startup_end_time=`date +%s`
 let last_script_time=$last_startup_end_time-$last_startup_time
