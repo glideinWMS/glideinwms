@@ -26,11 +26,11 @@ fi
 
 entry_name=`grep -i "^GLIDEIN_Entry_Name " $config_file | awk '{print $2}'`
 
-main_work_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
+main_stage_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
 
 description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
 
-export CONDOR_CONFIG="${PWD}/`grep -i '^condor_config ' ${main_work_dir}/${description_file} | awk '{print $2}'`"
+export CONDOR_CONFIG="${main_stage_dir}/`grep -i '^condor_config ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
 
 echo "# ---- start of condor_startup generated part ----" >> $CONDOR_CONFIG
 
@@ -256,16 +256,16 @@ fi
 
 
 if [ "$use_multi_monitor" -eq 1 ]; then
-    condor_config_multi_include="${PWD}/`grep -i '^condor_config_multi_include ' ${main_work_dir}/${description_file} | awk '{print $2}'`"
+    condor_config_multi_include="${main_stage_dir}/`grep -i '^condor_config_multi_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
-    cat $condor_config_multi_include >> "$CONDOR_CONFIG"
+    cat "$condor_config_multi_include" >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
 	echo "Error appending multi_include to condor_config" 1>&2
 	exit 1
     fi
 else
-    condor_config_main_include="${PWD}/`grep -i '^condor_config_main_include ' ${main_work_dir}/${description_file} | awk '{print $2}'`"
-    condor_config_monitor_include="${PWD}/`grep -i '^condor_config_monitor_include ' ${main_work_dir}/${description_file} | awk '{print $2}'`"
+    condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+    condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
 
     # using two different configs... one for monitor and one for main
@@ -275,7 +275,7 @@ else
 	echo "Error copying condor_config into condor_config.monitor" 1>&2
 	exit 1
     fi
-    cat $condor_config_monitor_include >> "$condor_config_monitor"
+    cat "$condor_config_monitor_include" >> "$condor_config_monitor"
     if [ $? -ne 0 ]; then
 	echo "Error appending monitor_include to condor_config.monitor" 1>&2
 	exit 1
