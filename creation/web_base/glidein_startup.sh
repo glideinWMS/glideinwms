@@ -810,7 +810,7 @@ function fetch_file_base {
 	    warn "Error making '$ffb_outname' executable" 1>&2
 	    return 1
 	fi
-	if [ "$ffb_id" == "main" -a "$ffb_target_fname" == "$last_script" ]; then # last_script global for simplicity
+	if [ "$ffb_id" == "main" -a "$ffb_real_fname" == "$last_script" ]; then # last_script global for simplicity
 	    echo "Skipping last script $last_script" 1>&2
 	else
             echo "Executing $ffb_outname"
