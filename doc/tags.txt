@@ -5,6 +5,7 @@ vNext	The XML file now supports comments.
 	Refactored install options so that most tasks performed
           as a non-privileged user.
 	Using m2crypto for sha1 checks.
+	Fixed startup bugs in various debug tools.
 
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.
