@@ -822,7 +822,7 @@ function fetch_file_base {
 	    fi
 	fi
     elif [ "$ffb_file_type" == "wrapper" ]; then
-	echo "$PWD/$ffb_outname" >> "$wrapper_list"
+	echo "$ffb_outname" >> "$wrapper_list"
     elif [ "$ffb_file_type" == "untar" ]; then
 	ffb_short_untar_dir=`get_untar_subdir "$ffb_id" "$ffb_target_fname"`
 	ffb_untar_dir="${ffb_work_dir}/${ffb_short_untar_dir}"
