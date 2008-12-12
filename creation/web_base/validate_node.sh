@@ -4,34 +4,6 @@
 # This script checks that the node is in good shape
 #
 
-function check_blacklist {
-    myname=`uname -n`
-    if [ $? -ne 0 ]; then
-	echo "Cannot get my name!"
-	exit 1
-    fi
-    emyname=`echo $myname | sed 's/\./\\\./g'`
-    grep -q -e "^'$emyname'" "$blacklist_file"
-    if [ $? -eq 0 ]; then
-	echo "My name '$myname' is in blacklist! Exiting."
-	exit 1
-    fi
-
-    myip=`host $myname | awk '{print $4}'`
-    if [ $? -ne 0 ]; then
-        #ignore errors, here, since host may fail
-	return 0
-    fi
-    emyip=`echo $myip | sed 's/\./\\\./g'`
-    grep -q -e "^'$emyip'" "$blacklist_file"
-    if [ $? -eq 0 ]; then
-	echo "My ip '$myip' is in blacklist! Exiting."
-	exit 1
-    fi
-
-    return 0
-}
-
 function check_df {
     chdf_dir="$1"
     chdf_reqmbs=$2
@@ -74,11 +46,6 @@ function check_quotas {
 
 # Assume all functions exit on error
 config_file=$1
-
-blacklist_file=`grep -i "^ENTRY_BLACKLIST_FILE " $config_file | awk '{print $2}'`
-if [ -n "$blacklist_file" ]; then
-  check_blacklist
-fi
 
 #
 # Check space on current directory
