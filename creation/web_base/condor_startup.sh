@@ -24,8 +24,6 @@ if [ "$debug_mode" == "1" ]; then
     echo "-----------------------------------------------------" 1>&2
 fi
 
-entry_name=`grep -i "^GLIDEIN_Entry_Name " $config_file | awk '{print $2}'`
-
 main_stage_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
 
 description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
@@ -187,11 +185,16 @@ function cond_print_log {
     fi
 }
 
-condor_vars=`grep -i "^CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
-condor_vars_entry=`grep -i "^ENTRY_CONDOR_VARS_FILE " $config_file | awk '{print $2}'`
+# interpret the variables
+touch condor_vars.lst.tmp
+for vid in GLIDECLIENT_GROUP_CONDOR_VARS_FILE GLIDECLIENT_CONDOR_VARS_FILE ENTRY_CONDOR_VARS_FILE CONDOR_VARS_FILE
+do
+ condor_vars=`grep -i "^$vid " $config_file | awk '{print $2}'`
+ if [ -n "$condor_vars" ]; then
+     grep -v "^#" "$condor_vars" >> condor_vars.lst.tmp 
+ fi
+done
 
-grep -v "^#" "$condor_vars" > condor_vars.lst.tmp 
-grep -v "^#" "$condor_vars_entry" >> condor_vars.lst.tmp 
 while read line
 do
     set_var $line
