@@ -65,7 +65,7 @@ def getCondorQ(schedd_names,constraint=None,format_list=None):
 def getIdleCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==1)
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('JobStatus') and (el['JobStatus']==1)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -79,7 +79,7 @@ def getIdleCondorQ(condorq_dict):
 def getRunningCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==2)
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('JobStatus') and (el['JobStatus']==2)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -93,7 +93,7 @@ def getRunningCondorQ(condorq_dict):
 def getOldCondorQ(condorq_dict,min_age):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el['ServerTime']-el['EnteredCurrentStatus'])>=min_age)
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('ServerTime') and el.has_key('EnteredCurrentStatus') and ((el['ServerTime']-el['EnteredCurrentStatus'])>=min_age)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -172,7 +172,7 @@ def getCondorStatus(collector_names,constraint=None,format_list=None):
 def getIdleCondorStatus(status_dict):
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Unclaimed") and (el['Activity']=="Idle")))
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State']=="Unclaimed") and (el['Activity']=="Idle")))
         sq.load()
         out[collector_name]=sq
     return out
@@ -186,7 +186,7 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Claimed") and (el['Activity'] in ("Busy","Retiring"))))
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State']=="Claimed") and (el['Activity'] in ("Busy","Retiring"))))
         sq.load()
         out[collector_name]=sq
     return out
@@ -201,7 +201,7 @@ def getClientCondorStatus(status_dict,frontend_name,request_name):
     client_name="%s@%s"%(request_name,frontend_name)
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:el['GLIDEIN_Client']==client_name)
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('GLIDEIN_Client') and (el['GLIDEIN_Client']==client_name)))
         sq.load()
         out[collector_name]=sq
     return out
