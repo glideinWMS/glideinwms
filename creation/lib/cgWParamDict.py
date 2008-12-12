@@ -76,7 +76,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
         # add additional system scripts
-        for script_name in ('collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
+        for script_name in ('validate_node.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
@@ -163,7 +163,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"validate_node.sh"):
+        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         #load system files

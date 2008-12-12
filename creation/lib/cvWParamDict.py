@@ -41,7 +41,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"validate_node.sh"):
+        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
             self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
@@ -97,7 +97,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
 
         # Load initial system scripts
         # These should be executed before the other scripts
-        for script_name in ('cat_consts.sh',"validate_node.sh"):
+        for script_name in ('cat_consts.sh',"check_blacklist.sh"):
             self.dicts['preentry_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         # put user files in stage
