@@ -1,0 +1,97 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>Writing custom scripts</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGED" CONTENT="20081215;17005700">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Writing custom scripts</H1>
+<H2>Description</H2>
+<P>This document describes how to write custom scripts to run in a
+glidein. Glidein Factory administrators may want to write them to
+implement features specific to their clients. Two examples are worker
+node validation, and discovery and setup of VO-specific software.<BR><B>PS</B>:
+The “scripts” can also be compiled binaries.</P>
+<H2>Index</H2>
+<UL>
+	<LI><P><A HREF="#api">Script API</A></P>
+	<LI><P><A HREF="#glidein_config">The glidein configuration file</A></P>
+	<LI><P><A HREF="#condor_vars">Condor vars file</A></P>
+	<LI><P>Loading order</P>
+	<LI><P>Examples</P>
+</UL>
+<H2><A NAME="api"></A>Script API</H2>
+<P>All scripts are provided with exactly 2 arguments:</P>
+<OL>
+	<LI><P>the name of <A HREF="#glidein_config">the glidein
+	configuration file</A></P>
+	<LI><P>an entry id; this can be either <FONT FACE="Courier, monospace"><B>main</B></FONT>
+	or the name of the entry point</P>
+</OL>
+<P>All other input comes from <A HREF="#glidein_config">the glidein
+configuration file</A> that is used as a dashboard between different
+scripts.</P>
+<P>The script must return with exit code 0 if successful; a non-zero
+return value will stop the execution of the glidein with a validation
+error.</P>
+<P>If the script provides any output to be used by other scripts, it
+should write it <A HREF="#glidein_config">the glidein configuration
+file</A>. If the values need to be published by the condor_startd or
+visible by the user jobs, the condor vars file should also be
+modified.</P>
+<H2><A NAME="glidein_config"></A>The glidein configuration file</H2>
+<P>The glidein configuration file acts as a dashboard between
+different scripts.</P>
+<P>The glidein configuration file is a simple ASCII file, with one
+value per line; the first column represents the attribute name, while
+the rest is the attribute value.<BR>If the value does not contain any
+spaces, the easiest way to extract a value in bash is:</P>
+<BLOCKQUOTE><I>attr_val</I><FONT FACE="Courier, monospace">=`grep
+&quot;^$</FONT><I>attr_name</I> <FONT FACE="Courier, monospace">&quot;
+</FONT>$<I>glidein_config</I> <FONT FACE="Courier, monospace">| awk
+'{print $2}'`</FONT></BLOCKQUOTE>
+<P><BR><BR>
+</P>
+<P>Several attributes are added by the default glidein scripts, the
+most interesting being:</P>
+<UL>
+	<LI><P>ADD_CONFIG_LINE_SOURCE – Script that can be used to add new
+	attributes to the glidein configuration file (see below).</P>
+	<LI><P>GLIDEIN_Name – Name of the glidein branch</P>
+	<LI><P>GLIDEIN_Entry_Name – name of the glidein entry point</P>
+	<LI><P>TMP_DIR – The path to the temporary dir</P>
+	<LI><P>PROXY_URL – The URL of the Web proxy</P>
+</UL>
+<P>All attributes of the glidein factory (both the common and the
+entry specific) are also loaded into this file.</P>
+<P><BR><BR>
+</P>
+<P>To write into the glidein configuration file, the best approach in
+bash is to use the add_config_line support script. Just source the
+provided script and use it. Here is an example:</P>
+<BLOCKQUOTE><FONT FACE="Courier, monospace"># get the glidein
+configuration file name<BR>glidein_config=$1</FONT></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Courier, monospace"># import add_config_line
+function<BR>add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE '
+$glidein_config | awk '{print $2}'`<BR>source $add_config_line_source</FONT></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Courier, monospace"># add an
+attributes<BR>add_config_line</FONT> <I>myattribute myvalue</I></BLOCKQUOTE>
+<H2><A NAME="condor_vars"></A>Condor vars file</H2>
+<P>To be written.</P>
+<H2>Loading order</H2>
+<P>To be written.</P>
+<H2>Examples</H2>
+<P>To be written.</P>
+<P><BR><BR>
+</P>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
