@@ -127,17 +127,48 @@ var files</P>
 <BLOCKQUOTE><FONT FACE="Courier, monospace">glideinWMS/creation/web_base/condor_vars.lst<BR>glideinWMS/creation/web_base/condor_vars.lst.entry</FONT></BLOCKQUOTE>
 <P>Here below, you can see a short extract. For all the options, look
 at your glideinWMS installation.</P>
-<PRE># VarName               Type    Default         CondorName                      Req.    Export  UserName<BR>#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export<BR>#                                                                                               + = Use VarName<BR>#                                                                                               @ = Use CondorName<BR>#################################################################################################################
-<FONT FACE="Courier, monospace">X509_USER_PROXY         C       -               GSI_DAEMON_PROXY                Y       N       -<BR>USE_MATCH_AUTH          C       -     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION  N       N       -<BR>GLIDEIN_Factory         S       -               +                               Y       Y       @<BR>GLIDEIN_Name            S       -               +                               Y       Y       @<BR>GLIDEIN_Collector       C       -               HEAD_NODE                       Y       N       -<BR>GLIDEIN_Expose_Grid_Env C       False     JOB_INHERITS_STARTER_ENVIRONMENT      N       Y       +<BR>TMP_DIR                 S       -               GLIDEIN_Tmp_Dir                 Y       Y       @</FONT>
+<PRE># VarName               Type    Default         CondorName                      Req.    Export  UserName
+#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                                                                                               + = Use VarName
+#                                                                                               @ = Use CondorName
+#################################################################################################################
+<FONT FACE="Courier, monospace">X509_USER_PROXY         C       -               GSI_DAEMON_PROXY                Y       N       -</FONT>
+<FONT FACE="Courier, monospace">USE_MATCH_AUTH          C       -     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION  N       N       -</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Factory         S       -               +                               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Name            S       -               +                               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Collector       C       -               HEAD_NODE                       Y       N       -</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Expose_Grid_Env C       False     JOB_INHERITS_STARTER_ENVIRONMENT      N       Y       +</FONT>
+<FONT FACE="Courier, monospace">TMP_DIR                 S       -               GLIDEIN_Tmp_Dir                 Y       Y       @</FONT>
 <FONT FACE="Courier, monospace">CONDORG_CLUSTER         I       -               GLIDEIN_ClusterId               Y       Y       @</FONT>
 <FONT FACE="Courier, monospace">CONDORG_SUBCLUSTER      I       -               GLIDEIN_ProcId                  Y       Y       @</FONT>
-<FONT FACE="Courier, monospace">CONDORG_SCHEDD          S       -               GLIDEIN_Schedd                  Y       Y       @<BR>SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -<BR>SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -<BR>MAX_MASTER_LOG          I       1000000         +                               N       N       -<BR>MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
+<FONT FACE="Courier, monospace">CONDORG_SCHEDD          S       -               GLIDEIN_Schedd                  Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">MAX_MASTER_LOG          I       1000000         +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
 Loading order</H2>
 <P>To be written.</P>
 <H2>Examples</H2>
 <P>To be written.</P>
 <P><BR><BR>
 </P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<H2 ALIGN=LEFT>Repository</H2>
+			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
+			<H2 ALIGN=LEFT>Package(s)</H2>
+			<P ALIGN=LEFT>glideinWMS/creation</P>
+		</TD>
+		<TD>
+			<H2 ALIGN=LEFT>Author(s)</H2>
+			<P ALIGN=LEFT>Igor Sfiligoi (Fermilab Computing Division)</P>
+		</TD>
+	</TR>
+</TABLE>
 <P><BR><BR>
 </P>
 </BODY>
