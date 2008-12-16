@@ -5,7 +5,7 @@
 	<TITLE>Writing custom scripts</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20081215;17005700">
+	<META NAME="CHANGED" CONTENT="20081216;15364200">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -84,8 +84,55 @@ $glidein_config | awk '{print $2}'`<BR>source $add_config_line_source</FONT></BL
 <BLOCKQUOTE><FONT FACE="Courier, monospace"># add an
 attributes<BR>add_config_line</FONT> <I>myattribute myvalue</I></BLOCKQUOTE>
 <H2><A NAME="condor_vars"></A>Condor vars file</H2>
-<P>To be written.</P>
-<H2>Loading order</H2>
+<P>The glideinWMS uses a so called <I>condor vars file</I> to decide
+which attributes are going to be inserted into the condor
+configuration file, which are going to be published by the glidein
+condor_startd to the collector, and which attributes are going to be
+put into the job environment.</P>
+<P>The condor vars file is called</P>
+<BLOCKQUOTE><FONT FACE="Courier, monospace">condor_vars.lst</FONT></BLOCKQUOTE>
+<P>It is an ASCII file, with one entry per row. Each non comment line
+must have 7 columns. Each column has a specific meaning:</P>
+<OL>
+	<LI><P>Attribute name (will be extracted from <A HREF="#glidein_config">the
+	glidein configuration file</A>)</P>
+	<LI><P>Attribute type</P>
+</OL>
+<UL>
+	<UL>
+		<LI><P>I – integer</P>
+		<LI><P>S – quoted string</P>
+		<LI><P>C – unquoted string (i.e. Condor keyword or expression)</P>
+	</UL>
+</UL>
+<OL START=3>
+	<LI><P>Default value, use – if no default</P>
+	<LI><P>Condor name, i.e. under which name should this attributed be
+	known in the condor configuration</P>
+	<LI><P>Is a value required for this attribute? <BR>Must be Y or N.
+	If Y and the attribute is not defined, the glidein will fail.</P>
+	<LI><P>Will condor_startd publish this attribute to the
+	collector?<BR>Must be Y or N.</P>
+	<LI><P>Will the attribute be exported to the user job environment?</P>
+</OL>
+<UL>
+	<UL>
+		<LI><P>- - Do not export</P>
+		<LI><P>+ - Export using the original attribute name</P>
+		<LI><P>@ - Export using the Condor name</P>
+	</UL>
+</UL>
+<P>The glideinWMS defines several attributes in the default condor
+var files</P>
+<BLOCKQUOTE><FONT FACE="Courier, monospace">glideinWMS/creation/web_base/condor_vars.lst<BR>glideinWMS/creation/web_base/condor_vars.lst.entry</FONT></BLOCKQUOTE>
+<P>Here below, you can see a short extract. For all the options, look
+at your glideinWMS installation.</P>
+<PRE># VarName               Type    Default         CondorName                      Req.    Export  UserName<BR>#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export<BR>#                                                                                               + = Use VarName<BR>#                                                                                               @ = Use CondorName<BR>#################################################################################################################
+<FONT FACE="Courier, monospace">X509_USER_PROXY         C       -               GSI_DAEMON_PROXY                Y       N       -<BR>USE_MATCH_AUTH          C       -     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION  N       N       -<BR>GLIDEIN_Factory         S       -               +                               Y       Y       @<BR>GLIDEIN_Name            S       -               +                               Y       Y       @<BR>GLIDEIN_Collector       C       -               HEAD_NODE                       Y       N       -<BR>GLIDEIN_Expose_Grid_Env C       False     JOB_INHERITS_STARTER_ENVIRONMENT      N       Y       +<BR>TMP_DIR                 S       -               GLIDEIN_Tmp_Dir                 Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_CLUSTER         I       -               GLIDEIN_ClusterId               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_SUBCLUSTER      I       -               GLIDEIN_ProcId                  Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_SCHEDD          S       -               GLIDEIN_Schedd                  Y       Y       @<BR>SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -<BR>SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -<BR>MAX_MASTER_LOG          I       1000000         +                               N       N       -<BR>MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
+Loading order</H2>
 <P>To be written.</P>
 <H2>Examples</H2>
 <P>To be written.</P>
