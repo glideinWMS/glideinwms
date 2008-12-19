@@ -5,7 +5,7 @@
 	<TITLE>Glidein Factory Configuration</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20081114;11102600">
+	<META NAME="CHANGED" CONTENT="20081219;10303200">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -742,26 +742,19 @@ cases, the glidein creation command adds the following options:</P>
 <UL>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>script
-	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>
-	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>Path
+	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;</FONT>
+	<FONT FACE="monospace"><B>comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>Path
 	to the custom script.<BR><BR>The script will be copied in the
 	Web-accessible area, and when a glidein starts, the&nbsp;glidein
 	startup script will pull it and execute it. If any parameters are
 	needed, they can be specified using&nbsp;<B>&lt;attr /&gt;</B>, or
-	stored in a file (see below).<BR><BR>When invoked, the script will
-	be given a single argument; the name of the config file to use. That
-	file will contain all the glidein variables, one per line, with
-	variable name first, a (set of) space(s), followed by the actual
-	value. For example:</P>
-	<P><FONT FACE="monospace">GLIDEIN_Site &nbsp;fnal<BR>MYVAR &nbsp;X34_44</FONT></P>
-	<P><FONT FACE="monospace">It is scripts task to parse out those
-	values; a bash example would be:</FONT></P>
-	<P STYLE="margin-bottom: 0in"><FONT FACE="monospace">myval=`awk $1
-	'/^MYVAR /{print $2}'`</FONT></P>
+	stored in a file (see below).<BR><BR>For more detailed information,
+	see the page dedicated to <A HREF="custom_scripts.html">writing
+	custom scripts</A>.</P>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>script
-	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>wrapper</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT>&quot;<FONT FACE="monospace"><B>
-	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;</FONT>/&gt;<BR>Path
+	name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>wrapper</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT>&quot;
+	<FONT FACE="monospace"><B>comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;</FONT>/&gt;<BR>Path
 	to the wrapper custom script.<BR><BR>The script will be copied in
 	the Web-accessible area, and will be sourced just before a user job
 	starts starts; i.e. it will become part of the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_3Configuration.html#14376">user
@@ -770,8 +763,8 @@ cases, the glidein creation command adds the following options:</P>
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>loacl
 	file name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>relfname=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>target
 	file name</I></FONT><FONT FACE="monospace">&quot; </FONT><FONT FACE="monospace"><B>const=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>Bool</I></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>
-	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>Path
+	</FONT><FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;</FONT>
+	<FONT FACE="monospace"><B>comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>Path
 	to the config file.<BR><BR>The file will be copied in the
 	Web-accessible area, and pulled by the glidein startup script when a
 	glidein starts. It can be then used by any script (see above).
@@ -783,8 +776,8 @@ cases, the glidein creation command adds the following options:</P>
 	</P>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
 	&nbsp;&lt;</FONT><FONT FACE="monospace"><B>file absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>loacl
-	file name</I></FONT><FONT FACE="monospace">&quot;&nbsp;</FONT><FONT FACE="monospace"><B>untar</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>
-	comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;&gt;<BR>&nbsp;
+	file name</I></FONT><FONT FACE="monospace">&quot;&nbsp;</FONT><FONT FACE="monospace"><B>untar</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;</FONT>
+	<FONT FACE="monospace"><B>comment</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>comment</I></FONT><FONT FACE="monospace">&quot;&gt;<BR>&nbsp;
 	&nbsp; &lt;</FONT><FONT FACE="monospace"><B>untar_options</B></FONT>
 	<FONT FACE="monospace"><B>cond_attr</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>conf_sw</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>dir
