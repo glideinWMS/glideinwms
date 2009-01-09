@@ -46,20 +46,9 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None==self.rrd_obj:
-            return # nothing to do in this case
-
-        start_time=(long(time.time()-1)/rrd_step)*rrd_step # make the start time to be aligned on the rrd_step boundary - needed for optimal resoultion selection 
-        #print (rrdfname,start_time,rrd_step)+rrd_ds
-        args=[str(rrdfname),'-b','%li'%start_time,'-s','%i'%rrd_step,'DS:%s:%s:%i:%s:%s'%rrd_ds]
-        for archive in rrd_archives:
-            args.append("RRA:%s:%g:%i:%i"%archive)
-
-        lck=self.get_disk_lock()
-        try:
-            self.rrd_obj.create(*args)
-        finally:
-            lck.close()
+        self.create_rrd_multi(rrdfname,
+                              rrd_step,rrd_archives,
+                              (rrd_ds,))
         return
 
     #############################################################
