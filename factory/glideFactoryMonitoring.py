@@ -57,10 +57,6 @@ class MonitoringConfig:
                            ('AVERAGE',0.92,6,2*24*45),       # 30 min precision, keep for a month and a half
                            ('AVERAGE',0.98,24,12*370)        # 2 hour precision, keep for a year
                            ]
-        self.rrd_archives_small=[('AVERAGE',0.8,1,60/5*6),   # max precision, keep 6 hours
-                                 ('AVERAGE',0.92,6,2*24*2),  # 30 min precision, keep for 2 days
-                                 ('AVERAGE',0.98,24,12*45)   # 2 hour precision, keep for a month and a half
-                                 ]
 
         self.rrd_reports=[('hours',3600*4,0,1),        #four hour worth of data, max resolution, update at every slot
                           ('day',3600*24,0,6),        # a day worth of data, still high resolution, update as if it was medium res
@@ -193,7 +189,6 @@ class MonitoringConfig:
         if self.rrd_obj==None:
             return # nothing to do, no rrd bin no rrd creation
         
-        #for tp in ((".rrd",self.rrd_archives),(".small.rrd",self.rrd_archives_small)): # disable for now
         for tp in ((".rrd",self.rrd_archives),):
             rrd_ext,rrd_archives=tp
             fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
@@ -212,6 +207,41 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 update_rrd(self.rrd_obj,fname,time,val)
+            except Exception,e:
+                print "Failed to update %s"%fname
+        return
+    
+    def write_rrd_multi(self,relative_fname,ds_type,time,val_dict,min=None,max=None):
+        """
+        Create a RRD file, using rrdtool.
+        """
+        if self.rrd_obj==None:
+            return # nothing to do, no rrd bin no rrd creation
+        
+        for tp in ((".rrd",self.rrd_archives),):
+            rrd_ext,rrd_archives=tp
+            fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
+            #print "Writing RRD "+fname
+        
+            if not os.path.isfile(fname):
+                #print "Create RRD "+fname
+                if min==None:
+                    min='U'
+                if max==None:
+                    max='U'
+                ds_names=val_dict.keys()
+                ds_names.sort()
+
+                ds_arr=[]
+                for ds_name in ds_names:
+                    ds_arr.append((ds_name,ds_type,self.rrd_heartbeat,min,max))
+                create_rrd_multi(self.rrd_obj,fname,
+                                 self.rrd_step,rrd_archives,
+                                 ds_arr)
+
+            #print "Updating RRD "+fname
+            try:
+                update_rrd_multi(self.rrd_obj,fname,time,val_dict)
             except Exception,e:
                 print "Failed to update %s"%fname
         return
@@ -2016,11 +2046,51 @@ def create_rrd(rrd_obj,rrdfname,
       lck.close()
     return
 
+def create_rrd_multi(rrd_obj,rrdfname,
+                     rrd_step,rrd_archives,
+                     rrd_ds_arr):
+    start_time=(long(time.time()-1)/rrd_step)*rrd_step # make the start time to be aligned on the rrd_step boundary - needed for optimal resoultion selection 
+    #print (rrdfname,start_time,rrd_step)+rrd_ds
+    args=[str(rrdfname),'-b','%li'%start_time,'-s','%i'%rrd_step]
+    for rrd_ds in rrd_ds_arr:
+        args.append('DS:%s:%s:%i:%s:%s'%rrd_ds)
+    for archive in rrd_archives:
+        args.append("RRA:%s:%g:%i:%i"%archive)
+
+    lck=monitoringConfig.get_disk_lock()
+    try:
+      rrd_obj.create(*args)
+    finally:
+      lck.close()
+    return
+
 def update_rrd(rrd_obj,rrdfname,
                time,val):
     lck=monitoringConfig.get_disk_lock()
     try:
      rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
+    finally:
+      lck.close()
+
+    return
+
+def update_rrd_multi(rrd_obj,rrdfname,
+                     time,val_dict):
+    args=[str(rrdfname)]
+    ds_names=val_dict.keys()
+    ds_names.sort()
+
+    ds_vals=[]
+    for ds_name in ds_names:
+        ds_vals.append("%i"%val_dict[ds_name])
+
+    args.append('-t')
+    args.append(string.join(ds_names,':'))
+    args.append(('%li'%time)+string.join(ds_vals,':'))
+    
+    lck=monitoringConfig.get_disk_lock()
+    try:
+     rrd_obj.update(*args)
     finally:
       lck.close()
 
