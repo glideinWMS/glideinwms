@@ -678,17 +678,17 @@ class condorQStats:
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/Running"%fe_dir,
                                         "Running glideins",
-                                        [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00"),
-                                         ("ClientGlideins","%s/ClientMonitor_Attribute_GlideinsTotal.rrd"%fe_dir,"LINE2","000000"),
-                                         ("ClientRunning","%s/ClientMonitor_Attribute_GlideinsRunning.rrd"%fe_dir,"LINE2","0000FF")])
+                                        [("Running","%s/Status_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00"),
+                                         ("ClientGlideins","%s/ClientMonitor_Attributes.rrd?id=GlideinsTotal"%fe_dir,"LINE2","000000"),
+                                         ("ClientRunning","%s/ClientMonitor_Attributes.rrd?id=GlideinsRunning"%fe_dir,"LINE2","0000FF")])
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/MaxRun"%fe_dir,
                                         "Max running glideins requested",
-                                        [("MaxRun","%s/Requested_Attribute_MaxRun.rrd"%fe_dir,"AREA","008000")])
+                                        [("MaxRun","%s/Requested_Attributes.rrd?id=MaxRun"%fe_dir,"AREA","008000")])
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/Held"%fe_dir,
                                         "Held glideins",
-                                        [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
+                                        [("Held","%s/Status_Attributes.rrd?id=Held"%fe_dir,"AREA","c00000")])
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/ClientIdle"%fe_dir,
                                         "Idle client jobs",
@@ -701,7 +701,7 @@ class condorQStats:
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/InfoAge"%fe_dir,
                                         "Client info age",
-                                        [("InfoAge","%s/ClientMonitor_Attribute_InfoAge.rrd"%fe_dir,"LINE2","000000")])
+                                        [("InfoAge","%s/ClientMonitor_Attributes.rrd?id=InfoAge"%fe_dir,"LINE2","000000")])
             
         # create support index files
         for fe in data.keys():
@@ -805,6 +805,7 @@ class condorQStats:
                 tstr="%s glideins"%a
             else:
                 tstr="%s %s glideins"%(tp,a)
+            # to be fixed (rrd_fnames)
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "total/Split_%s"%fname,
                                         tstr,
@@ -1596,9 +1597,9 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                  '0080f0','0000c0')          # 128hours, TooLong
     
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
-        rrd_files=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00")]
+        rrd_files=[('Entered',"%s/Log_Entered.rrd?id=%s"%(fe_dir,s),"AREA","00ff00")]
         if not (s in ('Completed','Removed')): # always 0 for them
-            rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
+            rrd_files.append(('Exited',"%s/Log_Exited.rrd?id=%s"%(fe_dir,s),"AREA","ff0000"))
 
         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                     "%s/Log_%s_Diff"%(fe_dir,s),
@@ -1612,7 +1613,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "%s/Log_%s_Count"%(fe_dir,s),
                                         "%s glideins"%s,
-                                        [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
+                                        [(s,"%s/Log_Counts.rrd?id=%s"%(fe_dir,s),"AREA",colors[s])])
         elif s=="Completed":
             # create graphs for Lasted and Waste
             client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
@@ -1650,6 +1651,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                                 t_k_color=r_colors[r_colors_len/2]
                         t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
                         idx+=1
+                    # to be fixed (t_rrds)
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                                 "%s glideins"%t,t_rrds)
@@ -1709,7 +1711,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
             idx=0
             for fe in subdir_list:
                 fe_dir=subdir_template%fe
-                diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
+                diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_Entered.rrd?id=%s"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
                 idx=idx+1
 
             if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
@@ -1717,9 +1719,9 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                 area_or_stack='AREA' # first must be area for exited
                 for fe in subdir_list:
                     fe_dir=subdir_template%fe
-                    diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
+                    diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_Exited.rrd?id=%s"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
                     area_or_stack='STACK'
-                    count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
+                    count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_Counts.rrd?id=%s"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "total/Split_Log_%s_Count"%s,
@@ -1758,6 +1760,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                         cdef_formula=cdef_formula+(",%s,+"%ds_id)
                     cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
                     idx+=1
+                # to be fixed (diff_rrd_files)
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
                                             "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)

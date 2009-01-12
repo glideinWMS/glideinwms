@@ -164,34 +164,34 @@ def create_status_history():
     glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/Idle",
                                                        "Idle glideins",
-                                                       [("Requested","total/Requested_Attribute_Idle.rrd","AREA","00FFFF"),
-                                                        ("Idle","total/Status_Attribute_Idle.rrd","LINE2","0000FF"),
-                                                        ("Wait","total/Status_Attribute_Wait.rrd","LINE2","FF00FF"),
-                                                        ("Pending","total/Status_Attribute_Pending.rrd","LINE2","00FF00"),
-                                                        ("IdleOther","total/Status_Attribute_IdleOther.rrd","LINE2","FF0000")])
+                                                       [("Requested","total/Requested_Attributes.rrd?id=Idle","AREA","00FFFF"),
+                                                        ("Idle","total/Status_Attributes.rrd?id=Idle","LINE2","0000FF"),
+                                                        ("Wait","total/Status_Attributes.rrd?id=Wait","LINE2","FF00FF"),
+                                                        ("Pending","total/Status_Attributes.rrd?id=Pending","LINE2","00FF00"),
+                                                        ("IdleOther","total/Status_Attributes.rrd?id=IdleOther","LINE2","FF0000")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/Running",
                                                        "Running glideins",
-                                                       [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00"),
-                                                        ("ClientGlideins","total/ClientMonitor_Attribute_GlideinsTotal.rrd","LINE2","000000"),
-                                                        ("ClientRunning","total/ClientMonitor_Attribute_GlideinsRunning.rrd","LINE2","0000FF")])
+                                                       [("Running","total/Status_Attributes.rrd?id=Running","AREA","00FF00"),
+                                                        ("ClientGlideins","total/ClientMonitor_Attributes.rrd?id=GlideinsTotal","LINE2","000000"),
+                                                        ("ClientRunning","total/ClientMonitor_Attributes.rrd?id=GlideinsRunning","LINE2","0000FF")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/Held",
                                                        "Held glideins",
-                                                       [("Held","total/Status_Attribute_Held.rrd","AREA","c00000")])
+                                                       [("Held","total/Status_Attributes.rrd?id=Held","AREA","c00000")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/ClientIdle",
                                                        "Idle client",
-                                                       [("Idle","total/ClientMonitor_Attribute_Idle.rrd","AREA","00FFFF"),
-                                                        ("Requested","total/Requested_Attribute_Idle.rrd","LINE2","0000FF")])
+                                                       [("Idle","total/ClientMonitor_Attributes.rrd?id=Idle","AREA","00FFFF"),
+                                                        ("Requested","total/Requested_Attributes.rrd?id=Idle","LINE2","0000FF")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/ClientRunning",
                                                        "Running client jobs",
-                                                       [("Running","total/ClientMonitor_Attribute_Running.rrd","AREA","00FF00")])
+                                                       [("Running","total/ClientMonitor_Attributes.rrd?id=Running","AREA","00FF00")])
     glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                        "total/InfoAge",
                                                        "Client info age",
-                                                       [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
+                                                       [("InfoAge","total/ClientMonitor_Attributes.rrd?id=InfoAge","LINE2","000000")])
 
     # create split graphs
     colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
@@ -222,6 +222,7 @@ def create_status_history():
             tstr="%s glideins"%a
         else:
             tstr="%s %s glideins"%(tp,a)
+        # to be fixed (rrd_fnames)
         glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                                            "total/Split_%s"%fname,
                                                            tstr,
