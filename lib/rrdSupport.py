@@ -154,6 +154,218 @@ class BaseRRDSupport:
             
         return
 
+    #############################################################
+    def rrd2graph(self,fname,
+                  rrd_step,ds_name,ds_type,
+                  start,end,
+                  width,height,
+                  title,rrd_files,cdef_arr=None,trend=None,
+                  img_format='PNG'):
+        """
+        Create a graph file out of a set of RRD files
+
+        Arguments:
+          fname         - File path name of the graph file
+          rrd_step      - Which step should I use in the RRD files
+          ds_name       - Which attribute should I use in the RRD files
+          ds_type       - Which type should I use in the RRD files
+          start,end     - Time points in utime format
+          width,height  - Size of the graph
+          title         - Title to put in the graph
+          rrd_files     - list of RRD files, each being a tuple of (in order)
+                rrd_id      - logical name of the RRD file (will be the graph label)
+                rrd_fname   - name of the RRD file
+                graph_type  - Graph type (LINE, STACK, AREA)
+                grpah_color - Graph color in rrdtool format
+          cdef_arr      - list of derived RRD values
+                          if present, only the cdefs will be plotted
+                          each elsement is a tuple of (in order)
+                rrd_id        - logical name of the RRD file (will be the graph label)
+                cdef_formula  - Derived formula in rrdtool format
+                graph_type    - Graph type (LINE, STACK, AREA)
+                grpah_color   - Graph color in rrdtool format
+          trend         - Trend value in seconds (if desired, None else)
+          
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        if None==self.rrd_obj:
+            return # nothing to do in this case
+
+        multi_rrd_files=[]
+        for rrd_file in rrd_files:
+            multi_rrd_files.append((rrd_file[0],rrd_file[1],ds_name,ds_type,rrd_file[2],rrd_file[3]))
+        return self.rrd2graph_multi(fname,rrd_step,start,end,width,height,title,multi_rrd_files,cdef_arr,trend,img_format)
+
+    #############################################################
+    def rrd2graph_now(self,fname,
+                      rrd_step,ds_name,ds_type,
+                      period,width,height,
+                      title,rrd_files,cdef_arr=None,trend=None,
+                      img_format='PNG'):
+        """
+        Create a graph file out of a set of RRD files
+
+        Arguments:
+          fname         - File path name of the graph file
+          rrd_step      - Which step should I use in the RRD files
+          ds_name       - Which attribute should I use in the RRD files
+          ds_type       - Which type should I use in the RRD files
+          period        - start=now-period, end=now
+          width,height  - Size of the graph
+          title         - Title to put in the graph
+          rrd_files     - list of RRD files, each being a tuple of (in order)
+                rrd_id      - logical name of the RRD file (will be the graph label)
+                rrd_fname   - name of the RRD file
+                graph_type  - Graph type (LINE, STACK, AREA)
+                grpah_color - Graph color in rrdtool format
+          cdef_arr      - list of derived RRD values
+                          if present, only the cdefs will be plotted
+                          each elsement is a tuple of (in order)
+                rrd_id        - logical name of the RRD file (will be the graph label)
+                cdef_formula  - Derived formula in rrdtool format
+                graph_type    - Graph type (LINE, STACK, AREA)
+                grpah_color   - Graph color in rrdtool format
+          trend         - Trend value in seconds (if desired, None else)
+          
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        now=long(time.time())
+        start=((now-period)/rrd_step)*rrd_step
+        end=((now-1)/rrd_step)*rrd_step
+        return self.rrd2graph(fname,rrd_step,ds_name,ds_type,start,end,width,height,title,rrd_files,cdef_arr,trend,img_format)
+
+    #############################################################
+    def rrd2graph_multi(self,fname,
+                        rrd_step,
+                        start,end,
+                        width,height,
+                        title,rrd_files,cdef_arr=None,trend=None,
+                        img_format='PNG'):
+        """
+        Create a graph file out of a set of RRD files
+
+        Arguments:
+          fname         - File path name of the graph file
+          rrd_step      - Which step should I use in the RRD files
+          start,end     - Time points in utime format
+          width,height  - Size of the graph
+          title         - Title to put in the graph
+          rrd_files     - list of RRD files, each being a tuple of (in order)
+                rrd_id      - logical name of the RRD file (will be the graph label)
+                rrd_fname   - name of the RRD file
+                ds_name     - Which attribute should I use in the RRD files
+                ds_type     - Which type should I use in the RRD files
+                graph_type  - Graph type (LINE, STACK, AREA)
+                graph_color - Graph color in rrdtool format
+          cdef_arr      - list of derived RRD values
+                          if present, only the cdefs will be plotted
+                          each elsement is a tuple of (in order)
+                rrd_id        - logical name of the RRD file (will be the graph label)
+                cdef_formula  - Derived formula in rrdtool format
+                graph_type    - Graph type (LINE, STACK, AREA)
+                grpah_color   - Graph color in rrdtool format
+          trend         - Trend value in seconds (if desired, None else)
+          img_format    - format of the graph file (default PNG)
+          
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        if None==self.rrd_obj:
+            return # nothing to do in this case
+
+        args=[str(fname),'-s','%li'%start,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat',str(img_format),'--title',str(title)]
+        for rrd_file in rrd_files:
+            ds_id=rrd_file[0]
+            ds_fname=rrd_file[1]
+            ds_name=rrd_file[2]
+            ds_type=rrd_file[3]
+            if trend==None:
+                args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
+            else:
+                args.append(str("DEF:%s_inst=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
+                args.append(str("CDEF:%s=%s_inst,%i,TREND"%(ds_id,ds_id,trend)))
+
+        plot_arr=rrd_files
+        if cdef_arr!=None:
+            plot_arr=cdef_arr # plot the cdefs not the files themselves, when we have them
+            for cdef_el in cdef_arr:
+                ds_id=cdef_el[0]
+                cdef_formula=cdef_el[1]
+                ds_graph_type=rrd_file[2]
+                ds_color=rrd_file[3]
+                args.append(str("CDEF:%s=%s"%(ds_id,cdef_formula)))
+        else:
+            plot_arr=[]
+            for rrd_file in rrd_files:
+                plot_arr.append((rrd_file[0],None,rrd_file[4],rrd_file[5]))
+
+
+        if plot_arr[0][2]=="STACK":
+            # add an invisible baseline to stack upon
+            args.append("AREA:0")
+
+        for plot_el in plot_arr:
+            ds_id=plot_el[0]
+            ds_graph_type=plot_el[2]
+            ds_color=plot_el[3]
+            args.append("%s:%s#%s:%s"%(ds_graph_type,ds_id,ds_color,ds_id))
+            
+
+        args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
+
+    
+        try:
+            lck=self.get_graph_lock()
+            try:
+                self.rrd_obj.graph(*args)
+            finally:
+                lck.close()
+        except:
+            print "Failed graph: %s"%str(args)
+
+        return args
+
+    #############################################################
+    def rrd2graph_multi_now(self,fname,
+                            rrd_step,
+                            period,width,height,
+                            title,rrd_files,cdef_arr=None,trend=None,
+                            img_format='PNG'):
+        """
+        Create a graph file out of a set of RRD files
+
+        Arguments:
+          fname         - File path name of the graph file
+          rrd_step      - Which step should I use in the RRD files
+          period        - start=now-period, end=now
+          width,height  - Size of the graph
+          title         - Title to put in the graph
+          rrd_files     - list of RRD files, each being a tuple of (in order)
+                rrd_id      - logical name of the RRD file (will be the graph label)
+                rrd_fname   - name of the RRD file
+                ds_name     - Which attribute should I use in the RRD files
+                ds_type     - Which type should I use in the RRD files
+                graph_type  - Graph type (LINE, STACK, AREA)
+                graph_color - Graph color in rrdtool format
+          cdef_arr      - list of derived RRD values
+                          if present, only the cdefs will be plotted
+                          each elsement is a tuple of (in order)
+                rrd_id        - logical name of the RRD file (will be the graph label)
+                cdef_formula  - Derived formula in rrdtool format
+                graph_type    - Graph type (LINE, STACK, AREA)
+                grpah_color   - Graph color in rrdtool format
+          trend         - Trend value in seconds (if desired, None else)
+          img_format    - format of the graph file (default PNG)
+          
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        now=long(time.time())
+        start=((now-period)/rrd_step)*rrd_step
+        end=((now-1)/rrd_step)*rrd_step
+        return self.rrd2graph_multi(fname,rrd_step,start,end,width,height,title,rrd_files,cdef_arr,trend,img_format)
 
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
