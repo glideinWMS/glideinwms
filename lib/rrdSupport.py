@@ -20,7 +20,13 @@ class BaseRRDSupport:
     #############################################################
     # The default will do nothing
     # Children should overwrite it, if needed
-    def get_disk_lock(self):
+    def get_disk_lock(self,fname):
+        return dummy_disk_lock()
+
+    #############################################################
+    # The default will do nothing
+    # Children should overwrite it, if needed
+    def get_graph_lock(self,fname):
         return dummy_disk_lock()
 
     #############################################################
@@ -91,7 +97,7 @@ class BaseRRDSupport:
         for archive in rrd_archives:
             args.append("RRA:%s:%g:%i:%i"%archive)
 
-        lck=self.get_disk_lock()
+        lck=self.get_disk_lock(rrdfname)
         try:
             self.rrd_obj.create(*args)
         finally:
@@ -113,7 +119,7 @@ class BaseRRDSupport:
         if None==self.rrd_obj:
             return # nothing to do in this case
 
-        lck=self.get_disk_lock()
+        lck=self.get_disk_lock(rrdfname)
         try:
             self.rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
         finally:
@@ -148,7 +154,7 @@ class BaseRRDSupport:
         args.append(string.join(ds_names,':'))
         args.append(('%li:'%time)+string.join(ds_vals,':'))
     
-        lck=self.get_disk_lock()
+        lck=self.get_disk_lock(rrdfname)
         try:
             print args
             self.rrd_obj.update(*args)
@@ -320,7 +326,7 @@ class BaseRRDSupport:
 
     
         try:
-            lck=self.get_graph_lock()
+            lck=self.get_graph_lock(fname)
             try:
                 self.rrd_obj.graph(*args)
             finally:
