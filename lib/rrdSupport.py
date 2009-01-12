@@ -146,12 +146,15 @@ class BaseRRDSupport:
         ds_names=val_dict.keys()
         ds_names.sort()
 
+        ds_names_real=[]
         ds_vals=[]
         for ds_name in ds_names:
-            ds_vals.append("%i"%val_dict[ds_name])
+            if val_dict[ds_name]!=None:
+                ds_vals.append("%i"%val_dict[ds_name])
+                ds_names_real.append(ds_name)
 
         args.append('-t')
-        args.append(string.join(ds_names,':'))
+        args.append(string.join(ds_names_real,':'))
         args.append(('%li:'%time)+string.join(ds_vals,':'))
     
         lck=self.get_disk_lock(rrdfname)
