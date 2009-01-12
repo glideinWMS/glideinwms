@@ -603,6 +603,9 @@ class condorQStats:
         total_el=self.get_total()
 
         # update RRDs
+        attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+                    'Requested':("Idle","MaxRun"),
+                    'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
         for fe in [None]+data.keys():
             if fe==None: # special key == Total
                 fe_dir="total"
@@ -614,11 +617,23 @@ class condorQStats:
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
-                for a in fe_el[tp].keys():
-                    a_el=fe_el[tp][a]
-                    if type(a_el)!=type({}): # ignore subdictionaries
-                        monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
-                                                   "GAUGE",self.updated,a_el)
+                if not (tp in attributes.keys()):
+                    continue
+
+                attributes_tp=attributes[tp]
+                val_dict_tp=[]
+                for a in attributes_tp:
+                    val_dict_tp[a]=None #init, so that gets created properly
+                
+                fe_el_tp=fe_el[tp]
+                for a in fe_el_tp.keys():
+                    if a in attributes_tp.keys():
+                        a_el=fe_el_tp[a]
+                        if type(a_el)!=type({}): # ignore subdictionaries
+                            val_dict_tp[a]=a_el
+                
+                monitoringConfig.write_rrd_multi("%s/%s_Attributes"%(fe_dir,tp),
+                                                 "GAUGE",self.updated,val_dict_tp)
 
         self.files_updated=self.updated        
         return
@@ -899,6 +914,7 @@ class condorLogSummary:
         self.current_stats_data={}     # will contain dictionary client->dirSummary.data
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
+        self.job_statuses_short=('Running','Idle','Wait','Held') #const
 
         self.files_updated=None
         self.history_files_updated=None
@@ -1240,11 +1256,14 @@ class condorLogSummary:
                 sdiff=self.stats_diff[client_name]
 
             monitoringConfig.establish_dir(fe_dir)
+            val_dict_counts=[]
+            val_dict_entered=[]
+            val_dict_exited=[]
+            val_dict_completed=[]
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=sdata[s]
-                    monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
-                                               "GAUGE",self.updated,count)
+                    val_dict_counts[s]=count
 
                 if ((sdiff!=None) and (s in sdiff.keys())):
                     entered_list=sdiff[s]['Entered']
@@ -1255,11 +1274,9 @@ class condorLogSummary:
                     entered=0
                     exited=0
                     
-                monitoringConfig.write_rrd("%s/Log_%s_Entered"%(fe_dir,s),
-                                           "ABSOLUTE",self.updated,entered)
+                val_dict_entered[s]=entered
                 if not (s in ('Completed','Removed')): # Always 0 for them
-                    monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
-                                               "ABSOLUTE",self.updated,exited)
+                    val_dict_exited[s]=exited
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
@@ -1272,24 +1289,33 @@ class condorLogSummary:
                     time_waste_mill=completed_counts['WasteTime']
                     # save run times
                     for timerange in count_entered_times.keys():
-                        monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
-                                                   "ABSOLUTE",self.updated,count_entered_times[timerange])
+                        val_dict_completed['Lasted_%s'%timerange]=count_entered_times
+
                     # save failures
-                    monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s),
-                                               "ABSOLUTE",self.updated,count_validation_failed)
+                    val_dict_completed['Failed']=count_validation_failed
 
                     # save waste_mill
                     for w in count_waste_mill.keys():
                         count_waste_mill_w=count_waste_mill[w]
                         for p in count_waste_mill_w.keys():
-                            monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
-                                                       "ABSOLUTE",self.updated,count_waste_mill_w[p])
+                            val_dict_completed['Waste_%s_%s'%(w,p)]=count_waste_mill_w[p]
+
                     for w in time_waste_mill.keys():
                         time_waste_mill_w=time_waste_mill[w]
                         for p in time_waste_mill_w.keys():
-                            monitoringConfig.write_rrd("%s/Log_%s_Entered_WasteTime_%s_%s"%(fe_dir,s,w,p),
-                                                       "ABSOLUTE",self.updated,time_waste_mill_w[p])
-                            
+                            val_dict_completed['WasteTime_%s_%s'%(w,p)]=time_waste_mill_w[p]
+
+            #end for s in self.job_statuses
+
+            # write the data to disk
+            monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
+                                             "GAUGE",self.updated,val_dict_counts)                            
+            monitoringConfig.write_rrd_multi("%s/Log_Entered"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_entered)
+            monitoringConfig.write_rrd_multi("%s/Log_Exited"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_exited)
+            monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_completed)
 
 
         self.files_updated=self.updated
