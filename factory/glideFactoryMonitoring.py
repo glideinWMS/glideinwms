@@ -398,9 +398,6 @@ class MonitoringConfig:
         return
 
 
-# global configuration of the module
-monitoringConfig=MonitoringConfig()
-
 #########################################################################################################################################
 #
 #  condorQStats
@@ -1926,4 +1923,9 @@ class LockedRRDSupport(rrdSupport.rrdSupport):
 def cleanup_rrd_name(s):
     return string.replace(string.replace(s,".","_"),"@","_")
 
+
+##################################################
+
+# global configuration of the module
+monitoringConfig=MonitoringConfig()
 
