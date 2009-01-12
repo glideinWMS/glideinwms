@@ -259,11 +259,19 @@ class MonitoringConfig:
         # convert relative fnames to absolute ones
         rrd_files=[]
         for rrd_file in relative_rrd_files:
-            abs_rrd_fname=os.path.join(self.monitor_dir,rrd_file[1])
+            rrd_fname_arr=string.split(rrd_file[1],'?id=',1)
+            if len(rrd_fname)==2:
+                rrd_fname=rrd_fname_arr[0]
+                rrd_ds_name=rrd_fname_arr[1]
+            else:
+                rrd_fname=rrd_file[1]
+                rrd_ds_name=self.rrd_ds_name
+            
+            abs_rrd_fname=os.path.join(self.monitor_dir,rrd_fname)
             if not os.path.isfile(abs_rrd_fname):
                 return None# at least one file missing, file creation would fail
             rrd_files.append((rrd_file[0],abs_rrd_fname,
-                              self.rrd_ds_name,rrd_archive[0], #ds_type
+                              rrd_ds_name,rrd_archive[0], #ds_type
                               rrd_file[2],rrd_file[3]))
 
         cmd_used=self.rrd_obj.rrd2graph_multi_now(fname+".tmp",
