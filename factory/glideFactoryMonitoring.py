@@ -47,7 +47,7 @@ class MonitoringConfig:
 
         self.wanted_graphs=['Basic']
 
-        rrd_obj=LockedRRDSupport()
+        self.rrd_obj=LockedRRDSupport()
         self.attribute_rrd_recmp=re.compile("^(?P<tp>[a-zA-Z]+)_Attribute_(?P<attr>[a-zA-Z]+)\.rrd$")
 
 
