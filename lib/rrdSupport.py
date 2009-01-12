@@ -14,6 +14,9 @@ class BaseRRDSupport:
     def __init__(self,rrd_obj):
         self.rrd_obj=rrd_obj
 
+    def isDummy(self):
+        return (self.rrd_obj==None)
+
     #############################################################
     # The default will do nothing
     # Children should overwrite it, if needed
