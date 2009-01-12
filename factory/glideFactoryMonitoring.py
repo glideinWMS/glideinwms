@@ -1289,7 +1289,7 @@ class condorLogSummary:
                     time_waste_mill=completed_counts['WasteTime']
                     # save run times
                     for timerange in count_entered_times.keys():
-                        val_dict_completed['Lasted_%s'%timerange]=count_entered_times
+                        val_dict_completed['Lasted_%s'%timerange]=count_entered_times[timerange]
 
                     # save failures
                     val_dict_completed['Failed']=count_validation_failed
