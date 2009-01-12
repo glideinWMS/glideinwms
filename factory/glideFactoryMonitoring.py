@@ -260,7 +260,7 @@ class MonitoringConfig:
         rrd_files=[]
         for rrd_file in relative_rrd_files:
             rrd_fname_arr=string.split(rrd_file[1],'?id=',1)
-            if len(rrd_fname)==2:
+            if len(rrd_fname_arr)==2:
                 rrd_fname=rrd_fname_arr[0]
                 rrd_ds_name=rrd_fname_arr[1]
             else:
