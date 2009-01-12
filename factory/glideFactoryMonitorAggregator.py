@@ -131,7 +131,7 @@ def aggregateStatus():
             continue
 
         attributes_tp=attributes[tp]
-        val_dict_tp=[]
+        val_dict_tp={}
         for a in attributes_tp:
             val_dict_tp[a]=None #init, so that gets created properly
                 
@@ -432,10 +432,10 @@ def aggregateLogSummary():
     sdiff=status["total"]
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
-    val_dict_counts=[]
-    val_dict_entered=[]
-    val_dict_exited=[]
-    val_dict_completed=[]
+    val_dict_counts={}
+    val_dict_entered={}
+    val_dict_exited={}
+    val_dict_completed={}
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             count=sdata[s]
