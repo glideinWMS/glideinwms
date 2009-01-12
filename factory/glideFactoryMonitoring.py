@@ -262,13 +262,13 @@ class MonitoringConfig:
             abs_rrd_fname=os.path.join(self.monitor_dir,rrd_file[1])
             if not os.path.isfile(abs_rrd_fname):
                 return None# at least one file missing, file creation would fail
-            rrd_files.append((rrd_file[0],abs_rrd_fname,rrd_file[2],rrd_file[3]))
+            rrd_files.append((rrd_file[0],abs_rrd_fname,
+                              self.rrd_ds_name,rrd_archive[0], #ds_type
+                              rrd_file[2],rrd_file[3]))
 
-        cmd_used=self.rrd_obj.rrd2graph_now(fname+".tmp",
-                                            self.rrd_step*rrd_archive[2], # step in seconds
-                                            self.rrd_ds_name,
-                                            rrd_archive[0], #ds_type
-                                            period,width,height,title,rrd_files,cdef_arr,trend)
+        cmd_used=self.rrd_obj.rrd2graph_multi_now(fname+".tmp",
+                                                  self.rrd_step*rrd_archive[2], # step in seconds
+                                                  period,width,height,title,rrd_files,cdef_arr,trend)
         tmp2final(fname)
         return cmd_used
 
