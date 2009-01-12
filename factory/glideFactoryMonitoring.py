@@ -1911,8 +1911,13 @@ def tmp2final(fname):
 
 class LockedRRDSupport(rrdSupport.rrdSupport):
     #############################################################
+    # The default was a NoOp, use monitoringConfig.get_disk_lock
+    def get_disk_lock(self,fname):
+        return monitoringConfig.get_disk_lock()
+
+    #############################################################
     # The default was a NoOp, use monitoringConfig.get_graph_lock
-    def get_disk_lock(self):
+    def get_graph_lock(self,fname):
         return monitoringConfig.get_graph_lock()
 
     def __init__(self):
