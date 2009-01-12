@@ -1615,52 +1615,46 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                                         "%s glideins"%s,
                                         [(s,"%s/Log_Counts.rrd?id=%s"%(fe_dir,s),"AREA",colors[s])])
         elif s=="Completed":
-            # create graphs for Lasted and Waste
-            client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
-            for t in ("Lasted",
-                      "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
-                      "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
-                # get sorted list of rrds
-                t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
-                t_keys={}
-                for d in client_dir:
-                    t_re_m=t_re.match(d)
-                    if t_re_m!=None:
-                        t_keys[t_re_m.groups()]=1
-                t_keys=t_keys.keys()
+            # create graph for lasted
+            t_keys=getAllTimeRanges()
+            
+            t_rrds=[]
+            idx=0
+            for t_k in t_keys:
+                t_k_color=time_colors[idx]
+                t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s"%(fe_dir,t_k),"STACK",t_k_color))
+                idx+=1
+
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                        "%s/Log_Completed_Entered_Lasted"%fe_dir,
+                                        "Lasted glideins",t_rrds)
+            if 'Trend' in monitoringConfig.wanted_graphs:
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                            "%s/Log50_Completed_Entered_Lasted"%fe_dir,
+                                            "Trend Lasted glideins",t_rrds,trend_fraction=50)
+            
+            # create graphs for Waste and WasteTime
+            for t in ('Waste','WasteTime'):
+                t_keys=list(getAllMillRanges())
+                t_keys.reverse()
                 t_keys_len=len(t_keys)
 
-                if t_keys_len>0:
-                    if t=="Lasted":
-                        t_keys.sort(cmpPairs)
-                    else:
-                        # invert order for Wasted
-                        t_keys.sort(lambda x,y,:-cmpPairs(x,y))
-                            
-                            
-                    # Create graph out of it
+                for t_t in ('badput','idle','nosuccess','validation'):
                     t_rrds=[]
                     idx=0
                     for t_k in t_keys:
-                        if t=="Lasted":
-                            t_k_color=time_colors[idx]
-                        else:
-                            if t_keys_len>1:
-                                t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
-                            else:
-                                t_k_color=r_colors[r_colors_len/2]
-                        t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
+                        t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
+                        t_rrds.append((str(t_k),"%s/Log_Completed_%s.rrd?id=%s_%s"%(fe_dir,t,t_t,t_k),"STACK",t_k_color))
                         idx+=1
-                    # to be fixed (t_rrds)
+
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                "%s/Log_Completed_Entered_%s"%(fe_dir,t),
-                                                "%s glideins"%t,t_rrds)
+                                                "%s/Log_Completed_Entered_%s_%s"%(fe_dir,t_t,t),
+                                                "%s_%s glideins"%(t_t,t),t_rrds)
                     if 'Trend' in monitoringConfig.wanted_graphs:
                         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                    "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
-                                                    "Trend %s glideins"%t,t_rrds,trend_fraction=50)
-
-
+                                                    "%s/Log50_Completed_Entered_%s_%s"%(fe_dir,t_t,t),
+                                                    "Trend %s_%s glideins"%(t_t,t),t_rrds,trend_fraction=50)
+                
 ###################################
 
 def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list):
