@@ -670,11 +670,11 @@ class condorQStats:
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/Idle"%fe_dir,
                                         "Idle glideins",
-                                        [("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
-                                         ("Idle","%s/Status_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF"),
-                                         ("Wait","%s/Status_Attribute_Wait.rrd"%fe_dir,"LINE2","FF00FF"),
-                                         ("Pending","%s/Status_Attribute_Pending.rrd"%fe_dir,"LINE2","00FF00"),
-                                         ("IdleOther","%s/Status_Attribute_IdleOther.rrd"%fe_dir,"LINE2","FF0000")])
+                                        [("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
+                                         ("Idle","%s/Status_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF"),
+                                         ("Wait","%s/Status_Attributes.rrd?id=Wait"%fe_dir,"LINE2","FF00FF"),
+                                         ("Pending","%s/Status_Attributes.rrd?id=Pending"%fe_dir,"LINE2","00FF00"),
+                                         ("IdleOther","%s/Status_Attributes.rrd?id=IdleOther"%fe_dir,"LINE2","FF0000")])
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/Running"%fe_dir,
                                         "Running glideins",
@@ -692,12 +692,12 @@ class condorQStats:
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/ClientIdle"%fe_dir,
                                         "Idle client jobs",
-                                        [("Idle","%s/ClientMonitor_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
-                                         ("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
+                                        [("Idle","%s/ClientMonitor_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
+                                         ("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF")])
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/ClientRunning"%fe_dir,
                                         "Running client jobs",
-                                        [("Running","%s/ClientMonitor_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
+                                        [("Running","%s/ClientMonitor_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00")])
             monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                         "%s/InfoAge"%fe_dir,
                                         "Client info age",
