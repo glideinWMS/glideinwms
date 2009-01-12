@@ -627,7 +627,7 @@ class condorQStats:
                 
                 fe_el_tp=fe_el[tp]
                 for a in fe_el_tp.keys():
-                    if a in attributes_tp.keys():
+                    if a in attributes_tp:
                         a_el=fe_el_tp[a]
                         if type(a_el)!=type({}): # ignore subdictionaries
                             val_dict_tp[a]=a_el

@@ -138,7 +138,7 @@ def aggregateStatus():
         tp_el=global_total[tp]
 
         for a in tp_el.keys():
-            if a in attributes_tp.keys():
+            if a in attributes_tp:
                 a_el=int(tp_el[a])
                 val_dict_tp[a]=a_el
         glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s_Attributes"%tp,
