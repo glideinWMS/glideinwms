@@ -153,6 +153,9 @@ class BaseRRDSupport:
                 ds_vals.append("%i"%val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
+        if len(ds_names_real)==0:
+            return
+
         args.append('-t')
         args.append(string.join(ds_names_real,':'))
         args.append(('%li:'%time)+string.join(ds_vals,':'))
