@@ -420,6 +420,10 @@ class condorQStats:
         self.updated=time.time()
 
         self.files_updated=None
+        self.attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+                         'Requested':("Idle","MaxRun"),
+                         'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
+
 
     def logSchedd(self,client_name,qc_status):
         """
@@ -611,9 +615,6 @@ class condorQStats:
         total_el=self.get_total()
 
         # update RRDs
-        attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
-                    'Requested':("Idle","MaxRun"),
-                    'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
         for fe in [None]+data.keys():
             if fe==None: # special key == Total
                 fe_dir="total"
@@ -625,10 +626,10 @@ class condorQStats:
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
-                if not (tp in attributes.keys()):
+                if not (tp in self.attributes.keys()):
                     continue
 
-                attributes_tp=attributes[tp]
+                attributes_tp=self.attributes[tp]
                 val_dict_tp={}
                 for a in attributes_tp:
                     val_dict_tp[a]=None #init, so that gets created properly
@@ -785,31 +786,44 @@ class condorQStats:
 
 
         if 'Split' in monitoringConfig.wanted_graphs:
-          attr_rrds=monitoringConfig.find_disk_attributes("total")
-          for fname,tp,a in attr_rrds:
-            rrd_fnames=[]
-            idx=0
-            for fe in frontend_list:
-                area_name="STACK"
-                if idx==0:
-                    area_name="AREA"
-                rrd_fnames.append((cleanup_rrd_name(fe),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
-                idx=idx+1
+          for tp in fe_el.keys():
+              # type - Status, Requested or ClientMonitor
+              if not (tp in self.attributes.keys()):
+                  continue
 
-            if tp=="ClientMonitor":
-                if a=="InfoAge":
-                    tstr="Client info age"
-                else:
-                    tstr="%s client jobs"%a
-            elif tp=="Status":
-                tstr="%s glideins"%a
-            else:
-                tstr="%s %s glideins"%(tp,a)
-            # to be fixed (rrd_fnames)
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "total/Split_%s"%fname,
-                                        tstr,
-                                        rrd_fnames)
+              attributes_tp=self.attributes[tp]
+              val_dict_tp={}
+              for a in attributes_tp:
+                  val_dict_tp[a]=None #init, so that gets created properly
+                  
+              fe_el_tp=fe_el[tp]
+              for a in fe_el_tp.keys():
+                  if a in attributes_tp:
+                      a_el=fe_el_tp[a]
+                      if type(a_el)!=type({}): # ignore subdictionaries
+                          rrd_fnames=[]
+                          idx=0
+                          for fe in frontend_list:
+                              area_name="STACK"
+                              if idx==0:
+                                  area_name="AREA"
+                              rrd_fnames.append((cleanup_rrd_name(fe),"frontend_%s/%s_Attributes.rrd?id=%s"%(fe,tp,a),area_name,colors[idx%len(colors)]))
+                              idx=idx+1
+
+                          if tp=="ClientMonitor":
+                              if a=="InfoAge":
+                                  tstr="Client info age"
+                              else:
+                                  tstr="%s client jobs"%a
+                          elif tp=="Status":
+                              tstr="%s glideins"%a
+                          else:
+                              tstr="%s %s glideins"%(tp,a)
+
+                          monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                                      "total/Split_%s_Attribute_%s"%(tp,a),
+                                                      tstr,
+                                                      rrd_fnames)
 
         # create support index files for total
         fe="Entry Total"
