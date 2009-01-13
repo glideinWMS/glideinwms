@@ -1792,37 +1792,59 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
 
     if 'SplitTerm' in monitoringConfig.wanted_graphs:
         # create the completed split graphs
-        for t in ("Lasted",
-              "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
-              "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
-            if t=="Lasted":
-                range_groups=time_range_groups
-                range_groups_keys=time_range_groups_keys
-            else:
-                range_groups=mill_range_groups
-                range_groups_keys=mill_range_groups_keys
-            for range_group in range_groups_keys:
-                range_list=range_groups[range_group]
-                diff_rrd_files=[]
-                cdef_arr=[]
-                idx=0
-                for fe in subdir_list:
-                    fe_dir=subdir_template%fe
-                    cdef_formula="0"
-                    for range_val in range_list:
-                        ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
-                        diff_rrd_files.append([ds_id,"%s/Log_Completed_Entered_%s_%s.rrd"%(fe_dir,t,range_val),"STACK","000000"]) # colors not used
-                        cdef_formula=cdef_formula+(",%s,+"%ds_id)
-                    cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
-                    idx+=1
-                # to be fixed (diff_rrd_files)
+        range_groups=time_range_groups
+        range_groups_keys=time_range_groups_keys
+        for range_group in range_groups_keys:
+            range_list=range_groups[range_group]
+            diff_rrd_files=[]
+            cdef_arr=[]
+            idx=0
+            for fe in subdir_list:
+                fe_dir=subdir_template%fe
+                cdef_formula="0"
+                for range_val in range_list:
+                    ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
+                    diff_rrd_files.append([ds_id,"%s/Log_Completed_Stats.rrd?id=Lasted_%s"%(fe_dir,range_val),"STACK","000000"]) # colors not used
+                    cdef_formula=cdef_formula+(",%s,+"%ds_id)
+                cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
+                idx+=1
+
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                        "total/Split_Log_Completed_Entered_Lasted_%s"%range_group,
+                                        "Lasted %s glideins"%range_group, diff_rrd_files,cdef_arr=cdef_arr)
+            if 'Trend' in monitoringConfig.wanted_graphs:
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                            "total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
-                                            "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                if 'Trend' in monitoringConfig.wanted_graphs:
+                                            "total/Split_Log50_Completed_Entered_Lasted_%s"%range_group,
+                                            "Trend Lasted %s glideins"%range_group, diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
+        
+
+        # repeat for waste
+        range_groups=mill_range_groups
+        range_groups_keys=mill_range_groups_keys
+        for t in ('Waste','WasteTime'):
+            for t_t in ('badput','idle','nosuccess','validation'):
+                for range_group in range_groups_keys:
+                    range_list=range_groups[range_group]
+                    diff_rrd_files=[]
+                    cdef_arr=[]
+                    idx=0
+                    for fe in subdir_list:
+                        fe_dir=subdir_template%fe
+                        cdef_formula="0"
+                        for range_val in range_list:
+                            ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
+                            diff_rrd_files.append([ds_id,"%s/Log_Completed_%s.rrd?id=%s_%s"%(fe_dir,t,t_t,range_val),"STACK","000000"]) # colors not used
+                            cdef_formula=cdef_formula+(",%s,+"%ds_id)
+                        cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
+                        idx+=1
+
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
-                                                "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
+                                                "total/Split_Log_Completed_Entered_%s_%s_%s"%(t,t_t,range_group),
+                                                "%s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
+                    if 'Trend' in monitoringConfig.wanted_graphs:
+                        monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                    "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
+                                                    "Trend %s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
 
 
 
