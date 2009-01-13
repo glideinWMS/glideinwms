@@ -668,41 +668,7 @@ class condorQStats:
 
 
             # create graphs for RRDs
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/Idle"%fe_dir,
-                                        "Idle glideins",
-                                        [("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
-                                         ("Idle","%s/Status_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF"),
-                                         ("Wait","%s/Status_Attributes.rrd?id=Wait"%fe_dir,"LINE2","FF00FF"),
-                                         ("Pending","%s/Status_Attributes.rrd?id=Pending"%fe_dir,"LINE2","00FF00"),
-                                         ("IdleOther","%s/Status_Attributes.rrd?id=IdleOther"%fe_dir,"LINE2","FF0000")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/Running"%fe_dir,
-                                        "Running glideins",
-                                        [("Running","%s/Status_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00"),
-                                         ("ClientGlideins","%s/ClientMonitor_Attributes.rrd?id=GlideinsTotal"%fe_dir,"LINE2","000000"),
-                                         ("ClientRunning","%s/ClientMonitor_Attributes.rrd?id=GlideinsRunning"%fe_dir,"LINE2","0000FF")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/MaxRun"%fe_dir,
-                                        "Max running glideins requested",
-                                        [("MaxRun","%s/Requested_Attributes.rrd?id=MaxRun"%fe_dir,"AREA","008000")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/Held"%fe_dir,
-                                        "Held glideins",
-                                        [("Held","%s/Status_Attributes.rrd?id=Held"%fe_dir,"AREA","c00000")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/ClientIdle"%fe_dir,
-                                        "Idle client jobs",
-                                        [("Idle","%s/ClientMonitor_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
-                                         ("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/ClientRunning"%fe_dir,
-                                        "Running client jobs",
-                                        [("Running","%s/ClientMonitor_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/InfoAge"%fe_dir,
-                                        "Client info age",
-                                        [("InfoAge","%s/ClientMonitor_Attributes.rrd?id=InfoAge"%fe_dir,"LINE2","000000")])
+            create_status_graphs(graph_ref_time,fe_dir)
             
         # create support index files
         for fe in data.keys():
@@ -1550,6 +1516,45 @@ def get_completed_stats_xml_desc():
                                                             'nosuccess':{'el_name':'Fraction'}}}
                                }
             }
+
+##################################################
+def create_status_graphs(graph_ref_time,fe_dir):
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/Idle"%fe_dir,
+                                "Idle glideins",
+                                [("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
+                                 ("Idle","%s/Status_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF"),
+                                 ("Wait","%s/Status_Attributes.rrd?id=Wait"%fe_dir,"LINE2","FF00FF"),
+                                 ("Pending","%s/Status_Attributes.rrd?id=Pending"%fe_dir,"LINE2","00FF00"),
+                                 ("IdleOther","%s/Status_Attributes.rrd?id=IdleOther"%fe_dir,"LINE2","FF0000")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/Running"%fe_dir,
+                                "Running glideins",
+                                [("Running","%s/Status_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00"),
+                                 ("ClientGlideins","%s/ClientMonitor_Attributes.rrd?id=GlideinsTotal"%fe_dir,"LINE2","000000"),
+                                 ("ClientRunning","%s/ClientMonitor_Attributes.rrd?id=GlideinsRunning"%fe_dir,"LINE2","0000FF")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/MaxRun"%fe_dir,
+                                "Max running glideins requested",
+                                [("MaxRun","%s/Requested_Attributes.rrd?id=MaxRun"%fe_dir,"AREA","008000")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/Held"%fe_dir,
+                                "Held glideins",
+                                [("Held","%s/Status_Attributes.rrd?id=Held"%fe_dir,"AREA","c00000")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/ClientIdle"%fe_dir,
+                                "Idle client jobs",
+                                [("Idle","%s/ClientMonitor_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
+                                 ("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/ClientRunning"%fe_dir,
+                                "Running client jobs",
+                                [("Running","%s/ClientMonitor_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/InfoAge"%fe_dir,
+                                "Client info age",
+                                [("InfoAge","%s/ClientMonitor_Attributes.rrd?id=InfoAge"%fe_dir,"LINE2","000000")])
+    return
 
 ##################################################
 def create_split_graphs(attributes,graph_ref_time,

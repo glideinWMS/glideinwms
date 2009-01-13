@@ -161,37 +161,7 @@ def create_status_history():
     # remember to call update_locks before exiting this function
 
     # create graphs for RRDs
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/Idle",
-                                                       "Idle glideins",
-                                                       [("Requested","total/Requested_Attributes.rrd?id=Idle","AREA","00FFFF"),
-                                                        ("Idle","total/Status_Attributes.rrd?id=Idle","LINE2","0000FF"),
-                                                        ("Wait","total/Status_Attributes.rrd?id=Wait","LINE2","FF00FF"),
-                                                        ("Pending","total/Status_Attributes.rrd?id=Pending","LINE2","00FF00"),
-                                                        ("IdleOther","total/Status_Attributes.rrd?id=IdleOther","LINE2","FF0000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/Running",
-                                                       "Running glideins",
-                                                       [("Running","total/Status_Attributes.rrd?id=Running","AREA","00FF00"),
-                                                        ("ClientGlideins","total/ClientMonitor_Attributes.rrd?id=GlideinsTotal","LINE2","000000"),
-                                                        ("ClientRunning","total/ClientMonitor_Attributes.rrd?id=GlideinsRunning","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/Held",
-                                                       "Held glideins",
-                                                       [("Held","total/Status_Attributes.rrd?id=Held","AREA","c00000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/ClientIdle",
-                                                       "Idle client",
-                                                       [("Idle","total/ClientMonitor_Attributes.rrd?id=Idle","AREA","00FFFF"),
-                                                        ("Requested","total/Requested_Attributes.rrd?id=Idle","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/ClientRunning",
-                                                       "Running client jobs",
-                                                       [("Running","total/ClientMonitor_Attributes.rrd?id=Running","AREA","00FF00")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/InfoAge",
-                                                       "Client info age",
-                                                       [("InfoAge","total/ClientMonitor_Attributes.rrd?id=InfoAge","LINE2","000000")])
+    glideFactoryMonitoring.create_status_graphs(graph_ref_time,'total')
 
     # create split graphs
     if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
