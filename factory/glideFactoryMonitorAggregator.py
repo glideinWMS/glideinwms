@@ -46,6 +46,9 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 #
 ###########################################################
 
+status_attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+                   'Requested':("Idle","MaxRun"),
+                   'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -55,9 +58,6 @@ def aggregateStatus():
 
     avgEntries=('InfoAge',)
 
-    attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
-                'Requested':("Idle","MaxRun"),
-                'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
     nr_entries=0
@@ -127,10 +127,10 @@ def aggregateStatus():
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
     for tp in global_total.keys():
         # type - status or requested
-        if not (tp in attributes.keys()):
+        if not (tp in status_attributes.keys()):
             continue
 
-        attributes_tp=attributes[tp]
+        attributes_tp=status_attributes[tp]
         val_dict_tp={}
         for a in attributes_tp:
             val_dict_tp[a]=None #init, so that gets created properly
@@ -194,40 +194,8 @@ def create_status_history():
                                                        [("InfoAge","total/ClientMonitor_Attributes.rrd?id=InfoAge","LINE2","000000")])
 
     # create split graphs
-    colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
-    colors_intensity=['ff','d0','a0','80','e8','b8']
-    colors=[]
-    for ci_i in colors_intensity:
-        si_arr=['00',ci_i]
-        for cb_i in colors_base:
-            colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
-
     if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-      for fname,tp,a in attr_rrds:
-        rrd_fnames=[]
-        idx=0
-        for entry in monitorAggregatorConfig.entries:
-            area_name="STACK"
-            if idx==0:
-                area_name="AREA"
-            rrd_fnames.append((string.replace(string.replace(entry,".","_"),"@","_"),"entry_%s/total/%s.rrd"%(entry,fname),area_name,colors[idx%len(colors)]))
-            idx=idx+1
-
-        if tp=="ClientMonitor":
-            if a=="InfoAge":
-                tstr="Client info age"
-            else:
-                tstr="%s client jobs"%a
-        elif tp=="Status":
-            tstr="%s glideins"%a
-        else:
-            tstr="%s %s glideins"%(tp,a)
-        # to be fixed (rrd_fnames)
-        glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                           "total/Split_%s"%fname,
-                                                           tstr,
-                                                           rrd_fnames)
-        
+        glideFactoryMonitoring.create_split_graphs(status_attributes,monitorAggregatorConfig.entries,"entry_%s/total")
         
     # create support index files
     fe="Factory Total"
