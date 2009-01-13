@@ -1499,7 +1499,7 @@ def create_leaf_status_indexes(title_name,
 def create_group_status_indexes(title_name,
                                 base_dir,sub_dir,
                                 parent_dir,parent_name, # can be None
-                                elements,elements_format):
+                                elements,element_format):
     want_split='Split' in monitoringConfig.wanted_graphs
     want_held='Held' in monitoringConfig.wanted_graphs
     want_infoage='InfoAge' in monitoringConfig.wanted_graphs
