@@ -1537,7 +1537,7 @@ def create_group_status_indexes(title_name,
                     fd.write("</tr><tr>\n")
 
                     if (parent_dir!=None) and (parent_name!=None):
-                        fd.write('<td>[<a href="%s/0Status.%s.%s.html">%s</a>]</td>\n'%(parent_dir,period,size,parnet_name))
+                        fd.write('<td>[<a href="%s/0Status.%s.%s.html">%s</a>]</td>\n'%(parent_dir,period,size,parent_name))
                     link_arr=[]
                     for ref_fe in elements:
                         link_arr.append(('<a href="')+(element_format%ref_fe)+('/0Status.%s.%s.html">%s</a>'%(period,size,ref_fe)))
