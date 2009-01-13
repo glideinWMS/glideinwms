@@ -1444,7 +1444,7 @@ def create_leaf_status_indexes(title_name,
                         fd.write("<title>%s over last %s</title>\n"%(title_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title_name,period))
                         
 
                         fd.write("</tr><tr>\n")
