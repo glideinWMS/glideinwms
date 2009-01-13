@@ -168,99 +168,10 @@ def create_status_history():
         glideFactoryMonitoring.create_split_graphs(status_attributes,graph_ref_time,monitorAggregatorConfig.entries,"entry_%s/total")
         
     # create support index files
-    fe="Factory Total"
-    for rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
-            period=rp[0]
-            for sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
-                size=sz[0]
-                fname=os.path.join(monitorAggregatorConfig.monitor_dir,"total/0Status.%s.%s.html"%(period,size))
-                #if (not os.path.isfile(fname)): #create only if it does not exist
-                if 1: # create every time, it is small and works over reconfigs
-                    fd=open(fname,"w")
-                    fd.write("<html>\n<head>\n")
-                    fd.write("<title>%s over last %s</title>\n"%(fe,period));
-                    fd.write("</head>\n<body>\n")
-                    fd.write('<table width="100%"><tr>\n')
-                    fd.write('<td rowspan=2 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period));
-
-                    link_arr=[]
-                    for ref_sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
-                        ref_size=ref_sz[0]
-                        if size!=ref_size:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    link_arr=[]
-                    for ref_rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
-                        ref_period=ref_rp[0]
-                        if period!=ref_period:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log</a>]</td>\n'%(period,size))
-                        
-                    fd.write("</tr><tr>\n")
-
-                    fd.write("<td></td>\n") # no up link
-                    link_arr=[]
-                    for entry in monitorAggregatorConfig.entries:
-                            link_arr.append('<a href="../entry_%s/total/0Status.%s.%s.html">%s</a>'%(entry,period,size,entry))
-                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-
-                    fd.write("</tr></table>\n")
-                    fd.write('<a name="glidein_status">\n')
-                    fd.write("<h2>Glidein stats</h2>\n")
-                    fd.write("<table>")
-
-                    larr=[]
-                    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
-                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
-                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
-                    else:
-                        larr.append(('Running',))
-                        larr.append(('Idle',))
-
-                    if 'Held' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                            larr.append(('Held','Split_Status_Attribute_Held'))
-                        else:
-                            larr.append(('Held',))
-
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')                            
-                    fd.write("</table>")
-                    fd.write('<a name="client_status">\n')
-                    fd.write("<h2>Frontend (client) stats</h2>\n")
-                    fd.write("<table>")
-
-                    larr=[]
-                    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
-                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
-                    else:
-                        larr.append(('ClientIdle',))
-                        larr.append(('ClientRunning',))
-
-                    if 'InfoAge' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
-                        else:
-                            larr.append(('InfoAge',))
-
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')                            
-                    fd.write("</table>")
-                    fd.write("</body>\n</html>\n")
-                    fd.close()
-                    pass
+    glideFactoryMonitoring.create_group_status_indexes("Factory Total",
+                                                       monitorAggregatorConfig.monitor_dir,"total",
+                                                       None,None, # no parent
+                                                       monitorAggregatorConfig.entries,"../entry_%s/total")
 
     glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"status")
     return

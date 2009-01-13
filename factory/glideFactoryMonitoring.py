@@ -668,70 +668,13 @@ class condorQStats:
 
 
             # create graphs for RRDs
-            create_status_graphs(graph_ref_time,fe_dir)
+            create_status_graphs(graph_ref_time,fe_dir,)
             
         # create support index files
         for fe in data.keys():
             fe_dir="frontend_"+fe
-            for rp in monitoringConfig.rrd_reports:
-                period=rp[0]
-                for sz in monitoringConfig.graph_sizes:
-                    size=sz[0]
-                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
-                    #if (not os.path.isfile(fname)): #create only if it does not exist
-                    if 1: # create every time, it is small and works over reconfigs 
-                        fd=open(fname,"w")
-                        fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(fe,period));
-                        fd.write("</head>\n<body>\n")
-                        fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
-                        
-
-                        fd.write("</tr><tr>\n")
-                        
-                        fd.write('<td>[<a href="../total/0Status.%s.%s.html">Entry total</a>]</td>\n'%(period,size))
-                        
-                        link_arr=[]
-                        for ref_sz in monitoringConfig.graph_sizes:
-                            ref_size=ref_sz[0]
-                            if size!=ref_size:
-                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        link_arr=[]
-                        for ref_rp in monitoringConfig.rrd_reports:
-                            ref_period=ref_rp[0]
-                            if period!=ref_period:
-                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
-                        
-                        fd.write("</tr></table>\n")
-
-                        fd.write('<a name="glidein_stats">\n')
-                        fd.write("<h2>Glidein stats</h2>\n")
-                        fd.write("<table>")
-                        for s in ['Running','Idle','Held']:
-                            fd.write('<tr valign="top">')
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                            if s=='Running':
-                                s1='MaxRun'
-                                fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s1,period,size)))
-                            fd.write('</tr>\n')                            
-                        fd.write("</table>")
-                        fd.write('<a name="client_stats">\n')
-                        fd.write("<h2>Frontend (client) stats</h2>\n")
-                        fd.write("<table>")
-                        for s in ['ClientIdle','ClientRunning','InfoAge']:
-                            fd.write('<tr valign="top">')
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                            fd.write('</tr>\n')                            
-                        fd.write("</table>")
-                        fd.write("</body>\n</html>\n")
-                        fd.close()
-                        pass
+            create_leaf_status_indexes(fe,monitoringConfig.monitor_dir,fe_dir,
+                                       "../total","Entry total")
 
         # get the list of frontends
         frontend_list=monitoringConfig.find_disk_frontends()
@@ -746,97 +689,10 @@ class condorQStats:
             create_split_graphs(self.attributes,graph_ref_time,frontend_list,"frontend_%s")
 
         # create support index files for total
-        fe="Entry Total"
-        fe_dir="total"
-        for rp in monitoringConfig.rrd_reports:
-            period=rp[0]
-            for sz in monitoringConfig.graph_sizes:
-                size=sz[0]
-                fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
-                #if (not os.path.isfile(fname)): #create only if it does not exist
-                if 1: # create every time, it is small and works over reconfigs
-                    fd=open(fname,"w")
-                    fd.write("<html>\n<head>\n")
-                    fd.write("<title>%s over last %s</title>\n"%(fe,period));
-                    fd.write("</head>\n<body>\n")
-                    fd.write('<table width="100%"><tr>\n')
-                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
-
-                    link_arr=[]
-                    for ref_sz in monitoringConfig.graph_sizes:
-                        ref_size=ref_sz[0]
-                        if size!=ref_size:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    link_arr=[]
-                    for ref_rp in monitoringConfig.rrd_reports:
-                        ref_period=ref_rp[0]
-                        if period!=ref_period:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                    fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
-                        
-                    fd.write("</tr><tr>\n")
-
-                    fd.write('<td>[<a href="../../total/0Status.%s.%s.html">Factory total</a>]</td>\n'%(period,size))
-                    link_arr=[]
-                    for ref_fe in frontend_list:
-                        link_arr.append('<a href="../frontend_%s/0Status.%s.%s.html">%s</a>'%(ref_fe,period,size,ref_fe))
-                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write("</tr></table>\n")
-
-                    fd.write('<a name="glidein_stats">\n')
-                    fd.write("<h2>Glidein stats</h2>\n")
-                    fd.write("<table>")
-                    larr=[]
-                    if 'Split' in monitoringConfig.wanted_graphs:
-                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
-                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
-                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
-                    else:
-                        larr.append(('Running',))
-                        larr.append(('Idle',))
-
-                    if 'Held' in monitoringConfig.wanted_graphs:
-                        if 'Split' in monitoringConfig.wanted_graphs:
-                            larr.append(('Held','Split_Status_Attribute_Held'))
-                        else:
-                            larr.append(('Held',))
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')
-                    fd.write("</table>")
-                    fd.write('<a name="client_stats">\n')
-                    fd.write("<h2>Frontend (client) stats</h2>\n")
-                    fd.write("<table>")
-                    larr=[]
-                    if 'Split' in monitoringConfig.wanted_graphs:
-                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
-                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
-                    else:
-                        larr.append(('ClientIdle',))
-                        larr.append(('ClientRunning',))
-
-                    if 'InfoAge' in monitoringConfig.wanted_graphs:
-                        if 'Split' in monitoringConfig.wanted_graphs:
-                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
-                        else:
-                            larr.append(('InfoAge',))
-
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')
-                    fd.write("</table>")
-                    fd.write("</body>\n</html>\n")
-                    fd.close()
-                    pass
+        create_group_status_indexes("Entry Total",
+                                    monitoringConfig.monitor_dir,"total",
+                                    "../../total","Factory total",
+                                    frontend_list,"../frontend_%s")
 
         monitoringConfig.update_locks(graph_ref_time,"status")
         return
@@ -1519,6 +1375,9 @@ def get_completed_stats_xml_desc():
 
 ##################################################
 def create_status_graphs(graph_ref_time,fe_dir):
+    want_held='Held' in monitoringConfig.wanted_graphs
+    want_infoage='InfoAge' in monitoringConfig.wanted_graphs
+
     monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                 "%s/Idle"%fe_dir,
                                 "Idle glideins",
@@ -1537,10 +1396,11 @@ def create_status_graphs(graph_ref_time,fe_dir):
                                 "%s/MaxRun"%fe_dir,
                                 "Max running glideins requested",
                                 [("MaxRun","%s/Requested_Attributes.rrd?id=MaxRun"%fe_dir,"AREA","008000")])
-    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                "%s/Held"%fe_dir,
-                                "Held glideins",
-                                [("Held","%s/Status_Attributes.rrd?id=Held"%fe_dir,"AREA","c00000")])
+    if want_held:
+        monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                    "%s/Held"%fe_dir,
+                                    "Held glideins",
+                                    [("Held","%s/Status_Attributes.rrd?id=Held"%fe_dir,"AREA","c00000")])
     monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
                                 "%s/ClientIdle"%fe_dir,
                                 "Idle client jobs",
@@ -1550,11 +1410,198 @@ def create_status_graphs(graph_ref_time,fe_dir):
                                 "%s/ClientRunning"%fe_dir,
                                 "Running client jobs",
                                 [("Running","%s/ClientMonitor_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00")])
-    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                "%s/InfoAge"%fe_dir,
-                                "Client info age",
-                                [("InfoAge","%s/ClientMonitor_Attributes.rrd?id=InfoAge"%fe_dir,"LINE2","000000")])
+    if want_infoage:
+        monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                    "%s/InfoAge"%fe_dir,
+                                    "Client info age",
+                                    [("InfoAge","%s/ClientMonitor_Attributes.rrd?id=InfoAge"%fe_dir,"LINE2","000000")])
     return
+
+##################################################
+def create_leaf_status_indexes(title_name,
+                               base_dir,sub_dir,
+                               parent_dir,parent_name):
+    title_name=fe
+    base_dir=monitoringConfig.monitor_dir
+    sub_dir="frontend_"+fe
+    parent_dir="../total"
+    parent_name="Entry total"
+    
+    want_held='Held' in monitoringConfig.wanted_graphs
+    want_infoage='InfoAge' in monitoringConfig.wanted_graphs
+
+    glidein_graphs=['Running','Idle']
+    if want_held:
+        glidein_graphs.append('Held')
+    frontend_graphs=['ClientIdle','ClientRunning']
+    if want_infoage:
+        frontend_graphs.append('InfoAge']
+
+
+    for rp in monitoringConfig.rrd_reports:
+                period=rp[0]
+                for sz in monitoringConfig.graph_sizes:
+                    size=sz[0]
+                    fname=os.path.join(base_dir,"%s/0Status.%s.%s.html"%(sub_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs 
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s over last %s</title>\n"%(title_name,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
+                        
+
+                        fd.write("</tr><tr>\n")
+                        
+                        if (parent_dir!=None) and (parent_name!=None):
+                            fd.write('<td>[<a href="%s/0Status.%s.%s.html">%s</a>]</td>\n'%(parent_dir,period,size,parent_name))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
+                        
+                        fd.write("</tr></table>\n")
+
+                        fd.write('<a name="glidein_stats">\n')
+                        fd.write("<h2>Glidein stats</h2>\n")
+                        fd.write("<table>")
+                        for s in glidein_graphs:
+                            fd.write('<tr valign="top">')
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                            if s=='Running':
+                                s1='MaxRun'
+                                fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s1,period,size)))
+                            fd.write('</tr>\n')                            
+                        fd.write("</table>")
+                        fd.write('<a name="client_stats">\n')
+                        fd.write("<h2>Frontend (client) stats</h2>\n")
+                        fd.write("<table>")
+                        for s in frontend_graphs:
+                            fd.write('<tr valign="top">')
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                            fd.write('</tr>\n')                            
+                        fd.write("</table>")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+    return
+
+
+##################################################
+def create_group_status_indexes(title_name,
+                                base_dir,sub_dir,
+                                parent_dir,parent_name, # can be None
+                                elements,elements_format):
+    want_split='Split' in monitoringConfig.wanted_graphs
+    want_held='Held' in monitoringConfig.wanted_graphs
+    want_infoage='InfoAge' in monitoringConfig.wanted_graphs
+
+    for rp in monitoringConfig.rrd_reports:
+            period=rp[0]
+            for sz in monitoringConfig.graph_sizes:
+                size=sz[0]
+                fname=os.path.join(base_dir,"%s/0Status.%s.%s.html"%(sub_dir,period,size))
+                #if (not os.path.isfile(fname)): #create only if it does not exist
+                if 1: # create every time, it is small and works over reconfigs
+                    fd=open(fname,"w")
+                    fd.write("<html>\n<head>\n")
+                    fd.write("<title>%s over last %s</title>\n"%(title_name,period));
+                    fd.write("</head>\n<body>\n")
+                    fd.write('<table width="100%"><tr>\n')
+                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(tittle_name,period))
+
+                    link_arr=[]
+                    for ref_sz in monitoringConfig.graph_sizes:
+                        ref_size=ref_sz[0]
+                        if size!=ref_size:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    link_arr=[]
+                    for ref_rp in monitoringConfig.rrd_reports:
+                        ref_period=ref_rp[0]
+                        if period!=ref_period:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                    fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
+                        
+                    fd.write("</tr><tr>\n")
+
+                    if (parent_dir!=None) and (parent_name!=None):
+                        fd.write('<td>[<a href="%s/0Status.%s.%s.html">%s</a>]</td>\n'%(parent_dir,period,size,parnet_name))
+                    link_arr=[]
+                    for ref_fe in elements:
+                        link_arr.append(('<a href="')+(element_format%ref_fe)+('/0Status.%s.%s.html">%s</a>'%(period,size,ref_fe)))
+                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write("</tr></table>\n")
+
+                    fd.write('<a name="glidein_stats">\n')
+                    fd.write("<h2>Glidein stats</h2>\n")
+                    fd.write("<table>")
+                    larr=[]
+                    if want_split:
+                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
+                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
+                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
+                    else:
+                        larr.append(('Running',))
+                        larr.append(('Idle',))
+
+                    if want_held:
+                        if want_split:
+                            larr.append(('Held','Split_Status_Attribute_Held'))
+                        else:
+                            larr.append(('Held',))
+                    for l in larr:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                        fd.write('</tr>\n')
+                    fd.write("</table>")
+                    fd.write('<a name="client_stats">\n')
+                    fd.write("<h2>Frontend (client) stats</h2>\n")
+                    fd.write("<table>")
+                    larr=[]
+                    if want_split:
+                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
+                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
+                    else:
+                        larr.append(('ClientIdle',))
+                        larr.append(('ClientRunning',))
+
+                    if want_infoage:
+                        if want_split:
+                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
+                        else:
+                            larr.append(('InfoAge',))
+
+                    for l in larr:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                        fd.write('</tr>\n')
+                    fd.write("</table>")
+                    fd.write("</body>\n</html>\n")
+                    fd.close()
+                    pass
+    return
+
 
 ##################################################
 def create_split_graphs(attributes,graph_ref_time,
