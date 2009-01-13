@@ -1435,7 +1435,7 @@ def create_leaf_status_indexes(title_name,
         glidein_graphs.append('Held')
     frontend_graphs=['ClientIdle','ClientRunning']
     if want_infoage:
-        frontend_graphs.append('InfoAge']
+        frontend_graphs.append('InfoAge')
 
 
     for rp in monitoringConfig.rrd_reports:
