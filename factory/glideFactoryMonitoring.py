@@ -1843,7 +1843,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                                                 "%s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
                     if 'Trend' in monitoringConfig.wanted_graphs:
                         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                    "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
+                                                    "total/Split_Log50_Completed_Entered_%s_%s_%s"%(t,t_t,range_group),
                                                     "Trend %s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
 
 
