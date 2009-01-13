@@ -1569,11 +1569,11 @@ def create_split_graphs(attributes,elements,element_format):
             # attribute - Idle, Running, ....
             rrd_fnames=[]
             idx=0
-            for fe in frontend_list:
+            for el in elements:
                 area_name="STACK"
                 if idx==0:
                     area_name="AREA"
-                rrd_fnames.append((cleanup_rrd_name(fe),(element_format%fe)+("/%s_Attributes.rrd?id=%s"%(tp,a)),area_name,colors[idx%len(colors)]))
+                rrd_fnames.append((cleanup_rrd_name(el),(element_format%el)+("/%s_Attributes.rrd?id=%s"%(tp,a)),area_name,colors[idx%len(colors)]))
                 idx=idx+1
 
             if tp=="ClientMonitor":
