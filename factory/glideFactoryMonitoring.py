@@ -1563,7 +1563,7 @@ def create_split_graphs(attributes,elements,element_format):
 
     for tp in attributes.keys():
         # type - Status, Requested or ClientMonitor
-        attributes_tp=self.attributes[tp]
+        attributes_tp=attributes[tp]
                   
         for a in attributes_tp:
             # attribute - Idle, Running, ....
