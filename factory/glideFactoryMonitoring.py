@@ -1421,12 +1421,6 @@ def create_status_graphs(graph_ref_time,fe_dir):
 def create_leaf_status_indexes(title_name,
                                base_dir,sub_dir,
                                parent_dir,parent_name):
-    title_name=fe
-    base_dir=monitoringConfig.monitor_dir
-    sub_dir="frontend_"+fe
-    parent_dir="../total"
-    parent_name="Entry total"
-    
     want_held='Held' in monitoringConfig.wanted_graphs
     want_infoage='InfoAge' in monitoringConfig.wanted_graphs
 
@@ -1522,7 +1516,7 @@ def create_group_status_indexes(title_name,
                     fd.write("<title>%s over last %s</title>\n"%(title_name,period));
                     fd.write("</head>\n<body>\n")
                     fd.write('<table width="100%"><tr>\n')
-                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(tittle_name,period))
+                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title_name,period))
 
                     link_arr=[]
                     for ref_sz in monitoringConfig.graph_sizes:
