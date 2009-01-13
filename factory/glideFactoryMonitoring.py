@@ -1622,7 +1622,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
             idx=0
             for t_k in t_keys:
                 t_k_color=time_colors[idx]
-                t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s"%(fe_dir,t_k),"STACK",t_k_color))
+                t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=Lasted_%s"%(fe_dir,t_k),"STACK",t_k_color))
                 idx+=1
 
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
@@ -1648,12 +1648,12 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                         idx+=1
 
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                "%s/Log_Completed_Entered_%s_%s"%(fe_dir,t_t,t),
-                                                "%s_%s glideins"%(t_t,t),t_rrds)
+                                                "%s/Log_Completed_Entered_%s_%s"%(fe_dir,t,t_t),
+                                                "%s %s glideins"%(t,t_t),t_rrds)
                     if 'Trend' in monitoringConfig.wanted_graphs:
                         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                    "%s/Log50_Completed_Entered_%s_%s"%(fe_dir,t_t,t),
-                                                    "Trend %s_%s glideins"%(t_t,t),t_rrds,trend_fraction=50)
+                                                    "%s/Log50_Completed_Entered_%s_%s"%(fe_dir,t,t_t),
+                                                    "Trend %s %s glideins"%(t,t_t),t_rrds,trend_fraction=50)
                 
 ###################################
 
