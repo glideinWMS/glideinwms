@@ -777,7 +777,7 @@ class condorQStats:
 
         # create human readable files for total aggregating multiple entries 
         if 'Split' in monitoringConfig.wanted_graphs:
-            create_split_graphs(self.attributes,frontend_list,"frontend_%s")
+            create_split_graphs(self.attributes,graph_ref_time,frontend_list,"frontend_%s")
 
         # create support index files for total
         fe="Entry Total"
@@ -1552,7 +1552,8 @@ def get_completed_stats_xml_desc():
             }
 
 ##################################################
-def create_split_graphs(attributes,elements,element_format):
+def create_split_graphs(attributes,graph_ref_time,
+                        elements,element_format):
     colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
     colors_intensity=['ff','d0','a0','80','e8','b8']
     colors=[]

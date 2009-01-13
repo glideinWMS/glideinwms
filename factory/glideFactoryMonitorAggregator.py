@@ -195,7 +195,7 @@ def create_status_history():
 
     # create split graphs
     if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-        glideFactoryMonitoring.create_split_graphs(status_attributes,monitorAggregatorConfig.entries,"entry_%s/total")
+        glideFactoryMonitoring.create_split_graphs(status_attributes,graph_ref_time,monitorAggregatorConfig.entries,"entry_%s/total")
         
     # create support index files
     fe="Factory Total"
