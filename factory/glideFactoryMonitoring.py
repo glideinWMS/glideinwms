@@ -912,7 +912,7 @@ class condorLogSummary:
 
             # find and save job range
             enle_jobrange=getJobRange(enle_jobs_nr)
-            count_jobsnr[enle_jobrange]+=1
+            count_jobnrs[enle_jobrange]+=1
 
             for w in enle_jobs_duration.keys():
                 enle_jobs_duration_w_range=getTimeRange(enle_jobs_duration[w])
@@ -932,7 +932,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'JobsNr':count_jobsnr,'Failed':count_validation_failed,'jobs_duration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
+        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Failed':count_validation_failed,'jobs_duration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
