@@ -1123,7 +1123,7 @@ class condorLogSummary:
 
                     # save jobsnr
                     for jobrange in count_jobnrs.keys():
-                        val_dict_completed['JobsNr_%s'%jobrange]=count_jobnrs[timerange]
+                        val_dict_completed['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
 
                     # save failures
                     val_dict_completed['Failed']=count_validation_failed
