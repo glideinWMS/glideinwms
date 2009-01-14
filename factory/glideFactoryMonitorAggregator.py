@@ -240,6 +240,7 @@ def aggregateLogSummary():
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 out_fe_el['CompletedCounts']['Lasted'][t]=int(fe_el['CompletedCounts']['Lasted'][t]['val'])
                 for k in ['total', 'goodput', 'terminated']:
+                    out_fe_el['CompletedCounts']['JobsDuration'][k]={}
                     out_fe_el['CompletedCounts']['JobsDuration'][k][t]=int(fe_el['CompletedCounts']['JobsDuration'][k][t]['val'])
             for t in glideFactoryMonitoring.getAllJobRanges():
                 out_fe_el['CompletedCounts']['JobsNr'][t]=int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
