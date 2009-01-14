@@ -273,6 +273,7 @@ def aggregateLogSummary():
                 global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
                 local_total['CompletedCounts']['JobsDuration'][k]={}
                 for k in ['total', 'goodput', 'terminated']:
+                    local_total['CompletedCounts']['JobsDuration'][k]={}
                     local_total['CompletedCounts']['JobsDuration'][k][t]=int(entry_data['total']['CompletedCounts']['JobsDuration'][k][t]['val'])
                     global_total['CompletedCounts']['JobsDuration'][k][t]+=int(entry_data['total']['CompletedCounts']['JobsDuration'][k][t]['val'])
 
