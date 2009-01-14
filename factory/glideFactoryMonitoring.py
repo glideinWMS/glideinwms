@@ -1108,12 +1108,21 @@ class condorLogSummary:
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
                     count_entered_times=completed_counts['Lasted']
+                    count_jobnrs=completed_counts['JobsNr']
+                    count_jobs_duration=completed_counts['JobsDuration']
                     count_validation_failed=completed_counts['Failed']
                     count_waste_mill=completed_counts['Waste']
                     time_waste_mill=completed_counts['WasteTime']
                     # save run times
                     for timerange in count_entered_times.keys():
                         val_dict_completed['Lasted_%s'%timerange]=count_entered_times[timerange]
+                        val_dict_completed['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
+                        val_dict_completed['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
+                        val_dict_completed['Terminated_%s'%timerange]=count_entered_times[timerange]
+
+                    # save jobsnr
+                    for jobrange in count_jobsnr.keys():
+                        val_dict_completed['JobsNr_%s'%jobrange]=count_jobsnr[timerange]
 
                     # save failures
                     val_dict_completed['Failed']=count_validation_failed
