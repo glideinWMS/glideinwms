@@ -149,13 +149,6 @@ def aggregateStatus():
 ##############################################################################
 # create the history graphs and related index html file
 def create_status_history():
-    # create history XML files for RRDs
-    attr_rrds=glideFactoryMonitoring.monitoringConfig.find_disk_attributes("total")
-    # Temporarely DEPRECATE
-    #for fname,tp,a in attr_rrds:
-    #    glideFactoryMonitoring.monitoringConfig.report_rrds("total/%s"%fname,
-    #                                                        [(a,"total/%s.rrd"%fname)])
-    
     # use the same reference time for all the graphs
     graph_ref_time=time.time()
     # remember to call update_locks before exiting this function

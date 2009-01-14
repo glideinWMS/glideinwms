@@ -132,17 +132,6 @@ class MonitoringConfig:
                 frontends.append(fname[9:])
         return frontends
 
-    # returns a list of [fname_without_rrd,type,attribute]
-    def find_disk_attributes(self,subdir):
-        attributes=[]
-        fnames=os.listdir(os.path.join(self.monitor_dir,subdir))
-        for fname in fnames:
-            parse=self.attribute_rrd_recmp.search(fname)
-            if parse==None:
-                continue # not an attribute rrd
-            attributes.append((fname[:-4],parse.group("tp"),parse.group("attr")))
-        return attributes
-    
     def write_rrd(self,relative_fname,ds_type,time,val,min=None,max=None):
         """
         Create a RRD file, using rrdtool.
