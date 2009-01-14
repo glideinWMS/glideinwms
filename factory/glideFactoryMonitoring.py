@@ -932,7 +932,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Failed':count_validation_failed,'jobs_duration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
+        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Failed':count_validation_failed,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -1398,7 +1398,7 @@ def getGroupsVal(u):
 def get_completed_stats_xml_desc():
     return {'dicts_params':{'Lasted':{'el_name':'TimeRange'},
                             'JobsNr':{'el_name':'Range'}},
-            'subclass_params':{'jobs_duration':{'dict_params':{'total':{'el_name':'TimeRange'},
+            'subclass_params':{'JobsDuration':{'dicts_params':{'total':{'el_name':'TimeRange'},
                                                                'goodput':{'el_name':'TimeRange'},
                                                                'terminated':{'el_name':'TimeRange'}}},
                                'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
