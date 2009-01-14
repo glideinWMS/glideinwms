@@ -802,6 +802,9 @@ class condorLogSummary:
             if not enle_condor_started:
                 # 100% waste_mill
                 enle_nr_jobs=0
+                enle_jobs_duration=0
+                enle_goodput=0
+                enle_terminated_duration=0
                 enle_waste_mill={'validation':1000,
                                  'idle':0,
                                  'nosuccess':0, #no jobs run, no failures
@@ -818,6 +821,9 @@ class condorLogSummary:
                 # get waste numbers, in permill
                 if (enle_condor_duration<5): # very short means 100% loss
                     enle_nr_jobs=0
+                    enle_jobs_duration=0
+                    enle_goodput=0
+                    enle_terminated_duration=0
                     enle_waste_mill={'validation':1000,
                                      'idle':0,
                                      'nosuccess':0, #no jobs run, no failures
@@ -833,26 +839,44 @@ class condorLogSummary:
                     enle_waste_mill={'validation':1000.0*enle_validation_duration/enle_glidein_duration,
                                      'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
                     enle_goodput=enle_condor_stats['goodZ']['secs']
+                    if enle_goodput>enle_jobs_duration:
+                        enle_goodput=enle_jobs_duration # cannot be more
                     if enle_jobs_duration>0:
                         enle_waste_mill['nosuccess']=1000.0*(enle_jobs_duration-enle_goodput)/enle_jobs_duration
                     else:
                         enle_waste_mill['nosuccess']=0 #no jobs run, no failures
-                    enle_goodput+=enle_condor_stats['goodNZ']['secs']
+                    enle_terminated_duration=enle_goodput+enle_condor_stats['goodNZ']['secs']
+                    if enle_terminated_duration>enle_jobs_duration:
+                        enle_terminated_duration=enle_jobs_duration # cannot be more
                     enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
 
             out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,
-                                   'jobsnr':enle_nr_jobs,
+                                   'jobsnr':enle_nr_jobs,'jobs_duration':{'total':enle_jobs_duration,'goodput':enle_goodput,'terminated':enle_terminated_duration},
                                    'wastemill':enle_waste_mill}
         
         return out_list
 
     # in: entered_list=get_completed_data()
-    # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
+    # out: {'Lasted':{'2hours':...,...},'Failed':...,'JobsNr':...,
+    #       'Waste':{'validation':{'0m':...,...},...},'WasteTime':{...:{...},...}}
     def summarize_completed_stats(self,entered_list):
         # summarize completed data
         count_entered_times={}
         for enle_timerange in getAllTimeRanges(): 
             count_entered_times[enle_timerange]=0 # make sure all are initialized
+
+        count_jobnrs={}
+        for enle_jobrange in getAllJobRanges(): 
+            count_jobnrs[enle_jobrange]=0 # make sure all are initialized
+
+        count_jobs_duration={'total':{},
+                             'goodput':{},
+                             'terminated':{}}
+        for w in count_jobs_duration.keys():
+            count_jobs_duration_w=count_jobs_duration[w]
+            for enle_jobs_duration_w_range in getAllJobRanges():
+                count_jobs_duration_w[enle_jobs_duration_w_range]=0 # make sure all are intialized
+
         count_validation_failed=0
         count_waste_mill={'validation':{},
                           'idle':{},
@@ -875,6 +899,8 @@ class condorLogSummary:
             enle=entered_list[enle_job]
             enle_waste_mill=enle['wastemill']
             enle_glidein_duration=enle['duration']
+            enle_jobs_nr=enle['jobsnr']
+            enle_jobs_duration=enle['jobs_duration']
             enle_condor_started=enle['condor_started']
 
             if not enle_condor_started:
@@ -883,6 +909,14 @@ class condorLogSummary:
             # find and save time range
             enle_timerange=getTimeRange(enle_glidein_duration)
             count_entered_times[enle_timerange]+=1
+
+            # find and save job range
+            enle_jobrange=getJobRange(enle_jobs_nr)
+            count_jobsnr[enle_jobrange]+=1
+
+            for w in enle_jobs_duration.keys():
+                enle_jobs_duration_w_range=getTimeRange(enle_jobs_duration[w])
+                count_jobs_duration[w][enle_jobs_duration_w_range]+=1
 
             # find and save waste range
             for w in enle_waste_mill.keys():
@@ -898,7 +932,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
+        return {'Lasted':count_entered_times,'JobsNr':count_jobsnr,'Failed':count_validation_failed,'jobs_duration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -1319,6 +1353,18 @@ def getTimeRange(absval):
 def getAllTimeRanges():
         return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
     
+def getJobRange(absval):
+        if absval<1:
+            return '0'
+        if absval>45: # limit valid times to 45
+            return 'Many'
+        logval=int(math.log(absval,2)+0.49)
+        level=int(math.pow(2,logval))
+        return "%i"%level
+
+def getAllJobRanges():
+        return ('0','1','2','4','8','16','32','Many')
+    
 def getAllTimeRangeGroups():
         return {'Unknown':('Unknown',),'lt15mins':('TooShort','7mins'),'15mins-50mins':('15mins','30mins'),'50mins-30hours':('1hours','2hours','4hours','8hours','16hours'),'30hours-100hours':('32hours','64hours'),'gt100hours':('128hours','TooLong')}
             
@@ -1350,8 +1396,12 @@ def getGroupsVal(u):
 
 ##################################################
 def get_completed_stats_xml_desc():
-    return {'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
-            'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
+    return {'dicts_params':{'Lasted':{'el_name':'TimeRange'},
+                            'JobsNr':{'el_name':'Range'}},
+            'subclass_params':{'jobs_duration':{'dict_params':{'total':{'el_name':'TimeRange'},
+                                                               'goodput':{'el_name':'TimeRange'},
+                                                               'terminated':{'el_name':'TimeRange'}}},
+                               'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
                                                         'validation':{'el_name':'Fraction'},
                                                         'badput':{'el_name':'Fraction'},
                                                         'nosuccess':{'el_name':'Fraction'}}},
