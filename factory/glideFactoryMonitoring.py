@@ -874,7 +874,7 @@ class condorLogSummary:
                              'terminated':{}}
         for w in count_jobs_duration.keys():
             count_jobs_duration_w=count_jobs_duration[w]
-            for enle_jobs_duration_w_range in getAllJobRanges():
+            for enle_jobs_duration_w_range in getAllTimeRanges():
                 count_jobs_duration_w[enle_jobs_duration_w_range]=0 # make sure all are intialized
 
         count_validation_failed=0
