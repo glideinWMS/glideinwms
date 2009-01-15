@@ -6,7 +6,7 @@
 #   Equivalent to condor_status, but with glidein specific info
 #
 # Usage:
-#  glidein_status.py [-gatekeeper] [-glidecluster] [-withmonitor]
+#  glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor]
 #
 # Author:
 #   Igor Sfiligoi
@@ -32,6 +32,9 @@ for arg in sys.argv:
         want_glidecluster=True
     elif arg=='-withmonitor':
         want_monitor=True
+    elif arg in ('-h','-help'):
+        print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor]"
+        sys.exit(1)
 
 if not want_monitor:
     constraint='IS_MONITOR_VM =!= TRUE'
@@ -71,6 +74,8 @@ def machine_cmp(x,y):
 keys.sort(machine_cmp)
 
 
+counts_header=('Total','Owner','Claimed/Busy','Claimed/Retiring','Claimed/Other','Unclaimed','Matched','Other')
+
 now=long(time.time())
 def fmt_time(t):
     diff=now-t
@@ -103,6 +108,10 @@ print
 print print_mask%header
 print
 
+counts={'Total':{}}
+for c in counts_header:
+    counts['Total'][c]=0
+
 for vm_name in keys:
     el=data[vm_name]
 
@@ -114,6 +123,22 @@ for vm_name in keys:
             cel[a]='???'
     if cel['EnteredCurrentActivity']!='???':
         cel['EnteredCurrentActivity']=fmt_time(long(cel['EnteredCurrentActivity']))
+
+    state=cel['State']
+    activity=cel['Activity']
+
+    for t in ('Total',):
+        ct=counts[t]
+        ct['Total']+=1
+        if state in ('Owner','Unclaimed','Matched'):
+            ct[state]+=1
+        elif state=='Claimed':
+            if activity in ('Busy','Retiring'):
+                ct['%s/%s'%(state,activity)]+=1
+            else:
+                ct['Claimed/Other']+=1
+        else:
+            ct['Other']+=1
     
     print_arr=(vm_name,cel['GLIDEIN_Site'])
     if want_gk:
@@ -121,8 +146,21 @@ for vm_name in keys:
     print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'])
     if want_glidecluster:
         print_arr+=(cel['GLIDEIN_Schedd'],"%i.%i"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId']))
-    print_arr+=(cel['State'],cel['Activity'],cel['EnteredCurrentActivity'])
+    print_arr+=(state,activity,cel['EnteredCurrentActivity'])
 
     print print_mask%print_arr
 
 print
+
+count_print_mask="%39s"
+for c in counts_header:
+    count_print_mask+=" %%%is"%c
+
+print count_print_mask%(('',)+counts_header)
+
+for t in ('Total',):
+    count_print_val=[t]
+    for c in counts_header:
+        count_print_val.append(counts[t][c])
+print
+
