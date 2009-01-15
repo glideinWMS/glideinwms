@@ -1705,6 +1705,10 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                  'ffff00',          # 30 mins
                  'c0ff00','80f000','40d800','00c000','00c080','00e0d0','00ffff',
                  '0080f0','0000c0')          # 128hours, TooLong
+    jobs_colors=('ff0000','d8ff00',           # 0 and 1
+                 '00ff00','00c000',           # 2 and 4
+                 '00e080','00ffd8','0080ff',  # 8,16,32
+                 '0040a0')                    # Many
     
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
         rrd_files=[('Entered',"%s/Log_Entered.rrd?id=%s"%(fe_dir,s),"AREA","00ff00")]
@@ -1725,24 +1729,44 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                                         "%s glideins"%s,
                                         [(s,"%s/Log_Counts.rrd?id=%s"%(fe_dir,s),"AREA",colors[s])])
         elif s=="Completed":
-            # create graph for lasted
+            # create graph for time based info
             t_keys=getAllTimeRanges()
-            
-            t_rrds=[]
-            idx=0
-            for t_k in t_keys:
-                t_k_color=time_colors[idx]
-                t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=Lasted_%s"%(fe_dir,t_k),"STACK",t_k_color))
-                idx+=1
 
-            monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                        "%s/Log_Completed_Entered_Lasted"%fe_dir,
-                                        "Lasted glideins",t_rrds)
-            if 'Trend' in monitoringConfig.wanted_graphs:
+            for t in ('Lasted','JobsLasted','Goodput','Terminated'):
+                t_rrds=[]
+                idx=0
+                for t_k in t_keys:
+                    t_k_color=time_colors[idx]
+                    t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s_%s"%(fe_dir,t,t_k),"STACK",t_k_color))
+                    idx+=1
+                    
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                            "%s/Log50_Completed_Entered_Lasted"%fe_dir,
-                                            "Trend Lasted glideins",t_rrds,trend_fraction=50)
+                                            "%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                            "%s glideins"%t,t_rrds)
+                if 'Trend' in monitoringConfig.wanted_graphs:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s glideins"%t,t_rrds,trend_fraction=50)
             
+            # create graph for jobs
+            t_keys=getAllJobRanges()
+
+            for t in ('JobsNr',):
+                t_rrds=[]
+                idx=0
+                for t_k in t_keys:
+                    t_k_color=jobs_colors[idx]
+                    t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s_%s"%(fe_dir,t,t_k),"STACK",t_k_color))
+                    idx+=1
+                    
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                            "%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                            "%s glideins"%t,t_rrds)
+                if 'Trend' in monitoringConfig.wanted_graphs:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s glideins"%t,t_rrds,trend_fraction=50)
+
             # create graphs for Waste and WasteTime
             for t in ('Waste','WasteTime'):
                 t_keys=list(getAllMillRanges())
