@@ -1245,7 +1245,7 @@ class condorLogSummary:
                         fd.write("</table>\n</p>\n")
                         fd.write('<a name="glidein_terminated">\n')
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted'):
+                        for s in ('Diff','Entered_Lasted','Entered_Jobsnr','Entered_JobsLasted','Entered_Goodput','Entered_Terminated'):
                             fd.write('<tr valign="top">')
                             for l in larr:
                                 fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
@@ -2018,7 +2018,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</table>\n</p>\n")
                         fd.write('<a name="glidein_terminated">\n')
                         fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted'):
+                        for s in ('Diff','Entered_Lasted','Entered_Jobsnr','Entered_JobsLasted','Entered_Goodput','Entered_Terminated'):
                             fd.write('<tr valign="top">')
                             for l in larr:
                                 fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
