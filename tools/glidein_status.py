@@ -183,7 +183,7 @@ print count_print_mask%(('',)+counts_header)
 
 ckeys=counts.keys()
 
-def ckeys_sort(x,y):
+def entry_cmp(x,y):
     # Total always last
     if x=='Total':
        if y=='Total':
@@ -202,7 +202,10 @@ def ckeys_sort(x,y):
             return res
     return 0
 
-ckeys.sort(ckeys_sort)
+if summarize=='site':
+    ckeys.sort()
+else: # default is entry
+    ckeys.sort(entry_cmp)
 
 if len(ckeys)>1:
     print # put a space before the entry names
