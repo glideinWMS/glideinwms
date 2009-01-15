@@ -33,7 +33,7 @@ data=cs.stored_data
 keys=data.keys()
 keys.sort()
 
-print_mask="%39s %9s %39s %9s %8s %10s"
+print_mask="%-39s %-9s %-39s %-9s %-8s %-10s"
 
 print
 print print_mask%('Name','Site','Glidein Factory','State','Activity','ActvtyTime')
