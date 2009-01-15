@@ -6,7 +6,7 @@
 #   Equivalent to condor_status, but with glidein specific info
 #
 # Usage:
-#  glidein_status.py [-gk]
+#  glidein_status.py [-gatekeeper] [-glidecluster] [-withmonitor]
 #
 # Author:
 #   Igor Sfiligoi
@@ -22,11 +22,19 @@ pool_name=None
 constraint=None
 
 want_gk=False
-
+want_glidecluster=False
+want_monitor=False
 
 for arg in sys.argv:
-    if arg=='-gk':
+    if arg=='-gatekeeper':
         want_gk=True
+    elif arg=='-glidecluster':
+        want_glidecluster=True
+    elif arg=='-withmonitor':
+        want_monitor=True
+
+if not want_monitor:
+    constraint='IS_MONITOR_VM =!= TRUE'
 
 format_list=[('Machine','s'),('State','s'),('Activity','s'),
              ('GLIDEIN_Site','s'),
@@ -38,6 +46,14 @@ if want_gk:
     format_list.append(('GLIDEIN_GridType','s'))
     attrs.append('GLIDEIN_Gatekeeper')
     attrs.append('GLIDEIN_GridType')
+
+if want_glidecluster:
+    format_list.append(('GLIDEIN_ClusterId','i'))
+    format_list.append(('GLIDEIN_ProcId','i'))
+    format_list.append(('GLIDEIN_Schedd','s'))
+    attrs.append('GLIDEIN_ClusterId')
+    attrs.append('GLIDEIN_ProcId')
+    attrs.append('GLIDEIN_Schedd')
 
 cs=condorMonitor.CondorStatus(pool_name=pool_name)
 cs.load(constraint=constraint,format_list=format_list)
@@ -75,7 +91,10 @@ print_mask+=" %-24s %-14s %-9s %-8s %-10s"
 header=('Name','Site')
 if want_gk:
     header+=('Grid','Gatekeeper')
-header+=('Factory','Entry','State','Activity','ActvtyTime')
+header+=('Factory','Entry')
+if want_glidecluster:
+    header+=('GlideCluster',)
+header+=('State','Activity','ActvtyTime')
 
 print
 print print_mask%header
@@ -96,7 +115,10 @@ for vm_name in keys:
     print_arr=(vm_name,cel['GLIDEIN_Site'])
     if want_gk:
         print_arr+=(cel['GLIDEIN_GridType'],cel['GLIDEIN_Gatekeeper'])
-    print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'],cel['State'],cel['Activity'],cel['EnteredCurrentActivity'])
+    print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'])
+    if want_glidecluster:
+        print_arr+=("%i.%i#%s"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId'],cel['GLIDEIN_Schedd']),)
+    print_arr+=(cel['State'],cel['Activity'],cel['EnteredCurrentActivity'])
 
     print print_mask%print_arr
 
