@@ -2046,7 +2046,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</tr><tr>\n")
 
                         if up_dir_and_title!=None:
-                            fd.write('<td>[<a href="%s/0Log.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],up_dir_and_title[1],period,size))
+                            fd.write('<td>[<a href="%s/0Log.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],period,size,up_dir_and_title[1]))
                         else:
                             fd.write('<td></td>\n') # no uplink
                         link_arr=[]
@@ -2109,7 +2109,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</tr><tr>\n")
 
                         if up_dir_and_title!=None:
-                            fd.write('<td>[<a href="%s/0Terminated.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],up_dir_and_title[1],period,size))
+                            fd.write('<td>[<a href="%s/0Terminated.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],period,size,up_dir_and_title[1]))
                         else:
                             fd.write('<td></td>\n') # no uplink
                         link_arr=[]
