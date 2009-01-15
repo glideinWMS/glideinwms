@@ -42,7 +42,7 @@ print
 for vm_name in keys:
     el=data[vm_name]
 
-    cel=[] # this will have all the needed attributes (??? if nothing else)
+    cel={} # this will have all the needed attributes (??? if nothing else)
     for a in attrs:        
         if el.has_key(a):
             cel[a]=el[a]
