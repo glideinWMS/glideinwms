@@ -117,9 +117,10 @@ if want_glidecluster:
     header+=('GlideSchedd','GlideCluster')
 header+=('State','Activity','ActvtyTime')
 
-print
-print print_mask%header
-print
+if not total_only:
+    print
+    print print_mask%header
+    print
 
 counts={'Total':{}}
 for c in counts_header:
