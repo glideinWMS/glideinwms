@@ -6,7 +6,7 @@
 #   Equivalent to condor_status, but with glidein specific info
 #
 # Usage:
-#  glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor]
+#  glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site]
 #
 # Author:
 #   Igor Sfiligoi
@@ -24,6 +24,8 @@ constraint=None
 want_gk=False
 want_glidecluster=False
 want_monitor=False
+total_only=False
+summarize='entry'
 
 for arg in sys.argv:
     if arg=='-gatekeeper':
@@ -32,8 +34,19 @@ for arg in sys.argv:
         want_glidecluster=True
     elif arg=='-withmonitor':
         want_monitor=True
+    elif arg=='-total':
+        total_only=True
+    elif arg=='-site':
+        summarize='site'
     elif arg in ('-h','-help'):
-        print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor]"
+        print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site]"
+        print
+        print "Options:"
+        print " -gatekeeper   : Print out the glidein gatekeeper"
+        print " -glidecluster : Print out the glidein cluster nr"
+        print " -withmonitor  : Print out the monitoring VMs, too"
+        print " -total        : Print out only the totals (skip details)"
+        print " -site         : Summarize by site (default by entry name)"
         sys.exit(1)
 
 if not want_monitor:
@@ -127,13 +140,16 @@ for vm_name in keys:
     state=cel['State']
     activity=cel['Activity']
 
-    entry_str="%s@%s@%s"%(cel['GLIDEIN_Entry_Name'],cel['GLIDEIN_Name'],cel['GLIDEIN_Factory'])
-    if not counts.has_key(entry_str):
-        counts[entry_str]={}
+    if summarize=='site':
+        sum_str=cel['GLIDEIN_Site']
+    else:
+        sum_str="%s@%s@%s"%(cel['GLIDEIN_Entry_Name'],cel['GLIDEIN_Name'],cel['GLIDEIN_Factory'])
+    if not counts.has_key(sum_str):
+        counts[sum_str]={}
         for c in counts_header:
-            counts[entry_str][c]=0
+            counts[sum_str][c]=0
 
-    for t in ('Total',entry_str):
+    for t in ('Total',sum_str):
         ct=counts[t]
         ct['Total']+=1
         if state in ('Owner','Unclaimed','Matched'):
@@ -145,16 +161,17 @@ for vm_name in keys:
                 ct['Claimed/Other']+=1
         else:
             ct['Other']+=1
-    
-    print_arr=(vm_name,cel['GLIDEIN_Site'])
-    if want_gk:
-        print_arr+=(cel['GLIDEIN_GridType'],cel['GLIDEIN_Gatekeeper'])
-    print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'])
-    if want_glidecluster:
-        print_arr+=(cel['GLIDEIN_Schedd'],"%i.%i"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId']))
-    print_arr+=(state,activity,cel['EnteredCurrentActivity'])
 
-    print print_mask%print_arr
+    if not total_only:
+        print_arr=(vm_name,cel['GLIDEIN_Site'])
+        if want_gk:
+            print_arr+=(cel['GLIDEIN_GridType'],cel['GLIDEIN_Gatekeeper'])
+        print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'])
+        if want_glidecluster:
+            print_arr+=(cel['GLIDEIN_Schedd'],"%i.%i"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId']))
+        print_arr+=(state,activity,cel['EnteredCurrentActivity'])
+
+        print print_mask%print_arr
 
 print
 
