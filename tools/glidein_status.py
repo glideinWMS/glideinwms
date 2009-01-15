@@ -179,7 +179,7 @@ def ckeys_sort(x,y):
     x_arr=x.split('@')
     y_arr=y.split('@')
     for i in (2,1,0):
-        res=cmp(x[i],y[i])
+        res=cmp(x_arr[i],y_arr[i])
         if res!=0:
             return res
     return 0
