@@ -13,11 +13,12 @@
 #
 
 def help():
-    print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site] [-pool name] [-constraint name]"
+    print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-total] [-site] [-pool name] [-constraint name]"
     print
     print "Options:"
     print " -gatekeeper   : Print out the glidein gatekeeper"
     print " -glidecluster : Print out the glidein cluster nr"
+    print " -glexec       : Print out if glexec is used"
     print " -withmonitor  : Print out the monitoring VMs, too"
     print " -total        : Print out only the totals (skip details)"
     print " -site         : Summarize by site (default by entry name)"
@@ -38,6 +39,7 @@ constraint=None
 want_gk=False
 want_glidecluster=False
 want_monitor=False
+want_glexec=False
 total_only=False
 summarize='entry'
 
@@ -50,6 +52,8 @@ while i<arglen:
         want_gk=True
     elif arg=='-glidecluster':
         want_glidecluster=True
+    elif arg=='-glexec':
+        want_glexec=True
     elif arg=='-withmonitor':
         want_monitor=True
     elif arg=='-total':
@@ -93,6 +97,12 @@ if want_glidecluster:
     attrs.append('GLIDEIN_ProcId')
     attrs.append('GLIDEIN_Schedd')
 
+if want_glexec:
+    format_list.append(('GLEXEC_STARTER','b'))
+    format_list.append(('GLEXEC_JOB','b'))
+    attrs.append('GLEXEC_STARTER')
+    attrs.append('GLEXEC_JOB')
+
 cs=condorMonitor.CondorStatus(pool_name=pool_name)
 cs.load(constraint=constraint,format_list=format_list)
 
@@ -129,6 +139,8 @@ if want_gk:
 print_mask+=" %-19s %-19s"
 if want_glidecluster:
     print_mask+=" %-39s %-14s"
+if want_glexec:
+    print_mask+=" %-7s"
 print_mask+=" %-9s %-8s %-10s"
 
 header=('Name','Site')
@@ -137,6 +149,8 @@ if want_gk:
 header+=('Factory','Entry')
 if want_glidecluster:
     header+=('GlideSchedd','GlideCluster')
+if want_glexec:
+    header+=('gLExec',)
 header+=('State','Activity','ActvtyTime')
 
 if not total_only:
@@ -192,6 +206,13 @@ for vm_name in keys:
         print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'])
         if want_glidecluster:
             print_arr+=(cel['GLIDEIN_Schedd'],"%i.%i"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId']))
+        if want_glexec:
+            glexec_str='None'
+            if el.has_key('GLEXEC_JOB') and el['GLEXEC_JOB']:
+                glexec_str='Job'
+            elif el.has_key('GLEXEC_STARTER') and el['GLEXEC_STARTER']:
+                glexec_str='Starter'
+            print_arr+=(glexec_str,)
         print_arr+=(state,activity,cel['EnteredCurrentActivity'])
 
         print print_mask%print_arr
