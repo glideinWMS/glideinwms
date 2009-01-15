@@ -1213,10 +1213,10 @@ class condorLogSummary:
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(client_name,period));
+                        fd.write("<title>Log stats for %s over last %s</title>\n"%(client_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Log stats for %s over last %s</h1></td>\n'%(client_name,period))
                         
                         fd.write("</tr><tr>\n")
                         
@@ -1236,11 +1236,10 @@ class condorLogSummary:
                                 link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                         fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
                         
                         fd.write("</tr></table>\n")
                         
-                        fd.write('<a name="glidein_status">\n')
                         fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
@@ -1256,8 +1255,44 @@ class condorLogSummary:
                             fd.write('<td>%s</td>'%img2html("%s_Removed_Diff.%s.%s.png"%(l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        fd.write('<a name="glidein_terminated">\n')
-                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
+                        fd.write("</p>\n")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Terminated.%s.%s.html"%(fe_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>Terminated glideins for %s over last %s</title>\n"%(client_name,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Terminated glideins for %s over last %s</h1></td>\n'%(client_name,period))
+                        
+                        fd.write("</tr><tr>\n")
+                        
+                        fd.write('<td>[<a href="../total/0Terminated.%s.%s.html">Entry total</a>]</td>\n'%(period,size))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size,period,size))
+                        
+                        fd.write("</tr></table>\n")
+                        
+                        fd.write("<p><table>\n")
                         for s in ('Diff','Entered_Lasted','Entered_JobsNr','Entered_JobsLasted','Entered_Goodput','Entered_Terminated'):
                             fd.write('<tr valign="top">')
                             for l in larr:
@@ -1314,7 +1349,7 @@ class condorLogSummary:
             pass # for client_name
 
         # create support index file for total
-        create_log_total_index("Entry total","frontend","../frontend_%s",frontend_list,'<a href="../../total/0Log.%s.%s.html">Factory total</a>')
+        create_log_total_index("Entry total","frontend","../frontend_%s",frontend_list,('../../total','Factory total'))
 
         monitoringConfig.update_locks(graph_ref_time,"logsummary")
         self.history_files_updated=self.files_updated
@@ -1530,7 +1565,7 @@ def create_leaf_status_indexes(title_name,
                                 link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                         fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
+                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
                         
                         fd.write("</tr></table>\n")
 
@@ -1596,7 +1631,7 @@ def create_group_status_indexes(title_name,
                             link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                     fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
+                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
                         
                     fd.write("</tr><tr>\n")
 
@@ -1942,16 +1977,16 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
 
 ###################################
 
-def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url_template):
+def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_dir_and_title):
     lck=monitoringConfig.get_graph_lock()
     try:
-        create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template)
+        create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_dir_and_title)
     finally:
         lck.close()
     return
 
 
-def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template):
+def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_dir_and_title):
     subdir_list.sort()
 
     want_trend='Trend' in monitoringConfig.wanted_graphs
@@ -1987,10 +2022,10 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(title,period));
+                        fd.write("<title>Log stats for %s over last %s</title>\n"%(title,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title,period))
+                        fd.write('<td valign="top" align="left"><h1>Log stats for %s over last %s</h1></td>\n'%(title,period))
                         
                         link_arr=[]
                         for ref_sz in monitoringConfig.graph_sizes:
@@ -2006,12 +2041,12 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                         fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
                         
                         fd.write("</tr><tr>\n")
 
-                        if up_url_template!=None:
-                            fd.write('<td>[%s]</td>\n'%(up_url_template%(period,size)))
+                        if up_dir_and_title!=None:
+                            fd.write('<td>[<a href="%s/0Log.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],up_dir_and_title[1],period,size))
                         else:
                             fd.write('<td></td>\n') # no uplink
                         link_arr=[]
@@ -2040,8 +2075,51 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 fd.write('<td>%s</td>'%img2html("%s%s_Removed_Diff.%s.%s.png"%(p,l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        fd.write('<a name="glidein_terminated">\n')
-                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
+                        fd.write("</p>\n")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Terminated.%s.%s.html"%(fe_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>Terminated glideins for %s over last %s</title>\n"%(title,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td valign="top" align="left"><h1>Terminated glideins for %s over last %s</h1></td>\n'%(title,period))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size,period,size))
+                        
+                        fd.write("</tr><tr>\n")
+
+                        if up_dir_and_title!=None:
+                            fd.write('<td>[<a href="%s/0Terminated.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],up_dir_and_title[1],period,size))
+                        else:
+                            fd.write('<td></td>\n') # no uplink
+                        link_arr=[]
+                        for ref_fe in subdir_list:
+                            link_arr.append(('<a href="'+subdir_template+'/0Terminated.%s.%s.html">%s</a>')%(ref_fe,period,size,ref_fe))
+                        fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write("</tr></table>\n")
+
+                        fd.write("<p>\n<table>\n")
                         for s in ('Diff','Entered_Lasted','Entered_JobsNr','Entered_JobsLasted','Entered_Goodput','Entered_Terminated'):
                             fd.write('<tr valign="top">')
                             for l in larr:
