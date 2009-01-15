@@ -291,6 +291,8 @@ class MonitoringConfig:
             if trend_fraction==None:
                 abs_trend=None
             else:
+                if pname=='hours':
+                    continue # don't produce trend graphs for short periods, they are identical to std graphs
                 abs_trend=period/trend_fraction
 
             pname_other_list=[]
@@ -1170,6 +1172,8 @@ class condorLogSummary:
             # history files updated recently, no need to redo it
             return 
 
+        want_trend='Trend' in monitoringConfig.wanted_graphs
+
         # use the same reference time for all the graphs
         graph_ref_time=time.time()
         # remember to call update_locks before exiting this function
@@ -1187,9 +1191,12 @@ class condorLogSummary:
         frontend_list=monitoringConfig.find_disk_frontends()
         create_log_split_graphs(graph_ref_time,"logsummary","frontend_%s",frontend_list)
 
-        larr=['Log']
-        if 'Trend' in monitoringConfig.wanted_graphs:
-            larr.append('Log50')
+        larr_long=['Log']
+        larr_short=['Log']
+        if want_trend:
+            larr_long.append('Log50')
+
+        larr_sl=(larr_short,larr_long)
 
         # create support index files
         for client_name in self.stats_diff.keys():
@@ -1197,6 +1204,8 @@ class condorLogSummary:
 
             for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
+                long_period=period!='hours'
+                larr=larr_sl[long_period] # don't show trends for hours, they are identical to std graphs
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
                     fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
@@ -1238,7 +1247,7 @@ class condorLogSummary:
                                 fd.write('<tr valign="top">')
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Count.%s.%s.png"%(s,period,size)))
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Diff.%s.%s.png"%(s,period,size)))
-                                if 'Trend' in monitoringConfig.wanted_graphs:
+                                if want_trend and long_period:
                                     fd.write('<td>%s</td>'%img2html("Log50_%s_Diff.%s.%s.png"%(s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
@@ -1701,6 +1710,8 @@ def create_split_graphs(attributes,graph_ref_time,
 
 ##################################################
 def create_log_graphs(ref_time,base_lock_name,fe_dir):
+    want_trend='Trend' in monitoringConfig.wanted_graphs
+
     colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
     r_colors=('c00000','ff4000', #>250
               'ffc000','fff800', #100-250
@@ -1724,7 +1735,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                     "%s/Log_%s_Diff"%(fe_dir,s),
                                     "Difference in %s glideins"%s, rrd_files)
-        if 'Trend' in monitoringConfig.wanted_graphs:
+        if want_trend:
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "%s/Log50_%s_Diff"%(fe_dir,s),
                                         "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=50)
@@ -1749,7 +1760,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                             "%s glideins"%t,t_rrds)
-                if 'Trend' in monitoringConfig.wanted_graphs:
+                if want_trend:
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
                                                 "Trend %s glideins"%t,t_rrds,trend_fraction=50)
@@ -1768,7 +1779,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "%s/Log_Completed_Entered_%s"%(fe_dir,t),
                                             "%s glideins"%t,t_rrds)
-                if 'Trend' in monitoringConfig.wanted_graphs:
+                if want_trend:
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
                                                 "Trend %s glideins"%t,t_rrds,trend_fraction=50)
@@ -1790,7 +1801,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log_Completed_Entered_%s_%s"%(fe_dir,t,t_t),
                                                 "%s %s glideins"%(t,t_t),t_rrds)
-                    if 'Trend' in monitoringConfig.wanted_graphs:
+                    if want_trend:
                         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                     "%s/Log50_Completed_Entered_%s_%s"%(fe_dir,t,t_t),
                                                     "Trend %s %s glideins"%(t,t_t),t_rrds,trend_fraction=50)
@@ -1805,6 +1816,8 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
         return # do not create split graphs
 
     subdir_list.sort()
+
+    want_trend='Trend' in monitoringConfig.wanted_graphs
 
     mill_range_groups=getAllMillRangeGroups()
     mill_range_groups_keys=mill_range_groups.keys()
@@ -1864,7 +1877,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "total/Split_Log_%s_Diff"%s,
                                         "Difference in %s glideins"%s, diff_rrd_files)
-            if 'Trend' in monitoringConfig.wanted_graphs:
+            if want_trend:
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "total/Split_Log50_%s_Diff"%s,
                                             "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
@@ -1891,7 +1904,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "total/Split_Log_Completed_Entered_Lasted_%s"%range_group,
                                         "Lasted %s glideins"%range_group, diff_rrd_files,cdef_arr=cdef_arr)
-            if 'Trend' in monitoringConfig.wanted_graphs:
+            if want_trend:
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "total/Split_Log50_Completed_Entered_Lasted_%s"%range_group,
                                             "Trend Lasted %s glideins"%range_group, diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
@@ -1920,7 +1933,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "total/Split_Log_Completed_Entered_%s_%s_%s"%(t,t_t,range_group),
                                                 "%s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                    if 'Trend' in monitoringConfig.wanted_graphs:
+                    if want_trend:
                         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                     "total/Split_Log50_Completed_Entered_%s_%s_%s"%(t,t_t,range_group),
                                                     "Trend %s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
@@ -1941,6 +1954,8 @@ def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url
 def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template):
     subdir_list.sort()
 
+    want_trend='Trend' in monitoringConfig.wanted_graphs
+    
     mill_range_groups=getAllMillRangeGroups()
     mill_range_groups_keys=mill_range_groups.keys()
     mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
@@ -1953,13 +1968,18 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
     if 'Split' in monitoringConfig.wanted_graphs:
         parr.append('Split_')
 
-    larr=['Log']
-    if 'Trend' in monitoringConfig.wanted_graphs:
-        larr.append('Log50')
+    larr_long=['Log']
+    larr_short=['Log']
+    if want_trend:
+        larr_long.append('Log50')
+
+    larr_sl=(larr_short,larr_long)
 
     fe_dir="total"
     for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
+                long_period=period!='hours'
+                larr=larr_sl[long_period] # don't show trends for hours, they are identical to std graphs
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
                     fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
