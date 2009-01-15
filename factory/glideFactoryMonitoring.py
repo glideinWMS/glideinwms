@@ -65,16 +65,20 @@ class MonitoringConfig:
         try:
             for job_id in job_ids:
                 el=entered_dict[job_id]
+                jobs_duration=el['jobs_duration']
                 waste_mill=el['wastemill']
-                fd.write("<job %37s %17s %17s %22s %16s><wastemill %17s %11s %16s %13s/></job>\n"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                                                                   ('id="%s"'%job_id),
-                                                                                                   ('duration="%i"'%el['duration']),
-                                                                                                   ('condor_started="%s"'%(el['condor_started']==True)),
-                                                                                                   ('user_jobs="%i"'%el['jobsnr']),
-                                                                                                   ('validation="%i"'%waste_mill['validation']),
-                                                                                                   ('idle="%i"'%waste_mill['idle']),
-                                                                                                   ('nosuccess="%i"'%waste_mill['nosuccess']),
-                                                                                                   ('badput="%i"'%waste_mill['badput'])))
+                fd.write(("<job %37s %17s %17s %22s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                       ('id="%s"'%job_id),
+                                                       ('duration="%i"'%el['duration']),
+                                                       ('condor_started="%s"'%(el['condor_started']==True))))+
+                         ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
+                                                         ('duration="%i"'%jobs_duration['total']),
+                                                         ('goodput="%i"'%jobs_duration['goodput']),
+                                                         ('terminated="%i"'%jobs_duration['terminated'])))+
+                         ("<wastemill %17s %11s %16s %13s/></job>\n"%(('validation="%i"'%waste_mill['validation']),
+                                                                      ('idle="%i"'%waste_mill['idle']),
+                                                                      ('nosuccess="%i"'%waste_mill['nosuccess']),
+                                                                      ('badput="%i"'%waste_mill['badput']))))
         finally:
             fd.close()
 
