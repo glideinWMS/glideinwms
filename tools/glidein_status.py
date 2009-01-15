@@ -156,6 +156,7 @@ count_print_mask="%39s"
 for c in counts_header:
     count_print_mask+=" %%%is"%len(c)
 print count_print_mask%(('',)+counts_header)
+print
 
 for t in ('Total',):
     count_print_val=[t]
