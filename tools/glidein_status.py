@@ -86,7 +86,10 @@ def fmt_time(t):
 print_mask="%-39s %-9s"
 if want_gk:
     print_mask+=" %-5s %-43s"
-print_mask+=" %-24s %-14s %-9s %-8s %-10s"
+print_mask+=" %-24s %-14s"
+if want_glidecluster:
+    print_mask+=" %-19s"
+print_mask+=" %-9s %-8s %-10s"
 
 header=('Name','Site')
 if want_gk:
