@@ -24,7 +24,7 @@ constraint=None
 format_list=[('Machine','s'),('State','s'),('Activity','s'),
              ('GLIDEIN_Site','s'),
              ('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('EnteredCurrentActivity','i')]
-attrs=['State','Activity','GLIDEIN_Site','GLIDEIN_Factory','GLIDEIN_Name','GLIDEIN_Entry_Name']
+attrs=['State','Activity','GLIDEIN_Site','GLIDEIN_Factory','GLIDEIN_Name','GLIDEIN_Entry_Name','EnteredCurrentActivity']
 
 cs=condorMonitor.CondorStatus(pool_name=pool_name)
 cs.load(constraint=constraint,format_list=format_list)
