@@ -6,11 +6,25 @@
 #   Equivalent to condor_status, but with glidein specific info
 #
 # Usage:
-#  glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site]
+#  glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site] [-pool name]
 #
 # Author:
 #   Igor Sfiligoi
 #
+
+def help():
+    print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site] [-pool name] [-constraint name]"
+    print
+    print "Options:"
+    print " -gatekeeper   : Print out the glidein gatekeeper"
+    print " -glidecluster : Print out the glidein cluster nr"
+    print " -withmonitor  : Print out the monitoring VMs, too"
+    print " -total        : Print out only the totals (skip details)"
+    print " -site         : Summarize by site (default by entry name)"
+    print " -pool         : Same as -pool in condor_status"
+    print " -constraint   : Same as -constraint in condor_status"
+    print
+
 
 import time
 import sys,os.path
@@ -27,7 +41,11 @@ want_monitor=False
 total_only=False
 summarize='entry'
 
-for arg in sys.argv:
+arglen=len(sys.argv)
+i=1
+while i<arglen:
+    arg=sys.argv[i]
+
     if arg=='-gatekeeper':
         want_gk=True
     elif arg=='-glidecluster':
@@ -38,19 +56,23 @@ for arg in sys.argv:
         total_only=True
     elif arg=='-site':
         summarize='site'
-    elif arg in ('-h','-help'):
-        print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-withmonitor] [-total] [-site]"
-        print
-        print "Options:"
-        print " -gatekeeper   : Print out the glidein gatekeeper"
-        print " -glidecluster : Print out the glidein cluster nr"
-        print " -withmonitor  : Print out the monitoring VMs, too"
-        print " -total        : Print out only the totals (skip details)"
-        print " -site         : Summarize by site (default by entry name)"
+    elif arg=='-pool':
+        i+=1
+        pool_name=sys.argv[i]
+    elif arg=='-constraint':
+        i+=1
+        constraint=sys.argv[i]
+    else:
+        help()
         sys.exit(1)
 
+    i+=1
+
 if not want_monitor:
-    constraint='IS_MONITOR_VM =!= TRUE'
+    if constraint==None:
+        constraint='IS_MONITOR_VM =!= TRUE'
+    else:
+        constraint='(%s) && (IS_MONITOR_VM =!= TRUE)'%constraint
 
 format_list=[('Machine','s'),('State','s'),('Activity','s'),
              ('GLIDEIN_Site','s'),
