@@ -44,7 +44,7 @@ keys.sort(machine_cmp)
 
 now=long(time.time())
 def fmt_time(t):
-    diff=t-now
+    diff=now-t
     diff_secs=diff%60
     diff=diff/60
     diff_mins=diff%60
