@@ -9,6 +9,7 @@ v2Next	Refactoring creation libs;
 	Monitoring refactored
 	  Most rrd operations now in separate module
 	  Groupes multiple attributes in the RRD files (lower overhead) 
+	Added tools/glidein_status.py.
 
 v1_6+	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
