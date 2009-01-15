@@ -161,7 +161,8 @@ for t in ('Total',):
     count_print_val=[t]
     for c in counts_header:
         count_print_val.append(counts[t][c])
-    print count_print_mask%count_print_val
+    
+    print count_print_mask%tuple(count_print_val)
 
 print
 
