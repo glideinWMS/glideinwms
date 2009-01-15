@@ -88,7 +88,7 @@ if want_gk:
     print_mask+=" %-5s %-43s"
 print_mask+=" %-24s %-14s"
 if want_glidecluster:
-    print_mask+=" %-39s"
+    print_mask+=" %-39s %-14s"
 print_mask+=" %-9s %-8s %-10s"
 
 header=('Name','Site')
@@ -96,7 +96,7 @@ if want_gk:
     header+=('Grid','Gatekeeper')
 header+=('Factory','Entry')
 if want_glidecluster:
-    header+=('GlideCluster',)
+    header+=('GlideSchedd','GlideCluster')
 header+=('State','Activity','ActvtyTime')
 
 print
@@ -120,7 +120,7 @@ for vm_name in keys:
         print_arr+=(cel['GLIDEIN_GridType'],cel['GLIDEIN_Gatekeeper'])
     print_arr+=("%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'])
     if want_glidecluster:
-        print_arr+=("%i.%i#%s"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId'],cel['GLIDEIN_Schedd']),)
+        print_arr+=(cel['GLIDEIN_Schedd'],"%i.%i"%(cel['GLIDEIN_ClusterId'],cel['GLIDEIN_ProcId']))
     print_arr+=(cel['State'],cel['Activity'],cel['EnteredCurrentActivity'])
 
     print print_mask%print_arr
