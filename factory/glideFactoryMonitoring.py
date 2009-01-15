@@ -848,7 +848,7 @@ class condorLogSummary:
                     enle_terminated_duration=enle_goodput+enle_condor_stats['goodNZ']['secs']
                     if enle_terminated_duration>enle_jobs_duration:
                         enle_terminated_duration=enle_jobs_duration # cannot be more
-                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
+                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_terminated_duration)/enle_glidein_duration
 
             out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,
                                    'jobsnr':enle_nr_jobs,'jobs_duration':{'total':enle_jobs_duration,'goodput':enle_goodput,'terminated':enle_terminated_duration},
@@ -1119,7 +1119,7 @@ class condorLogSummary:
                         # they all use the same indexes
                         val_dict_completed['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
                         val_dict_completed['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
-                        val_dict_completed['Terminated_%s'%timerange]=count_entered_times[timerange]
+                        val_dict_completed['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
 
                     # save jobsnr
                     for jobrange in count_jobnrs.keys():
