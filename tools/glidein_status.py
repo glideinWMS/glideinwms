@@ -127,7 +127,13 @@ for vm_name in keys:
     state=cel['State']
     activity=cel['Activity']
 
-    for t in ('Total',):
+    entry_str="%s@%s@%s"%(cel['GLIDEIN_Entry_Name'],cel['GLIDEIN_Name'],cel['GLIDEIN_Factory'])
+    if not counts.has_key(entry_str):
+        counts[entry_str]={}
+        for c in counts_header:
+            counts[entry_str][c]=0
+
+    for t in ('Total',entry_str):
         ct=counts[t]
         ct['Total']+=1
         if state in ('Owner','Unclaimed','Matched'):
@@ -156,9 +162,36 @@ count_print_mask="%39s"
 for c in counts_header:
     count_print_mask+=" %%%is"%len(c)
 print count_print_mask%(('',)+counts_header)
-print
 
-for t in ('Total',):
+ckeys=counts.keys()
+
+def ckeys_sort(x,y):
+    # Total always last
+    if x=='Total':
+       if y=='Total':
+           return 0;
+       else:
+           return 1;
+    elif y=='Total':
+        return -1
+
+    # split in pieces and sort end to front
+    x_arr=x.split('@')
+    y_arr=y.split('@')
+    for i in (2,1,0):
+        res=cmp(x[i],y[i])
+        if res!=0:
+            return res
+    return 0
+
+ckeys.sort(ckeys_sort)
+
+if len(ckeys)>1:
+    print # put a space before the entry names
+
+for t in ckeys:
+    if t=='Total':
+        print # put an empty line before Total
     count_print_val=[t]
     for c in counts_header:
         count_print_val.append(counts[t][c])
