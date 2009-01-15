@@ -1293,10 +1293,11 @@ class condorLogSummary:
                         fd.write("</tr></table>\n")
                         
                         fd.write("<p><table>\n")
-                        for s in ('Diff','Entered_Lasted','Entered_JobsNr','Entered_JobsLasted','Entered_Goodput','Entered_Terminated'):
+                        for sa in (('Diff','Entered_Lasted'),('Entered_JobsNr','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
                             fd.write('<tr valign="top">')
                             for l in larr:
-                                fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
+                                for s in sa:
+                                    fd.write('<td>%s</td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
@@ -2120,10 +2121,11 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</tr></table>\n")
 
                         fd.write("<p>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted','Entered_JobsNr','Entered_JobsLasted','Entered_Goodput','Entered_Terminated'):
+                        for sa in (('Diff','Entered_Lasted'),('Entered_JobsNr','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
                             fd.write('<tr valign="top">')
                             for l in larr:
-                                fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
+                                for s in sa:
+                                    fd.write('<td>%s</td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
                         for s in ('validation','idle',
                                   'nosuccess','badput'):
