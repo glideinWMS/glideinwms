@@ -33,10 +33,10 @@ data=cs.stored_data
 keys=data.keys()
 keys.sort()
 
-print_mask="%-39s %-9s %-39s %-9s %-8s %-10s"
+print_mask="%-39s %-9s %-24s %14s %-9s %-8s %-10s"
 
 print
-print print_mask%('Name','Site','Glidein Factory','State','Activity','ActvtyTime')
+print print_mask%('Name','Site','Factory','Entry','State','Activity','ActvtyTime')
 print
 
 for vm_name in keys:
@@ -49,6 +49,6 @@ for vm_name in keys:
         else:
             cel[a]='???'
     
-    print print_mask%(vm_name,cel['GLIDEIN_Site'],"%s@%s@%s"%(cel['GLIDEIN_Entry_Name'],cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['State'],cel['Activity'],'TBD')
+    print print_mask%(vm_name,cel['GLIDEIN_Site'],"%s@%s"%(cel['GLIDEIN_Name'],cel['GLIDEIN_Factory']),cel['GLIDEIN_Entry_Name'],cel['State'],cel['Activity'],'TBD')
 
 print
