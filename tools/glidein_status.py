@@ -39,7 +39,7 @@ def machine_cmp(x,y):
         res=cmp(x,y)
     return res
 
-keys.sort()
+keys.sort(machine_cmp)
 
 print_mask="%-39s %-9s %-24s %-14s %-9s %-8s %-10s"
 
