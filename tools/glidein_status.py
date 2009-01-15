@@ -21,7 +21,7 @@ import condorMonitor
 pool_name=None
 constraint=None
 
-format_list=[('State','s'),('Activity','s'),
+format_list=[('Machine','s'),('State','s'),('Activity','s'),
              ('GLIDEIN_Site','s'),
              ('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s')]
 attrs=['State','Activity','GLIDEIN_Site','GLIDEIN_Factory','GLIDEIN_Name','GLIDEIN_Entry_Name']
@@ -31,6 +31,14 @@ cs.load(constraint=constraint,format_list=format_list)
 
 data=cs.stored_data
 keys=data.keys()
+
+# sort on the Machine attribute
+def machine_cmp(x,y):
+    res=cmp(data[x]['Machine'],data[y]['Machine'])
+    if res==0:
+        res=cmp(x,y)
+    return res
+
 keys.sort()
 
 print_mask="%-39s %-9s %-24s %-14s %-9s %-8s %-10s"
