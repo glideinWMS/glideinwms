@@ -1365,15 +1365,17 @@ def getAllTimeRanges():
     
 def getJobRange(absval):
         if absval<1:
-            return '0'
+            return 'None'
+        if absval==1:
+            return '1job'
         if absval>45: # limit valid times to 45
             return 'Many'
         logval=int(math.log(absval,2)+0.49)
         level=int(math.pow(2,logval))
-        return "%i"%level
+        return "%ijobs"%level
 
 def getAllJobRanges():
-        return ('0','1','2','4','8','16','32','Many')
+        return ('None','1job','2jobs','4jobs','8jobs','16jobs','32jobs','Many')
     
 def getAllTimeRangeGroups():
         return {'Unknown':('Unknown',),'lt15mins':('TooShort','7mins'),'15mins-50mins':('15mins','30mins'),'50mins-30hours':('1hours','2hours','4hours','8hours','16hours'),'30hours-100hours':('32hours','64hours'),'gt100hours':('128hours','TooLong')}
