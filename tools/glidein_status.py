@@ -13,13 +13,14 @@
 #
 
 def help():
-    print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-total] [-site] [-pool name] [-constraint name]"
+    print "glidein_status.py [-help] [-gatekeeper] [-glidecluster] [-glexec] [-withmonitor] [-bench] [-total] [-site] [-pool name] [-constraint name]"
     print
     print "Options:"
     print " -gatekeeper   : Print out the glidein gatekeeper"
     print " -glidecluster : Print out the glidein cluster nr"
     print " -glexec       : Print out if glexec is used"
     print " -withmonitor  : Print out the monitoring VMs, too"
+    print " -bench        : Print out the benchmarking numbers, too"
     print " -total        : Print out only the totals (skip details)"
     print " -site         : Summarize by site (default by entry name)"
     print " -pool         : Same as -pool in condor_status"
@@ -39,6 +40,7 @@ constraint=None
 want_gk=False
 want_glidecluster=False
 want_monitor=False
+want_bench=False
 want_glexec=False
 total_only=False
 summarize='entry'
@@ -56,6 +58,8 @@ while i<arglen:
         want_glexec=True
     elif arg=='-withmonitor':
         want_monitor=True
+    elif arg=='-bench':
+        want_bench=True
     elif arg=='-total':
         total_only=True
     elif arg=='-site':
@@ -103,6 +107,12 @@ if want_glexec:
     attrs.append('GLEXEC_STARTER')
     attrs.append('GLEXEC_JOB')
 
+if want_bench:
+    format_list.append(('KFlops','i'))
+    format_list.append(('Mips','i'))
+    attrs.append('KFlops')
+    attrs.append('Mips')
+
 cs=condorMonitor.CondorStatus(pool_name=pool_name)
 cs.load(constraint=constraint,format_list=format_list)
 
@@ -120,6 +130,9 @@ keys.sort(machine_cmp)
 
 
 counts_header=('Total','Owner','Claimed/Busy','Claimed/Retiring','Claimed/Other','Unclaimed','Matched','Other')
+
+if want_bench:
+    counts_header+=('GFlops','  GIPS')
 
 now=long(time.time())
 def fmt_time(t):
@@ -141,6 +154,8 @@ if want_glidecluster:
     print_mask+=" %-39s %-14s"
 if want_glexec:
     print_mask+=" %-7s"
+if want_bench:
+    print_mask+=" %-5s %-5s"
 print_mask+=" %-9s %-8s %-10s"
 
 header=('Name','Site')
@@ -151,6 +166,8 @@ if want_glidecluster:
     header+=('GlideSchedd','GlideCluster')
 if want_glexec:
     header+=('gLExec',)
+if want_bench:
+    header+=('MFlop','Mips')
 header+=('State','Activity','ActvtyTime')
 
 if not total_only:
@@ -177,6 +194,20 @@ for vm_name in keys:
     state=cel['State']
     activity=cel['Activity']
 
+    if el.has_key('KFlops'):
+        gflops=(el['KFlops']*1.e-6)
+        mflops_str="%i"%(el['KFlops']/1000)
+    else:
+        mflops=0.0
+        mflops_str="???"
+        
+    if el.has_key('Mips'):
+        gips=el['Mips']*1.e-3
+        mips_str=el['Mips']
+    else:
+        mips=0.0
+        mips_str="???"
+        
     if summarize=='site':
         sum_str=cel['GLIDEIN_Site']
     else:
@@ -198,6 +229,10 @@ for vm_name in keys:
                 ct['Claimed/Other']+=1
         else:
             ct['Other']+=1
+        if want_bench:
+            ct['GFlops']+=gflops
+            ct['  GIPS']+=gips
+
 
     if not total_only:
         print_arr=(vm_name,cel['GLIDEIN_Site'])
@@ -213,6 +248,8 @@ for vm_name in keys:
             elif el.has_key('GLEXEC_STARTER') and el['GLEXEC_STARTER']:
                 glexec_str='Starter'
             print_arr+=(glexec_str,)
+        if want_bench:
+            print_arr+=(mflops_str,mips_str)
         print_arr+=(state,activity,cel['EnteredCurrentActivity'])
 
         print print_mask%print_arr
@@ -258,7 +295,7 @@ for t in ckeys:
         print # put an empty line before Total
     count_print_val=[t]
     for c in counts_header:
-        count_print_val.append(counts[t][c])
+        count_print_val.append(int(counts[t][c]))
     
     print count_print_mask%tuple(count_print_val)
 
