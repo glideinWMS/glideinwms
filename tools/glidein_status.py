@@ -263,6 +263,18 @@ print count_print_mask%(('',)+counts_header)
 
 ckeys=counts.keys()
 
+def ltotal_cmp(x,y): # Total last
+    # Total always last
+    if x=='Total':
+       if y=='Total':
+           return 0;
+       else:
+           return 1;
+    elif y=='Total':
+        return -1
+
+    return cmp(x,y)
+
 def entry_cmp(x,y):
     # Total always last
     if x=='Total':
@@ -283,7 +295,7 @@ def entry_cmp(x,y):
     return 0
 
 if summarize=='site':
-    ckeys.sort()
+    ckeys.sort(ltotal_cmp)
 else: # default is entry
     ckeys.sort(entry_cmp)
 
