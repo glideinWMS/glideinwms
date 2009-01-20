@@ -12,6 +12,7 @@ import os
 import time
 import string
 import re
+import random
 import condorExe
 import condorMonitor
 
