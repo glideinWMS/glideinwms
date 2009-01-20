@@ -54,7 +54,7 @@ def perform_work(factory_name,glidein_name,entry_name,
                  client_name,client_int_name,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
-                 x509_proxy_fname,
+                 x509_proxy_fnames,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
@@ -90,7 +90,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fname,
+    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fnames,
                                                   client_web,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
@@ -148,12 +148,12 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             client_int_name="DummyName"
             client_int_req="DummyReq"
 
-        x509_proxy_fname=os.environ['X509_USER_PROXY'] # by default use factory proxy
+        x509_proxy_fnames=[os.environ['X509_USER_PROXY']] # by default use factory proxy
         if decrypted_params.has_key('x509_proxy'):
             if decrypted_params['x509_proxy']==None:
                 glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
                 continue #skip request
-            x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(work_key,decrypted_params['x509_proxy'])
+            x509_proxy_fnames=[glideFactoryLib.update_x509_proxy_file(work_key,decrypted_params['x509_proxy'])]
             if not ('frontend' in allowed_proxy_source):
                 glideFactoryLib.factoryConfig.warning_log.write("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
@@ -201,7 +201,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
-                                         jobDescript,x509_proxy_fname,
+                                         jobDescript,x509_proxy_fnames,
                                          client_web,params)
         #else, it is malformed and should be skipped
 
