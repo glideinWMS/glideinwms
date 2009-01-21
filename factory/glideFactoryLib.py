@@ -12,7 +12,6 @@ import os
 import time
 import string
 import re
-import random
 import condorExe
 import condorMonitor
 
@@ -271,7 +270,7 @@ class ClientWeb:
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fnames,
+def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fname,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
     global factoryConfig
@@ -306,7 +305,7 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x5
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         factoryConfig.logActivity("Need more glideins: %s"%stat_str)
         submitGlideins(condorq.entry_name,condorq.schedd_name,
-                       condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fnames,
+                       condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fname,
                        client_web,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
@@ -639,7 +638,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fnames,
+def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
     global factoryConfig
@@ -675,8 +674,6 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
             nr_to_submit=(nr_glideins-nr_submitted)
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
-
-            x509_proxy_fname=x509_proxy_fnames[random.randint(0, len(x509_proxy_fnames)-1)]
 
             try:
                 submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,nr_to_submit,client_web_str,submit_attrs_str,params_str))
