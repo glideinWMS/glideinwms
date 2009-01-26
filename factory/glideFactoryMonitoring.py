@@ -2235,10 +2235,12 @@ def tmp2final(fname):
     return
 
 class LockedRRDSupport(rrdSupport.rrdSupport):
-    #############################################################
-    # The default was a NoOp, use monitoringConfig.get_disk_lock
-    def get_disk_lock(self,fname):
-        return monitoringConfig.get_disk_lock()
+    ###################################################################
+    # The default was a NoOp, count use monitoringConfig.get_disk_lock
+    #
+    # Leave it no-op... else it takes forever to do the updates
+    #def get_disk_lock(self,fname):
+    #    return monitoringConfig.get_disk_lock()
 
     #############################################################
     # The default was a NoOp, use monitoringConfig.get_graph_lock
