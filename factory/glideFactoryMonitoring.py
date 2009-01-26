@@ -1838,7 +1838,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                 if want_trend:
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
-                                                "Trend %s glideins"%t,t_rrds,trend_fraction=50)
+                                                "Trend %s per glidein"%t,t_rrds,trend_fraction=50)
 
             # create graphs for Waste and WasteTime
             for t in ('Waste','WasteTime'):
