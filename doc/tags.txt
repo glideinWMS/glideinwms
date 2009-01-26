@@ -6,9 +6,6 @@ v2Next	Refactoring creation libs;
             frontend uses this for factory selection
 	  User provided code in the glidein API changed
 	    The 2nd arg is now one of main|entry|client|client_group
-	Monitoring refactored
-	  Most rrd operations now in separate module
-	  Groupes multiple attributes in the RRD files (lower overhead) 
 	Added tools/glidein_status.py.
 
 v1_6+	The XML file now supports comments.
@@ -21,6 +18,9 @@ v1_6+	The XML file now supports comments.
 	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code 
 	Using m2crypto for sha1 checks.
+        Monitoring refactored
+          Most rrd operations now in separate module
+          Groupes multiple attributes in the RRD files (lower overhead)
 
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.
