@@ -1834,7 +1834,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                     
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "%s/Log_Completed_Entered_%s"%(fe_dir,t),
-                                            "%s glideins"%t,t_rrds)
+                                            "%s per glidein"%t,t_rrds)
                 if want_trend:
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
