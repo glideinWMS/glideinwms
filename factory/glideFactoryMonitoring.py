@@ -1299,6 +1299,9 @@ class condorLogSummary:
                                 for s in sa:
                                     fd.write('<td>%s</td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+                        fd.write("<h2>Statistics about wasted resources</h2>\n")
+                        fd.write("<p><table>\n")
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
                             fd.write('<tr valign="top">')
