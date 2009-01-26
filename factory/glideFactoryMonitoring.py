@@ -669,7 +669,7 @@ class condorQStats:
         # create support index files
         for fe in data.keys():
             fe_dir="frontend_"+fe
-            create_leaf_status_indexes("%s@%s"%(fe,monitoringCondor.my_name),monitoringConfig.monitor_dir,fe_dir,
+            create_leaf_status_indexes("%s@%s"%(fe,monitoringConfig.my_name),monitoringConfig.monitor_dir,fe_dir,
                                        "../total","Entry total")
 
         # get the list of frontends
@@ -685,7 +685,7 @@ class condorQStats:
             create_split_graphs(self.attributes,graph_ref_time,frontend_list,"frontend_%s")
 
         # create support index files for total
-        create_group_status_indexes("Entry %s"%monitoringCondor.my_name,
+        create_group_status_indexes("Entry %s"%monitoringConfig.my_name,
                                     monitoringConfig.monitor_dir,"total",
                                     "../../total","Factory total",
                                     frontend_list,"../frontend_%s")
@@ -1217,7 +1217,7 @@ class condorLogSummary:
                         fd.write("<title>Log stats for %s@%s over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>Log stats for %s@%s over last %s</h1></td>\n'%(client_name,monitoringCondor.my_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Log stats for %s@%s over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
                         
                         fd.write("</tr><tr>\n")
                         
@@ -1266,10 +1266,10 @@ class condorLogSummary:
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>Terminated glideins for %s@%s over last %s</title>\n"%(client_name,monitoringCondor.my_name,period));
+                        fd.write("<title>Terminated glideins for %s@%s over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>Terminated glideins for %s@%s over last %s</h1></td>\n'%(client_name,monitoringCondor.my_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Terminated glideins for %s@%s over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
                         
                         fd.write("</tr><tr>\n")
                         

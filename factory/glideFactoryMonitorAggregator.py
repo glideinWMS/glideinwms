@@ -161,7 +161,7 @@ def create_status_history():
         glideFactoryMonitoring.create_split_graphs(status_attributes,graph_ref_time,monitorAggregatorConfig.entries,"entry_%s/total")
         
     # create support index files
-    glideFactoryMonitoring.create_group_status_indexes("Factory %s"%glideFactoryMonitoring.monitoringCondor.my_name,
+    glideFactoryMonitoring.create_group_status_indexes("Factory %s"%glideFactoryMonitoring.monitoringConfig.my_name,
                                                        monitorAggregatorConfig.monitor_dir,"total",
                                                        None,None, # no parent
                                                        monitorAggregatorConfig.entries,"../entry_%s/total")
@@ -383,7 +383,7 @@ def create_log_history():
     glideFactoryMonitoring.create_log_split_graphs(graph_ref_time,"logsummary","entry_%s/total",monitorAggregatorConfig.entries)
     
     # create support index file
-    glideFactoryMonitoring.create_log_total_index("Factory %s"%glideFactoryMonitoring.monitoringCondor.my_name,"entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
+    glideFactoryMonitoring.create_log_total_index("Factory %s"%glideFactoryMonitoring.monitoringConfig.my_name,"entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
     
     glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"logsummary")
     return
