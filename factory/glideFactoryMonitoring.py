@@ -1214,10 +1214,10 @@ class condorLogSummary:
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>Log stats for %s@%s over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
+                        fd.write("<title>Entry client %s@%s log stats over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>Log stats for %s@%s over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Entry client %s@%s log stats over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
                         
                         fd.write("</tr><tr>\n")
                         
@@ -1266,10 +1266,10 @@ class condorLogSummary:
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>Terminated glideins for %s@%s over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
+                        fd.write("<title>Entry client %s@%s terminated glideins over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>Terminated glideins for %s@%s over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Entry client %s@%s terminated glideins over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
                         
                         fd.write("</tr><tr>\n")
                         
@@ -1546,10 +1546,10 @@ def create_leaf_status_indexes(title_name,
                     if 1: # create every time, it is small and works over reconfigs 
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(title_name,period));
+                        fd.write("<title>%s status over last %s</title>\n"%(title_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s status over last %s</h1></td>\n'%(title_name,period))
                         
 
                         fd.write("</tr><tr>\n")
@@ -1618,10 +1618,10 @@ def create_group_status_indexes(title_name,
                 if 1: # create every time, it is small and works over reconfigs
                     fd=open(fname,"w")
                     fd.write("<html>\n<head>\n")
-                    fd.write("<title>%s over last %s</title>\n"%(title_name,period));
+                    fd.write("<title>%s status over last %s</title>\n"%(title_name,period));
                     fd.write("</head>\n<body>\n")
                     fd.write('<table width="100%"><tr>\n')
-                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title_name,period))
+                    fd.write('<td valign="top" align="left"><h1>%s status over last %s</h1></td>\n'%(title_name,period))
 
                     link_arr=[]
                     for ref_sz in monitoringConfig.graph_sizes:
@@ -2044,10 +2044,10 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>Log stats for %s over last %s</title>\n"%(title,period));
+                        fd.write("<title>%s log stats over last %s</title>\n"%(title,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>Log stats for %s over last %s</h1></td>\n'%(title,period))
+                        fd.write('<td valign="top" align="left"><h1>%s log stats over last %s</h1></td>\n'%(title,period))
                         
                         link_arr=[]
                         for ref_sz in monitoringConfig.graph_sizes:
@@ -2107,10 +2107,10 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>Terminated glideins for %s over last %s</title>\n"%(title,period));
+                        fd.write("<title>%s terminated glideins over last %s</title>\n"%(title,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>Terminated glideins for %s over last %s</h1></td>\n'%(title,period))
+                        fd.write('<td valign="top" align="left"><h1>%s terminated glideins over last %s</h1></td>\n'%(title,period))
                         
                         link_arr=[]
                         for ref_sz in monitoringConfig.graph_sizes:
