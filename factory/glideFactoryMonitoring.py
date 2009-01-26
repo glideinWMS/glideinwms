@@ -1293,7 +1293,7 @@ class condorLogSummary:
                         fd.write("</tr></table>\n")
                         
                         fd.write("<p><table>\n")
-                        for sa in (('Diff','Entered_Lasted'),('Entered_JobsNr','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
+                        for sa in (('Diff','Entered_JobsNr'),('Entered_Lasted','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
                             fd.write('<tr valign="top">')
                             for l in larr:
                                 for s in sa:
@@ -1789,7 +1789,7 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
             # create graph for time based info
             t_keys=getAllTimeRanges()
 
-            for t in ('Lasted','JobsLasted','Goodput','Terminated'):
+            for t in ('Lasted',):
                 t_rrds=[]
                 idx=0
                 for t_k in t_keys:
@@ -1804,6 +1804,22 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                                 "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
                                                 "Trend %s glideins"%t,t_rrds,trend_fraction=50)
+            
+            for t in ('JobsLasted','Goodput','Terminated'):
+                t_rrds=[]
+                idx=0
+                for t_k in t_keys:
+                    t_k_color=time_colors[idx]
+                    t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s_%s"%(fe_dir,t,t_k),"STACK",t_k_color))
+                    idx+=1
+                    
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                            "%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                            "%s jobs in glideins"%t,t_rrds)
+                if want_trend:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s jobs in glideins"%t,t_rrds,trend_fraction=50)
             
             # create graph for jobs
             t_keys=getAllJobRanges()
@@ -2125,7 +2141,7 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                         fd.write("</tr></table>\n")
 
                         fd.write("<p>\n<table>\n")
-                        for sa in (('Diff','Entered_Lasted'),('Entered_JobsNr','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
+                        for sa in (('Diff','Entered_JobsNr'),('Entered_Lasted','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
                             fd.write('<tr valign="top">')
                             for l in larr:
                                 for s in sa:
