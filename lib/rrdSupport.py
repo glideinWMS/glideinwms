@@ -162,7 +162,7 @@ class BaseRRDSupport:
     
         lck=self.get_disk_lock(rrdfname)
         try:
-            print args
+            #print args
             self.rrd_obj.update(*args)
         finally:
             lck.close()
