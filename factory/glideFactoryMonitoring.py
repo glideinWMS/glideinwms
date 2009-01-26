@@ -669,7 +669,7 @@ class condorQStats:
         # create support index files
         for fe in data.keys():
             fe_dir="frontend_"+fe
-            create_leaf_status_indexes("%s@%s"%(fe,monitoringConfig.my_name),monitoringConfig.monitor_dir,fe_dir,
+            create_leaf_status_indexes("Entry client %s@%s"%(fe,monitoringConfig.my_name),monitoringConfig.monitor_dir,fe_dir,
                                        "../total","Entry total")
 
         # get the list of frontends
@@ -1355,7 +1355,7 @@ class condorLogSummary:
             pass # for client_name
 
         # create support index file for total
-        create_log_total_index("Entry total","frontend","../frontend_%s",frontend_list,('../../total','Factory total'))
+        create_log_total_index("Entry %s"%monitoringConfig.my_name,"frontend","../frontend_%s",frontend_list,('../../total','Factory total'))
 
         monitoringConfig.update_locks(graph_ref_time,"logsummary")
         self.history_files_updated=self.files_updated
