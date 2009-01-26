@@ -46,6 +46,9 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 #
 ###########################################################
 
+status_attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+                   'Requested':("Idle","MaxRun"),
+                   'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -124,189 +127,44 @@ def aggregateStatus():
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
     for tp in global_total.keys():
         # type - status or requested
-        for a in global_total[tp].keys():
-            a_el=int(global_total[tp][a])
-            glideFactoryMonitoring.monitoringConfig.write_rrd("total/%s_Attribute_%s"%(tp,a),
-                                                              "GAUGE",updated,a_el)
+        if not (tp in status_attributes.keys()):
+            continue
+
+        attributes_tp=status_attributes[tp]
+        val_dict_tp={}
+        for a in attributes_tp:
+            val_dict_tp[a]=None #init, so that gets created properly
+                
+        tp_el=global_total[tp]
+
+        for a in tp_el.keys():
+            if a in attributes_tp:
+                a_el=int(tp_el[a])
+                val_dict_tp[a]=a_el
+        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s_Attributes"%tp,
+                                                                "GAUGE",updated,val_dict_tp)
 
     return status
 
 ##############################################################################
 # create the history graphs and related index html file
 def create_status_history():
-    # create history XML files for RRDs
-    attr_rrds=glideFactoryMonitoring.monitoringConfig.find_disk_attributes("total")
-    # Temporarely DEPRECATE
-    #for fname,tp,a in attr_rrds:
-    #    glideFactoryMonitoring.monitoringConfig.report_rrds("total/%s"%fname,
-    #                                                        [(a,"total/%s.rrd"%fname)])
-    
     # use the same reference time for all the graphs
     graph_ref_time=time.time()
     # remember to call update_locks before exiting this function
 
     # create graphs for RRDs
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/Idle",
-                                                       "Idle glideins",
-                                                       [("Requested","total/Requested_Attribute_Idle.rrd","AREA","00FFFF"),
-                                                        ("Idle","total/Status_Attribute_Idle.rrd","LINE2","0000FF"),
-                                                        ("Wait","total/Status_Attribute_Wait.rrd","LINE2","FF00FF"),
-                                                        ("Pending","total/Status_Attribute_Pending.rrd","LINE2","00FF00"),
-                                                        ("IdleOther","total/Status_Attribute_IdleOther.rrd","LINE2","FF0000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/Running",
-                                                       "Running glideins",
-                                                       [("Running","total/Status_Attribute_Running.rrd","AREA","00FF00"),
-                                                        ("ClientGlideins","total/ClientMonitor_Attribute_GlideinsTotal.rrd","LINE2","000000"),
-                                                        ("ClientRunning","total/ClientMonitor_Attribute_GlideinsRunning.rrd","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/Held",
-                                                       "Held glideins",
-                                                       [("Held","total/Status_Attribute_Held.rrd","AREA","c00000")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/ClientIdle",
-                                                       "Idle client",
-                                                       [("Idle","total/ClientMonitor_Attribute_Idle.rrd","AREA","00FFFF"),
-                                                        ("Requested","total/Requested_Attribute_Idle.rrd","LINE2","0000FF")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/ClientRunning",
-                                                       "Running client jobs",
-                                                       [("Running","total/ClientMonitor_Attribute_Running.rrd","AREA","00FF00")])
-    glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                       "total/InfoAge",
-                                                       "Client info age",
-                                                       [("InfoAge","total/ClientMonitor_Attribute_InfoAge.rrd","LINE2","000000")])
+    glideFactoryMonitoring.create_status_graphs(graph_ref_time,'total')
 
     # create split graphs
-    colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
-    colors_intensity=['ff','d0','a0','80','e8','b8']
-    colors=[]
-    for ci_i in colors_intensity:
-        si_arr=['00',ci_i]
-        for cb_i in colors_base:
-            colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
-
     if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-      for fname,tp,a in attr_rrds:
-        rrd_fnames=[]
-        idx=0
-        for entry in monitorAggregatorConfig.entries:
-            area_name="STACK"
-            if idx==0:
-                area_name="AREA"
-            rrd_fnames.append((string.replace(string.replace(entry,".","_"),"@","_"),"entry_%s/total/%s.rrd"%(entry,fname),area_name,colors[idx%len(colors)]))
-            idx=idx+1
-
-        if tp=="ClientMonitor":
-            if a=="InfoAge":
-                tstr="Client info age"
-            else:
-                tstr="%s client jobs"%a
-        elif tp=="Status":
-            tstr="%s glideins"%a
-        else:
-            tstr="%s %s glideins"%(tp,a)
-        glideFactoryMonitoring.monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                                           "total/Split_%s"%fname,
-                                                           tstr,
-                                                           rrd_fnames)
-        
+        glideFactoryMonitoring.create_split_graphs(status_attributes,graph_ref_time,monitorAggregatorConfig.entries,"entry_%s/total")
         
     # create support index files
-    fe="Factory Total"
-    for rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
-            period=rp[0]
-            for sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
-                size=sz[0]
-                fname=os.path.join(monitorAggregatorConfig.monitor_dir,"total/0Status.%s.%s.html"%(period,size))
-                #if (not os.path.isfile(fname)): #create only if it does not exist
-                if 1: # create every time, it is small and works over reconfigs
-                    fd=open(fname,"w")
-                    fd.write("<html>\n<head>\n")
-                    fd.write("<title>%s over last %s</title>\n"%(fe,period));
-                    fd.write("</head>\n<body>\n")
-                    fd.write('<table width="100%"><tr>\n')
-                    fd.write('<td rowspan=2 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period));
-
-                    link_arr=[]
-                    for ref_sz in glideFactoryMonitoring.monitoringConfig.graph_sizes:
-                        ref_size=ref_sz[0]
-                        if size!=ref_size:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    link_arr=[]
-                    for ref_rp in glideFactoryMonitoring.monitoringConfig.rrd_reports:
-                        ref_period=ref_rp[0]
-                        if period!=ref_period:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log</a>]</td>\n'%(period,size))
-                        
-                    fd.write("</tr><tr>\n")
-
-                    fd.write("<td></td>\n") # no up link
-                    link_arr=[]
-                    for entry in monitorAggregatorConfig.entries:
-                            link_arr.append('<a href="../entry_%s/total/0Status.%s.%s.html">%s</a>'%(entry,period,size,entry))
-                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-
-                    fd.write("</tr></table>\n")
-                    fd.write('<a name="glidein_status">\n')
-                    fd.write("<h2>Glidein stats</h2>\n")
-                    fd.write("<table>")
-
-                    larr=[]
-                    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
-                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
-                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
-                    else:
-                        larr.append(('Running',))
-                        larr.append(('Idle',))
-
-                    if 'Held' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                            larr.append(('Held','Split_Status_Attribute_Held'))
-                        else:
-                            larr.append(('Held',))
-
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')                            
-                    fd.write("</table>")
-                    fd.write('<a name="client_status">\n')
-                    fd.write("<h2>Frontend (client) stats</h2>\n")
-                    fd.write("<table>")
-
-                    larr=[]
-                    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
-                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
-                    else:
-                        larr.append(('ClientIdle',))
-                        larr.append(('ClientRunning',))
-
-                    if 'InfoAge' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                        if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
-                        else:
-                            larr.append(('InfoAge',))
-
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')                            
-                    fd.write("</table>")
-                    fd.write("</body>\n</html>\n")
-                    fd.close()
-                    pass
+    glideFactoryMonitoring.create_group_status_indexes("Factory %s"%glideFactoryMonitoring.monitoringConfig.my_name,
+                                                       monitorAggregatorConfig.monitor_dir,"total",
+                                                       None,None, # no parent
+                                                       monitorAggregatorConfig.entries,"../entry_%s/total")
 
     glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"status")
     return
@@ -318,23 +176,38 @@ def aggregateLogSummary():
     global monitorAggregatorConfig
 
     # initialize global counters
-    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'WasteTime':{},'Lasted':{}}}
+    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}}
+
     for s in ('Wait','Idle','Running','Held'):
         for k in ['Current','Entered','Exited']:
             global_total[k][s]=0
+
     for s in ('Completed','Removed'):
         for k in ['Entered']:
             global_total[k][s]=0
+
     for k in ['idle', 'validation', 'badput', 'nosuccess']:
         for w in ("Waste","WasteTime"):
             el={}
             for t in glideFactoryMonitoring.getAllMillRanges():
                 el[t]=0
             global_total['CompletedCounts'][w][k]=el
+
     el={}
     for t in glideFactoryMonitoring.getAllTimeRanges():
         el[t]=0
     global_total['CompletedCounts']['Lasted']=el
+
+    el={}
+    for t in glideFactoryMonitoring.getAllJobRanges():
+        el[t]=0
+    global_total['CompletedCounts']['JobsNr']=el
+
+    for k in ['total', 'goodput', 'terminated']:
+        el={}
+        for t in glideFactoryMonitoring.getAllTimeRanges():
+            el[t]=0
+        global_total['CompletedCounts']['JobsDuration'][k]=el
 
     #
     status={'entries':{},'total':global_total}
@@ -344,7 +217,7 @@ def aggregateLogSummary():
         status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
                                   monitorAggregatorConfig.logsummary_relname)
         try:
-            entry_data=xmlParse.xmlfile2dict(status_fname,always_singular_list=['Fraction','TimeRange'])
+            entry_data=xmlParse.xmlfile2dict(status_fname,always_singular_list=['Fraction','TimeRange','Range'])
         except IOError:
             continue # file not found, ignore
 
@@ -357,7 +230,7 @@ def aggregateLogSummary():
                 out_fe_el[k]={}
                 for s in fe_el[k].keys():
                     out_fe_el[k][s]=int(fe_el[k][s])
-            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{}}
+            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
             out_fe_el['CompletedCounts']['Failed']=int(fe_el['CompletedCounts']['Failed'])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
                 for w in ("Waste","WasteTime"):
@@ -366,6 +239,12 @@ def aggregateLogSummary():
                         out_fe_el['CompletedCounts'][w][k][t]=int(fe_el['CompletedCounts'][w][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 out_fe_el['CompletedCounts']['Lasted'][t]=int(fe_el['CompletedCounts']['Lasted'][t]['val'])
+            for k in ['total', 'goodput', 'terminated']:
+                out_fe_el['CompletedCounts']['JobsDuration'][k]={}
+                for t in glideFactoryMonitoring.getAllTimeRanges():
+                    out_fe_el['CompletedCounts']['JobsDuration'][k][t]=int(fe_el['CompletedCounts']['JobsDuration'][k][t]['val'])
+            for t in glideFactoryMonitoring.getAllJobRanges():
+                out_fe_el['CompletedCounts']['JobsNr'][t]=int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
             out_data[frontend]=out_fe_el
             
         status['entries'][entry]={'frontends':out_data}
@@ -380,7 +259,7 @@ def aggregateLogSummary():
                 for s in global_total[k].keys():
                     local_total[k][s]=int(entry_data['total'][k][s])
                     global_total[k][s]+=int(entry_data['total'][k][s])
-            local_total['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{}}
+            local_total['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
             local_total['CompletedCounts']['Failed']=int(entry_data['total']['CompletedCounts']['Failed'])
             global_total['CompletedCounts']['Failed']+=int(entry_data['total']['CompletedCounts']['Failed'])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
@@ -389,9 +268,19 @@ def aggregateLogSummary():
                     for t in glideFactoryMonitoring.getAllMillRanges():
                         local_total['CompletedCounts'][w][k][t]=int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
                         global_total['CompletedCounts'][w][k][t]+=int(entry_data['total']['CompletedCounts'][w][k][t]['val'])
+
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 local_total['CompletedCounts']['Lasted'][t]=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
                 global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
+            for k in ['total', 'goodput', 'terminated']:
+                local_total['CompletedCounts']['JobsDuration'][k]={}
+                for t in glideFactoryMonitoring.getAllTimeRanges():
+                    local_total['CompletedCounts']['JobsDuration'][k][t]=int(entry_data['total']['CompletedCounts']['JobsDuration'][k][t]['val'])
+                    global_total['CompletedCounts']['JobsDuration'][k][t]+=int(entry_data['total']['CompletedCounts']['JobsDuration'][k][t]['val'])
+
+            for t in glideFactoryMonitoring.getAllJobRanges():
+                local_total['CompletedCounts']['JobsNr'][t]=int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
+                global_total['CompletedCounts']['JobsNr'][t]+=int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
 
             status['entries'][entry]['total']=local_total
         
@@ -417,44 +306,70 @@ def aggregateLogSummary():
     sdiff=status["total"]
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
+    val_dict_counts={}
+    val_dict_entered={}
+    val_dict_exited={}
+    val_dict_completed={}
+    val_dict_waste={}
+    val_dict_wastetime={}
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             count=sdata[s]
-            glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
-                                                              "GAUGE",updated,count)
+            val_dict_counts[s]=count
+
             exited=-status["total"]['Exited'][s]
-            glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
-                                                              "ABSOLUTE",updated,exited)
+            val_dict_exited[s]=exited
             
         entered=status["total"]['Entered'][s]
-        glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered"%(fe_dir,s),
-                                                          "ABSOLUTE",updated,entered)
+        val_dict_entered[s]=entered
 
         if s=='Completed':
             completed_counts=status["total"]['CompletedCounts']
             count_entered_times=completed_counts['Lasted']
+            count_jobnrs=completed_counts['JobsNr']
+            count_jobs_duration=completed_counts['JobsDuration']
             count_validation_failed=completed_counts['Failed']
             count_waste_mill=completed_counts['Waste']
             time_waste_mill=completed_counts['WasteTime']
             # save run times
             for timerange in count_entered_times.keys():
-                glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
-                                                   "ABSOLUTE",updated,count_entered_times[timerange])
+                val_dict_completed['Lasted_%s'%timerange]=count_entered_times[timerange]
+                # they all use the same indexes
+                val_dict_completed['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
+                val_dict_completed['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
+                val_dict_completed['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
+
+            # save jobsnr
+            for jobrange in count_jobnrs.keys():
+                val_dict_completed['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
             # save failures
-            glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s),
-                                                              "ABSOLUTE",updated,count_validation_failed)
+            val_dict_completed['Failed']=count_validation_failed
 
             # save waste_mill
             for w in count_waste_mill.keys():
                 count_waste_mill_w=count_waste_mill[w]
                 for p in count_waste_mill_w.keys():
-                    glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
-                                                                      "ABSOLUTE",updated,count_waste_mill_w[p])
+                    val_dict_waste['%s_%s'%(w,p)]=count_waste_mill_w[p]
+
             for w in time_waste_mill.keys():
                 time_waste_mill_w=time_waste_mill[w]
                 for p in time_waste_mill_w.keys():
-                    glideFactoryMonitoring.monitoringConfig.write_rrd("%s/Log_%s_Entered_WasteTime_%s_%s"%(fe_dir,s,w,p),
-                                                                      "ABSOLUTE",updated,time_waste_mill_w[p])
+                    val_dict_wastetime['%s_%s'%(w,p)]=time_waste_mill_w[p]
+
+    # write the data to disk
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
+                                                            "GAUGE",updated,val_dict_counts)                            
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Entered"%fe_dir,
+                                                            "ABSOLUTE",updated,val_dict_entered)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Exited"%fe_dir,
+                                                            "ABSOLUTE",updated,val_dict_exited)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+                                                            "ABSOLUTE",updated,val_dict_completed)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
+                                                            "ABSOLUTE",updated,val_dict_waste)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
+                                                            "ABSOLUTE",updated,val_dict_wastetime)
+    
     return status
 
 ##############################################################################
@@ -468,7 +383,7 @@ def create_log_history():
     glideFactoryMonitoring.create_log_split_graphs(graph_ref_time,"logsummary","entry_%s/total",monitorAggregatorConfig.entries)
     
     # create support index file
-    glideFactoryMonitoring.create_log_total_index("Factory total","entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
+    glideFactoryMonitoring.create_log_total_index("Factory %s"%glideFactoryMonitoring.monitoringConfig.my_name,"entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
     
     glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"logsummary")
     return

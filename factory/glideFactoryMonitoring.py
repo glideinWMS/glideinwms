@@ -10,35 +10,7 @@
 import os,os.path
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
-from condorExe import iexe_cmd,ExeError # i know this is not the most appropriate use of it, but it works
-
-def string_quote_join(arglist):
-    l2=[]
-    for e in arglist:
-        l2.append('"%s"'%e)
-    return string.join(l2)
-
-# this class is used in place of the rrdtool
-# python module, if that one is not available
-class rrdtool_exe:
-    def __init__(self):
-        self.rrd_bin=iexe_cmd("which rrdtool")[0][:-1]
-
-    def create(self,*args):
-        cmdline='%s create %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=iexe_cmd(cmdline)
-        return
-
-    def update(self,*args):
-        cmdline='%s update %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=iexe_cmd(cmdline)
-        return
-
-    def graph(self,*args):
-        cmdline='%s graph %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=iexe_cmd(cmdline)
-        return
-      
+import rrdSupport
 
 ############################################################
 #
@@ -57,10 +29,6 @@ class MonitoringConfig:
                            ('AVERAGE',0.92,6,2*24*45),       # 30 min precision, keep for a month and a half
                            ('AVERAGE',0.98,24,12*370)        # 2 hour precision, keep for a year
                            ]
-        self.rrd_archives_small=[('AVERAGE',0.8,1,60/5*6),   # max precision, keep 6 hours
-                                 ('AVERAGE',0.92,6,2*24*2),  # 30 min precision, keep for 2 days
-                                 ('AVERAGE',0.98,24,12*45)   # 2 hour precision, keep for a month and a half
-                                 ]
 
         self.rrd_reports=[('hours',3600*4,0,1),        #four hour worth of data, max resolution, update at every slot
                           ('day',3600*24,0,6),        # a day worth of data, still high resolution, update as if it was medium res
@@ -79,20 +47,10 @@ class MonitoringConfig:
 
         self.wanted_graphs=['Basic']
 
-        try:
-            import rrdtool
-            self.rrd_obj=rrdtool
-            print "Using rrdtool module"
-        except ImportError,e:
-            try:
-                self.rrd_obj=rrdtool_exe()
-                print "Using rrdtool executable"
-            except:
-                self.rrd_obj=None
-                print "Not using rrdtool at all"
-
+        self.rrd_obj=LockedRRDSupport()
         self.attribute_rrd_recmp=re.compile("^(?P<tp>[a-zA-Z]+)_Attribute_(?P<attr>[a-zA-Z]+)\.rrd$")
 
+        self.my_name="Unknown"
 
     def logCompleted(self,entered_dict):
         now=time.time()
@@ -108,16 +66,20 @@ class MonitoringConfig:
         try:
             for job_id in job_ids:
                 el=entered_dict[job_id]
+                jobs_duration=el['jobs_duration']
                 waste_mill=el['wastemill']
-                fd.write("<job %37s %17s %17s %22s %16s><wastemill %17s %11s %16s %13s/></job>\n"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                                                                   ('id="%s"'%job_id),
-                                                                                                   ('duration="%i"'%el['duration']),
-                                                                                                   ('condor_started="%s"'%(el['condor_started']==True)),
-                                                                                                   ('user_jobs="%i"'%el['jobsnr']),
-                                                                                                   ('validation="%i"'%waste_mill['validation']),
-                                                                                                   ('idle="%i"'%waste_mill['idle']),
-                                                                                                   ('nosuccess="%i"'%waste_mill['nosuccess']),
-                                                                                                   ('badput="%i"'%waste_mill['badput'])))
+                fd.write(("<job %37s %17s %17s %22s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                       ('id="%s"'%job_id),
+                                                       ('duration="%i"'%el['duration']),
+                                                       ('condor_started="%s"'%(el['condor_started']==True))))+
+                         ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
+                                                         ('duration="%i"'%jobs_duration['total']),
+                                                         ('goodput="%i"'%jobs_duration['goodput']),
+                                                         ('terminated="%i"'%jobs_duration['terminated'])))+
+                         ("<wastemill %17s %11s %16s %13s/></job>\n"%(('validation="%i"'%waste_mill['validation']),
+                                                                      ('idle="%i"'%waste_mill['idle']),
+                                                                      ('nosuccess="%i"'%waste_mill['nosuccess']),
+                                                                      ('badput="%i"'%waste_mill['badput']))))
         finally:
             fd.close()
 
@@ -175,25 +137,13 @@ class MonitoringConfig:
                 frontends.append(fname[9:])
         return frontends
 
-    # returns a list of [fname_without_rrd,type,attribute]
-    def find_disk_attributes(self,subdir):
-        attributes=[]
-        fnames=os.listdir(os.path.join(self.monitor_dir,subdir))
-        for fname in fnames:
-            parse=self.attribute_rrd_recmp.search(fname)
-            if parse==None:
-                continue # not an attribute rrd
-            attributes.append((fname[:-4],parse.group("tp"),parse.group("attr")))
-        return attributes
-    
     def write_rrd(self,relative_fname,ds_type,time,val,min=None,max=None):
         """
         Create a RRD file, using rrdtool.
         """
-        if self.rrd_obj==None:
+        if self.rrd_obj.isDummy():
             return # nothing to do, no rrd bin no rrd creation
         
-        #for tp in ((".rrd",self.rrd_archives),(".small.rrd",self.rrd_archives_small)): # disable for now
         for tp in ((".rrd",self.rrd_archives),):
             rrd_ext,rrd_archives=tp
             fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
@@ -205,73 +155,52 @@ class MonitoringConfig:
                     min='U'
                 if max==None:
                     max='U'
-                create_rrd(self.rrd_obj,fname,
-                           self.rrd_step,rrd_archives,
-                           (self.rrd_ds_name,ds_type,self.rrd_heartbeat,min,max))
+                self.rrd_obj.create_rrd(fname,
+                                        self.rrd_step,rrd_archives,
+                                        (self.rrd_ds_name,ds_type,self.rrd_heartbeat,min,max))
 
             #print "Updating RRD "+fname
             try:
-                update_rrd(self.rrd_obj,fname,time,val)
+                self.rrd_obj.update_rrd(fname,time,val)
             except Exception,e:
                 print "Failed to update %s"%fname
         return
     
-    #############################################################################
+    def write_rrd_multi(self,relative_fname,ds_type,time,val_dict,min=None,max=None):
+        """
+        Create a RRD file, using rrdtool.
+        """
+        if self.rrd_obj.isDummy():
+            return # nothing to do, no rrd bin no rrd creation
+        
+        for tp in ((".rrd",self.rrd_archives),):
+            rrd_ext,rrd_archives=tp
+            fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
+            #print "Writing RRD "+fname
+        
+            if not os.path.isfile(fname):
+                #print "Create RRD "+fname
+                if min==None:
+                    min='U'
+                if max==None:
+                    max='U'
+                ds_names=val_dict.keys()
+                ds_names.sort()
 
-    # Temporarely deprecate the creation of historical XML files
-    #
-    #def rrd2xml(self,relative_fname,archive_id,freq,
-    #            period,relative_rrd_files):
-    #    """
-    #    Convert one or more RRDs into an XML file using
-    #    rrdtool xport.
-    #
-    #    rrd_files is a list of (rrd_id,rrd_fname)
-    #    """
-    #
-    #    if self.rrd_obj==None:
-    #        return # nothing to do, no rrd bin no rrd conversion
-    #    
-    #    rrd_archive=self.rrd_archives[archive_id]
-    #
-    #    fname=os.path.join(self.monitor_dir,relative_fname)      
-    #    try:
-    #        if os.path.getmtime(fname)>(time.time()-self.rrd_step*rrd_archive[2]*freq*(1.0-(random.random()*0.1-0.05))):
-    #            return # file to new to see any benefit from an update
-    #    except OSError:
-    #        pass # file does not exist -> create
-    #
-    #    #print "Converting RRD into "+fname
-    #
-    #    # convert relative fnames to absolute ones
-    #    rrd_files=[]
-    #    for rrd_file in relative_rrd_files:
-    #        rrd_files.append((rrd_file[0],os.path.join(self.monitor_dir,rrd_file[1])))
-    #
-    #    rrd2xml(self.rrd_obj,fname+".tmp",
-    #            self.rrd_step*rrd_archive[2], # step in seconds
-    #            self.rrd_ds_name,
-    #            rrd_archive[0], #ds_type
-    #            period,rrd_files)
-    #    tmp2final(fname)
-    #    return
-    #
-    #def report_rrds(self,base_fname,
-    #                relative_rrd_files):
-    #    """
-    #    Create default XML files out of the RRD files
-    #    """
-    #
-    #    for r in self.rrd_reports:
-    #        pname,period,idx,freq=r
-    #        try:
-    #            self.rrd2xml(base_fname+".%s.xml"%pname,idx,freq,
-    #                         period,relative_rrd_files)
-    #        except ExeError,e:
-    #            print "WARNING- XML %s.%s creation failed: %s"%(base_fname,pname,e)
-    #            
-    #    return
+                ds_arr=[]
+                for ds_name in ds_names:
+                    ds_arr.append((ds_name,ds_type,self.rrd_heartbeat,min,max))
+                self.rrd_obj.create_rrd_multi(fname,
+                                              self.rrd_step,rrd_archives,
+                                              ds_arr)
 
+            #print "Updating RRD "+fname
+            try:
+                self.rrd_obj.update_rrd_multi(fname,time,val_dict)
+            except Exception,e:
+                print "Failed to update %s"%fname
+        return
+    
     #############################################################################
     def update_lock(self,ref_time,relative_lock_fname,
                     archive_id,freq):
@@ -305,7 +234,7 @@ class MonitoringConfig:
         rrd_files is a list of (rrd_id,rrd_fname,graph_style,color,description)
         """
 
-        if self.rrd_obj==None:
+        if self.rrd_obj.isDummy():
             return None # nothing to do, no rrd bin no rrd conversion
         
         fname=os.path.join(self.monitor_dir,relative_fname)      
@@ -324,16 +253,24 @@ class MonitoringConfig:
         # convert relative fnames to absolute ones
         rrd_files=[]
         for rrd_file in relative_rrd_files:
-            abs_rrd_fname=os.path.join(self.monitor_dir,rrd_file[1])
+            rrd_fname_arr=string.split(rrd_file[1],'?id=',1)
+            if len(rrd_fname_arr)==2:
+                rrd_fname=rrd_fname_arr[0]
+                rrd_ds_name=rrd_fname_arr[1]
+            else:
+                rrd_fname=rrd_file[1]
+                rrd_ds_name=self.rrd_ds_name
+            
+            abs_rrd_fname=os.path.join(self.monitor_dir,rrd_fname)
             if not os.path.isfile(abs_rrd_fname):
                 return None# at least one file missing, file creation would fail
-            rrd_files.append((rrd_file[0],abs_rrd_fname,rrd_file[2],rrd_file[3]))
+            rrd_files.append((rrd_file[0],abs_rrd_fname,
+                              rrd_ds_name,rrd_archive[0], #ds_type
+                              rrd_file[2],rrd_file[3]))
 
-        cmd_used=rrd2graph(self.rrd_obj,fname+".tmp",
-                           self.rrd_step*rrd_archive[2], # step in seconds
-                           self.rrd_ds_name,
-                           rrd_archive[0], #ds_type
-                           period,width,height,title,rrd_files,cdef_arr,trend)
+        cmd_used=self.rrd_obj.rrd2graph_multi_now(fname+".tmp",
+                                                  self.rrd_step*rrd_archive[2], # step in seconds
+                                                  period,width,height,title,rrd_files,cdef_arr,trend)
         tmp2final(fname)
         return cmd_used
 
@@ -355,6 +292,8 @@ class MonitoringConfig:
             if trend_fraction==None:
                 abs_trend=None
             else:
+                if pname=='hours':
+                    continue # don't produce trend graphs for short periods, they are identical to std graphs
                 abs_trend=period/trend_fraction
 
             pname_other_list=[]
@@ -378,7 +317,7 @@ class MonitoringConfig:
                                             base_fname+".%s.%s.png"%(pname,gname),
                                             idx,freq,
                                             period,width,height,title,relative_rrd_files,cdef_arr,abs_trend)
-                except ExeError,e:
+                except RuntimeError,e:
                     print "WARNING - graph %s.%s.%s creation failed: %s"%(base_fname,pname,gname,e)
                     
                 if cmd_used!=None:
@@ -463,9 +402,6 @@ class MonitoringConfig:
         return
 
 
-# global configuration of the module
-monitoringConfig=MonitoringConfig()
-
 #########################################################################################################################################
 #
 #  condorQStats
@@ -480,6 +416,10 @@ class condorQStats:
         self.updated=time.time()
 
         self.files_updated=None
+        self.attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+                         'Requested':("Idle","MaxRun"),
+                         'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
+
 
     def logSchedd(self,client_name,qc_status):
         """
@@ -682,11 +622,23 @@ class condorQStats:
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
-                for a in fe_el[tp].keys():
-                    a_el=fe_el[tp][a]
-                    if type(a_el)!=type({}): # ignore subdictionaries
-                        monitoringConfig.write_rrd("%s/%s_Attribute_%s"%(fe_dir,tp,a),
-                                                   "GAUGE",self.updated,a_el)
+                if not (tp in self.attributes.keys()):
+                    continue
+
+                attributes_tp=self.attributes[tp]
+                val_dict_tp={}
+                for a in attributes_tp:
+                    val_dict_tp[a]=None #init, so that gets created properly
+                
+                fe_el_tp=fe_el[tp]
+                for a in fe_el_tp.keys():
+                    if a in attributes_tp:
+                        a_el=fe_el_tp[a]
+                        if type(a_el)!=type({}): # ignore subdictionaries
+                            val_dict_tp[a]=a_el
+                
+                monitoringConfig.write_rrd_multi("%s/%s_Attributes"%(fe_dir,tp),
+                                                 "GAUGE",self.updated,val_dict_tp)
 
         self.files_updated=self.updated        
         return
@@ -710,114 +662,15 @@ class condorQStats:
                 fe_dir="frontend_"+fe
                 fe_el=data[fe]
 
-            # create history XML files for RRDs
-            # DEPRECATED FOR NOW
-            #for tp in fe_el.keys():
-            #    # type - status or requested
-            #    for a in fe_el[tp].keys():
-            #        if type(fe_el[tp][a])!=type({}): # ignore subdictionaries
-            #            monitoringConfig.report_rrds("%s/%s_Attribute_%s"%(fe_dir,tp,a),
-            #                                         [(a,"%s/%s_Attribute_%s.rrd"%(fe_dir,tp,a))])
 
             # create graphs for RRDs
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/Idle"%fe_dir,
-                                        "Idle glideins",
-                                        [("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
-                                         ("Idle","%s/Status_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF"),
-                                         ("Wait","%s/Status_Attribute_Wait.rrd"%fe_dir,"LINE2","FF00FF"),
-                                         ("Pending","%s/Status_Attribute_Pending.rrd"%fe_dir,"LINE2","00FF00"),
-                                         ("IdleOther","%s/Status_Attribute_IdleOther.rrd"%fe_dir,"LINE2","FF0000")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/Running"%fe_dir,
-                                        "Running glideins",
-                                        [("Running","%s/Status_Attribute_Running.rrd"%fe_dir,"AREA","00FF00"),
-                                         ("ClientGlideins","%s/ClientMonitor_Attribute_GlideinsTotal.rrd"%fe_dir,"LINE2","000000"),
-                                         ("ClientRunning","%s/ClientMonitor_Attribute_GlideinsRunning.rrd"%fe_dir,"LINE2","0000FF")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/MaxRun"%fe_dir,
-                                        "Max running glideins requested",
-                                        [("MaxRun","%s/Requested_Attribute_MaxRun.rrd"%fe_dir,"AREA","008000")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/Held"%fe_dir,
-                                        "Held glideins",
-                                        [("Held","%s/Status_Attribute_Held.rrd"%fe_dir,"AREA","c00000")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/ClientIdle"%fe_dir,
-                                        "Idle client jobs",
-                                        [("Idle","%s/ClientMonitor_Attribute_Idle.rrd"%fe_dir,"AREA","00FFFF"),
-                                         ("Requested","%s/Requested_Attribute_Idle.rrd"%fe_dir,"LINE2","0000FF")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/ClientRunning"%fe_dir,
-                                        "Running client jobs",
-                                        [("Running","%s/ClientMonitor_Attribute_Running.rrd"%fe_dir,"AREA","00FF00")])
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "%s/InfoAge"%fe_dir,
-                                        "Client info age",
-                                        [("InfoAge","%s/ClientMonitor_Attribute_InfoAge.rrd"%fe_dir,"LINE2","000000")])
+            create_status_graphs(graph_ref_time,fe_dir,)
             
         # create support index files
         for fe in data.keys():
             fe_dir="frontend_"+fe
-            for rp in monitoringConfig.rrd_reports:
-                period=rp[0]
-                for sz in monitoringConfig.graph_sizes:
-                    size=sz[0]
-                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
-                    #if (not os.path.isfile(fname)): #create only if it does not exist
-                    if 1: # create every time, it is small and works over reconfigs 
-                        fd=open(fname,"w")
-                        fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(fe,period));
-                        fd.write("</head>\n<body>\n")
-                        fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
-                        
-
-                        fd.write("</tr><tr>\n")
-                        
-                        fd.write('<td>[<a href="../total/0Status.%s.%s.html">Entry total</a>]</td>\n'%(period,size))
-                        
-                        link_arr=[]
-                        for ref_sz in monitoringConfig.graph_sizes:
-                            ref_size=ref_sz[0]
-                            if size!=ref_size:
-                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        link_arr=[]
-                        for ref_rp in monitoringConfig.rrd_reports:
-                            ref_period=ref_rp[0]
-                            if period!=ref_period:
-                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
-                        
-                        fd.write("</tr></table>\n")
-
-                        fd.write('<a name="glidein_stats">\n')
-                        fd.write("<h2>Glidein stats</h2>\n")
-                        fd.write("<table>")
-                        for s in ['Running','Idle','Held']:
-                            fd.write('<tr valign="top">')
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                            if s=='Running':
-                                s1='MaxRun'
-                                fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s1,period,size)))
-                            fd.write('</tr>\n')                            
-                        fd.write("</table>")
-                        fd.write('<a name="client_stats">\n')
-                        fd.write("<h2>Frontend (client) stats</h2>\n")
-                        fd.write("<table>")
-                        for s in ['ClientIdle','ClientRunning','InfoAge']:
-                            fd.write('<tr valign="top">')
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                            fd.write('</tr>\n')                            
-                        fd.write("</table>")
-                        fd.write("</body>\n</html>\n")
-                        fd.close()
-                        pass
+            create_leaf_status_indexes("Entry client %s@%s"%(fe,monitoringConfig.my_name),monitoringConfig.monitor_dir,fe_dir,
+                                       "../total","Entry total")
 
         # get the list of frontends
         frontend_list=monitoringConfig.find_disk_frontends()
@@ -828,133 +681,14 @@ class condorQStats:
         frontend_list.sort()
 
         # create human readable files for total aggregating multiple entries 
-        colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
-        colors_intensity=['ff','d0','a0','80','e8','b8']
-        colors=[]
-        for ci_i in colors_intensity:
-            si_arr=['00',ci_i]
-            for cb_i in colors_base:
-                colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
-
-
         if 'Split' in monitoringConfig.wanted_graphs:
-          attr_rrds=monitoringConfig.find_disk_attributes("total")
-          for fname,tp,a in attr_rrds:
-            rrd_fnames=[]
-            idx=0
-            for fe in frontend_list:
-                area_name="STACK"
-                if idx==0:
-                    area_name="AREA"
-                rrd_fnames.append((cleanup_rrd_name(fe),"frontend_%s/%s.rrd"%(fe,fname),area_name,colors[idx%len(colors)]))
-                idx=idx+1
-
-            if tp=="ClientMonitor":
-                if a=="InfoAge":
-                    tstr="Client info age"
-                else:
-                    tstr="%s client jobs"%a
-            elif tp=="Status":
-                tstr="%s glideins"%a
-            else:
-                tstr="%s %s glideins"%(tp,a)
-            monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
-                                        "total/Split_%s"%fname,
-                                        tstr,
-                                        rrd_fnames)
+            create_split_graphs(self.attributes,graph_ref_time,frontend_list,"frontend_%s")
 
         # create support index files for total
-        fe="Entry Total"
-        fe_dir="total"
-        for rp in monitoringConfig.rrd_reports:
-            period=rp[0]
-            for sz in monitoringConfig.graph_sizes:
-                size=sz[0]
-                fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Status.%s.%s.html"%(fe_dir,period,size))
-                #if (not os.path.isfile(fname)): #create only if it does not exist
-                if 1: # create every time, it is small and works over reconfigs
-                    fd=open(fname,"w")
-                    fd.write("<html>\n<head>\n")
-                    fd.write("<title>%s over last %s</title>\n"%(fe,period));
-                    fd.write("</head>\n<body>\n")
-                    fd.write('<table width="100%"><tr>\n')
-                    fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(fe,period))
-
-                    link_arr=[]
-                    for ref_sz in monitoringConfig.graph_sizes:
-                        ref_size=ref_sz[0]
-                        if size!=ref_size:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
-                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    link_arr=[]
-                    for ref_rp in monitoringConfig.rrd_reports:
-                        ref_period=ref_rp[0]
-                        if period!=ref_period:
-                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
-                    fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size))
-                        
-                    fd.write("</tr><tr>\n")
-
-                    fd.write('<td>[<a href="../../total/0Status.%s.%s.html">Factory total</a>]</td>\n'%(period,size))
-                    link_arr=[]
-                    for ref_fe in frontend_list:
-                        link_arr.append('<a href="../frontend_%s/0Status.%s.%s.html">%s</a>'%(ref_fe,period,size,ref_fe))
-                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
-
-                    fd.write("</tr></table>\n")
-
-                    fd.write('<a name="glidein_stats">\n')
-                    fd.write("<h2>Glidein stats</h2>\n")
-                    fd.write("<table>")
-                    larr=[]
-                    if 'Split' in monitoringConfig.wanted_graphs:
-                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
-                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
-                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
-                    else:
-                        larr.append(('Running',))
-                        larr.append(('Idle',))
-
-                    if 'Held' in monitoringConfig.wanted_graphs:
-                        if 'Split' in monitoringConfig.wanted_graphs:
-                            larr.append(('Held','Split_Status_Attribute_Held'))
-                        else:
-                            larr.append(('Held',))
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')
-                    fd.write("</table>")
-                    fd.write('<a name="client_stats">\n')
-                    fd.write("<h2>Frontend (client) stats</h2>\n")
-                    fd.write("<table>")
-                    larr=[]
-                    if 'Split' in monitoringConfig.wanted_graphs:
-                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
-                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
-                    else:
-                        larr.append(('ClientIdle',))
-                        larr.append(('ClientRunning',))
-
-                    if 'InfoAge' in monitoringConfig.wanted_graphs:
-                        if 'Split' in monitoringConfig.wanted_graphs:
-                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
-                        else:
-                            larr.append(('InfoAge',))
-
-                    for l in larr:
-                        fd.write('<tr valign="top">')
-                        for s in l:
-                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
-                        fd.write('</tr>\n')
-                    fd.write("</table>")
-                    fd.write("</body>\n</html>\n")
-                    fd.close()
-                    pass
+        create_group_status_indexes("Entry %s"%monitoringConfig.my_name,
+                                    monitoringConfig.monitor_dir,"total",
+                                    "../../total","Factory total",
+                                    frontend_list,"../frontend_%s")
 
         monitoringConfig.update_locks(graph_ref_time,"status")
         return
@@ -975,6 +709,7 @@ class condorLogSummary:
         self.current_stats_data={}     # will contain dictionary client->dirSummary.data
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
+        self.job_statuses_short=('Running','Idle','Wait','Held') #const
 
         self.files_updated=None
         self.history_files_updated=None
@@ -1074,6 +809,9 @@ class condorLogSummary:
             if not enle_condor_started:
                 # 100% waste_mill
                 enle_nr_jobs=0
+                enle_jobs_duration=0
+                enle_goodput=0
+                enle_terminated_duration=0
                 enle_waste_mill={'validation':1000,
                                  'idle':0,
                                  'nosuccess':0, #no jobs run, no failures
@@ -1090,6 +828,9 @@ class condorLogSummary:
                 # get waste numbers, in permill
                 if (enle_condor_duration<5): # very short means 100% loss
                     enle_nr_jobs=0
+                    enle_jobs_duration=0
+                    enle_goodput=0
+                    enle_terminated_duration=0
                     enle_waste_mill={'validation':1000,
                                      'idle':0,
                                      'nosuccess':0, #no jobs run, no failures
@@ -1105,26 +846,44 @@ class condorLogSummary:
                     enle_waste_mill={'validation':1000.0*enle_validation_duration/enle_glidein_duration,
                                      'idle':1000.0*(enle_condor_duration-enle_jobs_duration)/enle_condor_duration}
                     enle_goodput=enle_condor_stats['goodZ']['secs']
+                    if enle_goodput>enle_jobs_duration:
+                        enle_goodput=enle_jobs_duration # cannot be more
                     if enle_jobs_duration>0:
                         enle_waste_mill['nosuccess']=1000.0*(enle_jobs_duration-enle_goodput)/enle_jobs_duration
                     else:
                         enle_waste_mill['nosuccess']=0 #no jobs run, no failures
-                    enle_goodput+=enle_condor_stats['goodNZ']['secs']
-                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_goodput)/enle_glidein_duration
+                    enle_terminated_duration=enle_goodput+enle_condor_stats['goodNZ']['secs']
+                    if enle_terminated_duration>enle_jobs_duration:
+                        enle_terminated_duration=enle_jobs_duration # cannot be more
+                    enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_terminated_duration)/enle_glidein_duration
 
             out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,
-                                   'jobsnr':enle_nr_jobs,
+                                   'jobsnr':enle_nr_jobs,'jobs_duration':{'total':enle_jobs_duration,'goodput':enle_goodput,'terminated':enle_terminated_duration},
                                    'wastemill':enle_waste_mill}
         
         return out_list
 
     # in: entered_list=get_completed_data()
-    # out: {'Lasted':{'2hours':...,...},'Failed':...,'Waste':{'0m':...,...}}
+    # out: {'Lasted':{'2hours':...,...},'Failed':...,'JobsNr':...,
+    #       'Waste':{'validation':{'0m':...,...},...},'WasteTime':{...:{...},...}}
     def summarize_completed_stats(self,entered_list):
         # summarize completed data
         count_entered_times={}
         for enle_timerange in getAllTimeRanges(): 
             count_entered_times[enle_timerange]=0 # make sure all are initialized
+
+        count_jobnrs={}
+        for enle_jobrange in getAllJobRanges(): 
+            count_jobnrs[enle_jobrange]=0 # make sure all are initialized
+
+        count_jobs_duration={'total':{},
+                             'goodput':{},
+                             'terminated':{}}
+        for w in count_jobs_duration.keys():
+            count_jobs_duration_w=count_jobs_duration[w]
+            for enle_jobs_duration_w_range in getAllTimeRanges():
+                count_jobs_duration_w[enle_jobs_duration_w_range]=0 # make sure all are intialized
+
         count_validation_failed=0
         count_waste_mill={'validation':{},
                           'idle':{},
@@ -1147,6 +906,8 @@ class condorLogSummary:
             enle=entered_list[enle_job]
             enle_waste_mill=enle['wastemill']
             enle_glidein_duration=enle['duration']
+            enle_jobs_nr=enle['jobsnr']
+            enle_jobs_duration=enle['jobs_duration']
             enle_condor_started=enle['condor_started']
 
             if not enle_condor_started:
@@ -1155,6 +916,14 @@ class condorLogSummary:
             # find and save time range
             enle_timerange=getTimeRange(enle_glidein_duration)
             count_entered_times[enle_timerange]+=1
+
+            # find and save job range
+            enle_jobrange=getJobRange(enle_jobs_nr)
+            count_jobnrs[enle_jobrange]+=1
+
+            for w in enle_jobs_duration.keys():
+                enle_jobs_duration_w_range=getTimeRange(enle_jobs_duration[w])
+                count_jobs_duration[w][enle_jobs_duration_w_range]+=1
 
             # find and save waste range
             for w in enle_waste_mill.keys():
@@ -1170,7 +939,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'Failed':count_validation_failed,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
+        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Failed':count_validation_failed,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -1316,11 +1085,16 @@ class condorLogSummary:
                 sdiff=self.stats_diff[client_name]
 
             monitoringConfig.establish_dir(fe_dir)
+            val_dict_counts={}
+            val_dict_entered={}
+            val_dict_exited={}
+            val_dict_completed={}
+            val_dict_waste={}
+            val_dict_wastetime={}
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=sdata[s]
-                    monitoringConfig.write_rrd("%s/Log_%s_Count"%(fe_dir,s),
-                                               "GAUGE",self.updated,count)
+                    val_dict_counts[s]=count
 
                 if ((sdiff!=None) and (s in sdiff.keys())):
                     entered_list=sdiff[s]['Entered']
@@ -1331,11 +1105,9 @@ class condorLogSummary:
                     entered=0
                     exited=0
                     
-                monitoringConfig.write_rrd("%s/Log_%s_Entered"%(fe_dir,s),
-                                           "ABSOLUTE",self.updated,entered)
+                val_dict_entered[s]=entered
                 if not (s in ('Completed','Removed')): # Always 0 for them
-                    monitoringConfig.write_rrd("%s/Log_%s_Exited"%(fe_dir,s),
-                                               "ABSOLUTE",self.updated,exited)
+                    val_dict_exited[s]=exited
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
@@ -1343,29 +1115,52 @@ class condorLogSummary:
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
                     count_entered_times=completed_counts['Lasted']
+                    count_jobnrs=completed_counts['JobsNr']
+                    count_jobs_duration=completed_counts['JobsDuration']
                     count_validation_failed=completed_counts['Failed']
                     count_waste_mill=completed_counts['Waste']
                     time_waste_mill=completed_counts['WasteTime']
                     # save run times
                     for timerange in count_entered_times.keys():
-                        monitoringConfig.write_rrd("%s/Log_%s_Entered_Lasted_%s"%(fe_dir,s,timerange),
-                                                   "ABSOLUTE",self.updated,count_entered_times[timerange])
+                        val_dict_completed['Lasted_%s'%timerange]=count_entered_times[timerange]
+                        # they all use the same indexes
+                        val_dict_completed['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
+                        val_dict_completed['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
+                        val_dict_completed['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
+
+                    # save jobsnr
+                    for jobrange in count_jobnrs.keys():
+                        val_dict_completed['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
+
                     # save failures
-                    monitoringConfig.write_rrd("%s/Log_%s_Entered_Failed"%(fe_dir,s),
-                                               "ABSOLUTE",self.updated,count_validation_failed)
+                    val_dict_completed['Failed']=count_validation_failed
 
                     # save waste_mill
                     for w in count_waste_mill.keys():
                         count_waste_mill_w=count_waste_mill[w]
                         for p in count_waste_mill_w.keys():
-                            monitoringConfig.write_rrd("%s/Log_%s_Entered_Waste_%s_%s"%(fe_dir,s,w,p),
-                                                       "ABSOLUTE",self.updated,count_waste_mill_w[p])
+                            val_dict_waste['%s_%s'%(w,p)]=count_waste_mill_w[p]
+
                     for w in time_waste_mill.keys():
                         time_waste_mill_w=time_waste_mill[w]
                         for p in time_waste_mill_w.keys():
-                            monitoringConfig.write_rrd("%s/Log_%s_Entered_WasteTime_%s_%s"%(fe_dir,s,w,p),
-                                                       "ABSOLUTE",self.updated,time_waste_mill_w[p])
-                            
+                            val_dict_wastetime['%s_%s'%(w,p)]=time_waste_mill_w[p]
+
+            #end for s in self.job_statuses
+
+            # write the data to disk
+            monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
+                                             "GAUGE",self.updated,val_dict_counts)                            
+            monitoringConfig.write_rrd_multi("%s/Log_Entered"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_entered)
+            monitoringConfig.write_rrd_multi("%s/Log_Exited"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_exited)
+            monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_completed)
+            monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_waste)
+            monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_wastetime)
 
 
         self.files_updated=self.updated
@@ -1378,20 +1173,7 @@ class condorLogSummary:
             # history files updated recently, no need to redo it
             return 
 
-        # create history XML files for RRDs
-        # DEPRECATE FOR NOW
-        #for client_name in [None]+self.stats_diff.keys():
-        #    if client_name==None:
-        #        fe_dir="total"
-        #    else:
-        #        fe_dir="frontend_"+client_name
-        #
-        #    for s in self.job_statuses:
-        #        report_rrds=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s))]
-        #        if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-        #            report_rrds.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s)))
-        #            report_rrds.append(('Count',"%s/Log_%s_Count.rrd"%(fe_dir,s)))
-        #        monitoringConfig.report_rrds("%s/Log_%s"%(fe_dir,s),report_rrds);
+        want_trend='Trend' in monitoringConfig.wanted_graphs
 
         # use the same reference time for all the graphs
         graph_ref_time=time.time()
@@ -1410,9 +1192,12 @@ class condorLogSummary:
         frontend_list=monitoringConfig.find_disk_frontends()
         create_log_split_graphs(graph_ref_time,"logsummary","frontend_%s",frontend_list)
 
-        larr=['Log']
-        if 'Trend' in monitoringConfig.wanted_graphs:
-            larr.append('Log50')
+        larr_long=['Log']
+        larr_short=['Log']
+        if want_trend:
+            larr_long.append('Log50')
+
+        larr_sl=(larr_short,larr_long)
 
         # create support index files
         for client_name in self.stats_diff.keys():
@@ -1420,6 +1205,8 @@ class condorLogSummary:
 
             for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
+                long_period=period!='hours'
+                larr=larr_sl[long_period] # don't show trends for hours, they are identical to std graphs
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
                     fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
@@ -1427,10 +1214,10 @@ class condorLogSummary:
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(client_name,period));
+                        fd.write("<title>Entry client %s@%s log stats over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(client_name,period))
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Entry client %s@%s log stats over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
                         
                         fd.write("</tr><tr>\n")
                         
@@ -1450,18 +1237,17 @@ class condorLogSummary:
                                 link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                         fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
                         
                         fd.write("</tr></table>\n")
                         
-                        fd.write('<a name="glidein_status">\n')
                         fd.write("<p>\n<table>\n")
                         for s in self.job_statuses:
                             if (not (s in ('Completed','Removed'))): # special treatement
                                 fd.write('<tr valign="top">')
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Count.%s.%s.png"%(s,period,size)))
                                 fd.write('<td>%s</td>'%img2html("Log_%s_Diff.%s.%s.png"%(s,period,size)))
-                                if 'Trend' in monitoringConfig.wanted_graphs:
+                                if want_trend and long_period:
                                     fd.write('<td>%s</td>'%img2html("Log50_%s_Diff.%s.%s.png"%(s,period,size)))
                                 fd.write('</tr>\n')                            
                         fd.write('<tr valign="top">')
@@ -1470,13 +1256,54 @@ class condorLogSummary:
                             fd.write('<td>%s</td>'%img2html("%s_Removed_Diff.%s.%s.png"%(l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        fd.write('<a name="glidein_terminated">\n')
-                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted'):
+                        fd.write("</p>\n")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Terminated.%s.%s.html"%(fe_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>Entry client %s@%s terminated glideins over last %s</title>\n"%(client_name,monitoringConfig.my_name,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>Entry client %s@%s terminated glideins over last %s</h1></td>\n'%(client_name,monitoringConfig.my_name,period))
+                        
+                        fd.write("</tr><tr>\n")
+                        
+                        fd.write('<td>[<a href="../total/0Terminated.%s.%s.html">Entry total</a>]</td>\n'%(period,size))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size,period,size))
+                        
+                        fd.write("</tr></table>\n")
+                        
+                        fd.write("<p><table>\n")
+                        for sa in (('Diff','Entered_JobsNr'),('Entered_Lasted','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
                             fd.write('<tr valign="top">')
                             for l in larr:
-                                fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
+                                for s in sa:
+                                    fd.write('<td>%s</td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+
+                        fd.write("<h2>Statistics about wasted resources</h2>\n")
+                        fd.write("<p><table>\n")
                         for s in ('validation','idle',
                                   'nosuccess','badput',):
                             fd.write('<tr valign="top">')
@@ -1528,7 +1355,7 @@ class condorLogSummary:
             pass # for client_name
 
         # create support index file for total
-        create_log_total_index("Entry total","frontend","../frontend_%s",frontend_list,'<a href="../../total/0Log.%s.%s.html">Factory total</a>')
+        create_log_total_index("Entry %s"%monitoringConfig.my_name,"frontend","../frontend_%s",frontend_list,('../../total','Factory total'))
 
         monitoringConfig.update_locks(graph_ref_time,"logsummary")
         self.history_files_updated=self.files_updated
@@ -1590,6 +1417,20 @@ def getTimeRange(absval):
 def getAllTimeRanges():
         return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
     
+def getJobRange(absval):
+        if absval<1:
+            return 'None'
+        if absval==1:
+            return '1job'
+        if absval>45: # limit valid times to 45
+            return 'Many'
+        logval=int(math.log(absval,2)+0.49)
+        level=int(math.pow(2,logval))
+        return "%ijobs"%level
+
+def getAllJobRanges():
+        return ('None','1job','2jobs','4jobs','8jobs','16jobs','32jobs','Many')
+    
 def getAllTimeRangeGroups():
         return {'Unknown':('Unknown',),'lt15mins':('TooShort','7mins'),'15mins-50mins':('15mins','30mins'),'50mins-30hours':('1hours','2hours','4hours','8hours','16hours'),'30hours-100hours':('32hours','64hours'),'gt100hours':('128hours','TooLong')}
             
@@ -1621,8 +1462,12 @@ def getGroupsVal(u):
 
 ##################################################
 def get_completed_stats_xml_desc():
-    return {'dicts_params':{'Lasted':{'el_name':'TimeRange'}},
-            'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
+    return {'dicts_params':{'Lasted':{'el_name':'TimeRange'},
+                            'JobsNr':{'el_name':'Range'}},
+            'subclass_params':{'JobsDuration':{'dicts_params':{'total':{'el_name':'TimeRange'},
+                                                               'goodput':{'el_name':'TimeRange'},
+                                                               'terminated':{'el_name':'TimeRange'}}},
+                               'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
                                                         'validation':{'el_name':'Fraction'},
                                                         'badput':{'el_name':'Fraction'},
                                                         'nosuccess':{'el_name':'Fraction'}}},
@@ -1634,7 +1479,280 @@ def get_completed_stats_xml_desc():
             }
 
 ##################################################
+def create_status_graphs(graph_ref_time,fe_dir):
+    want_held='Held' in monitoringConfig.wanted_graphs
+    want_infoage='InfoAge' in monitoringConfig.wanted_graphs
+
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/Idle"%fe_dir,
+                                "Idle glideins",
+                                [("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
+                                 ("Idle","%s/Status_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF"),
+                                 ("Wait","%s/Status_Attributes.rrd?id=Wait"%fe_dir,"LINE2","FF00FF"),
+                                 ("Pending","%s/Status_Attributes.rrd?id=Pending"%fe_dir,"LINE2","00FF00"),
+                                 ("IdleOther","%s/Status_Attributes.rrd?id=IdleOther"%fe_dir,"LINE2","FF0000")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/Running"%fe_dir,
+                                "Running glideins",
+                                [("Running","%s/Status_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00"),
+                                 ("ClientGlideins","%s/ClientMonitor_Attributes.rrd?id=GlideinsTotal"%fe_dir,"LINE2","000000"),
+                                 ("ClientRunning","%s/ClientMonitor_Attributes.rrd?id=GlideinsRunning"%fe_dir,"LINE2","0000FF")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/MaxRun"%fe_dir,
+                                "Max running glideins requested",
+                                [("MaxRun","%s/Requested_Attributes.rrd?id=MaxRun"%fe_dir,"AREA","008000")])
+    if want_held:
+        monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                    "%s/Held"%fe_dir,
+                                    "Held glideins",
+                                    [("Held","%s/Status_Attributes.rrd?id=Held"%fe_dir,"AREA","c00000")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/ClientIdle"%fe_dir,
+                                "Idle client jobs",
+                                [("Idle","%s/ClientMonitor_Attributes.rrd?id=Idle"%fe_dir,"AREA","00FFFF"),
+                                 ("Requested","%s/Requested_Attributes.rrd?id=Idle"%fe_dir,"LINE2","0000FF")])
+    monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                "%s/ClientRunning"%fe_dir,
+                                "Running client jobs",
+                                [("Running","%s/ClientMonitor_Attributes.rrd?id=Running"%fe_dir,"AREA","00FF00")])
+    if want_infoage:
+        monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                    "%s/InfoAge"%fe_dir,
+                                    "Client info age",
+                                    [("InfoAge","%s/ClientMonitor_Attributes.rrd?id=InfoAge"%fe_dir,"LINE2","000000")])
+    return
+
+##################################################
+def create_leaf_status_indexes(title_name,
+                               base_dir,sub_dir,
+                               parent_dir,parent_name):
+    want_held='Held' in monitoringConfig.wanted_graphs
+    want_infoage='InfoAge' in monitoringConfig.wanted_graphs
+
+    glidein_graphs=['Running','Idle']
+    if want_held:
+        glidein_graphs.append('Held')
+    frontend_graphs=['ClientIdle','ClientRunning']
+    if want_infoage:
+        frontend_graphs.append('InfoAge')
+
+
+    for rp in monitoringConfig.rrd_reports:
+                period=rp[0]
+                for sz in monitoringConfig.graph_sizes:
+                    size=sz[0]
+                    fname=os.path.join(base_dir,"%s/0Status.%s.%s.html"%(sub_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs 
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s status over last %s</title>\n"%(title_name,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td colspan=4 valign="top" align="left"><h1>%s status over last %s</h1></td>\n'%(title_name,period))
+                        
+
+                        fd.write("</tr><tr>\n")
+                        
+                        if (parent_dir!=None) and (parent_name!=None):
+                            fd.write('<td>[<a href="%s/0Status.%s.%s.html">%s</a>]</td>\n'%(parent_dir,period,size,parent_name))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
+                        
+                        fd.write("</tr></table>\n")
+
+                        fd.write('<a name="glidein_stats">\n')
+                        fd.write("<h2>Glidein stats</h2>\n")
+                        fd.write("<table>")
+                        for s in glidein_graphs:
+                            fd.write('<tr valign="top">')
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                            if s=='Running':
+                                s1='MaxRun'
+                                fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s1,period,size)))
+                            fd.write('</tr>\n')                            
+                        fd.write("</table>")
+                        fd.write('<a name="client_stats">\n')
+                        fd.write("<h2>Frontend (client) stats</h2>\n")
+                        fd.write("<table>")
+                        for s in frontend_graphs:
+                            fd.write('<tr valign="top">')
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                            fd.write('</tr>\n')                            
+                        fd.write("</table>")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+    return
+
+
+##################################################
+def create_group_status_indexes(title_name,
+                                base_dir,sub_dir,
+                                parent_dir,parent_name, # can be None
+                                elements,element_format):
+    want_split='Split' in monitoringConfig.wanted_graphs
+    want_held='Held' in monitoringConfig.wanted_graphs
+    want_infoage='InfoAge' in monitoringConfig.wanted_graphs
+
+    for rp in monitoringConfig.rrd_reports:
+            period=rp[0]
+            for sz in monitoringConfig.graph_sizes:
+                size=sz[0]
+                fname=os.path.join(base_dir,"%s/0Status.%s.%s.html"%(sub_dir,period,size))
+                #if (not os.path.isfile(fname)): #create only if it does not exist
+                if 1: # create every time, it is small and works over reconfigs
+                    fd=open(fname,"w")
+                    fd.write("<html>\n<head>\n")
+                    fd.write("<title>%s status over last %s</title>\n"%(title_name,period));
+                    fd.write("</head>\n<body>\n")
+                    fd.write('<table width="100%"><tr>\n')
+                    fd.write('<td valign="top" align="left"><h1>%s status over last %s</h1></td>\n'%(title_name,period))
+
+                    link_arr=[]
+                    for ref_sz in monitoringConfig.graph_sizes:
+                        ref_size=ref_sz[0]
+                        if size!=ref_size:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                    fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    link_arr=[]
+                    for ref_rp in monitoringConfig.rrd_reports:
+                        ref_period=ref_rp[0]
+                        if period!=ref_period:
+                            link_arr.append('<a href="0Status.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                    fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write('<td align="right">[<a href="0Log.%s.%s.html">Log stats</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
+                        
+                    fd.write("</tr><tr>\n")
+
+                    if (parent_dir!=None) and (parent_name!=None):
+                        fd.write('<td>[<a href="%s/0Status.%s.%s.html">%s</a>]</td>\n'%(parent_dir,period,size,parent_name))
+                    link_arr=[]
+                    for ref_fe in elements:
+                        link_arr.append(('<a href="')+(element_format%ref_fe)+('/0Status.%s.%s.html">%s</a>'%(period,size,ref_fe)))
+                    fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                    fd.write("</tr></table>\n")
+
+                    fd.write('<a name="glidein_stats">\n')
+                    fd.write("<h2>Glidein stats</h2>\n")
+                    fd.write("<table>")
+                    larr=[]
+                    if want_split:
+                        larr.append(('Running','Split_Status_Attribute_Running','Split_Requested_Attribute_MaxRun'))
+                        larr.append(('Idle','Split_Status_Attribute_Idle','Split_Requested_Attribute_Idle'))
+                        larr.append(('Split_Status_Attribute_Wait','Split_Status_Attribute_Pending','Split_Status_Attribute_IdleOther'))
+                    else:
+                        larr.append(('Running',))
+                        larr.append(('Idle',))
+
+                    if want_held:
+                        if want_split:
+                            larr.append(('Held','Split_Status_Attribute_Held'))
+                        else:
+                            larr.append(('Held',))
+                    for l in larr:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                        fd.write('</tr>\n')
+                    fd.write("</table>")
+                    fd.write('<a name="client_stats">\n')
+                    fd.write("<h2>Frontend (client) stats</h2>\n")
+                    fd.write("<table>")
+                    larr=[]
+                    if want_split:
+                        larr.append(('ClientIdle','Split_ClientMonitor_Attribute_Idle'))
+                        larr.append(('ClientRunning','Split_ClientMonitor_Attribute_Running'))
+                    else:
+                        larr.append(('ClientIdle',))
+                        larr.append(('ClientRunning',))
+
+                    if want_infoage:
+                        if want_split:
+                            larr.append(('InfoAge','Split_ClientMonitor_Attribute_InfoAge'))
+                        else:
+                            larr.append(('InfoAge',))
+
+                    for l in larr:
+                        fd.write('<tr valign="top">')
+                        for s in l:
+                            fd.write('<td>%s</td>'%img2html("%s.%s.%s.png"%(s,period,size)))
+                        fd.write('</tr>\n')
+                    fd.write("</table>")
+                    fd.write("</body>\n</html>\n")
+                    fd.close()
+                    pass
+    return
+
+
+##################################################
+def create_split_graphs(attributes,graph_ref_time,
+                        elements,element_format):
+    colors_base=[(0,1,0),(0,1,1),(1,1,0),(1,0,1),(0,0,1),(1,0,0)]
+    colors_intensity=['ff','d0','a0','80','e8','b8']
+    colors=[]
+    for ci_i in colors_intensity:
+        si_arr=['00',ci_i]
+        for cb_i in colors_base:
+            colors.append('%s%s%s'%(si_arr[cb_i[0]],si_arr[cb_i[1]],si_arr[cb_i[2]]))
+
+    for tp in attributes.keys():
+        # type - Status, Requested or ClientMonitor
+        attributes_tp=attributes[tp]
+                  
+        for a in attributes_tp:
+            # attribute - Idle, Running, ....
+            rrd_fnames=[]
+            idx=0
+            for el in elements:
+                area_name="STACK"
+                if idx==0:
+                    area_name="AREA"
+                rrd_fnames.append((cleanup_rrd_name(el),(element_format%el)+("/%s_Attributes.rrd?id=%s"%(tp,a)),area_name,colors[idx%len(colors)]))
+                idx=idx+1
+
+            if tp=="ClientMonitor":
+                if a=="InfoAge":
+                    tstr="Client info age"
+                else:
+                    tstr="%s client jobs"%a
+            elif tp=="Status":
+                tstr="%s glideins"%a
+            else:
+                tstr="%s %s glideins"%(tp,a)
+
+            try:
+                monitoringConfig.graph_rrds(graph_ref_time,"status","Status",
+                                            "total/Split_%s_Attribute_%s"%(tp,a),
+                                            tstr,
+                                            rrd_fnames)
+            except:
+                # just a warning
+                print "Failed creating total/Split_%s_Attribute_%s"%(tp,a)
+    
+    return
+
+##################################################
 def create_log_graphs(ref_time,base_lock_name,fe_dir):
+    want_trend='Trend' in monitoringConfig.wanted_graphs
+
     colors={"Wait":"00FFFF","Idle":"0000FF","Running":"00FF00","Held":"c00000"}
     r_colors=('c00000','ff4000', #>250
               'ffc000','fff800', #100-250
@@ -1645,16 +1763,20 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
                  'ffff00',          # 30 mins
                  'c0ff00','80f000','40d800','00c000','00c080','00e0d0','00ffff',
                  '0080f0','0000c0')          # 128hours, TooLong
+    jobs_colors=('ff0000','d8ff00',           # 0 and 1
+                 '00ff00','00c000',           # 2 and 4
+                 '00e080','00ffd8','0080ff',  # 8,16,32
+                 '0040a0')                    # Many
     
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
-        rrd_files=[('Entered',"%s/Log_%s_Entered.rrd"%(fe_dir,s),"AREA","00ff00")]
+        rrd_files=[('Entered',"%s/Log_Entered.rrd?id=%s"%(fe_dir,s),"AREA","00ff00")]
         if not (s in ('Completed','Removed')): # always 0 for them
-            rrd_files.append(('Exited',"%s/Log_%s_Exited.rrd"%(fe_dir,s),"AREA","ff0000"))
+            rrd_files.append(('Exited',"%s/Log_Exited.rrd?id=%s"%(fe_dir,s),"AREA","ff0000"))
 
         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                     "%s/Log_%s_Diff"%(fe_dir,s),
                                     "Difference in %s glideins"%s, rrd_files)
-        if 'Trend' in monitoringConfig.wanted_graphs:
+        if want_trend:
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "%s/Log50_%s_Diff"%(fe_dir,s),
                                         "Trend Difference in %s glideins"%s, rrd_files,trend_fraction=50)
@@ -1663,53 +1785,84 @@ def create_log_graphs(ref_time,base_lock_name,fe_dir):
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "%s/Log_%s_Count"%(fe_dir,s),
                                         "%s glideins"%s,
-                                        [(s,"%s/Log_%s_Count.rrd"%(fe_dir,s),"AREA",colors[s])])
+                                        [(s,"%s/Log_Counts.rrd?id=%s"%(fe_dir,s),"AREA",colors[s])])
         elif s=="Completed":
-            # create graphs for Lasted and Waste
-            client_dir=os.listdir(os.path.join(monitoringConfig.monitor_dir,fe_dir))
-            for t in ("Lasted",
-                      "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
-                      "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
-                # get sorted list of rrds
-                t_re=re.compile("Log_Completed_Entered_%s_(?P<count>[0-9]*)(?P<unit>[^.]*).+rrd"%t)
-                t_keys={}
-                for d in client_dir:
-                    t_re_m=t_re.match(d)
-                    if t_re_m!=None:
-                        t_keys[t_re_m.groups()]=1
-                t_keys=t_keys.keys()
+            # create graph for time based info
+            t_keys=getAllTimeRanges()
+
+            for t in ('Lasted',):
+                t_rrds=[]
+                idx=0
+                for t_k in t_keys:
+                    t_k_color=time_colors[idx]
+                    t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s_%s"%(fe_dir,t,t_k),"STACK",t_k_color))
+                    idx+=1
+                    
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                            "%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                            "%s glideins"%t,t_rrds)
+                if want_trend:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s glideins"%t,t_rrds,trend_fraction=50)
+            
+            for t in ('JobsLasted','Goodput','Terminated'):
+                t_rrds=[]
+                idx=0
+                for t_k in t_keys:
+                    t_k_color=time_colors[idx]
+                    t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s_%s"%(fe_dir,t,t_k),"STACK",t_k_color))
+                    idx+=1
+                    
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                            "%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                            "%s jobs in glideins"%t,t_rrds)
+                if want_trend:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s jobs in glideins"%t,t_rrds,trend_fraction=50)
+            
+            # create graph for jobs
+            t_keys=getAllJobRanges()
+
+            for t in ('JobsNr',):
+                t_rrds=[]
+                idx=0
+                for t_k in t_keys:
+                    t_k_color=jobs_colors[idx]
+                    t_rrds.append((str(t_k),"%s/Log_Completed_Stats.rrd?id=%s_%s"%(fe_dir,t,t_k),"STACK",t_k_color))
+                    idx+=1
+                    
+                monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                            "%s/Log_Completed_Entered_%s"%(fe_dir,t),
+                                            "%s per glidein"%t,t_rrds)
+                if want_trend:
+                    monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
+                                                "Trend %s per glidein"%t,t_rrds,trend_fraction=50)
+
+            # create graphs for Waste and WasteTime
+            for t in ('Waste','WasteTime'):
+                t_keys=list(getAllMillRanges())
+                t_keys.reverse()
                 t_keys_len=len(t_keys)
 
-                if t_keys_len>0:
-                    if t=="Lasted":
-                        t_keys.sort(cmpPairs)
-                    else:
-                        # invert order for Wasted
-                        t_keys.sort(lambda x,y,:-cmpPairs(x,y))
-                            
-                            
-                    # Create graph out of it
+                for t_t in ('badput','idle','nosuccess','validation'):
                     t_rrds=[]
                     idx=0
                     for t_k in t_keys:
-                        if t=="Lasted":
-                            t_k_color=time_colors[idx]
-                        else:
-                            if t_keys_len>1:
-                                t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
-                            else:
-                                t_k_color=r_colors[r_colors_len/2]
-                        t_rrds.append((str("%s%s"%t_k),str("%s/Log_Completed_Entered_%s_%s%s.rrd"%(fe_dir,t,t_k[0],t_k[1])),"STACK",t_k_color))
+                        t_k_color=r_colors[int(1.*(r_colors_len-1)*idx/(t_keys_len-1)+0.49)]
+                        t_rrds.append((str(t_k),"%s/Log_Completed_%s.rrd?id=%s_%s"%(fe_dir,t,t_t,t_k),"STACK",t_k_color))
                         idx+=1
+
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                "%s/Log_Completed_Entered_%s"%(fe_dir,t),
-                                                "%s glideins"%t,t_rrds)
-                    if 'Trend' in monitoringConfig.wanted_graphs:
+                                                "%s/Log_Completed_Entered_%s_%s"%(fe_dir,t,t_t),
+                                                "%s %s glideins"%(t,t_t),t_rrds)
+                    if want_trend:
                         monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                    "%s/Log50_Completed_Entered_%s"%(fe_dir,t),
-                                                    "Trend %s glideins"%t,t_rrds,trend_fraction=50)
-
-
+                                                    "%s/Log50_Completed_Entered_%s_%s"%(fe_dir,t,t_t),
+                                                    "Trend %s %s glideins"%(t,t_t),t_rrds,trend_fraction=50)
+                
 ###################################
 
 def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list):
@@ -1720,6 +1873,8 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
         return # do not create split graphs
 
     subdir_list.sort()
+
+    want_trend='Trend' in monitoringConfig.wanted_graphs
 
     mill_range_groups=getAllMillRangeGroups()
     mill_range_groups_keys=mill_range_groups.keys()
@@ -1760,7 +1915,7 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
             idx=0
             for fe in subdir_list:
                 fe_dir=subdir_template%fe
-                diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Entered.rrd"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
+                diff_rrd_files.append(['Entered_%s'%cleanup_rrd_name(fe),"%s/Log_Entered.rrd?id=%s"%(fe_dir,s),"STACK",in_colors[idx%len(in_colors)]])
                 idx=idx+1
 
             if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
@@ -1768,9 +1923,9 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
                 area_or_stack='AREA' # first must be area for exited
                 for fe in subdir_list:
                     fe_dir=subdir_template%fe
-                    diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_%s_Exited.rrd"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
+                    diff_rrd_files.append(['Exited_%s'%cleanup_rrd_name(fe),"%s/Log_Exited.rrd?id=%s"%(fe_dir,s),area_or_stack,out_colors[idx%len(out_colors)]])
                     area_or_stack='STACK'
-                    count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_%s_Count.rrd"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
+                    count_rrd_files.append([cleanup_rrd_name(fe),"%s/Log_Counts.rrd?id=%s"%(fe_dir,s),"STACK",colors[idx%len(colors)]])
                     idx=idx+1
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "total/Split_Log_%s_Count"%s,
@@ -1779,60 +1934,85 @@ def create_log_split_graphs(ref_time,base_lock_name,subdir_template,subdir_list)
             monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                         "total/Split_Log_%s_Diff"%s,
                                         "Difference in %s glideins"%s, diff_rrd_files)
-            if 'Trend' in monitoringConfig.wanted_graphs:
+            if want_trend:
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
                                             "total/Split_Log50_%s_Diff"%s,
                                             "Trend Difference in %s glideins"%s, diff_rrd_files,trend_fraction=50)
 
     if 'SplitTerm' in monitoringConfig.wanted_graphs:
         # create the completed split graphs
-        for t in ("Lasted",
-              "Waste_badput","Waste_idle","Waste_nosuccess","Waste_validation",
-              "WasteTime_badput","WasteTime_idle","WasteTime_nosuccess","WasteTime_validation"):
-            if t=="Lasted":
-                range_groups=time_range_groups
-                range_groups_keys=time_range_groups_keys
-            else:
-                range_groups=mill_range_groups
-                range_groups_keys=mill_range_groups_keys
-            for range_group in range_groups_keys:
-                range_list=range_groups[range_group]
-                diff_rrd_files=[]
-                cdef_arr=[]
-                idx=0
-                for fe in subdir_list:
-                    fe_dir=subdir_template%fe
-                    cdef_formula="0"
-                    for range_val in range_list:
-                        ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
-                        diff_rrd_files.append([ds_id,"%s/Log_Completed_Entered_%s_%s.rrd"%(fe_dir,t,range_val),"STACK","000000"]) # colors not used
-                        cdef_formula=cdef_formula+(",%s,+"%ds_id)
-                    cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
-                    idx+=1
+        range_groups=time_range_groups
+        range_groups_keys=time_range_groups_keys
+        for range_group in range_groups_keys:
+            range_list=range_groups[range_group]
+            diff_rrd_files=[]
+            cdef_arr=[]
+            idx=0
+            for fe in subdir_list:
+                fe_dir=subdir_template%fe
+                cdef_formula="0"
+                for range_val in range_list:
+                    ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
+                    diff_rrd_files.append([ds_id,"%s/Log_Completed_Stats.rrd?id=Lasted_%s"%(fe_dir,range_val),"STACK","000000"]) # colors not used
+                    cdef_formula=cdef_formula+(",%s,+"%ds_id)
+                cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
+                idx+=1
+
+            monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                        "total/Split_Log_Completed_Entered_Lasted_%s"%range_group,
+                                        "Lasted %s glideins"%range_group, diff_rrd_files,cdef_arr=cdef_arr)
+            if want_trend:
                 monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                            "total/Split_Log_Completed_Entered_%s_%s"%(t,range_group),
-                                            "%s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
-                if 'Trend' in monitoringConfig.wanted_graphs:
+                                            "total/Split_Log50_Completed_Entered_Lasted_%s"%range_group,
+                                            "Trend Lasted %s glideins"%range_group, diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
+        
+
+        # repeat for waste
+        range_groups=mill_range_groups
+        range_groups_keys=mill_range_groups_keys
+        for t in ('Waste','WasteTime'):
+            for t_t in ('badput','idle','nosuccess','validation'):
+                for range_group in range_groups_keys:
+                    range_list=range_groups[range_group]
+                    diff_rrd_files=[]
+                    cdef_arr=[]
+                    idx=0
+                    for fe in subdir_list:
+                        fe_dir=subdir_template%fe
+                        cdef_formula="0"
+                        for range_val in range_list:
+                            ds_id='%s_%s'%(cleanup_rrd_name(fe),range_val)
+                            diff_rrd_files.append([ds_id,"%s/Log_Completed_%s.rrd?id=%s_%s"%(fe_dir,t,t_t,range_val),"STACK","000000"]) # colors not used
+                            cdef_formula=cdef_formula+(",%s,+"%ds_id)
+                        cdef_arr.append([cleanup_rrd_name(fe),cdef_formula,"STACK",colors[idx%len(colors)]])
+                        idx+=1
+
                     monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
-                                                "total/Split_Log50_Completed_Entered_%s_%s"%(t,range_group),
-                                                "Trend %s %s glideins"%(t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
+                                                "total/Split_Log_Completed_Entered_%s_%s_%s"%(t,t_t,range_group),
+                                                "%s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr)
+                    if want_trend:
+                        monitoringConfig.graph_rrds(ref_time,base_lock_name,"Log",
+                                                    "total/Split_Log50_Completed_Entered_%s_%s_%s"%(t,t_t,range_group),
+                                                    "Trend %s %s %s glideins"%(t,t_t,range_group), diff_rrd_files,cdef_arr=cdef_arr,trend_fraction=50)
 
 
 
 ###################################
 
-def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_url_template):
+def create_log_total_index(title,subdir_label,subdir_template,subdir_list,up_dir_and_title):
     lck=monitoringConfig.get_graph_lock()
     try:
-        create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template)
+        create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_dir_and_title)
     finally:
         lck.close()
     return
 
 
-def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_url_template):
+def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_list,up_dir_and_title):
     subdir_list.sort()
 
+    want_trend='Trend' in monitoringConfig.wanted_graphs
+    
     mill_range_groups=getAllMillRangeGroups()
     mill_range_groups_keys=mill_range_groups.keys()
     mill_range_groups_keys.sort(lambda e1,e2:cmp(getGroupsVal(e1),getGroupsVal(e2)))
@@ -1845,13 +2025,18 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
     if 'Split' in monitoringConfig.wanted_graphs:
         parr.append('Split_')
 
-    larr=['Log']
-    if 'Trend' in monitoringConfig.wanted_graphs:
-        larr.append('Log50')
+    larr_long=['Log']
+    larr_short=['Log']
+    if want_trend:
+        larr_long.append('Log50')
+
+    larr_sl=(larr_short,larr_long)
 
     fe_dir="total"
     for rp in monitoringConfig.rrd_reports:
                 period=rp[0]
+                long_period=period!='hours'
+                larr=larr_sl[long_period] # don't show trends for hours, they are identical to std graphs
                 for sz in monitoringConfig.graph_sizes:
                     size=sz[0]
                     fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Log.%s.%s.html"%(fe_dir,period,size))
@@ -1859,10 +2044,10 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                     if 1: # create every time, it is small and works over reconfigs
                         fd=open(fname,"w")
                         fd.write("<html>\n<head>\n")
-                        fd.write("<title>%s over last %s</title>\n"%(title,period));
+                        fd.write("<title>%s log stats over last %s</title>\n"%(title,period));
                         fd.write("</head>\n<body>\n")
                         fd.write('<table width="100%"><tr>\n')
-                        fd.write('<td valign="top" align="left"><h1>%s over last %s</h1></td>\n'%(title,period))
+                        fd.write('<td valign="top" align="left"><h1>%s log stats over last %s</h1></td>\n'%(title,period))
                         
                         link_arr=[]
                         for ref_sz in monitoringConfig.graph_sizes:
@@ -1878,12 +2063,12 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 link_arr.append('<a href="0Log.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
                         fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
 
-                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a>]</td>\n'%(period,size))
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Terminated.%s.%s.html">Terminated</a>]</td>\n'%(period,size,period,size))
                         
                         fd.write("</tr><tr>\n")
 
-                        if up_url_template!=None:
-                            fd.write('<td>[%s]</td>\n'%(up_url_template%(period,size)))
+                        if up_dir_and_title!=None:
+                            fd.write('<td>[<a href="%s/0Log.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],period,size,up_dir_and_title[1]))
                         else:
                             fd.write('<td></td>\n') # no uplink
                         link_arr=[]
@@ -1912,13 +2097,62 @@ def create_log_total_index_notlocked(title,subdir_label,subdir_template,subdir_l
                                 fd.write('<td>%s</td>'%img2html("%s%s_Removed_Diff.%s.%s.png"%(p,l,period,size)))
                         fd.write('</tr>\n')
                         fd.write("</table>\n</p>\n")
-                        fd.write('<a name="glidein_terminated">\n')
-                        fd.write("<p>\n<h2>Terminated glideins</h2>\n<table>\n")
-                        for s in ('Diff','Entered_Lasted'):
+                        fd.write("</p>\n")
+                        fd.write("</body>\n</html>\n")
+                        fd.close()
+                        pass
+
+                    fname=os.path.join(monitoringConfig.monitor_dir,"%s/0Terminated.%s.%s.html"%(fe_dir,period,size))
+                    #if (not os.path.isfile(fname)): #create only if it does not exist
+                    if 1: # create every time, it is small and works over reconfigs
+                        fd=open(fname,"w")
+                        fd.write("<html>\n<head>\n")
+                        fd.write("<title>%s terminated glideins over last %s</title>\n"%(title,period));
+                        fd.write("</head>\n<body>\n")
+                        fd.write('<table width="100%"><tr>\n')
+                        fd.write('<td valign="top" align="left"><h1>%s terminated glideins over last %s</h1></td>\n'%(title,period))
+                        
+                        link_arr=[]
+                        for ref_sz in monitoringConfig.graph_sizes:
+                            ref_size=ref_sz[0]
+                            if size!=ref_size:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(period,ref_size,ref_size))
+                        fd.write('<td align="center">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        link_arr=[]
+                        for ref_rp in monitoringConfig.rrd_reports:
+                            ref_period=ref_rp[0]
+                            if period!=ref_period:
+                                link_arr.append('<a href="0Terminated.%s.%s.html">%s</a>'%(ref_period,size,ref_period))
+                        fd.write('<td align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write('<td align="right">[<a href="0Status.%s.%s.html">Status</a> | <a href="0Log.%s.%s.html">Log stats</a>]</td>\n'%(period,size,period,size))
+                        
+                        fd.write("</tr><tr>\n")
+
+                        if up_dir_and_title!=None:
+                            fd.write('<td>[<a href="%s/0Terminated.%s.%s.html">%s</a>]</td>\n'%(up_dir_and_title[0],period,size,up_dir_and_title[1]))
+                        else:
+                            fd.write('<td></td>\n') # no uplink
+                        link_arr=[]
+                        for ref_fe in subdir_list:
+                            link_arr.append(('<a href="'+subdir_template+'/0Terminated.%s.%s.html">%s</a>')%(ref_fe,period,size,ref_fe))
+                        fd.write('<td colspan=3 align="right">[%s]</td>\n'%string.join(link_arr,' | '));
+
+                        fd.write("</tr></table>\n")
+
+                        fd.write("<p>\n<table>\n")
+                        for sa in (('Diff','Entered_JobsNr'),('Entered_Lasted','Entered_JobsLasted'),('Entered_Goodput','Entered_Terminated')):
                             fd.write('<tr valign="top">')
                             for l in larr:
-                                fd.write('<td>%s</td><td></td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
+                                for s in sa:
+                                    fd.write('<td>%s</td>'%img2html("%s_Completed_%s.%s.%s.png"%(l,s,period,size)))
                             fd.write('</tr>\n')
+                        fd.write("</table>\n</p>\n")
+
+                        fd.write("<h2>Statistics about wasted resources</h2>\n")
+                        fd.write("<p><table>\n")
+ 
                         for s in ('validation','idle',
                                   'nosuccess','badput'):
                             fd.write('<tr valign="top">')
@@ -2000,112 +2234,30 @@ def tmp2final(fname):
       print "Failed renaming %s.tmp into %s"%(fname,fname)
     return
 
-def create_rrd(rrd_obj,rrdfname,
-               rrd_step,rrd_archives,
-               rrd_ds):
-    start_time=(long(time.time()-1)/rrd_step)*rrd_step # make the start time to be aligned on the rrd_step boundary - needed for optimal resoultion selection 
-    #print (rrdfname,start_time,rrd_step)+rrd_ds
-    args=[str(rrdfname),'-b','%li'%start_time,'-s','%i'%rrd_step,'DS:%s:%s:%i:%s:%s'%rrd_ds]
-    for archive in rrd_archives:
-        args.append("RRA:%s:%g:%i:%i"%archive)
+class LockedRRDSupport(rrdSupport.rrdSupport):
+    ###################################################################
+    # The default was a NoOp, count use monitoringConfig.get_disk_lock
+    #
+    # Leave it no-op... else it takes forever to do the updates
+    #def get_disk_lock(self,fname):
+    #    return monitoringConfig.get_disk_lock()
 
-    lck=monitoringConfig.get_disk_lock()
-    try:
-      rrd_obj.create(*args)
-    finally:
-      lck.close()
-    return
+    #############################################################
+    # The default was a NoOp, use monitoringConfig.get_graph_lock
+    def get_graph_lock(self,fname):
+        return monitoringConfig.get_graph_lock()
 
-def update_rrd(rrd_obj,rrdfname,
-               time,val):
-    lck=monitoringConfig.get_disk_lock()
-    try:
-     rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
-    finally:
-      lck.close()
-
-    return
-
-#
-# Deprecate for the moment, until we find a proper way
-# to manage history XML files
-#
-#def rrd2xml(rrdbin,xmlfname,
-#            rrd_step,ds_name,ds_type,
-#            period,rrd_files):
-#    now=long(time.time())
-#    start=((now-period)/rrd_step)*rrd_step
-#    end=((now-1)/rrd_step)*rrd_step
-#    cmdline='%s xport -s %li -e %li --step %i' % (rrdbin,start,end,rrd_step)
-#    for rrd_file in rrd_files:
-#        cmdline=cmdline+" DEF:%s=%s:%s:%s"%(rrd_file+(ds_name,ds_type))
-#
-#    for rrd_file in rrd_files:
-#        ds_id=rrd_file[0]
-#        cmdline=cmdline+" XPORT:%s:%s"%(ds_id,ds_id)
-#
-#    cmdline=cmdline+" >%s"%xmlfname
-#
-#    #print cmdline
-#    outstr=iexe_cmd(cmdline)
-#    return
-
-# if != None, use the value to plot the RRD RPM TREND
-# instead of actual value
-def rrd2graph(rrd_obj,fname,
-              rrd_step,ds_name,ds_type,
-              period,width,height,
-              title,rrd_files,cdef_arr=None,trend=None):
-    now=long(time.time())
-    start=((now-period)/rrd_step)*rrd_step
-    end=((now-1)/rrd_step)*rrd_step
-    args=[str(fname),'-s','%li'%start,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat','PNG','--title',str(title)]
-    for rrd_file in rrd_files:
-        ds_id=rrd_file[0]
-        ds_fname=rrd_file[1]
-        if trend==None:
-            args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
-        else:
-            args.append(str("DEF:%s_inst=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
-            args.append(str("CDEF:%s=%s_inst,%i,TREND"%(ds_id,ds_id,trend)))
-
-    plot_arr=rrd_files
-    if cdef_arr!=None:
-        plot_arr=cdef_arr # plot the cdefs not the files themselves, when we have them
-        for cdef_el in cdef_arr:
-            ds_id=cdef_el[0]
-            cdef_formula=cdef_el[1]
-            ds_graph_type=rrd_file[2]
-            ds_color=rrd_file[3]
-            args.append(str("CDEF:%s=%s"%(ds_id,cdef_formula)))
-
-
-    if plot_arr[0][2]=="STACK":
-        # add an invisible baseline to stack upon
-        args.append("AREA:0")
-
-    for plot_el in plot_arr:
-        ds_id=plot_el[0]
-        ds_graph_type=plot_el[2]
-        ds_color=plot_el[3]
-        args.append("%s:%s#%s:%s"%(ds_graph_type,ds_id,ds_color,ds_id))
-            
-
-    args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
-
-    
-    try:
-        lck=monitoringConfig.get_graph_lock()
-        try:
-            rrd_obj.graph(*args)
-        finally:
-            lck.close()
-    except:
-      print "Failed graph: %s"%str(args)
-
-    return args
+    def __init__(self):
+        rrdSupport.rrdSupport.__init__(self)
+        if self.rrd_obj==None:
+            print "Not using RRD" # just for debug purposes
 
 def cleanup_rrd_name(s):
     return string.replace(string.replace(s,".","_"),"@","_")
 
+
+##################################################
+
+# global configuration of the module
+monitoringConfig=MonitoringConfig()
 
