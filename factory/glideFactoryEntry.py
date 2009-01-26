@@ -358,6 +358,9 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideinDescript.load_pub_key()
     if not (entry_name in string.split(glideinDescript.data['Entries'],',')):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
+
+    glideFactoryMonitoring.monitoringConfig.my_name="%s@%s"%(entry_name,glideinDescript.data['GlideinName'])
+
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
