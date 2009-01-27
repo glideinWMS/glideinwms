@@ -21,6 +21,7 @@ v1_6+	The XML file now supports comments.
         Monitoring refactored
           Most rrd operations now in separate module
           Groupes multiple attributes in the RRD files (lower overhead)
+          Removed RRD locking
 
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.
