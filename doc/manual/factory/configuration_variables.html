@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>glideinWMS configuration variables</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
+	<META NAME="CREATED" CONTENT="20090203;14531100">
+	<META NAME="CHANGED" CONTENT="20090203;16502800">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Glidein configuration variables</H1>
+<H2>Description</H2>
+<P>This document describes what configuration variables are used by
+the glideins. Most users never need to touch most of them, but a
+sophisticated Glidein Factory administrator may need to tweak some of
+them to implement the desired policies (for example: require
+encryption over the wire) or to address the needs of a particular
+site (for example: max allowed wallclock time).</P>
+<H2>Index</H2>
+<UL>
+	<LI><P><A HREF="#location">Configuration variable location</A></P>
+	<LI><P><A HREF="#condor_vars">Condor vars file</A></P>
+	<LI><P><A HREF="#vars">Pre-defined variables</A>
+	  <UL>
+	    <LI><P><A HREF="#fix_vars">Fixed pre-defined variables</A></P>
+	    <LI><P><A HREF="#dyn_vars">Dynamically generated pre-defined variables</A></P>
+          </UL></P>
+</UL>
+<H2><A NAME="location"></A>Configuration variable location</H2>
+<P>The glideinWMS ships with a set of pre-defined configuration
+variables, that are stored in two files, known as <I>condor vars
+files</I>:</P>
+<BLOCKQUOTE><FONT FACE="Courier, monospace">glideinWMS/creation/web_base/condor_vars.lst<BR>glideinWMS/creation/web_base/condor_vars.lst.entry</FONT></BLOCKQUOTE>
+<P>The two files are equivalent, but were split for historical
+reasons, and the second one is meant to contain site specific
+configuration variables.<BR><B>These files should never be modified,
+and represent just the default shipped by the software!</B> 
+</P>
+<P>A glideinWMS administrator can change the values of the predefined
+variables (with some exceptions, see <A HREF="#dyn_vars">below</A>), and define new ones
+using the <A HREF="entry.html#args">Glidein Factory configuration</A>
+file.</P>
+<H2><A NAME="condor_vars"></A>Condor vars files</H2>
+<P>The condor vars files contain the glideinWMS pre-defined
+configuration variables, and <B>should never be modified</B>.<BR>However,
+a glideinWMS administrator should nevertheless be able to read them.</P>
+<P>Each of them is an ASCII file, with one entry per row. <BR>Lines
+starting with # are comments and are ignored.</P>
+<P>Each non comment line must have 7 columns. Each column has a
+specific meaning:</P>
+<OL>
+	<LI><P>Attribute name</P>
+	<LI><P>Attribute type</P>
+</OL>
+<UL>
+	<UL>
+		<LI><P>I – integer</P>
+		<LI><P>S – quoted string</P>
+		<LI><P>C – unquoted string (i.e. Condor keyword or expression)</P>
+	</UL>
+</UL>
+<OL START=3>
+	<LI><P>Default value, use – if no default</P>
+	<LI><P>Condor name, i.e. under which name should this attributed be
+	known in the configuration used by Condor daemons</P>
+	<LI><P>Is a value required for this attribute? <BR>Must be Y or N.
+	If Y and the attribute is not defined, the glidein will fail.</P>
+	<LI><P>Will condor_startd publish this attribute to the
+	collector?<BR>Must be Y or N.</P>
+	<LI><P>Will the attribute be exported to the user job environment?</P>
+</OL>
+<UL>
+	<UL>
+		<LI><P>- - Do not export (for glidein/condor internal use)</P>
+		<LI><P>+ - Export to the user job environment using the original
+		attribute name</P>
+		<LI><P>@ - Export to the user job environment using the Condor name</P>
+	</UL>
+</UL>
+<P>Here below, you can see a short extract; the semantics of the
+variables is defined <A HREF="#vars">below</A>.</P>
+<PRE># VarName               Type    Default         CondorName                      Req.    Export  UserName
+#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                                                                                               + = Use VarName
+#                                                                                               @ = Use CondorName
+#################################################################################################################
+<FONT FACE="Courier, monospace">X509_USER_PROXY         C       -               GSI_DAEMON_PROXY                Y       N       -</FONT>
+<FONT FACE="Courier, monospace">USE_MATCH_AUTH          C       -     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION  N       N       -</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Factory         S       -               +                               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Name            S       -               +                               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Collector       C       -               HEAD_NODE                       Y       N       -</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Expose_Grid_Env C       False     JOB_INHERITS_STARTER_ENVIRONMENT      N       Y       +</FONT>
+<FONT FACE="Courier, monospace">TMP_DIR                 S       -               GLIDEIN_Tmp_Dir                 Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_CLUSTER         I       -               GLIDEIN_ClusterId               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_SUBCLUSTER      I       -               GLIDEIN_ProcId                  Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_SCHEDD          S       -               GLIDEIN_Schedd                  Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">MAX_MASTER_LOG          I       1000000         +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
+<A NAME="vars"></A>Pre-defined variables</H2>
+<P>This section defines all the variables that the glideinWMS ships
+in the condor vars. Please be aware that, since glideins are Condor
+based, many other variables will be used by the Condor daemons; see
+the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html">Condor
+manual</A> for more details.</P>
+<P>The pre-defined variables can be divided in two categories:</P>
+<UL>
+	<LI><P><A HREF="#fix_vars">fixed</A>, and</P>
+	<LI><P><A HREF="#dyn_vars">dynamically generated</A></P>
+</UL>
+<H3><A NAME="fix_vars"></A>Fixed pre-defined variables</H3>
+<P>The following variables being used by the glideins use the default
+values as specified in the condor vars files, unless the user changes
+them in the <A HREF="entry.html#args">Glidein Factory configuration</A>
+file.</P>
+<P><BR><BR>
+</P>
+<H3><A NAME="dyn_vars"></A>Dynamically generated pre-defined variables</H3>
+<P>The following variables are being dynamically generated and/or
+modified by glideinWMS processes. The administrator cannot directly
+change them.</P>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<H2 ALIGN=LEFT>Repository</H2>
+			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
+			<H2 ALIGN=LEFT>Package(s)</H2>
+			<P ALIGN=LEFT>glideinWMS/creation</P>
+		</TD>
+		<TD>
+			<H2 ALIGN=LEFT>Author(s)</H2>
+			<P ALIGN=LEFT>Igor Sfiligoi (Fermilab Computing Division)</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
