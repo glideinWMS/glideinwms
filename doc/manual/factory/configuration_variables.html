@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090203;16502800">
+	<META NAME="CHANGED" CONTENT="20090203;17410000">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -24,11 +24,14 @@ site (for example: max allowed wallclock time).</P>
 <UL>
 	<LI><P><A HREF="#location">Configuration variable location</A></P>
 	<LI><P><A HREF="#condor_vars">Condor vars file</A></P>
-	<LI><P><A HREF="#vars">Pre-defined variables</A>
-	  <UL>
-	    <LI><P><A HREF="#fix_vars">Fixed pre-defined variables</A></P>
-	    <LI><P><A HREF="#dyn_vars">Dynamically generated pre-defined variables</A></P>
-          </UL></P>
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#vars">Pre-defined
+	variables</A> 
+	</P>
+	<UL>
+		<LI><P><A HREF="#fix_vars">Fixed pre-defined variables</A></P>
+		<LI><P><A HREF="#dyn_vars">Dynamically generated pre-defined
+		variables</A></P>
+	</UL>
 </UL>
 <H2><A NAME="location"></A>Configuration variable location</H2>
 <P>The glideinWMS ships with a set of pre-defined configuration
@@ -41,9 +44,9 @@ configuration variables.<BR><B>These files should never be modified,
 and represent just the default shipped by the software!</B> 
 </P>
 <P>A glideinWMS administrator can change the values of the predefined
-variables (with some exceptions, see <A HREF="#dyn_vars">below</A>), and define new ones
-using the <A HREF="entry.html#args">Glidein Factory configuration</A>
-file.</P>
+variables (with some exceptions, see <A HREF="#dyn_vars">below</A>),
+and define new ones using the <A HREF="entry.html#args">Glidein
+Factory configuration</A> file.</P>
 <H2><A NAME="condor_vars"></A>Condor vars files</H2>
 <P>The condor vars files contain the glideinWMS pre-defined
 configuration variables, and <B>should never be modified</B>.<BR>However,
@@ -118,9 +121,248 @@ manual</A> for more details.</P>
 values as specified in the condor vars files, unless the user changes
 them in the <A HREF="entry.html#args">Glidein Factory configuration</A>
 file.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=3>
+	<COL WIDTH=66*>
+	<COL WIDTH=14*>
+	<COL WIDTH=20*>
+	<COL WIDTH=32*>
+	<COL WIDTH=26*>
+	<COL WIDTH=97*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=6%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=8%>
+				<P>Default<BR>value</P>
+			</TH>
+			<TH WIDTH=12%>
+				<P>Condor name</P>
+			</TH>
+			<TH WIDTH=10%>
+				<P>Export <BR>Condor/Job</P>
+			</TH>
+			<TH WIDTH=38%>
+				<P>Description 
+				</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Start</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=38%>
+				<P>Condor START expression to use in the glideins. Both must be
+				true for a job to start.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Entry_Start</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Rank</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=38%>
+				<P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A>.<BR>They
+				are summed together, and the job with the largest rank will run
+				first.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Entry_Rank</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Max_Idle</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1200" SDNUM="1033;">
+				<P ALIGN=CENTER>1200</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>Max amount of time a condor_startd will wait to be matched
+				before giving up and terminating.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Retire_Time</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="21600" SDNUM="1033;">
+				<P ALIGN=CENTER>21600</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=38%>
+				<P>How long should the condor_startd be running before entering
+				into the <I>Retiring</I> state (thus not accepting any new
+				jobs).<BR>The random spread is used to improve the efficiencies,
+				so the actual value used by Condor will be anywhere between
+				GRT-GRTS and GRT.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Retire_TIme_Spread</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="7200" SDNUM="1033;">
+				<P ALIGN=CENTER>7200</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDIEN_Job_Max_Time</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>Max allowed time for the job to end.<BR>This is used by the
+				condor_startd; once it enters the <I>Retiring</I> state it will
+				wait at most this amount of time before killing the job.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
 <P><BR><BR>
 </P>
-<H3><A NAME="dyn_vars"></A>Dynamically generated pre-defined variables</H3>
+<H3><A NAME="dyn_vars"></A>Dynamically generated pre-defined
+variables</H3>
 <P>The following variables are being dynamically generated and/or
 modified by glideinWMS processes. The administrator cannot directly
 change them.</P>
