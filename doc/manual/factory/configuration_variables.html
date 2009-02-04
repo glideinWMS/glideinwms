@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090203;17410000">
+	<META NAME="CHANGED" CONTENT="20090204;16462500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -105,22 +105,22 @@ variables is defined <A HREF="#vars">below</A>.</P>
 <FONT FACE="Courier, monospace">SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -</FONT>
 <FONT FACE="Courier, monospace">MAX_MASTER_LOG          I       1000000         +                               N       N       -</FONT>
 <FONT FACE="Courier, monospace">MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
-<A NAME="vars"></A>Pre-defined variables</H2>
-<P>This section defines all the variables that the glideinWMS ships
-in the condor vars. Please be aware that, since glideins are Condor
-based, many other variables will be used by the Condor daemons; see
-the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html">Condor
+<A NAME="vars"></A>Variables used by the glideins</H2>
+<P>This section defines all the variables that the glideins explicity
+use. Please be aware that, apart from the blow mentioned variable
+many other variables will be used by the Condor daemons, since
+glideins are Condor based; see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html">Condor
 manual</A> for more details.</P>
-<P>The pre-defined variables can be divided in two categories:</P>
+<P>The variables can be divided in two categories:</P>
 <UL>
 	<LI><P><A HREF="#fix_vars">fixed</A>, and</P>
 	<LI><P><A HREF="#dyn_vars">dynamically generated</A></P>
 </UL>
 <H3><A NAME="fix_vars"></A>Fixed pre-defined variables</H3>
 <P>The following variables being used by the glideins use the default
-values as specified in the condor vars files, unless the user changes
-them in the <A HREF="entry.html#args">Glidein Factory configuration</A>
-file.</P>
+values as specified in the condor vars files, if available, unless
+the user changes them in the <A HREF="entry.html#args">Glidein
+Factory configuration</A> file.</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=3>
 	<COL WIDTH=66*>
 	<COL WIDTH=14*>
@@ -157,7 +157,7 @@ file.</P>
 				<P>GLIDEIN_Start</P>
 			</TH>
 			<TD WIDTH=6%>
-				<P ALIGN=CENTER>Exp</P>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
 			</TD>
 			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
@@ -171,8 +171,9 @@ file.</P>
 				</P>
 			</TD>
 			<TD ROWSPAN=2 WIDTH=38%>
-				<P>Condor START expression to use in the glideins. Both must be
-				true for a job to start.</P>
+				<P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START
+				expression</A> to use in the glideins. Both must be true for a
+				job to start.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
@@ -180,7 +181,7 @@ file.</P>
 				<P>GLIDEIN_Entry_Start</P>
 			</TH>
 			<TD WIDTH=6%>
-				<P ALIGN=CENTER>Exp</P>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
 			</TD>
 			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
@@ -199,7 +200,7 @@ file.</P>
 				<P>GLIDEIN_Rank</P>
 			</TH>
 			<TD WIDTH=6%>
-				<P ALIGN=CENTER>Exp</P>
+				<P ALIGN=CENTER>Exp<BR>(Int)</P>
 			</TD>
 			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
@@ -223,7 +224,7 @@ file.</P>
 				<P>GLIDEIN_Entry_Rank</P>
 			</TH>
 			<TD WIDTH=6%>
-				<P ALIGN=CENTER>Exp</P>
+				<P ALIGN=CENTER>Exp<BR>(Int)</P>
 			</TD>
 			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
@@ -235,6 +236,33 @@ file.</P>
 			<TD WIDTH=10%>
 				<P ALIGN=CENTER><BR>
 				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Expose_Grid_Env</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>JOB_INHERITS_STARTER_ENVIRONMENT</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>If False, the user job environment will contain only glidein
+				factory provided variables.</P>
+				<P>If True, the user job environment will also contain the
+				environment variables defined at glidein startup. 
+				</P>
+				<P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT
+				documentation</A> for more details.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
@@ -280,10 +308,10 @@ file.</P>
 			</TD>
 			<TD ROWSPAN=2 WIDTH=38%>
 				<P>How long should the condor_startd be running before entering
-				into the <I>Retiring</I> state (thus not accepting any new
-				jobs).<BR>The random spread is used to improve the efficiencies,
-				so the actual value used by Condor will be anywhere between
-				GRT-GRTS and GRT.</P>
+				into the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
+				state</A> (thus not accepting any new jobs).<BR>The random spread
+				is used to improve the efficiencies, so the actual value used by
+				Condor will be anywhere between GRT-GRTS and GRT.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
@@ -307,7 +335,59 @@ file.</P>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=26%>
-				<P>GLIDIEN_Job_Max_Time</P>
+				<P>GLIDEIN_Job_Max_Time</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="360000" SDNUM="1033;">
+				<P ALIGN=CENTER>360000</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>Max allowed time for the job to end.<BR>This is used by the
+				condor_startd; once it enters the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
+				state</A> it will wait at most this amount of time before killing
+				the job.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
 			</TH>
 			<TD WIDTH=6%>
 				<P ALIGN=CENTER><BR>
@@ -326,9 +406,261 @@ file.</P>
 				</P>
 			</TD>
 			<TD WIDTH=38%>
-				<P>Max allowed time for the job to end.<BR>This is used by the
-				condor_startd; once it enters the <I>Retiring</I> state it will
-				wait at most this amount of time before killing the job.</P>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Use_PGroups</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER>USE_PROCESS_GROUPS</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>Should process group monitoring be enabled?</P>
+				<P>This is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UseProcessGroups">Condor
+				optimization</A> parameter. Unfortunately, it negatively
+				interferes with the batch systems used by the Grid sites, so it
+				should not be turned on unless you have a very good reason to do
+				so.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>UPDATE_COLLECTOR_WITH_TCP</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>If True, forces the glidein to use <A HREF="entry.html#tcp">TCP
+				updates</A>.<BR>The collector must be configured in the same way
+				for this to work.</P>
+				<P>Also see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UpdateCollectorWithTcp">Condor
+				documentation</A> for implications and side effects.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>WANT_UDP_COMMAND_SOCKET</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>If True, enable the startd UDP command socket.</P>
+				<P>Using the UDP command socket is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:WantUDPCommandSocket">Condor
+				optimization</A> that makes working over firewalls very
+				difficult. It is thus recommended you leave it disabled in the
+				glideins.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>SEC_DEFAULT_INTEGRITY</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>REQUIRED</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=38%>
+				<P>Security related settings. Please notice that the glideins
+				always require GSI authentication.</P>
+				<P>For more details see the <A HREF="entry.html#security">configuration
+				page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html">Condor
+				manual</A>.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>SEC_DEFAULT_ENCRYPTION</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>OPTIONAL</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>USE_MATCH_AUTH</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P>Another security setting.</P>
+				<P>If set to True, the schedd and the startd will use a low
+				overhead protocol. See the <A HREF="entry.html#security">configuration
+				page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+				manual</A>.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P><BR>
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P><BR>
+				</P>
+			</TH>
+			<TD WIDTH=6%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=12%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER><BR>
+				</P>
+			</TD>
+			<TD WIDTH=38%>
+				<P><BR>
+				</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
