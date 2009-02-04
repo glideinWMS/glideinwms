@@ -22,7 +22,6 @@ GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	21600		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	7200	+				N	N	-
 GLIDEIN_Job_Max_Time	I	360000		+				N	Y	-
-GLIDEIN_Use_TCP		I 	-		UPDATE_COLLECTOR_WITH_TCP	N	N	-
 GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
 GLIDEIN_Expose_Grid_Env	C	False		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
