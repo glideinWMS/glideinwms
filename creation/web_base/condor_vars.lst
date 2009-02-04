@@ -3,6 +3,26 @@
 #												+ = Use VarName
 #												@ = Use CondorName
 #################################################################################################################
+
+# User modifiable variables
+GLIDEIN_Start		C	1		+				N	N	-
+GLIDEIN_Rank		C	1		+				N	N	-
+GLIDEIN_Expose_Grid_Env	C	False		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
+GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
+GLIDEIN_Retire_Time 	I 	21600		+				N	N	-
+GLIDEIN_Retire_Time_Spread 	I 	7200	+				N	N	-
+GLIDEIN_Job_Max_Time	I	360000		+				N	Y	-
+GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
+UPDATE_COLLECTOR_WITH_TCP	C	False	+				N	N	-
+WANT_UDP_COMMAND_SOCKET	C	False		+				N	N	-
+SEC_DEFAULT_ENCRYPTION	C	OPTIONAL	+				N	N	-
+SEC_DEFAULT_INTEGRITY	C	REQUIRED	+				N	N	-
+USE_MATCH_AUTH		C	-     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION	N	N	-
+
+# VO frontend provided
+GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
+
+# Other
 CONDOR_DIR		C	-		+				Y	N	-
 X509_USER_PROXY		C	-		GSI_DAEMON_PROXY		Y	N	-
 X509_EXPIRE		I	-		+				Y	N	-
@@ -10,20 +30,10 @@ X509_CERT_DIR		C	-		GSI_DAEMON_TRUSTED_CA_DIR	Y	N	-
 X509_CONDORMAP		C	-		CERTIFICATE_MAPFILE		Y	N	-
 X509_GRIDMAP_DNS	S	-		GLIDEIN_X509_GRIDMAP_DNS	N	Y	-
 X509_GRIDMAP_TRUSTED_DNS	C	-	GSI_DAEMON_NAME			Y	N	-
-USE_MATCH_AUTH		C	-     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION	N	N	-
 GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
 GLIDEIN_Signature	S	-		+				Y	Y	@
 GLIDEIN_Client		S	-		+				N	Y	@
-GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
-GLIDEIN_Start		C	1		+				N	N	-
-GLIDEIN_Rank		C	1		+				N	N	-
-GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
-GLIDEIN_Retire_Time 	I 	21600		+				N	N	-
-GLIDEIN_Retire_Time_Spread 	I 	7200	+				N	N	-
-GLIDEIN_Job_Max_Time	I	360000		+				N	Y	-
-GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
-GLIDEIN_Expose_Grid_Env	C	False		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
 TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
 CONDORG_CLUSTER		I	-		GLIDEIN_ClusterId		Y	Y	@
 CONDORG_SUBCLUSTER	I	-		GLIDEIN_ProcId			Y	Y	@
@@ -31,9 +41,6 @@ CONDORG_SCHEDD		S	-		GLIDEIN_Schedd			Y	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	Y	@
 DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
 DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
-SEC_DEFAULT_ENCRYPTION	C	OPTIONAL	+				N	N	-
-SEC_DEFAULT_INTEGRITY	C	REQUIRED	+				N	N	-
-UPDATE_COLLECTOR_WITH_TCP	C	False	+				N	N	-
 MASTER_GCB_RECONNECT_TIMEOUT	I	1200	+				N	Y	-
 GLEXEC_STARTER		C	False		+				N	Y	-
 GLEXEC_JOB		C	False		+				N	Y	-
@@ -42,4 +49,3 @@ MAX_MASTER_LOG		I	1000000		+				N	N	-
 MAX_STARTD_LOG		I	10000000	+				N	N	-
 MAX_STARTER_LOG		I	10000000	+				N	N	-
 STARTD_SENDS_ALIVES	C	True		+				N	N	-
-WANT_UDP_COMMAND_SOCKET	C	False		+				N	N	-
