@@ -84,8 +84,11 @@ entry specific) are also loaded into this file.</P>
 <P>To write into the glidein configuration file, the best approach in
 bash is to use the add_config_line support script. Just source the
 provided script and use it. Here is an example:</P>
-<BLOCKQUOTE><FONT FACE="Courier, monospace"># get the glidein
-configuration file name<BR>glidein_config=$1</FONT></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Courier, monospace">
+# get the glidein configuration file name<BR>
+# must use <B>glidein_config</B>, it is used as global variable<BR>
+glidein_config=$1
+</FONT></BLOCKQUOTE>
 <BLOCKQUOTE><FONT FACE="Courier, monospace"># import add_config_line
 function<BR>add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE '
 $glidein_config | awk '{print $2}'`<BR>source $add_config_line_source</FONT></BLOCKQUOTE>
