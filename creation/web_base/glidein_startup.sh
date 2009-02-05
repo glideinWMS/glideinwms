@@ -75,6 +75,7 @@ function glidein_exit {
 }
 
 # Create a script that defines add_config_line
+# and create_add_condor_vars_line
 # This way other depending scripts can use it
 function create_add_config_line {
     cat > "$1" << EOF
@@ -92,6 +93,22 @@ function add_config_line {
     grep -v "^\$id " \${glidein_config}.old > \$glidein_config
     echo "\$@" >> \$glidein_config
     rm -f \${glidein_config}.old
+}
+
+####################################
+# Add a line to the condor_vars file
+function add_condor_vars_line {
+    id=\$1
+
+    rm -f \${condor_vars_file}.old #just in case one was there
+    mv \$condor_vars_file \${condor_vars_file}.old
+    if [ \$? -ne 0 ]; then
+        warn "Error renaming \$condor_vars_file into \${condor_vars_file}.old"
+        exit 1
+    fi
+    grep -v "^\$id\b" \${condor_vars_file}.old > \$condor_vars_file
+    echo "\$@" >> \$condor_vars_file
+    rm -f \${condor_vars_file}.old
 }
 EOF
 }
