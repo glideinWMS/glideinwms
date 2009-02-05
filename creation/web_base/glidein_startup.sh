@@ -93,12 +93,14 @@ function glidein_exit {
 }
 
 # Create a script that defines add_config_line
+#   and add_condor_vars_line
 # This way other depending scripts can use it
 function create_add_config_line {
     cat > "$1" << EOF
 ###################################
 # Add a line to the config file
-# Arg: line to add
+# Arg: line to add, first element is the id
+# Uses global variablr glidein_config
 function add_config_line {
     rm -f \${glidein_config}.old #just in case one was there
     mv \$glidein_config \${glidein_config}.old
@@ -109,6 +111,24 @@ function add_config_line {
     grep -v "^\$1 " \${glidein_config}.old > \$glidein_config
     echo "\$@" >> \$glidein_config
     rm -f \${glidein_config}.old
+}
+
+####################################
+# Add a line to the condor_vars file
+# Arg: line to add, first element is the id
+# Uses global variablr glidein_config
+function add_condor_vars_line {
+    id=\$1
+
+    rm -f \${condor_vars_file}.old #just in case one was there
+    mv \$condor_vars_file \${condor_vars_file}.old
+    if [ \$? -ne 0 ]; then
+        warn "Error renaming \$condor_vars_file into \${condor_vars_file}.old"
+        exit 1
+    fi
+    grep -v "^\$id\b" \${condor_vars_file}.old > \$condor_vars_file
+    echo "\$@" >> \$condor_vars_file
+    rm -f \${condor_vars_file}.old
 }
 EOF
 }
@@ -817,6 +837,7 @@ function fetch_file_base {
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
 	    if [ $ret -ne 0 ]; then
+                echo "=== Validation error in $ffb_outname ==="
 		warn "Error running '$ffb_outname'" 1>&2
 		return 1
 	    fi
