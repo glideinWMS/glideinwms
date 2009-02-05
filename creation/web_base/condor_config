@@ -65,13 +65,6 @@ MASTER_CHECK_NEW_EXEC_INTERVAL = 3600000
 #If the daemon crashes, run away fast
 MASTER_BACKOFF_CEILING = 600
 
-# how often should should starter update shadow with dynamic attributes?
-# default = 1200 sec, choose a larger value, at the expense of less
-# visibility into condor_q job dynamic attributes: cpu time, image size,
-# etc
-# now in condor_vars.lst
-#STARTER_UPDATE_INTERVAL = 3600
-
 # This section contains macros are here to help write legible
 # expressions:
 
