@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090205;15190900">
+	<META NAME="CHANGED" CONTENT="20090205;16560600">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -144,6 +144,22 @@ Factory configuration</A> file.</P>
 		</TR>
 	</THEAD>
 	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>GLIDEIN_Site</P>
+			</TH>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=10%>
+				<P ALIGN=CENTER>Entry name</P>
+			</TD>
+			<TD WIDTH=55%>
+				<P>Logical name of the Grid site where the glidein is running.</P>
+				<P>This information is published both in the startd ClassAd and
+				in the user job environment.</P>
+			</TD>
+		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=27%>
 				<P>GLIDEIN_Start</P>
@@ -485,38 +501,59 @@ Factory configuration</A> file.</P>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=27%>
-				<P><BR>
-				</P>
+				<P>GCB_LIST</P>
 			</TH>
 			<TD WIDTH=8%>
-				<P ALIGN=CENTER><BR>
-				</P>
+				<P ALIGN=CENTER>List</P>
 			</TD>
-			<TD WIDTH=10%>
-				<P ALIGN=CENTER><BR>
-				</P>
+			<TD ROWSPAN=4 WIDTH=10%>
+				<P ALIGN=CENTER>None</P>
 			</TD>
-			<TD WIDTH=55%>
-				<P><BR>
-				</P>
+			<TD ROWSPAN=4 WIDTH=55%>
+				<P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
+				<P>GCB is needed to run glideins on worker nodes behind a
+				firewall or a NAT.</P>
+				<P>For more information, see the <A HREF="entry.html#gcb">configuration
+				page</A>.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=27%>
-				<P><BR>
-				</P>
+				<P>GCB_ORDER</P>
 			</TH>
 			<TD WIDTH=8%>
-				<P ALIGN=CENTER><BR>
-				</P>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>GCB_MIN_FREE</P>
+			</TH>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>GCB_REMAP_ROUTE</P>
+			</TH>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>MASTER_GCB_RECONNECT_TIMEOUT</P>
+			</TH>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>Int</P>
 			</TD>
 			<TD WIDTH=10%>
-				<P ALIGN=CENTER><BR>
-				</P>
+				<P ALIGN=CENTER>1200<BR>(20 mins)</P>
 			</TD>
 			<TD WIDTH=55%>
-				<P><BR>
-				</P>
+				<P>Specifies how long should a glidein wait before giving up on a
+				GCB, if network connectivity is lost.</P>
 			</TD>
 		</TR>
 	</TBODY>
