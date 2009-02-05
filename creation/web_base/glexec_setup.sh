@@ -34,7 +34,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 add_config_line "ALTERNATIVE_SHELL" "$PWD/sh" 
-add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "N" "Y" "-"
+add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
 # --------------------------------------------------
 # Set glidein working dir into the tmp dir
@@ -46,7 +46,7 @@ if [ -z "$glide_tmp_dir" ]; then
     exit 1
 fi
 add_config_line "GLEXEC_USER_DIR" "$glide_tmp_dir"
-add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "N" "Y" "-"
+add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "Y" "N" "-"
 
 
 # --------------------------------------------------
@@ -81,8 +81,8 @@ else
     add_config_line "GLEXEC_STARTER" "True"
     add_config_line "GLEXEC_JOB" "False"
 fi
-add_condor_vars_line "GLEXEC_STARTER" "C" "-" "+" "N" "Y" "-"
-add_condor_vars_line "GLEXEC_JOB"     "C" "-" "+" "N" "Y" "-"
+add_condor_vars_line "GLEXEC_STARTER" "C" "-" "+" "Y" "N" "-"
+add_condor_vars_line "GLEXEC_JOB"     "C" "-" "+" "Y" "N" "-"
 
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 
