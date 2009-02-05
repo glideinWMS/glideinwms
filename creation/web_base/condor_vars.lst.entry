@@ -7,6 +7,7 @@
 # User modifiable variables
 GLIDEIN_Entry_Start	C	1		+				N	N	-
 GLIDEIN_Entry_Rank	C	1		+				N	N	-
+GLEXEC_BIN		C	-		GLEXEC				N	N	-
 
 # Other
 GLIDEIN_Entry_Name	S	-		+				Y	Y	@
@@ -17,7 +18,4 @@ GLIDEIN_GridType	S	-		+				N	Y	@
 GLIDEIN_GlobusRSL	S	-		+				N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
 CONDOR_DIR		C	-		+				Y	N	-
-GLEXEC_BIN		C	-		GLEXEC				N	N	-
-GLEXEC_USER_DIR		C	-		+				N	N	-
-ALTERNATIVE_SHELL	C	-		SH				N	N	-
 MASTER_GCB_RECONNECT_TIMEOUT	I	-	+				N	N	-
