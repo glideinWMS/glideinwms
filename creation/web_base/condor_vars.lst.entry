@@ -3,10 +3,14 @@
 #												+ = Use VarName
 #												@ = Use CondorName
 #################################################################################################################
-GLIDEIN_Entry_Name	S	-		+				Y	Y	@
-GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
+
+# User modifiable variables
 GLIDEIN_Entry_Start	C	1		+				N	N	-
 GLIDEIN_Entry_Rank	C	1		+				N	N	-
+
+# Other
+GLIDEIN_Entry_Name	S	-		+				Y	Y	@
+GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
 GLIDEIN_Gatekeeper	S	-		+				N	Y	@
 GLIDEIN_GridType	S	-		+				N	Y	@
