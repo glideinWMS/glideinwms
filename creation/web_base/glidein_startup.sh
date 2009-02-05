@@ -116,7 +116,7 @@ function add_config_line {
 ####################################
 # Add a line to the condor_vars file
 # Arg: line to add, first element is the id
-# Uses global variablr glidein_config
+# Uses global variablr condor_vars_file
 function add_condor_vars_line {
     id=\$1
 
