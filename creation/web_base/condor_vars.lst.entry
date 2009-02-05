@@ -17,4 +17,8 @@ GLIDEIN_Gatekeeper	S	-		+				N	Y	@
 GLIDEIN_GridType	S	-		+				N	Y	@
 GLIDEIN_GlobusRSL	S	-		+				N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
+DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
+
+# Glidein generated
 CONDOR_DIR		C	-		+				Y	N	-
+TMP_DIR			S	-		GLIDEIN_Tmp_Dir			Y	Y	@
