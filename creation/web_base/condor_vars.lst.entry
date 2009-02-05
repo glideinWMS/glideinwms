@@ -10,7 +10,7 @@ GLIDEIN_Entry_Start	C	1		+				N	N	-
 GLIDEIN_Entry_Rank	C	1		+				N	N	-
 GLEXEC_BIN		C	-		GLEXEC				N	N	-
 
-# Other
+# Factory provided
 GLIDEIN_Entry_Name	S	-		+				Y	Y	@
 GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
 GLIDEIN_Gatekeeper	S	-		+				N	Y	@
@@ -18,4 +18,3 @@ GLIDEIN_GridType	S	-		+				N	Y	@
 GLIDEIN_GlobusRSL	S	-		+				N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
 CONDOR_DIR		C	-		+				Y	N	-
-MASTER_GCB_RECONNECT_TIMEOUT	I	-	+				N	N	-
