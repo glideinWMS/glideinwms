@@ -12,6 +12,7 @@ GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	21600		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	7200	+				N	N	-
 GLIDEIN_Job_Max_Time	I	360000		+				N	Y	-
+GLEXEC_JOB		C	False		+				N	Y	-
 GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
 UPDATE_COLLECTOR_WITH_TCP	C	False	+				N	N	-
 WANT_UDP_COMMAND_SOCKET	C	False		+				N	N	-
@@ -46,5 +47,3 @@ PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	Y	@
 DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
 DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
 MASTER_GCB_RECONNECT_TIMEOUT	I	1200	+				N	Y	-
-GLEXEC_STARTER		C	False		+				N	Y	-
-GLEXEC_JOB		C	False		+				N	Y	-
