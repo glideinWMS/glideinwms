@@ -79,7 +79,7 @@ most interesting being:</P>
 </UL>
 <P>All attributes of the glidein factory (both the common and the
 entry specific) are also loaded into this file.</P>
-<P><BR><BR>
+<P><BR>
 </P>
 <P>To write into the glidein configuration file, the best approach in
 bash is to use the add_config_line support script. Just source the
@@ -157,8 +157,25 @@ at your glideinWMS installation.</P>
 <FONT FACE="Courier, monospace">SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -</FONT>
 <FONT FACE="Courier, monospace">SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -</FONT>
 <FONT FACE="Courier, monospace">MAX_MASTER_LOG          I       1000000         +                               N       N       -</FONT>
-<FONT FACE="Courier, monospace">MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
-<A NAME="order"></A>Loading order</H2>
+<FONT FACE="Courier, monospace">MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE>
+<P><BR>
+</P>
+<P>If you need to add anything to a <I>condor vars</I> file, the best approach in
+bash is to use the add_condor_vars_line support script. Just source the
+provided script and use it. Here is an example:</P>
+<BLOCKQUOTE><FONT FACE="Courier, monospace">
+# get the condor vars file name <BR>
+# must use <B>condor_vars_file</B>, it is used as global variable<BR>
+condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '{print $2}'`
+</FONT></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Courier, monospace"># import add_condor_vars_line
+function<BR>add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE '
+$glidein_config | awk '{print $2}'`<BR>source $add_config_line_source</FONT></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Courier, monospace"># add an
+attributes<BR>
+add_condor_vars_line</FONT> <I>myattribute type def condor_name req publish jobid</I></BLOCKQUOTE>
+
+<H2><A NAME="order"></A>Loading order</H2>
 <P>Scripts are loaded and executed one at a time. There are six
 distinct stages involved:</P>
 <OL>
@@ -220,6 +237,16 @@ fi
 tmpname=$PWD/installed_software_tmp_$$.tmp
 software_list&gt; $tmpname
 
+
+###########################################################
+# import add_config_line and add_condor_vars_line functions
+
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
+
+condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '{print $2}'`
+
+
 ##################
 # Format the data
 
@@ -233,15 +260,9 @@ fi
 #################
 # Export the data
 
-echo &quot;############ software ##############&quot; &gt;&gt; &quot;$glidein_config&quot;
-echo &quot;GLIDEIN_SW_LIST $sw_list&quot; &gt;&gt; &quot;$glidein_config&quot;
-echo &quot;########## end CMS software ############&quot; &gt;&gt; &quot;$glidein_config&quot;
+add_config_line GLIDEIN_SW_LIST &quot;$sw_list&quot;
+add_condor_vars_line GLIDEIN_SW_LIST &quot;S&quot; &quot;-&quot; &quot;+&quot; &quot;Y&quot; &quot;Y&quot; &quot;+&quot;
 
-# One has to tell the condor_startup to publish the data
-condor_vars_file=`grep -i &quot;^CONDOR_VARS_FILE &quot; $glidein_config | awk '{print $2}'`
-echo &quot;############ software ##############&quot; &gt;&gt; &quot;$condor_vars_file&quot;
-echo &quot;GLIDEIN_SW_LIST S - + Y Y +&quot; &gt;&gt; &quot;$condor_vars_file&quot;
-echo &quot;########## end software ############&quot; &gt;&gt; &quot;$condor_vars_file&quot;
 </PRE><H3>
 Change an existing value based on conditions found</H3>
 <PRE>#!/bin/bash
