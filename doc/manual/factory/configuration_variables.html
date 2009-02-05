@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090205;11443800">
+	<META NAME="CHANGED" CONTENT="20090205;15190900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -253,7 +253,7 @@ Factory configuration</A> file.</P>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=27%>
-				<P>GLIDEIN_Retire_TIme_Spread</P>
+				<P>GLIDEIN_Retire_Time_Spread</P>
 			</TH>
 			<TD WIDTH=8%>
 				<P ALIGN=CENTER>Int</P>
@@ -281,37 +281,41 @@ Factory configuration</A> file.</P>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=27%>
-				<P><BR>
-				</P>
+				<P>GLEXEC_BIN</P>
 			</TH>
 			<TD WIDTH=8%>
-				<P ALIGN=CENTER><BR>
-				</P>
+				<P ALIGN=CENTER>String</P>
 			</TD>
 			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
-				<P ALIGN=CENTER><BR>
-				</P>
+				<P ALIGN=CENTER>None</P>
 			</TD>
 			<TD WIDTH=55%>
-				<P><BR>
-				</P>
+				<P>If set, Condor will launch all user jobs via <A HREF="http://vdt.cs.wisc.edu/components/glexec.html">glexec</A>,
+				thus <A HREF="entry.html#glexec">running the job under the
+				appropriate local account</A>. This important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
+				security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
+				purposes</A>.<BR>A special value of OSG can be used to
+				automatically find the locally installed gLExec on OSG worker
+				nodes.</P>
+				<P>This variable is renamed to GLEXEC in the condor config.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=27%>
-				<P><BR>
-				</P>
+				<P>GLEXEC_JOB</P>
 			</TH>
 			<TD WIDTH=8%>
-				<P ALIGN=CENTER><BR>
-				</P>
+				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10%>
-				<P ALIGN=CENTER><BR>
-				</P>
+			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
 			</TD>
 			<TD WIDTH=55%>
-				<P><BR>
+				<P>If set to False, the condor_starter is run sharing the <A HREF="entry.html#glexec">same
+				UID as the user job</A>. This has security implications.</P>
+				<P>If running Condor 7.1.3 or later, it is recommended to turn
+				this on and have the condor_starter be protected from the user
+				jobs. 
 				</P>
 			</TD>
 		</TR>
@@ -363,11 +367,16 @@ Factory configuration</A> file.</P>
 				<P ALIGN=CENTER>False</P>
 			</TD>
 			<TD WIDTH=55%>
-				<P>If True, enable the startd UDP command socket.</P>
+				<P>If True, enable the startd UDP command socket (Condor
+				default).</P>
 				<P>Using the UDP command socket is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:WantUDPCommandSocket">Condor
 				optimization</A> that makes working over firewalls and NATs very
 				difficult. It is thus recommended you leave it disabled in the
 				glideins.</P>
+				<P>Please note if you leave it disabled, that you must configure
+				the schedd with<BR>SCHEDD_SEND_VACATE_VIA_TCP = True<BR>and the
+				negotiator with<BR><A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:NegotiatorInformStartd">NEGOTIATOR_INFORM_STARTD</A>
+				= False<BR>to have a functional system.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
