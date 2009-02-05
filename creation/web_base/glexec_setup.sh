@@ -19,7 +19,9 @@ if [ "$glexec_bin" == "NONE" ]; then
     exit 0
 fi
 
-# import add_config_line function
+condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+
+# import add_config_line and add_condor_vars_line functions
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
 
@@ -32,7 +34,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 add_config_line "ALTERNATIVE_SHELL" "$PWD/sh" 
-
+add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "N" "Y" "-"
 
 # --------------------------------------------------
 # Set glidein working dir into the tmp dir
@@ -44,6 +46,8 @@ if [ -z "$glide_tmp_dir" ]; then
     exit 1
 fi
 add_config_line "GLEXEC_USER_DIR" "$glide_tmp_dir"
+add_condor_vars_line "GLEXEC_USER_DIR" "C" "-" "+" "N" "Y" "-"
+
 
 # --------------------------------------------------
 #
@@ -77,6 +81,9 @@ else
     add_config_line "GLEXEC_STARTER" "True"
     add_config_line "GLEXEC_JOB" "False"
 fi
+add_condor_vars_line "GLEXEC_STARTER" "C" "-" "+" "N" "Y" "-"
+add_condor_vars_line "GLEXEC_JOB"     "C" "-" "+" "N" "Y" "-"
+
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 
 ####################################################################
