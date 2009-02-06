@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090206;11010500">
+	<META NAME="CHANGED" CONTENT="20090206;12070700">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -24,13 +24,13 @@ site (for example: max allowed wallclock time).</P>
 <UL>
 	<LI><P><A HREF="#location">Configuration variable location</A></P>
 	<LI><P><A HREF="#condor_vars">Condor vars file</A></P>
-	<LI><P STYLE="margin-bottom: 0in"><A HREF="#vars">
-	Variables used by the glideins</A> 
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#vars">Variables used by
+	the glideins</A> 
 	</P>
 	<UL>
 		<LI><P><A HREF="#user_vars">User modifiable variables</A></P>
-		<LI><P><A HREF="#dyn_vars">Dynamically generated variables
-		</A></P>
+		<LI><P><A HREF="#dyn_vars">Dynamically generated variables </A>
+		</P>
 	</UL>
 </UL>
 <H2><A NAME="location"></A>Configuration variable location</H2>
@@ -125,27 +125,27 @@ changed by the user.</P>
 <P>elements as explained in the <A HREF="entry.html#args">Glidein
 Factory configuration</A> section.<BR>Most of these variables also
 have their default values defined in the <I>condor vars</I> files,
-which are used if the glidein factory administrator does not override
+which are used if the Glidein Factory administrator does not override
 them.</P>
 <P>Please also note that some of these variables may also be provided
 by the VO factory clients.</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=3>
-	<COL WIDTH=70*>
-	<COL WIDTH=20*>
-	<COL WIDTH=25*>
-	<COL WIDTH=141*>
+	<COL WIDTH=59*>
+	<COL WIDTH=17*>
+	<COL WIDTH=22*>
+	<COL WIDTH=158*>
 	<THEAD>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>Name</P>
 			</TH>
-			<TH WIDTH=8%>
+			<TH WIDTH=7%>
 				<P>Type</P>
 			</TH>
-			<TH WIDTH=10%>
+			<TH WIDTH=8%>
 				<P>Default<BR>value</P>
 			</TH>
-			<TH WIDTH=55%>
+			<TH WIDTH=62%>
 				<P>Description 
 				</P>
 			</TH>
@@ -153,86 +153,86 @@ by the VO factory clients.</P>
 	</THEAD>
 	<TBODY>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Site</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>String</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>Entry name</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>Logical name of the Grid site where the glidein is running.</P>
 				<P>This information is published both in the startd ClassAd and
 				in the user job environment.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Start</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="1" SDNUM="1033;">
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
 			</TD>
-			<TD ROWSPAN=2 WIDTH=55%>
+			<TD ROWSPAN=2 WIDTH=62%>
 				<P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START
 				expression</A> to use in the glideins. Both must be true for a
 				job to start.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Entry_Start</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="1" SDNUM="1033;">
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Rank</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp<BR>(Int)</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="1" SDNUM="1033;">
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
 			</TD>
-			<TD ROWSPAN=2 WIDTH=55%>
+			<TD ROWSPAN=2 WIDTH=62%>
 				<P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A>.<BR>They
 				are summed together, and the job with the largest rank will run
 				first.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Entry_Rank</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp<BR>(Int)</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="1" SDNUM="1033;">
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
 				<P ALIGN=CENTER>1</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Expose_Grid_Env</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>False</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>If False, the user job environment will contain only glidein
 				factory provided variables.</P>
 				<P>If True, the user job environment will also contain the
@@ -243,31 +243,31 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Max_Idle</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>1200<BR>(20 mins)</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>Max amount of time a condor_startd will wait to be matched
 				before giving up and terminating.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Retire_Time</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>21600<BR>(6 hours)</P>
 			</TD>
-			<TD ROWSPAN=2 WIDTH=55%>
+			<TD ROWSPAN=2 WIDTH=62%>
 				<P>How long should the condor_startd be running before entering
 				into the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
 				state</A> (thus not accepting any new jobs).<BR>The random spread
@@ -276,27 +276,27 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Retire_Time_Spread</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>7200<BR>(2 hours)</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Job_Max_Time</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>360k<BR>(100 hours)</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>Max allowed time for the job to end.<BR>This is used by the
 				condor_startd; once it enters the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
 				state</A> it will wait at most this amount of time before killing
@@ -304,16 +304,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLEXEC_BIN</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>String</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>None</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>If set, Condor will launch all user jobs via <A HREF="http://vdt.cs.wisc.edu/components/glexec.html">glexec</A>,
 				thus <A HREF="entry.html#glexec">running the job under the
 				appropriate local account</A>. This important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
@@ -321,20 +321,21 @@ by the VO factory clients.</P>
 				purposes</A>.<BR>A special value of OSG can be used to
 				automatically find the locally installed gLExec on OSG worker
 				nodes.</P>
-				<P>This variable is renamed to GLEXEC in the condor config.</P>
+				<P>This variable is renamed to <B>GLEXEC</B> in the condor
+				config.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLEXEC_JOB</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>False</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>If set to False, the condor_starter is run sharing the <A HREF="entry.html#glexec">same
 				UID as the user job</A>. This has security implications.</P>
 				<P>If running Condor 7.1.3 or later, it is recommended to turn
@@ -344,16 +345,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GLIDEIN_Use_PGroups</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>False</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>Should process group monitoring be enabled?</P>
 				<P>This is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UseProcessGroups">Condor
 				optimization</A> parameter. Unfortunately, it negatively
@@ -363,16 +364,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>UPDATE_COLLECTOR_WITH_TCP</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>False</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>If True, forces the glidein to use <A HREF="entry.html#tcp">TCP
 				updates</A>.<BR>The collector must be configured in the same way
 				for this to work.</P>
@@ -381,16 +382,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>WANT_UDP_COMMAND_SOCKET</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>False</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>If True, enable the startd UDP command socket (Condor
 				default).</P>
 				<P>Using the UDP command socket is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:WantUDPCommandSocket">Condor
@@ -404,16 +405,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>STARTD_SENDS_ALIVES</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>True</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>If set to False, the schedd will be sending keepalives to the
 				startd.</P>
 				<P>Setting this to True instructs the startd to send keepalives
@@ -422,16 +423,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>SEC_DEFAULT_INTEGRITY</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>REQUIRED</P>
 			</TD>
-			<TD ROWSPAN=2 WIDTH=55%>
+			<TD ROWSPAN=2 WIDTH=62%>
 				<P>Security related settings. Please notice that the glideins
 				always require GSI authentication.</P>
 				<P>For more details see the <A HREF="entry.html#security">configuration
@@ -440,27 +441,27 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>SEC_DEFAULT_ENCRYPTION</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Exp</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>OPTIONAL</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>USE_MATCH_AUTH</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Bool</P>
 			</TD>
-			<TD WIDTH=10% SDVAL="0" SDNUM="1033;0;@">
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
 				<P ALIGN=CENTER>False</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>Another security setting.</P>
 				<P>If set to True, the schedd and the startd will use a low
 				overhead protocol. See the <A HREF="entry.html#security">configuration
@@ -469,16 +470,16 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>MAX_MASTER_LOG</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>1M</P>
 			</TD>
-			<TD ROWSPAN=3 WIDTH=55%>
+			<TD ROWSPAN=3 WIDTH=62%>
 				<P>What is the maximum size the logs should grow.</P>
 				<P>Setting them too low will made debugging difficult.<BR>Setting
 				them too high may fill up the disk in anomalous situations, both
@@ -486,38 +487,38 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>MAX_STARTD_LOG</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>10M</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>MAX_STARTER_LOG</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>10M</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GCB_LIST</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>List</P>
 			</TD>
-			<TD ROWSPAN=4 WIDTH=10%>
+			<TD ROWSPAN=4 WIDTH=8%>
 				<P ALIGN=CENTER>-</P>
 			</TD>
-			<TD ROWSPAN=4 WIDTH=55%>
+			<TD ROWSPAN=4 WIDTH=62%>
 				<P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
 				<P>GCB is needed to run glideins on worker nodes behind a
 				firewall or a NAT.</P>
@@ -526,42 +527,227 @@ by the VO factory clients.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GCB_ORDER</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>String</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GCB_MIN_FREE</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>GCB_REMAP_ROUTE</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>String</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
-			<TH WIDTH=27%>
+			<TH WIDTH=23%>
 				<P>MASTER_GCB_RECONNECT_TIMEOUT</P>
 			</TH>
-			<TD WIDTH=8%>
+			<TD WIDTH=7%>
 				<P ALIGN=CENTER>Int</P>
 			</TD>
-			<TD WIDTH=10%>
+			<TD WIDTH=8%>
 				<P ALIGN=CENTER>1200<BR>(20 mins)</P>
 			</TD>
-			<TD WIDTH=55%>
+			<TD WIDTH=62%>
 				<P>Specifies how long should a glidein wait before giving up on a
 				GCB, if network connectivity is lost.</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The second set of variables comes from values the Glidein Factory
+administrator defined to make the factory to work. They cannot be
+changed by the user in any other way.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=59*>
+	<COL WIDTH=19*>
+	<COL WIDTH=66*>
+	<COL WIDTH=113*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=26%>
+				<P>Source</P>
+			</TH>
+			<TH WIDTH=44%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Factory</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>&lt;glidein factory_name=&quot;<B>value</B>&quot;&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Logical name of the Glidein Factory machine (like “osg1”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Name</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>&lt;glidein glidein_name=&quot;<B>value</B>&quot;&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Identification name of the Glidein Factory instance (like
+				“v1_0”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Entry_Name</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry name=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Identification name of the entry point (like “ucsd5”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_GridType</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry gridtype=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Type of Grid resource (like “gt2”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Glidekeeper</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry gatekeeper=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>URI of the Grid gatekeeper (like
+				“osg1.ucsd.edu/jobmanager-pbs”)</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_GlobusRSL</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry rsl=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Optional RSL string (like &quot;(condor_submit=('+ProdSlot'
+				'TRUE'))&quot;)</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>PROXY_URL</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry proxy_url=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Optional URL of the site Web proxy.</P>
+				<P>A special value “OSG” can be used to automatically
+				discover the local Web proxy on OSG worker nodes.</P>
+				<P>This variable is exported as <B>GLIDEIN_Proxy_URL</B> to the
+				use job environment.</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Finally, the third set of values comes from the VO Frontend
+clients. While a client can set any number of variables, the ones
+described below ar the most often used.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=66*>
+	<COL WIDTH=19*>
+	<COL WIDTH=171*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=67%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Client</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>Identification name of the VO frontend request (like
+				“ucsd5@v1_0@osg1@cms4”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Collector</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>List</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>List of Collector URIs used by the VO Condor pool (like
+				“cc.cms.edu:9620,cc.cms.edu:9621”).</P>
+				<P>One of the URIs in the list will be selected and used as
+				<B>HEAD_NODE</B> in the condor_config.</P>
 			</TD>
 		</TR>
 	</TBODY>
@@ -572,7 +758,7 @@ by the VO factory clients.</P>
 <P>The following variables are being dynamically generated and/or
 modified by glideinWMS processes. The administrator cannot directly
 change them.</P>
-<P>The dynamic variables are created by two  
+<P>The dynamic variables are created by two 
 </P>
 <P><BR><BR>
 </P>
