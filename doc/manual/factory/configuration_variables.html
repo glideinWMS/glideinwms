@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090206;12070700">
+	<META NAME="CHANGED" CONTENT="20090206;13493600">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -699,6 +699,51 @@ changed by the user in any other way.</P>
 				use job environment.</P>
 			</TD>
 		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>TMP_DIR</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry work_dir=”<B>workdir</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>This variable contains the path to the directory that user
+				scripts and user jobs can use for storing temporary data. It is a
+				subdirectory of the work directory specified by the user.</P>
+				<P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
+				the glidein ClassAd and to the use job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>DEBUG_MODE</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry verbosity=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>This setting can be either:</P>
+				<UL>
+					<LI><P>“std” - Default mode, where all interesting debug
+					information is reported back to the Glidein Factory and the
+					glidein will wait 20 minutes on a worker node that failed
+					validation to minimize the black hole effect.</P>
+					<LI><P>“nodebug” - Disable most diagnostic messages. This
+					can be useful for very stable setups. The glidein still waits 20
+					minutes on a worker node that failed validation to minimize the
+					black hole effect.</P>
+					<LI><P>Fast – All debugging is enabled and the glidein waits
+					only 2 minutes on a worker node that failed validation. This
+					mode is useful when debugging a misbehaving Grid site.</P>
+				</UL>
+			</TD>
+		</TR>
 	</TBODY>
 </TABLE>
 <P><BR><BR>
@@ -756,10 +801,110 @@ described below ar the most often used.</P>
 </P>
 <H3><A NAME="dyn_vars"></A>Dynamically generated variables</H3>
 <P>The following variables are being dynamically generated and/or
-modified by glideinWMS processes. The administrator cannot directly
-change them.</P>
-<P>The dynamic variables are created by two 
+modified by glideinWMS processes. The glideinWMS administrators
+cannot directly change them.</P>
+<P>The first set of variables comes from the Glidein Factory.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=66*>
+	<COL WIDTH=19*>
+	<COL WIDTH=171*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=67%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Signature</P>
+			</TH>
+			<TD ROWSPAN=2 WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=67%>
+				<P>These variables contain the SHA1 signature of the signature
+				files.</P>
+				<P>These signatures are used as a base to ensure the integrity of
+				all the data downloaded in the glidein startup scripts, but they
+				also provide a fingerprint of the configuration used by the
+				glidein.</P>
+				<P>These variables are published both in the glidein ClassAd and
+				in the user job environenmt.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Entry_Signature</P>
+			</TH>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>DESCRIPTION_FILE</P>
+			</TH>
+			<TD ROWSPAN=2 WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=67%>
+				<P>These variable contain the file name of the glidein
+				description file.</P>
+				<P>The description file is mostly used by the glidein startup
+				scripts, but could be of use for the user provided scripts, too.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>DESCRIPTION_ENTRY_FILE</P>
+			</TH>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>CONDORG_SCHEDD</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>The schedd used by the Glidein Factory to submit the glidein.</P>
+				<P>This variables is exported a <B>GLIDEIN_Schedd </B>both in the
+				glidein ClassAd and to the user job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>CONDORG_CLUSTER</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=67%>
+				<P>The cluster and process id assigned by the Glidein Factory
+				schedd to this glidein.</P>
+				<P>These variables are exported as <B>GLIDEIN_ClusterId</B> and 
+				<B>GLIDEIN_ProcId</B> both in the glidein ClassAd and to the user
+				job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>CONDORG_SUBCLUSTER</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
 </P>
+<P>The second set is generated by the glidein startup scripts.</P>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
