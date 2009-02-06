@@ -314,9 +314,9 @@ by the VO factory clients.</P>
 			<TD WIDTH=62%>
 				<P>If set, Condor will launch all user jobs via <A HREF="http://vdt.cs.wisc.edu/components/glexec.html">glexec</A>,
 				thus <A HREF="entry.html#glexec">running the job under the
-				appropriate local account</A>. This important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
+				appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
 				security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
-				purposes</A>.<BR>A special value of OSG can be used to
+				purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
 				automatically find the locally installed gLExec on OSG worker
 				nodes.</P>
 				<P>This variable is renamed to <B>GLEXEC</B> in the condor
@@ -418,6 +418,7 @@ by the VO factory clients.</P>
 				<P>Setting this to True instructs the startd to send keepalives
 				to the schedd. This improves the glidein behavior when running
 				behind a firewall or a NAT.</P>
+				<P>Please note that the schedd must be configured in the same way for this to work.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
@@ -699,24 +700,6 @@ changed by the user in any other way.</P>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=23%>
-				<P>TMP_DIR</P>
-			</TH>
-			<TD WIDTH=7%>
-				<P ALIGN=CENTER>String</P>
-			</TD>
-			<TD WIDTH=26%>
-				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry work_dir=”<B>workdir</B>”&gt;</P>
-			</TD>
-			<TD WIDTH=44%>
-				<P>This variable contains the path to the directory that user
-				scripts and user jobs can use for storing temporary data. It is a
-				subdirectory of the work directory specified by the user.</P>
-				<P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
-				the glidein ClassAd and to the use job environment.</P>
-			</TD>
-		</TR>
-		<TR VALIGN=TOP>
-			<TH WIDTH=23%>
 				<P>DEBUG_MODE</P>
 			</TH>
 			<TD WIDTH=7%>
@@ -845,25 +828,6 @@ cannot directly change them.</P>
 		</TR>
 		<TR VALIGN=TOP>
 			<TH WIDTH=26%>
-				<P>DESCRIPTION_FILE</P>
-			</TH>
-			<TD ROWSPAN=2 WIDTH=7%>
-				<P ALIGN=CENTER>String</P>
-			</TD>
-			<TD ROWSPAN=2 WIDTH=67%>
-				<P>These variable contain the file name of the glidein
-				description file.</P>
-				<P>The description file is mostly used by the glidein startup
-				scripts, but could be of use for the user provided scripts, too.</P>
-			</TD>
-		</TR>
-		<TR VALIGN=TOP>
-			<TH WIDTH=26%>
-				<P>DESCRIPTION_ENTRY_FILE</P>
-			</TH>
-		</TR>
-		<TR VALIGN=TOP>
-			<TH WIDTH=26%>
 				<P>CONDORG_SCHEDD</P>
 			</TH>
 			<TD WIDTH=7%>
@@ -940,7 +904,7 @@ the working directory specified by</P>
 			</TH>
 			<TD ROWSPAN=2 WIDTH=73%>
 				<P>File path to the condor vars files.</P>
-				<P>User scripts may wan to add entries to this files.</P>
+				<P>User scripts may want to add entries to these files.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
