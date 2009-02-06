@@ -26,16 +26,16 @@ MAX_STARTER_LOG		I	10000000	+				N	N	-
 MASTER_GCB_RECONNECT_TIMEOUT	I	1200	+				N	Y	-
 
 # VO frontend provided
+GLIDEIN_Client		S	-		+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
 
 # Factory provided
 GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
 GLIDEIN_Signature	S	-		+				Y	Y	@
-GLIDEIN_Client		S	-		+				N	Y	@
+DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
 CONDORG_CLUSTER		I	-		GLIDEIN_ClusterId		Y	Y	@
 CONDORG_SUBCLUSTER	I	-		GLIDEIN_ProcId			Y	Y	@
 CONDORG_SCHEDD		S	-		GLIDEIN_Schedd			Y	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	Y	@
-DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
 

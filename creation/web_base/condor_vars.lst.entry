@@ -13,11 +13,11 @@ GLEXEC_BIN		C	-		GLEXEC				N	N	-
 # Factory provided
 GLIDEIN_Entry_Name	S	-		+				Y	Y	@
 GLIDEIN_Entry_Signature	S	-		+				Y	Y	@
+DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
 GLIDEIN_Gatekeeper	S	-		+				N	Y	@
 GLIDEIN_GridType	S	-		+				N	Y	@
 GLIDEIN_GlobusRSL	S	-		+				N	Y	@
 PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	N	@
-DESCRIPTION_ENTRY_FILE	S	-		GLIDEIN_Description_Entry_File	N	Y	-
 
 # Glidein generated
 CONDOR_DIR		C	-		+				Y	N	-
