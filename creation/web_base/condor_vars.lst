@@ -34,5 +34,5 @@ GLIDEIN_Factory		S	-		+				Y	Y	@
 GLIDEIN_Name		S	-		+				Y	Y	@
 GLIDEIN_Signature	S	-		+				Y	Y	@
 DESCRIPTION_FILE	S	-		GLIDEIN_Description_File	N	Y	-
-PROXY_URL		S	-		GLIDEIN_Proxy_URL		N	Y	@
 
+#################################################################################################################
