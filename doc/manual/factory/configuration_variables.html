@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090205;16560600">
+	<META NAME="CHANGED" CONTENT="20090206;11010500">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -24,13 +24,13 @@ site (for example: max allowed wallclock time).</P>
 <UL>
 	<LI><P><A HREF="#location">Configuration variable location</A></P>
 	<LI><P><A HREF="#condor_vars">Condor vars file</A></P>
-	<LI><P STYLE="margin-bottom: 0in"><A HREF="#vars">Pre-defined
-	variables</A> 
+	<LI><P STYLE="margin-bottom: 0in"><A HREF="#vars">
+	Variables used by the glideins</A> 
 	</P>
 	<UL>
-		<LI><P><A HREF="#fix_vars">Fixed pre-defined variables</A></P>
-		<LI><P><A HREF="#dyn_vars">Dynamically generated pre-defined
-		variables</A></P>
+		<LI><P><A HREF="#user_vars">User modifiable variables</A></P>
+		<LI><P><A HREF="#dyn_vars">Dynamically generated variables
+		</A></P>
 	</UL>
 </UL>
 <H2><A NAME="location"></A>Configuration variable location</H2>
@@ -113,14 +113,22 @@ glideins are Condor based; see the <A HREF="http://www.cs.wisc.edu/condor/manual
 manual</A> for more details.</P>
 <P>The variables can be divided in two categories:</P>
 <UL>
-	<LI><P><A HREF="#fix_vars">fixed</A>, and</P>
+	<LI><P><A HREF="#user_vars">user modifiable</A>, and</P>
 	<LI><P><A HREF="#dyn_vars">dynamically generated</A></P>
 </UL>
-<H3><A NAME="fix_vars"></A>Fixed pre-defined variables</H3>
-<P>The following variables being used by the glideins use the default
-values as specified in the condor vars files, if available, unless
-the user changes them in the <A HREF="entry.html#args">Glidein
-Factory configuration</A> file.</P>
+<H3><A NAME="user_vars"></A>User modifiable variables</H3>
+<P>This section presents all the variables that can be directly
+changed by the user.</P>
+<P>First, the variables that can be changed by using the</P>
+<BLOCKQUOTE><B>&lt;attr name</B>=”<I>name</I>” <B>value</B>=”<I>val</I>”
+<B>type</B>=”<I>type</I>” ...<B>/&gt;</B></BLOCKQUOTE>
+<P>elements as explained in the <A HREF="entry.html#args">Glidein
+Factory configuration</A> section.<BR>Most of these variables also
+have their default values defined in the <I>condor vars</I> files,
+which are used if the glidein factory administrator does not override
+them.</P>
+<P>Please also note that some of these variables may also be provided
+by the VO factory clients.</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=3>
 	<COL WIDTH=70*>
 	<COL WIDTH=20*>
@@ -507,7 +515,7 @@ Factory configuration</A> file.</P>
 				<P ALIGN=CENTER>List</P>
 			</TD>
 			<TD ROWSPAN=4 WIDTH=10%>
-				<P ALIGN=CENTER>None</P>
+				<P ALIGN=CENTER>-</P>
 			</TD>
 			<TD ROWSPAN=4 WIDTH=55%>
 				<P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
@@ -560,11 +568,12 @@ Factory configuration</A> file.</P>
 </TABLE>
 <P><BR><BR>
 </P>
-<H3><A NAME="dyn_vars"></A>Dynamically generated pre-defined
-variables</H3>
+<H3><A NAME="dyn_vars"></A>Dynamically generated variables</H3>
 <P>The following variables are being dynamically generated and/or
 modified by glideinWMS processes. The administrator cannot directly
 change them.</P>
+<P>The dynamic variables are created by two  
+</P>
 <P><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
