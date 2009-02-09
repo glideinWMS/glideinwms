@@ -5,7 +5,7 @@
 	<TITLE>glideinWMS configuration variables</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20090203;14531100">
-	<META NAME="CHANGED" CONTENT="20090206;15015900">
+	<META NAME="CHANGED" CONTENT="20090209;13015900">
 	<META NAME="Info 1" CONTENT="">
 	<META NAME="Info 2" CONTENT="">
 	<META NAME="Info 3" CONTENT="">
@@ -15,7 +15,7 @@
 <H1>Glidein configuration variables</H1>
 <H2>Description</H2>
 <P>This document describes what configuration variables are used by
-the glideins. Most users never need to touch most of them, but a
+the glideins. Most administrators never need to touch most of them, but a
 sophisticated Glidein Factory administrator may need to tweak some of
 them to implement the desired policies (for example: require
 encryption over the wire) or to address the needs of a particular
@@ -27,7 +27,7 @@ site (for example: max allowed wallclock time).</P>
 	<LI><A HREF="#vars">Variables used by
 	the glideins</A> 
 	<UL>
-		<LI><A HREF="#user_vars">User modifiable variables</A>
+		<LI><A HREF="#admin_vars">Admin modifiable variables</A>
 		<LI><A HREF="#dyn_vars">Dynamically generated variables </A>
 	</UL>
 </UL>
@@ -111,12 +111,12 @@ glideins are Condor based; see the <A HREF="http://www.cs.wisc.edu/condor/manual
 manual</A> for more details.</P>
 <P>The variables can be divided in two categories:</P>
 <UL>
-	<LI><P><A HREF="#user_vars">user modifiable</A>, and</P>
+	<LI><P><A HREF="#admin_vars">admin modifiable</A>, and</P>
 	<LI><P><A HREF="#dyn_vars">dynamically generated</A></P>
 </UL>
-<H3><A NAME="user_vars"></A>User modifiable variables</H3>
+<H3><A NAME="admin_vars"></A>Admin modifiable variables</H3>
 <P>This section presents all the variables that can be directly
-changed by the user.</P>
+changed by a Glidein Factory administrator.</P>
 <P>First, the variables that can be changed by using the</P>
 <BLOCKQUOTE><B>&lt;attr name</B>=”<I>name</I>” <B>value</B>=”<I>val</I>”
 <B>type</B>=”<I>type</I>” ...<B>/&gt;</B></BLOCKQUOTE>
@@ -570,7 +570,7 @@ by the VO factory clients.</P>
 </P>
 <P>The second set of variables comes from values the Glidein Factory
 administrator defined to make the factory to work. They cannot be
-changed by the user in any other way.</P>
+changed by an administrator in any other way.</P>
 <TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
 	<COL WIDTH=59*>
 	<COL WIDTH=19*>
@@ -891,7 +891,7 @@ the working directory specified by</P>
 				<P>TMP_DIR</P>
 			</TH>
 			<TD WIDTH=73%>
-				<P>Path to the directory that user scripts and user jobs can use
+				<P>Path to the directory that admin-provided scripts and user jobs can use
 				for storing temporary data. 
 				</P>
 				<P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
@@ -904,7 +904,7 @@ the working directory specified by</P>
 			</TH>
 			<TD ROWSPAN=2 WIDTH=73%>
 				<P>File path to the condor vars files.</P>
-				<P>User scripts may want to add entries to these files.</P>
+				<P>Admin-provided scripts may want to add entries to these files.</P>
 			</TD>
 		</TR>
 		<TR VALIGN=TOP>
