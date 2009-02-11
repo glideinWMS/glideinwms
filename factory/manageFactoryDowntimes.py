@@ -151,7 +151,12 @@ def check(entry_name,argv):
         for entry in entries:
             config_els[entry]=get_downtime_fd(entry,argv[0])
     else:
-        config_els[entry_name]=get_downtime_fd(entry_name,argv[0])
+        try:
+            config_els[entry_name]=get_downtime_fd(entry_name,argv[0])
+        except RuntimeError, e:
+            usage()
+            print "Error: %s"%e
+            return 1
 
     when=0
     if len(argv)>1:
