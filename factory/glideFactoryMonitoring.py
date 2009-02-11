@@ -25,16 +25,16 @@ class MonitoringConfig:
         self.rrd_step=300       #default to 5 minutes
         self.rrd_heartbeat=1800 #default to 30 minutes, should be at least twice the loop time
         self.rrd_ds_name="val"
-        self.rrd_archives=[('AVERAGE',0.8,1,60/5*24*2),      # max precision, keep 2 days
-                           ('AVERAGE',0.92,6,2*24*45),       # 30 min precision, keep for a month and a half
-                           ('AVERAGE',0.98,24,12*370)        # 2 hour precision, keep for a year
+        self.rrd_archives=[('AVERAGE',0.8,1,1120),      # max precision, keep ~4 days
+                           ('AVERAGE',0.92,9,1120),       # 45 min precision, keep for a month (35 days)
+                           ('AVERAGE',0.98,96,1120)        # 8 hour precision, keep for a year
                            ]
 
         self.rrd_reports=[('hours',3600*4,0,1),        #four hour worth of data, max resolution, update at every slot
                           ('day',3600*24,0,6),        # a day worth of data, still high resolution, update as if it was medium res
-                          ('week',3600*24*7,1,4),     # a week worth of data, medium resolution, update every 2 hours
-                          ('month',3600*24*31,1,12),   # a month worth of data, medium resolution, update once a day
-                          ('year',3600*24*365,2,7*12/4)   # a week worth of data, low resolution, update one a week
+                          ('week',3600*24*7,1,4),     # a week worth of data, medium resolution, update every 3 hours
+                          ('month',3600*24*31,1,18),   # a month worth of data, medium resolution, update once a day
+                          ('year',3600*24*365,2,7*3)   # a week worth of data, low resolution, update one a week
                           ]
         self.graph_sizes=[('small',200,75),
                           ('large',400,150),
