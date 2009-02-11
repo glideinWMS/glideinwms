@@ -87,7 +87,7 @@ def get_downtime_fd(entry_name,cmdname):
             config=glideFactoryConfig.JobDescript(entry_name)
     except IOError, e:
         usage()
-        print "Failed to load config for %s %s"%(factory_dir,entry_name)
+        print "Failed to load config for %s"%entry_name
         print "%s"%e
         return 1
 
