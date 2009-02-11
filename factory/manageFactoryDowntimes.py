@@ -86,14 +86,7 @@ def get_downtime_fd(entry_name,cmdname):
         else:
             config=glideFactoryConfig.JobDescript(entry_name)
     except IOError, e:
-        usage()
-        print "Failed to load config for %s"%entry_name
-        print "%s"%e
-        return 1
-
-    #if not os.path.isfile(descr_file):
-    #    print "Cound not find config file %s"%descr_file
-    #    return 1
+        raise RuntimeError, "Failed to load config for %s"%entry_name
 
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
     return fd
