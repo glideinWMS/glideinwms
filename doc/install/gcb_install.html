@@ -1,33 +1,55 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Installation of a GCB node</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="20071114;13460300">
+	<META NAME="CHANGED" CONTENT="20090212;10502000">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080806;13050400">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
 GCB node </FONT></FONT>
 </H1>
-<hr>
-<table>
-<tr valign="center" align="center">
-<td>[</td><td><a href="#description">Description</a></td>
-<td>|</td><td><a href="#hardware">Hardware requirements</a></td>
-<td>|</td><td><a href="#software">Needed software</a></td>
-<td>|</td><td><a href="#condor">Installation instructions</a></td>
-<td>]</td>
-</tr>
-</table>
-<hr>
+<HR>
+<TABLE CELLPADDING=2 CELLSPACING=2>
+	<TR>
+		<TD>
+			<P ALIGN=CENTER>[</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER><A HREF="#description">Description</A></P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>|</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER><A HREF="#hardware">Hardware requirements</A></P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>|</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER><A HREF="#software">Needed software</A></P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>|</P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER><A HREF="#condor">Installation instructions</A></P>
+		</TD>
+		<TD>
+			<P ALIGN=CENTER>]</P>
+		</TD>
+	</TR>
+</TABLE>
+<HR>
 <TABLE CELLPADDING=2 CELLSPACING=2>
 	<TR>
 		<TD VALIGN=TOP>
-                        <A NAME="description">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
+			<H2><A NAME="description"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1.
+			Description </FONT></FONT>
 			</H2>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This node will serve
 			as a <A HREF="http://www.cs.wisc.edu/condor/gcb/">Generic
@@ -35,66 +57,70 @@ GCB node </FONT></FONT>
 			firewalls or NATs, you will need one or more of these.<BR>GCB is
 			needed every time you have a firewall or a NAT; if this node dies,
 			all the glideins relying on it will die with it.</FONT></FONT></P>
-                        <A NAME="hardware">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
-			requirements </FONT></FONT>
+			<H2><A NAME="hardware"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2.
+			Hardware requirements </FONT></FONT>
 			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
-			reasonably recent CPU</B> and a small amount of <B>memory</B>
-			(<B>256MB</B> should be enough).<BR>It must have <B>reliable
-			network</B> connectivity and must be <B>on the public internet,</B>
-			with <B>no firewalls</B>; it will work as a router. It will <B>use
-			20k IP ports</B>, so it should not be collocated with other
-			network intensive applications.<BR>The machine must be <B>very
-			stable</B>; if the GCB dies, all the glideins relying on it will
-			die with it (You can use multiple GCBs to minimize the damage, but
-			you should still try to choose the stablest machine you can
-			afford.)<BR>The <B>disk</B> needed is just for Condor binaries and
-			log files (<B>5GB</B> should be enough)<BR><BR>BTW: As low spec
-			machine could be difficult to find, please consider collocating it
-			with a <A HREF="frontend_install.html">VO Frontend</A>.</FONT></FONT></TD>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>a
+			reasonably recent CPU</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			and a small amount of </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>memory</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			(</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>256MB</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			should be enough).<BR>It must have </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>reliable
+			network</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			connectivity and must be </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>on
+			the public internet,</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			with </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>no
+			firewalls</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>;
+			it will work as a router. It will </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>use
+			20k IP ports</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>,
+			so it should not be collocated with other network intensive
+			applications.<BR>The machine must be </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>very
+			stable</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>;
+			if the GCB dies, all the glideins relying on it will die with it
+			(You can use multiple GCBs to minimize the damage, but you should
+			still try to choose the stablest machine you can afford.)<BR>The
+			</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>disk</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			needed is just for Condor binaries and log files (</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>5GB</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			should be enough)<BR><BR>BTW: As low spec machine could be
+			difficult to find, please consider collocating it with a <A HREF="frontend_install.html">VO
+			Frontend</A>.</FONT></FONT></P>
+		</TD>
 		<TD>
 			<P><IMG SRC="overview_gcb.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-			
+						</P>
 		</TD>
 	</TR>
 </TABLE>
-<A NAME="software">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed software
-</FONT></FONT>
+<H2><A NAME="software"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3.
+Needed software </FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>A reasonably recent
 Linux OS (SL4 used at press time).<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
 distribution</A>.</FONT></FONT></P>
-<A NAME="condor">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
-instructions </FONT></FONT>
+<H2><A NAME="condor"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4.
+Installation instructions </FONT></FONT>
 </H2>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The GCB should be
-installed as a non privileged user.
-<BR>
-The whole process is managed by
-a install script described below. You will need to provide
-a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-tarball</A>, so you may as well download it before starting the
-installer.</FONT></FONT></P>
+installed as a non privileged user. <BR>The whole process is managed
+by a install script described below. You will need to provide a valid
+<A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</A>,
+so you may as well download it before starting the installer.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
 with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
 want to install?<BR>(May select several options at one, using a ,
 separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
 Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
+Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>3</B>.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions. The installation is straightforward.</FONT></FONT></P>
-<P STYLE="margin-right: 0.39in">
-The installer will also start the Condor daemons.<FONT FACE="Liberation Serif"><FONT SIZE=3>
-To stop the Condor daemons, issue</FONT></FONT></P>
+<P STYLE="margin-right: 0.39in">The installer will also start the
+Condor daemons. <FONT FACE="Liberation Serif"><FONT SIZE=3>To stop
+the Condor daemons, issue</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>killall
 condor_master</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>To start them again:</FONT></FONT></P>
@@ -104,17 +130,36 @@ dir&gt;; ./start_condor.sh</FONT></FONT></BLOCKQUOTE>
 </H3>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can check that the
 processes are running:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>ps -u `id -un` 
-|grep gcb</FONT></FONT></P></BLOCKQUOTE>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>ps -u `id -un`
+|grep gcb</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You should see one
 gcb_broker and at least one gcb_relay_server.<BR><BR>You can also
 check that tey are working well, by pinging it with gcb_broker_query:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>&lt;install dir&gt;/sbin/gcb_broker_query
-<I>your_ip</I> freesockets</FONT></FONT></P></BLOCKQUOTE>
-<P><BR><BR>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>&lt;install
+dir&gt;/sbin/gcb_broker_query <I>your_ip</I> freesockets</FONT></FONT></BLOCKQUOTE>
+<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.2 Fine tunning</FONT></FONT></H3>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The default
+installation will set up GCB to handle up to 20k requests. Look in
+the &lt;install dir&gt;/etc/condor_config.local for</FONT></FONT></P>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>GCB_MAX_RELAY_SERVERS=200<BR>GCB_MAX_CLIENTS_PER_RELAY_SERVER=100</FONT></FONT></BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This is enough for
+approx. 4k glideins (each glidein uses 5-6 ports).</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If you want a single
+GCB to serve more glideins that that, you can increase those numbers.
+However, be aware that the OS also have its limits. On most Linux
+systems the limit is set in 
+</FONT></FONT>/proc/sys/net/ipv4/ip_local_port_range.<BR>In this
+example<FONT FACE="Liberation Serif"><FONT SIZE=3>:</FONT></FONT></P>
+<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>$ cat
+/proc/sys/net/ipv4/ip_local_port_range<BR>32768   61000 </FONT></FONT>
+</BLOCKQUOTE>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><FONT FACE="Liberation Serif"><FONT SIZE=3>the
+system has only ~28k ports available. If you want to configure GCB to
+serve more than that, first change the system limit, then the GCB
+configuration.</FONT></FONT></FONT><FONT SIZE=3><BR></FONT></FONT><BR><BR>
 </P>
 <HR SIZE=1>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
-to the index</A></FONT></FONT></P>
+<P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
+to the index</FONT></FONT></A></P>
 </BODY>
 </HTML>
