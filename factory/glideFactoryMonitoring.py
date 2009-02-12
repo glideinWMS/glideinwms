@@ -492,7 +492,9 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        for k in ('Idle','Running','GlideinsIdle','GlideinsRunning','GlideinsTotal'):
+        for k in self.attributes['ClientMonitor']:
+            if k=='InfoAge':
+                continue # not a simple client attribute
             if client_monitor.has_key(k):
                 el[k]=client_monitor[k]
 
