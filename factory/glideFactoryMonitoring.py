@@ -418,7 +418,7 @@ class condorQStats:
         self.files_updated=None
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
                          'Requested':("Idle","MaxRun"),
-                         'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
+                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
 
 
     def logSchedd(self,client_name,qc_status):
@@ -492,9 +492,7 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        for k in self.attributes['ClientMonitor']:
-            if k=='InfoAge':
-                continue # not a simple client attribute
+        for k in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             if client_monitor.has_key(k):
                 el[k]=client_monitor[k]
 
@@ -613,6 +611,7 @@ class condorQStats:
         total_el=self.get_total()
 
         # update RRDs
+        type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
         for fe in [None]+data.keys():
             if fe==None: # special key == Total
                 fe_dir="total"
@@ -621,26 +620,28 @@ class condorQStats:
                 fe_dir="frontend_"+fe
                 fe_el=data[fe]
 
+            val_dict={}
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
                 if not (tp in self.attributes.keys()):
                     continue
 
+                tp_str=type_string[tp]
+
                 attributes_tp=self.attributes[tp]
-                val_dict_tp={}
                 for a in attributes_tp:
-                    val_dict_tp[a]=None #init, so that gets created properly
+                    val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
                 fe_el_tp=fe_el[tp]
                 for a in fe_el_tp.keys():
                     if a in attributes_tp:
                         a_el=fe_el_tp[a]
                         if type(a_el)!=type({}): # ignore subdictionaries
-                            val_dict_tp[a]=a_el
+                            val_dict["%s%s"%(tp_str,a)]=a_el
                 
-                monitoringConfig.write_rrd_multi("%s/%s_Attributes"%(fe_dir,tp),
-                                                 "GAUGE",self.updated,val_dict_tp)
+            monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
+                                             "GAUGE",self.updated,val_dict_tp)
 
         self.files_updated=self.updated        
         return
