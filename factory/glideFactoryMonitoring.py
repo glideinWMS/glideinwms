@@ -357,7 +357,7 @@ class condorQStats:
                 if not (tp in self.attributes.keys()):
                     continue
 
-                tp_str=type_string[tp]
+                tp_str=type_strings[tp]
 
                 attributes_tp=self.attributes[tp]
                 for a in attributes_tp:
