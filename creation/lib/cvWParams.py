@@ -111,16 +111,8 @@ class VOFrontendParams(cWParams.CommonParams):
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from work dir?",None)
         self.defaults["stage"]=stage_defaults
 
-        monitor_opts_default=cWParams.commentedOrderedDict()
-        monitor_opts_default["want_split_graphs"]=("True","Bool","Should create split graphs?",None)
-        monitor_opts_default["want_trend_graphs"]=("True","Bool","Should create trend graphs?",None)
-        monitor_opts_default["want_infoage_graphs"]=("True","Bool","Should create infoage graphs?",None)
-
-        
         monitor_default=cWParams.commentedOrderedDict()
         monitor_default["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
-        monitor_default["frontend"]=copy.deepcopy(monitor_opts_default)
-        monitor_default["group"]=copy.deepcopy(monitor_opts_default)
         self.defaults["monitor"]=monitor_default
         
         security_default=cWParams.commentedOrderedDict()

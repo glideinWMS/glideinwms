@@ -436,21 +436,6 @@ def populate_factory_descript(work_dir,
                 param_tname,str_tname=tel
                 glidein_dict.add('%sRetention%s'%(str_lname,str_tname),params.log_retention[param_lname][param_tname])
 
-        for el in (('Factory',params.monitor.factory),('Entry',params.monitor.entry)):
-            prefix=el[0]
-            dict=el[1]
-            val="Basic,Held"
-            if bool(eval(dict.want_split_graphs)):
-                val+=",Split"
-                # only if split enabled, can the split terminated be enabled
-                if bool(eval(dict.want_split_terminated_graphs)):
-                    val+=",SplitTerm"
-            if bool(eval(dict.want_trend_graphs)):
-                val+=",Trend"
-            if bool(eval(dict.want_infoage_graphs)):
-                val+=",InfoAge"
-            glidein_dict.add('%sWantedMonitorGraphs'%prefix,val)
-
 
 #######################
 # Populate job_descript

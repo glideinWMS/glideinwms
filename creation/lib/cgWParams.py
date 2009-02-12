@@ -113,18 +113,8 @@ class GlideinParams(cWParams.CommonParams):
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
         self.defaults["stage"]=stage_defaults
 
-        monitor_opts_default=cWParams.commentedOrderedDict()
-        monitor_opts_default["want_split_graphs"]=("True","Bool","Should create split graphs?",None)
-        monitor_opts_default["want_split_terminated_graphs"]=["False","Bool","Should create split terminated log graphs (CPU intensive)?",None]
-        monitor_opts_default["want_trend_graphs"]=("True","Bool","Should create trend graphs?",None)
-        monitor_opts_default["want_infoage_graphs"]=("True","Bool","Should create infoage graphs?",None)
-
-        
         monitor_default=cWParams.commentedOrderedDict()
         monitor_default["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
-        monitor_default["factory"]=copy.deepcopy(monitor_opts_default)
-        monitor_default["factory"]["want_split_terminated_graphs"][0]="True" # even if CPU intensive, it is just one
-        monitor_default["entry"]=copy.deepcopy(monitor_opts_default)
         self.defaults["monitor"]=monitor_default
         
         security_default=cWParams.commentedOrderedDict()

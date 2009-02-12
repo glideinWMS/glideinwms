@@ -331,18 +331,6 @@ def populate_frontend_descript(work_dir,
             param_tname,str_tname=tel
             frontend_dict.add('LogRetention%s'%str_tname,params.log_retention[param_tname])
 
-        for el in (('Frontend',params.monitor.frontend),('Group',params.monitor.group)):
-            prefix=el[0]
-            dict=el[1]
-            val="Basic"
-            if bool(eval(dict.want_split_graphs)):
-                val+=",Split"
-            if bool(eval(dict.want_trend_graphs)):
-                val+=",Trend"
-            if bool(eval(dict.want_infoage_graphs)):
-                val+=",InfoAge"
-            frontend_dict.add('%sWantedMonitorGraphs'%prefix,val)
-
 #######################
 # Populate group descript
 def populate_group_descript(work_dir,group_descript_dict,        # will be modified
