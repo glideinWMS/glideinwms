@@ -142,7 +142,6 @@ def main(work_dir):
 
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
-        #glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.wanted_graphs=string.split(frontendDescript.data['FrontendWantedMonitorGraphs'],',')
         
         groups=string.split(frontendDescript.data['Groups'],',')
         groups.sort()
