@@ -32,35 +32,12 @@ import glideFactoryLib
 import glideFactoryMonitorAggregator
 import logSupport
 
-# this thread will be used for lazy updates of rrd history conversions
-rrd_thread=None
-
-def create_history_thread():
-    glideFactoryMonitorAggregator.create_status_history()
-    glideFactoryMonitorAggregator.create_log_history()
-    return
-
 ############################################################
 def aggregate_stats():
     global rrd_thread
     
     status=glideFactoryMonitorAggregator.aggregateStatus()
     status=glideFactoryMonitorAggregator.aggregateLogSummary()
-
-    # keep just one thread per monitoring type running at any given time
-    # if the old one is still running, do nothing (lazy)
-    # create_support_history can take a-while
-    if rrd_thread==None:
-        thread_alive=0
-    else:
-        thread_alive=rrd_thread.isAlive()
-        if not thread_alive:
-            rrd_thread.join()
-
-    if not thread_alive:
-        glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats")
-        rrd_thread=threading.Thread(target=create_history_thread)
-        rrd_thread.start()
 
     return
 
@@ -137,9 +114,6 @@ def main(startup_dir):
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
-    # disable locking... else I can get in deadlock with entries
-    glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.lock_dir=None
-
     # create log files in the glidein log directory
     activity_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_info"))
     warning_log=logSupport.DayLogFile(os.path.join(startup_dir,"log/factory_err"))
@@ -161,7 +135,6 @@ def main(startup_dir):
         
         sleep_time=int(glideinDescript.data['LoopDelay'])
         advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
-        glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['FactoryWantedMonitorGraphs'],',')
         
         entries=string.split(glideinDescript.data['Entries'],',')
         entries.sort()

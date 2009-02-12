@@ -35,10 +35,6 @@ import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
 
-# this thread will be used for lazy updates of rrd history conversions
-log_rrd_thread=None
-qc_rrd_thread=None
-
 ############################################################
 def check_parent(parent_pid):
     if os.path.exists('/proc/%s'%parent_pid):
@@ -76,12 +72,8 @@ def perform_work(factory_name,glidein_name,entry_name,
     if 1:
         condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.factoryConfig.activity_log.write("Work")
-    lck=glideFactoryMonitoring.monitoringConfig.get_disk_lock()
-    try:
-      log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
-      log_stats.load()
-    finally:
-      lck.close()
+    log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
+    log_stats.load()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
@@ -215,37 +207,6 @@ def write_stats():
     glideFactoryLib.factoryConfig.activity_log.write("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.factoryConfig.activity_log.write("qc_stats written")
-
-    # keep just one thread per monitoring type running at any given time
-    # if the old one is still running, do nothing (lazy)
-    # create_support_history can take a-while
-    if log_rrd_thread==None:
-        thread_alive=0
-    else:
-        thread_alive=log_rrd_thread.isAlive()
-        if not thread_alive:
-            glideFactoryLib.factoryConfig.activity_log.write("Waiting for thread")
-            log_rrd_thread.join()
-
-    if not thread_alive:
-        glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for logSummary")
-        log_copy=copy.deepcopy(glideFactoryLib.factoryConfig.log_stats)
-        log_rrd_thread=threading.Thread(target=log_copy.create_support_history)
-        log_rrd_thread.start()
-
-    # -----
-    if qc_rrd_thread==None:
-        thread_alive=0
-    else:
-        thread_alive=qc_rrd_thread.isAlive()
-        if not thread_alive:
-            qc_rrd_thread.join()
-
-    if not thread_alive:
-        glideFactoryLib.factoryConfig.activity_log.write("Writing lazy stats for qc")
-        qc_copy=copy.deepcopy(glideFactoryLib.factoryConfig.qc_stats)
-        qc_rrd_thread=threading.Thread(target=qc_copy.create_support_history)
-        qc_rrd_thread.start()
 
     return
 
@@ -414,7 +375,6 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                  activity_log,warning_log)
 
     # use config values to configure the factory
-    glideFactoryMonitoring.monitoringConfig.wanted_graphs=string.split(glideinDescript.data['EntryWantedMonitorGraphs'],',')
     glideFactoryLib.factoryConfig.max_submits=int(jobDescript.data['MaxSubmitRate'])
     glideFactoryLib.factoryConfig.max_cluster_size=int(jobDescript.data['SubmitCluster'])
     glideFactoryLib.factoryConfig.submit_sleep=float(jobDescript.data['SubmitSleep'])

@@ -146,29 +146,6 @@ def aggregateStatus():
 
     return status
 
-##############################################################################
-# create the history graphs and related index html file
-def create_status_history():
-    # use the same reference time for all the graphs
-    graph_ref_time=time.time()
-    # remember to call update_locks before exiting this function
-
-    # create graphs for RRDs
-    glideFactoryMonitoring.create_status_graphs(graph_ref_time,'total')
-
-    # create split graphs
-    if 'Split' in glideFactoryMonitoring.monitoringConfig.wanted_graphs:
-        glideFactoryMonitoring.create_split_graphs(status_attributes,graph_ref_time,monitorAggregatorConfig.entries,"entry_%s/total")
-        
-    # create support index files
-    glideFactoryMonitoring.create_group_status_indexes("Factory %s"%glideFactoryMonitoring.monitoringConfig.my_name,
-                                                       monitorAggregatorConfig.monitor_dir,"total",
-                                                       None,None, # no parent
-                                                       monitorAggregatorConfig.entries,"../entry_%s/total")
-
-    glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"status")
-    return
-
 ######################################################################################
 # create an aggregate of log summary files, write it in an aggregate log summary file
 # end return the values
@@ -372,22 +349,6 @@ def aggregateLogSummary():
     
     return status
 
-##############################################################################
-# create the history graphs and related index html file
-def create_log_history():
-    # use the same reference time for all the graphs
-    graph_ref_time=time.time()
-    # remember to call update_locks before exiting this function
-    
-    glideFactoryMonitoring.create_log_graphs(graph_ref_time,"logsummary","total")
-    glideFactoryMonitoring.create_log_split_graphs(graph_ref_time,"logsummary","entry_%s/total",monitorAggregatorConfig.entries)
-    
-    # create support index file
-    glideFactoryMonitoring.create_log_total_index("Factory %s"%glideFactoryMonitoring.monitoringConfig.my_name,"entry","../entry_%s/total",monitorAggregatorConfig.entries,None)
-    
-    glideFactoryMonitoring.monitoringConfig.update_locks(graph_ref_time,"logsummary")
-    return
-
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -402,7 +363,4 @@ def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
                                  subtypes_params={"class":{}},
                                  indent_tab=indent_tab,leading_tab=leading_tab)
 
-
-# import in local namespace
-img2html=glideFactoryMonitoring.img2html
 
