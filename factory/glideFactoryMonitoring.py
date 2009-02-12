@@ -371,7 +371,7 @@ class condorQStats:
                             val_dict["%s%s"%(tp_str,a)]=a_el
                 
             monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
-                                             "GAUGE",self.updated,val_dict_tp)
+                                             "GAUGE",self.updated,val_dict)
 
         self.files_updated=self.updated        
         return
