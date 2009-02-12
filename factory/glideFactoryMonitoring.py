@@ -492,9 +492,10 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        for k in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
-            if client_monitor.has_key(k):
-                el[k]=client_monitor[k]
+        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
+            ck,ek=karr
+            if client_monitor.has_key(ck):
+                el[ek]=client_monitor[ck]
 
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
