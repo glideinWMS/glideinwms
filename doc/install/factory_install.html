@@ -151,8 +151,10 @@ from:<BR><A HREF="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">htt
 very easy:</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>python
 setup.py build<BR>python setup.py install --root <I>&lt;base dir&gt;</I></FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Finally add M2Crypto
-into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc:</FONT></FONT></P>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Finally add M2Crypto site-packages
+into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc.<BR>
+The exact path is system specific.
+On a 32bit system with python 2.3.x it will look like this:</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>export
 PYTHONPATH=$PYTHONPATH:<I>&lt;base
 dir&gt;</I>/usr/lib/python2.3/site-packages/</FONT></FONT></BLOCKQUOTE>
