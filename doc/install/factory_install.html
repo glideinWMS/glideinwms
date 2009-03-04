@@ -47,17 +47,26 @@ the WMS&nbsp;Collector and collocated glidein&nbsp;Factory
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
 			requirements </FONT></FONT>
 			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs
-			<B>one or two CPUs</B> (one for the Condor damons, and one for the
-			glidein factory daemons) and a moderate amount of <B>memory</B>
-			(<B>1GB</B> should be enough).<BR>It must must be on the <B>public
-			internet</B>, with <B>at least one port open to the world</B>; all
-			worker nodes will load data from this node trough HTTP.<BR>The
-			<B>disk</B> needed is for binaries, config files, log files and
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+                        A small installation nees <B>one CPU</B> and a moderate amount of <B>memory</B>
+			(<B>1GB</B> should be enough).</FONT></FONT></P>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+                        A major installation, serving tens of sites and several thousand glideins
+			will require <B>several CPUs</B> (recommended <B>4-8</B>: 1 for the Condor damons, 1-2 for the
+			glidein factory daemons and 2 or more for Condor-G schedds) 
+                        and a reasonable amount of <B>memory</B>
+			(at least <B>2GB</B>, <B>4GB</B> for a large installation to provide some disk caching).</FONT></FONT></P>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+			The <B>disk</B> needed is for binaries, config files, log files and
 			Web monitoring data (For just a few sites, <B>10GB</B> could be
 			enough, larger installations will need <B>100+GB</B> to maintain a
 			reasonable history). Monitoring can be pretty I/O intensive when
-			serving many sites, so get the fastest disk you can afford.</FONT></FONT></P>
+			serving many sites, so get the fastest disk you can afford, 
+                        or consider setting up a RAMDISK</FONT></FONT></P>
+			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
+                        It must must be on the <B>public
+			internet</B>, with <B>at least one port open to the world</B>; all
+			worker nodes will load data from this node trough HTTP.</FONT></FONT></P>
 		</TD>
 		<TD>
 			<P><IMG SRC="overview_WMS_factory.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
