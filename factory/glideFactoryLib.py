@@ -443,7 +443,7 @@ def sum_idle_count(qc_status):
     #   Have to integrate all the variants
     qc_status[1]=0
     for k in qc_status.keys():
-        if (k>=1000) and (k<2000):
+        if (k>=1000) and (k<1010):
             qc_status[1]+=qc_status[k]
     return
 
@@ -720,10 +720,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.36.2.1 2009/03/05 16:10:19 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.36.2.2 2009/03/05 20:14:08 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.36.2.2  2009/03/05 20:14:08  sfiligoi
+#  Don't count IdleOther as Idle... it is mostly IO, so they are not really idle
+#
 #  Revision 1.36.2.1  2009/03/05 16:10:19  sfiligoi
 #  Look at GridJobStatus also for jobs in Running JobStatus
 #
