@@ -1,4 +1,4 @@
-vNext	The XML file now supports comments.
+v1_6	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
 	Frontend now requires integrity checks when talking to
 	  the WMS collector.
@@ -7,6 +7,7 @@ vNext	The XML file now supports comments.
 	Using m2crypto for sha1 checks.
 	Fixed startup bugs in various debug tools.
 	Improved monitoring scalability (fewer RRD files)
+	Add support for CCB.
 
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.
