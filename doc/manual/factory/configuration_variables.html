@@ -1,0 +1,1086 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+	<TITLE>glideinWMS configuration variables</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
+	<META NAME="CREATED" CONTENT="20090203;14531100">
+	<META NAME="CHANGED" CONTENT="20090209;13015900">
+	<META NAME="Info 1" CONTENT="">
+	<META NAME="Info 2" CONTENT="">
+	<META NAME="Info 3" CONTENT="">
+	<META NAME="Info 4" CONTENT="">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>Glidein configuration variables</H1>
+<H2>Description</H2>
+<P>This document describes what configuration variables are used by
+the glideins. Most administrators never need to touch most of them, but a
+sophisticated Glidein Factory administrator may need to tweak some of
+them to implement the desired policies (for example: require
+encryption over the wire) or to address the needs of a particular
+site (for example: max allowed wallclock time).</P>
+<H2>Index</H2>
+<UL>
+	<LI><A HREF="#location">Configuration variable location</A>
+	<LI><A HREF="#condor_vars">Condor vars file</A>
+	<LI><A HREF="#vars">Variables used by
+	the glideins</A> 
+	<UL>
+		<LI><A HREF="#admin_vars">Admin modifiable variables</A>
+		<LI><A HREF="#dyn_vars">Dynamically generated variables </A>
+	</UL>
+</UL>
+<H2><A NAME="location"></A>Configuration variable location</H2>
+<P>The glideinWMS ships with a set of pre-defined configuration
+variables, that are stored in two files, known as <I>condor vars
+files</I>:</P>
+<BLOCKQUOTE><FONT FACE="Courier, monospace">glideinWMS/creation/web_base/condor_vars.lst<BR>glideinWMS/creation/web_base/condor_vars.lst.entry</FONT></BLOCKQUOTE>
+<P>The two files are equivalent, but were split for historical
+reasons, and the second one is meant to contain site specific
+configuration variables.<BR><B>These files should never be modified,
+and represent just the default shipped by the software!</B> 
+</P>
+<P>A glideinWMS administrator can change the values of the predefined
+variables (with some exceptions, see <A HREF="#dyn_vars">below</A>),
+and define new ones using the <A HREF="entry.html#args">Glidein
+Factory configuration</A> file.</P>
+<H2><A NAME="condor_vars"></A>Condor vars files</H2>
+<P>The condor vars files contain the glideinWMS pre-defined
+configuration variables, and <B>should never be modified</B>.<BR>However,
+a glideinWMS administrator should nevertheless be able to read them.</P>
+<P>Each of them is an ASCII file, with one entry per row. <BR>Lines
+starting with # are comments and are ignored.</P>
+<P>Each non comment line must have 7 columns. Each column has a
+specific meaning:</P>
+<OL>
+	<LI><P>Attribute name</P>
+	<LI><P>Attribute type</P>
+</OL>
+<UL>
+	<UL>
+		<LI><P>I – integer</P>
+		<LI><P>S – quoted string</P>
+		<LI><P>C – unquoted string (i.e. Condor keyword or expression)</P>
+	</UL>
+</UL>
+<OL START=3>
+	<LI><P>Default value, use – if no default</P>
+	<LI><P>Condor name, i.e. under which name should this attributed be
+	known in the configuration used by Condor daemons</P>
+	<LI><P>Is a value required for this attribute? <BR>Must be Y or N.
+	If Y and the attribute is not defined, the glidein will fail.</P>
+	<LI><P>Will condor_startd publish this attribute to the
+	collector?<BR>Must be Y or N.</P>
+	<LI><P>Will the attribute be exported to the user job environment?</P>
+</OL>
+<UL>
+	<UL>
+		<LI><P>- - Do not export (for glidein/condor internal use)</P>
+		<LI><P>+ - Export to the user job environment using the original
+		attribute name</P>
+		<LI><P>@ - Export to the user job environment using the Condor name</P>
+	</UL>
+</UL>
+<P>Here below, you can see a short extract; the semantics of the
+variables is defined <A HREF="#vars">below</A>.</P>
+<PRE># VarName               Type    Default         CondorName                      Req.    Export  UserJobEnvName
+#                       S=Quote - = No Default  + = VarName                             Condor  - = Do not export
+#                                                                                               + = Use VarName
+#                                                                                               @ = Use CondorName
+#################################################################################################################
+<FONT FACE="Courier, monospace">X509_USER_PROXY         C       -               GSI_DAEMON_PROXY                Y       N       -</FONT>
+<FONT FACE="Courier, monospace">USE_MATCH_AUTH          C       -     SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION  N       N       -</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Factory         S       -               +                               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Name            S       -               +                               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Collector       C       -               HEAD_NODE                       Y       N       -</FONT>
+<FONT FACE="Courier, monospace">GLIDEIN_Expose_Grid_Env C       False     JOB_INHERITS_STARTER_ENVIRONMENT      N       Y       +</FONT>
+<FONT FACE="Courier, monospace">TMP_DIR                 S       -               GLIDEIN_Tmp_Dir                 Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_CLUSTER         I       -               GLIDEIN_ClusterId               Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_SUBCLUSTER      I       -               GLIDEIN_ProcId                  Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">CONDORG_SCHEDD          S       -               GLIDEIN_Schedd                  Y       Y       @</FONT>
+<FONT FACE="Courier, monospace">SEC_DEFAULT_ENCRYPTION  C       OPTIONAL        +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">SEC_DEFAULT_INTEGRITY   C       REQUIRED        +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">MAX_MASTER_LOG          I       1000000         +                               N       N       -</FONT>
+<FONT FACE="Courier, monospace">MAX_STARTD_LOG          I       10000000        +                               N       N       -</FONT></PRE><H2>
+<A NAME="vars"></A>Variables used by the glideins</H2>
+<P>This section defines all the variables that the glideins explicity
+use. Please be aware that, apart from the blow mentioned variable
+many other variables will be used by the Condor daemons, since
+glideins are Condor based; see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html">Condor
+manual</A> for more details.</P>
+<P>The variables can be divided in two categories:</P>
+<UL>
+	<LI><P><A HREF="#admin_vars">admin modifiable</A>, and</P>
+	<LI><P><A HREF="#dyn_vars">dynamically generated</A></P>
+</UL>
+<H3><A NAME="admin_vars"></A>Admin modifiable variables</H3>
+<P>This section presents all the variables that can be directly
+changed by a Glidein Factory administrator.</P>
+<P>First, the variables that can be changed by using the</P>
+<BLOCKQUOTE><B>&lt;attr name</B>=”<I>name</I>” <B>value</B>=”<I>val</I>”
+<B>type</B>=”<I>type</I>” ...<B>/&gt;</B></BLOCKQUOTE>
+<P>elements as explained in the <A HREF="entry.html#args">Glidein
+Factory configuration</A> section.<BR>Most of these variables also
+have their default values defined in the <I>condor vars</I> files,
+which are used if the Glidein Factory administrator does not override
+them.</P>
+<P>Please also note that some of these variables may also be provided
+by the VO factory clients.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=2 CELLSPACING=3>
+	<COL WIDTH=59*>
+	<COL WIDTH=17*>
+	<COL WIDTH=22*>
+	<COL WIDTH=158*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=8%>
+				<P>Default<BR>value</P>
+			</TH>
+			<TH WIDTH=62%>
+				<P>Description 
+				</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Site</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>Entry name</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>Logical name of the Grid site where the glidein is running.</P>
+				<P>This information is published both in the startd ClassAd and
+				in the user job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Start</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=62%>
+				<P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START
+				expression</A> to use in the glideins. Both must be true for a
+				user job to start.</P>
+                                <P>PS: The idea of having two variables is meant to help setting global and entry-specific requirements.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Entry_Start</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Rank</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp<BR>(Int)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=62%>
+				<P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A>.<BR>They
+				are summed together, and the user job with the largest rank will run
+				first.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Entry_Rank</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp<BR>(Int)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="1" SDNUM="1033;">
+				<P ALIGN=CENTER>1</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Expose_Grid_Env</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp<BR>(Bool)</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If False, the user job environment will contain only glidein
+				factory provided variables.</P>
+				<P>If True, the user job environment will also contain the
+				environment variables defined at glidein startup. 
+				</P>
+				<P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT
+				documentation</A> for more details.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Max_Idle</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>1200<BR>(20 mins)</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>Max amount of time a condor_startd will wait to be matched
+				before giving up and terminating.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Retire_Time</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>21600<BR>(6 hours)</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=62%>
+				<P>How long should the condor_startd be running before entering
+				into the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
+				state</A> (thus not accepting any new jobs).<BR>The random spread
+				is used to improve the efficiencies, so the actual value used by
+				Condor will be anywhere between GRT-GRTS and GRT.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Retire_Time_Spread</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>7200<BR>(2 hours)</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Job_Max_Time</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>360k<BR>(100 hours)</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>Max allowed time for the job to end.<BR>This is used by the
+				condor_startd; once it enters the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
+				state</A> it will wait at most this amount of time before killing
+				the job.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLEXEC_BIN</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>None</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If set, Condor will launch all user jobs via <A HREF="http://vdt.cs.wisc.edu/components/glexec.html">glexec</A>,
+				thus <A HREF="entry.html#glexec">running the job under the
+				appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
+				security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
+				purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
+				automatically find the locally installed gLExec on OSG worker
+				nodes.</P>
+				<P>This variable is renamed to <B>GLEXEC</B> in the condor
+				config.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLEXEC_JOB</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If set to False, the condor_starter is run sharing the <A HREF="entry.html#glexec">same
+				UID as the user job</A>. This has security implications.</P>
+				<P>If running Condor 7.1.3 or later, it is recommended to turn
+				this on and have the condor_starter be protected from the user
+				jobs. 
+				</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Use_PGroups</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>Should process group monitoring be enabled?</P>
+				<P>This is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UseProcessGroups">Condor
+				optimization</A> parameter. Unfortunately, it negatively
+				interferes with the batch systems used by the Grid sites, so it
+				should not be turned on unless you have a very good reason to do
+				so.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>UPDATE_COLLECTOR_WITH_TCP</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If True, forces the glidein to use <A HREF="entry.html#tcp">TCP
+				updates</A>.<BR>The collector must be configured in the same way
+				for this to work.</P>
+				<P>Also see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UpdateCollectorWithTcp">Condor
+				documentation</A> for implications and side effects.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>WANT_UDP_COMMAND_SOCKET</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If True, enable the startd UDP command socket (Condor
+				default).</P>
+				<P>Using the UDP command socket is a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:WantUDPCommandSocket">Condor
+				optimization</A> that makes working over firewalls and NATs very
+				difficult. It is thus recommended you leave it disabled in the
+				glideins.</P>
+				<P>Please note if you leave it disabled, that you must configure
+				the schedd with<BR>SCHEDD_SEND_VACATE_VIA_TCP = True<BR>and the
+				negotiator with<BR><A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:NegotiatorInformStartd">NEGOTIATOR_INFORM_STARTD</A>
+				= False<BR>to have a functional system.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>STARTD_SENDS_ALIVES</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>True</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If set to False, the schedd will be sending keepalives to the
+				startd.</P>
+				<P>Setting this to True instructs the startd to send keepalives
+				to the schedd. This improves the glidein behavior when running
+				behind a firewall or a NAT.</P>
+				<P>Please note that the schedd must be configured in the same way for this to work.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>SEC_DEFAULT_INTEGRITY</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>REQUIRED</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=62%>
+				<P>Security related settings. Please notice that the glideins
+				always require GSI authentication.</P>
+				<P>For more details see the <A HREF="entry.html#security">configuration
+				page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html">Condor
+				manual</A>.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>SEC_DEFAULT_ENCRYPTION</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Exp</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>OPTIONAL</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>USE_MATCH_AUTH</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8% SDVAL="0" SDNUM="1033;0;@">
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>Another security setting.</P>
+				<P>If set to True, the schedd and the startd will use a low
+				overhead protocol. See the <A HREF="entry.html#security">configuration
+				page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
+				manual</A>.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>MAX_MASTER_LOG</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>1M</P>
+			</TD>
+			<TD ROWSPAN=3 WIDTH=62%>
+				<P>What is the maximum size the logs should grow.</P>
+				<P>Setting them too low will made debugging difficult.<BR>Setting
+				them too high may fill up the disk in anomalous situations, both
+				on the work nodes and on the glidein factory.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>MAX_STARTD_LOG</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>10M</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>MAX_STARTER_LOG</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>10M</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GCB_LIST</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>List</P>
+			</TD>
+			<TD ROWSPAN=4 WIDTH=8%>
+				<P ALIGN=CENTER>-</P>
+			</TD>
+			<TD ROWSPAN=4 WIDTH=62%>
+				<P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
+				<P>GCB is needed to run glideins on worker nodes behind a
+				firewall or a NAT.</P>
+				<P>For more information, see the <A HREF="entry.html#gcb">configuration
+				page</A>.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GCB_ORDER</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GCB_MIN_FREE</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GCB_REMAP_ROUTE</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>MASTER_GCB_RECONNECT_TIMEOUT</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>1200<BR>(20 mins)</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>Specifies how long should a glidein wait before giving up on a
+				GCB, if network connectivity is lost.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>USE_CCB</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=8%>
+				<P ALIGN=CENTER>False</P>
+			</TD>
+			<TD WIDTH=62%>
+				<P>If set to True, it will enable <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> (available since Condor v7.3.0).</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The second set of variables comes from values the Glidein Factory
+administrator defined to make the factory to work. They cannot be
+changed by an administrator in any other way.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=59*>
+	<COL WIDTH=19*>
+	<COL WIDTH=66*>
+	<COL WIDTH=113*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=26%>
+				<P>Source</P>
+			</TH>
+			<TH WIDTH=44%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Factory</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>&lt;glidein factory_name=&quot;<B>value</B>&quot;&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Logical name of the Glidein Factory machine (like “osg1”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Name</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>&lt;glidein glidein_name=&quot;<B>value</B>&quot;&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Identification name of the Glidein Factory instance (like
+				“v1_0”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Entry_Name</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry name=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Identification name of the entry point (like “ucsd5”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_GridType</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry gridtype=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Type of Grid resource (like “gt2”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_Glidekeeper</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry gatekeeper=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>URI of the Grid gatekeeper (like
+				“osg1.ucsd.edu/jobmanager-pbs”)</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>GLIDEIN_GlobusRSL</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry rsl=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Optional RSL string (like &quot;(condor_submit=('+ProdSlot'
+				'TRUE'))&quot;)</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>PROXY_URL</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry proxy_url=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>Optional URL of the site Web proxy.</P>
+				<P>A special value “OSG” can be used to automatically
+				discover the local Web proxy on OSG worker nodes.</P>
+				<P>This variable is exported as <B>GLIDEIN_Proxy_URL</B> to the
+				use job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=23%>
+				<P>DEBUG_MODE</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=26%>
+				<P ALIGN=CENTER>...&lt;entries&gt;&lt;entry verbosity=”<B>value</B>”&gt;</P>
+			</TD>
+			<TD WIDTH=44%>
+				<P>This setting can be either:</P>
+				<UL>
+					<LI><P>“std” - Default mode, where all interesting debug
+					information is reported back to the Glidein Factory and the
+					glidein will wait 20 minutes on a worker node that failed
+					validation to minimize the black hole effect.</P>
+					<LI><P>“nodebug” - Disable most diagnostic messages. This
+					can be useful for very stable setups. The glidein still waits 20
+					minutes on a worker node that failed validation to minimize the
+					black hole effect.</P>
+					<LI><P>Fast – All debugging is enabled and the glidein waits
+					only 2 minutes on a worker node that failed validation. This
+					mode is useful when debugging a misbehaving Grid site.</P>
+				</UL>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>Finally, the third set of values comes from the VO Frontend
+clients. While a client can set any number of variables, the ones
+described below ar the most often used.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=66*>
+	<COL WIDTH=19*>
+	<COL WIDTH=171*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=67%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Client</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>Identification name of the VO frontend request (like
+				“ucsd5@v1_0@osg1@cms4”).</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Collector</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>List</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>List of Collector URIs used by the VO Condor pool (like
+				“cc.cms.edu:9620,cc.cms.edu:9621”).</P>
+				<P>One of the URIs in the list will be selected and used as
+				<B>HEAD_NODE</B> in the condor_config.</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<H3><A NAME="dyn_vars"></A>Dynamically generated variables</H3>
+<P>The following variables are being dynamically generated and/or
+modified by glideinWMS processes. The glideinWMS administrators
+cannot directly change them.</P>
+<P>The first set of variables comes from the Glidein Factory.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=66*>
+	<COL WIDTH=19*>
+	<COL WIDTH=171*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=67%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Signature</P>
+			</TH>
+			<TD ROWSPAN=2 WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=67%>
+				<P>These variables contain the SHA1 signature of the signature
+				files.</P>
+				<P>These signatures are used as a base to ensure the integrity of
+				all the data downloaded in the glidein startup scripts, but they
+				also provide a fingerprint of the configuration used by the
+				glidein.</P>
+				<P>These variables are published both in the glidein ClassAd and
+				in the user job environenmt.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLIDEIN_Entry_Signature</P>
+			</TH>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>CONDORG_SCHEDD</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>The schedd used by the Glidein Factory to submit the glidein.</P>
+				<P>This variables is exported a <B>GLIDEIN_Schedd </B>both in the
+				glidein ClassAd and to the user job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>CONDORG_CLUSTER</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+			<TD ROWSPAN=2 WIDTH=67%>
+				<P>The cluster and process id assigned by the Glidein Factory
+				schedd to this glidein.</P>
+				<P>These variables are exported as <B>GLIDEIN_ClusterId</B> and 
+				<B>GLIDEIN_ProcId</B> both in the glidein ClassAd and to the user
+				job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>CONDORG_SUBCLUSTER</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Int</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The second set contains the location of files and/or directories
+downloaded or created by the glidein. Most of them are located under
+the working directory specified by</P>
+<BLOCKQUOTE><B>&lt;entry work_dir=”</B><SPAN STYLE="font-style: normal">value</SPAN><B>”&gt;</B></BLOCKQUOTE>
+<P STYLE="margin-bottom: 0in"><BR>
+</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=70*>
+	<COL WIDTH=186*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=73%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>TMP_DIR</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P>Path to the directory that admin-provided scripts and user jobs can use
+				for storing temporary data. 
+				</P>
+				<P>This variable is exported as <B>GLIDEIN_Tmp_Dir</B> both to
+				the glidein ClassAd and to the use job environment.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>CONDOR_VARS_FILE</P>
+			</TH>
+			<TD ROWSPAN=2 WIDTH=73%>
+				<P>File path to the condor vars files.</P>
+				<P>Admin-provided scripts may want to add entries to these files.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>CONDOR_VARS_ENTRY_FILE</P>
+			</TH>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>ADD_CONFIG_LINE_SOURCE</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P ALIGN=LEFT>File path to the script containing the
+				add_config_line and add_confir_vars line functions.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>X509_USER_PROXY</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P>File path to the glidein proxy file.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>X509_CONDORMAP</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P>File path to the Condor mapfile used by the glidein.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>X509_CERT_DIR</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P>Path to the directory containing the trusted CAs' public keys
+				and RSLs.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>CONDOR_DIR</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P>Directory where the glidein Condor binary distribution have
+				been installed.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=27%>
+				<P>WRAPPER_LIST</P>
+			</TH>
+			<TD WIDTH=73%>
+				<P>File path to the list of wrapper scripts used by the glidein.</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<P>The last set contains various variables generated by the glidein
+startup scripts.</P>
+<TABLE WIDTH=100% BORDER=1 CELLPADDING=3 CELLSPACING=3>
+	<COL WIDTH=66*>
+	<COL WIDTH=19*>
+	<COL WIDTH=171*>
+	<THEAD>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>Name</P>
+			</TH>
+			<TH WIDTH=7%>
+				<P>Type</P>
+			</TH>
+			<TH WIDTH=67%>
+				<P>Description</P>
+			</TH>
+		</TR>
+	</THEAD>
+	<TBODY>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>X509_GRIDMAP_DNS</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>List of DNs trusted by the glidein.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>X509_EXPIRE</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>time_t</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>When is the proxy expected to expire.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLEXEC_STARTER</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>Bool</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>If gLExec is used and this is set to True, the condor_starter
+				will be run sharing the <A HREF="entry.html#glexec">same UID as
+				the user job</A>.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>ALTERNATIVE_SHELL</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>If gLExec is used, this variable points to a trusted copy of a
+				shell.</P>
+			</TD>
+		</TR>
+		<TR VALIGN=TOP>
+			<TH WIDTH=26%>
+				<P>GLEXEC_USER_DIR</P>
+			</TH>
+			<TD WIDTH=7%>
+				<P ALIGN=CENTER>String</P>
+			</TD>
+			<TD WIDTH=67%>
+				<P>If gLExec is used, this variable points to the working
+				directory under which all user jobs will be started.</P>
+			</TD>
+		</TR>
+	</TBODY>
+</TABLE>
+<P><BR><BR>
+</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<H2 ALIGN=LEFT>Repository</H2>
+			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
+			<H2 ALIGN=LEFT>Package(s)</H2>
+			<P ALIGN=LEFT>glideinWMS/creation</P>
+		</TD>
+		<TD>
+			<H2 ALIGN=LEFT>Author(s)</H2>
+			<P ALIGN=LEFT>Igor Sfiligoi (Fermilab Computing Division)</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
