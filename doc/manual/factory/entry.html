@@ -40,8 +40,9 @@ below. A set of configuration example is provided, too.</P>
 			<LI><P STYLE="margin-bottom: 0in"><A HREF="glexec_troubleshooting">Troubleshooting</A>
 						</P>
 		</UL>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#gcb">Private networks
-		and firewalls</A> 
+		<LI><P STYLE="margin-bottom: 0in"><A HREF="#private_net">Private networks
+		and firewalls</A> (
+                <A HREF="#gcb">GCB</A> , <A HREF="#ccb">CCB</A> )
 		</P>
 		<LI><P STYLE="margin-bottom: 0in"><A HREF="#security">Security
 		handles</A> 
@@ -468,16 +469,27 @@ as it will not work on any older Condor version!</P>
 	and <FONT FACE="monospace">OSG</FONT> should be fine, or you can
 	specify any other fixed, WN-local location.</DD></DL>
 <H3>
-<A NAME="gcb"></A>Private networks and firewalls</H3>
+<A NAME="private_net"></A>Private networks and firewalls</H3>
+<p>
+      Condor daemons need two way communication in order to work properly. This clashes with the
+      network policies of most Grid sites, that have worker nodes in private networks or implement a restrictive firewall.
+</p>
+<p>
+      Condor provides two mechanisms to address this:
+      <ul>
+      <li><a href="#gcb">GCB</a> and
+      <li><a href="#ccb">CCB</a> (since v7.3.0).
+    </ul>
+ </p>
+<H4>
+<A NAME="gcb"></A>GCB - Generic Connection Broker</H4>
 <DL>
-	<DT STYLE="margin-bottom: 0.2in">Condor daemons need two way
-	communication in order to work properly. This clashes with the
-	network policies of most Grid sites, that have worker nodes in
-	private networks or implement a restrictive firewall. To solve this,
-	Condor provides GCB. <BR>The detailed description of GCB is beyond
+	<DT STYLE="margin-bottom: 0.2in">GCB was the first Condor implementation
+        that allowed it to work in restrictive network environments.
+	<BR>The detailed description of GCB is beyond
 	the scope of this manual and you should refer to the Condor
 	documentation available at
-	<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473000000000000000">http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473000000000000000</A>.
+	<A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#sec:GCB</A>.
 	Here you will find only the parameters needed to enable it in the
 	glideins.<BR><BR>To use Condor with GCB, you need to specify:</DT><DD STYLE="margin-bottom: 0.2in">
 	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
@@ -556,6 +568,28 @@ where:</P>
 you still need to properly configure the Collector and the submit
 machines. 
 </P>
+<H4>
+<A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
+<DL>
+	<DT STYLE="margin-bottom: 0.2in">CCB was introduced in Condor v7.3.0
+        to replace GCB in most circumstances. It is much more reliable than
+        GCB and also easier to setup.
+	<BR>The detailed description of CCB is beyond
+	the scope of this manual and you should refer to the Condor
+	documentation available at
+	<A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB</A>.
+	Here you will find only the parameters needed to enable it in the
+	glideins.<BR><BR>
+        To use Condor with CCB, you need to specify:</DT><DD STYLE="margin-bottom: 0.2in">
+	<FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;<BR>&nbsp;
+	&lt;</FONT><FONT FACE="monospace"><B>attr name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>USE_CCB</B></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>publish</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>False</B></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>parameter</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR></FONT>&nbsp;
+        </DD></DL>
+<P>
+and you are done. Just make sure you follow the 
+<A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">suggested scalability guidelines described in the Condor manual</A>.</P>
 <H3><A NAME="security"></A>Security handles</H3>
 <P>As mentioned in the <A HREF="../index.html#pool_glidein">startup
 page</A>, the glidein pool must be properly configured to protect it
