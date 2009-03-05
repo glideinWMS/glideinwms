@@ -3267,14 +3267,17 @@ def install_httpd():
     ####################################
     # Create an empty top level page
     if not os.path.exists('/var/www/html/index.html'):
-        fd=open('/var/www/html/index.html',"w")
         try:
-            fd.write('<html>\n')
-            fd.write('<body>\n')
-            fd.write('</body>\n')
-            fd.write('</html>\n')
-        finally:
-            fd.close()
+           fd=open('/var/www/html/index.html',"w")
+           try:
+               fd.write('<html>\n')
+               fd.write('<body>\n')
+               fd.write('</body>\n')
+               fd.write('</html>\n')
+           finally:
+               fd.close()
+        except:
+           pass # the creation of this file is not strictly necessary, so ignore any errors
 
     ################################
     # start httpd
