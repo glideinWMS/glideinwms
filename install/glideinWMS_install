@@ -330,7 +330,7 @@ def wms_install():
         config_fd.write("######################################################\n\n")
         config_fd.write("GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)\n")
         config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000\n")
-        config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=500\n")
+        config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_REQUESTS=500\n")
     finally:
         config_fd.close()
