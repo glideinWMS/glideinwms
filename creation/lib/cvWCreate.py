@@ -44,7 +44,7 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         
         fd.write("start() {\n")
         fd.write('        echo -n "Starting glideinWMS frontend $id_str: "\n')
-        fd.write('        "$glideinWMS_dir/frontend/glideinFrontend.py" "$frontend_dir" 2>/dev/null 1>&2 </dev/null &\n')
+        fd.write('        nice -2 "$glideinWMS_dir/frontend/glideinFrontend.py" "$frontend_dir" 2>/dev/null 1>&2 </dev/null &\n')
         fd.write('        sleep 5\n')
         fd.write('        "$glideinWMS_dir/frontend/checkFrontend.py" "$frontend_dir"  2>/dev/null 1>&2 </dev/null && success || failure\n')
         fd.write("        RETVAL=$?\n")
