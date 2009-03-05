@@ -138,7 +138,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         
         fd.write("start() {\n")
         fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
-        fd.write('        "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &\n')
+        fd.write('        nice -2 "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &\n')
         fd.write('        sleep 5\n')
         fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure\n')
         fd.write("        RETVAL=$?\n")
