@@ -413,9 +413,7 @@ def get_status_glideidx(el):
 # All others just return the JobStatus
 def hash_status(el):
     job_status=el["JobStatus"]
-    if job_status!=1:
-        return job_status
-    else:
+    if job_status==1:
         # idle jobs, look of GridJobStatus
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
@@ -425,6 +423,19 @@ def hash_status(el):
                 return 1100
         else:
             return 1001
+    elif job_status==2:
+        # count only real running, all others become Other
+        if el.has_key("GridJobStatus"):
+            grid_status=el["GridJobStatus"]
+            if grid_status=="ACTIVE":
+                return 2
+            else:
+                return 1100
+        else:
+            return 2        
+    else:
+        # others just pass over
+        return job_status
 
 # helper function that sums up the idle states
 def sum_idle_count(qc_status):
@@ -709,10 +720,13 @@ def releaseGlideins(schedd_name,jid_list):
 #
 # CVS info
 #
-# $Id: glideFactoryLib.py,v 1.36 2008/09/16 16:25:47 sfiligoi Exp $
+# $Id: glideFactoryLib.py,v 1.36.2.1 2009/03/05 16:10:19 sfiligoi Exp $
 #
 # Log:
 #  $Log: glideFactoryLib.py,v $
+#  Revision 1.36.2.1  2009/03/05 16:10:19  sfiligoi
+#  Look at GridJobStatus also for jobs in Running JobStatus
+#
 #  Revision 1.36  2008/09/16 16:25:47  sfiligoi
 #  Fix typo
 #
