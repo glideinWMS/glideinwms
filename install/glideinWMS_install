@@ -2534,6 +2534,7 @@ def configure_secondary_collector(collector_nr):
     fd=open("%s/start_condor.sh"%CONDOR_BASE_PATH,"a")
     try:
         fd.write("%s/start_master_collector.sh %s\n"%(CONDOR_BASE_PATH,collector_nr))
+        print "Added collector_%i at port %i."%(collector_nr,collector_nr+9620)
     finally:
         fd.close()
 
