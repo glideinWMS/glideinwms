@@ -566,6 +566,118 @@ def gcb_install():
     return
 
 #-------------------------------------------------------------------------------
+# find out where the stage and monitor subdirs will be created
+# create, the dirs, too
+def query_WebLocation(web_subdir):
+    while 1:
+        default_web_base_dir='/var/www/html/'+web_subdir
+        web_base_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_base_dir,empty_required=False)
+
+        # create stage and monitor subdirs, if needed
+        for sdir_name in ("stage","monitor"):
+            sdir_fullpath=os.path.join(web_base_dir,sdir_name)
+            if not os.path.exists(sdir_fullpath):
+                try:
+                    os.mkdir(sdir_fullpath)
+                except:
+                    print "Cannot create dir '%s'"%sdir_fullpath
+                    continue
+
+                test_fname=os.path.join(sdir_fullpath,"test.txt")
+                try:
+                    fd=open(test_fname,"w")
+                    fd.close()
+                    os.unlink(test_fname)
+                except:
+                    print "Dir '%s' not writable."%sdir_fullpath
+                    continue
+        break # everything worked, go on 
+        
+
+    # Web URL
+    if HTTPD_PORT==None:
+        default_web_base_url="http://%s/%s/"%(full_host_name,web_subdir)
+    else:
+        default_web_base_url="http://%s:%s/%s/"%(full_host_name,HTTPD_PORT,web_subdir)
+
+    while 1:
+        web_base_url=raw_input("What Web URL will you use?: [%s] "%default_web_base_url)
+        if web_base_url=="":
+            web_base_url=default_web_base_url
+
+        if web_base_url[-1]!='/':
+            web_base_url+='/'
+
+        if web_base_url[:7]=="http://":
+            web_url_type="http"
+            web_base_url_noproto=web_base_url[7:]
+        elif web_base_url[:8]=="https://":
+            yn=raw_input("HTTPS is quite expensive and cannot be cached?\nAre you sure you want to use it? : (y/n) ")
+            if yn!="y":
+                continue
+            web_url_type="https"
+            web_base_url_noproto=web_base_url[8:]
+        elif web_base_url[:6]=="ftp://":
+            yn=raw_input("FTP will usually not be cached?\nAre you sure you want to use it? : (y/n) ")
+            if yn!="y":
+                continue
+            web_url_type="ftp"
+            web_base_url_noproto=web_base_url[6:]
+        else:
+            tmp=web_base_url.split(':',1)
+            print "Unknown protocol %s (http, https and ftp supported)!"%tmp
+            continue
+
+        web_base_url_noproto_arr=web_base_url_noproto.split('/',1)
+        if len(web_base_url_noproto_arr)!=2:
+            print "Invalid URL: %s"%web_base_url
+            continue
+
+        web_base_url_host=web_base_url_noproto_arr[0]
+        web_base_url_path=web_base_url_noproto_arr[1]
+
+        if web_url_type=="ftp":
+            try:
+                fc=ftplist.FTP(web_base_url_host)
+                rc=fc.login()
+                rc=fc.cwd(web_base_url_path+"stage/")
+                fc.close()
+            except:
+                print "Failed connecting to: %s"%web_base_url
+                continue
+        else:
+            web_base_url_host_arr=web_base_url_host.split(':',1)
+            web_base_url_host_name=web_base_url_host_arr[0]
+            if len(web_base_url_host_arr)>1:
+                try:
+                    web_base_url_host_port=int(web_base_url_host_arr[1])
+                except:
+                    print "Invalid port number in URL: %s"%web_base_url
+                    continue
+            else:
+                web_base_url_host_port=None
+
+            try:
+                if web_url_type=='http':
+                    hc=httplib.HTTPConnection(web_base_url_host_name,web_base_url_host_port)
+                else:
+                    hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
+                hc.connect()
+                hc.request("GET", "/%sstage/"%web_base_url_path)
+                rc = hc.getresponse()
+                hc.close()
+                if rc.status!=200:
+                    raise RuntimError,"http failed %i"%rc.status
+            except:
+                print "Failed connecting to: %s"%web_base_url
+                continue
+
+        # found and verified the installation
+        break
+
+    return (web_base_dir,web_base_url)
+
+#-------------------------------------------------------------------------------
 def gfactory_install():
     global VDT_BASE_PATH
     global HTTPD_PORT
@@ -646,112 +758,8 @@ def gfactory_install():
         # found it
         break
 
+    (web_base_dir,web_base_url)=query_WebLocation('glidefactory');
     
-    while 1:
-        default_web_base_dir='/var/www/html/glidefactory'
-        web_base_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_base_dir,empty_required=False)
-
-        # create stage and monitor subdirs, if needed
-        for sdir_name in ("stage","monitor"):
-            sdir_fullpath=os.path.join(web_base_dir,sdir_name)
-            if not os.path.exists(sdir_fullpath):
-                try:
-                    os.mkdir(sdir_fullpath)
-                except:
-                    print "Cannot create dir '%s'"%sdir_fullpath
-                    continue
-
-                test_fname=os.path.join(sdir_fullpath,"test.txt")
-                try:
-                    fd=open(test_fname,"w")
-                    fd.close()
-                    os.unlink(test_fname)
-                except:
-                    print "Dir '%s' not writable."%sdir_fullpath
-                    continue
-        break # everything worked, go on 
-        
-
-    # Web URL
-    if HTTPD_PORT==None:
-        default_web_base_url="http://%s/glidefactory/"%full_host_name
-    else:
-        default_web_base_url="http://%s:%s/glidefactory/"%(full_host_name,HTTPD_PORT)
-
-    while 1:
-        web_base_url=raw_input("What Web URL will you use?: [%s] "%default_web_base_url)
-        if web_base_url=="":
-            web_base_url=default_web_base_url
-
-        if web_base_url[-1]!='/':
-            web_base_url+='/'
-
-        if web_base_url[:7]=="http://":
-            web_url_type="http"
-            web_base_url_noproto=web_base_url[7:]
-        elif web_base_url[:8]=="https://":
-            yn=raw_input("HTTPS is quite expensive and cannot be cached?\nAre you sure you want to use it? : (y/n) ")
-            if yn!="y":
-                continue
-            web_url_type="https"
-            web_base_url_noproto=web_base_url[8:]
-        elif web_base_url[:6]=="ftp://":
-            yn=raw_input("FTP will usually not be cached?\nAre you sure you want to use it? : (y/n) ")
-            if yn!="y":
-                continue
-            web_url_type="ftp"
-            web_base_url_noproto=web_base_url[6:]
-        else:
-            tmp=web_base_url.split(':',1)
-            print "Unknown protocol %s (http, https and ftp supported)!"%tmp
-            continue
-
-        web_base_url_noproto_arr=web_base_url_noproto.split('/',1)
-        if len(web_base_url_noproto_arr)!=2:
-            print "Invalid URL: %s"%web_base_url
-            continue
-
-        web_base_url_host=web_base_url_noproto_arr[0]
-        web_base_url_path=web_base_url_noproto_arr[1]
-
-        if web_url_type=="ftp":
-            try:
-                fc=ftplist.FTP(web_base_url_host)
-                rc=fc.login()
-                rc=fc.cwd(web_base_url_path+"stage/")
-                fc.close()
-            except:
-                print "Failed connecting to: %s"%web_base_url
-                continue
-        else:
-            web_base_url_host_arr=web_base_url_host.split(':',1)
-            web_base_url_host_name=web_base_url_host_arr[0]
-            if len(web_base_url_host_arr)>1:
-                try:
-                    web_base_url_host_port=int(web_base_url_host_arr[1])
-                except:
-                    print "Invalid port number in URL: %s"%web_base_url
-                    continue
-            else:
-                web_base_url_host_port=None
-
-            try:
-                if web_url_type=='http':
-                    hc=httplib.HTTPConnection(web_base_url_host_name,web_base_url_host_port)
-                else:
-                    hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
-                hc.connect()
-                hc.request("GET", "/%sstage/"%web_base_url_path)
-                rc = hc.getresponse()
-                hc.close()
-                if rc.status!=200:
-                    raise RuntimError,"http failed %i"%rc.status
-            except:
-                print "Failed connecting to: %s"%web_base_url
-                continue
-
-        # found and verified the installation
-        break
 
     #if RRD_BIN_PATH==None:
     #    query_rrd()
