@@ -1072,7 +1072,7 @@ def gfactory_install():
     return
 
 #-------------------------------------------------------------------------------
-def extract_glidein_attrs(match_str):
+def extract_factory_attrs(match_str):
     glidein_attrs=[]
     attr_re=re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
 
@@ -1340,7 +1340,7 @@ def vofrontend_install():
 
     job_attr_list=string.split(job_attributes,',')
 
-    print "What glidein attributres are you using in the match expression?"
+    print "What glidein/factory attributres are you using in the match expression?"
     print "I have computed my best estimate for your match string,"
     print "please verify and correct if needed."
     
