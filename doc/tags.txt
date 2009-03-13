@@ -18,6 +18,7 @@ v1_6+	The XML file now supports comments.
 	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code 
 	Using m2crypto for sha1 checks.
+	Added support for CCB.
         Monitoring refactored
           Most rrd operations now in separate module
           Groupes multiple attributes in the RRD files (lower overhead)
