@@ -432,7 +432,9 @@ def get_status_glideidx(el):
 # Split idle depending on GridJobStatus
 #   1001 : Unsubmitted
 #   1002 : Submitted/Pending
+#   1010 : Staging in
 #   1100 : Other
+#   4010 : Staging out
 # All others just return the JobStatus
 def hash_status(el):
     job_status=el["JobStatus"]
@@ -442,6 +444,8 @@ def hash_status(el):
             grid_status=el["GridJobStatus"]
             if grid_status=="PENDING":
                 return 1002
+            elif grid_status=="STAGE_IN":
+                return 1010
             else:
                 return 1100
         else:
@@ -452,6 +456,8 @@ def hash_status(el):
             grid_status=el["GridJobStatus"]
             if grid_status=="ACTIVE":
                 return 2
+            elif grid_status=="STAGE_OUT":
+                return 4010
             else:
                 return 1100
         else:
@@ -466,7 +472,7 @@ def sum_idle_count(qc_status):
     #   Have to integrate all the variants
     qc_status[1]=0
     for k in qc_status.keys():
-        if (k>=1000) and (k<2000):
+        if (k>=1000) and (k<1100):
             qc_status[1]+=qc_status[k]
     return
 
