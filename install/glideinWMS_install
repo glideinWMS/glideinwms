@@ -1071,6 +1071,22 @@ def gfactory_install():
     return
 
 #-------------------------------------------------------------------------------
+def extract_glidein_attrs(match_str):
+    glidein_attrs=[]
+    attr_re=re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
+
+    idx=0
+    while 1:
+        attr_obj=attr_re.search(match_str,idx)
+        if attr_obj==None:
+            break # not found
+        attr_el=attr_obj.group('attr')
+        if not (attr_el in glidein_attrs):
+            glidein_attrs.append(attr_el)
+        idx=attr_obj.end()+1
+    return glidein_attrs
+    
+#-------------------------------------------------------------------------------
 def extract_job_attrs(match_str):
     job_attrs=[]
     attr_re=re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
@@ -1080,13 +1096,13 @@ def extract_job_attrs(match_str):
         attr_obj=attr_re.search(match_str,idx)
         if attr_obj==None:
             break # not found
-        attr_el=(attr_obj.group('attr'),'s') # assume it is string, don't have better info
+        attr_el=attr_obj.group('attr')
         if not (attr_el in job_attrs):
             job_attrs.append(attr_el)
         idx=attr_obj.end()+1
     return job_attrs
     
-
+#-------------------------------------------------------------------------------
 def vofrontend_install():
     global VDT_BASE_PATH
     if os.getuid()==0:
@@ -1182,10 +1198,10 @@ def vofrontend_install():
         if version_name=="":
             version_name=def_version_name
         # check if dir already exists
-        if os.path.exists('%s/instance_%s'%(submit_base_dir,version_name)):
+        if os.path.exists('%s/instance_%s'%(frontstage_base_dir,version_name)):
             print "Instance '%s' already exists!"%version_name
             continue
-        if os.path.exists('%s/instance_%s.cfg'%(submit_base_dir,version_name)):
+        if os.path.exists('%s/instance_%s.cfg'%(frontstage_base_dir,version_name)):
             print "VO Frontend instance config area for '%s' already exists!"%version_name
             continue
 
@@ -1285,37 +1301,6 @@ def vofrontend_install():
     print "Using %s"%schedds
     print
 
-
-    # match string
-    print "What expression do you want to use to match glideins to jobs?"
-    print "It is an arbitrary python boolean expression using the dictionaries"
-    print "  glidein and job"
-    print "A simple example expression would be:"
-    print '  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")'
-    print "If you want to match all (OK for simple setups),"
-    print "  just specify 1 (the default)"
-    
-    default_match_str="1"
-    match_str=raw_input("Match string: [%s] "%default_match_str)
-    if match_str=="":
-        match_str=default_match_str
-                    
-    print "What attributres are you using in the job expression?"
-    print "You need to specify a list of pairs"
-    print "Each pair has the name and type of the attributes."
-    print "The possible typoes are s,i,r,b (for string, int, real, bool)"
-    print "The example above would had:"
-    print '  [("DESIRED_Sites","s")]'
-    print "I have computed my best estimate for your match string,"
-    print "please verify and correct if needed."
-    
-    default_job_attributes=repr(extract_job_attrs(match_str))
-    job_attributes=raw_input("Job attributes: [%s] "%default_job_attributes)
-    if job_attributes=="":
-        job_attributes=default_job_attributes
-
-    job_attr_list=eval(job_attributes)
-
     # job constraint
     default_job_constraint="(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)"
     for job_attr in job_attr_list:
@@ -1325,73 +1310,85 @@ def vofrontend_install():
         job_constraint=default_job_constraint
                     
                     
+    def_group_name="sole"
+    group_name=raw_input("Give a name to the main group: [%s] "%def_group_name)
+    if group_name=="":
+        group_name=def_group_name
+
+
+    # match string
+    print "What expression do you want to use to match glideins to jobs?"
+    print "It is an arbitrary python boolean expression using the dictionaries"
+    print "  glidein and job"
+    print "A simple example expression would be:"
+    print '  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")'
+    print "If you want to match all (OK for simple setups),"
+    print "  just specify True (the default)"
+    
+    default_match_str="True"
+    match_str=raw_input("Match string: [%s] "%default_match_str)
+    if match_str=="":
+        match_str=default_match_str
+                    
+    print "What job attributres are you using in the match expression?"
+    print "I have computed my best estimate for your match string,"
+    print "please verify and correct if needed."
+    
+    default_job_attributes=string.join(extract_job_attrs(match_str),',')
+    job_attributes=raw_input("Job attributes: [%s] "%default_job_attributes)
+    if job_attributes=="":
+        job_attributes=default_job_attributes
+
+    job_attr_list=string.split(job_attributes,',')
+
+    print "What glidein attributres are you using in the match expression?"
+    print "I have computed my best estimate for your match string,"
+    print "please verify and correct if needed."
+    
+    default_factory_attributes=string.join(extract_factory_attrs(match_str),',')
+    factory_attributes=raw_input("Factory attributes: [%s] "%default_factory_attributes)
+    if factory_attributes=="":
+        factory_attributes=default_factory_attributes
+
+    factory_attr_list=string.split(factory_attributes,',')
+
     #####################################
     # create config files
-    config_dir=create_empty_dir("Where will you host your config and log files?: ","%s/frontend_%s"%(os.environ['HOME'],frontend_name))
+    os.mkdir('%s/instance_%s.cfg'%(frontstage_base_dir,version_name))
+    
 
-    os.mkdir("%s/log"%config_dir)
-    os.mkdir("%s/etc"%config_dir)
-
-    fd=open("%s/etc/vofrontend.cfg"%config_dir,"w")
+    fd=open("%s/instance_%s.cfg/frontend.xml"%(frontstage_base_dir,version_name),"w")
     try:
-        fd.write("# This is a Glidein Frontend config file\n\n")
-
-        fd.write("# How will it be known advertized as\n")
-        fd.write("frontend_name=%r\n\n"%frontend_name)
-
-        fd.write("# Where is the WMS collector\n")
-        fd.write("# Set to None if the same as for the jobs\n")
-        fd.write("factory_pool=%r\n\n"%pool_node)
-
-        fd.write("# List of schedds containing jobs\n")
-        fd.write("schedd_names=%r\n\n"%schedds) # this way I get the correct python formatting
-
-        fd.write("# If not all the factory adds has to be considered,\n")
-        fd.write("# specify the appropriate constraint\n")
-        fd.write("# for example: 'GLIDEIN_Expose_Grid_Env=?=\"True\"'\n")
-        fd.write("factory_constraint=None\n\n")
-
-        fd.write("# If not all the jobs of the schedd has to be considered,\n")
-        fd.write("# specify the appropriate constraint\n")
-        fd.write("# for example: '(JobUniverse==5)'\n")
-        fd.write("job_constraint=%r\n\n"%job_constraint)
-
-        fd.write("# What job attributes should I extract?\n")
-        fd.write("# for example: [('DESIRED_Sites', 's')]\n")
-        fd.write("job_attributes=%s\n\n"%job_attributes)
-
-        fd.write("# String for matching jobs to glideins\n")
-        fd.write('# for example: \'glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")\'\n');
-        fd.write("match_string=%r\n\n"%match_str)
-
-        fd.write("# If you want to send a proxy to the factory, specify it here\n")
-        fd.write("# The factory must support encryption for this\n")
-        fd.write("# x509_proxy = 'your fname here'\n\n")
-        
-        fd.write("# How much pressure should I apply to the entry points\n")
-        fd.write("max_idle_glideins_per_entry=100\n")
-        fd.write("# Add a few more to account for Condor-G errors\n")
-        fd.write("reserve_idle_glideins_per_entry=5\n\n")
-        
-        fd.write("# How many idle VMs should I tollerate, before stopping submitting glideins\n")
-        fd.write("max_idle_vms_per_entry=100\n")
-        fd.write("# When to start curbing submissions\n")
-        fd.write("curb_idle_vms_per_entry=5\n\n")
-        
-        fd.write("# What is the max number of running jobs I want to get to\n")
-        fd.write("max_running_jobs=10000 \n\n")
-
-        fd.write("# Glidein parameters\n")
-        fd.write("# At least GLIDEIN_Collector must be defined\n")
-        fd.write("glidein_params={'GLIDEIN_Collector':%r}\n\n"%local_collector)
-
-        fd.write("# Where to store log files\n")
-        fd.write("# Possibly put it in a dedicated directory\n")
-        fd.write("log_dir='%s/log'\n\n"%config_dir)
-
-        fd.write("# Frontend works in polling mode\n")
-        fd.write("# How much time should pass between a polling loop?\n")
-        fd.write("loop_delay=60\n\n")
+        fd.write('<frontend frontend_name="%s-%s">\n'%(frontend_name,version_name))
+        fd.write('   <work base_dir="%s"/>\n'%frontstage_base_dir)
+        fd.write('   <stage web_base_dir="%s/stage" base_url="%s/stage"/>\n'%(web_base_url,web_base_dir))
+        fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir))
+        fd.write('   <match>\n')
+        fd.write('      <factory collectors="%s" comment="Define factory collectors globally for simplicity"/>\n'%pool_node)
+        fd.write('      <job schedds="%s" query_expr=%s  comment="Define job constraint and schedds globally for simplicity"/>\n'%(schedds,xmlFormat.xml_quoteattr(job_constraint)))
+        fd.write('   </match>\n')
+        fd.write('   <attrs>\n')
+        fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%local_collector)
+        fd.write('   </attrs>\n')
+        fd.write('   <groups>\n')
+        fd.write('      <group name="%s" enabled="True">\n'%group_name)
+        fd.write('         <match match_expr=%s>\n'%xmlFormat.xml_quoteattr(match_str))
+        fd.write('            <factory>\n')
+        fd.write('               <match_attrs>\n')
+        for factory_attr in factory_attr_list:
+            fd.write('                  <match_attr name="%s" type="string">\n'%factory_attr)
+        fd.write('               </match_attrs>\n')
+        fd.write('            </factory>\n')
+        fd.write('            <job>\n')
+        fd.write('               <match_attrs>\n')
+        for job_attr in job_attr_list:
+            fd.write('                  <match_attr name="%s" type="string">\n'%job_attr)
+        fd.write('               </match_attrs>\n')
+        fd.write('            </job>\n')
+        fd.write('         </match>\n')
+        fd.write('      </group>\n')
+        fd.write('   </groups>\n')
+        fd.write('</frontend>\n')
     finally:
         fd.close()
 
