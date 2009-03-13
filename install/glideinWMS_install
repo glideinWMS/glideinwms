@@ -1366,7 +1366,7 @@ def vofrontend_install():
             fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
             fd.write('   <match>\n')
             fd.write('      <factory collectors="%s" comment="Define factory collectors globally for simplicity"/>\n'%pool_node)
-            fd.write('      <job schedds=%s query_expr=%s  comment="Define job constraint and schedds globally for simplicity"/>\n'%(,xmlFormat.xml_quoteattr(string.join(schedds,",")),xmlFormat.xml_quoteattr(job_constraint)))
+            fd.write('      <job schedds=%s query_expr=%s  comment="Define job constraint and schedds globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(string.join(schedds,",")),xmlFormat.xml_quoteattr(job_constraint)))
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
             fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%local_collector)
