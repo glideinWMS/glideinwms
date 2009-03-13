@@ -1304,8 +1304,6 @@ def vofrontend_install():
 
     # job constraint
     default_job_constraint="(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)"
-    for job_attr in job_attr_list:
-        default_job_constraint+="&&(%s=!=UNDEFINED)"%job_attr[0]
     job_constraint=raw_input("What kind of jobs do you want to monitor?: [%s] "%default_job_constraint)
     if job_constraint=="":
         job_constraint=default_job_constraint
@@ -1375,18 +1373,26 @@ def vofrontend_install():
             fd.write('   <groups>\n')
             fd.write('      <group name="%s" enabled="True">\n'%group_name)
             fd.write('         <match match_expr=%s>\n'%xmlFormat.xml_quoteattr(match_str))
-            fd.write('            <factory>\n')
-            fd.write('               <match_attrs>\n')
-            for factory_attr in factory_attr_list:
-                fd.write('                  <match_attr name="%s" type="string">\n'%factory_attr)
-            fd.write('               </match_attrs>\n')
-            fd.write('            </factory>\n')
-            fd.write('            <job>\n')
-            fd.write('               <match_attrs>\n')
-            for job_attr in job_attr_list:
-                fd.write('                  <match_attr name="%s" type="string">\n'%job_attr)
-            fd.write('               </match_attrs>\n')
-            fd.write('            </job>\n')
+            if len(factory_attr_list)>0:
+                attr_query_arr=[]
+                for job_attr in factory_attr_list:
+                    attr_query_arr.append("(%s=!=UNDEFINED)"%job_attr)l
+                fd.write('            <factory query_expr=%s>\n'%xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")))
+                fd.write('               <match_attrs>\n')
+                for factory_attr in factory_attr_list:
+                    fd.write('                  <match_attr name="%s" type="string">\n'%factory_attr)
+                fd.write('               </match_attrs>\n')
+                fd.write('            </factory>\n')
+            if len(job_attr_list)>0:
+                attr_query_arr=[]
+                for job_attr in job_attr_list:
+                    attr_query_arr.append("(%s=!=UNDEFINED)"%job_attr)l
+                fd.write('            <job query_expr=%s>\n'%xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")))
+                fd.write('               <match_attrs>\n')
+                for job_attr in job_attr_list:
+                    fd.write('                  <match_attr name="%s" type="string">\n'%job_attr)
+                fd.write('               </match_attrs>\n')
+                fd.write('            </job>\n')
             fd.write('         </match>\n')
             fd.write('      </group>\n')
             fd.write('   </groups>\n')
