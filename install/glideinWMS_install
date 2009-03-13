@@ -1362,7 +1362,7 @@ def vofrontend_install():
         try:
             fd.write('<frontend frontend_name="%s-%s">\n'%(frontend_name,version_name))
             fd.write('   <work base_dir="%s"/>\n'%frontstage_base_dir)
-            fd.write('   <stage web_base_dir="%s/stage" base_url="%s/stage"/>\n'%(web_base_url,web_base_dir))
+            fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
             fd.write('   <match>\n')
             fd.write('      <factory collectors="%s" comment="Define factory collectors globally for simplicity"/>\n'%pool_node)
