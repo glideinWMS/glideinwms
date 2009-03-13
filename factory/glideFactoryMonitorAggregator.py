@@ -46,7 +46,7 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 #
 ###########################################################
 
-status_attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                    'Requested':("Idle","MaxRun"),
                    'ClientMonitor':("InfoAge","Idle","Running","GlideinsIdle","GlideinsRunning","GlideinsTotal")}
 

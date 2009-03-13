@@ -145,7 +145,7 @@ class condorQStats:
         self.updated=time.time()
 
         self.files_updated=None
-        self.attributes={'Status':("Idle","Running","Held","Wait","Pending","IdleOther"),
+        self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
                          'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
 
@@ -163,7 +163,7 @@ class condorQStats:
         el={}
         t_el['Status']=el
 
-        status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1100,"IdleOther"))
+        status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1010,"StageIn"),(1100,"IdleOther"),(4010,"StageOut"))
         for p in status_pairs:
             nr,str=p
             if qc_status.has_key(nr):
