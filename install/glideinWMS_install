@@ -1100,14 +1100,21 @@ def vofrontend_install():
 
 
     glideinWMS_base_dir=os.path.dirname(os.path.dirname(os.path.abspath(sys.argv[0])))
+    if not os.path.isdir("%s/creation"%glideinWMS_base_dir):
+        raise RuntimeError,"Cannot find %s/creation"%glideinWMS_base_dir
     if not os.path.isdir("%s/frontend"%glideinWMS_base_dir):
         raise RuntimeError,"Cannot find %s/frontend"%glideinWMS_base_dir
 
+    check_import('rrdtool')
+    check_import('M2Crypto')
+
     if VDT_BASE_PATH==None:
-        if not os.environ.has_key('OSG_VDT_BASE'):
-            raise "Cannot find the OSG VDT client! (OSG_VDT_BASE not defined)"
-        else:
+        if os.environ.has_key('OSG_VDT_BASE'):
             VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
 
     ###################################
     # Ask about the proxy
