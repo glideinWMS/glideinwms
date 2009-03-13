@@ -19,6 +19,8 @@ function warn {
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
 
+condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+
 head_nodes=`grep '^GLIDEIN_Collector ' $glidein_config | awk '{print $2}'`
 if [ -z "$head_nodes" ]; then
     echo "No GLIDEIN_Collector found!" 1>&2
@@ -31,5 +33,17 @@ fi
 head_node=`echo "$head_nodes" | awk 'BEGIN{srand()}{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
 
 add_config_line GLIDEIN_Collector $head_node
+
+##########################################################
+# check if it should use CCB
+##########################################################
+use_ccb=`grep '^USE_CCB ' $glidein_config | awk '{print $2}'`
+if [ "$use_ccb" == "True" -o "$use_ccb" == "TRUE" -o "$use_ccb" == "T" -o "$use_ccb" == "Yes" -o "$use_ccb" == "Y" -o "$use_ccb" == "1" ]; then
+  # ok, we need to define CCB variable
+  add_config_line CCB_ADDRESS $head_node
+  # and export it to Condor
+  add_condor_vars_line CCB_ADDRESS C "-" "+" Y N "-"
+fi
+
 
 exit 0
