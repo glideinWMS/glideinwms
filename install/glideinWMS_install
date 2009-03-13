@@ -595,6 +595,7 @@ def query_WebLocation(web_subdir):
         
 
     # Web URL
+    full_host_name=socket.getfqdn()
     if HTTPD_PORT==None:
         default_web_base_url="http://%s/%s/"%(full_host_name,web_subdir)
     else:
