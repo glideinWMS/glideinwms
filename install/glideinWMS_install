@@ -765,7 +765,7 @@ def gfactory_install():
     #    query_rrd()
 
     # Factory name
-    def_factory_name=fhn_arr[0]
+    def_factory_name="mySites-%s"%fhn_arr[0]
     factory_name=raw_input("Give a name to this Glidein Factory?: [%s] "%def_factory_name)
     if factory_name=="":
         factory_name=def_factory_name
@@ -1155,11 +1155,42 @@ def vofrontend_install():
     full_host_name=socket.getfqdn()
     fhn_arr=full_host_name.split(".")
 
+    # Submit base directory
+    def_frontstage_base_dir="%s/frontstage"%os.environ['HOME']
+    while 1:
+        frontstage_base_dir=raw_input("Where will you host your config and log files?: [%s]"%def_frontstage_base_dir)
+        if frontstage_base_dir=="":
+            frontstage_base_dir=def_frontstage_base_dir
+        if not os.path.isdir(frontstage_base_dir):
+            print "'%s' is not a directory!"%frontstage_base_dir
+            continue
+        # found it
+        break
+
+    (web_base_dir,web_base_url)=query_WebLocation('vofrontend');
+
     # VO Frontend name
-    def_frontend_name="%s_%s"%(fhn_arr[-2],fhn_arr[0])
+    def_frontend_name="myVO-%s"%fhn_arr[0]
     frontend_name=raw_input("Give a name to this VO Frontend?: [%s] "%def_frontend_name)
     if frontend_name=="":
         frontend_name=def_frontend_name
+
+    # Instance/Version name
+    def_version_name="v1_0"
+    while 1:
+        version_name=raw_input("Give a name to this VO Frontend instance?: [%s] "%def_version_name)
+        if version_name=="":
+            version_name=def_version_name
+        # check if dir already exists
+        if os.path.exists('%s/instance_%s'%(submit_base_dir,version_name)):
+            print "Instance '%s' already exists!"%version_name
+            continue
+        if os.path.exists('%s/instance_%s.cfg'%(submit_base_dir,version_name)):
+            print "VO Frontend instance config area for '%s' already exists!"%version_name
+            continue
+
+        #have it
+        break
 
     # WMS collector node
     while 1:
