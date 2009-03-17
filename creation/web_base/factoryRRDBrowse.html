@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!--
+  Browse the glideinWMS RRDs
+
+  Based on
+  javascriptrrd/src/lib/rrdJFlot.html 
+   Original repository: http://javascriptrrd.sourceforge.net/
+-->
+
+<html>
+  
+    <script type="text/javascript" src="javascriptrrd/src/lib/binaryXHR.js"></script>
+    <script type="text/javascript" src="javascriptrrd/src/lib/rrdFile.js"></script>
+
+    <!-- rrdFlot class needs the following four include files !-->
+    <script type="text/javascript" src="javascriptrrd/src/lib/rrdFlotSupport.js"></script>
+    <script type="text/javascript" src="javascriptrrd/src/lib/rrdFlot.js"></script>
+    <script type="text/javascript" src="javascriptrrd/flot/jquery.js"></script>
+    <script type="text/javascript" src="javascriptrrd/flot/jquery.flot.js"></script>
+
+    <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <head>
+    <title>Browse gfactory RRDs</title>
+  </head>
+
+  <body>
+    <h1 id="title">Browse gfactory RRDs</h1>
+
+    <table border=0>
+     <tr>
+       <th>Entry</th>
+       <td><form id="entries">
+	<input type="radio" name="entry" value="total" checked>total<br>
+       </form></td>
+     </tr>
+     <tr>
+       <th>RRD</th>
+       <td><form id="rrds">
+	<input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
+	<input type="radio" name="rrd" value="Log_Counts">Log_Counts
+	<input type="radio" name="rrd" value="Log_Entered">Log_Entered
+	<input type="radio" name="rrd" value="Log_Exited">Log_Exited
+	<input type="radio" name="rrd" value="Log_Completed_Stats">Log_Completed_Stats
+	<input type="radio" name="rrd" value="Log_Completed_Waste">Log_Completed_Waste
+	<input type="radio" name="rrd" value="Log_Completed_WasteTime">Log_Completed_WasteTime
+       </form></td>
+     </tr>
+     <tr>
+      <td colspan=2><button onclick="fname_update()">Update</button></td>
+     </tr>
+    </table>
+
+    <hr>
+
+    <table id="infotable" border=1>
+        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
+	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+    </table>
+
+    <div id="mygraph"></div>
+
+    <script type="text/javascript">
+
+      // Remove the Javascript warning
+      document.getElementById("infotable").deleteRow(0);
+
+      // Load the status of the factory
+      var factoryQStats=loadFactoryQStats();
+      var entries=getFactoryEntries(factoryQStats);
+      for (var entry in entries) {
+        var elRadio=document.createElement("input");
+        elRadio.type = "radio";
+        elRadio.name = "entry";
+        elRadio.value = entries[entry];
+
+        var html_el=document.getElementById("entries");
+        html_el.appendChild(elRadio);
+        html_el.appendChild(document.createTextNode(entries[entry]));
+      }
+
+     // fname and rrd_data are the global variable used by all the functions below
+      fname=document.getElementById("input_fname").value;
+      rrd_data=undefined;
+
+      // This function updates the Web Page with the data from the RRD archive header
+      // when a new file is selected
+      function update_fname() {
+        // Finally, update the file name and enable the update button
+        document.getElementById("fname").firstChild.data=fname;
+
+        // the rrdFlot object creates and handles the graph
+        var f=new rrdFlot("mygraph",rrd_data,null);
+      }
+
+      // This is the callback function that,
+      // given a binary file object,
+      // verifies that it is a valid RRD archive
+      // and performs the update of the Web page
+      function update_fname_handler(bf) {
+          var i_rrd_data=undefined;
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fname+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            rrd_data=i_rrd_data;
+            update_fname()
+          }
+      }
+
+      // this function is invoked when the RRD file name changes
+      function fname_update() {
+        var entry_name="";
+        var rrd_name="";
+
+        var entries_obj=document.getElementById("entries")
+        for (var i in entries_obj.entry) {
+         var entry=entries_obj.entry[i];
+         if (entry.checked==true) {
+  	   entry_name=entry.value;
+         }
+        }
+
+        var rrds_obj=document.getElementById("rrds")
+        for (var i in rrds_obj.rrd) {
+         var rrd=rrds_obj.rrd[i];
+         if (rrd.checked==true) {
+  	   rrd_name=rrd.value;
+         }
+        }
+
+        if (entry_name=="total") {
+          fname="total/"+rrd_name+".rrd";
+        } else {
+          fname="entry_"+entry_name+"/total/"+rrd_name+".rrd";
+        }
+
+        try {
+          FetchBinaryURLAsync(fname,update_fname_handler);
+        } catch (err) {
+           alert("Failed loading "+fname+"\n"+err);
+        }
+      }
+    </script>
+  </body>
+</html>
