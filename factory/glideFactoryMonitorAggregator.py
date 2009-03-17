@@ -125,24 +125,28 @@ def aggregateStatus():
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
+    type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
+    val_dict={}
     for tp in global_total.keys():
         # type - status or requested
         if not (tp in status_attributes.keys()):
             continue
 
+        tp_str=type_strings[tp]
+
         attributes_tp=status_attributes[tp]
         val_dict_tp={}
         for a in attributes_tp:
-            val_dict_tp[a]=None #init, so that gets created properly
+            val_dict_tp["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
         tp_el=global_total[tp]
 
         for a in tp_el.keys():
             if a in attributes_tp:
                 a_el=int(tp_el[a])
-                val_dict_tp[a]=a_el
-        glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/%s_Attributes"%tp,
-                                                                "GAUGE",updated,val_dict_tp)
+                val_dict_tp["%s%s"%(tp_str,a)]=a_el
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
+                                                            "GAUGE",updated,val_dict)
 
     return status
 
