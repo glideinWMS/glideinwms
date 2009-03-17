@@ -22,6 +22,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
+        self.add_dir_obj(cWDictFile.simpleDirSupport(os.path.join(self.monitor_dir,'jslibs'),"monitor"))
         self.params=params
         self.active_sub_list=[]
 
