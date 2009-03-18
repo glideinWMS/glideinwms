@@ -23,9 +23,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
-        self.add_dir_obj(cWDictFile.simpleDirSupport(os.path.join(self.monitor_dir,'jslibs'),"monitor"))
+        self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
         self.params=params
         self.active_sub_list=[]
+        self.monitor_jslibs=[]
+        self.monitor_htmls=[]
 
     def populate(self,params=None):
         if params==None:
@@ -88,6 +91,17 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
 
+
+        # populate the monitor files
+        factory_support_lib=cWDictFile.SimpleFile(params.src_dir,'factory_support.js')
+        factory_support_lib.load()
+        self.monitor_jslibs.append(factory_support_lib)
+
+        factroy_rrd_browser=cWDictFile.SimpleFile(params.src_dir,'factoryRRDBrowse.html')
+        factroy_rrd_browser.load()
+        self.monitor_htmls.append(factroy_rrd_browser)
+        
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
@@ -97,6 +111,15 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
     def save(self,set_readonly=True):
         cgWDictFile.glideinMainDicts.save(self,set_readonly)
+        self.save_pub_key()
+        self.save_monitor()
+
+
+    ########################################
+    # INTERNAL
+    ########################################
+    
+    def save_pub_key(self):
         if self.params.security.pub_key=='None':
             pass # nothing to do
         elif self.params.security.pub_key=='RSA':
@@ -116,6 +139,13 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                 key_obj.save(rsa_key_fname)            
         else:
             raise RuntimeError,"Invalid value for security.pub_key(%s), must be either None or RSA"%self.params.security.pub_key
+
+    def save_monitor(self):
+        for fobj in self.monitor_jslibs:
+            fobj.save(dir=self.monitor_jslibs_dir)
+        for fobj in self.monitor_htmls:
+            fobj.save(dir=self.monitor_dir)
+        return
 
 ################################################
 #
@@ -481,3 +511,12 @@ def validate_job_proxy_source(allow_proxy):
         if not (source in recognized_sources):
             raise RuntimeError, "'%s' not a valid proxy source (valid list = %s)"%(source,recognized_sources)
     return
+
+#####################
+# Simply copy a file
+def copy_file(infile,outfile):
+    try:
+        shutil.copy2(infile,outfile)
+    except IOError, e:
+        raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
+        
