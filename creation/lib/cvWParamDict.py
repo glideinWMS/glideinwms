@@ -22,9 +22,12 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
-        self.add_dir_obj(cWDictFile.simpleDirSupport(os.path.join(self.monitor_dir,'jslibs'),"monitor"))
+        self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
+        self.add_dir_obj(cWDictFile.simpleDirSupport(self.monitor_jslibs_dir,"monitor"))
         self.params=params
         self.active_sub_list=[]
+        self.monitor_jslibs=[]
+        self.monitor_htmls=[]
 
     def populate(self,params=None):
         if params==None:
@@ -60,12 +63,33 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         populate_frontend_descript(self.work_dir,self.dicts['frontend_descript'],self.active_sub_list,params)
         populate_common_descript(self.dicts['frontend_descript'],params)
 
+        # populate the monitor files
+        frontend_support_lib=cWDictFile.SimpleFile(params.src_dir,'frontend_support.js')
+        frontend_support_lib.load()
+        self.monitor_jslibs.append(frontend_support_lib)
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change main monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendMainDicts.reuse(self,other)
+
+    def save(self,set_readonly=True):
+        cvWDictFile.glideinMainDicts.save(self,set_readonly)
+        self.save_monitor()
+
+
+    ########################################
+    # INTERNAL
+    ########################################
+    
+    def save_monitor(self):
+        for fobj in self.monitor_jslibs:
+            fobj.save(dir=self.monitor_jslibs_dir,save_only_if_changed=False)
+        for fobj in self.monitor_htmls:
+            fobj.save(dir=self.monitor_dir,save_only_if_changed=False)
+        return
 
 ################################################
 #
