@@ -3370,14 +3370,14 @@ def query_javascriptRRD():
         if yn=="y":
             user_dir=raw_input("Where is javascriptRRD installed?: ")
             user_dir=os.path.abspath(user_dir)
-            if not os.path.exist(os.path.join(user_dir,"src/lib/rrdFile.js")):
+            if not os.path.exists(os.path.join(user_dir,"src/lib/rrdFile.js")):
                 print "The provided directory is not hosting javascriptRRD"
                 print "(%s not found)"%os.path.join(user_dir,"src/lib/rrdFile.js")
                 continue
             JAVASCRIPTRRD_PATH=user_dir
             if FLOT_PATH==None:
                 # JavascriptRRD often contains flot, check for it
-                if os.path.exist(os.path.join(user_dir,"flot/jquery.flot.js")):
+                if os.path.exists(os.path.join(user_dir,"flot/jquery.flot.js")):
                     FLOT_PATH=os.path.join(user_dir,"flot")
             break
         else:
@@ -3402,7 +3402,7 @@ def query_flot():
         if yn=="y":
             user_dir=raw_input("Where is Flot installed?: ")
             user_dir=os.path.abspath(user_dir)
-            if not os.path.exist(os.path.join(user_dir,"jquery.flot.js")):
+            if not os.path.exists(os.path.join(user_dir,"jquery.flot.js")):
                 print "The provided directory is not hosting Flot"
                 print "(%s not found)"%os.path.join(user_dir,"jquery.flot.js")
                 continue
