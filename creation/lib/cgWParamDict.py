@@ -93,14 +93,25 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
 
         # populate the monitor files
-        factory_support_lib=cWDictFile.SimpleFile(params.src_dir,'factory_support.js')
-        factory_support_lib.load()
-        self.monitor_jslibs.append(factory_support_lib)
+        javascriptrrd_dir=os.path.join(params.monitor.javascriptRRD_dir,'src/lib')
+        for mfarr in ((params.src_dir,'factory_support.js'),
+                      (javascriptrrd_dir,'rrdFlot.js'),
+                      (javascriptrrd_dir,'rrdFlotSupport.js'),
+                      (javascriptrrd_dir,'rrdFile.js'),
+                      (javascriptrrd_dir,'binaryXHR.js'),
+                      (params.monitor.flot_dir,'jquery.flot.js'),
+                      (params.monitor.flot_dir,'excanvas.js'),
+                      (params.monitor.jquery_dir,'jquery.js')):
+            mfdir,mfname=mfarr
+            mfobj=cWDictFile.SimpleFile(mfdir,mfname)
+            mfobj.load()
+            self.monitor_jslibs.append(mfobj)
 
-        factroy_rrd_browser=cWDictFile.SimpleFile(params.src_dir,'factoryRRDBrowse.html')
-        factroy_rrd_browser.load()
-        self.monitor_htmls.append(factroy_rrd_browser)
-        
+        for mfarr in ((params.src_dir,'factoryRRDBrowse.html'),):
+            mfdir,mfname=mfarr
+            mfobj=cWDictFile.SimpleFile(mfdir,mfname)
+            mfobj.load()
+            self.monitor_htmls.append(mfobj)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
