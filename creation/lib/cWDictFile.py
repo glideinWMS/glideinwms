@@ -721,6 +721,46 @@ class VarsDictFile(DictFile):
         return self.add(key,arr[1:])
 
 
+# This class holds the content of the whole file in the single val
+# with key 'content'
+# Any other key is invalid
+class SimpleFile(DictFile):
+    def add(self,key,val,allow_overwrite=False):
+        if key!='content':
+            raise RuntimeError,"Invalid key '%s'!='content'"%key
+        return DictFile.add(self,key,val,allow_overwrite)
+
+    def file_header(self,want_comments):
+        return None # no comment, anytime
+    
+    def format_val(self,key,want_comments):
+        if key=='content':
+            return self.vals[key]
+        else:
+            raise RuntimeError,"Invalid key '%s'!='content'"%key
+
+    def load_from_fd(self, fd,
+                     erase_first=True,        # if True, delete old content first
+                     set_not_changed=True):   # if True, set self.changed to False
+        if erase_first:
+            self.erase()
+
+        data=fd.read()
+
+        # remove final newline, since it will be added at save time
+        if data[-1:]=='\n':
+            data=data[:-1]
+
+        self.add('content',data)
+
+        if set_not_changed:
+            self.changed=False # the memory copy is now same as the one on disk
+        return
+
+    def parse_val(self,line):
+        raise RuntimeError,"Not defined in SimpleFile"
+
+
 ########################################################################################################################
 
 # abstract class for a directory creation
