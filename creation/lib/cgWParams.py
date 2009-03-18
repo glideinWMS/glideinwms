@@ -113,9 +113,8 @@ class GlideinParams(cWParams.CommonParams):
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from submit dir?",None)
         self.defaults["stage"]=stage_defaults
 
-        monitor_default=cWParams.commentedOrderedDict()
-        monitor_default["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
-        self.defaults["monitor"]=monitor_default
+        self.monitor_defaults["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
+        self.defaults["monitor"]=self.monitor_defaults
         
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)

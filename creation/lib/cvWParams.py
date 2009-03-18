@@ -111,9 +111,8 @@ class VOFrontendParams(cWParams.CommonParams):
         stage_defaults["use_symlink"]=("True","Bool","Can I symlink stage dir from work dir?",None)
         self.defaults["stage"]=stage_defaults
 
-        monitor_default=cWParams.commentedOrderedDict()
-        monitor_default["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
-        self.defaults["monitor"]=monitor_default
+        self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
+        self.defaults["monitor"]=self.monitor_defaults
         
         security_default=cWParams.commentedOrderedDict()
         security_default["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)

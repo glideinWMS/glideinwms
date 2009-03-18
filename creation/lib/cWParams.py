@@ -346,6 +346,11 @@ class CommonParams(Params):
         self.file_defaults["untar_options"]=untar_defaults
 
         self.downtimes_defaults=commentedOrderedDict({"absfname":(None,"fname","File containing downtime information",None)})
+
+        self.monitor_defaults=cWParams.commentedOrderedDict()
+        self.monitor_defaults["javascriptRRD_dir"]=(os.path.join(self.src_dir,"../../externals/flot"),"base_dir","Location of the javascriptRRD library.",None)
+        self.monitor_defaults["flot_dir"]=(os.path.join(self.src_dir,"../../externals/flot"),"base_dir","Location of the flot library.",None)
+        self.monitor_defaults["jquery_dir"]=(os.path.join(self.src_dir,"../../externals/jquery"),"base_dir","Location of the jquery library.",None)
         return
 
     def get_subparams_class(self):
