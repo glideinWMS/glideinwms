@@ -768,15 +768,13 @@ class condorLogSummary:
 
             monitoringConfig.establish_dir(fe_dir)
             val_dict_counts={}
-            val_dict_entered={}
-            val_dict_exited={}
             val_dict_completed={}
             val_dict_waste={}
             val_dict_wastetime={}
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=sdata[s]
-                    val_dict_counts[s]=count
+                    val_dict_counts["Status%s"%s]=count
 
                 if ((sdiff!=None) and (s in sdiff.keys())):
                     entered_list=sdiff[s]['Entered']
@@ -787,9 +785,9 @@ class condorLogSummary:
                     entered=0
                     exited=0
                     
-                val_dict_entered[s]=entered
+                val_dict_counts["In%s"%s]=entered
                 if not (s in ('Completed','Removed')): # Always 0 for them
-                    val_dict_exited[s]=exited
+                    val_dict_counts["Out%s"%s]=exited
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
@@ -833,10 +831,6 @@ class condorLogSummary:
             # write the data to disk
             monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
                                              "GAUGE",self.updated,val_dict_counts)                            
-            monitoringConfig.write_rrd_multi("%s/Log_Entered"%fe_dir,
-                                             "ABSOLUTE",self.updated,val_dict_entered)
-            monitoringConfig.write_rrd_multi("%s/Log_Exited"%fe_dir,
-                                             "ABSOLUTE",self.updated,val_dict_exited)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
                                              "ABSOLUTE",self.updated,val_dict_completed)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,

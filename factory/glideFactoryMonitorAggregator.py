@@ -287,21 +287,19 @@ def aggregateLogSummary():
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
     val_dict_counts={}
-    val_dict_entered={}
-    val_dict_exited={}
     val_dict_completed={}
     val_dict_waste={}
     val_dict_wastetime={}
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             count=sdata[s]
-            val_dict_counts[s]=count
+            val_dict_counts["Abs%s"%s]=count
 
             exited=-status["total"]['Exited'][s]
-            val_dict_exited[s]=exited
+            val_dict_counts["Out%s"%s]=exited
             
         entered=status["total"]['Entered'][s]
-        val_dict_entered[s]=entered
+        val_dict_counts["In%s"%s]=entered
 
         if s=='Completed':
             completed_counts=status["total"]['CompletedCounts']
@@ -338,11 +336,7 @@ def aggregateLogSummary():
 
     # write the data to disk
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
-                                                            "GAUGE",updated,val_dict_counts)                            
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Entered"%fe_dir,
-                                                            "ABSOLUTE",updated,val_dict_entered)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Exited"%fe_dir,
-                                                            "ABSOLUTE",updated,val_dict_exited)
+                                                            "GAUGE",updated,val_dict_counts)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_completed)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
