@@ -142,9 +142,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
     def save_monitor(self):
         for fobj in self.monitor_jslibs:
-            fobj.save(dir=self.monitor_jslibs_dir)
+            fobj.save(dir=self.monitor_jslibs_dir,save_only_if_changed=False)
         for fobj in self.monitor_htmls:
-            fobj.save(dir=self.monitor_dir)
+            fobj.save(dir=self.monitor_dir,save_only_if_changed=False)
         return
 
 ################################################
