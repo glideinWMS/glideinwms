@@ -687,6 +687,7 @@ def query_WebLocation(web_subdir):
 def gfactory_install():
     global VDT_BASE_PATH
     global HTTPD_PORT
+    global JAVASCRIPTRRD_PATH,FLOT_PATH
     
     if os.getuid()==0:
         print
@@ -1116,6 +1117,8 @@ def extract_job_attrs(match_str):
 #-------------------------------------------------------------------------------
 def vofrontend_install():
     global VDT_BASE_PATH
+    global JAVASCRIPTRRD_PATH,FLOT_PATH
+
     if os.getuid()==0:
         print
         print "You are trying to install the VO Frontend as root"
@@ -3361,6 +3364,8 @@ def check_import(module_name):
 # Ask for the location of javascriptRRD
 ###########################################
 def query_javascriptRRD():
+    global JAVASCRIPTRRD_PATH,FLOT_PATH
+
     while 1:
         yn=raw_input("Do you have already a javascriptRRD installation?: (y/n) ")
         if (yn!="y") and (yn!="n"):
@@ -3393,6 +3398,8 @@ def query_javascriptRRD():
 # Ask for the location of Flot
 ###########################################
 def query_flot():
+    global FLOT_PATH
+
     while 1:
         yn=raw_input("Do you have already a Flot installation?: (y/n) ")
         if (yn!="y") and (yn!="n"):
