@@ -293,13 +293,13 @@ def aggregateLogSummary():
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             count=sdata[s]
-            val_dict_counts["Abs%s"%s]=count
+            val_dict_counts["Status%s"%s]=count
 
             exited=-status["total"]['Exited'][s]
-            val_dict_counts["Out%s"%s]=exited
+            val_dict_counts["Exited%s"%s]=exited
             
         entered=status["total"]['Entered'][s]
-        val_dict_counts["In%s"%s]=entered
+        val_dict_counts["Entered%s"%s]=entered
 
         if s=='Completed':
             completed_counts=status["total"]['CompletedCounts']

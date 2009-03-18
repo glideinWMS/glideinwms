@@ -785,9 +785,9 @@ class condorLogSummary:
                     entered=0
                     exited=0
                     
-                val_dict_counts["In%s"%s]=entered
+                val_dict_counts["Entered%s"%s]=entered
                 if not (s in ('Completed','Removed')): # Always 0 for them
-                    val_dict_counts["Out%s"%s]=exited
+                    val_dict_counts["Exited%s"%s]=exited
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
