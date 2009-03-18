@@ -131,7 +131,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
 
         count_status={}
         for dt in status_dict_types.keys():
-            status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],frontend_name,request_name)
+            status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],frontend_name,group_name,request_name)
             count_status[dt]=glideinFrontendLib.countCondorStatus(status_dict_types[dt]['client_dict'])
 
 
