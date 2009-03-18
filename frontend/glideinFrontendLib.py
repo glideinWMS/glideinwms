@@ -160,7 +160,7 @@ def evalParamExpr(expr_obj,frontend,glidein):
 #
 def getCondorStatus(collector_names,constraint=None,format_list=None):
     if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDEIN_Client','s')])
+        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s')])
     return getCondorStatusConstrained(collector_names,'IS_MONITOR_VM=!=True',constraint,format_list)
 
 #
@@ -201,7 +201,7 @@ def getClientCondorStatus(status_dict,frontend_name,request_name):
     client_name="%s@%s"%(request_name,frontend_name)
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('GLIDEIN_Client') and (el['GLIDEIN_Client']==client_name)))
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('GLIDECLIENT_Name') and (el['GLIDECLIENT_Name']==client_name)))
         sq.load()
         out[collector_name]=sq
     return out
