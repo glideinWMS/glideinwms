@@ -166,6 +166,7 @@ class groupStats:
         monitoringConfig.write_file("frontend_status.xml",xml_str)
 
         # update RRDs
+        val_dict={}
         type_strings={'Jobs':'Jobs','Slots':'Slots'}
         for tp in self.data.keys():
             # type - Jobs,Slots
