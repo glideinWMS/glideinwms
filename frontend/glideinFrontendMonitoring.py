@@ -186,7 +186,7 @@ class groupStats:
                     if type(a_el)!=type({}): # ignore subdictionaries
                         val_dict["%s%s"%(tp_str,a)]=a_el
                 
-        monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
+        monitoringConfig.write_rrd_multi("Status_Attributes",
                                          "GAUGE",self.updated,val_dict)
 
         self.files_updated=self.updated        
