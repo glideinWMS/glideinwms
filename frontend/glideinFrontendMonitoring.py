@@ -179,7 +179,7 @@ class groupStats:
             for a in attributes_tp:
                 val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
-            fe_el_tp=seld.data[tp]
+            fe_el_tp=self.data[tp]
             for a in fe_el_tp.keys():
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
