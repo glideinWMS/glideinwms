@@ -300,6 +300,8 @@ def main(parent_pid, work_dir, group_name):
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
 
+    glideinFrontendMonitoring.monitoringConfig.monitor_dir=os.path.join(work_dir,"monitor/group_%s"%group_name)
+
     # create lock file
     pid_obj=glideinFrontendPidLib.ElementPidSupport(work_dir,group_name)
 
