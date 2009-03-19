@@ -70,7 +70,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
     
 
-    stats['group'].logJobs({'Total':condorq_dict_count,
+    stats['group'].logJobs({'Total':condorq_dict_abs,
                             'Idle':condorq_dict_types['Idle']['abs'],
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
