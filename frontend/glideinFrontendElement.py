@@ -25,9 +25,15 @@ import glideinFrontendConfig
 import glideinFrontendInterface
 import glideinFrontendLib
 import glideinFrontendPidLib
+import glideinFrontendMonitoring
 
 ############################################################
-def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
+def write_stats(stats):
+    for k in stats.keys():
+        stats[k].write_file();
+
+############################################################
+def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,stats):
     if elementDescript.frontend_data.has_key('X509Proxy'):
         x509_proxy=elementDescript.frontend_data['X509Proxy']
     else:
@@ -58,20 +64,36 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
-    condorq_dict_types={'Idle':{'dict':condorq_dict_idle},
-                        'OldIdle':{'dict':condorq_dict_old_idle},
-                        'Running':{'dict':condorq_dict_running}}
+    condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+                        'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+                        'Running':{'dict':condorq_dict_running,'abs':}glideinFrontendLib.countCondorQ(condorq_dict_running)}
+    condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
+    
 
-    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(glideinFrontendLib.countCondorQ(condorq_dict),glideinFrontendLib.countCondorQ(condorq_dict_idle),glideinFrontendLib.countCondorQ(condorq_dict_old_idle),glideinFrontendLib.countCondorQ(condorq_dict_running)))
+    stats['group'].logJobs({'Total':condorq_dict_count,
+                            'Idle':condorq_dict_types['Idle']['abs'],
+                            'OldIdle':condorq_dict_types['OldIdle']['abs'],
+                            'Running':condorq_dict_types['Running']['abs']})
+
+    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(condorq_dict_count,
+                                                                                                condorq_dict_types['Idle']['abs'],
+                                                                                                condorq_dict_types['OldIdle']['abs'],
+                                                                                                condorq_dict_types['Running']['abs']))
 
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
 
-    status_dict_types={'Total':{'dict':status_dict},
-                       'Idle':{'dict':status_dict_idle},
-                       'Running':{'dict':status_dict_running}}
+    status_dict_types={'Total':{'dict':status_dict,'abs':glideinFrontendLib.countCondorStatus(status_dict)},
+                       'Idle':{'dict':status_dict_idle,'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
+                       'Running':{'dict':status_dict_running,'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
 
-    glideinFrontendLib.log_files.logActivity("Glideins found total %i idle %i running %i"%(glideinFrontendLib.countCondorStatus(status_dict),glideinFrontendLib.countCondorStatus(status_dict_idle),glideinFrontendLib.countCondorStatus(status_dict_running)))
+    stats['group'].logSlots({'Total':status_dict_types['Total']['abs'],
+                            'Idle':status_dict_types['Idle']['abs'],
+                            'Running':status_dict_types['Running']['abs']})
+
+    glideinFrontendLib.log_files.logActivity("Glideins found total %i idle %i running %i"%(status_dict_types['Total']['abs'],
+                                                                                           status_dict_types['Idle']['abs'],
+                                                                                           status_dict_types['Running']['abs']))
 
     # get the proxy
     if x509_proxy!=None:
@@ -107,6 +129,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript):
 
     for dt in condorq_dict_types.keys():
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
+        # is the semantics right?
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
@@ -215,6 +238,8 @@ def iterate(elementDescript,paramsDescript,signatureDescript):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
 
+    stats={}
+
     if not elementDescript.frontend_data.has_key('X509Proxy'):
         published_frontend_name='%s.%s'%(frontend_name,group_name)
     else:
@@ -228,7 +253,21 @@ def iterate(elementDescript,paramsDescript,signatureDescript):
         while 1: # will exit by exception
             glideinFrontendLib.log_files.logActivity("Iteration at %s" % time.ctime())
             try:
-                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript)
+                # recreate every time (an easy way to start from a clean state)
+                stats['group']=glideinFrontendMonitoring.groupStats()
+                
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,stats)
+                
+                glideinFrontendLib.log_files.logActivity("Writing stats")
+                try:
+                    write_stats(stats)
+                except KeyboardInterrupt:
+                    raise # this is an exit signal, pass through
+                except:
+                    # never fail for stats reasons!
+                    tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                    sys.exc_info()[2])
+                    glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))                
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
