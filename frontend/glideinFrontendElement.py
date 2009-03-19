@@ -75,7 +75,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
 
-    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(condorq_dict_count,
+    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(condorq_dict_abs,
                                                                                                 condorq_dict_types['Idle']['abs'],
                                                                                                 condorq_dict_types['OldIdle']['abs'],
                                                                                                 condorq_dict_types['Running']['abs']))
