@@ -87,14 +87,6 @@ class MonitoringConfig:
             os.mkdir(dname)
         return
 
-    def find_disk_frontends(self):
-        frontends=[]
-        fnames=os.listdir(self.monitor_dir)
-        for fname in fnames:
-            if fname[:9]=="frontend_":
-                frontends.append(fname[9:])
-        return frontends
-
     def write_rrd_multi(self,relative_fname,ds_type,time,val_dict,min=None,max=None):
         """
         Create a RRD file, using rrdtool.
