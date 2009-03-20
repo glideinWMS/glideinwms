@@ -28,7 +28,7 @@ class MonitorAggregatorConfig:
         self.entries=[]
 
         # name of the status files
-        self.group_status_relname="frontend_status.xml"
+        self.status_relname="frontend_status.xml"
 
     def config_frontend(self,monitor_dir,groups):
         self.monitor_dir=monitor_dir
