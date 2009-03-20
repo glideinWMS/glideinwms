@@ -92,7 +92,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         return cvWDictFile.frontendMainDicts.reuse(self,other)
 
     def save(self,set_readonly=True):
-        cvWDictFile.glideinMainDicts.save(self,set_readonly)
+        cvWDictFile.frontendMainDicts.save(self,set_readonly)
         self.save_monitor()
 
 
