@@ -29,38 +29,13 @@ sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import glideinFrontendPidLib
 import glideinFrontendConfig
 import glideinFrontendLib
-#import glideinFrontendMonitorAggregator
+import glideinFrontendMonitorAggregator
 import logSupport
 
-# this thread will be used for lazy updates of rrd history conversions
-rrd_thread=None
-
-def create_history_thread():
-    #glideinFrontendMonitorAggregator.create_status_history()
-    #glideinFrontendMonitorAggregator.create_log_history()
-    return
 
 ############################################################
 def aggregate_stats():
-    global rrd_thread
-    
-    #status=glideinFrontendMonitorAggregator.aggregateStatus()
-    #status=glideinFrontendMonitorAggregator.aggregateLogSummary()
-
-    # keep just one thread per monitoring type running at any given time
-    # if the old one is still running, do nothing (lazy)
-    # create_support_history can take a-while
-    if rrd_thread==None:
-        thread_alive=0
-    else:
-        thread_alive=rrd_thread.isAlive()
-        if not thread_alive:
-            rrd_thread.join()
-
-    if not thread_alive:
-        glideinFrontendLib.log_files.logActivity("Writing lazy stats")
-        rrd_thread=threading.Thread(target=create_history_thread)
-        rrd_thread.start()
+    status=glideinFrontendMonitorAggregator.aggregateStatus()
 
     return
 
@@ -130,9 +105,6 @@ def spawn(sleep_time,advertize_rate,work_dir,
 def main(work_dir):
     startup_time=time.time()
 
-    # disable locking... else I can get in deadlock with groups
-    #glideinFrontendMonitorAggregator.glideinFrontendMonitoring.monitoringConfig.lock_dir=None
-
     # create log files in the glidein log directory
     glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"log"))
     
@@ -146,7 +118,7 @@ def main(work_dir):
         groups=string.split(frontendDescript.data['Groups'],',')
         groups.sort()
 
-        #glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups)
+        glideinFrontendMonitorAggregator.monitorAggregatorConfig.config_frontend(os.path.join(work_dir,"monitor"),groups)
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
