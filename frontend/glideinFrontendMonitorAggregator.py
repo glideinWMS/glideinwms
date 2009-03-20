@@ -67,12 +67,13 @@ def aggregateStatus():
             continue # file not found, ignore
 
         nr_groups+=1
-        status['groups'][group]=group_data
+        status['groups'][group]={}
 
         for w in global_total.keys():
             tel=global_total[w]
             if not group_data.has_key(w):
-                continue 
+                continue
+            status['groups'][group][w]=group_data[w]
             el=group_data[w]
             if tel==None:
                 # new one, just copy over
