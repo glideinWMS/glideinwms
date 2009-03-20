@@ -101,6 +101,7 @@ def aggregateStatus():
              '<VOFrontendStats>\n'+
              get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["groups"],dict_name="groups",el_name="group",
+                                   subtypes_params={"class":{}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</VOFrontendStats>\n")
