@@ -105,10 +105,10 @@ def aggregateStatus():
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</VOFrontendStats>\n")
-    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
+    glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
 
     # Write rrds
-    glideFactoryMonitoring.monitoringConfig.establish_dir("total")
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
 
     type_strings={'Jobs':'Jobs','Slots':'Slots'}
     val_dict={}
@@ -130,8 +130,8 @@ def aggregateStatus():
                 a_el=int(tp_el[a])
                 val_dict["%s%s"%(tp_str,a)]=a_el
                 
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
-                                                            "GAUGE",updated,val_dict)
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
+                                                               "GAUGE",updated,val_dict)
 
     return status
 
