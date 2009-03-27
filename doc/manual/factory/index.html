@@ -31,9 +31,10 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 		<LI><A HREF="#create_entry">Creating a new configuration directory
 		tree</A> 
 		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
+		<LI><A HREF="#downtimes">Downtime handling</A> 
+		<LI><A HREF="#factory_info">Getting configuration information</A> 
 		<LI><A HREF="#reconfig_entry">Updating a configuration directory
 		tree</A> 
-		<LI><A HREF="#downtimes">Downtime handling</A> 
 		<LI><A HREF="#localtest">Testing with a local glidein</A> 
 	        <LI><A HREF="#upgrade">Upgrading to a new version of glideinWMS</A>
 	</UL>
@@ -211,7 +212,7 @@ tree</H3>
 <DL>
 	<DT>The directory tree containing the entry points is created by
 	launching the command</DT><DD>
-	<FONT FACE="monospace">create_glidein</FONT></DD><DT>
+	<FONT FACE="monospace">glideinWMS/creation/create_glidein</FONT></DD><DT>
 <P>
 Another option is to use the <A HREF="../../install/factory_install.html">provided
 installer</A>. <BR><BR><A HREF="entry.html">Technical details of the
@@ -235,6 +236,64 @@ Use the <A HREF="#reconfig_entry">reconfig tools described below</A> instead.
 <P>
 See the <A HREF="#monitoring">monitoring section</A> on how to check other info.
 </P>
+
+
+<H3><A NAME="downtimes"></A>Downtime handling</H3>
+<P>Starting with v1_3, the glidein factory supports the dynamic
+handling of downtimes.<BR>Downtimes can be handled both at the
+factory and at the entry level.</P>
+<P>Downtimes are useful when one or more Grid sites are known to have
+issues (can be anything from scheduled maintenance to a storage
+element corrupting user files).<BR>In this case the factory
+administrator can temporarily stop submitting glideins to the
+affected sites, without stopping the factory as a whole.</P>
+<P>Downtimes are handled with </P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	up|down 'factory'|&lt;entry name&gt; [&lt;delay&gt;]</FONT>
+</DD></DL>
+
+<P>If the entry points are linked to an information system (BDII or RESS), you can also 
+   use the following command to automatically adjust the downtime based on the information
+   provided by that information system (i.e. the entry point will be marked up
+   if and only if the information system claims the gatekeeper is accepting new jobs)</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	infosysdown</FONT>
+</DD></DL>
+
+<P>
+<B>Caution</B>: An admin can handle downtimes both at the entry and at
+the factory level. <BR>
+Please be aware that both will be used.
+</P>
+
+<P><BR>Note: Advanced users may also want to have a look at 
+</P>
+<DL>
+      <DD><FONT FACE="monospace">glideinWMS/factory/manageFactoryDowntimes.py</FONT>
+</DD></DL>
+
+<H3><A NAME="factory_info"></A>Getting configuration information</H3>
+
+<P>To get the list of entries defined in the factory, use</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	info -entries -CE</FONT>
+</DD></DL>
+
+<P>To see which entries are currently active, use</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	statusdown entries</FONT>
+</DD></DL>
+
+<P>PS: Make sure the whole factory is not disabled, by using</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	statusdown factory </FONT>
+</DD></DL>
+
 
 <H3><A NAME="reconfig_entry"></A>Updating a configuration directory
 tree</H3>
@@ -277,30 +336,6 @@ script will throw an error and do nothing. So you should never need to worry abo
 corrupting the installation tree using this tool.
 </P>
 
-
-<H3><A NAME="downtimes"></A>Downtime handling</H3>
-<P>Starting with v1_3, the glidein factory supports the dynamic
-handling of downtimes.<BR>Downtimes can be handled both at the
-factory and at the entry level.</P>
-<P>Downtimes are useful when one or more Grid sites are known to have
-issues (can be anything from scheduled maintenance to a storage
-element corrupting user files).<BR>In this case the factory
-administrator can temporarily stop submitting glideins to the
-affected sites, without stopping the factory as a whole.</P>
-<DL>
-	<DT>Downtimes are handled and monitored with 
-	</DT><DD><P>
-	<FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
-	up|down|infosysdown|statusdown 'factory'|'entries'|<I>entry_name</I></FONT></P></DD></DL>
-<P>
-. An admin can handle and monitor downtimes both at the entry and at
-the factory level. <BR>Please be aware that both will be used.<BR><BR><BR>
-</P>
-<P>Advanced users may want ot have a look at 
-</P>
-<PRE>./glideinWMS/factory/manageFactoryDowntimes.py</PRE><P>
-command. 
-</P>
 <H3><A NAME="localtest"></A>Testing with a local glidein</H3>
 <P>In case of problems, you may want to test a glidein by hand. 
 </P>
