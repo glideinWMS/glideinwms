@@ -31,6 +31,8 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 		<LI><A HREF="#create_entry">Creating a new configuration directory
 		tree</A> 
 		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
+		<LI><A HREF="#reconfig_entry">Updating a configuration directory
+		tree</A> 
 		<LI><A HREF="#downtimes">Downtime handling</A> 
 		<LI><A HREF="#localtest">Testing with a local glidein</A> 
 	        <LI><A HREF="#upgrade">Upgrading to a new version of glideinWMS</A>
@@ -187,32 +189,14 @@ implementation can be found <A HREF="glidein_internals.html">here</A>.</P>
 <H2><A NAME="management"></A>Glidein Factory management</H2>
 <P>To run a Glidein Factory, you need to perform two steps:</P>
 <OL>
-	<LI>Create the configuration directories 
-	<LI><P>Run the Glidein Factory Daemon 
-	</P>
+	<LI>Create the configuration directories.
+	<LI>Run the Glidein Factory Daemon who will internall start the 
+	       Entry Daemons.
 </OL>
-<P>and repeat as needed to serve all the resources available.<BR><BR>Please
-notice that it is extremely difficult to change an entry point after
-it has been created, so <B>it is much better to just create a new
-one, if changes are needed</B>. <BR><BR>The reason why changes are so
-problematic are two fold:</P>
-<UL>
-	<LI>&nbsp;The first problem are signatures. Any change requires the
-	change of the signature file, that in turn gets a new signature.
-	Since the signature file signature is one of the parameters of the
-	startup script, all glideins already in the queue will fail.&nbsp; 
-	<LI><P>The second problem is caching. For performance&nbsp;reasons,
-	most Web caches don't check too often if the original document has
-	been changed; a glidein could thus get an old copy of a file and
-	fail the signature check. 
-	</P>
-</UL>
-<P>There is only one file that is neither signed nor cached and can
-be thus modified; the blacklisting file called <FONT FACE="monospace"><B>nodes.blacklist</B></FONT>.
-This one can be used to temporarily blacklist malfunctioning nodes
-that would pass regular sanity checks (for example: memory corruption
-or I/O errors), while waiting for the Grid site admin to take action.
-</P>
+
+<B>Warning: Never change the files in an entry point by hand after it has been created!</B>.<BR>
+Use the <A HREF="#reconfig_entry">reconfig tools described below</A> instead.
+
 <H3><A NAME="create_entry"></A>Creating a new configuration directory
 tree</H3>
 <P>To create an entry point you need:</P>
@@ -227,13 +211,13 @@ tree</H3>
 	<DT>The directory tree containing the entry points is created by
 	launching the command</DT><DD>
 	<FONT FACE="monospace">create_glidein</FONT></DD><DT>
-	or 
-	</DT><DD><P>
-	<FONT FACE="monospace">reconfig_glidein</FONT></P></DD></DL>
 <P>
-<BR>Another option is to use the <A HREF="../../install/factory_install.html">provided
+Another option is to use the <A HREF="../../install/factory_install.html">provided
 installer</A>. <BR><BR><A HREF="entry.html">Technical details of the
 configuration are described on a dedicated page</A> .</P>
+<B>Warning: Never change the files in an entry point by hand after it has been created!</B>.<BR>
+Use the <A HREF="#reconfig_entry">reconfig tools described below</A> instead.
+
 <H3><A NAME="run_daemon"></A>Starting a Glidein Factory Daemon</H3>
 <P>The glidein factory comes with a init.d style startup script.</P>
 <P>Glidein factory starting and stopping is handled by 
@@ -242,13 +226,7 @@ configuration are described on a dedicated page</A> .</P>
 	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
 	start|stop|restart</FONT></P></DD></DL>
 <P>
-. The same script can also be used to reconfigure the factory (from a
-config file)</P>
-<DL>
-	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
-	reconfig <I>config_fname</I></FONT></P></DD></DL>
-<P>
-.<BR><BR><BR>Base activity messages will be printed in</P>
+<BR>Base activity messages will be printed in</P>
 <DL>
 	<DD><FONT FACE="monospace">&lt;glidein
 	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
@@ -278,6 +256,49 @@ deleted after a week.</P>
 	status|info 'factory'|<I>entry_name</I></FONT></P></DD></DL>
 <P>
 and you are all set.</P>
+
+<H3><A NAME="reconfig_entry"></A>Updating a configuration directory
+tree</H3>
+
+The files in an entry point must <B>never be changed by hand</B>, after the directory structure has been created.
+<BR>
+<P>The reason why manual changes are so problematic are two fold:</P>
+<UL>
+	<LI>&nbsp;The first problem are signatures. Any change requires the
+	change of the signature file, that in turn gets a new signature.
+	Since the signature file signature is one of the parameters of the
+	startup script, all glideins already in the queue will fail.&nbsp; 
+	<LI><P>The second problem is caching. For performance&nbsp;reasons,
+	most Web caches don't check too often if the original document has
+	been changed; a glidein could thus get an old copy of a file and
+	fail the signature check. 
+	</P>
+</UL>
+<P>There is only one file that is neither signed nor cached and can
+be thus modified; the blacklisting file called <FONT FACE="monospace"><B>nodes.blacklist</B></FONT>.
+This one can be used to temporarily blacklist malfunctioning nodes
+that would pass regular sanity checks (for example: memory corruption
+or I/O errors), while waiting for the Grid site admin to take action.
+</P>
+<P>
+<BR>
+The proper procedure to update an entry point is 
+to make a copy of the official configuration file (i.e. <I>glideinWMS.xml</I>)
+and run
+<DL>
+	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	reconfig <I>config_copy_fname</I></FONT></P></DD></DL>
+</P>
+<P>
+This will update the directory tree and restart the factory and entry dameons.
+</P>
+<P>
+Please notice that if you make any errors in the new configuration file, the reconfig 
+script will throw an error and do nothing. So you should never need to worry about
+corrupting the installation tree using this tool.
+</P>
+
+
 <H3><A NAME="downtimes"></A>Downtime handling</H3>
 <P>Starting with v1_3, the glidein factory supports the dynamic
 handling of downtimes.<BR>Downtimes can be handled both at the
