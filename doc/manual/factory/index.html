@@ -417,6 +417,15 @@ extensive log files. The logs are kept for a week and then deleted.</P>
           </FONT>
 </DD></DL>
 
+<P>Note: If you need Condor log files from a still running glidein, use the following 
+   <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/condor_fetchlog.html">Condor command</A></P>
+<DL>
+      <DD><FONT FACE="monospace">
+	  &lt;condor dir&gt;/sbin/condor_fetchlog -pool &lt;pool collector&gt; &lt;glidein slot name&gt; -startd MASTER|STARTD|STARTER
+          </FONT>
+</DD></DL>
+<BR>
+
 <P>The Entry Daemons also summarize the information about completed glideins into</P>
 <DL>
 	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
