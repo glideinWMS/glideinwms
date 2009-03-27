@@ -378,7 +378,7 @@ extensive log files. The logs are kept for a week and then deleted.</P>
       <DD><FONT FACE="monospace">
 	  glideinWMS/factory/tools/cat_MasterLog.py &lt;err_fname&gt;<BR>
 	  glideinWMS/factory/tools/cat_StartdLog.py &lt;err_fname&gt;<BR>
-	  glideinWMS/factory/tools/cat_StarterLog.py &lt;err_fname&gt;<BR>
+	  glideinWMS/factory/tools/cat_StarterLog.py &lt;err_fname&gt;
           </FONT>
 </DD></DL>
 
@@ -394,6 +394,17 @@ overview</A>, the Entry Point Daemons expose a lot of monitoring
 information in the ClassAds sent to the WMS collector. While this may
 not be the most user friendly interface, most of the monitoring
 information you'll ever need is present there.</P>
+
+<P>On top of the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/condor_status.html">Condor provided tools</A>,
+the factory provides two tools to look at the ClassAds; the first one returns a human readable, but limited text, 
+while the other provides a complete XML-formated output</P>
+<DL>
+      <DD><FONT FACE="monospace">
+	  glideinWMS/tools/wmsTxtView.py<BR>
+	  glideinWMS/tools/wmsXMLView.py
+          </FONT>
+</DD></DL>
+
 <H3><A NAME="monitoring_web"></A>Web monitoring</H3>
 <P>The Glidein Factory Daemon and the Entry Point Daemons also create
 XML documents on a Web accessible area (see <FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>monitor
