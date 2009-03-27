@@ -39,6 +39,7 @@ a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
 	</UL>
 	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
 	<UL>
+	        <LI><A HREF="#monitoring_logs">Log files</A>
 		<LI><A HREF="#monitoring_classads">Looking at ClassAds</A> 
 		<LI><A HREF="#monitoring_web">Web monitoring</A> 
 		<LI><A HREF="#monitoring_history">Historical Web Monitoring</A> 
@@ -225,37 +226,15 @@ Use the <A HREF="#reconfig_entry">reconfig tools described below</A> instead.
 <DL>
 	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
 	start|stop|restart</FONT></P></DD></DL>
-<P>
-<BR>Base activity messages will be printed in</P>
+
+<P>You can check that the factory is actually running with 
+</P>
 <DL>
-	<DD><FONT FACE="monospace">&lt;glidein
-	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
-	while all the warnings go into</DT><DD>
-	<FONT FACE="monospace">&lt;glidein
-	directory&gt;/log/factory_err.&lt;date&gt;.log</FONT></DD><DT>
-	<BR><BR>However, each entry has also its own logs in</DT><DD>
-	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
-	name&gt;/log/factory_info.&lt;date&gt;.log</FONT></DD><DT>
-	while all the warnings go into</DT><DD>
-	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
-	name&gt;/log/factory_err.&lt;date&gt;.log</FONT></DD><DT>
-	while the glidein output logs will be in 
-	</DT><DD>
-	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
-	name&gt;/log/job.&lt;condor-g job nr&gt;.out</FONT></DD><DT>
-	and 
-	</DT><DD><P>
-	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
-	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT></P></DD></DL>
+	<DD><P><FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
+	status</FONT></P></DD></DL>
 <P>
-<BR>Both the entry factory logs and the actual glidein logs are
-deleted after a week.</P>
-<DL>
-	<DT>Additional monitoring can be obtained with</DT><DD><P>
-	<FONT FACE="monospace">&lt;glidein directory&gt;/factory_startup
-	status|info 'factory'|<I>entry_name</I></FONT></P></DD></DL>
-<P>
-and you are all set.</P>
+See the <A HREF="#monitoring">monitoring section</A> on how to check other info.
+</P>
 
 <H3><A NAME="reconfig_entry"></A>Updating a configuration directory
 tree</H3>
@@ -359,6 +338,56 @@ to both maintain the health of the system and to tune the system for
 anticipated growth. The various ways you can monitor a Glidein
 Factory are described below. 
 </P>
+<H3><A NAME="monitoring_logs"></A>Log files</H3>
+<P>Both the Factory Daemon, the Entry Daemons, Condor-G and the Glideins write
+extensive log files. The logs are kept for a week and then deleted.</P>
+<P>The Glidein Factory Daemon log files are located in</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein
+	directory&gt;/log/factory_info.&lt;date&gt;.log</FONT><BR>
+	<FONT FACE="monospace">&lt;glidein
+	directory&gt;/log/factory_err.&lt;date&gt;.log</FONT>
+</DD></DL>
+
+<P>Each Entry Daemon has its log files in</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
+	name&gt;/log/factory_info.&lt;date&gt;.log</FONT><BR>
+	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
+	name&gt;/log/factory_err.&lt;date&gt;.log</FONT>
+</DD></DL>
+
+<P>For each client an Entry Daemon is serving, one Condor-G job log is used</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
+	name&gt;/log/condor_activity_&lt;date&gt;_&lt;client-name&gt;.log</FONT>
+</DD></DL>
+
+<P>Each Glidein also writes a couple of log files, that get transfered back to 
+   the factory node after the glidein terminates. The log files are named:</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
+	name&gt;/log/job.&lt;condor-g job nr&gt;.out</FONT><BR>
+	<FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
+	name&gt;/log/job.&lt;condor-g job nr&gt;.err</FONT>
+</DD></DL>
+<P>The Glidein .out files are readable using any text editor, while the .err files
+   contain the compressed logs of the condor daemons.<BR>
+   Use the following commands to extract that information in simple text format</P>
+<DL>
+      <DD><FONT FACE="monospace">
+	  glideinWMS/factory/tools/cat_MasterLog.py &lt;err_fname&gt;<BR>
+	  glideinWMS/factory/tools/cat_StartdLog.py &lt;err_fname&gt;<BR>
+	  glideinWMS/factory/tools/cat_StarterLog.py &lt;err_fname&gt;<BR>
+          </FONT>
+</DD></DL>
+
+<P>The Entry Daemons also summarize the information about completed glideins into</P>
+<DL>
+	<DD><FONT FACE="monospace">&lt;glidein directory&gt;/entry_&lt;entry
+	name&gt;/log/completed_jobs_&lt;date&gt;.log</FONT>
+</DD></DL>
+
 <H3><A NAME="monitoring_classads"></A>Looking at ClassAds</H3>
 <P>As explained in the <A HREF="../index.html#classads">Data exchange
 overview</A>, the Entry Point Daemons expose a lot of monitoring
