@@ -1169,7 +1169,8 @@ def vofrontend_install():
     print
     print "What node is the pool collector running on?"
     print "If you have a hierarchy of collectors, list them all"
-    print "(for example: master1.my.org:9620,master1.my.org:9621,master1.my.org:9622,master1.my.org:9623,master1.my.org:9624)"
+    print "(for example master1.my.org:9620-9624"
+    print "          or master1.my.org:9619,master2.my.org:9620-9624,master3.my.org)"
     while 1:
         local_collector=raw_input("Collector name(s): [%s]"%default_local_collector)
         if local_collector=="":
