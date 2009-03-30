@@ -136,7 +136,8 @@ if [ "$gcb_order" == "RANDOM" ];then
     ##########################################################
     # random order
     ##########################################################
-    gcb_els=`echo "$gcb_list" | awk 'BEGIN{srand()}{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'`
+    let random_seed=`date +%s`+$$
+    gcb_els=`echo "$gcb_list" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'`
 elif [ "$gcb_order" == "RR" -o "$gcb_order" == "ROUNDROBIN" ]; then
     ##########################################################
     # round robin, based on the cluster number
