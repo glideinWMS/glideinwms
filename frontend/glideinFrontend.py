@@ -71,7 +71,27 @@ def iterate_one(frontend_name,factory_pool,factory_constraint,
     glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,factory_constraint,x509_proxy!=None)
 
     condorq_dict=glideinFrontendLib.getCondorQ(schedd_names,job_constraint,job_attributes)
-    status_dict=glideinFrontendLib.getCondorStatus(glidein_params['GLIDEIN_Collector'].split(','),1,[])
+
+    # may have many collectors
+    user_collectors=[]
+    for user_collector_el in glidein_params['GLIDEIN_Collector'].split(','):
+        uce_arr=user_collector_el.split(':',1)
+        if len(uce_arr)==1:
+            # no port
+            user_collectors.append(user_collector_el)
+        else:
+            uce_hname,uce_port=uce_arr
+            ucep_arr=uce_port.split('-',1)
+            if len(ucep_arr)==1:
+                # no range
+                user_collectors.append(user_collector_el)
+            else:
+                uce_port_low=int(ucep_arr[0])
+                uce_port_high=int(ucep_arr[1])
+                for p in range(uce_port_low,uce_port_high+1):
+                    user_collectors.append("%s:%s"%(uce_hname,p))
+    
+    status_dict=glideinFrontendLib.getCondorStatus(user_collectors,1,[])
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
