@@ -58,7 +58,24 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
                                                elementDescript.merged_data['JobMatchAttrs'])
 
 
-    status_dict=glideinFrontendLib.getCondorStatus(paramsDescript.const_data['GLIDEIN_Collector'].split(','),1,[]) # in theory the collector could be an expression, but for now we require it to be a constant
+    user_collectors=[]
+    for user_collector_el in paramsDescript.const_data['GLIDEIN_Collector'].split(','):
+        uce_arr=user_collector_el.split(':',1)
+        if len(uce_arr)==1:
+            # no port
+            user_collectors.append(user_collector_el)
+        else:
+            uce_hname,uce_port=uce_arr
+            ucep_arr=uce_port.split('-',1)
+            if len(ucep_arr)==1:
+                # no range
+                user_collectors.append(user_collector_el)
+            else:
+                uce_port_low=int(ucep_arr[0])
+                uce_port_high=int(ucep_arr[1])
+                for p in range(uce_port_low,uce_port_high+1):
+                    user_collectors.append("%s:%s"%(uce_hname,p))
+    status_dict=glideinFrontendLib.getCondorStatus(user_collectors,1,[]) # in theory the collector could be an expression, but for now we require it to be a constant
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
