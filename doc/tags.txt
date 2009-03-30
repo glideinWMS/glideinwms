@@ -1,5 +1,6 @@
 vNext	Better randomization of GCBs and collectors
 	Collector list now supports ranges of ports
+	Improved documentation
 
 v1_6	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
