@@ -30,7 +30,15 @@ fi
 ##########################################################
 # random order
 ##########################################################
-head_node=`echo "$head_nodes" | awk 'BEGIN{srand()}{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
+
+# randomly select from the list of nodes 
+let random_seed=`date +%s`+$$
+head_node_wports=`echo "$head_nodes" | awk "BEGIN{srand($random_seed)}"'{split($0,g,","); for (i in g) print rand() "\t" g[i]}' | sort -n |awk '{print $2}'|tail -1`
+
+#randomly select from the range of ports
+let random_seed=`date +%s`+$$'*'2 
+head_node=`echo "$head_node_wports" | awk "BEGIN{srand($random_seed)}"'{split($0,g,":"); if (g[2]=="") { print 0 "\t" $0} else {split(g[2],p,"-"); if (p[2]=="") {print 0 "\t" $0} else {for (i=p[1]; i<=p[2]; i++) {print rand() "\t" g[1] ":" i}}}}' | sort -n |awk '{print $2}'|tail -1`
+
 
 add_config_line GLIDEIN_Collector $head_node
 
