@@ -42,6 +42,28 @@ class ProxyFirst:
                     status_dict,status_dict_types):
         return [self.proxy_list[0]]
 
+############################################
+#
+# This plugin returns all the proxies
+# This is can be a very useful default policy
+#
+class ProxyAll:
+    def __init__(self,config_dir,proxy_list):
+        self.proxy_list=proxy_list
+
+    # what job attributes are used by this plugin
+    def get_required_job_attributes(self):
+        return []
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self):
+        return []
+
+    # get the proxies, given the condor_q and condor_status data
+    def get_proxies(condorq_dict,condorq_dict_types,
+                    status_dict,status_dict_types):
+        return self.proxy_list
+
 ##########################################################
 #
 # This plugin uses the first N proxies
@@ -56,11 +78,11 @@ class ProxyUserCardinality:
         self.proxy_list=proxy_list
 
     # what job attributes are used by this plugin
-    def get_required_job_attributes(self,):
+    def get_required_job_attributes(self):
         return ('User',)
 
     # what glidein attributes are used by this plugin
-    def get_required_classad_attributes(self,):
+    def get_required_classad_attributes(self):
         return []
 
     # get the proxies, given the condor_q and condor_status data
@@ -103,11 +125,11 @@ class ProxyUserRR:
         self.load()
 
     # what job attributes are used by this plugin
-    def get_required_job_attributes(self,):
+    def get_required_job_attributes(self):
         return ('User',)
 
     # what glidein attributes are used by this plugin
-    def get_required_classad_attributes(self,):
+    def get_required_classad_attributes(self):
         return []
 
     # get the proxies, given the condor_q and condor_status data
@@ -217,6 +239,10 @@ class ProxyUserRR:
     
 ###################################################################
 
-proxy_plugins={'ProxyFirst':ProxyFirst,'ProxyUserCardinality':ProxyUserCardinality,
-               'ProxyUserRR':ProxyUserRR}
+# Being plugins, users are not expected to directly reference the classes
+# They should go throug the dictionaries below to find the appropriate plugin
+
+proxy_plugins={'ProxyAll':ProxyAll,
+               'ProxyUserRR':ProxyUserRR,
+               'ProxyFirst':ProxyFirst,'ProxyUserCardinality':ProxyUserCardinality}
 
