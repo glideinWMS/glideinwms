@@ -187,10 +187,11 @@ class ElementMergedDescript:
             self.merged_data[t]="(%s) and (%s)"%(self.frontend_data[t],self.element_data[t])
             self.merged_data[t+'CompiledObj']=compile(self.merged_data[t],"<string>","eval")
 
-
-        # proxy plugin should be extracted here
-        # hardcoding for now
-        self.merged_data['ProxyPlugin']='ProxyAll'
+        proxy_selection_plugin='ProxyAll'
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxySelectionPlugin'):
+                proxy_selection_plugin=data['ProxySelectionPlugin']
+        self.merged_data['ProxySelectionPlugin']=proxy_selection_plugin
 
         return
 
