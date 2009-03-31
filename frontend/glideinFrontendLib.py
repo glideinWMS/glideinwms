@@ -9,6 +9,7 @@
 #
 
 import os.path
+import sets
 import condorMonitor,condorExe
 import logSupport
 
@@ -107,6 +108,21 @@ def countCondorQ(condorq_dict):
     for schedd_name in condorq_dict.keys():
         count+=len(condorq_dict[schedd_name].fetchStored())
     return count
+
+#
+# Return a set of users present in the dictionary
+# Needs "User" attribute
+#
+
+def getCondorQUsers(condorq_dict):
+    users_set=sets.Set()
+    for schedd_name in condorq_dict.keys():
+        condorq_data=condorq_dict[schedd_name].fetchStored()
+        for jid in condorq_data.keys():
+            job=condorq_data[jid]
+            users_set.add(job['User'])
+            
+    return users_set
 
 #
 # Get the number of jobs that match each glidein
