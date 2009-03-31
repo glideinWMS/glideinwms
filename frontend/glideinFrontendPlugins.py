@@ -12,6 +12,89 @@ import sets
 import pickle
 import glideinFrontendLib
 
+
+######################################################
+#                                                    #
+####    Proxy plugins                             ####
+#                                                    #
+######################################################
+
+############################################
+#
+# This plugin always returns the first proxy
+# Useful when there is only one proxy
+# or for testing
+#
+class ProxyFirst:
+    def __init__(self,config_dir,proxy_list):
+        self.proxy_list=proxy_list
+
+    # what job attributes are used by this plugin
+    def get_required_job_attributes(self,):
+        return []
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self,):
+        return []
+
+    # get the proxies, given the condor_q and condor_status data
+    def get_proxies(condorq_dict,condorq_dict_types,
+                    status_dict,status_dict_types):
+        return [self.proxy_list[0]]
+
+##########################################################
+#
+# This plugin uses the first N proxies
+# where N is the number of users currently in the system
+#
+# This is useful if the first proxies are higher priority
+# then the later ones
+# Also good for testing
+#
+class ProxyUserCardinality:
+    def __init__(self,config_dir,proxy_list):
+        self.proxy_list=proxy_list
+
+    # what job attributes are used by this plugin
+    def get_required_job_attributes(self,):
+        return ('User',)
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self,):
+        return []
+
+    # get the proxies, given the condor_q and condor_status data
+    def get_proxies(condorq_dict,condorq_dict_types,
+                    status_dict,status_dict_types):
+        users_set=glideinFrontendLib.getCondorQUsers(condorq_dict)
+        return self.get_proxies_from_cardinality(len(users_set))
+
+    #############################
+    # INTERNAL
+    #############################
+
+    # return the proxies based on data held by the class
+    def get_proxies_from_cardinality(self,nr_requested_proxies):
+        nr_proxies=len(self.proxy_list)
+
+        if nr_requested_proxies>=nr_proxies:
+            # wants all of them, no need to select
+            return self.proxy_list
+        
+        out_proxies=[]
+        for i in range(nr_requested_proxies):
+            out_proxies.append(self.proxy_list[i])
+
+        return out_proxies
+
+######################################################################
+#
+# This plugin implements a user-based round-robin policy
+# The same proxies are used as long as the users don't change
+#  (we keep a disk-based memory for this purpose)
+# Once any user leaves, the most used proxy is returned to the pool
+# If a new user joins, the least used proxy is obtained from the pool
+#
 class ProxyUserRR:
     def __init__(self,config_dir,proxy_list):
         self.proxy_list=proxy_list
@@ -134,5 +217,6 @@ class ProxyUserRR:
     
 ###################################################################
 
-proxy_plugins={'ProxyUserRR':ProxyUserRR}
+proxy_plugins={'ProxyFirst':ProxyFirst,'ProxyUserCardinality':ProxyUserCardinality,
+               'ProxyUserRR':ProxyUserRR}
 
