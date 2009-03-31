@@ -406,10 +406,13 @@ def populate_common_descript(descript_dict,        # will be modified
                 raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
-        descript_dict.add('%sProxies'%str_tname,repr(params.security.proxies))
+
     descript_dict.add('FactoryCollectors',params.match.factory.collectors)
     descript_dict.add('JobSchedds',params.match.job.schedds)
-    
+
+    if params.security.proxy_selection_plugin!=None:
+        descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)
+    descript_dict.add('Proxies',repr(params.security.proxies))
     descript_dict.add('MatchExpr',params.match.match_expr)
 
 
