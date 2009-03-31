@@ -187,6 +187,11 @@ class ElementMergedDescript:
             self.merged_data[t]="(%s) and (%s)"%(self.frontend_data[t],self.element_data[t])
             self.merged_data[t+'CompiledObj']=compile(self.merged_data[t],"<string>","eval")
 
+
+        # proxy plugin should be extracted here
+        # hardcoding for now
+        self.merged_data['ProxyPlugin']='ProxyAll'
+
         return
 
     def split_list(self,val):
