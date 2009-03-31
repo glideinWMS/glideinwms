@@ -198,7 +198,8 @@ class VOFrontendParams(cWParams.CommonParams):
 
     # return xml formatting
     def get_xml_format(self):
-        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},},
+        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                               {'proxies':{'el_name':'proxy','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},
                                 'match_attrs':{'el_name':'match_attr','subtypes_params':{'class':{}}}}}
