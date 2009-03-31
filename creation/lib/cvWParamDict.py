@@ -355,8 +355,6 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
         frontend_dict.add('SymKeyType',params.security.sym_key)
-        if params.security.x509_proxy!=None:
-            frontend_dict.add('X509Proxy',params.security.x509_proxy)
 
         active_sub_list[:] # erase all
         for sub in params.groups.keys():
@@ -408,6 +406,7 @@ def populate_common_descript(descript_dict,        # will be modified
                 raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
+        descript_dict.add('%sProxies'%str_tname,repr(params.security.proxies))
     descript_dict.add('FactoryCollectors',params.match.factory.collectors)
     descript_dict.add('JobSchedds',params.match.job.schedds)
     

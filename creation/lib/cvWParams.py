@@ -79,6 +79,16 @@ class VOFrontendParams(cWParams.CommonParams):
         match_defaults["job"]=job_match_defaults
         match_defaults["match_expr"]=('True','PythonExpr', 'Python expression for matching jobs to factory entries with access to job and glidein dictionaries',None)
 
+
+        proxy_defaults=cWParams.commentedOrderedDict()
+        proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_count)",None)
+        proxy_defaults["pool_count"]=(None,"count","If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count",None)
+        proxy_defaults["proxy_refresh_script"]=(None,"fname","If not None, the script will be called every time before using a proxy",None)
+
+        security_defaults=cWParams.commentedOrderedDict()
+        security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
+        security_defaults["proxies"]=([],'List of proxies',"Each proxy element contains",proxy_defaults)
+        
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
         self.group_defaults["enabled"]=("True","Bool","Is this group enabled?",None)
@@ -86,6 +96,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.group_defaults["attrs"]=sub_defaults['attrs']
         self.group_defaults["files"]=sub_defaults['files']
         self.group_defaults["downtimes"]=self.downtimes_defaults
+        self.group_defaults["security"]=copy.deepcopy(security_defaults)
         
 
         ###############################
@@ -114,11 +125,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
         
-        security_default=cWParams.commentedOrderedDict()
-        security_default["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
-        security_default["x509_proxy"]=(None,"fname","Where the x509 proxy will be found (if None, use factory one)",None)
-        
-        self.defaults["security"]=security_default
+        self.defaults["security"]=copy.deepcopy(security_defaults)
+        self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
         
         self.defaults["match"]=copy.deepcopy(match_defaults)
         # change default match value
