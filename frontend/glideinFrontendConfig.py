@@ -193,6 +193,12 @@ class ElementMergedDescript:
                 proxy_selection_plugin=data['ProxySelectionPlugin']
         self.merged_data['ProxySelectionPlugin']=proxy_selection_plugin
 
+        proxies=[]
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('Proxies'):
+                proxies+=eval(data['Proxies'])
+        self.merged_data['Proxies']=proxies
+
         return
 
     def split_list(self,val):
