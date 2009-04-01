@@ -7,7 +7,7 @@
 #   Igor Sfiligoi (Mar 19th 2009)
 #
 
-import time,string,os.path
+import time,string,os.path,copy
 import timeConversion
 import xmlParse,xmlFormat
 import glideinFrontendMonitoring
