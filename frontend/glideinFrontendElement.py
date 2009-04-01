@@ -26,6 +26,7 @@ import glideinFrontendInterface
 import glideinFrontendLib
 import glideinFrontendPidLib
 import glideinFrontendMonitoring
+import glideinFrontendPlugins
 
 ############################################################
 def write_stats(stats):
@@ -33,12 +34,7 @@ def write_stats(stats):
         stats[k].write_file();
 
 ############################################################
-def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,stats):
-    if elementDescript.frontend_data.has_key('X509Proxy'):
-        x509_proxy=elementDescript.frontend_data['X509Proxy']
-    else:
-        x509_proxy=None
-
+def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
 
@@ -49,7 +45,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
     factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
     factory_pools=elementDescript.merged_data['FactoryCollectors']
     for factory_pool in factory_pools:
-        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,signatureDescript.signature_type,factory_constraint,x509_proxy!=None)
+        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None)
         for glidename in factory_glidein_dict.keys():
             glidein_dict[(factory_pool,glidename)]=factory_glidein_dict[glidename]
 
@@ -113,15 +109,30 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
                                                                                            status_dict_types['Running']['abs']))
 
     # get the proxy
-    if x509_proxy!=None:
-        try:
-            x509_fd=open(x509_proxy,'r')
+    x509_proxies_data=None
+    if x509_proxy_plugin!=None:
+        x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
+                                                      status_dict,status_dict_types)
+        x509_proxies_data=[]
+        for x509_proxy_list_el in x509_proxy_list:
+            proxy_idx,proxy_el=x509_proxy_list_el
+            proxy_fname,proxy_update_script=proxy_el
+
+            # should call the proxy_update_script is not null
+            # To be implemented
+
             try:
-                x509_data=x509_fd.read()
-            finally:
-                x509_fd.close()
-        except:
-            warning_log.write("Not advertizing, failed to read proxy '%s'"%x509_proxy)
+                proxy_fd=open(proxy_fname,'r')
+                try:
+                    proxy_data=proxy_fd.read()
+                finally:
+                    proxy_fd.close()
+                x509_proxies_data.append((proxy_idx,proxy_data))
+            except:
+                warning_log.write("Could not read proxy file '%s'"%proxy_fname)
+                pass # do nothing else, just warn
+        if len(x509_proxies_data)==0:
+            warning_log.write("All proxies failed, not advertizing")
             return
         
         # ignore glidein factories that do not have a public key
@@ -226,15 +237,17 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
               glidein_monitors[t]=count_jobs[t]
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
-          if x509_proxy!=None:
-              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
-                                                     web_url,
-                                                     signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
-                                                     signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
-                                                     glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                     glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
-                                                     None, # should reuse it, but none will work for now
-                                                     {'x509_proxy':x509_data})
+          if x509_proxies_data!=None:
+              for x509_proxy_el in x509_proxies_data:
+                  x509_proxy_idx,x509_proxy_data=x509_proxy_el
+                  glideinFrontendInterface.advertizeWork(factory_pool,"%s_%i"%(client_name,x509_proxy_idx),frontend_name,group_name,request_name,request_name,
+                                                         web_url,
+                                                         signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                         signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                         glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+                                                         glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
+                                                         None, # should reuse it, but none will work for now
+                                                         {'x509_proxy':x509_proxy_data})
           else:
               glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
                                                      web_url,
@@ -247,7 +260,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,sta
     return
 
 ############################################################
-def iterate(elementDescript,paramsDescript,signatureDescript):
+def iterate(elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin):
     sleep_time=int(elementDescript.frontend_data['LoopDelay'])
     
     factory_pools=elementDescript.merged_data['FactoryCollectors']
@@ -273,7 +286,7 @@ def iterate(elementDescript,paramsDescript,signatureDescript):
                 # recreate every time (an easy way to start from a clean state)
                 stats['group']=glideinFrontendMonitoring.groupStats()
                 
-                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,stats)
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats)
                 
                 glideinFrontendLib.log_files.logActivity("Writing stats")
                 try:
@@ -319,6 +332,15 @@ def main(parent_pid, work_dir, group_name):
 
     glideinFrontendMonitoring.monitoringConfig.monitor_dir=os.path.join(work_dir,"monitor/group_%s"%group_name)
 
+    if len(elementDescript.merged_data['Proxies'])>0:
+        if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):
+            glideinFrontendLib.log_files.logWarning("Invalid ProxySelectionPlugin '%s', supported plugins are %s"%(elementDescript.merged_data['ProxySelectionPlugin']),glideinFrontendPlugins.proxy_plugins.keys())
+            return 1
+        x509_proxy_plugin=glideinFrontendPlugins.proxy_plugins[elementDescript.merged_data['ProxySelectionPlugin']](os.path.join(work_dir,"group_%s"%group_name),elementDescript.merged_data['Proxies'])
+    else:
+        # no proxies, will try to use the factory one
+        x509_proxy_plugin=None
+
     # create lock file
     pid_obj=glideinFrontendPidLib.ElementPidSupport(work_dir,group_name)
 
@@ -326,7 +348,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(elementDescript,paramsDescript,signatureDescript)
+            iterate(elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
