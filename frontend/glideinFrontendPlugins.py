@@ -13,11 +13,24 @@ import pickle
 import glideinFrontendLib
 
 
-######################################################
-#                                                    #
-####    Proxy plugins                             ####
-#                                                    #
-######################################################
+################################################################################
+#                                                                              #
+####    Proxy plugins                                                       ####
+#                                                                              #
+# All plugins implement the following interface:                               #
+#   __init_(config_dir,proxy_list)                                             #
+#     Constructor, config_dir may be used for internal config/cache files      #
+#   get_required_job_attributes()                                              #
+#     Return the list of required condor_q attributes                          #
+#   get_required_classad_attributes()                                          #
+#     Return the list of required condor_status attributes                     #
+#   get_proxies(condorq_dict,condorq_dict_types,status_dict,status_dict_types) #
+#     Return a list of proxies that match the input criteria                   #
+#     Each element is a (index, value) pair                                    #
+#     If called multiple time, it is guaranteed that                           #
+#        if the index is the same, the proxy is (logicaly) the same            #
+#                                                                              #
+################################################################################
 
 ############################################
 #
@@ -27,14 +40,14 @@ import glideinFrontendLib
 #
 class ProxyFirst:
     def __init__(self,config_dir,proxy_list):
-        self.proxy_list=proxy_list
+        self.proxy_list=list2ilist(proxy_list)
 
     # what job attributes are used by this plugin
-    def get_required_job_attributes(self,):
+    def get_required_job_attributes(self):
         return []
 
     # what glidein attributes are used by this plugin
-    def get_required_classad_attributes(self,):
+    def get_required_classad_attributes(self):
         return []
 
     # get the proxies, given the condor_q and condor_status data
@@ -49,7 +62,7 @@ class ProxyFirst:
 #
 class ProxyAll:
     def __init__(self,config_dir,proxy_list):
-        self.proxy_list=proxy_list
+        self.proxy_list=list2ilist(proxy_list)
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -75,7 +88,7 @@ class ProxyAll:
 #
 class ProxyUserCardinality:
     def __init__(self,config_dir,proxy_list):
-        self.proxy_list=proxy_list
+        self.proxy_list=list2ilist(proxy_list)
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
@@ -119,7 +132,7 @@ class ProxyUserCardinality:
 #
 class ProxyUserRR:
     def __init__(self,config_dir,proxy_list):
-        self.proxy_list=proxy_list
+        self.proxy_list=list2ilist(proxy_list)
         self.config_dir=config_dir
         self.config_fname="%s/proxy_user_rr.dat"%self.config_dir
         self.load()
@@ -236,6 +249,18 @@ class ProxyUserRR:
             out_proxies.append(self.proxy_list[i])
 
         return out_proxies
+
+###############################################
+# INTERNAL to proxy_plugins, don't use directly
+
+# convert a list into a list of (index, value)
+def list2ilist(lst):
+    out=[]
+    for i in range(length(lst)):
+        out.append((i,lst[i]))
+    return out
+
+
     
 ###################################################################
 
