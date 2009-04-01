@@ -55,7 +55,7 @@ def aggregateStatus():
     global monitorAggregatorConfig
 
     global_total={'Jobs':None,'Slots':None}
-    status={'groups':{},'total':global_total}
+    status={'groups':{},'total':copy.deepcopy(global_total)}
     nr_groups=0
     for group in monitorAggregatorConfig.groups:
         # load group status file
