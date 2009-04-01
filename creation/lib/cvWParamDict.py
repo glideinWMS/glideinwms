@@ -424,7 +424,7 @@ def populate_common_descript(descript_dict,        # will be modified
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
-                    proxies.append((pel['absfname'])%pool_count,pel['proxy_refresh_script']))
+                    proxies.append(((pel['absfname'])%pool_count,pel['proxy_refresh_script']))
     descript_dict.add('Proxies',repr(proxies))
 
     descript_dict.add('MatchExpr',params.match.match_expr)
