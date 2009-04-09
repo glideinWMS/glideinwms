@@ -180,6 +180,9 @@ class ProxyUserRR:
                 self.config_data=pickle.load(fd)
             finally:
                 fd.close()
+            #
+            # NOTE: This will not work if proxies change between reconfigs :(
+            #
         else:
             self.config_data={'users_set':sets.Set(),
                               'proxies_range':{'min':0,'max':0}}
@@ -319,6 +322,9 @@ class ProxyUserMapWRecycling:
                 self.config_data=pickle.load(fd)
             finally:
                 fd.close()
+            #
+            # NOTE: This will not work if proxies change between reconfigs :(
+            #
         else:
             self.config_data={}
             for i in range(len(self.proxy_list)):
@@ -351,6 +357,11 @@ class ProxyUserMapWRecycling:
 # INTERNAL to proxy_plugins, don't use directly
 
 # convert a list into a list of (index, value)
+
+#
+# NOTE: This will not work if proxy order is changed between reconfigs :(
+#
+
 def list2ilist(lst):
     out=[]
     for i in range(length(lst)):
