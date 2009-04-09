@@ -7,7 +7,7 @@
 #  Igor Sfiligoi  (since Mar 31st 2009)
 #
 
-import os,os.path
+import os,os.path,time
 import sets
 import pickle
 import glideinFrontendLib
@@ -249,6 +249,103 @@ class ProxyUserRR:
             out_proxies.append(self.proxy_list[i])
 
         return out_proxies
+
+######################################################################
+#
+# This plugin implements a user-based mapping policy
+#  with possibility of recycling of accounts:
+#  * when a user first enters the system, it gets mapped to a
+#    pilot proxy that was not used for the longest time
+#  * for existing users, just use the existing mapping
+#  * if an old user comes back, it may be mapped to the old account, if not
+#    yet recycled, else it is treated as a new user
+#
+class ProxyUserMapWRecycling:
+    def __init__(self,config_dir,proxy_list):
+        self.proxy_list=list2ilist(proxy_list)
+        self.config_dir=config_dir
+        self.config_fname="%s/proxy_usermap_wr.dat"%self.config_dir
+        self.load()
+
+    # what job attributes are used by this plugin
+    def get_required_job_attributes(self):
+        return ('User',)
+
+    # what glidein attributes are used by this plugin
+    def get_required_classad_attributes(self):
+        return []
+
+    # get the proxies, given the condor_q and condor_status data
+    def get_proxies(condorq_dict,condorq_dict_types,
+                    status_dict,status_dict_types):
+        users=tuple(glideinFrontendLib.getCondorQUsers(condorq_dict))
+        out_proxies=[]
+
+        for user in users:
+            if not self.config_data.has_key(user):
+                # user not in cache, get the oldest unused entry
+                # not ordered, need to loop over the whole cache
+                min_key=0 # will compare all others to the first
+                keys=self.config_data.keys()[:1]
+                for k in keys:
+                    if self.config_data[k]['last_seen']<self.config_data[min_key]['last_seen']:
+                        min_key=k
+
+                # replace min_key with the current user
+                self.config_data[user]=self.config_data[min_key]
+                del self.config_data[min_key]
+            # else the user is already in the cache... just use that
+            
+            cel=self.config_data[user]
+            out_proxies.append(cel['proxy'])
+            # save that you have indeed seen the user 
+            cel['last_seen']=time.time()
+
+        # save changes
+        self.save()
+
+        return out_proxies
+
+    #############################
+    # INTERNAL
+    #############################
+
+    # load from self.config_fname into self.config_data
+    # if the file does not exist, create a new config_data
+    def load(self):
+        if os.path.isfile(self.config_fname):
+            fd=open(self.config_fname,"r")
+            try:
+                self.config_data=pickle.load(fd)
+            finally:
+                fd.close()
+        else:
+            self.config_data={}
+            for i in range(len(self.proxy_list)):
+                # use numbers for keys, so we are user will not mutch to any user string
+                self.config_data[i]={'proxy':self.proxy_list[i],
+                                     'last_seen':0} #0 is the oldest UNIX have ever seen ;)
+
+        return
+
+    # save self.config_data into self.config_fname
+    def save(self):
+        # fist save in a tmpfile
+        tmpname="%s~"%self.config_fname
+        try:
+            os.unlink(tmpname)
+        except:
+            pass # just trying
+        fd=open(tmpname,"w")
+        try:
+            pickle.dump(self.config_data,fd,0) # use ASCII version of protocol
+        finally:
+            fd.close()
+
+        # then atomicly move it in place
+        os.rename(tmpname,self.config_fname)
+
+        return
 
 ###############################################
 # INTERNAL to proxy_plugins, don't use directly
