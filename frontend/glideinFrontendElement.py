@@ -254,8 +254,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                      signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                      signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                      glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
+        except RuntimeError, e:
+          glideinFrontendLib.log_files.logWarning("Advertize %s failed: %s"%(glideid_str,e))
         except:
-          glideinFrontendLib.log_files.logWarning("Advertize %s failed"%glideid_str)
+          glideinFrontendLib.log_files.logWarning("Advertize %s failed: Reason unknown"%glideid_str)
 
     return
 
