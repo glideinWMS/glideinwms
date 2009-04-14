@@ -226,6 +226,15 @@ class VOFrontendParams(cWParams.CommonParams):
             if group_name.find('.')!=-1:
                 raise RuntimeError, "Invalid group name '%s', contains a point."%group_name
 
+        attr_names=self.attrs.keys()
+        for attr_name in attr_names:
+            if not cWParams.is_valid_name(attr_name):
+                raise RuntimeError, "Invalid global attribute name '%s'."%attr_name
+        for group_name in group_names:
+            attr_names=self.groups[group_name].attrs.keys()
+            for attr_name in attr_names:
+                if not cWParams.is_valid_name(attr_name):
+                    raise RuntimeError, "Invalid group '%s' attribute name '%s'."%(group_name,attr_name)
         return
 
     def validate_match(self,loc_str,
