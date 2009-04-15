@@ -170,7 +170,7 @@ class GlideinParams(cWParams.CommonParams):
             if not cWParams.is_valid_name(attr_name):
                 raise RuntimeError, "Invalid global attribute name '%s'."%attr_name
         for entry_name in entry_names:
-            attr_names=self.enties[entry_name].attrs.keys()
+            attr_names=self.entries[entry_name].attrs.keys()
             for attr_name in attr_names:
                 if not cWParams.is_valid_name(attr_name):
                     raise RuntimeError, "Invalid entry '%s' attribute name '%s'."%(entry_name,attr_name)
