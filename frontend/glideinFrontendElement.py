@@ -228,7 +228,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
-        glideinFrontendLib.log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i"%(glideid_str,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running']))
+        glideinFrontendLib.log_files.logActivity("For %s Idle %i (effective %i old %i) Running %i (max %i)"%(glideid_str,count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],max_running))
         glideinFrontendLib.log_files.logActivity("Glideins for %s Total %s Idle %i Running %i"%(glideid_str,count_status['Total'],count_status['Idle'],count_status['Running']))
         glideinFrontendLib.log_files.logActivity("Advertize %s Request idle %i max_run %i"%(glideid_str,glidein_min_idle,glidein_max_run))
 
