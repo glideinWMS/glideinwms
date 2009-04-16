@@ -29,6 +29,14 @@ import glideinFrontendMonitoring
 import glideinFrontendPlugins
 
 ############################################################
+def check_parent(parent_pid):
+    if os.path.exists('/proc/%s'%parent_pid):
+        return # parent still exists, we are fine
+    
+    glideinFrontendLib.log_files.logWarning("Parent died, exit.")
+    raise KeyboardInterrupt,"Parent died"
+
+############################################################
 def write_stats(stats):
     for k in stats.keys():
         stats[k].write_file();
@@ -262,7 +270,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     return
 
 ############################################################
-def iterate(elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin):
+def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin):
     sleep_time=int(elementDescript.frontend_data['LoopDelay'])
     
     factory_pools=elementDescript.merged_data['FactoryCollectors']
@@ -283,6 +291,7 @@ def iterate(elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin):
     try:
         is_first=1
         while 1: # will exit by exception
+            check_parent(parent_pid)
             glideinFrontendLib.log_files.logActivity("Iteration at %s" % time.ctime())
             try:
                 # recreate every time (an easy way to start from a clean state)
@@ -350,7 +359,7 @@ def main(parent_pid, work_dir, group_name):
     try:
         try:
             glideinFrontendLib.log_files.logActivity("Starting up")
-            iterate(elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin)
+            iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin)
         except KeyboardInterrupt:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
