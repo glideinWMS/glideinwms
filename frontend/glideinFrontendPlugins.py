@@ -92,7 +92,7 @@ class ProxyUserCardinality:
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
-        return ('User',)
+        return (('User','s'),)
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
@@ -139,7 +139,7 @@ class ProxyUserRR:
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
-        return ('User',)
+        return (('User','s'),)
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
@@ -291,7 +291,7 @@ class ProxyUserMapWRecycling:
 
     # what job attributes are used by this plugin
     def get_required_job_attributes(self):
-        return ('User',)
+        return (('User','s'),)
 
     # what glidein attributes are used by this plugin
     def get_required_classad_attributes(self):
