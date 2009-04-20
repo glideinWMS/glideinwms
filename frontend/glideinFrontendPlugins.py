@@ -132,7 +132,7 @@ class ProxyUserCardinality:
 #
 class ProxyUserRR:
     def __init__(self,config_dir,proxy_list):
-        self.proxy_list=list2ilist(proxy_list)
+        self.proxy_list=proxy_list
         self.config_dir=config_dir
         self.config_fname="%s/proxy_user_rr.dat"%self.config_dir
         self.load()
@@ -174,18 +174,29 @@ class ProxyUserRR:
     # load from self.config_fname into self.config_data
     # if the file does not exist, create a new config_data
     def load(self):
-        if os.path.isfile(self.config_fname):
+        if not os.path.isfile(self.config_fname):
+            proxy_indexes={}
+            nr_proxies=len(self.proxy_list)
+            for i in range(nr_proxies):
+                proxy_indexes[self.proxy_list[i]]=i
+            self.config_data={'users_set':sets.Set(),
+                              'proxies_range':{'min':0,'max':0},
+                              'proxy_indexes':proxy_indexes,
+                              'first_free_index':nr_proxies}
+        else:
             fd=open(self.config_fname,"r")
             try:
                 self.config_data=pickle.load(fd)
             finally:
                 fd.close()
-            #
-            # NOTE: This will not work if proxies change between reconfigs :(
-            #
-        else:
-            self.config_data={'users_set':sets.Set(),
-                              'proxies_range':{'min':0,'max':0}}
+
+            # proxies may have changed... make sure you have them all indexed
+            proxy_indexes=self.config_data['proxy_indexes']
+            added_proxies=sets.Set(self.proxy_list)-sets.Set(proxy_indexes.keys())
+            for proxy in added_proxies:
+                idx=self.config_data['first_free_index']
+                proxy_indexes[self.proxy_list[i]]=idx
+                self.config_data['first_free_index']=idx+1
 
         return
 
@@ -210,27 +221,29 @@ class ProxyUserRR:
 
     # remove a number of proxies from the internal data
     def shrink_proxies(self,nr):
-        min_proxy_range=self.config_data['proxies_range']['min']
-        max_proxy_range=self.config_data['proxies_range']['max']
+        proxies_range=self.config_data['proxies_range']
+        min_proxy_range=proxies_range['min']
+        max_proxy_range=proxies_range['max']
 
         min_proxy_range+=nr
         if min_proxy_range>max_proxy_range:
-            raise RuntimeError,"Cannot shrink so much: %i requested, %i available"%(nr, max_proxy_range-self.config_data['proxies_range']['min'])
+            raise RuntimeError,"Cannot shrink so much: %i requested, %i available"%(nr, max_proxy_range-proxies_range['min'])
         
-        self.config_data['proxies_range']['min']=min_proxy_range
+        proxies_range['min']=min_proxy_range
 
         return
 
     # add a number of proxies from the internal data
     def expand_proxies(self,nr):
-        min_proxy_range=self.config_data['proxies_range']['min']
-        max_proxy_range=self.config_data['proxies_range']['max']
+        proxies_range=self.config_data['proxies_range']
+        min_proxy_range=proxies_range['min']
+        max_proxy_range=proxies_range['max']
 
         max_proxy_range+=nr
         if min_proxy_range>max_proxy_range:
             raise RuntimeError,"Did we hit wraparound after the requested exansion of %i? min %i> max %i"%(nr, min_proxy_range,max_proxy_range)
 
-        self.config_data['proxies_range']['max']=max_proxy_range
+        proxies_range['max']=max_proxy_range
 
         return
 
@@ -238,18 +251,24 @@ class ProxyUserRR:
     def get_proxies_from_data(self):
         nr_proxies=len(self.proxy_list)
 
-        min_proxy_range=self.config_data['proxies_range']['min']
-        max_proxy_range=self.config_data['proxies_range']['max']
+        proxies_range=self.config_data['proxies_range']
+        min_proxy_range=proxies_range['min']
+        max_proxy_range=proxies_range['max']
         nr_requested_proxies=max_proxy_range-min_proxy_range;
 
+        proxy_indexes=self.config_data['proxy_indexes']
+
+        out_proxies=[]
         if nr_requested_proxies>=nr_proxies:
             # wants all of them, no need to select
-            return self.proxy_list
+            index_range=range(nr_proxies)
+        else:
+            index_range=range(min_proxy_range,max_proxy_range)
         
-        out_proxies=[]
-        for i in range(min_proxy_range,max_proxy_range):
+        for i in index_range:
             real_i=i%nr_proxies
-            out_proxies.append(self.proxy_list[i])
+            proxy=self.proxy_list[i]
+            out_proxies.append(("urr_%i"%proxy_indexes[proxy],proxy))
 
         return out_proxies
 
@@ -302,7 +321,7 @@ class ProxyUserMapWRecycling:
             # else the user is already in the cache... just use that
             
             cel=user_map[user]
-            out_proxies.append((cel['proxy_index'],cel['proxy']))
+            out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
             # save that you have indeed seen the user 
             cel['last_seen']=time.time()
 
