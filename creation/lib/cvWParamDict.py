@@ -415,17 +415,26 @@ def populate_common_descript(descript_dict,        # will be modified
 
     if len(params.security.proxies)>0:
         proxies=[]
+        proxy_refresh_scripts={}
         for pel in params.security.proxies:
             if pel['absfname']==None:
                 raise RuntimeError,"All proxies need a absfname!"
             if pel['pool_count']==None:
                 # only one
-                proxies.append((pel['absfname'],pel['proxy_refresh_script']))
+                proxies.append(pel['absfname'])
+                if pel['proxy_refresh_script']!=None:
+                    proxy_refresh_scripts[pel['absfname']]=pel['proxy_refresh_script']
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
-                    proxies.append(((pel['absfname'])%(i+1),pel['proxy_refresh_script']))
+                    absfname=pel['absfname']%(i+1)
+                    proxies.append(absfname)
+                    if pel['proxy_refresh_script']!=None:
+                        proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
+
         descript_dict.add('Proxies',repr(proxies))
+        if len(proxy_refresh_scripts.keys())>0:
+             descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
 
     descript_dict.add('MatchExpr',params.match.match_expr)
 
