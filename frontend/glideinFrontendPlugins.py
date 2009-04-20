@@ -377,5 +377,7 @@ def list2ilist(lst):
 
 proxy_plugins={'ProxyAll':ProxyAll,
                'ProxyUserRR':ProxyUserRR,
-               'ProxyFirst':ProxyFirst,'ProxyUserCardinality':ProxyUserCardinality}
+               'ProxyFirst':ProxyFirst,
+               'ProxyUserCardinality':ProxyUserCardinality,
+               'ProxyUserMapWRecycling':ProxyUserMapWRecycling}
 
