@@ -133,10 +133,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                       status_dict,status_dict_types)
         x509_proxies_data=[]
         for x509_proxy_list_el in x509_proxy_list:
-            proxy_idx,proxy_el=x509_proxy_list_el
-            proxy_fname,proxy_update_script=proxy_el
+            proxy_idx,proxy_fname=x509_proxy_list_el
 
-            # should call the proxy_update_script is not null
+            # should check if proxy has a refresh script, and call it
+            # elementDescript.merged_data['ProxyRefreshScripts']
             # To be implemented
 
             try:
