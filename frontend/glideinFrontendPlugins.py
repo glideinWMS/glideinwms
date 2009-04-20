@@ -417,7 +417,7 @@ class ProxyUserMapWRecycling:
 
 def list2ilist(lst):
     out=[]
-    for i in range(length(lst)):
+    for i in range(len(lst)):
         out.append((i,lst[i]))
     return out
 
