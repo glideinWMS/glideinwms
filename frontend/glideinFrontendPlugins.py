@@ -51,7 +51,7 @@ class ProxyFirst:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(condorq_dict,condorq_dict_types,
+    def get_proxies(self,condorq_dict,condorq_dict_types,
                     status_dict,status_dict_types):
         return [self.proxy_list[0]]
 
@@ -73,7 +73,7 @@ class ProxyAll:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(condorq_dict,condorq_dict_types,
+    def get_proxies(self,condorq_dict,condorq_dict_types,
                     status_dict,status_dict_types):
         return self.proxy_list
 
@@ -99,7 +99,7 @@ class ProxyUserCardinality:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(condorq_dict,condorq_dict_types,
+    def get_proxies(self,condorq_dict,condorq_dict_types,
                     status_dict,status_dict_types):
         users_set=glideinFrontendLib.getCondorQUsers(condorq_dict)
         return self.get_proxies_from_cardinality(len(users_set))
@@ -146,7 +146,7 @@ class ProxyUserRR:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(condorq_dict,condorq_dict_types,
+    def get_proxies(self,condorq_dict,condorq_dict_types,
                     status_dict,status_dict_types):
         new_users_set=glideinFrontendLib.getCondorQUsers(condorq_dict)
         old_users_set=self.config_data['users_set']
@@ -298,7 +298,7 @@ class ProxyUserMapWRecycling:
         return []
 
     # get the proxies, given the condor_q and condor_status data
-    def get_proxies(condorq_dict,condorq_dict_types,
+    def get_proxies(self,condorq_dict,condorq_dict_types,
                     status_dict,status_dict_types):
         users=tuple(glideinFrontendLib.getCondorQUsers(condorq_dict))
         out_proxies=[]
