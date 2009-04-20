@@ -265,7 +265,7 @@ class ProxyUserRR:
 #
 class ProxyUserMapWRecycling:
     def __init__(self,config_dir,proxy_list):
-        self.proxy_list=list2ilist(proxy_list)
+        self.proxy_list=proxy_list
         self.config_dir=config_dir
         self.config_fname="%s/proxy_usermap_wr.dat"%self.config_dir
         self.load()
@@ -284,23 +284,25 @@ class ProxyUserMapWRecycling:
         users=tuple(glideinFrontendLib.getCondorQUsers(condorq_dict))
         out_proxies=[]
 
+        user_map=self.config_data['user_map']
+
         for user in users:
-            if not self.config_data.has_key(user):
+            if not user_maps.has_key(user):
                 # user not in cache, get the oldest unused entry
                 # not ordered, need to loop over the whole cache
                 min_key=0 # will compare all others to the first
-                keys=self.config_data.keys()[:1]
+                keys=user_map.keys()[1:]
                 for k in keys:
-                    if self.config_data[k]['last_seen']<self.config_data[min_key]['last_seen']:
+                    if user_map[k]['last_seen']<user_map[min_key]['last_seen']:
                         min_key=k
 
                 # replace min_key with the current user
-                self.config_data[user]=self.config_data[min_key]
-                del self.config_data[min_key]
+                user_map[user]=user_map[min_key]
+                del user_map[min_key]
             # else the user is already in the cache... just use that
             
-            cel=self.config_data[user]
-            out_proxies.append(cel['proxy'])
+            cel=user_map[user]
+            out_proxies.append((cel['proxy_index'],cel['proxy']))
             # save that you have indeed seen the user 
             cel['last_seen']=time.time()
 
@@ -316,21 +318,53 @@ class ProxyUserMapWRecycling:
     # load from self.config_fname into self.config_data
     # if the file does not exist, create a new config_data
     def load(self):
-        if os.path.isfile(self.config_fname):
+        if not os.path.exist(self.config_fname):
+            # no cache, create new cache structure from scratch
+            self.config_data={}
+            user_map={}
+            nr_proxies=len(self.proxy_list)
+            for i in range(nr_proxies):
+                # use numbers for keys, so we are user will not mutch to any user string
+                user_map[i]={'proxy':self.proxy_list[i],
+                             'proxy_index':i,
+                             'last_seen':0} #0 is the oldest UNIX have ever seen ;)
+            self.config_data['user_map']=user_map
+            self.config_data['first_free_index']=nr_proxies # this will be used for future updates
+        else:
+            # load cache
             fd=open(self.config_fname,"r")
             try:
                 self.config_data=pickle.load(fd)
             finally:
                 fd.close()
-            #
-            # NOTE: This will not work if proxies change between reconfigs :(
-            #
-        else:
-            self.config_data={}
-            for i in range(len(self.proxy_list)):
+
+            # if proxies changed, remove old ones and insert the new ones
+            new_proxies=sets.Set(self.proxy_list)
+            cached_proxies=sets.Set() # here we will store the list of proxies in the cache
+
+            user_map=self.config_data['user_map']
+            
+            # need to iterate, since not indexed by proxy name
+            keys=user_map.keys()
+            for k in keys:
+                el=user_map[k]
+                el_proxy=el['proxy']
+                if not (el_proxy in new_proxies):
+                    # cached proxy not used anymore... remove from cache
+                    del user_map[k]
+                else:
+                    # add to the list, will process later
+                    cached_proxies.add(el_proxy)
+
+            added_proxies=new_proxies-cached_proxies
+            # now that we know what proxies have been added, put them in cache
+            for proxy in added_proxies:
+                idx=self.config_data['first_free_index']
                 # use numbers for keys, so we are user will not mutch to any user string
-                self.config_data[i]={'proxy':self.proxy_list[i],
-                                     'last_seen':0} #0 is the oldest UNIX have ever seen ;)
+                user_map[idx]={'proxy':proxy,
+                               'proxy_index':idx,
+                               'last_seen':0} #0 is the oldest UNIX have ever seen ;)
+                self.config_data['first_free_index']=idx+1            
 
         return
 
