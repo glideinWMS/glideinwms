@@ -54,8 +54,23 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
 def aggregateStatus():
     global monitorAggregatorConfig
 
+    type_strings={'Jobs':'Jobs','Slots':'Slots'}
     global_total={'Jobs':None,'Slots':None}
     status={'groups':{},'total':copy.deepcopy(global_total)}
+
+    # initialize the RRD dictionary, so it gets created properly
+    val_dict={}
+    for tp in global_total.keys():
+        # type - status or requested
+        if not (tp in status_attributes.keys()):
+            continue
+
+        tp_str=type_strings[tp]
+
+        attributes_tp=status_attributes[tp]
+        for a in attributes_tp:
+            val_dict["%s%s"%(tp_str,a)]=None
+
     nr_groups=0
     for group in monitorAggregatorConfig.groups:
         # load group status file
@@ -111,18 +126,13 @@ def aggregateStatus():
     # Write rrds
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
 
-    type_strings={'Jobs':'Jobs','Slots':'Slots'}
-    val_dict={}
     for tp in global_total.keys():
         # type - status or requested
         if not (tp in status_attributes.keys()):
             continue
 
         tp_str=type_strings[tp]
-
         attributes_tp=status_attributes[tp]
-        for a in attributes_tp:
-            val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
         tp_el=global_total[tp]
 

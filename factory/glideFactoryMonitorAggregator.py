@@ -58,8 +58,23 @@ def aggregateStatus():
 
     avgEntries=('InfoAge',)
 
+    type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':copy.deepcopy(global_total)}
+
+    # initialize the RRD dictionary, so it gets created properly
+    val_dict={}
+    for tp in global_total.keys():
+        # type - status or requested
+        if not (tp in status_attributes.keys()):
+            continue
+
+        tp_str=type_strings[tp]
+
+        attributes_tp=status_attributes[tp]
+        for a in attributes_tp:
+            val_dict["%s%s"%(tp_str,a)]=None
+
     nr_entries=0
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
@@ -125,18 +140,14 @@ def aggregateStatus():
 
     # Write rrds
     glideFactoryMonitoring.monitoringConfig.establish_dir("total")
-    type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
-    val_dict={}
+
     for tp in global_total.keys():
         # type - status or requested
         if not (tp in status_attributes.keys()):
             continue
 
         tp_str=type_strings[tp]
-
         attributes_tp=status_attributes[tp]
-        for a in attributes_tp:
-            val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
         tp_el=global_total[tp]
 
@@ -144,6 +155,7 @@ def aggregateStatus():
             if a in attributes_tp:
                 a_el=int(tp_el[a])
                 val_dict["%s%s"%(tp_str,a)]=a_el
+
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
                                                             "GAUGE",updated,val_dict)
 
