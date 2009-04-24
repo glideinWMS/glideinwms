@@ -343,6 +343,13 @@ class condorQStats:
                 fe_el=data[fe]
 
             val_dict={}
+            # Initialize,  so that all get created properly
+            for tp in self.attributes.keys():
+                tp_str=type_strings[tp]
+                attributes_tp=self.attributes[tp]
+                for a in attributes_tp:
+                    val_dict["%s%s"%(tp_str,a)]=None               
+            
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
@@ -352,8 +359,6 @@ class condorQStats:
                 tp_str=type_strings[tp]
 
                 attributes_tp=self.attributes[tp]
-                for a in attributes_tp:
-                    val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
                 fe_el_tp=fe_el[tp]
                 for a in fe_el_tp.keys():

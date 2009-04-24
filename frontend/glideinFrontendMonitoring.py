@@ -168,6 +168,15 @@ class groupStats:
         # update RRDs
         val_dict={}
         type_strings={'Jobs':'Jobs','Slots':'Slots'}
+
+        #init, so tha all get created properly
+        for tp in self.attributes.keys():
+            tp_str=type_strings[tp]
+            attributes_tp=self.attributes[tp]
+            for a in attributes_tp:
+                val_dict["%s%s"%(tp_str,a)]=None
+            
+        
         for tp in self.data.keys():
             # type - Jobs,Slots
             if not (tp in self.attributes.keys()):
@@ -176,8 +185,6 @@ class groupStats:
             tp_str=type_strings[tp]
 
             attributes_tp=self.attributes[tp]
-            for a in attributes_tp:
-                val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
             fe_el_tp=self.data[tp]
             for a in fe_el_tp.keys():
@@ -404,6 +411,14 @@ class factoryStats:
                 fe_el=data[fe]
 
             val_dict={}
+            
+            #init, so that all get created properly
+            for tp in self.attributes.keys():
+                tp_str=type_strings[tp]
+                attributes_tp=self.attributes[tp]
+                for a in attributes_tp:
+                    val_dict["%s%s"%(tp_str,a)]=None                
+            
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
@@ -413,8 +428,6 @@ class factoryStats:
                 tp_str=type_strings[tp]
 
                 attributes_tp=self.attributes[tp]
-                for a in attributes_tp:
-                    val_dict["%s%s"%(tp_str,a)]=None #init, so that gets created properly
                 
                 fe_el_tp=fe_el[tp]
                 for a in fe_el_tp.keys():
