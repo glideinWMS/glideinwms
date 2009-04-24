@@ -7,7 +7,7 @@
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
-import time,string,os.path
+import copy,time,string,os.path
 import timeConversion
 import xmlParse,xmlFormat
 import glideFactoryMonitoring
@@ -59,7 +59,7 @@ def aggregateStatus():
     avgEntries=('InfoAge',)
 
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
-    status={'entries':{},'total':global_total}
+    status={'entries':{},'total':copy.deepcopy(global_total)}
     nr_entries=0
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
