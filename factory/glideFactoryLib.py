@@ -32,6 +32,7 @@ class FactoryConfig:
         self.glidein_schedd_attribute = "GlideinName"
         self.entry_schedd_attribute = "GlideinEntryName"
         self.client_schedd_attribute = "GlideinClient"
+        self.x509id_schedd_attribute = "GlideinX509Identifier"
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
         self.glidein_startd_attribute = "GLIDEIN_Name"
@@ -150,7 +151,9 @@ def getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name,
     else:
         csa_str=client_schedd_attribute
 
-    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name)
+    x509id_str=factoryConfig.x509id_schedd_attribute
+
+    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =!= UNDEFINED)'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name,x509id_str)
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factory_name
     q.glidein_name=glidein_name
@@ -270,10 +273,15 @@ class ClientWeb:
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x509_proxy_fname,
+def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,
+                     x509_proxy_identifier,x509_proxy_fname,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
     global factoryConfig
+
+    # filter out everything but the proper x509_proxy_identifier
+    condorq=condorMonitor.SubQuery(client_condorq,lambda d:(d[factoryConfig.x509id_schedd_attribute]==x509_proxy_identifier))
+
     #
     # First check if we have enough glideins in the queue
     #
@@ -305,7 +313,8 @@ def keepIdleGlideins(condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,x5
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         factoryConfig.logActivity("Need more glideins: %s"%stat_str)
         submitGlideins(condorq.entry_name,condorq.schedd_name,
-                       condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,x509_proxy_fname,
+                       condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,
+                       x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
         return min_nr_idle-idle_glideins # exit, some submitted
 
@@ -655,7 +664,8 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x509_proxy_fname,
+def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
+                   x509_proxy_identifier,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
     global factoryConfig
@@ -693,7 +703,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,x
                 nr_to_submit=factoryConfig.max_cluster_size
 
             try:
-                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,nr_to_submit,client_web_str,submit_attrs_str,params_str))
+                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
                 factoryConfig.logWarning("condor_submit failed: %s"%e);
                 submit_out=[]

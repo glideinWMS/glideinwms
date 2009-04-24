@@ -76,6 +76,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinName','"%s"'%glidein_name)
         self.add('+GlideinEntryName','"%s"'%entry_name)
         self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
+        self.add('+GlideinX509Identifier','"$ENV(GLIDEIN_X509_ID)"')
         self.add('+GlideinWebBase','"%s"'%web_base)
         if proxy_url!=None:
             self.add('+GlideinProxyURL','"%s"'%proxy_url)

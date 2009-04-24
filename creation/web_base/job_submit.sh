@@ -2,13 +2,15 @@
 
 if [ $# -lt 4 ]; then
  echo "At least 4 args expected!" 1>&2
- echo "Usage: job_submit.sh entry_name client count [attrs]* -- [params]*"
+ echo "Usage: job_submit.sh entry_name client x509_id count [attrs]* -- [params]*"
  1>&2
  exit 1
 fi
 GLIDEIN_ENTRY_NAME="$1"
 shift
 export GLIDEIN_CLIENT="$1"
+shift
+export GLIDEIN_X509_ID="$1"
 shift
 export GLIDEIN_COUNT=$1
 shift

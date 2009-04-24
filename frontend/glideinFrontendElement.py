@@ -256,16 +256,21 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
           if x509_proxies_data!=None:
-              for x509_proxy_el in x509_proxies_data:
-                  x509_proxy_idx,x509_proxy_data=x509_proxy_el
-                  glideinFrontendInterface.advertizeWork(factory_pool,"%s_%i"%(client_name,x509_proxy_idx),frontend_name,group_name,request_name,request_name,
-                                                         web_url,
-                                                         signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
-                                                         signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
-                                                         glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                         glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
-                                                         None, # should reuse it, but none will work for now
-                                                         {'x509_proxy':x509_proxy_data})
+              enc_data={}
+              nr_proxies=len(x509_proxies_data)
+              enc_data['nr_x509_proxies']=nr_proxies
+              for i in range(nr_proxies)
+                  x509_proxy_idx,x509_proxy_data=x509_proxies_data[i]
+                  enc_data['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
+                  enc_data['x509_proxy_%i'%i]=x509_proxy_data
+              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
+                                                     web_url,
+                                                     signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                     signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                     glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+                                                     glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
+                                                     glidein_symKey=None, # should reuse it, but none will work for now
+                                                     glidein_params_to_encrypt=enc_data)
           else:
               glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
                                                      web_url,
