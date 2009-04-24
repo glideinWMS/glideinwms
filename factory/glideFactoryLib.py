@@ -281,6 +281,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
 
     # filter out everything but the proper x509_proxy_identifier
     condorq=condorMonitor.SubQuery(client_condorq,lambda d:(d[factoryConfig.x509id_schedd_attribute]==x509_proxy_identifier))
+    condorq.load()
 
     #
     # First check if we have enough glideins in the queue
