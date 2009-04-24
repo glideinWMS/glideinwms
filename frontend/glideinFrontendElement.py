@@ -258,7 +258,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
           if x509_proxies_data!=None:
               enc_data={}
               nr_proxies=len(x509_proxies_data)
-              enc_data['nr_x509_proxies']=nr_proxies
+              enc_data['nr_x509_proxies']="%s"%nr_proxies
               for i in range(nr_proxies):
                   x509_proxy_idx,x509_proxy_data=x509_proxies_data[i]
                   enc_data['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
