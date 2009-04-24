@@ -82,8 +82,10 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,x509_proxy_fname,
-                                                  client_web,params)
+    for x509_proxy_id in x509_proxy_fnames.keys():
+        nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,
+                                                      x509_proxy_id,x509_proxy_fnames[x509_proxy_id],
+                                                      client_web,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
         return 1 # we submitted something, return immediately
