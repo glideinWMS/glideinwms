@@ -25,6 +25,7 @@ v1_6+	The XML file now supports comments.
           Most rrd operations now in separate module
           Groupes multiple attributes in the RRD files (lower overhead)
           Removed RRD locking
+	Fixed Condor-G log parsing.
 
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.
