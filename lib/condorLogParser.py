@@ -609,6 +609,8 @@ class dirSummaryTimings(cacheDirClass):
 # 025 - Grid Resource Back Up
 # 026 - Detected Down Grid Resource
 # 027 - Job submitted to grid resource
+# 029 - The job's remote status is unknown
+# 030 - The job's remote status is known again
 
 # Flags in the first char
 # 0XX - No Flag
@@ -619,9 +621,9 @@ def get_new_status(old_status,new_status):
     # keep the old status unless you really want to change
     status=old_status
 
-    if new_status in ('019','020','025','026','022','023','010','011'):
+    if new_status in ('019','020','025','026','022','023','010','011','29','30'):
         # these are intermediate states, so just flip a bit
-        if new_status in ('020','026','022','10'): # connection lost
+        if new_status in ('020','026','022','10','29'): # connection lost
             status=str(int(old_status[0])+1)+old_status[1:]
         else:
             if old_status[0]!="0": # may have already fixed it, out of order
