@@ -169,10 +169,10 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 continue # skip request
 
             for i in range(nr_x509_proxies):
-                if decrypted_params['x509_proxy_%'%i]==None:
+                if decrypted_params['x509_proxy_%i'%i]==None:
                     glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
                     continue #skip proxy
-                if not decrypted_params.has_key('x509_proxy_%_identifier'%i):
+                if not decrypted_params.has_key('x509_proxy_%i_identifier'%i):
                     glideFactoryLib.factoryConfig.warning_log.write("No identifier for x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
                     continue #skip proxy
                 x509_proxy=decrypted_params['x509_proxy_%i'%i]
