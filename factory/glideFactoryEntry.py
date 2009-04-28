@@ -80,7 +80,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     # use the extended params for submission
     x509_proxy_keys=x509_proxy_fnames.keys()
     random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another
-    proxy_fraction=1.0*len(x509_proxy_keys)
+    proxy_fraction=1.0/len(x509_proxy_keys)
 
     # I will shuffle proxies around, so I may as well round up all of them
     idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
