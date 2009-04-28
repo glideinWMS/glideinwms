@@ -17,7 +17,7 @@
 import signal
 import os,os.path,sys,fcntl
 import traceback
-import time,string
+import time,string,math
 import copy,random
 import threading
 sys.path.append(os.path.join(sys.path[0],"../lib"))
