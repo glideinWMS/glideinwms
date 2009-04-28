@@ -15,14 +15,10 @@
 #
 
 import signal
-import os
-import os.path
-import sys
-import fcntl
+import os,os.path,sys,fcntl
 import traceback
-import time
-import string
-import copy
+import time,string
+import copy,random
 import threading
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
@@ -82,8 +78,18 @@ def perform_work(factory_name,glidein_name,entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    for x509_proxy_id in x509_proxy_fnames.keys():
-        nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins,max_running,max_held,submit_attrs,
+    x509_proxy_keys=x509_proxy_fnames.keys()
+    random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another
+    proxies_fraction=1.0*len(x509_proxy_keys)
+
+    # I will shuffle proxies around, so I may as well round up all of them
+    idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
+    max_running_pproxy=math.ceil(max_running*proxy_fraction)
+
+    # not reducing the held, as that is effectively per proxy, not per request
+    
+    for x509_proxy_id in x509_proxy_keys:
+        nr_submitted=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],
                                                       client_web,params)
     if nr_submitted>0:
