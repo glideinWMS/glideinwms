@@ -1515,6 +1515,18 @@ def query_vdt():
             VDT_BASE_PATH=user_dir
             return
         else:
+            print
+            print "This installer can install the full OSG VDT client,"
+            print "or just a small, essential subset of the VDT."
+            print
+            print "The full OSG VDT client will provide you will all the tools you may ever need"
+            print "to interact with Grid resources, but it takes a long time to install."
+            print
+            print "The minimal Grid VDT client will install just the bare minimum needed"
+            print "to run and debug the glideinWMS instance."
+            print "The minimum install packages are"
+            print "PPDG-Cert-Scripts,VOMS-Client,CA-Certificates-Updater,OSG:vo-client"
+            print
             yn=raw_input("Do you want to install the full OSG VDT client?: (y/n) ")
             if (yn!="y"):
                 yn=raw_input("Do you want to install a minimal Grid VDT client?: (y/n) ")
@@ -1591,6 +1603,7 @@ def install_vdt(minimal):
         package_list=[]
         for p in MINIMAL_VDT_PACKAGES:
             package_list.append("%s:%s"%(cache_location,p))
+        package_list.append("OSG:vo-client")
     else:
         package_list=['OSG:client']
 
