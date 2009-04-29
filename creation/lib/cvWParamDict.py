@@ -69,6 +69,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                       (javascriptrrd_dir,'rrdFlot.js'),
                       (javascriptrrd_dir,'rrdFlotSupport.js'),
                       (javascriptrrd_dir,'rrdFile.js'),
+                      (javascriptrrd_dir,'rrdFilter.js'),
                       (javascriptrrd_dir,'binaryXHR.js'),
                       (params.monitor.flot_dir,'jquery.flot.js'),
                       (params.monitor.flot_dir,'excanvas.js'),
