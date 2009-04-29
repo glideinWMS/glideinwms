@@ -237,6 +237,9 @@ GLIDEIN_VARIABLES = $glidein_variables
 MASTER_NAME = glidein_$$
 STARTD_NAME = glidein_$$
 
+#This can be used for locating the proper PID for monitoring
+GLIDEIN_PARENT_PID = $$
+
 EOF
 # ##################################
 if [ $? -ne 0 ]; then
