@@ -305,7 +305,7 @@ def main(config_file):
                  'job_attributes':None,
                  'max_idle_glideins_per_entry':10,'reserve_idle_glideins_per_entry':5,
                  'max_idle_vms_per_entry':50,'curb_idle_vms_per_entry':10,
-                 'max_running_jobs':10000,
+                 'max_running_jobs':10000,'reserve_running_fraction':0.05,
                  'x509_proxy':None}
     execfile(config_file,config_dict)
     iterate(config_dict['log_dir'],config_dict['loop_delay'],
@@ -314,7 +314,7 @@ def main(config_file):
             config_dict['schedd_names'], config_dict['job_constraint'],config_dict['match_string'],config_dict['job_attributes'],
             config_dict['max_idle_glideins_per_entry'],config_dict['reserve_idle_glideins_per_entry'],
             config_dict['max_idle_vms_per_entry'],config_dict['curb_idle_vms_per_entry'],
-            config_dict['max_running_jobs'], 0.05,
+            config_dict['max_running_jobs'], config_dict['reserve_running_fraction'],
             config_dict['glidein_params'])
 
 ############################################################
