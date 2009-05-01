@@ -109,7 +109,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.monitor_jslibs.append(mfobj)
 
         for mfarr in ((params.src_dir,'factoryRRDBrowse.html'),
-                      (params.src_dir,'factoryStatus.html')):
+                      (params.src_dir,'factoryStatus.html'),
+                      (params.src_dir,'factoryLogStatus.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
