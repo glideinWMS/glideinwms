@@ -1,0 +1,181 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!--
+  Browse the glideinWMS RRDs
+
+  Based on
+  javascriptrrd/src/lib/rrdJFlot.html 
+   Original repository: http://javascriptrrd.sourceforge.net/
+-->
+
+<html>
+  
+    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
+
+    <!-- rrdFlot class needs the following four include files !-->
+    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+
+    <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <head>
+    <title>Glidein factory status from logs</title>
+  </head>
+
+  <body>
+    <h1 id="title">Glidein factory status from logs</h1>
+
+    <table border=0>
+     <tr>
+       <th>Entry</th>
+       <td><form id="entries">
+	<input type="radio" name="entry" value="total" checked>total<br>
+       </form></td>
+     </tr>
+     <tr>
+       <th>Info group</th>
+       <td><form id="gtypes">
+	<input type="radio" name="gtype" value="running" checked>Running
+	<input type="radio" name="gtype" value="idle">Idle
+	<input type="radio" name="gtype" value="other">Other
+       </form></td>
+     </tr>
+     <tr>
+      <td colspan=2><button onclick="fname_update()">Update</button></td>
+     </tr>
+    </table>
+
+    <hr>
+
+    <table id="infotable" border=1>
+        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
+	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+    </table>
+
+    <div id="mygraph"></div>
+
+    <script type="text/javascript">
+
+      // Remove the Javascript warning
+      document.getElementById("infotable").deleteRow(0);
+
+      // Load the status of the factory
+      var factoryQStats=loadFactoryQStats();
+      var entries=getFactoryEntries(factoryQStats);
+      for (var entry in entries) {
+        var elRadio=document.createElement("input");
+        elRadio.type = "radio";
+        elRadio.name = "entry";
+        elRadio.value = entries[entry];
+
+        var html_el=document.getElementById("entries");
+        html_el.appendChild(elRadio);
+        html_el.appendChild(document.createTextNode(entries[entry]));
+      }
+
+     // fname, gtype_id and rrd_data are the global variable used by all the functions below
+      rrd_data=undefined;
+      gtype_id=undefined;
+
+      // This function updates the Web Page with the data from the RRD archive header
+      // when a new file is selected
+      function update_plot() {
+        // Finally, update the file name and enable the update button
+        document.getElementById("fname").firstChild.data=fname;
+        
+
+        var gtype_DSs=new Object();
+        gtype_DSs['running']=new Array('StatusRunning','EnteredRunning','ExitedRunning','EnteredCompleted','EnteredHeld');
+        gtype_DSs['idle']=new Array('StatusIdle','StatusWait','EnteredIdle','ExitedIdle','EnteredWait','ExitedWait','EnteredRunning','EnteredHeld');
+        gtype_DSs['other']=new Array('StatusHeld','EnteredHeld','ExitedHeld','EnteredRemoved','EnteredIdle','EnteredRunning')
+
+        var gtype_formats=new Object();
+        gtype_formats['running']={'StatusRunning':{ label: 'Running glideins', color: "#00f800", 
+                                                    lines: { show: true, fill: true, fillColor:"#00ff00"} },
+                                  'EnteredRunning':{label: 'Glidein startup rate', color: "#008000", yaxis: 2},
+                                  'ExitedRunning':{label: 'Glidein termination rate', color: "#00ffff", yaxis: 2},
+                                  'EnteredCompleted':{label: 'Glidein completion rate', color: "#ffff00", yaxis: 2},
+                                  'EnteredHeld':{label: 'Held rate', color: "#ff0000", yaxis: 2}};
+
+        gtype_formats['idle']={'StatusIdle':{ label: 'Idle glideins', color: "#0000f8", 
+                                              lines: { show: true, fill: true, fillColor:"#0000ff"} },
+                               'StatusWait':{ label: 'Waiting glideins', color: "#f800f8", 
+                                              lines: { show: true, fill: true, fillColor:"#ff00ff"} },
+                               'EnteredIdle':{label: 'Glidein submission rate', color: "#00ffff", yaxis: 2},
+                               'ExitedIdle':{label: 'Rate out of idle state', color: "#000080", yaxis: 2},
+                               'EnteredWait':{label: 'Rate into wait state', color: "#800080", yaxis: 2},
+                               'ExitedWait':{label: 'Rate out of wait state', color: "#ff0080", yaxis: 2},
+                               'EnteredRunning':{label: 'Rate into running state', color: "#00c000", yaxis: 2},
+                               'EnteredHeld':{label: 'Rate into held state', color: "#ff0000", yaxis: 2}};
+
+        gtype_formats['other']={'StatusHeld':{ label: 'Held glideins', color: "#f80000", 
+                                               lines: { show: true, fill: true, fillColor:"#ff0000"} },
+                                'EnteredHeld':{label: 'Glidein held rate', color: "#800000", yaxis: 2},
+                                'ExitedHeld':{label: 'Glidein release rate', color: "#ff8000", yaxis: 2},
+                                'EnteredRemoved':{label: 'Glidein removal rate', color: "#ffff00", yaxis: 2},
+                                'EnteredIdle':{label: 'Rate into idle state', color: "#0000ff", yaxis: 2},
+                                'EnteredRunning':{label: 'Rate into running state', color: "#00ff00", yaxis: 2}};
+
+        var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
+        // the rrdFlot object creates and handles the graph
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
+      }
+
+      // This is the callback function that,
+      // given a binary file object,
+      // verifies that it is a valid RRD archive
+      // and performs the update of the Web page
+      function update_plot_handler(bf) {
+          var i_rrd_data=undefined;
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fname+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            rrd_data=i_rrd_data;
+            update_plot()
+          }
+      }
+
+      // this function is invoked when the RRD file name changes
+      function fname_update() {
+        var entry_name="";
+        gtype_id=undefined;
+
+        var entries_obj=document.getElementById("entries")
+        for (var i in entries_obj.entry) {
+         var entry=entries_obj.entry[i];
+         if (entry.checked==true) {
+  	   entry_name=entry.value;
+         }
+        }
+
+        rrd_fname="Log_Counts";
+
+        var gtypes_obj=document.getElementById("gtypes");
+        for (var i in gtypes_obj.gtype) {
+         var gtype=gtypes_obj.gtype[i];
+         if (gtype.checked==true) {
+  	   gtype_id=gtype.value;
+         }
+        }
+
+        if (entry_name=="total") {
+          fname="total/"+rrd_fname+".rrd";
+        } else {
+          fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
+        }
+
+        try {
+          FetchBinaryURLAsync(fname,update_plot_handler);
+        } catch (err) {
+           alert("Failed loading "+fname+"\n"+err);
+        }
+      }
+    </script>
+  </body>
+</html>
