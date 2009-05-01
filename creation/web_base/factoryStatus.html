@@ -86,15 +86,41 @@
       function update_plot() {
         // Finally, update the file name and enable the update button
         document.getElementById("fname").firstChild.data=fname;
+        
 
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('StatusRunning','ClientJobsRunning','ClientGlideRunning','ClientGlideTotal','ClientGlideIdle','ReqMaxRun');
-        gtype_DSs['idle']=new Array('StatusIdle','StatusPending','StatusWait','ClientJobsIdle','ReqIdle');
-        gtype_DSs['other']=new Array('StatusHeld','StatusIdleOther','StatusStageIn','StatusStageOut')
+        gtype_DSs['running']=new Array('StatusRunning','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqMaxRun','ClientInfoAge');
+        gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
+        gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle')
+
+        var gtype_formats=new Object();
+        gtype_formats['running']={'StatusRunning':{ label: 'Running glidein jobs', color: "#00f800", 
+                                                    lines: { show: true, fill: true, fillColor:"#00ff00"} },
+                                  'ClientGlideTotal':{label: 'Glideins at Collector', color: "#000000"},
+                                  'ClientGlideRunning':{label: 'Glideins running user jobs', color: "#8000ff"},
+                                  'ClientGlideIdle':{label: 'Glideins not matched', color: "#ffff00"},
+                                  'ClientJobsRunning':{label: 'User jobs running', color: "#0080ff"},
+                                  'ClientJobsIdle':{label: 'User jobs idle', color: "#008000"},
+                                  'ReqMaxRun':{label: 'Max requested glideins', color: "#c00000"},
+                                  'ClientInfoAge':{label: 'Info age', color: "#808080", yaxis: 2}};
+
+        gtype_formats['idle']={'ReqIdle':{ label: 'Requested idle glideins', color: "#00f8f8", 
+                                           lines: { show: true, fill: true, fillColor:"#00ffff"} },
+                               'StatusIdle':{label: 'Idle glidein jobs', color: "#0000ff"},
+                               'StatusWait':{label: 'Waiting glidein jobs', color: "#ff00ff"},
+                               'StatusPending':{label: 'Pending glidein jobs', color: "#00ff00"},
+                               'ClientJobsIdle':{label: 'User jobs idle', color: "#008000"},
+                               'ClientInfoAge':{label: 'Info age', color: "#808080", yaxis: 2}};
+
+        gtype_formats['other']={'StatusHeld':{label: 'Held glidein jobs', color: "#ff0000"},
+                                'StatusStageIn':{label: 'Glidein jobs staging in', color: "#404000"},
+                                'StatusStageOut':{label: 'Glidein jobs staging out', color: "#008000"},
+                                'StatusIdleOther':{label: 'Pending glidein jobs', color: "#ff00ff"},
+                                'StatusIdle':{label: 'Total idle glidein jobs', color: "#0000ff"}};
 
         var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
         // the rrdFlot object creates and handles the graph
-        var f=new rrdFlot("mygraph",rrd_data1,null);
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
       }
 
       // This is the callback function that,
