@@ -1334,7 +1334,8 @@ def vofrontend_install():
         fd.write("curb_idle_vms_per_entry=5\n\n")
         
         fd.write("# What is the max number of running jobs I want to get to\n")
-        fd.write("max_running_jobs=10000 \n\n")
+        fd.write("max_running_jobs=10000 \n")
+        fd.write("reserve_running_fraction=0.15 \n\n")
 
         fd.write("# Glidein parameters\n")
         fd.write("# At least GLIDEIN_Collector must be defined\n")
