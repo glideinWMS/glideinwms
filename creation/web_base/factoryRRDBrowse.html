@@ -134,6 +134,7 @@
           fname="entry_"+entry_name+"/total/"+rrd_name+".rrd";
         }
 
+        document.getElementById("fname").firstChild.data="Loading "+fname;
         try {
           FetchBinaryURLAsync(fname,update_fname_handler);
         } catch (err) {
