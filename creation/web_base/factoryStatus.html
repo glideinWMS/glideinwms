@@ -88,34 +88,34 @@
         
 
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('StatusRunning','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqMaxRun','ClientInfoAge');
+        gtype_DSs['running']=new Array('StatusRunning','ReqMaxRun','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ClientInfoAge');
         gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
-        gtype_DSs['other']=new Array('StatusHeld','StatusIdleOther','StatusStageIn','StatusStageOut','StatusIdle')
+        gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle')
 
         var gtype_formats=new Object();
-        gtype_formats['running']={'StatusRunning':{ label: 'Running glidein jobs', color: "#00f800", 
+        gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#00f800", checked:true, 
                                                     lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'ClientGlideTotal':{label: 'Glideins at Collector', color: "#000000"},
-                                  'ClientGlideRunning':{label: 'Glideins running user jobs', color: "#8000ff"},
-                                  'ClientGlideIdle':{label: 'Glideins not matched', color: "#ffff00"},
-                                  'ClientJobsRunning':{label: 'User jobs running', color: "#0080ff"},
-                                  'ClientJobsIdle':{label: 'User jobs idle', color: "#008000"},
-                                  'ReqMaxRun':{label: 'Max requested glideins', color: "#c00000"},
-                                  'ClientInfoAge':{label: 'Info age', color: "#808080", yaxis: 2}};
+                                  'ReqMaxRun':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
+                                  'ClientGlideTotal':{title: 'Glideins at Collector', label:'Registered', color: "#000000"},
+                                  'ClientGlideRunning':{title: 'Glideins claimed by user jobs', label:'Claimed', color: "#8000ff", checked:true},
+                                  'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},
+                                  'ClientJobsRunning':{title: 'User jobs running', label:'User running', color: "#0080ff"},
+                                  'ClientJobsIdle':{title: 'User jobs idle', label:'User idle', color: "#008000"},
+                                  'ClientInfoAge':{title: 'Info age', label:'Info age', color: "#808080", yaxis: 2}};
 
-        gtype_formats['idle']={'ReqIdle':{ label: 'Requested idle glideins', color: "#00f8f8", 
+        gtype_formats['idle']={'ReqIdle':{ title: 'Requested idle glideins', label:'Requested', color: "#00f8f8", checked:true, 
                                            lines: { show: true, fill: true, fillColor:"#00ffff"} },
-                               'StatusIdle':{label: 'Idle glidein jobs', color: "#0000ff"},
-                               'StatusWait':{label: 'Waiting glidein jobs', color: "#ff00ff"},
-                               'StatusPending':{label: 'Pending glidein jobs', color: "#00ff00"},
-                               'ClientJobsIdle':{label: 'User jobs idle', color: "#008000"},
-                               'ClientInfoAge':{label: 'Info age', color: "#808080", yaxis: 2}};
+                               'StatusIdle':{title: 'Idle glidein jobs', label:'Idle', color: "#0000ff", checked:true},
+                               'StatusWait':{title: 'Waiting glidein jobs', label:'Waiting', color: "#ff00ff", checked:true},
+                               'StatusPending':{title: 'Pending glidein jobs', label:'Pending', color: "#00ff00"},
+                               'ClientJobsIdle':{title: 'User jobs idle', label: 'User idle', color: "#008000"},
+                               'ClientInfoAge':{title: 'Info age', label:'Info age', color: "#808080", yaxis: 2}};
 
-        gtype_formats['other']={'StatusHeld':{label: 'Held glidein jobs', color: "#ff0000"},
-                                'StatusStageIn':{label: 'Glidein jobs staging in', color: "#404000"},
-                                'StatusStageOut':{label: 'Glidein jobs staging out', color: "#008000"},
-                                'StatusIdleOther':{label: 'Glidein jobs in unknown state', color: "#ff00ff"},
-                                'StatusIdle':{label: 'Total idle glidein jobs', color: "#0000ff"}};
+        gtype_formats['other']={'StatusHeld':{title: 'Held glidein jobs', label:'Held', color: "#ff0000", checked:true},
+                                'StatusStageIn':{title: 'Glidein jobs staging in', label:'Staging in', color: "#404000"},
+                                'StatusStageOut':{title: 'Glidein jobs staging out', label:'Staging out', color: "#008000"},
+                                'StatusIdleOther':{title: 'Glidein jobs in unknown state', label:'Unknown', color: "#ff00ff"},
+                                'StatusIdle':{title: 'Total idle glidein jobs', label:'Idle', color: "#0000ff"}};
 
         var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
         // the rrdFlot object creates and handles the graph
@@ -168,6 +168,7 @@
           fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
         }
 
+        document.getElementById("fname").firstChild.data="Loading "+fname;
         try {
           FetchBinaryURLAsync(fname,update_plot_handler);
         } catch (err) {
