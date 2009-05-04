@@ -39,8 +39,8 @@
        <th>Info group</th>
        <td><form id="gtypes">
 	<input type="radio" name="gtype" value="running" checked>Running
-	<input type="radio" name="gtype" value="idle">Idle
-	<input type="radio" name="gtype" value="other">Other
+	<input type="radio" name="gtype" value="idle"           >Idle
+	<input type="radio" name="gtype" value="other"          >Other
        </form></td>
      </tr>
      <tr>
@@ -88,9 +88,9 @@
         
 
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('StatusRunning','ReqMaxRun','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ClientInfoAge');
+        gtype_DSs['running']=new Array('StatusRunning','ReqMaxRun','ClientGlideTotal','ClientGlideRunning','ClientGlideIdle','ClientJobsRunning','ClientJobsIdle','ReqIdle','StatusIdle','ClientInfoAge');
         gtype_DSs['idle']=new Array('ReqIdle','StatusIdle','StatusWait','StatusPending','ClientJobsIdle','ClientInfoAge');
-        gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle')
+        gtype_DSs['other']=new Array('StatusHeld','StatusStageIn','StatusStageOut','StatusIdleOther','StatusIdle');
 
         var gtype_formats=new Object();
         gtype_formats['running']={'StatusRunning':{ title: 'Running glidein jobs', label:'Running',color: "#00f800", checked:true, 
@@ -101,6 +101,8 @@
                                   'ClientGlideIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},
                                   'ClientJobsRunning':{title: 'User jobs running', label:'User running', color: "#0080ff"},
                                   'ClientJobsIdle':{title: 'User jobs idle', label:'User idle', color: "#008000"},
+                                  'ReqIdle':{ title: 'Requested idle glideins', label:'Requested', color: "#ff8080"}, 
+                                  'StatusIdle':{title: 'Idle glidein jobs', label:'Idle', color: "#00ffff"},
                                   'ClientInfoAge':{title: 'Info age', label:'Info age', color: "#808080", yaxis: 2}};
 
         gtype_formats['idle']={'ReqIdle':{ title: 'Requested idle glideins', label:'Requested', color: "#00f8f8", checked:true, 
