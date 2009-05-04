@@ -26,7 +26,15 @@
   </head>
 
   <body>
-    <h1 id="title">Glidein factory status from logs</h1>
+    <table width="100%">
+    <tr>
+     <td><h1 id="title">Glidein factory status from logs</h1>
+     <td align="right">[ 
+	    <a href="factoryStatus.html">Status</a> |
+	    <a href="factoryRRDBrowse.html">Browse</a> 
+	    ]
+    </tr>
+    </table>
 
     <table border=0>
      <tr>
@@ -93,17 +101,16 @@
         gtype_DSs['other']=new Array('StatusHeld','EnteredHeld','ExitedHeld','EnteredRemoved','EnteredIdle','EnteredRunning')
 
         var gtype_formats=new Object();
-        gtype_formats['running']={'StatusRunning':{ title: 'Running glideins', label: 'Running', color: "#00f800", 
+        gtype_formats['running']={'StatusRunning':{ title: 'Running glideins', label: 'Running', color: "#00f800", checked:true,
                                                     lines: { show: true, fill: true, fillColor:"#00ff00"} },
                                   'EnteredRunning':{title: 'Glidein startup rate', label:'Startup', color: "#008000", yaxis: 2},
                                   'ExitedRunning':{title: 'Glidein termination rate', label:'Termination',color: "#00ffff", yaxis: 2},
                                   'EnteredCompleted':{title: 'Glidein completion rate', label:'Completion', color: "#ffff00", yaxis: 2},
                                   'EnteredHeld':{title: 'Held rate', label:'Held', color: "#ff0000", yaxis: 2}};
 
-        gtype_formats['idle']={'StatusIdle':{ title: 'Idle glideins', label:'Idle', color: "#0000f8", 
+        gtype_formats['idle']={'StatusIdle':{ title: 'Idle glideins', label:'Idle', color: "#0000f8", checked:true,
                                               lines: { show: true, fill: true, fillColor:"#0000ff"} },
-                               'StatusWait':{ title: 'Waiting glideins', label:'Waiting', color: "#f800f8", 
-                                              lines: { show: true, fill: true, fillColor:"#ff00ff"} },
+                               'StatusWait':{ title: 'Waiting glideins', label:'Waiting', color: "#f800f8", checked: true},
                                'EnteredIdle':{title: 'Glidein submission rate', label:'Submission', color: "#00ffff", yaxis: 2},
                                'ExitedIdle':{title: 'Rate out of idle state', label:'Idle out', color: "#000080", yaxis: 2},
                                'EnteredWait':{title: 'Rate into wait state', label:'Wait in', color: "#800080", yaxis: 2},
@@ -111,7 +118,7 @@
                                'EnteredRunning':{title: 'Rate into running state', label:'Run in', color: "#00c000", yaxis: 2},
                                'EnteredHeld':{title: 'Rate into held state', label:'Held in', color: "#ff0000", yaxis: 2}};
 
-        gtype_formats['other']={'StatusHeld':{ title: 'Held glideins', label:'Abs held', color: "#f80000", 
+        gtype_formats['other']={'StatusHeld':{ title: 'Held glideins', label:'Abs held', color: "#f80000", checked:true,
                                                lines: { show: true, fill: true, fillColor:"#ff0000"} },
                                 'EnteredHeld':{title: 'Glidein held rate', label:'Held rate', color: "#800000", yaxis: 2},
                                 'ExitedHeld':{title: 'Glidein release rate', label:'Release', color: "#ff8000", yaxis: 2},
