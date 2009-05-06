@@ -48,7 +48,11 @@
        <td><form id="gtypes">
 	<input type="radio" name="gtype" value="running" checked>Running
 	<input type="radio" name="gtype" value="idle">Idle
-	<input type="radio" name="gtype" value="other">Other
+	<input type="radio" name="gtype" value="other">Other<br>
+	<input type="radio" name="gtype" value="Lasted">Lasted
+	<input type="radio" name="gtype" value="JobsLasted">JobsLasted
+	<input type="radio" name="gtype" value="Goodput">Goodput
+	<input type="radio" name="gtype" value="Terminated">Terminated
        </form></td>
      </tr>
      <tr>
@@ -95,10 +99,24 @@
         document.getElementById("fname").firstChild.data=fname;
         
 
+        var lengthGTypes=['Lasted','JobsLasted','Goodput','Terminated'];
+        var lengths=['Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong'];
+        var colors=['000000','0c0000', // unknown and too short
+                    'ff0000','ffc000', // 7 and 15 mins
+                    'ffff00',          // 30 mins
+                    'c0ff00','80f000','40d800','00c000','00c080','00e0d0','00ffff',
+                    '0080f0','0000c0'];          // 128hours, TooLong
         var gtype_DSs=new Object();
         gtype_DSs['running']=new Array('StatusRunning','EnteredRunning','ExitedRunning','EnteredCompleted','EnteredHeld');
         gtype_DSs['idle']=new Array('StatusIdle','StatusWait','EnteredIdle','ExitedIdle','EnteredWait','ExitedWait','EnteredRunning','EnteredHeld');
         gtype_DSs['other']=new Array('StatusHeld','EnteredHeld','ExitedHeld','EnteredRemoved','EnteredIdle','EnteredRunning')
+        for (var lg in lengthGTypes) {
+          var lg_name=lengthGTypes[lg];
+          gtype_DSs[lg_name]=new Array();
+          for (var len in lengths) {
+            gtype_DSs[lg_name].push(lg_name+'_'+lengths[len]);
+          }
+        }
 
         var gtype_formats=new Object();
         gtype_formats['running']={'StatusRunning':{ title: 'Running glideins', label: 'Running', color: "#00f800", checked:true,
@@ -125,6 +143,15 @@
                                 'EnteredRemoved':{title: 'Glidein removal rate', label: 'Removal', color: "#ffff00", yaxis: 2},
                                 'EnteredIdle':{title: 'Rate into idle state', label: 'Idle in', color: "#0000ff", yaxis: 2},
                                 'EnteredRunning':{title: 'Rate into running state', label: 'Run in', color: "#00ff00", yaxis: 2}};
+
+        for (var lg in lengthGTypes) {
+          var lg_name=lengthGTypes[lg];
+          gtype_formats[lg_name]={};
+          for (var len in lengths) {
+            gtype_formats[lg_name][lg_name+'_'+lengths[len]]={label:lengths[len],stack:'positive',checked:true,
+                                                            color:"#"+colors[len],lines: {show:true, fill:true,fillColor:"#"+colors[len]}};
+          }
+        }
 
         var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
         // the rrdFlot object creates and handles the graph
@@ -161,14 +188,21 @@
          }
         }
 
-        rrd_fname="Log_Counts";
-
         var gtypes_obj=document.getElementById("gtypes");
         for (var i in gtypes_obj.gtype) {
          var gtype=gtypes_obj.gtype[i];
          if (gtype.checked==true) {
   	   gtype_id=gtype.value;
          }
+        }
+
+        if ((gtype_id=='running') || (gtype_id=='idle') || (gtype_id=='other')) {
+          rrd_fname="Log_Counts";
+        } else if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='Goodput') || (gtype_id=='Terminated')) {
+          rrd_fname="Log_Completed_Stats";
+        } else {
+          alert("Unknwon gtype_id "+gtype_id); // should never enter here
+          rrd_fname=none;
         }
 
         if (entry_name=="total") {
