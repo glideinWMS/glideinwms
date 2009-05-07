@@ -121,6 +121,50 @@ class MonitoringConfig:
             except Exception,e:
                 print "Failed to update %s"%fname
         return
+
+    # like write_rrd_multi, but with each ds having each type
+    # each element of ds_desc_dict is a dictionary with any of
+    #  ds_type, min, max
+    # if not present, the defaults are ('GAUGE',None,None)
+    def write_rrd_multi_hetero(self,relative_fname,ds_desc_dict,time,val_dict,min=None,max=None):
+        """
+        Create a RRD file, using rrdtool.
+        """
+        if self.rrd_obj.isDummy():
+            return # nothing to do, no rrd bin no rrd creation
+        
+        for tp in ((".rrd",self.rrd_archives),):
+            rrd_ext,rrd_archives=tp
+            fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
+            #print "Writing RRD "+fname
+        
+            if not os.path.isfile(fname):
+                #print "Create RRD "+fname
+                if min==None:
+                    min='U'
+                if max==None:
+                    max='U'
+                ds_names=val_dict.keys()
+                ds_names.sort()
+
+                ds_arr=[]
+                for ds_name in ds_names:
+                    ds_desc={'ds_type':'GAUGE','min':None,'max':None}
+                    if ds_desc_dict.has_key(ds_name):
+                        for k in ds_desc_dict[ds_name].keys():
+                            ds_desc[k]=ds_desc_dict[ds_name][k]
+                    
+                    ds_arr.append((ds_name,ds_desc['ds_type'],self.rrd_heartbeat,ds_desc['min'],ds_desc['max']))
+                self.rrd_obj.create_rrd_multi(fname,
+                                              self.rrd_step,rrd_archives,
+                                              ds_arr)
+
+            #print "Updating RRD "+fname
+            try:
+                self.rrd_obj.update_rrd_multi(fname,time,val_dict)
+            except Exception,e:
+                print "Failed to update %s"%fname
+        return
     
 
 #########################################################################################################################################
@@ -467,7 +511,7 @@ class condorLogSummary:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     # in: entered_list=self.stats_diff[client_name]['Entered']
-    # out: entered_list[job_id]{'duration','condor_started','jobsnr',wastemill':{'validation','idle','nosuccess','badput'}}
+    # out: entered_list[job_id]{'duration','condor_started','condor_duration','jobsnr',wastemill':{'validation','idle','nosuccess','badput'}}
     def get_completed_stats(self,entered_list):
         out_list={}
 
@@ -480,6 +524,7 @@ class condorLogSummary:
             # get stats
             enle_stats=enle[4]
             enle_condor_started=0
+            enle_condor_duration=0 # default is 0, in case it never started
             enle_glidein_duration=enle_difftime # best guess
             if enle_stats!=None:
                 enle_condor_started=enle_stats['condor_started']
@@ -536,14 +581,14 @@ class condorLogSummary:
                         enle_terminated_duration=enle_jobs_duration # cannot be more
                     enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_terminated_duration)/enle_glidein_duration
 
-            out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,
+            out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,'condor_duration':enle_condor_duration,
                                    'jobsnr':enle_nr_jobs,'jobs_duration':{'total':enle_jobs_duration,'goodput':enle_goodput,'terminated':enle_terminated_duration},
                                    'wastemill':enle_waste_mill}
         
         return out_list
 
     # in: entered_list=get_completed_data()
-    # out: {'Lasted':{'2hours':...,...},'Failed':...,'JobsNr':...,
+    # out: {'Lasted':{'2hours':...,...},'Total':{...:12,...},'JobsNr':...,
     #       'Waste':{'validation':{'0m':...,...},...},'WasteTime':{...:{...},...}}
     def summarize_completed_stats(self,entered_list):
         # summarize completed data
@@ -563,7 +608,15 @@ class condorLogSummary:
             for enle_jobs_duration_w_range in getAllTimeRanges():
                 count_jobs_duration_w[enle_jobs_duration_w_range]=0 # make sure all are intialized
 
-        count_validation_failed=0
+        count_total={'Glideins':0,
+                     'Lasted':0,
+                     'FailedNr':0,
+                     'JobsNr':0,
+                     'JobsLasted':0,
+                     'JobsGoodput':0,
+                     'JobsTerminated':0,
+                     'CondorLasted':0}
+        
         count_waste_mill={'validation':{},
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
@@ -585,22 +638,29 @@ class condorLogSummary:
             enle=entered_list[enle_job]
             enle_waste_mill=enle['wastemill']
             enle_glidein_duration=enle['duration']
+            enle_condor_duration=enle['condor_duration']
             enle_jobs_nr=enle['jobsnr']
             enle_jobs_duration=enle['jobs_duration']
             enle_condor_started=enle['condor_started']
 
+            count_total['Glideins']+=1
             if not enle_condor_started:
-                count_validation_failed+=1
+                count_total['Failed']+=1
 
             # find and save time range
+            count_total['Lasted']+=enle_glidein_duration
             enle_timerange=getTimeRange(enle_glidein_duration)
             count_entered_times[enle_timerange]+=1
 
+            count_total['CondorLasted']+=enle_condor_duration
+
             # find and save job range
+            count_total['JobsNr']+=enle_jobs_nr
             enle_jobrange=getJobRange(enle_jobs_nr)
             count_jobnrs[enle_jobrange]+=1
 
             for w in enle_jobs_duration.keys():
+                count_total['JobsLasted']+=enle_jobs_duration[w]
                 enle_jobs_duration_w_range=getTimeRange(enle_jobs_duration[w])
                 count_jobs_duration[w][enle_jobs_duration_w_range]+=1
 
@@ -618,7 +678,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Failed':count_validation_failed,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
+        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Total':count_total,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -765,13 +825,16 @@ class condorLogSummary:
 
             monitoringConfig.establish_dir(fe_dir)
             val_dict_counts={}
+            val_dict_counts_desc={}
             val_dict_completed={}
+            val_dict_stats={}
             val_dict_waste={}
             val_dict_wastetime={}
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=sdata[s]
                     val_dict_counts["Status%s"%s]=count
+                    val_dict_counts_desc["Status%s"%s]={'ds_type':'GAUGE'}
 
                 if ((sdiff!=None) and (s in sdiff.keys())):
                     entered_list=sdiff[s]['Entered']
@@ -783,34 +846,36 @@ class condorLogSummary:
                     exited=0
                     
                 val_dict_counts["Entered%s"%s]=entered
+                val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
                 if not (s in ('Completed','Removed')): # Always 0 for them
                     val_dict_counts["Exited%s"%s]=exited
+                    val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
                         monitoringConfig.logCompleted(completed_stats)
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
+                    # save simple vals
+                    for tkey in completed_counts['Total'].keys():
+                        val_dict_completed[tkey]=completed_counts['Total'][tkey]
+
                     count_entered_times=completed_counts['Lasted']
                     count_jobnrs=completed_counts['JobsNr']
                     count_jobs_duration=completed_counts['JobsDuration']
-                    count_validation_failed=completed_counts['Failed']
                     count_waste_mill=completed_counts['Waste']
                     time_waste_mill=completed_counts['WasteTime']
                     # save run times
                     for timerange in count_entered_times.keys():
-                        val_dict_completed['Lasted_%s'%timerange]=count_entered_times[timerange]
+                        val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
                         # they all use the same indexes
-                        val_dict_completed['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
-                        val_dict_completed['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
-                        val_dict_completed['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
+                        val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
+                        val_dict_stats['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
+                        val_dict_stats['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
 
                     # save jobsnr
                     for jobrange in count_jobnrs.keys():
-                        val_dict_completed['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
-
-                    # save failures
-                    val_dict_completed['Failed']=count_validation_failed
+                        val_dict_stats['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
 
                     # save waste_mill
                     for w in count_waste_mill.keys():
@@ -826,10 +891,12 @@ class condorLogSummary:
             #end for s in self.job_statuses
 
             # write the data to disk
-            monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
-                                             "GAUGE",self.updated,val_dict_counts)                            
-            monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+            monitoringConfig.write_rrd_multi_hetero("%s/Log_Counts"%fe_dir,
+                                                    val_dict_counts_desc,self.updated,val_dict_counts)
+            monitoringConfig.write_rrd_multi("%s/Log_Completed"%fe_dir,
                                              "ABSOLUTE",self.updated,val_dict_completed)
+            monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+                                             "ABSOLUTE",self.updated,val_dict_stats)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
                                              "ABSOLUTE",self.updated,val_dict_waste)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
