@@ -126,7 +126,7 @@ class MonitoringConfig:
     # each element of ds_desc_dict is a dictionary with any of
     #  ds_type, min, max
     # if not present, the defaults are ('GAUGE',None,None)
-    def write_rrd_multi_hetero(self,relative_fname,ds_desc_dict,time,val_dict,min=None,max=None):
+    def write_rrd_multi_hetero(self,relative_fname,ds_desc_dict,time,val_dict):
         """
         Create a RRD file, using rrdtool.
         """
@@ -588,7 +588,7 @@ class condorLogSummary:
         return out_list
 
     # in: entered_list=get_completed_data()
-    # out: {'Lasted':{'2hours':...,...},'Total':{...:12,...},'JobsNr':...,
+    # out: {'Lasted':{'2hours':...,...},'Sum':{...:12,...},'JobsNr':...,
     #       'Waste':{'validation':{'0m':...,...},...},'WasteTime':{...:{...},...}}
     def summarize_completed_stats(self,entered_list):
         # summarize completed data
@@ -678,7 +678,7 @@ class condorLogSummary:
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
         
         
-        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Total':count_total,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
+        return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Sum':count_total,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
         stats_data={}
@@ -857,8 +857,8 @@ class condorLogSummary:
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
                     # save simple vals
-                    for tkey in completed_counts['Total'].keys():
-                        val_dict_completed[tkey]=completed_counts['Total'][tkey]
+                    for tkey in completed_counts['Sum'].keys():
+                        val_dict_completed[tkey]=completed_counts['Sum'][tkey]
 
                     count_entered_times=completed_counts['Lasted']
                     count_jobnrs=completed_counts['JobsNr']
