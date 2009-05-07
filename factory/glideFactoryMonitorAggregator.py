@@ -253,7 +253,7 @@ def aggregateLogSummary():
                     local_total[k][s]=int(entry_data['total'][k][s])
                     global_total[k][s]+=int(entry_data['total'][k][s])
             local_total['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
-            for tkey in local_total['CompletedCounts']['Sum']:
+            for tkey in local_total['CompletedCounts']['Sum'].keys():
                 local_total['CompletedCounts']['Sum'][tkey]=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
                 global_total['CompletedCounts']['Sum'][tkey]+=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
