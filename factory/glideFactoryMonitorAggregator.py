@@ -168,7 +168,7 @@ def aggregateLogSummary():
     global monitorAggregatorConfig
 
     # initialize global counters
-    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Sum':0,'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}}
+    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Sum':{},'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}}
 
     for s in ('Wait','Idle','Running','Held'):
         for k in ['Current','Entered','Exited']:
