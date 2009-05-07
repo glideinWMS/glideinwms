@@ -223,7 +223,7 @@ def aggregateLogSummary():
                 for s in fe_el[k].keys():
                     out_fe_el[k][s]=int(fe_el[k][s])
             out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{},'Total':{}}
-            for tkey in out_fe_el['CompletedCounts']['Sum'].keys():
+            for tkey in fe_el['CompletedCounts']['Sum'].keys():
                 out_fe_el['CompletedCounts']['Sum'][tkey]=int(fe_el['CompletedCounts']['Sum'][tkey])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
                 for w in ("Waste","WasteTime"):
@@ -253,7 +253,7 @@ def aggregateLogSummary():
                     local_total[k][s]=int(entry_data['total'][k][s])
                     global_total[k][s]+=int(entry_data['total'][k][s])
             local_total['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
-            for tkey in local_total['CompletedCounts']['Sum'].keys():
+            for tkey in entry_data['total']['CompletedCounts']['Sum'].keys():
                 local_total['CompletedCounts']['Sum'][tkey]=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
                 global_total['CompletedCounts']['Sum'][tkey]+=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
