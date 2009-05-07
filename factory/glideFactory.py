@@ -71,13 +71,13 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                 try:
                     tempOut = child.fromchild.read()
                     if len(tempOut)!=0:
-                        print child, tempOut
+                        glideFactoryLib.factoryConfig.warning_log.write("Child %s STDOUT: %s"%(child, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.childerr.read()
                     if len(tempErr)!=0:
-                        print child, tempErr
+                        glideFactoryLib.factoryConfig.warning_log.write("Child %s STDERR: %s"%(child, tempErr))
                 except IOError:
                     pass # ignore
                 
