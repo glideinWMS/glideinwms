@@ -183,6 +183,9 @@ if __name__ == '__main__':
     if not os.environ.has_key('X509_CERT_DIR'):
         raise RuntimeError, "Need X509_CERT_DIR to work!"
 
-    main(sys.argv[1])
+    try:
+        main(sys.argv[1])
+    except KeyboardInterrupt,e:
+        print glideFactoryLib.factoryConfig.activity_log.write("Terminating: %s"%e)
  
 
