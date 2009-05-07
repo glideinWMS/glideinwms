@@ -201,6 +201,15 @@ def aggregateLogSummary():
             el[t]=0
         global_total['CompletedCounts']['JobsDuration'][k]=el
 
+    global_total['CompletedCounts']['Sum']={'Glideins':0,
+                                            'Lasted':0,
+                                            'FailedNr':0,
+                                            'JobsNr':0,
+                                            'JobsLasted':0,
+                                            'JobsGoodput':0,
+                                            'JobsTerminated':0,
+                                            'CondorLasted':0}
+    
     #
     status={'entries':{},'total':global_total}
     nr_entries=0
