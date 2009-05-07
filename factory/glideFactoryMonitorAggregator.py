@@ -168,7 +168,7 @@ def aggregateLogSummary():
     global monitorAggregatorConfig
 
     # initialize global counters
-    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Failed':0,'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}}
+    global_total={'Current':{},'Entered':{},'Exited':{},'CompletedCounts':{'Sum':0,'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}}
 
     for s in ('Wait','Idle','Running','Held'):
         for k in ['Current','Entered','Exited']:
@@ -222,8 +222,9 @@ def aggregateLogSummary():
                 out_fe_el[k]={}
                 for s in fe_el[k].keys():
                     out_fe_el[k][s]=int(fe_el[k][s])
-            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
-            out_fe_el['CompletedCounts']['Failed']=int(fe_el['CompletedCounts']['Failed'])
+            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{},'Total':{}}
+            for tkey in out_fe_el['CompletedCounts']['Sum'].keys():
+                out_fe_el['CompletedCounts']['Sum'][tkey]=int(fe_el['CompletedCounts']['Sum'][tkey])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
                 for w in ("Waste","WasteTime"):
                     out_fe_el['CompletedCounts'][w][k]={}
@@ -252,8 +253,9 @@ def aggregateLogSummary():
                     local_total[k][s]=int(entry_data['total'][k][s])
                     global_total[k][s]+=int(entry_data['total'][k][s])
             local_total['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{}}
-            local_total['CompletedCounts']['Failed']=int(entry_data['total']['CompletedCounts']['Failed'])
-            global_total['CompletedCounts']['Failed']+=int(entry_data['total']['CompletedCounts']['Failed'])
+            for tkey in local_total['CompletedCounts']['Sum']:
+                local_total['CompletedCounts']['Sum'][tkey]=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
+                global_total['CompletedCounts']['Sum'][tkey]+=int(entry_data['total']['CompletedCounts']['Sum'][tkey])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:
                 for w in ("Waste","WasteTime"):
                     local_total['CompletedCounts'][w][k]={}
@@ -299,41 +301,47 @@ def aggregateLogSummary():
 
     glideFactoryMonitoring.monitoringConfig.establish_dir(fe_dir)
     val_dict_counts={}
+    val_dict_counts_desc={}
     val_dict_completed={}
+    val_dict_stats={}
     val_dict_waste={}
     val_dict_wastetime={}
     for s in ('Wait','Idle','Running','Held','Completed','Removed'):
         if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
             count=sdata[s]
             val_dict_counts["Status%s"%s]=count
+            val_dict_counts_desc["Status%s"%s]={'ds_type':'GAUGE'}
 
             exited=-status["total"]['Exited'][s]
             val_dict_counts["Exited%s"%s]=exited
+            val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
             
         entered=status["total"]['Entered'][s]
         val_dict_counts["Entered%s"%s]=entered
+        val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
 
         if s=='Completed':
             completed_counts=status["total"]['CompletedCounts']
             count_entered_times=completed_counts['Lasted']
             count_jobnrs=completed_counts['JobsNr']
             count_jobs_duration=completed_counts['JobsDuration']
-            count_validation_failed=completed_counts['Failed']
             count_waste_mill=completed_counts['Waste']
             time_waste_mill=completed_counts['WasteTime']
             # save run times
             for timerange in count_entered_times.keys():
-                val_dict_completed['Lasted_%s'%timerange]=count_entered_times[timerange]
+                val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
                 # they all use the same indexes
-                val_dict_completed['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
-                val_dict_completed['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
-                val_dict_completed['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
+                val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
+                val_dict_stats['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
+                val_dict_stats['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
 
             # save jobsnr
             for jobrange in count_jobnrs.keys():
-                val_dict_completed['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
-            # save failures
-            val_dict_completed['Failed']=count_validation_failed
+                val_dict_stats['JobsNr_%s'%jobrange]=count_jobnrs[jobrange]
+
+            # save simple vals
+            for tkey in completed_counts['Sum'].keys():
+                val_dict_completed[tkey]=completed_counts['Sum'][tkey]
 
             # save waste_mill
             for w in count_waste_mill.keys():
@@ -349,8 +357,10 @@ def aggregateLogSummary():
     # write the data to disk
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
                                                             "GAUGE",updated,val_dict_counts)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_completed)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
+                                                            "ABSOLUTE",updated,val_dict_stats)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_waste)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
