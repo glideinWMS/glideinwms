@@ -24,9 +24,9 @@ class MonitoringConfig:
         # user should modify if needed
         self.rrd_step=300       #default to 5 minutes
         self.rrd_heartbeat=1800 #default to 30 minutes, should be at least twice the loop time
-        self.rrd_archives=[('AVERAGE',0.8,1,1120),      # max precision, keep ~4 days
-                           ('AVERAGE',0.92,9,1120),       # 45 min precision, keep for a month (35 days)
-                           ('AVERAGE',0.98,96,1120)        # 8 hour precision, keep for a year
+        self.rrd_archives=[('AVERAGE',0.8,1,740),      # max precision, keep 2.5 days
+                           ('AVERAGE',0.92,12,740),       # 1 h precision, keep for a month (30 days)
+                           ('AVERAGE',0.98,144,740)        # 12 hour precision, keep for a year
                            ]
 
         # The name of the attribute that identifies the glidein
