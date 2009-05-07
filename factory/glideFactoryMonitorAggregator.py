@@ -231,7 +231,7 @@ def aggregateLogSummary():
                 out_fe_el[k]={}
                 for s in fe_el[k].keys():
                     out_fe_el[k][s]=int(fe_el[k][s])
-            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{},'Total':{}}
+            out_fe_el['CompletedCounts']={'Waste':{},'WasteTime':{},'Lasted':{},'JobsNr':{},'JobsDuration':{},'Sum':{}}
             for tkey in fe_el['CompletedCounts']['Sum'].keys():
                 out_fe_el['CompletedCounts']['Sum'][tkey]=int(fe_el['CompletedCounts']['Sum'][tkey])
             for k in ['idle', 'validation', 'badput', 'nosuccess']:

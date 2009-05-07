@@ -125,7 +125,7 @@ class MonitoringConfig:
     # like write_rrd_multi, but with each ds having each type
     # each element of ds_desc_dict is a dictionary with any of
     #  ds_type, min, max
-    # if not present, the defaults are ('GAUGE',None,None)
+    # if not present, the defaults are ('GAUGE','U','U')
     def write_rrd_multi_hetero(self,relative_fname,ds_desc_dict,time,val_dict):
         """
         Create a RRD file, using rrdtool.
@@ -140,16 +140,12 @@ class MonitoringConfig:
         
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
-                if min==None:
-                    min='U'
-                if max==None:
-                    max='U'
                 ds_names=val_dict.keys()
                 ds_names.sort()
 
                 ds_arr=[]
                 for ds_name in ds_names:
-                    ds_desc={'ds_type':'GAUGE','min':None,'max':None}
+                    ds_desc={'ds_type':'GAUGE','min':'U','max':'U'}
                     if ds_desc_dict.has_key(ds_name):
                         for k in ds_desc_dict[ds_name].keys():
                             ds_desc[k]=ds_desc_dict[ds_name][k]
