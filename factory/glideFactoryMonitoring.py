@@ -845,45 +845,58 @@ class condorLogSummary:
 def getTimeRange(absval):
         if absval<1:
             return 'Unknown'
-        if absval<240:
-            return 'TooShort'
-        if absval>(180*3600): # limit valid times to 180 hours
-            return 'TooLong'
+        if absval<(25*60):
+            return 'Minutes'
+        if absval>(64*3600): # limit detail to 64 hours
+            return 'Days'
         # start with 7.5 min, and than exp2
-        logval=int(math.log(absval/450.0,2)+0.49)
-        level=math.pow(2,logval)*450.0
+        logval=int(math.log(absval/450.0,4)+0.49)
+        level=math.pow(4,logval)*450.0
         if level<3600:
             return "%imins"%(int(level/60+0.49))
         else:
             return "%ihours"%(int(level/3600+0.49))
 
 def getAllTimeRanges():
-        return ('Unknown','TooShort','7mins','15mins','30mins','1hours','2hours','4hours','8hours','16hours','32hours','64hours','128hours','TooLong')
+        return ('Unknown','Minutes','30mins','2hours','8hours','32hours','Days')
     
 def getJobRange(absval):
         if absval<1:
             return 'None'
         if absval==1:
             return '1job'
-        if absval>45: # limit valid times to 45
+        if absval==2:
+            return '2jobs'
+        if absval<9:
+            return '4jobs'
+        if absval<30: # limit detail to 30 jobs
+            return '16jobs'
+        else:
             return 'Many'
-        logval=int(math.log(absval,2)+0.49)
-        level=int(math.pow(2,logval))
-        return "%ijobs"%level
 
 def getAllJobRanges():
-        return ('None','1job','2jobs','4jobs','8jobs','16jobs','32jobs','Many')
+        return ('None','1job','2jobs','4jobs','16jobs','Many')
     
 def getMillRange(absval):
-        if absval<0.5:
-            return '0m'
-        # make sure 1000 gets back to 1000
-        logval=int(math.log(absval*1.024,2)+0.49)
-        level=int(math.pow(2,logval)/1.024)
-        return "%im"%level
+        if absval<2:
+            return 'None'
+        if absval<15:
+            return '5m'
+        if absval<60:
+            return '25m'
+        if absval<180:
+            return '100m'
+        if absval<400:
+            return '250m'
+        if absval<700:
+            return '500m'
+        if absval>998:
+            return 'All'
+        else:
+            return 'Most'
 
 def getAllMillRanges():
-        return ('0m','1m','3m','7m','15m','31m','62m','125m','250m','500m','1000m')            
+        return ('None','5m','25m','100m','250m','500m','Most','All')            
 
 ##################################################
 def get_completed_stats_xml_desc():
