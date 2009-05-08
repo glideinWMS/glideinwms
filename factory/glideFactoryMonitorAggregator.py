@@ -195,11 +195,10 @@ def aggregateLogSummary():
         el[t]=0
     global_total['CompletedCounts']['JobsNr']=el
 
-    for k in ['total', 'goodput', 'terminated']:
-        el={}
-        for t in glideFactoryMonitoring.getAllTimeRanges():
-            el[t]=0
-        global_total['CompletedCounts']['JobsDuration'][k]=el
+    el={}
+    for t in glideFactoryMonitoring.getAllTimeRanges():
+        el[t]=0
+    global_total['CompletedCounts']['JobsDuration']=el
 
     global_total['CompletedCounts']['Sum']={'Glideins':0,
                                             'Lasted':0,
@@ -241,10 +240,9 @@ def aggregateLogSummary():
                         out_fe_el['CompletedCounts'][w][k][t]=int(fe_el['CompletedCounts'][w][k][t]['val'])
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 out_fe_el['CompletedCounts']['Lasted'][t]=int(fe_el['CompletedCounts']['Lasted'][t]['val'])
-            for k in ['total', 'goodput', 'terminated']:
-                out_fe_el['CompletedCounts']['JobsDuration'][k]={}
-                for t in glideFactoryMonitoring.getAllTimeRanges():
-                    out_fe_el['CompletedCounts']['JobsDuration'][k][t]=int(fe_el['CompletedCounts']['JobsDuration'][k][t]['val'])
+            out_fe_el['CompletedCounts']['JobsDuration']={}
+            for t in glideFactoryMonitoring.getAllTimeRanges():
+                out_fe_el['CompletedCounts']['JobsDuration'][t]=int(fe_el['CompletedCounts']['JobsDuration'][t]['val'])
             for t in glideFactoryMonitoring.getAllJobRanges():
                 out_fe_el['CompletedCounts']['JobsNr'][t]=int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
             out_data[frontend]=out_fe_el
@@ -275,11 +273,10 @@ def aggregateLogSummary():
             for t in glideFactoryMonitoring.getAllTimeRanges():
                 local_total['CompletedCounts']['Lasted'][t]=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
                 global_total['CompletedCounts']['Lasted'][t]+=int(entry_data['total']['CompletedCounts']['Lasted'][t]['val'])
-            for k in ['total', 'goodput', 'terminated']:
-                local_total['CompletedCounts']['JobsDuration'][k]={}
-                for t in glideFactoryMonitoring.getAllTimeRanges():
-                    local_total['CompletedCounts']['JobsDuration'][k][t]=int(entry_data['total']['CompletedCounts']['JobsDuration'][k][t]['val'])
-                    global_total['CompletedCounts']['JobsDuration'][k][t]+=int(entry_data['total']['CompletedCounts']['JobsDuration'][k][t]['val'])
+            local_total['CompletedCounts']['JobsDuration']={}
+            for t in glideFactoryMonitoring.getAllTimeRanges():
+                local_total['CompletedCounts']['JobsDuration'][t]=int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
+                global_total['CompletedCounts']['JobsDuration'][t]+=int(entry_data['total']['CompletedCounts']['JobsDuration'][t]['val'])
 
             for t in glideFactoryMonitoring.getAllJobRanges():
                 local_total['CompletedCounts']['JobsNr'][t]=int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
