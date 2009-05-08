@@ -964,11 +964,9 @@ def getAllMillRanges():
 ##################################################
 def get_completed_stats_xml_desc():
     return {'dicts_params':{'Lasted':{'el_name':'TimeRange'},
+                            'JobsDuration':{'el_name':'TimeRange'},
                             'JobsNr':{'el_name':'Range'}},
-            'subclass_params':{'JobsDuration':{'dicts_params':{'total':{'el_name':'TimeRange'},
-                                                               'goodput':{'el_name':'TimeRange'},
-                                                               'terminated':{'el_name':'TimeRange'}}},
-                               'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
+            'subclass_params':{'Waste':{'dicts_params':{'idle':{'el_name':'Fraction'},
                                                         'validation':{'el_name':'Fraction'},
                                                         'badput':{'el_name':'Fraction'},
                                                         'nosuccess':{'el_name':'Fraction'}}},
