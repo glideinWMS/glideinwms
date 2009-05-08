@@ -1,0 +1,222 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!--
+  Browse the glideinWMS RRDs
+
+  Based on
+  javascriptrrd/src/lib/rrdJFlot.html 
+   Original repository: http://javascriptrrd.sourceforge.net/
+-->
+
+<html>
+  
+    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
+
+    <!-- rrdFlot class needs the following four include files !-->
+    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+
+    <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <head>
+    <title>Glidein factory status from logs</title>
+  </head>
+
+  <body>
+    <table width="100%">
+    <tr>
+     <td><h1 id="title">Glidein factory status from logs</h1>
+     <td align="right">[ 
+	    <a href="factoryStatus.html">Status</a> |
+	    <a href="factoryLogStatus.html">Log status</a> |
+	    <a href="factoryRRDBrowse.html">Browse</a> 
+	    ]
+    </tr>
+    </table>
+
+    <table border=0>
+     <tr>
+       <th>Entry</th>
+       <td><form id="entries">
+	<input type="radio" name="entry" value="total" checked>total<br>
+       </form></td>
+     </tr>
+     <tr>
+       <th>Info group</th>
+       <td><form id="gtypes">
+	<input type="radio" name="gtype" value="Lasted" checked>Wallclock time per glidein
+	<input type="radio" name="gtype" value="JobsLasted">User jobs wallclock time
+	<input type="radio" name="gtype" value="Terminated">Terminated user jobs wallclock time
+	<input type="radio" name="gtype" value="Goodput">User jobs goodput
+	<br>
+	<input type="radio" name="gtype" value="JobsNr">User jobs per glidein
+       </form></td>
+     </tr>
+     <tr>
+      <td colspan=2><button onclick="fname_update()">Update</button></td>
+     </tr>
+    </table>
+
+    <hr>
+
+    <table id="infotable" border=1>
+        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
+	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+    </table>
+
+    <div id="mygraph"></div>
+
+    <script type="text/javascript">
+
+      // Remove the Javascript warning
+      document.getElementById("infotable").deleteRow(0);
+
+      // Load the status of the factory
+      var factoryQStats=loadFactoryQStats();
+      var entries=getFactoryEntries(factoryQStats);
+      for (var entry in entries) {
+        var elRadio=document.createElement("input");
+        elRadio.type = "radio";
+        elRadio.name = "entry";
+        elRadio.value = entries[entry];
+
+        var html_el=document.getElementById("entries");
+        html_el.appendChild(elRadio);
+        html_el.appendChild(document.createTextNode(entries[entry]));
+      }
+
+     // fname, gtype_id and rrd_data are the global variable used by all the functions below
+      rrd_data=undefined;
+      gtype_id=undefined;
+
+      // This function updates the Web Page with the data from the RRD archive header
+      // when a new file is selected
+      function update_plot() {
+        // Finally, update the file name and enable the update button
+        document.getElementById("fname").firstChild.data=fname;
+        
+
+        var lengthGTypes=['Lasted','JobsLasted','Goodput','Terminated'];
+        var lengths=['Unknown','Minutes','30mins','2hours','8hours','32hours','Days'];
+        var lengths_colors=['000000',   // Unknown
+                            'ff4000',   // Minutes
+                            'ffff00',   // 30 mins
+                            '00c000',   // 2 hours
+                            '00ff00',   // 8 hours
+                            '0000ff',   // 32 hours
+                            'ff00ff'];  // Days
+
+        var jobGTypes=['JobsNr'];
+        var jobs=['None','1job','2jobs','4jobs','16jobs','Many'];
+        var jobs_colors=['ff0000',   // None
+                         'ffd000',   // 1 job
+                         'f0ff00',   // 2 jobs
+                         '00ff00',   // 4 jobs
+                         '0000ff',   // 16 jobs
+                         'ff00ff'];  // Many
+
+
+        var gtype_DSs=new Object();
+        for (var lg in lengthGTypes) {
+          var lg_name=lengthGTypes[lg];
+          gtype_DSs[lg_name]=new Array();
+          for (var len in lengths) {
+            gtype_DSs[lg_name].push(lg_name+'_'+lengths[len]);
+          }
+        }
+        for (var jb in jobGTypes) {
+          var jb_name=jobGTypes[jb];
+          gtype_DSs[jb_name]=new Array();
+          for (var cnt in jobs) {
+            gtype_DSs[jb_name].push(jb_name+'_'+jobs[cnt]);
+          }
+        }
+
+        var gtype_formats=new Object();
+
+        for (var lg in lengthGTypes) {
+          var lg_name=lengthGTypes[lg];
+          gtype_formats[lg_name]={};
+          for (var len in lengths) {
+            gtype_formats[lg_name][lg_name+'_'+lengths[len]]={label:lengths[len],stack:'positive',checked:(len!=0),
+                                                            color:"#"+lengths_colors[len],lines: {show:true, fill:true,fillColor:"#"+lengths_colors[len]}};
+          }
+        }
+        for (var jb in jobGTypes) {
+          var jb_name=jobGTypes[jb];
+          gtype_formats[jb_name]={};
+          for (var cnt in jobs) {
+            gtype_formats[jb_name][jb_name+'_'+jobs[cnt]]={label:jobs[cnt],stack:'positive',checked:true,
+                                                            color:"#"+jobs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+jobs_colors[cnt]}};
+          }
+        }
+
+        var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
+        // the rrdFlot object creates and handles the graph
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
+      }
+
+      // This is the callback function that,
+      // given a binary file object,
+      // verifies that it is a valid RRD archive
+      // and performs the update of the Web page
+      function update_plot_handler(bf) {
+          var i_rrd_data=undefined;
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fname+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            rrd_data=i_rrd_data;
+            update_plot()
+          }
+      }
+
+      // this function is invoked when the RRD file name changes
+      function fname_update() {
+        var entry_name="";
+        gtype_id=undefined;
+
+        var entries_obj=document.getElementById("entries")
+        for (var i in entries_obj.entry) {
+         var entry=entries_obj.entry[i];
+         if (entry.checked==true) {
+  	   entry_name=entry.value;
+         }
+        }
+
+        var gtypes_obj=document.getElementById("gtypes");
+        for (var i in gtypes_obj.gtype) {
+         var gtype=gtypes_obj.gtype[i];
+         if (gtype.checked==true) {
+  	   gtype_id=gtype.value;
+         }
+        }
+
+        if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='Goodput') || (gtype_id=='Terminated') || (gtype_id=='JobsNr')) {
+          rrd_fname="Log_Completed_Stats";
+        } else {
+          alert("Unknown gtype_id "+gtype_id); // should never enter here
+          rrd_fname=none;
+        }
+
+        if (entry_name=="total") {
+          fname="total/"+rrd_fname+".rrd";
+        } else {
+          fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
+        }
+
+        document.getElementById("fname").firstChild.data="Loading "+fname;
+        try {
+          FetchBinaryURLAsync(fname,update_plot_handler);
+        } catch (err) {
+           alert("Failed loading "+fname+"\n"+err);
+        }
+      }
+    </script>
+  </body>
+</html>
