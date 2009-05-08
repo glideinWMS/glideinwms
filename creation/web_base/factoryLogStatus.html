@@ -48,7 +48,8 @@
        <td><form id="gtypes">
 	<input type="radio" name="gtype" value="running" checked>Running
 	<input type="radio" name="gtype" value="idle">Idle
-	<input type="radio" name="gtype" value="other">Other<br>
+	<input type="radio" name="gtype" value="other">Other
+	<input type="radio" name="gtype" value="completed">Completed<br>
 	<input type="radio" name="gtype" value="Lasted">Lasted
 	<input type="radio" name="gtype" value="JobsLasted">JobsLasted
 	<input type="radio" name="gtype" value="Goodput">Goodput
@@ -110,6 +111,7 @@
         gtype_DSs['running']=new Array('StatusRunning','EnteredRunning','ExitedRunning','EnteredCompleted','EnteredHeld');
         gtype_DSs['idle']=new Array('StatusIdle','StatusWait','EnteredIdle','ExitedIdle','EnteredWait','ExitedWait','EnteredRunning','EnteredHeld');
         gtype_DSs['other']=new Array('StatusHeld','EnteredHeld','ExitedHeld','EnteredRemoved','EnteredIdle','EnteredRunning')
+        gtype_DSs['completed']=new Array('Lasted','CondorLasted','JobsLasted','JobsTerminated','JobsGoodput','Glideins','FailedNr','JobsNr');
         for (var lg in lengthGTypes) {
           var lg_name=lengthGTypes[lg];
           gtype_DSs[lg_name]=new Array();
@@ -143,6 +145,20 @@
                                 'EnteredRemoved':{title: 'Glidein removal rate', label: 'Removal', color: "#ffff00", yaxis: 2},
                                 'EnteredIdle':{title: 'Rate into idle state', label: 'Idle in', color: "#0000ff", yaxis: 2},
                                 'EnteredRunning':{title: 'Rate into running state', label: 'Run in', color: "#00ff00", yaxis: 2}};
+
+        gtype_formats['completed']={'Lasted':{ title: 'Glideins wallclock time', label:'Lasted', color: "#00f8f8", checked:true,
+                                               lines: { show: true, fill: true, fillColor:"#00ffff"} },
+                                    'CondorLasted':{ title: 'Condor within glideins wallclock time', label:'Condor Lasted', color: "#008080", checked:false,
+                                               lines: { show: true, fill: true, fillColor:"#008484"} },
+                                    'JobsLasted':{ title: 'User jobs wallclock time', label:'Jobs Lasted', color: "#0000f8", checked:false,
+                                               lines: { show: true, fill: true, fillColor:"#0000ff"} },
+                                    'JobsTerminated':{ title: 'Terminated user jobs wallclock time', label:'Jobs Terminated', color: "#008000", checked:true,
+                                               lines: { show: true, fill: true, fillColor:"#008400"} },
+                                    'JobsGoodput':{ title: 'User jobs goodput', label:'Jobs Goodput', color: "#00c000", checked:false,
+                                               lines: { show: true, fill: true, fillColor:"#00c400"} },
+                                    'Glideins':{title: 'Number of terminated glideins', label:'Glideins Nr', color: "#000000", yaxis: 2, checked:false},
+                                    'FailedNr':{title: 'Number of glideins failing validation', label:'Failed Nr', color: "#ff0000", yaxis: 2, checked:false},
+                                    'JobsNr':{title: 'Number of user jobs executed', label: 'Jobs Nr', color: "#c0ff00", yaxis: 2, checked:false}};
 
         for (var lg in lengthGTypes) {
           var lg_name=lengthGTypes[lg];
@@ -198,6 +214,8 @@
 
         if ((gtype_id=='running') || (gtype_id=='idle') || (gtype_id=='other')) {
           rrd_fname="Log_Counts";
+        } else if (gtype_id=='completed') {
+          rrd_fname="Log_Completed";
         } else if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='Goodput') || (gtype_id=='Terminated')) {
           rrd_fname="Log_Completed_Stats";
         } else {
