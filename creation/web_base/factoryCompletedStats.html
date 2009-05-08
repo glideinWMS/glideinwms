@@ -50,6 +50,12 @@
 	<input type="radio" name="gtype" value="Lasted" checked>Wallclock time per glidein
 	<input type="radio" name="gtype" value="JobsNr">User jobs per glidein
 	<input type="radio" name="gtype" value="JobsLasted">Wallclock time per user job
+	      <br>
+	<input type="radio" name="gtype" value="validation">Fraction wasted due to node validation
+	<input type="radio" name="gtype" value="idle">Fraction wasted because idle
+	      <br>
+	<input type="radio" name="gtype" value="nosuccess">Fraction wasted due to job failures
+	<input type="radio" name="gtype" value="badput">Fraction not used by user jobs
        </form></td>
      </tr>
      <tr>
@@ -115,6 +121,16 @@
                          '0000ff',   // 16 jobs
                          'ff00ff'];  // Many
 
+        var fracGTypes=['validation','idle','nosuccess','badput'];
+        var fracs=['All','Most','500m','250m','100m','25m','5m','None'];
+        var fracs_colors=['c00000',   // All
+                          'ff2000',   // Most
+                          'ffd000',   // 500m
+                          'ffff00',   // 250m
+                          'd0ff00',   // 100m
+                          '40ff00',   // 25m
+                          '00e000',   // 5m
+                          '008000'];  // None
 
         var gtype_DSs=new Object();
         for (var lg in lengthGTypes) {
@@ -129,6 +145,13 @@
           gtype_DSs[jb_name]=new Array();
           for (var cnt in jobs) {
             gtype_DSs[jb_name].push(jb_name+'_'+jobs[cnt]);
+          }
+        }
+        for (var fc in fracGTypes) {
+          var fc_name=fracGTypes[fc];
+          gtype_DSs[fc_name]=new Array();
+          for (var cnt in fracs) {
+            gtype_DSs[fc_name].push(fc_name+'_'+fracs[cnt]);
           }
         }
 
@@ -148,6 +171,14 @@
           for (var cnt in jobs) {
             gtype_formats[jb_name][jb_name+'_'+jobs[cnt]]={label:jobs[cnt],stack:'positive',checked:true,
                                                             color:"#"+jobs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+jobs_colors[cnt]}};
+          }
+        }
+        for (var fc in fracGTypes) {
+          var fc_name=fracGTypes[fc];
+          gtype_formats[fc_name]={};
+          for (var cnt in fracs) {
+            gtype_formats[fc_name][fc_name+'_'+fracs[cnt]]={label:fracs[cnt],stack:'positive',checked:true,
+                                                            color:"#"+fracs_colors[cnt],lines: {show:true, fill:true,fillColor:"#"+fracs_colors[cnt]}};
           }
         }
 
@@ -194,8 +225,10 @@
          }
         }
 
-        if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='Goodput') || (gtype_id=='Terminated') || (gtype_id=='JobsNr')) {
+        if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='JobsNr')) {
           rrd_fname="Log_Completed_Stats";
+        } else if ((gtype_id=='validation')  || (gtype_id=='idle')|| (gtype_id=='nosuccess') || (gtype_id=='badput')) {
+          rrd_fname="Log_Completed_Waste";
         } else {
           alert("Unknown gtype_id "+gtype_id); // should never enter here
           rrd_fname=none;
