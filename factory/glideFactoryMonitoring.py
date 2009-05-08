@@ -54,10 +54,11 @@ class MonitoringConfig:
                 el=entered_dict[job_id]
                 jobs_duration=el['jobs_duration']
                 waste_mill=el['wastemill']
-                fd.write(("<job %37s %17s %17s %22s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                       ('id="%s"'%job_id),
-                                                       ('duration="%i"'%el['duration']),
-                                                       ('condor_started="%s"'%(el['condor_started']==True))))+
+                fd.write(("<job %37s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                            ('id="%s"'%job_id),
+                                                            ('duration="%i"'%el['duration']),
+                                                            ('condor_started="%s"'%(el['condor_started']==True)),
+                                                            ('condor_duration="%i"'%el['condor_duration'])))+
                          ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
                                                          ('duration="%i"'%jobs_duration['total']),
                                                          ('goodput="%i"'%jobs_duration['goodput']),
