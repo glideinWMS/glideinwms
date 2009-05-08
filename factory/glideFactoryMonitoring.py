@@ -610,8 +610,8 @@ class condorLogSummary:
                      'FailedNr':0,
                      'JobsNr':0,
                      'JobsLasted':0,
-                     'JobsGoodput':0,
                      'JobsTerminated':0,
+                     'JobsGoodput':0,
                      'CondorLasted':0}
         
         count_waste_mill={'validation':{},
@@ -657,9 +657,12 @@ class condorLogSummary:
             count_jobnrs[enle_jobrange]+=1
 
             for w in enle_jobs_duration.keys():
-                count_total['JobsLasted']+=enle_jobs_duration[w]
                 enle_jobs_duration_w_range=getTimeRange(enle_jobs_duration[w])
                 count_jobs_duration[w][enle_jobs_duration_w_range]+=1
+
+            count_total['JobsLasted']+=enle_jobs_duration['total']
+            count_total['JobsTerminated']+=enle_jobs_duration['terminated']
+            count_total['JobsGoodput']+=enle_jobs_duration['goodput']
 
             # find and save waste range
             for w in enle_waste_mill.keys():
