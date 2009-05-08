@@ -597,13 +597,9 @@ class condorLogSummary:
         for enle_jobrange in getAllJobRanges(): 
             count_jobnrs[enle_jobrange]=0 # make sure all are initialized
 
-        count_jobs_duration={'total':{},
-                             'goodput':{},
-                             'terminated':{}}
-        for w in count_jobs_duration.keys():
-            count_jobs_duration_w=count_jobs_duration[w]
-            for enle_jobs_duration_w_range in getAllTimeRanges():
-                count_jobs_duration_w[enle_jobs_duration_w_range]=0 # make sure all are intialized
+        count_jobs_duration={};
+        for enle_jobs_duration_range in getAllTimeRanges():
+            count_jobs_duration[enle_jobs_duration_range]=0 # make sure all are intialized
 
         count_total={'Glideins':0,
                      'Lasted':0,
@@ -656,9 +652,11 @@ class condorLogSummary:
             enle_jobrange=getJobRange(enle_jobs_nr)
             count_jobnrs[enle_jobrange]+=1
 
-            for w in enle_jobs_duration.keys():
-                enle_jobs_duration_w_range=getTimeRange(enle_jobs_duration[w])
-                count_jobs_duration[w][enle_jobs_duration_w_range]+=1
+            if enle_jobs_nr>0:
+                enle_jobs_duration_range=getTimeRange(enle_jobs_duration['total']/enle_jobs_nr)
+            else:
+                enle_jobs_duration_range=getTimeRange(-1)
+            count_jobs_duration[enle_jobs_duration_range]+=1
 
             count_total['JobsLasted']+=enle_jobs_duration['total']
             count_total['JobsTerminated']+=enle_jobs_duration['terminated']
@@ -869,9 +867,7 @@ class condorLogSummary:
                     for timerange in count_entered_times.keys():
                         val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
                         # they all use the same indexes
-                        val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
-                        val_dict_stats['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
-                        val_dict_stats['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
+                        val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration[timerange]
 
                     # save jobsnr
                     for jobrange in count_jobnrs.keys():

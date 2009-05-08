@@ -340,9 +340,7 @@ def aggregateLogSummary():
             for timerange in count_entered_times.keys():
                 val_dict_stats['Lasted_%s'%timerange]=count_entered_times[timerange]
                 # they all use the same indexes
-                val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration['total'][timerange]
-                val_dict_stats['Goodput_%s'%timerange]=count_jobs_duration['goodput'][timerange]
-                val_dict_stats['Terminated_%s'%timerange]=count_jobs_duration['terminated'][timerange]
+                val_dict_stats['JobsLasted_%s'%timerange]=count_jobs_duration[timerange]
 
             # save jobsnr
             for jobrange in count_jobnrs.keys():
