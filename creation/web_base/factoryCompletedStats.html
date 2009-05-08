@@ -48,11 +48,8 @@
        <th>Info group</th>
        <td><form id="gtypes">
 	<input type="radio" name="gtype" value="Lasted" checked>Wallclock time per glidein
-	<input type="radio" name="gtype" value="JobsLasted">User jobs wallclock time
-	<input type="radio" name="gtype" value="Terminated">Terminated user jobs wallclock time
-	<input type="radio" name="gtype" value="Goodput">User jobs goodput
-	<br>
 	<input type="radio" name="gtype" value="JobsNr">User jobs per glidein
+	<input type="radio" name="gtype" value="JobsLasted">Wallclock time per user job
        </form></td>
      </tr>
      <tr>
@@ -99,10 +96,10 @@
         document.getElementById("fname").firstChild.data=fname;
         
 
-        var lengthGTypes=['Lasted','JobsLasted','Goodput','Terminated'];
+        var lengthGTypes=['Lasted','JobsLasted'];
         var lengths=['Unknown','Minutes','30mins','2hours','8hours','32hours','Days'];
         var lengths_colors=['000000',   // Unknown
-                            'ff4000',   // Minutes
+                            'ff8000',   // Minutes
                             'ffff00',   // 30 mins
                             '00c000',   // 2 hours
                             '00ff00',   // 8 hours
