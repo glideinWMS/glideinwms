@@ -109,6 +109,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.monitor_jslibs.append(mfobj)
 
         for mfarr in ((params.src_dir,'factoryRRDBrowse.html'),
+                      (params.src_dir,'factoryRRDEntryMatrix.html'),
                       (params.src_dir,'factoryStatus.html'),
                       (params.src_dir,'factoryLogStatus.html'),
                       (params.src_dir,'factoryCompletedStats.html')):
