@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+
+<!--
+  Browse the glideinWMS RRDs over the entries
+
+  Based on
+  javascriptrrd/src/lib/rrdJFlot.html 
+   Original repository: http://javascriptrrd.sourceforge.net/
+-->
+
+<html>
+  
+    <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+
+    <!-- rrdFlot class needs the following four include files !-->
+    <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFlotMatrix.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+
+    <script type="text/javascript" src="jslibs/factory_support.js"></script>
+  <head>
+    <title>RRD matrix by gfactory entries</title>
+  </head>
+
+  <body>
+    <table width="100%">
+    <tr>
+     <td><h1 id="title">RRD matrix by gfactory entries</h1>
+     <td align="right">[ 
+	    <a href="factoryStatus.html">Status</a> |
+	    <a href="factoryLogStatus.html">Log status</a> |
+	    <a href="factoryCompletedStats.html">Completed stats</a> |
+	    <a href="factoryRRDBrowse.html">Browse</a> 
+	    ]
+    </tr>
+    </table>
+
+    <table border=0>
+     <tr>
+       <th>Entries</th>
+       <td><form id="entries">
+       </form></td>
+     </tr>
+     <tr>
+       <th>RRD</th>
+       <td><form id="rrds">
+	<input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
+	<input type="radio" name="rrd" value="Log_Counts">Log_Counts
+	<input type="radio" name="rrd" value="Log_Completed">Log_Completed
+       </form></td>
+     </tr>
+     <tr>
+      <td colspan=2><button onclick="fname_update()">Update</button></td>
+     </tr>
+    </table>
+
+    <hr>
+
+    <table id="infotable" border=1>
+        <tr><td colspan="21"><b>Javascript needed for this page to work</b></td></tr>
+	<tr><td><b>RRD file</b></td><td id="fname" colspan="5">None</td></tr>
+    </table>
+
+    <div id="mygraph"></div>
+
+   <hr>
+    <p>Powered by
+        <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                 <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+ 
+    <script type="text/javascript">
+
+      // Remove the Javascript warning
+      document.getElementById("infotable").deleteRow(0);
+
+      // Load the status of the factory
+      var factoryQStats=loadFactoryQStats();
+      var entries=getFactoryEntries(factoryQStats);
+      for (var entry in entries) {
+	var cb_el = document.createElement("input");
+	cb_el.type = "checkbox";
+	cb_el.name = "entry";
+	cb_el.value = entries[entry];
+	cb_el.checked = cb_el.defaultChecked = true;
+
+        var html_el=document.getElementById("entries");
+	html_el.appendChild(cb_el);
+        html_el.appendChild(document.createTextNode(entries[entry]));
+      }
+
+     // fname and rrd_data are the global variable used by all the functions below
+      rrd_name="";
+      entry_names=[];
+      fnames=[];
+      rrd_data=[];
+
+      // This function updates the Web Page with the data from the RRD archive header
+      // when a new file is selected
+      function update_fname() {
+        // Finally, update the file name and enable the update button
+        document.getElementById("fname").firstChild.data=rrd_name;
+
+	var rrd_files=[];
+	for (var i in rrd_data) {
+	   rrd_files.push([entry_names[i],rrd_data[i]]);
+	} 
+
+        // the rrdFlot object creates and handles the graph
+        var f=new rrdFlotMatrix("mygraph",rrd_files);
+      }
+
+      // This is the callback function that,
+      // given a binary file object and an index,
+      // verifies that it is a valid RRD archive
+      // checks if all have been updated
+      // and performs the update of the Web page
+      function update_fname_handler(bf, idx) {
+          document.getElementById("fname").firstChild.data=document.getElementById("fname").firstChild.data+".";
+
+          var i_rrd_data=undefined;
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fnames[idx]+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            rrd_data[idx]=i_rrd_data;
+          }
+	  var all_defined=true;
+          for (var i in rrd_data) {
+            if (rrd_data[idx]==null) {
+	       all_defined=false;
+	    }
+	  } 
+
+           if (all_defined) {
+            update_fname()
+          }
+      }
+
+      // this function is invoked when the RRD file name changes
+      function fname_update() {
+	fnames=[];
+	rrd_data=[];
+
+	entry_names=[];
+        rrd_name="";
+
+        var entries_obj=document.getElementById("entries")
+        for (var i in entries_obj.entry) {
+         var entry=entries_obj.entry[i];
+         if (entry.checked==true) {
+  	   entry_names.push(entry.value);
+         }
+        }
+
+        var rrds_obj=document.getElementById("rrds")
+        for (var i in rrds_obj.rrd) {
+         var rrd=rrds_obj.rrd[i];
+         if (rrd.checked==true) {
+  	   rrd_name=rrd.value;
+         }
+        }
+
+        for (var i in entry_names) {
+          fnames.push("entry_"+entry_names[i]+"/total/"+rrd_name+".rrd");
+          rrd_data.push(null);
+        }
+
+	document.getElementById("fname").firstChild.data="Loading "+rrd_name;
+        for (var i in entry_names) {
+          try {
+            FetchBinaryURLAsync(fnames[i],update_fname_handler,i);
+          } catch (err) {
+             alert("Failed loading "+fnames[i]+"\n"+err);
+          }
+	}
+      }
+    </script>
+  </body>
+</html>
