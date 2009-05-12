@@ -25,7 +25,15 @@
   </head>
 
   <body>
-    <h1 id="title">Browse VO Frontend RRDs</h1>
+    <table width="100%">
+    <tr>
+     <td><h1 id="title"><h1 id="title">Browse VO Frontend RRDs</h1>
+     <td align="right">[ 
+	    <a href="frontendStatus.html">Status</a> |
+	    <a href="frontedRRDGroupMatrix.html">Group Matrix</a> 
+	    ]
+    </tr>
+    </table>
 
     <table border=0>
      <tr>
@@ -38,7 +46,6 @@
        <th>RRD</th>
        <td><form id="rrds">
 	<input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
-	<input type="radio" name="rrd" value="Dummy">Dummy
        </form></td>
      </tr>
      <tr>
@@ -55,6 +62,11 @@
 
     <div id="mygraph"></div>
 
+   <hr>
+    <p>Powered by
+        <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                 <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+ 
     <script type="text/javascript">
 
       // Remove the Javascript warning
@@ -75,7 +87,7 @@
       }
 
      // fname and rrd_data are the global variable used by all the functions below
-      fname=document.getElementById("input_fname").value;
+      fname="";
       rrd_data=undefined;
 
       // This function updates the Web Page with the data from the RRD archive header
@@ -119,11 +131,15 @@
         }
 
         var rrds_obj=document.getElementById("rrds")
-        for (var i in rrds_obj.rrd) {
-         var rrd=rrds_obj.rrd[i];
-         if (rrd.checked==true) {
-  	   rrd_name=rrd.value;
-         }
+	if ( rrds_obj.rrd.length>0) {
+          for (var i in rrds_obj.rrd) {
+           var rrd=rrds_obj.rrd[i];
+           if (rrd.checked==true) {
+  	     rrd_name=rrd.value;
+           }
+          }
+        } else { //if single element, not an array
+	  rrd_name=rrds_obj.rrd.value;
         }
 
         if (group_name=="total") {
@@ -132,6 +148,7 @@
           fname="group_"+group_name+"/"+rrd_name+".rrd";
         }
 
+        document.getElementById("fname").firstChild.data="Loading "+fname;
         try {
           FetchBinaryURLAsync(fname,update_fname_handler);
         } catch (err) {
