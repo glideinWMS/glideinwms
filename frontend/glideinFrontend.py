@@ -136,7 +136,7 @@ def main(work_dir):
             spawn(sleep_time,advertize_rate,work_dir,
                   frontendDescript,groups)
         except KeyboardInterrupt, e:
-            glideinFrontendLib.log_files.logActivity("Terminating")
+            glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
