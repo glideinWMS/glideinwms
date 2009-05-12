@@ -135,6 +135,8 @@ def main(work_dir):
         try:
             spawn(sleep_time,advertize_rate,work_dir,
                   frontendDescript,groups)
+        except KeyboardInterrupt, e:
+            glideinFrontendLib.log_files.logActivity("Terminating")
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
