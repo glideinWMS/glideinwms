@@ -141,7 +141,7 @@ def aggregateStatus():
                 a_el=int(tp_el[a])
                 val_dict["%s%s"%(tp_str,a)]=a_el
                 
-    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("Status_Attributes",
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
                                                                "GAUGE",updated,val_dict)
 
     return status
