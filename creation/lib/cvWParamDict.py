@@ -81,6 +81,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.monitor_jslibs.append(mfobj)
 
         for mfarr in ((params.src_dir,'frontendRRDBrowse.html'),
+                      (params.src_dir,'frontendRRDGroupMatrix.html'),
                       (params.src_dir,'frontendStatus.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
