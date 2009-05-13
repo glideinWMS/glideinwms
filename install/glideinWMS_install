@@ -1404,7 +1404,7 @@ def vofrontend_install():
     # ask user for additional DNs
     dns={}
 
-    if glidein_proxies_dns.len==0:
+    if len(glidein_proxies_dns)==0:
         print "My DN = '%s'"%my_dn
         dns['condor']=my_dn
     else:
