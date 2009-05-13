@@ -66,30 +66,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                elementDescript.merged_data['JobQueryExpr'],
                                                condorq_format_list)
 
-    ## collector(s)
-    user_collectors=[]
-    for user_collector_el in paramsDescript.const_data['GLIDEIN_Collector'].split(','):
-        uce_arr=user_collector_el.split(':',1)
-        if len(uce_arr)==1:
-            # no port
-            user_collectors.append(user_collector_el)
-        else:
-            uce_hname,uce_port=uce_arr
-            ucep_arr=uce_port.split('-',1)
-            if len(ucep_arr)==1:
-                # no range
-                user_collectors.append(user_collector_el)
-            else:
-                uce_port_low=int(ucep_arr[0])
-                uce_port_high=int(ucep_arr[1])
-                for p in range(uce_port_low,uce_port_high+1):
-                    user_collectors.append("%s:%s"%(uce_hname,p))
-
     status_format_list=[]
     if x509_proxy_plugin!=None:
         status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
-    status_dict=glideinFrontendLib.getCondorStatus(user_collectors,1,status_format_list) # in theory the collector could be an expression, but for now we require it to be a constant
+    status_dict=glideinFrontendLib.getCondorStatus([None],1,status_format_list) # use the main collector... all adds must go there
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
