@@ -1,6 +1,7 @@
 vNext	Better randomization of GCBs and collectors
 	Collector list now supports ranges of ports
 	Fixed Condor-G log parsing
+	Better treatment of multiple-collectors in the installer
 	Improved documentation
 
 v1_6	The XML file now supports comments.
