@@ -43,7 +43,6 @@ QUILL_DB_PASSWDS=None
 QUILL_CONFIG_DONE=0
 # Has the secondary support files been installed yet?
 SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=0
-SECONDARY_COLLECTOR_SUPPORT_FILES_INSTALLED=0
 
 # Was a condor collector installed on this machine?
 COLLECTOR_INSTALLED=0
@@ -157,34 +156,26 @@ def collector_install():
         configure_gsi_security()
 
     if not COLLECTOR_INSTALLED:
-        setup_collector('My pool')
+        while 1:
+            nr_collectors_default=5
+            nr_collectors_str=raw_input("How many slave collectors do you want?: [5] ")
+            if nr_collectors_str=="":
+                nr_collectors_str="%s"%nr_collectors_default
+            try:
+                nr_collectors=int(nr_collectors_str)
+            except:
+                print "'%s' is not a number!"%nr_collectors_str
+                continue
+            if nr_collectors<0:
+                print "You entered a negative number! (%i)"%nr_collectors
+                continue
+            if nr_collectors>399: # security check
+                print "You entered too big of a number! (%i)"%nr_collectors
+                continue
 
-    ##################################
-    # configure secondary collectors
-    if not SECONDARY_COLLECTOR_SUPPORT_FILES_INSTALLED:
-        create_secondary_collector_support_files()
-    
-    while 1:
-        nr_collectors_default=5
-        nr_collectors_str=raw_input("How many slave collectors do you want?: [5] ")
-        if nr_collectors_str=="":
-            nr_collectors_str="%s"%nr_collectors_default
-        try:
-            nr_collectors=int(nr_collectors_str)
-        except:
-            print "'%s' is not a number!"%nr_collectors_str
-            continue
-        if nr_collectors<0:
-            print "You entered a negative number! (%i)"%nr_collectors
-            continue
-        if nr_collectors>99: # security check
-            print "You entered too big of a number! (%i)"%nr_collectors
-            continue
+            break # have the number of collectors
 
-        break # have the number of collectors
-
-    for collector_nr in range(nr_collectors):
-        configure_secondary_collector(collector_nr)
+        setup_collector('My pool',nr_collectors)
 
     restart_condor()
 
@@ -316,7 +307,7 @@ def wms_install():
             setup_quill()
 
     if not COLLECTOR_INSTALLED:
-        setup_collector('My glideinWMS pool')
+        setup_collector('My glideinWMS pool',0) # no secondary collector
     
     if not MAIN_SCHEDD_INSTALLED:
         setup_main_schedd()
@@ -2434,7 +2425,7 @@ def configure_gsi_security():
 # Update condor config with
 # collector and negotiator settings
 ######################################
-def setup_collector(default_poolname):
+def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector_base_port=9620):
     global CONDOR_BASE_PATH
     global COLLECTOR_INSTALLED
     global CONDOR_UPD_CONFIG_FILE
@@ -2463,99 +2454,32 @@ def setup_collector(default_poolname):
         config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
         config_fd.write("# negotiator/GCB optimization\n")
         config_fd.write("NEGOTIATOR_INFORM_STARTD = False\n")
+
+        if nr_secondary_collectors>0:
+            config_fd.write("\n################################################\n")
+            config_fd.write("## Secondary collectors\n")
+            config_fd.write("################################################\n")
+
+            config_fd.write("\n# Define sub-collectors, their ports and their log files\n")
+            for collector_nr in range(nr_secondary_collectors):
+                config_fd.write("COLLECTOR%i = $(COLLECTOR)\n"%collector_nr)
+                config_fd.write('COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog"\n'%(collector_nr,collector_nr))
+                config_fd.write("COLLECTOR%i_ARGS = -f -p %i\n\n"%(collector_nr,secondary_collector_base_port+collector_nr))
+
+            config_fd.write("# Add subcollectors to the list of things to start\n")
+            config_fd.write("DAEMON_LIST = $(DAEMON_LIST) \\\n")
+            for collector_nr in range(nr_secondary_collectors):
+                config_fd.write("COLLECTOR%i \\\n"%collector_nr)
+
+            config_fd.write("\n# forward ads to the main collector\n# (this is ignored by the main collector, since the address matches itself)\n")
+            config_fd.write("CONDOR_VIEW_HOST = $(COLLECTOR_HOST)\n")
+        
     finally:
         config_fd.close()
 
     COLLECTOR_INSTALLED=1
     return
 
-
-# Create secondary_collector_support_files
-###############################################
-def create_secondary_collector_support_files():
-    global CONDOR_BASE_PATH
-    global CONDOR_LOCAL_DIR
-    global SECONDARY_COLLECTOR_SUPPORT_FILES_INSTALLED
-
-    full_host_name=socket.getfqdn()
-
-    ##############################
-    # Secondary collector setup file
-    fd=open("%s/new_collector_setup.sh"%CONDOR_BASE_PATH,"w")
-    try:
-        fd.write('if [ $# -ne 1 ]\n')
-        fd.write('then\n')
-        fd.write(' echo "Collector number expected!"\n')
-        fd.write(' return 1\n')
-        fd.write('fi\n\n')
-
-        fd.write('COLH=%s\n'%full_host_name)
-        fd.write("LD=%s\n"%CONDOR_LOCAL_DIR)
-
-        fd.write('export _CONDOR_COLLECTOR_HOST=$COLH:`expr 9620 + $1`\n')
-        fd.write('res=$?\n')
-        fd.write('if [ $res -ne 0 ]; then\n')
-        fd.write(' echo "Collector number expected, $1 found"\n')
-        fd.write(' return 1\n')
-        fd.write('fi\n')
-        fd.write('export _CONDOR_MASTER_NAME=collector_$1\n')
-        fd.write('export _CONDOR_DAEMON_LIST="MASTER, COLLECTOR"\n')
-        fd.write('export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME\n')
-        fd.write('export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock\n')
-        fd.write('# Forward all the traffic to the main collector\n')
-        fd.write('export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618\n\n')
-
-        fd.write('unset LD\n')
-        fd.write('unset COLH\n')
-    finally:
-        fd.close()
-    os.chmod("%s/new_collector_setup.sh"%CONDOR_BASE_PATH,
-             stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP)
-
-    #######################################
-    # Secondary collector initialization file
-    fd=open("%s/init_collector.sh"%CONDOR_BASE_PATH,"w")
-    try:
-        fd.write("#!/bin/sh\n")
-        fd.write("source %s/new_collector_setup.sh $1\n"%CONDOR_BASE_PATH)
-        fd.write("# add whatever other config you need\n")
-        fd.write("# create needed directories\n")
-        fd.write("%s/sbin/condor_init\n"%CONDOR_BASE_PATH)
-    finally:
-        fd.close()
-    os.chmod("%s/init_collector.sh"%CONDOR_BASE_PATH,
-             stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
-
-    #######################################
-    # Secondary collector startup file
-    fd=open("%s/start_master_collector.sh"%CONDOR_BASE_PATH,"w")
-    try:
-        fd.write("#!/bin/sh\n")
-        fd.write("source %s/new_collector_setup.sh $1\n"%CONDOR_BASE_PATH)
-        fd.write("# add whatever other config you need\n")
-        fd.write("%s/sbin/condor_master\n"%CONDOR_BASE_PATH)
-    finally:
-        fd.close()
-    os.chmod("%s/start_master_collector.sh"%CONDOR_BASE_PATH,
-             stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
-
-    SECONDARY_COLLECTOR_SUPPORT_FILES_INSTALLED=1
-    return
-
-# Configure the secondary collectors
-####################################
-def configure_secondary_collector(collector_nr):
-    global CONDOR_BASE_PATH
-
-    err=os.system('%s/init_collector.sh %s'%(CONDOR_BASE_PATH,collector_nr))
-    if err!=0:
-        raise RuntimeError, "Failed to initialize collector '%s'!"%collector_nr
-
-    fd=open("%s/start_condor.sh"%CONDOR_BASE_PATH,"a")
-    try:
-        fd.write("%s/start_master_collector.sh %s\n"%(CONDOR_BASE_PATH,collector_nr))
-    finally:
-        fd.close()
 
 # Update condor config with
 # schedd settings
