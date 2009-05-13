@@ -1352,12 +1352,67 @@ def vofrontend_install():
         factory_attr_list=string.split(factory_attributes,',')
 
     #################################
-    # create grid-mapfile
-    # ask user for additional DNs
+    # Ask about the glidein proxies
     print "My DN = '%s'"%my_dn
     print
 
-    dns={"condor":my_dn}
+    glidein_proxies=[]
+    glidein_proxies_dns=[]
+    
+    # Security setup
+    while 1:
+        print "VO frontend proxy = '%s'"%proxy_fname
+        yn=raw_input("Do you want to use is to submit glideins: (y/n) [y] ")
+        if yn=="":
+            yn="y"
+        elif (yn!="y") and (yn!="n"):
+            print "Please answer y or n"
+            continue 
+
+        try:
+            yn_dn=get_proxy_dn(proxy_fname)
+        except RuntimeError,e:
+            print e
+            continue
+        break
+    if (yn=='y'):
+        glidein_proxies.append(proxy_fname)
+        glidein_proxies_dns.append(my_dn)
+        
+
+
+    print "You may want to use other proxies"
+    print "Please add all the proxies that this glidein will use"
+    print
+    print "An empty entry means you are done."
+    while 1:
+        a_fname=raw_input("proxy fname: ")
+        if a_fname=="":
+            break # done
+        try:
+            a_dn=get_proxy_dn(a_fname)
+        except RuntimeError,e:
+            print e
+            continue
+
+        glidein_proxies.append(a_fname)
+        glidein_proxies_dns.append(a_dn)
+
+    #################################
+    # create grid-mapfile
+    # ask user for additional DNs
+    dns={}
+
+    if glidein_proxies_dns.len==0:
+        print "My DN = '%s'"%my_dn
+        dns['condor']=my_dn
+    else:
+        print "My DNs = %s"%glidein_proxies_dns
+        for a_dn in glidein_proxies_dns:
+            a_uid="condor%03i"%len(dns.keys())
+            dns[a_uid]=a_dn
+
+    print
     print "You will most probably need other DNs in the glidein grid mapfile"
     print "Please add all the DNs that this glidein will connect to"
     print "(usually the Pool Collector and the Submit nodes)"
@@ -1414,7 +1469,13 @@ def vofrontend_install():
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
             fd.write('   <monitor base_dir="%s/monitor"/>\n'%web_base_dir)
-            fd.write('   <match>\n')
+            fd.write('   <security>\n')
+            fd.write('      <proxies>\n')
+            for a_fname in glidein_proxies:
+                fd.write('         <proxy absfname="%s"/>\n'%a_fname)
+            fd.write('      </proxies>\n')
+            fd.write('   </security>\n')
+             fd.write('   <match>\n')
             fd.write('      <factory collectors="%s" comment="Define factory collectors globally for simplicity"/>\n'%pool_node)
             fd.write('      <job schedds=%s query_expr=%s  comment="Define job constraint and schedds globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(string.join(schedds,",")),xmlFormat.xml_quoteattr(job_constraint)))
             fd.write('   </match>\n')
