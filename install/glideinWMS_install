@@ -899,6 +899,17 @@ def gfactory_install():
             continue 
         break
     
+    # Security setup
+    while 1:
+        voproxy_yn=raw_input("Force VO frontend to provide its own proxy?: (y/n) [y] ")
+        if voproxy_yn=="":
+            voproxy_yn="y"
+            break
+        if (voproxy_yn!="y") and (voproxy_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+
     # entries
     entries_list={}
 
@@ -966,6 +977,12 @@ def gfactory_install():
             fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
             fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
+            if voproxy_yn=="y":
+                # disable factory proxy
+                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA"/>\n')
+            else:
+                # allow both factory proxy and VO proxy
+                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>\n')
             fd.write('   <attrs>\n')
             if ccb_yn!="y":
                 fd.write('      <attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
