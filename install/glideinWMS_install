@@ -860,8 +860,16 @@ def gfactory_install():
     print "Using %s"%schedds
     print
 
-    # GCBs
-    gcb_list=get_gcb_list()
+    # Use CCB
+    while 1:
+        ccb_yn=raw_input("Do you want to use CCB (requires Condor 7.3.0 or better)?: (y/n) ")
+        if (ccb_yn!="y") and (ccb_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    if ccb_yn!="y": # no GCB if CCB used
+        # GCBs
+        gcb_list=get_gcb_list()
 
     #################################
     # create grid-mapfile
@@ -989,8 +997,15 @@ def gfactory_install():
             fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   <attrs>\n')
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" value="%s" const="True" parameter="True" glidein_publish="True" publish="True" job_publish="True" type="string"/>\n'%(gridenv_yn=='y'))
-            if len(gcb_list)>0:
-                fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
+            if ccb_yn!="y":
+                fd.write('      <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="False" type="string" value="False"/>\n')
+                if len(gcb_list)>0:
+                    fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
+                else:
+                    fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
+            else:
+                # no GCB if CCB used
+                fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1009,11 +1024,13 @@ def gfactory_install():
                 fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
-                # Put GCB_ORDER in the entries so that it is easy to disable it selectively
-                if len(gcb_list)>0:
-                    fd.write('            <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
+                if ccb_yn=="y":
+                    # Put USE_CCB in the entries so that it is easy to disable it selectively
+                    fd.write('            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="False" type="string" value="True"/>\n')
                 else:
-                    fd.write('            <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
+                    # Put GCB_ORDER in the entries so that it is easy to disable it selectively
+                    if len(gcb_list)>0:
+                        fd.write('            <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
                 fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
