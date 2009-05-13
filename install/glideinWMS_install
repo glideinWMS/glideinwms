@@ -891,36 +891,6 @@ def gfactory_install():
         # GCBs
         gcb_list=get_gcb_list()
 
-    #################################
-    # create grid-mapfile
-    # ask user for additional DNs
-    print "My DN = '%s'"%my_dn
-    print
-
-    dns={"condor":my_dn}
-    print "You will most probably need other DNs in the grid mapfile"
-    print "Please add all the DNs that this glidein will connect to"
-    print "(usually the Pool Collector and the Submit nodes)"
-    print
-    print "Please insert all such DNs, together with a user nickname."
-    print "An empty DN entry means you are done."
-    while 1:
-        a_dn=raw_input("DN: ")
-        if a_dn=="":
-            break # done
-        default_uid="condor%03i"%len(dns.keys())
-        a_uid=raw_input("nickname: [%s] "%default_uid)
-        if a_uid=="":
-            a_uid=default_uid
-        if a_uid.find(" ")>=0:
-            print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname."%a_uid
-            continue
-        if a_uid in dns.keys():
-            print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
-            continue
-        dns[a_uid]=a_dn
-
-
     # Use gLExec
     while 1:
         glexec_yn=raw_input("Do you want to use gLExec?: (y/n) ")
@@ -981,27 +951,8 @@ def gfactory_install():
                                   'work_dir':work_dir,'site_name':site_name,'glexec_path':glexec_path,'is_ids':[]}
         
 
-    # Expose Grid Env
-    while 1:
-        gridenv_yn=raw_input("Do you want to expose the Grid env. to the user jobs?: (y/n) ")
-        if (gridenv_yn!="y") and (gridenv_yn!="n"):
-            print "Please answer y or n"
-            continue 
-        break
-    
-
     os.mkdir('%s/glidein_%s.cfg'%(submit_base_dir,glidein_name))
     
-    #####################################
-    # create grid mapfile
-    grid_mapfile='%s/glidein_%s.cfg/grid-mapfile'%(submit_base_dir,glidein_name)
-    gridmap_fd=open(grid_mapfile,"w")
-    try:
-        for a_uid in dns.keys():
-            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
-    finally:
-        gridmap_fd.close()
-
     #####################################
     # create config files
     cfg_name='%s/glidein_%s.cfg/glideinWMS.xml'%(submit_base_dir,glidein_name)
@@ -1016,16 +967,15 @@ def gfactory_install():
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
             fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   <attrs>\n')
-            fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" value="%s" const="True" parameter="True" glidein_publish="True" publish="True" job_publish="True" type="string"/>\n'%(gridenv_yn=='y'))
             if ccb_yn!="y":
-                fd.write('      <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="False" type="string" value="False"/>\n')
+                fd.write('      <attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
                 if len(gcb_list)>0:
                     fd.write('      <attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%string.join(gcb_list,','))
                 else:
-                    fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
+                    fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
             else:
                 # no GCB if CCB used
-                fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
+                fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1046,19 +996,18 @@ def gfactory_install():
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
                 if ccb_yn=="y":
                     # Put USE_CCB in the entries so that it is easy to disable it selectively
-                    fd.write('            <attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="False" type="string" value="True"/>\n')
+                    fd.write('            <attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
                 else:
                     # Put GCB_ORDER in the entries so that it is easy to disable it selectively
                     if len(gcb_list)>0:
-                        fd.write('            <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n')
-                fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
+                        fd.write('            <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
+                fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 fd.write('         </files>\n')
                 fd.write('      </entry>\n')
             fd.write('   </entries>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
             fd.write('   </files>\n')
             fd.write('</glidein>\n')
         finally:
@@ -1337,7 +1286,7 @@ def vofrontend_install():
         job_constraint=default_job_constraint
                     
                     
-    def_group_name="sole"
+    def_group_name="main"
     group_name=raw_input("Give a name to the main group: [%s] "%def_group_name)
     if group_name=="":
         group_name=def_group_name
@@ -1385,10 +1334,60 @@ def vofrontend_install():
     else:
         factory_attr_list=string.split(factory_attributes,',')
 
+    #################################
+    # create grid-mapfile
+    # ask user for additional DNs
+    print "My DN = '%s'"%my_dn
+    print
+
+    dns={"condor":my_dn}
+    print "You will most probably need other DNs in the glidein grid mapfile"
+    print "Please add all the DNs that this glidein will connect to"
+    print "(usually the Pool Collector and the Submit nodes)"
+    print
+    print "Please insert all such DNs, together with a user nickname."
+    print "An empty DN entry means you are done."
+    while 1:
+        a_dn=raw_input("DN: ")
+        if a_dn=="":
+            break # done
+        default_uid="condor%03i"%len(dns.keys())
+        a_uid=raw_input("nickname: [%s] "%default_uid)
+        if a_uid=="":
+            a_uid=default_uid
+        if a_uid.find(" ")>=0:
+            print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname."%a_uid
+            continue
+        if a_uid in dns.keys():
+            print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
+            continue
+        dns[a_uid]=a_dn
+
+
+    # Expose Grid Env
+    while 1:
+        gridenv_yn=raw_input("Do you want to expose the Grid env. to the user jobs?: (y/n) ")
+        if (gridenv_yn!="y") and (gridenv_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+
     #####################################
-    # create config files
+    # create config dir
     os.mkdir('%s/instance_%s.cfg'%(frontstage_base_dir,version_name))
     
+    #####################################
+    # create grid mapfile
+    grid_mapfile='%s/instance_%s.cfg/grid-mapfile'%(frontstage_base_dir,version_name)
+    gridmap_fd=open(grid_mapfile,"w")
+    try:
+        for a_uid in dns.keys():
+            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
+    finally:
+        gridmap_fd.close()
+
+    #####################################
+    # create config files
     cfg_name="%s/instance_%s.cfg/frontend.xml"%(frontstage_base_dir,version_name)
     fd=open(cfg_name,"w")
     try:
@@ -1403,6 +1402,7 @@ def vofrontend_install():
             fd.write('      <job schedds=%s query_expr=%s  comment="Define job constraint and schedds globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(string.join(schedds,",")),xmlFormat.xml_quoteattr(job_constraint)))
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
+            fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="True" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
             fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%local_collector)
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
@@ -1431,6 +1431,9 @@ def vofrontend_install():
             fd.write('         </match>\n')
             fd.write('      </group>\n')
             fd.write('   </groups>\n')
+            fd.write('   <files>\n')
+            fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
+            fd.write('   </files>\n')
             fd.write('</frontend>\n')
         finally:
             fd.close()
