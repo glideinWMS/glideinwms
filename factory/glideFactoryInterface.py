@@ -89,7 +89,7 @@ def findWork(factory_name,glidein_name,entry_name,
             status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
             if not ('factory' in allowed_proxy_source):
                 # the proxy is required, so look for it 
-                status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
+                status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || (GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
             if not ('frontend' in allowed_proxy_source):
                 # the proxy is not allowed, so ignore such requests 
                 status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
