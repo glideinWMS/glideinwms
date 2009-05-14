@@ -96,6 +96,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         javascriptrrd_dir=os.path.join(params.monitor.javascriptRRD_dir,'src/lib')
         for mfarr in ((params.src_dir,'factory_support.js'),
                       (javascriptrrd_dir,'rrdFlot.js'),
+                      (javascriptrrd_dir,'rrdFlotMatrix.js'),
                       (javascriptrrd_dir,'rrdFlotSupport.js'),
                       (javascriptrrd_dir,'rrdFile.js'),
                       (javascriptrrd_dir,'rrdFilter.js'),
