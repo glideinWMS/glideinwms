@@ -212,7 +212,7 @@ def schedd_node_install():
 
     # USE_MATCH_AUTH
     while 1:
-        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.3.0 and later)?: (y/n) ")
+        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) ")
         if (match_yn!="y") and (match_yn!="n"):
             print "Please answer y or n"
             continue 
@@ -984,7 +984,7 @@ def gfactory_install():
 
     # USE_MATCH_AUTH
     while 1:
-        match_yn=raw_input("Should glideins use the more efficient Match authentication (works for Condor v7.3.0 and later)?: (y/n) ")
+        match_yn=raw_input("Should glideins use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) ")
         if (match_yn!="y") and (match_yn!="n"):
             print "Please answer y or n"
             continue 
