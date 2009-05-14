@@ -5,7 +5,7 @@
 	<TITLE>Glidein based WMS</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20080929;16530100">
+	<META NAME="CHANGED" CONTENT="20090513;13530100">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -45,6 +45,7 @@ Management System (WMS).</P>
 		<LI><A HREF="#condormon">Standard condor monitoring</A> 
 		<LI><A HREF="#intmon">Pseudo interactive monitoring</A> 
 		<LI><A HREF="#gfwebmon">Glidein Factory Web monitoring</A> 
+	        <LI><A HREF="#vowebmon">VO Frontend Web monitoring</A> 
 		<LI><A HREF="#textmon">glideinWMS text monitoring</A> 
 	</UL>
 	<LI><P><A HREF="#ref">Reference</A> 
@@ -314,6 +315,7 @@ factory</A> will make sure the settings are correct in the glideins.<BR><BR><BR>
 	<LI><A HREF="#condormon">Standard condor monitoring</A> 
 	<LI><A HREF="#intmon">Pseudo interactive monitoring</A> 
 	<LI><A HREF="#gfwebmon">Glidein Factory Web monitoring</A> 
+	<LI><A HREF="#vowebmon">VO Frontend Web monitoring</A> 
 	<LI><A HREF="#textmon">glideinWMS text monitoring</A>
 </UL>
 <H3><A NAME="condormon"></A>Standard condor monitoring</H3>
@@ -342,8 +344,7 @@ to use:
 	<LI>glidein_ls.py <I>jobid</I> <I>[subdir]</I> 
 	<LI>glidein_cat.py <I>jobid</I> <I>fname</I> 
 	<LI>glidein_top.py <I>jobid</I> 
-	<LI><P>glidein_ps.py <I>jobid</I> <I>[opts]</I> 
-	</P>
+	<LI>glidein_ps.py <I>jobid</I> <I>[opts]</I> 
 </UL>
 <H3><A NAME="gfwebmon"></A>Glidein Factory Web monitoring</H3>
 <P>The glidein factory also produces a large amount of web accessible
@@ -352,9 +353,21 @@ information.
 <P>Look into 
 </P>
 <PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/</PRE><P>
+For most users, start at 
+</P>
+<PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/factoryStatus.html</PRE><P>
+and go on from there. 
+</P>
+<H3><A NAME="vowebmon"></A>VO frontend Web monitoring</H3>
+<P>The Vo frontend also produces a moderate amount of web accessible
+information. 
+</P>
+<P>Look into 
+</P>
+<PRE>http://<I>frontend_node</I>:<I>http_port</I>/vofrontend//monitor/frontend_<I>frontend_name</I>/</PRE><P>
 For most begginner users, start at 
 </P>
-<PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/total/0Status.hour.large.html</PRE><P>
+<PRE>http://<I>frontend_node</I>:<I>http_port</I>/vofrontend/monitor/frontend_<I>frontend_name</I>/frontendStatus.html</PRE><P>
 and go on from there. 
 </P>
 <H3><A NAME="textmon"></A>glideinWMS text monitoring</H3>
