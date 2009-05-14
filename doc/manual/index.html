@@ -97,7 +97,7 @@ can be found</P>
 the WMS. Let now have a look at the type of information that the two
 pieces publish.</P>
 <H3><A NAME="factory_classads"></A>The Glidein&nbsp;Factory Class-Ad</H3>
-<P>A&nbsp;factory publishes one class-ad per glidein kind. The
+<P>A&nbsp;factory publishes one class-ad per glidein entry. The
 class-ad contains 
 </P>
 <UL>
@@ -106,9 +106,8 @@ class-ad contains
 	<LI>the list of parameters that the glidein accepts. All the
 	parameters&nbsp;have also default values associated with them, in
 	case a frontend does not redefine them.&nbsp; 
-	<LI><P>Plus a list of monitoring values (like how many glideins are
+	<LI>Plus a list of monitoring values (like how many glideins are
 	already in the queues, etc.) 
-	</P>
 </UL>
 <P>Look at the picture below for a generic description.<BR><BR><IMG SRC="factory_publish.png" NAME="graphics3" ALIGN=BOTTOM BORDER=0><BR><BR>Please
 notice that the glidein attributes can be completely arbitrary; the
@@ -136,10 +135,13 @@ published. Such a class-ad will contain
 	</P>
 </UL>
 <P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0><BR>In
-the current implementation, the only glidein rate setting parameter
-supported is <FONT FACE="monospace"><B>ReqIdleGlideins</B></FONT>,
+the current implementation, the only glidein rate setting parameters
+supported are <FONT FACE="monospace"><B>ReqIdleGlideins</B></FONT>,
 that tells the factory how many idle glideins to keep in the queue at
-any given time. Future versions may contain more sophisticated
+any given time, and <FONT FACE="monospace"><B>ReqMaxRunningGlideins</B></FONT>,
+that tells the factory to stop submitting new glideins when the
+number of running glidiens reaces that level.
+Future versions may contain more sophisticated
 controls, like the maximum number of glideins to keep in the queue or
 the maximum rate at which the glideins should be submitted.</P>
 <H2><A NAME="implementation"></A>Implementation details</H2>
