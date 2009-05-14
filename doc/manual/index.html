@@ -5,7 +5,7 @@
 	<TITLE>Glidein based WMS</TITLE>
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20090513;13530100">
+	<META NAME="CHANGED" CONTENT="20090513;15530100">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
@@ -130,12 +130,23 @@ published. Such a class-ad will contain
 	<LI>the desired glidein name,&nbsp; 
 	<LI>the rate of glidein submissions, and 
 	<LI>the glidein parameters. 
-	<LI><P>Plus a list of monitoring values (like how many jobs are
+	<LI>Plus a list of monitoring values (like how many jobs are
 	currently running, etc.) 
-	</P>
 </UL>
-<P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0><BR>In
-the current implementation, the only glidein rate setting parameters
+<P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0></P>
+<P>The most important parameters that the VO fronted sends to the factory are:</P>
+<UL>
+      <LI>The address of the <A HREF="#pool_glidein">VO pool collector(s)</A> - <B>GLIDEIN_Collector</B>.</LI>
+      <LI>The pilot proxies. These are always encrypted. Three types of information are sent:
+	<UL>
+	  <LI>Number of proxies sent - <B>nr_x509_proxies</B></LI>
+	  <LI>The proxy identifiers; given an identifier, the proxy DN must not change between updates. - <B>x509_proxy_0_identifier</B> ... <B>x509_proxy_N_identifier</B></LI>
+	  <LI>The proxies themselves - <B>x509_proxy_0</B> ... <B>x509_proxy_N</B></LI>
+        </UL></LI>
+</UL>
+<P>The picture below shows this in a graphics format.<BR>
+   <IMG SRC="frontend_publish_params.png" NAME="graphics5b" ALIGN=BOTTOM BORDER=0></P>
+<P>In the current implementation, the only glidein rate setting parameters
 supported are <FONT FACE="monospace"><B>ReqIdleGlideins</B></FONT>,
 that tells the factory how many idle glideins to keep in the queue at
 any given time, and <FONT FACE="monospace"><B>ReqMaxRunningGlideins</B></FONT>,
