@@ -365,8 +365,9 @@ def aggregateLogSummary():
                                                             "ABSOLUTE",updated,val_dict_completed)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_stats)
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
-                                                            "ABSOLUTE",updated,val_dict_waste)
+    # Disable Waste RRDs... WasteTime much more useful 
+    #glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
+    #                                                        "ABSOLUTE",updated,val_dict_waste)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_wastetime)
     

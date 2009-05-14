@@ -893,8 +893,9 @@ class condorLogSummary:
                                              "ABSOLUTE",self.updated,val_dict_completed)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
                                              "ABSOLUTE",self.updated,val_dict_stats)
-            monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
-                                             "ABSOLUTE",self.updated,val_dict_waste)
+            # Disable Waste RRDs... WasteTime much more useful
+            #monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
+            #                                 "ABSOLUTE",self.updated,val_dict_waste)
             monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
                                              "ABSOLUTE",self.updated,val_dict_wastetime)
 
