@@ -234,7 +234,7 @@
         if ((gtype_id=='Lasted')  || (gtype_id=='JobsLasted')|| (gtype_id=='JobsNr')) {
           rrd_fname="Log_Completed_Stats";
         } else if ((gtype_id=='validation')  || (gtype_id=='idle')|| (gtype_id=='nosuccess') || (gtype_id=='badput')) {
-          rrd_fname="Log_Completed_Waste";
+          rrd_fname="Log_Completed_WasteTime";
         } else {
           alert("Unknown gtype_id "+gtype_id); // should never enter here
           rrd_fname=none;
