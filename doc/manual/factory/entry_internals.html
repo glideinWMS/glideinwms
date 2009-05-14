@@ -6,17 +6,7 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20081008;11104200">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<META NAME="CHANGED" CONTENT="20090513;15104200">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>The Factory Entry Daemons</H1>
@@ -114,16 +104,15 @@ for this task.</P>
 files in the Web exported monitoring area, as shown in the picture
 below. 
 </P>
-<P><IMG SRC="flow_entry_stats.png"><BR>The
-XML status and the <A HREF="http://oss.oetiker.ch/rrdtool/">RRD</A>
-updates are done synchronously with the rest of the application. 
+<P><IMG SRC="flow_entry_stats.png"><BR>
+The data is written both in a XML file and 
+as entries in <A HREF="http://oss.oetiker.ch/rrdtool/">RRD</A>
+archives.
 </P>
-<P>HTML and graph creation is instead done in a separate thread, and
-may not be performed in all cycles. If the graphs are not created in
-one iteration, there is no data loss, just the graphed information on
-the Web is older. This way the daemon can maintain the desired number
-of jobs in the queue and keep all the history even when graph
-creation exceeds the CPU and IO resources of the machine.</P>
+<P>The XML data can be used by other applications, while the
+RRD archives can be viewed using the provided HTML pages based
+on <A HREF="https://sourceforge.net/projects/javascriptrrd/">JavascriptRRD</A> 
+and <A HREF="http://code.google.com/p/flot/">Flot</A>.</P>
 <P>The current implementation will use the Python <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool
 library</A>, if available. Else, it will fall back to the command
 line tool.</P>
