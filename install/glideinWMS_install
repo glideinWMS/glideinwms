@@ -236,10 +236,11 @@ def schedd_node_install():
         finally:
             config_fd.close()
 
-    if not QUILL_CONFIG_DONE:
-        yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
-        if yn=='y':
-            setup_quill()
+    # Don't even ask... nobody uses 6.8.X anymore
+    #if not QUILL_CONFIG_DONE:
+    #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
+    #    if yn=='y':
+    #        setup_quill()
 
     if not MAIN_SCHEDD_INSTALLED:
         setup_main_schedd()
@@ -327,10 +328,11 @@ def wms_install():
     if not GSI_SECURITY_CONFIGURED:
         configure_gsi_security()
 
-    if not QUILL_CONFIG_DONE:
-        yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
-        if yn=='y':
-            setup_quill()
+    # Don't even ask... nobody uses 6.8.X anymore
+    #if not QUILL_CONFIG_DONE:
+    #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
+    #    if yn=='y':
+    #        setup_quill()
 
     if not COLLECTOR_INSTALLED:
         setup_collector('My glideinWMS pool',0) # no secondary collectors
