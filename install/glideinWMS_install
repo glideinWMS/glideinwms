@@ -210,6 +210,27 @@ def schedd_node_install():
     if not GSI_SECURITY_CONFIGURED:
         configure_gsi_security()
 
+    # USE_MATCH_AUTH
+    while 1:
+        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.3.0 and later)?: (y/n) ")
+        if (match_yn!="y") and (match_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    if match_yn=='y':
+        print
+        print "Make sure you use Match authentication in the glideins, too"
+        print
+        
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        try:
+            config_fd.write("\n#####################################\n")
+            config_fd.write("# Enable match authentication\n")
+            config_fd.write("#####################################\n")
+            config_fd.write("SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=TRUE\n")
+        finally:
+            config_fd.close()
+
     if not QUILL_CONFIG_DONE:
         yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
         if yn=='y':
@@ -961,6 +982,18 @@ def gfactory_install():
                                   'work_dir':work_dir,'site_name':site_name,'glexec_path':glexec_path,'is_ids':[]}
         
 
+    # USE_MATCH_AUTH
+    while 1:
+        match_yn=raw_input("Should glideins use the more efficient Match authentication (works for Condor v7.3.0 and later)?: (y/n) ")
+        if (match_yn!="y") and (match_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    if match_yn=='y':
+        print
+        print "Make sure you use Match authentication in the schedds, too"
+        print
+
     # Expose Grid Env
     while 1:
         gridenv_yn=raw_input("Do you want to expose the Grid env. to the user jobs?: (y/n) ")
@@ -1006,6 +1039,7 @@ def gfactory_install():
             else:
                 # no GCB if CCB used
                 fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n')
+            fd.write('      <attr name="USE_MATCH_AUTH" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>\n'%(match_yn=='y'))
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
