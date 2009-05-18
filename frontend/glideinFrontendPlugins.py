@@ -300,31 +300,65 @@ class ProxyUserMapWRecycling:
     # get the proxies, given the condor_q and condor_status data
     def get_proxies(self,condorq_dict,condorq_dict_types,
                     status_dict,status_dict_types):
-        users=tuple(glideinFrontendLib.getCondorQUsers(condorq_dict))
+        users=list(glideinFrontendLib.getCondorQUsers(condorq_dict))
         out_proxies=[]
+
+        # check if there are more users than proxies
 
         user_map=self.config_data['user_map']
 
-        for user in users:
-            if not user_map.has_key(user):
-                # user not in cache, get the oldest unused entry
-                # not ordered, need to loop over the whole cache
-                keys=user_map.keys()
-                keys.sort()
-                min_key=keys[0] # will compare all others to the first
-                for k in keys[1:]:
-                    if user_map[k]['last_seen']<user_map[min_key]['last_seen']:
-                        min_key=k
+        if len(users)<len(user_map.keys()):
+            # regular algorithm, find in cache
+            for user in users:
+                if not user_map.has_key(user):
+                    # user not in cache, get the oldest unused entry
+                    # not ordered, need to loop over the whole cache
+                    keys=user_map.keys()
+                    keys.sort()
+                    min_key=keys[0] # will compare all others to the first
+                    for k in keys[1:]:
+                        if user_map[k]['last_seen']<user_map[min_key]['last_seen']:
+                            min_key=k
 
-                # replace min_key with the current user
-                user_map[user]=user_map[min_key]
-                del user_map[min_key]
-            # else the user is already in the cache... just use that
+                    # replace min_key with the current user
+                    user_map[user]=user_map[min_key]
+                    del user_map[min_key]
+                # else the user is already in the cache... just use that
             
-            cel=user_map[user]
-            out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
-            # save that you have indeed seen the user 
-            cel['last_seen']=time.time()
+                cel=user_map[user]
+                out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
+                # save that you have indeed seen the user 
+                cel['last_seen']=time.time()
+        else:
+            # more users than proxies, use all proxies
+            keys=user_map.keys()
+            keys.sort()
+            uncovered_users=users[0:]
+            uncovered_keys=[]
+            # first get the covered keys
+            for k in keys:
+                if (k in users):
+                    # the user in the cache is still present, use it
+                    cel=user_map[k]
+                    out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
+                    # save that you have indeed seen the user 
+                    cel['last_seen']=time.time()
+                    uncovered_users.remove(k)
+                else:
+                    # this cache entry need to be updated
+                    uncovered_keys.append(k)
+            # now add uncovered keys
+            for k in uncovered_keys:
+                # change key value with an uncovered user
+                user=uncovered_users.pop()
+                user_map[user]=user_map[k]
+                del user_map[k]
+            
+                cel=user_map[user]
+                out_proxies.append(("umrw_%i"%cel['proxy_index'],cel['proxy']))
+                # save that you have indeed seen the user 
+                cel['last_seen']=time.time()
+                
 
         # save changes
         self.save()
