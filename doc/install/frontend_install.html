@@ -40,7 +40,7 @@ VO Frontend </FONT></FONT>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
 			fast CPU</B> and a moderate amount of <B>memory</B> (<B>1GB </B>should
 			be enough).<BR>The <B>disk</B> needed is just for binaries, config
-			files and log files (<B>2GB</B> should be enough)</FONT></FONT></P>
+			files and log files (<B>20GB</B> should be enough)</FONT></FONT></P>
                         <A NAME="software">
 			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed
 			software </FONT></FONT>
@@ -48,7 +48,19 @@ VO Frontend </FONT></FONT>
 			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
 			OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
 			client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-			distribution</A>.</FONT></FONT></TD>
+			distribution</A>.<BR>
+A HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
+href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.<br>
+The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a> (v1.2.18 or
+later)<br>
+The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python
+library</a> (v0.17 or later)<br>
+The <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package (0.4 or later)<br>
+The <a
+href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
+software</a>.
+
+</FONT></FONT></TD>
 		<TD>
 			<P><IMG SRC="overview_frontend.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0>
 			
@@ -88,7 +100,104 @@ Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></B
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
 instructions. The installation is straightforward.</FONT></FONT></P>
 
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.2 M2Crypto</FONT><FONT></H3>
+<h3><a name="system_httpd"><font face="Liberation Serif"><font size="3">4.2
+HTTP server</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The VO frontend needs a
+HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
+href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.
+The server should be installed on the same node, but a different node can be
+used as long as the web area is writable from this one.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Servers often come
+pre-installed with HTTP server software, so if you have one running, just
+reuse it.<br>
+Else, the installer can help you install one (as root).</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">To use the installer, move
+into</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>8</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">You will be given another
+menu:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [a] OSG VDT client<br>
+  [b] Base Condor installation<br>
+  [c] Web server<br>
+  [d] rrdtool graphics package<br>
+  [e] PostgreSQL database<br>
+  [f] Quill-specific PostgreSQL database</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>c</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
+Most of the questions should be fairly straightforward.</font></font></p>
+
+<h3><a name="system_rrdtool"><font face="Liberation Serif"><font size="3">4.3
+RRDTool</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You will also need the python
+module for <a href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (v1.2.18 or
+later). Many systems come with packages for it; if possible use
+that.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">RPMs for Redhat/Scientific
+Linux distributions can be found at</font></font></p>
+
+<p><a href="http://dag.wieers.com/rpm/packages/rrdtool/"><font
+face="Liberation Serif"><font
+size="3">http://dag.wieers.com/rpm/packages/rrdtool/</font></font></a></p>
+
+<p><font face="Liberation Serif"><font size="3">Install python-rrdtool*.rpm
+and related dependencies.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">If installing as root is not
+an option, you can build from the sources, as the </font></font><font
+face="Liberation Serif"><font size="3"><b>vo frontend</b></font></font>
+<font face="Liberation Serif"><font size="3">user (see <A HREF="#frontend">below</A>), and put the python
+libraries into the PYTHON_PATH.<br>
+The source code can be downloaded from:<br>
+<a
+href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a></font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Beware: The build process has
+several dependencies that make it complicated. Use this option only if you
+cannot install from RPMs (or similar). </font></font> </p>
+
+<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.4 M2Crypto</FONT><FONT></H3>
 
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>If you are passing the proxy
 from the VO Frontend to the glidein Factory, you will need the
@@ -111,6 +220,15 @@ into the PYTHONPATH, possibly in the .profile, .bashrc, and/or in the .cshrc:</F
 PYTHONPATH=$PYTHONPATH:<I>&lt;base
 dir&gt;</I>/usr/lib/python2.3/site-packages/</FONT></FONT></BLOCKQUOTE>
 
+<h3><a name="system_javascriptRRD"><font face="Liberation Serif"><font
+size="3">4.5 javascriptRRD</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You will need the <a
+href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>. 
+It contains the javascript libraries needed by the monitoring.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Just download the tarball,
+and untar it. You will need to point the installer to this directory.</font></font></p>
 
 <A NAME="frontend">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. VO Frontend
