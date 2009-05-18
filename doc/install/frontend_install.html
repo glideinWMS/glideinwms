@@ -462,6 +462,18 @@ To create the VO Frontend instance, you need to run
 Configuration files are located in /home/frontend/frontstage/instance_v1.cfg
 Remember to set X509_USER_PROXY before starting the daemon
 </pre>
+<p><font face="Liberation Serif"><font size="3">If you followed the example
+above, you ended up with a configuration file in </font></font><font
+face="Liberation Serif"><font
+size="3"><b>/home/frontend/frontstage/instance_v1.cfg/frontend.xml</b></font></font><font
+face="Liberation Serif"><font size="3">. Edit this file to suit your needs
+and than create the frontend instance with:</font></font></p>
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">
+  /home/frontend/glideinWMS/creation/create_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml
+  </font></font></p>
+</blockquote>
+
 
 <h3><font face="Utopia, serif"><font size="3">5.1. Starting the VO Frontend
 </font></font> </h3>
@@ -475,7 +487,7 @@ script:</font></font></p>
 </blockquote>
 
 <p><font face="Liberation Serif"><font size="3">The same script can be used
-to stop and restart the VO Frontend.</font></font> </p>
+to stop, reconfig and restart the VO Frontend.</font></font> </p>
 <hr size="1">
 
 <p><font face="Liberation Serif"><font size="3"><a href="index.html">Back to
