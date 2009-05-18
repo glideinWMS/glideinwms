@@ -18,7 +18,8 @@ class LogFiles:
         self.log_dir=log_dir
         self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
         self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
-        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)",
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_debug"))
+        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)|(frontend_debug\..*)",
                                               7*24*3600,
                                               self.activity_log,self.warning_log)
 
@@ -38,6 +39,14 @@ class LogFiles:
             pass
         if log_in_activity:
             self.logActivity("WARNING: %s"%str)
+
+    def logDebug(self,str):
+        try:
+            self.debug_log.write(str+"\n")
+        except:
+            # logging must never throw an exception!
+            # silently ignore
+            pass
 
 # someone needs to initialize this
 # type LogFiles
@@ -255,7 +264,13 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
 
         try:
             condorq.load(full_constraint,format_list)
-        except condorExe.ExeError:
+        except condorExe.ExeError, e:
+            if schedd!=None:
+                log_files.logWarning("Failed to talk to schedd %s. See debug log for more details."%schedd)
+                log_files.logDebug("Failed to talk to schedd %s: %s"%(schedd, e))
+            else:
+                log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
+                log_files.logDebug("Failed to talk to schedd: %s"%e)
             continue # if schedd not found it is equivalent to no jobs in the queue
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
@@ -278,7 +293,13 @@ def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,f
 
         try:
             status.load(full_constraint,format_list)
-        except condorExe.ExeError:
+        except condorExe.ExeError, e:
+            if collector!=None:
+                log_files.logWarning("Failed to talk to collector %s. See debug log for more details."%collector)
+                log_files.logDebug("Failed to talk to collector %s: %s"%(collector, e))
+            else:
+                log_files.logWarning("Failed to talk to collector. See debug log for more details.")
+                log_files.logDebug("Failed to talk to collector: %s"%e)
             continue # if collector not found it is equivalent to no classads
         if len(status.fetchStored())>0:
             out_status_dict[collector]=status
