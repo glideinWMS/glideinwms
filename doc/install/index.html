@@ -1,118 +1,97 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>glideinWMS Installation Guide</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
-	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGED" CONTENT="20081031;14115200">
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>glideinWMS Installation Guide 
-</H1>
-<P><BR>
-</P>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=0>
-	<COL WIDTH=175*>
-	<COL WIDTH=81*>
-	<TR VALIGN=TOP>
-		<TD WIDTH=68%>
-			<P STYLE="margin-bottom: 0.2in">If you looked at the <A HREF="../manual/index.html#overview">description
-			of the glideinWMS</A>, you probably guessed that installing a
-			glideinWMS is a multi-step process.<BR><BR>You will need to
-			install several independent pieces:</P>
-			<UL>
-				<LI><A HREF="factory_install.html">The glidein WMS Collector
-				and collocated glidein Factory node</A>
-				
-				<LI><A HREF="gcb_install.html">One or more GCB nodes</A> (only
-				if you are gliding into Grid sites with restrictive network
-				policies)
-				<LI><A HREF="collector_install.html">The glidein pool
-				Collector node</A> 
-				<LI><A HREF="schedd_install.html">One or more scheduler nodes
-				for user submission</A> 
-				<LI><A HREF="frontend_install.html">The
-				VO Frontend</A> 
-			</UL>
-			<P>While the documents presented here assume you will install each
-			component on a different machine, there is nothing preventing you
-			from installing all of them on fewer machines, or even on one
-			machine only (excluding GCB).</P>
-		</TD>
-		<TD WIDTH=32%>
-			<P><IMG SRC="overview.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-						</P>
-		</TD>
-	</TR>
-</TABLE>
-<P STYLE="margin-bottom: 0.2in">However, it is recommended that <A HREF="factory_install.html">the
-glidein WMS Collector and collocated glidein Factory node</A> stay on
-their own node. And <A HREF="gcb_install.html">GCB</A> cannot be shared neither with the <A HREF="collector_install.html">glidein
-pool Collector</A> nor with the <A HREF="schedd_install.html">scheduler
-for user submissions</A>.</P>
-<P STYLE="margin-bottom: 0.2in">The minimum recommended configuration
-would thus be composed of 3 nodes:</P>
-<UL>
-	<LI><A HREF="factory_install.html">The glidein WMS Collector and
-	collocated glidein Factory node</A> 
-	
-	<LI>A node containing a <A HREF="gcb_install.html">GCB server</A>
-	and the <A HREF="frontend_install.html">VO Frontend</A> 
-	
-	<LI>A node containing the <A HREF="collector_install.html">glidein
-	pool Collector</A> together with the <A HREF="schedd_install.html">scheduler
-	for user submissions</A> 
-	
-</UL>
-<P STYLE="margin-bottom: 0.2in">If you don't need a GCB, the minimum
-recommended setup is composed of 2 nodes:</P>
-<UL>
-	<LI><A HREF="factory_install.html">The glidein WMS Collector and
-	collocated glidein Factory node</A> 
-	
-	<LI>A node containing the <A HREF="frontend_install.html">VO
-	Frontend</A>, the <A HREF="collector_install.html">glidein pool
-	Collector</A> together with the <A HREF="schedd_install.html">scheduler
-	for user submissions</A> 
-	
-</UL>
-<P STYLE="margin-bottom: 0.2in">If you want to scale above a few 1000
-glideins, it is recommended that you keep the <A HREF="schedd_install.html">scheduler
-for user submissions</A> on a dedicated node:</P>
-<UL>
-	<LI><A HREF="factory_install.html">The glidein WMS Collector and
-	collocated glidein Factory node</A> 
-	
-	<LI>A node containing the <A HREF="collector_install.html">glidein
-	pool Collector</A> together with the <A HREF="frontend_install.html">VO
-	Frontend</A> 
-	
-	<LI>A node containing the <A HREF="schedd_install.html">scheduler
-	for user submissions</A>  
-	
-	<LI>A (optional) node containing a <A HREF="gcb_install.html">GCB
-	server</A> 
-	
-</UL>
-<H2>The available documents are:</H2>
-<UL>
-	<LI><A HREF="factory_install.html">Installation of the WMS
-	Collector and collocated glidein Factory</A> 
-	
-	<LI><A HREF="gcb_install.html">Installation of a GCB node</A> 
-	
-	<LI><A HREF="collector_install.html">Installation of the glidein
-	pool Collector</A> 
-	
-	<LI><A HREF="schedd_install.html">Installation of the scheduler
-	node in the glideinWMS</A> 
-	
-	<LI><A HREF="frontend_install.html">Installation
-	of a VO Frontend node</A> 
-	
-</UL>
-<P><BR>
-</P>
-</BODY>
-</HTML>
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS Installation Guide</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20081031;14115200">
+</head>
+
+<body lang="en-US" dir="ltr">
+<h1>glideinWMS Installation Guide </h1>
+
+<p><br>
+</p>
+
+<table width="100%" border="0" cellpadding="2" cellspacing="0">
+  <col width="175*">
+  <col width="81*">
+  <tbody>
+    <tr valign="top">
+      <td width="68%"><p style="margin-bottom: 0.2in">If you looked at the <a
+        href="../manual/index.html#overview">description of the
+        glideinWMS</a>, you probably guessed that installing a glideinWMS is
+        a multi-step process.<br>
+        <br>
+        You will need to install several independent pieces:</p>
+        <ul>
+          <li><a href="factory_install.html">The glidein WMS Collector and
+            collocated glidein Factory node</a> </li>
+          <li><a href="collector_install.html">The glidein pool Collector
+            node</a> </li>
+          <li><a href="schedd_install.html">One or more scheduler nodes for
+            user submission</a> </li>
+          <li><a href="frontend_install.html">The VO Frontend</a> </li>
+          <li><a href="gcb_install.html">One or more GCB nodes</a> (only if
+            you are gliding into Grid sites with restrictive network policies
+            and cannot use CCB) </li>
+        </ul>
+
+        <p>While the documents presented here assume you will install each
+        component on a different machine, there is nothing preventing you
+        from installing all of them on fewer machines, or even on one machine
+        only (excluding GCB, but you should not use it anyhow).</p>
+      </td>
+      <td width="32%"><p><img src="overview.png" name="graphics1"
+        align="bottom" border="0"> </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<p style="margin-bottom: 0.2in">However, it is recommended that <a
+href="factory_install.html">the glidein WMS Collector and collocated glidein
+Factory node</a> stay on their own node.</p>
+
+<p style="margin-bottom: 0.2in">The minimum recommended configuration would
+thus be composed of 2 nodes:</p>
+<ul>
+  <li><a href="factory_install.html">The glidein WMS Collector and collocated
+    glidein Factory node</a> </li>
+  <li>A node containing the <a href="frontend_install.html">VO Frontend</a>,
+    the <a href="collector_install.html">glidein pool Collector</a> together
+    with the <a href="schedd_install.html">scheduler for user submissions</a>
+  </li>
+</ul>
+
+<p style="margin-bottom: 0.2in">If you want to scale above a few 1000
+glideins, it is recommended that you keep the <a
+href="schedd_install.html">scheduler for user submissions</a> on a dedicated
+node:</p>
+<ul>
+  <li><a href="factory_install.html">The glidein WMS Collector and collocated
+    glidein Factory node</a> </li>
+  <li>A node containing the <a href="collector_install.html">glidein pool
+    Collector</a> together with the <a href="frontend_install.html">VO
+    Frontend</a> </li>
+  <li>A node containing the <a href="schedd_install.html">scheduler for user
+    submissions</a> </li>
+</ul>
+
+<h2>The available documents are:</h2>
+<ul>
+  <li><a href="factory_install.html">Installation of the WMS Collector and
+    collocated glidein Factory</a> </li>
+  <li><a href="gcb_install.html">Installation of a GCB node</a> </li>
+  <li><a href="collector_install.html">Installation of the glidein pool
+    Collector</a> </li>
+  <li><a href="schedd_install.html">Installation of the scheduler node in the
+    glideinWMS</a> </li>
+  <li><a href="frontend_install.html">Installation of a VO Frontend node</a>
+  </li>
+</ul>
+
+<p><br>
+</p>
+</body>
+</html>
