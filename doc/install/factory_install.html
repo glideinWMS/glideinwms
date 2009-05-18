@@ -1,220 +1,345 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>Installation of the WMS Collector and collocated glidein Factory</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
-	<META NAME="CREATED" CONTENT="20071107;13514400">
-	<META NAME="CHANGED" CONTENT="20081110;16491700">
-	<META NAME="Info 1" CONTENT="">
-	<META NAME="Info 2" CONTENT="">
-	<META NAME="Info 3" CONTENT="">
-	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>Installation of
-the WMS&nbsp;Collector and collocated glidein&nbsp;Factory
-</H1>
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>Installation of the WMS Collector and collocated glidein
+  Factory</title>
+  <meta name="CREATED" content="20071107;13514400">
+  <meta name="CHANGED" content="20081110;16491700">
+  <meta name="Info 1" content="">
+  <meta name="Info 2" content="">
+  <meta name="Info 3" content="">
+  <meta name="Info 4" content="">
+  <meta name="CHANGEDBY" content="Igor Sfiligoi">
+</head>
+
+<body lang="en-US" dir="ltr">
+<h1>Installation of the WMS Collector and collocated glidein Factory </h1>
 <hr>
+
 <table>
-<tr valign="center" align="center">
-<td>[</td><td><a href="#description">Description</a></td>
-<td>|</td><td><a href="#hardware">Hardware requirements</a></td>
-<td>|</td><td><a href="#software">Needed software</a></td>
-<td>|</td><td><a href="#system">System services</a></td>
-<td>|</td><td><a href="#condor">glideinWMS Collector installation</a></td>
-<td>|</td><td><a href="#factory">Glidein Factory installation</a></td>
-<td>|</td><td><a href="#monitoring">Glidein Factory monitoring</a></td>
-<td>]</td>
-</tr>
+  <tbody>
+    <tr align="center">
+      <td>[</td>
+      <td><a href="#description">Description</a></td>
+      <td>|</td>
+      <td><a href="#hardware">Hardware requirements</a></td>
+      <td>|</td>
+      <td><a href="#software">Needed software</a></td>
+      <td>|</td>
+      <td><a href="#system">System services</a></td>
+      <td>|</td>
+      <td><a href="#condor">glideinWMS Collector installation</a></td>
+      <td>|</td>
+      <td><a href="#factory">Glidein Factory installation</a></td>
+      <td>|</td>
+      <td><a href="#monitoring">Glidein Factory monitoring</a></td>
+      <td>]</td>
+    </tr>
+  </tbody>
 </table>
 <hr>
-<TABLE CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD VALIGN=TOP>
-	                <a name="description">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein Factory
-			node will be the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
-			Central Manager</A> for the WMS, i.e. it will run the Condor
-			Collector and Negotiator daemons, but it will also act as a <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
-			Submit node</A> for the glidein factory, running Condor schedds
-			used for Grid submission.<BR>On top of that, this node also hosts
-			the glidein factory daemons.</FONT></FONT></P>
-	                <a name="hardware">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
-			requirements </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-                        A small installation nees <B>one CPU</B> and a moderate amount of <B>memory</B>
-			(<B>1GB</B> should be enough).</FONT></FONT></P>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-                        A major installation, serving tens of sites and several thousand glideins
-			will require <B>several CPUs</B> (recommended <B>4-8</B>: 1 for the Condor damons, 1-2 for the
-			glidein factory daemons and 2 or more for Condor-G schedds) 
-                        and a reasonable amount of <B>memory</B>
-			(at least <B>2GB</B>, <B>4GB</B> for a large installation to provide some disk caching).</FONT></FONT></P>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			The <B>disk</B> needed is for binaries, config files, log files and
-			Web monitoring data (For just a few sites, <B>10GB</B> could be
-			enough, larger installations will need <B>100+GB</B> to maintain a
-			reasonable history). Monitoring can be pretty I/O intensive when
-			serving many sites, so get the fastest disk you can afford, 
-                        or consider setting up a RAMDISK</FONT></FONT></P>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-                        It must must be on the <B>public
-			internet</B>, with <B>at least one port open to the world</B>; all
-			worker nodes will load data from this node trough HTTP.</FONT></FONT></P>
-		</TD>
-		<TD>
-			<P><IMG SRC="overview_WMS_factory.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-						</P>
-		</TD>
-	</TR>
-</TABLE>
-<a name="software">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed software
-</FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>A reasonably recent
-Linux OS (RH/SL4 nad RH/SL5 tested at press time).<BR>The <A HREF="http://www.python.org/">Python</A>
-interpreter (v2.3.4 or above)<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
-client software</A>.<BR>A HTTP server, like <A HREF="http://www.apache.org/">Apache</A>
-or <A HREF="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</A>.<BR>The
-<A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-distribution</A>.<BR>The <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool
-package</A> (v1.2.18 or later)<BR>The <A HREF="http://freshmeat.net/projects/m2crypto">M2Crypto
-python library</A> (v0.17 or later)<BR>The <A HREF="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
-software</A>.</FONT></FONT></P>
-<a name="system">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. System services</FONT></FONT></H2>
-<a name="system_httpd">
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.1 HTTP server</FONT></FONT></H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein Factory
-needs a HTTP server, like <A HREF="http://www.apache.org/">Apache</A>
-or <A HREF="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</A>.
-The server should be installed on the same node, but a different node
-can be used as long as the web area is writable from this one.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Servers often come
-pre-installed with HTTP server software, so if you have one running,
-just reuse it.<BR>Else, the installer can help you install one (as
-root).</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>To use the installer,
-move into</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>8</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be given
-another menu:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[a] OSG VDT client<BR>[b] Base Condor
-installation<BR>[c] Web server<BR>[d] rrdtool graphics package<BR>[e]
-PostgreSQL database<BR>[f] Quill-specific PostgreSQL database</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>c</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions. Most of the questions should be fairly straightforward.</FONT></FONT></P>
-<a name="system_rrdtool">
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.2 RRDTool</FONT></FONT></H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will also need the
-python module for <A HREF="http://oss.oetiker.ch/rrdtool/">RRDTool</A>
-(v1.2.18 or later). Many systems come with packages for it; if
-possible use that.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>RPMs for
-Redhat/Scientific Linux distributions can be found at</FONT></FONT></P>
-<P><A HREF="http://dag.wieers.com/rpm/packages/rrdtool/"><FONT FACE="Liberation Serif"><FONT SIZE=3>http://dag.wieers.com/rpm/packages/rrdtool/</FONT></FONT></A></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Install
-python-rrdtool*.rpm and related dependencies.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If installing as root
-is not an option, you can build from the sources, as the </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>glidein
-factory</B></FONT></FONT> <FONT FACE="Liberation Serif"><FONT SIZE=3>user,
-and put the python libraries into the PYTHON_PATH.<BR>The source code
-can be downloaded from:<BR><A HREF="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</A></FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Beware: The build
-process has several dependencies that make it complicated. Use this
-option only if you cannot install from RPMs (or similar). </FONT></FONT>
-</P>
-<a name="system_m2crypto">
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.3 M2Crypto</FONT></FONT></H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will need the
-<A HREF="http://freshmeat.net/projects/m2crypto">M2Crypto python
-library</A>. A few systems include it in the software distribution;
-if possible install the system one.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If your system does not
-come with m2crypto package, or you do not can/want install it as
-root, compile it from source as the </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>glidein
-factory</B></FONT></FONT> <FONT FACE="Liberation Serif"><FONT SIZE=3>user.<BR>The
-source code can be downloaded
-from:<BR><A HREF="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</A></FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The build process is
-very easy:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>python
-setup.py build<BR>python setup.py install --root <I>&lt;base dir&gt;</I></FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Finally add M2Crypto site-packages
-into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc.<BR>
-The exact path is system specific.
-On a 32bit system with python 2.3.x it will look like this:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>export
-PYTHONPATH=$PYTHONPATH:<I>&lt;base
-dir&gt;</I>/usr/lib/python2.3/site-packages/</FONT></FONT></BLOCKQUOTE>
-<a name="condor">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. glideinWMS
-Collector installation guide</FONT></FONT></H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glideinWMS
-Collector can be installed either as root or as a non privileged
-user. There is no real advantage to install as root, so
-non-privileged installation is recommended.<BR>Either case, the
-Collector needs access to <A HREF="gsi_config.html">GSI credentials</A>.
-The recommended setup shares the credentials with the glidein factory
-(see below).</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The whole process is
-managed by a install script described below. You will need to provide
-a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-tarball</A>, so you may as well download it before starting the
-installer.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>1</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components. Most of the
-questions should be fairly straightforward. The part that is not
-completely automatic is the configuration of the GSI security; you
-will need to provide the DN of the glidein factory (if different from
-the collector one) and the DN of the VO frontend.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
-answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">Do you have already a VDT installation?: (y/n) <B>n</B>
-Do you want to install the full OSG VDT client?: (y/n) <B>n</B>
-Do you want to install a minimal Grid VDT client?: (y/n) <B>y</B>
-Where do you want the VDT installed?: [/opt/vdt] <B>/home/gfactory/vdt</B>
-Directory '/home/gfactory/vdt' does not exist, should I create it?: (y/n) <B>y</B>
-What pacman version should I use?: [pacman-3.26] <B>pacman-3.26</B>
 
-What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <B>http://vdt.cs.wisc.edu/vdt_1101_cache</B>
+<table cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td valign="top"><h2><a name="description"><font
+        face="Bitstream Vera Serif"><font size="4">1. Description
+        </font></font> </a></h2>
+
+        <p><font face="Liberation Serif"><font size="3">The glidein Factory
+        node will be the <a
+        href="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
+        Central Manager</a> for the WMS, i.e. it will run the Condor
+        Collector and Negotiator daemons, but it will also act as a <a
+        href="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
+        Submit node</a> for the glidein factory, running Condor schedds used
+        for Grid submission.</font></font></p>
+
+        <p><font face="Liberation Serif"><font size="3">On top of that, this
+        node also hosts the glidein factory daemons. The glidein Factory is
+        also responsible for the base configuration of the glideins (although
+        part of the configuration comes from the <a
+        href="frontend_install.html">VO frontend</a>).</font></font></p>
+
+        <h2><a name="hardware"><font face="Bitstream Vera Serif"><font
+        size="4">2. Hardware requirements </font></font> </a></h2>
+
+        <p><font face="Liberation Serif"><font size="3">A small installation
+        nees <b>one CPU</b> and a moderate amount of <b>memory</b>
+        (<b>1GB</b> should be enough).</font></font></p>
+
+        <p><font face="Liberation Serif"><font size="3">A major installation,
+        serving tens of sites and several thousand glideins will require
+        <b>several CPUs</b> (recommended <b>4-8</b>: 1 for the Condor damons,
+        1-2 for the glidein factory daemons and 2 or more for Condor-G
+        schedds) and a reasonable amount of <b>memory</b> (at least
+        <b>2GB</b>, <b>4GB</b> for a large installation to provide some disk
+        caching).</font></font></p>
+
+        <p><font face="Liberation Serif"><font size="3">The <b>disk</b>
+        needed is for binaries, config files, log files and Web monitoring
+        data (For just a few sites, <b>10GB</b> could be enough, larger
+        installations will need <b>100+GB</b> to maintain a reasonable
+        history). Monitoring can be pretty I/O intensive when serving many
+        sites, so get the fastest disk you can afford, or consider setting up
+        a RAMDISK</font></font></p>
+
+        <p><font face="Liberation Serif"><font size="3">It must must be on
+        the <b>public internet</b>, with <b>at least one port open to the
+        world</b>; all worker nodes will load data from this node trough
+        HTTP.</font></font></p>
+
+<h2><a name="software"><font face="Bitstream Vera Serif"><font size="4">3.
+Needed software </font></font> </a></h2>
+
+<p><font face="Liberation Serif"><font size="3">A reasonably recent Linux OS
+(RH/SL4 nad RH/SL5 tested at press time).<br>
+The <a href="http://www.python.org/">Python</a> interpreter (v2.3.4 or
+above)<br>
+The <a
+href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
+client software</a>.<br>
+A HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
+href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.<br>
+The <a href="http://www.cs.wisc.edu/condor/downloads/">Condor
+distribution</a>.<br>
+The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a> (v1.2.18 or
+later)<br>
+The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python
+library</a> (v0.17 or later)<br>
+The <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package (0.4 or later)<br>
+The <a
+href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
+software</a>.</font></font></p>
+      </td>
+      <td valign="top"><p><img src="overview_WMS_factory.png" name="graphics1"
+        align="bottom" border="0"> </p>
+
+        <p><img src="overview_glidein.png" name="graphics1b" align="bottom"
+        border="0"></p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
+<h2><a name="system"><font face="Bitstream Vera Serif"><font size="4">4.
+System services</font></font></a></h2>
+
+<h3><a name="system_httpd"><font face="Liberation Serif"><font size="3">4.1
+HTTP server</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The glidein Factory needs a
+HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
+href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.
+The server should be installed on the same node, but a different node can be
+used as long as the web area is writable from this one.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Servers often come
+pre-installed with HTTP server software, so if you have one running, just
+reuse it.<br>
+Else, the installer can help you install one (as root).</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">To use the installer, move
+into</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>8</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">You will be given another
+menu:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [a] OSG VDT client<br>
+  [b] Base Condor installation<br>
+  [c] Web server<br>
+  [d] rrdtool graphics package<br>
+  [e] PostgreSQL database<br>
+  [f] Quill-specific PostgreSQL database</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>c</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
+Most of the questions should be fairly straightforward.</font></font></p>
+
+<h3><a name="system_rrdtool"><font face="Liberation Serif"><font size="3">4.2
+RRDTool</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You will also need the python
+module for <a href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (v1.2.18 or
+later). Many systems come with packages for it; if possible use
+that.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">RPMs for Redhat/Scientific
+Linux distributions can be found at</font></font></p>
+
+<p><a href="http://dag.wieers.com/rpm/packages/rrdtool/"><font
+face="Liberation Serif"><font
+size="3">http://dag.wieers.com/rpm/packages/rrdtool/</font></font></a></p>
+
+<p><font face="Liberation Serif"><font size="3">Install python-rrdtool*.rpm
+and related dependencies.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">If installing as root is not
+an option, you can build from the sources, as the </font></font><font
+face="Liberation Serif"><font size="3"><b>glidein factory</b></font></font>
+<font face="Liberation Serif"><font size="3">user, and put the python
+libraries into the PYTHON_PATH.<br>
+The source code can be downloaded from:<br>
+<a
+href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a></font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Beware: The build process has
+several dependencies that make it complicated. Use this option only if you
+cannot install from RPMs (or similar). </font></font> </p>
+
+<h3><a name="system_m2crypto"><font face="Liberation Serif"><font
+size="3">4.3 M2Crypto</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You will need the <a
+href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. A
+few systems include it in the software distribution; if possible install the
+system one.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">If your system does not come
+with m2crypto package, or you do not can/want install it as root, compile it
+from source as the </font></font><font face="Liberation Serif"><font
+size="3"><b>glidein factory</b></font></font> <font
+face="Liberation Serif"><font size="3">user.<br>
+The source code can be downloaded from:<br>
+<a
+href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a></font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">The build process is very
+easy:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">python setup.py build<br>
+  python setup.py install --root <i>&lt;base
+dir&gt;</i></font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Finally add M2Crypto
+site-packages into the PYTHONPATH, possibly in the .profile, .bashrc and/or
+in the .cshrc.<br>
+The exact path is system specific. On a 32bit system with python 2.3.x it
+will look like this:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">export
+  PYTHONPATH=$PYTHONPATH:<i>&lt;base
+  dir&gt;</i>/usr/lib/python2.3/site-packages/</font></font></blockquote>
+
+<h3><a name="system_javascriptRRD"><font face="Liberation Serif"><font
+size="3">4.4 javascriptRRD</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You will need the <a
+href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>. 
+It contains the javascript libraries needed by the monitoring.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Just download the tarball,
+and untar it. You will need to point the installer to this directory.</font></font></p>
+
+
+<h2><a name="condor"><font face="Bitstream Vera Serif"><font size="4">5.
+glideinWMS Collector installation guide</font></font></a></h2>
+
+<p><font face="Liberation Serif"><font size="3">The glideinWMS Collector can
+be installed either as root or as a non privileged user. There is no real
+advantage to install as root, so non-privileged installation is
+recommended.<br>
+Either case, the Collector needs access to <a href="gsi_config.html">GSI
+credentials</a>. The recommended setup shares the credentials with the
+glidein factory (see below).</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">The whole process is managed
+by a install script described below. You will need to provide a valid <a
+href="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</a>, so you
+may as well download it before starting the installer.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>1</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the instructions
+and install all the software components. Most of the questions should be
+fairly straightforward. The part that is not completely automatic is the
+configuration of the GSI security; you will need to provide the DN of the
+glidein factory (if different from the collector one) and the DN of the VO
+frontend.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Here a possible set of
+answers is presented; your setup will probably be slightly
+different:</font></font></p>
+<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">Do you have already a VDT installation?: (y/n) <b>n</b>
+Do you want to install the full OSG VDT client?: (y/n) <b>n</b>
+Do you want to install a minimal Grid VDT client?: (y/n) <b>y</b>
+Where do you want the VDT installed?: [/opt/vdt] <b>/home/gfactory/vdt</b>
+Directory '/home/gfactory/vdt' does not exist, should I create it?: (y/n) <b>y</b>
+What pacman version should I use?: [pacman-3.26] <b>pacman-3.26</b>
+
+What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <b>http://vdt.cs.wisc.edu/vdt_1101_cache</b>
 
 VDT client installation tends to be very picky about the platforms it installs under
 Most of the time, one needs to pretent to be one of the tested platforms
 The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
-Which platform do you want to use (leave empty for autodetect): <I>enter</I>
+Which platform do you want to use (leave empty for autodetect): <i>enter</i>
 
 VDT 1.10.1 installs a variety of software, each with its own license.
 In order to continue, you must agree to the licenses.
@@ -223,33 +348,33 @@ You can view the licenses online at:
      http://vdt.cs.wisc.edu/licenses/1.10.1
 
 After the installation has completed, you will also be able to
-view the licenses in the &quot;licenses&quot; directory.
+view the licenses in the "licenses" directory.
 
-Do you agree to the licenses? [y/n] <B>y</B>
+Do you agree to the licenses? [y/n] <b>y</b>
 
 Where would you like to install CA files?
 
 Choices:
         l (local) - install into $VDT_LOCATION/globus/share/certificates
         n (no)    - do not install
-<B>l</B>
+<b>l</b>
 
-Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <B>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</B>
+Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <b>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</b>
 
-Where do you have the Condor tarball? <B>/home/gfactory/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</B>
+Where do you have the Condor tarball? <b>/home/gfactory/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</b>
 
-Where do you want to install it?: [/opt/glidecondor] <B>/home/gfactroy/glidecondor</B>
-Directory '/home/gfactory/glidecondor' does not exist, should I create it?: (y/n) <B>y</B>
+Where do you want to install it?: [/opt/glidecondor] <b>/home/gfactroy/glidecondor</b>
+Directory '/home/gfactory/glidecondor' does not exist, should I create it?: (y/n) <b>y</b>
 Installing condor in '/home/gfactroy/glidecondor'
 
-If something goes wrong with Condor, who should get email about it?: <B>troubles@my.org</B>
+If something goes wrong with Condor, who should get email about it?: <b>troubles@my.org</b>
 
-Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <B>y</B>
+Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
 
 To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
-Will you be using a proxy or a cert? (proxy/cert) <B>proxy</B>
-Where is your proxy located?: <B>/home/gfactory/.globus/x509_service_proxy</B>
+Will you be using a proxy or a cert? (proxy/cert) <b>proxy</b>
+Where is your proxy located?: <b>/home/gfactory/.globus/x509_service_proxy</b>
 My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
 
 You will most probably need other DNs in the condor grid mapfile
@@ -258,69 +383,99 @@ Condor daemons running on this node
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
-DN: <B>/DC=org/DC=doegrids/OU=Services/CN=frontend1.my.org</B>
-nickname: [condor001] <B>vofrontend</B>
-Is this a trusted Condor daemon?: (y/n) <B>y</B>
-DN: <I>enter</I>
-Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n] <B>n</B>
-What name would you like to use for this pool?: [My glideinWMS pool] <B>GlideinFactory</B>
-How many secondary schedds do you want?: [9] <B>9</B></PRE><P STYLE="margin-right: 0.39in">
-The installer will also start the Condor daemons.<FONT FACE="Liberation Serif"><FONT SIZE=3>
-To stop the Condor daemons, issue</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>killall
-condor_master</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>To start them again:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd &lt;install
-dir&gt;; ./start_condor.sh</FONT></FONT></BLOCKQUOTE>
-<a name="factory">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>6. Glidein Factory
-installation guide</FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein Factory
-needs a x509 proxy to communicate with the rest of the world. You
-need to create such proxy before instantiating a glidein Factory and
-then keep it valid for the life of the factory. If used for job
-submission (i.e. if  the VO Frontends do not pass their own proxy),
-this proxy must at any point in time have a validity of at least the
-longest expected job being run by the glideinWMS (and not less than
-12 hours).<BR>How you keep this proxy valid (via MyProxy, kx509,
-voms-proxy-init from a local certificate, scp from other nodes, or
-other methods), is beyond the scope of this document.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein factory
-itself should be installed as a non privileged user. The provided
-installer can be used to create the configuration file, although some
-manual tunning will probably be needed.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>2</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components. Most of the
-questions should be fairly straightforward. The part that is not
-completely automatic is the list of GCBs and the configuration of the
-GSI security; you will need to provide the DNs of all the submit
-nodes.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
-answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the Glidein Factory you need a valid GSI proxy.
-Where is your proxy located?: [/home/gfactory/.globus/x509_service_proxy] <B>/home/gfactory/.globus/x509_service_proxy</B>
+DN: <b>/DC=org/DC=doegrids/OU=Services/CN=frontend1.my.org</b>
+nickname: [condor001] <b>vofrontend</b>
+Is this a trusted Condor daemon?: (y/n) <b>y</b>
+DN: <i>enter</i>
+Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n] <b>n</b>
+What name would you like to use for this pool?: [My glideinWMS pool] <b>GlideinFactory</b>
+How many secondary schedds do you want?: [9] <b>9</b></pre>
 
-Where will you host your config and log files?: [/home/gfactory/glideinsubmit] <B>/home/gfactory/glideinsubmit</B>
-Where will the web data be hosted?: [/var/www/html/glidefactory] <B>/var/www/html/glidefactory</B>
+<p style="margin-right: 0.39in">The installer will also start the Condor
+daemons.<font face="Liberation Serif"><font size="3">To stop the Condor
+daemons, issue</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">killall
+  condor_master</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">To start them
+again:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">cd &lt;install dir&gt;;
+  ./start_condor.sh</font></font></blockquote>
+
+<h2><a name="factory"><font face="Bitstream Vera Serif"><font size="4">6.
+Glidein Factory installation guide</font></font> </a></h2>
+
+<p><font face="Liberation Serif"><font size="3">The glidein Factory needs a
+x509 proxy to communicate with the rest of the world. You need to create such
+proxy before instantiating a glidein Factory and then keep it valid for the
+life of the factory. If used for job submission (i.e. if the VO Frontends do
+not pass their own proxy), this proxy must at any point in time have a
+validity of at least the longest expected job being run by the glideinWMS
+(and not less than 12 hours).<br>
+How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a
+local certificate, scp from other nodes, or other methods), is beyond the
+scope of this document.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">The glidein factory itself
+should be installed as a non privileged user. The provided installer can be
+used to create the configuration file, although some manual tunning will
+probably be needed.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>2</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the instructions
+and install all the software components. Most of the questions should be
+fairly straightforward. The part that is not completely automatic is the list
+of GCBs and the configuration of the GSI security; you will need to provide
+the DNs of all the submit nodes.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Here a possible set of
+answers is presented; your setup will probably be slightly
+different:</font></font></p>
+<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the Glidein Factory you need a valid GSI proxy.
+Where is your proxy located?: [/home/gfactory/.globus/x509_service_proxy] <b>/home/gfactory/.globus/x509_service_proxy</b>
+
+Where will you host your config and log files?: [/home/gfactory/glideinsubmit] <b>/home/gfactory/glideinsubmit</b>
+Where will the web data be hosted?: [/var/www/html/glidefactory] <b>/var/www/html/glidefactory</b>
 Directory '/var/www/html/glidefactory' not empty.
-Should I use it anyhow?: (y/n) <B>y</B>
-What Web URL will you use?: [http://gfactory1.my.org/glidefactory/] <B>http://gfactory1.my.org/glidefactory/</B>
-Give a name to this Glidein Factory?: [gfactory1] <B>gfactory1</B>
-Give a name to this Glidein instance?: [v1_0] <B>v1_0</B>
-What is the Condor base directory?: [/home/gfactory/glidecondor] <B>/home/gfactory/glidecondor</B>
+Should I use it anyhow?: (y/n) <b>y</b>
+What Web URL will you use?: [http://gfactory1.my.org/glidefactory/] <b>http://gfactory1.my.org/glidefactory/</b>
+Give a name to this Glidein Factory?: [gfactory1] <b>gfactory1</b>
+Give a name to this Glidein instance?: [v1_0] <b>v1_0</b>
+What is the Condor base directory?: [/home/gfactory/glidecondor] <b>/home/gfactory/glidecondor</b>
 The following glidein schedds have been found:
  [1] schedd_glideins1@gfactory1.my.org
  [2] schedd_glideins2@gfactory1.my.org
@@ -331,176 +486,205 @@ The following glidein schedds have been found:
  [7] schedd_glideins7@gfactory1.my.org
  [8] schedd_glideins8@gfactory1.my.org
  [9] schedd_glideins9@gfactory1.my.org
-Do you want to use all of them?: (y/n) <B>y</B>
+Do you want to use all of them?: (y/n) <b>y</b>
 Using ['schedd_glideins1@gfactory1.my.org', 'schedd_glideins2@gfactory1.my.org', 'schedd_glideins3@gfactory1.my.org', 'schedd_glideins4@gfactory1.my.org', 'schedd_glideins5@gfactory1.my.org', 'schedd_glideins6@gfactory1.my.org', 'schedd_glideins7@gfactory1.my.org', 'schedd_glideins8@gfactory1.my.org', 'schedd_glideins9@gfactory1.my.org']
 
-Please list all the GCB servers you will be using
-Leave an empty line when finished
-GCB node: <B>gcb1.my.org</B>
-GCB node: <i>enter</i>
-My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
-
-You will most probably need other DNs in the grid mapfile
-Please add all the DNs that this glidein will connect to
-(usually the Pool Collector and the Submit nodes)
-
-Please insert all such DNs, together with a user nickname.
-An empty DN entry means you are done.
-DN: <B>/DC=org/DC=doegrids/OU=Services/CN-collector1.my.org</B>
-nickname: [condor001] <B>collector</B>
-DN: <B>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</B>
-nickname: [condor002] <B>schedd1</B>
-DN:
-Do you want to use gLExec?: (y/n) <B>y</B>
-Do you want to fetch entries from RESS?: (y/n) [n] <B>y</B>
+Do you want to use gLExec?: (y/n) <b>y</b>
+Do you want to fetch entries from RESS?: (y/n) [n] <b>y</b>
 
 Which RESS server should I use?: [osg-ress-1.fnal.gov]
-Select Condor RESS constraint: [StringlistMember("VO:you",GlueCEAccessControlBaseRule)] <B>StringlistMember("VO:you",GlueCEAccessControlBaseRule)</B>
-Define a python filter: [(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))] <B>(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))</B>
+Select Condor RESS constraint: [StringlistMember("VO:you",GlueCEAccessControlBaseRule)] <b>StringlistMember("VO:you",GlueCEAccessControlBaseRule)</b>
+Define a python filter: [(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)&gt;(72*60))] <b>(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)&gt;(72*60))</b>
 Found 49 additional entries
-Do you want to use them all?: (y/n) <B>y</B>
-Do you want to fetch entries from BDII?: (y/n) [n] <B>n</B>
+Do you want to use them all?: (y/n) <b>y</b>
+Do you want to fetch entries from BDII?: (y/n) [n] <b>n</b>
 Please list all additional glidein entry points,
 Entry name (leave empty when finished): <i>enter</i>
-Do you want to expose the Grid env. to the user jobs?: (y/n) <B>y</B>
-Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n] <B>n</B>
+Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n] <b>n</b>
 To create the glidein, you need to run
 /home/gfactory/glideinWMS/creation/create_glidein
 
 Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
-Remember to set X509_USER_PROXY before starting the daemon
-</PRE><P>
-<FONT FACE="Liberation Serif"><FONT SIZE=3>If you followed the
-example above, you ended up with a configuration file in
-</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>/home/gfactory/glideinsubmit/glidein_v1_0.cfg/glideinWMS.xml</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>.
-Edit this file to suit your needs and than cerate the factory
-instance as described in the Manual configuration section below.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>At this point you can
-start the factory with</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3><I>&lt;install
-dir&gt;/</I>factory_startup start</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>where the <I>&lt;install
-dir&gt;</I> is the one written out by the installation script.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>To stop the factory the
-factory, use</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3><I>&lt;install
-dir&gt;</I>/factory_startup stop</FONT></FONT></BLOCKQUOTE>
-<a name="factory_manual">
-<H3><FONT FACE="Verdana"><FONT SIZE=3>6.1 Manual configuration</FONT></FONT></H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein factory can
-also be configured manually.<BR>The complete guide can be found in
-the <A HREF="../manual/factory/entry.html">glideinWMS documentation</A>,
-but in <A HREF="example-config/glide-factory/config_v1.xml">example-config/glide-factory/config_v1.xml</A>
-you can find a working example.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Once a configuration
-file is ready, you can create the glidein Factory by executing</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-glideinWMS/creation<BR>./create_glidein <I>&lt;config file&gt;</I></FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The startup procedure
-is the same as described above.</FONT></FONT></P>
-<a name="factory_update">
-<H3>6.2 Changing the factory configuration</H3>
-<P>Occasionally, you may need to change the glidein Factory
-configuration. This is done by updating the configuration file and
-reconfiguring.<BR><B>Warning:</B> Never update the <I>&lt;install
-dir&gt;</I>/glideinWMS.xml file! Either use the configuration file
-you used to install it, or make a copy of the glideinWMS.xml file and
-modify that one.</P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Once you are done
-editing the work config file,  reconfigure the factory with</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3><I>&lt;install
-dir&gt;/</I>factory_startup reconfig <I>&lt;work config&gt;</I></FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If the factory was
-running, the procedure will stop the factory before reconfiguring it,
-and restart it afterwards.</FONT></FONT></P>
-<a name="monitoring">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>7. Glidein Factory
-monitoring </FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>There are several ways
-to monitor the entry points of the glidein factory:</FONT></FONT></P>
-<UL>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-	      <a href="#monitoring_web">
-	      Using the Web
-	      monitoring</a></FONT></FONT></P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-	      <a href="#monitoring_tools">
-	      Using the WMS
-	      tools</a></FONT></FONT></P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-	      <a href="#monitoring_logs">
-	      Looking at the
-	      glidein factory log files</a></FONT></FONT>
-	</P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-	      <a href="#monitoring_glideins">
-	      Looking at the
-	      glidein outputs</a></FONT></FONT>
-	</P>
-	<LI><P><FONT FACE="Liberation Serif"><FONT SIZE=3>
-	      <a href="#monitoring_condor">
-	      Checking the WMS
-	      collector ads</a></FONT></FONT></P>
-</UL>
-<a name="monitoring_web">
-<H3><FONT FACE="Verdana"><FONT SIZE=3>7.1 Glidein factory entry Web
-monitoring</FONT></FONT></H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can either monitor
-the factory as a whole, or just a single entry point.<BR><BR>The
-factory monitoring is located at a URL like the one below</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</FONT></FONT></BLOCKQUOTE>
-<P>
-<FONT FACE="Liberation Serif"><FONT SIZE=3>Moreover, each entry
-point, has its own history on the Web.<BR><BR>Assuming you have a
-SanDiego entry, it can be monitored at</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</FONT></FONT></BLOCKQUOTE>
-<H3>
-<a name="monitoring_tools">
-<FONT FACE="Verdana"><FONT SIZE=3>7.2 Glidein factory monitoring via
-WMS tools</FONT></FONT></H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can get the
-equivalent of the Web page snaphot by using </FONT></FONT>
-</P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-glideinWMS/tools/<BR>python wmsXMLView.py</FONT></FONT></BLOCKQUOTE>
-<a name="monitoring_logs">
-<H3><FONT FACE="Verdana"><FONT SIZE=3>7.3 Glidein factory entry log
-files </FONT></FONT>
-</H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein factory
-writes two log files per entry point <B>factory_info.YYYYMMDD.log</B>
-and <B>factory_err.YYYYMMDD.log</B>.<BR><BR>Assuming you have a
-SanDiego entry, the log files are in</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>All errors are reported
-in the <B>factory_err.YYYYMMDD.log</B>. file, while
-<B>factory_info.YYYYMMDD.log </B>contains entries about what the
-factory is doing.</FONT></FONT></P>
-<a name="monitoring_glideins">
-<H3><FONT FACE="Verdana"><FONT SIZE=3>7.4 Glidein output </FONT></FONT>
-</H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Each glidein creates 2
-files on exit; job.<B>ID</B>.out and job.<B>ID</B>.err.<BR><BR>Assuming
-you have a SanDiego entries, the log files are in</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Problems are usually
-reasonably easy to spot.</FONT></FONT></P>
-<a name="monitoring_condor">
-<H3><FONT FACE="Verdana"><FONT SIZE=3>7.5 Glidein factory ClassAds in
-the WMS Collector </FONT></FONT>
-</H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The glidein factory
-also advertises summary information in the WMS collector.<BR><BR>Use
-<B>condor_status</B>:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>condor_status
-	-any</FONT></FONT></BLOCKQUOTE>
-<P>
-<FONT FACE="Liberation Serif"><FONT SIZE=3>and look for <B>glidefactory</B>
-and <B>glidefactoryclient</B> ads.</FONT></FONT></P>
-<HR SIZE=1>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
-to the index</A><BR><BR><BR></FONT></FONT><BR><BR>
-</P>
-</BODY>
-</HTML>
+Remember to set X509_USER_PROXY before starting the daemon</pre>
+
+<p><font face="Liberation Serif"><font size="3">If you followed the example
+above, you ended up with a configuration file in </font></font><font
+face="Liberation Serif"><font
+size="3"><b>/home/gfactory/glideinsubmit/glidein_v1_0.cfg/glideinWMS.xml</b></font></font><font
+face="Liberation Serif"><font size="3">. Edit this file to suit your needs
+and than cerate the factory instance as described in the Manual configuration
+section below.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">At this point you can start
+the factory with</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3"><i>&lt;install
+  dir&gt;/</i>factory_startup start</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">where the <i>&lt;install
+dir&gt;</i> is the one written out by the installation
+script.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">To stop the factory the
+factory, use</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3"><i>&lt;install
+  dir&gt;</i>/factory_startup stop</font></font></blockquote>
+
+<h3><a name="factory_manual"><font face="Verdana"><font size="3">6.1 Manual
+configuration</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The glidein factory can also
+be configured manually.<br>
+The complete guide can be found in the <a
+href="../manual/factory/entry.html">glideinWMS documentation</a>, but in <a
+href="example-config/glide-factory/config_v1.xml">example-config/glide-factory/config_v1.xml</a>
+you can find a working example.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Once a configuration file is
+ready, you can create the glidein Factory by executing</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">cd glideinWMS/creation<br>
+  ./create_glidein <i>&lt;config file&gt;</i></font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">The startup procedure is the
+same as described above.</font></font></p>
+
+<h3><a name="factory_update">6.2 Changing the factory configuration</a></h3>
+
+<p>Occasionally, you may need to change the glidein Factory configuration.
+This is done by updating the configuration file and reconfiguring.<br>
+<b>Warning:</b> Never update the <i>&lt;install dir&gt;</i>/glideinWMS.xml
+file! Either use the configuration file you used to install it, or make a
+copy of the glideinWMS.xml file and modify that one.</p>
+
+<p><font face="Liberation Serif"><font size="3">Once you are done editing the
+work config file, reconfigure the factory with</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3"><i>&lt;install
+  dir&gt;/</i>factory_startup reconfig <i>&lt;work
+  config&gt;</i></font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">If the factory was running,
+the procedure will stop the factory before reconfiguring it, and restart it
+afterwards.</font></font></p>
+
+<h2><a name="monitoring"><font face="Bitstream Vera Serif"><font size="4">7.
+Glidein Factory monitoring </font></font> </a></h2>
+
+<p><font face="Liberation Serif"><font size="3">There are several ways to
+monitor the entry points of the glidein factory:</font></font></p>
+<ul>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_web">Using the Web monitoring</a></font></font></p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_tools">Using the WMS tools</a></font></font></p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_logs">Looking at the glidein factory log
+    files</a></font></font> </p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_glideins">Looking at the glidein
+    outputs</a></font></font> </p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_condor">Checking the WMS collector
+    ads</a></font></font></p>
+  </li>
+</ul>
+
+<h3><a name="monitoring_web"><font face="Verdana"><font size="3">7.1 Glidein
+factory entry Web monitoring</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You can either monitor the
+factory as a whole, or just a single entry point.<br>
+<br>
+The factory monitoring is located at a URL like the one
+below</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Moreover, each entry point,
+has its own history on the Web.<br>
+<br>
+Assuming you have a SanDiego entry, it can be monitored at</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</font></font></blockquote>
+
+<h3><a name="monitoring_tools"><font face="Verdana"><font size="3">7.2
+Glidein factory monitoring via WMS tools</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You can get the equivalent of
+the Web page snaphot by using </font></font> </p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">cd glideinWMS/tools/<br>
+  python wmsXMLView.py</font></font></blockquote>
+
+<h3><a name="monitoring_logs"><font face="Verdana"><font size="3">7.3 Glidein
+factory entry log files </font></font> </a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The glidein factory writes
+two log files per entry point <b>factory_info.YYYYMMDD.log</b> and
+<b>factory_err.YYYYMMDD.log</b>.<br>
+<br>
+Assuming you have a SanDiego entry, the log files are in</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">All errors are reported in
+the <b>factory_err.YYYYMMDD.log</b>. file, while <b>factory_info.YYYYMMDD.log
+</b>contains entries about what the factory is doing.</font></font></p>
+
+<h3><a name="monitoring_glideins"><font face="Verdana"><font size="3">7.4
+Glidein output </font></font> </a></h3>
+
+<p><font face="Liberation Serif"><font size="3">Each glidein creates 2 files
+on exit; job.<b>ID</b>.out and job.<b>ID</b>.err.<br>
+<br>
+Assuming you have a SanDiego entries, the log files are in</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Problems are usually
+reasonably easy to spot.</font></font></p>
+
+<h3><a name="monitoring_condor"><font face="Verdana"><font size="3">7.5
+Glidein factory ClassAds in the WMS Collector </font></font> </a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The glidein factory also
+advertises summary information in the WMS collector.<br>
+<br>
+Use <b>condor_status</b>:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">condor_status
+  -any</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and look for
+<b>glidefactory</b> and <b>glidefactoryclient</b> ads.</font></font></p>
+<hr size="1">
+
+<p><font face="Liberation Serif"><font size="3"><a href="index.html">Back to
+the index</a><br>
+<br>
+<br>
+</font></font><br>
+<br>
+</p>
+</body>
+</html>
