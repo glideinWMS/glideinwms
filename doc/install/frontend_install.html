@@ -373,16 +373,29 @@ more details.)</font></font>
 <p><font face="Liberation Serif"><font size="3">Here a possible set of
 answers is presented; your setup will probably be slightly
 different:</font></font></p>
-<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the VO Frontend you need a valid GSI proxy.
+<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
+Do you have already a javascriptRRD installation?: (y/n) y
+Where is javascriptRRD installed?: <B>/home/frontend/javascriptrrd-0.4</B>
+To use the VO Frontend you need a valid GSI proxy.
 Where is your proxy located?: [/home/frontend/.globus/x509_service_proxy] <b>/home/frontend/.globus/x509_service_proxy</b>
 
-Give a name to this VO Frontend?: [org_frontend1] <b>fe1</b>
+Using DN '/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org'
+Make sure this DN is in the WMS collector grid-mapfile
+
+Where will you host your config and log files?: [/home/frontend/frontstage] <b>/home/frontend/frontstage</b>
+Where will the web data be hosted?: [/var/www/html/vofrontend] <b>/var/www/html/vofrontend</b>
+Directory '/var/www/html/vofrontend' not empty.
+Should I use it anyhow?: (y/n) y
+What Web URL will you use?: [http://frontend1.my.org/vofrontend/] <b><http://frontend1.my.org/vofrontend/</b>
+Give a name to this VO Frontend?: [myVO-frontend1] <b>myVO1</b>
+Give a name to this VO Frontend instance?: [v1_0] <b>v1</b>
 What node is the WMS collector running?: <b>gfactory1.my.org</b>
 
 What node is the pool collector running on?
 If you have a hierarchy of collectors, list them all
-(for example: master1.my.org:9621,master1.my.org:9622)
-Collector name(s): [collector1.my.org] <b>collector1.my.org:9620,collector1.my.org:9621,collector1.my.org:9622,collector1.my.org:9623</b>
+(for example master1.my.org:9620-9624
+          or master1.my.org:9619,master2.my.org:9620-9624,master3.my.org)
+Collector name(s): [collector1.my.org:9618] <b>collector1.my.org:9620-9624</b>
 The following schedds have been found:
  [1] schedd1.my.org
  [2] schedd_jobs1@schedd1.my.org
@@ -391,18 +404,64 @@ The following schedds have been found:
  [5] schedd_jobs4@schedd1.my.org
 Do you want to monitor all of them?: (y/n) <b>y</b>
 
+What kind of jobs do you want to monitor?: [(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)] <b>(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)</b>
+Give a name to the main group: [main] <b>main</b>
 What expression do you want to use to match glideins to jobs?
 It is an arbitrary python boolean expression using the dictionaries
   glidein and job
 A simple example expression would be:
   glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
 If you want to match all (OK for simple setups),
-  just specify 1 (the default)
-Match string: [1] <b>glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")</b>
-Job attributes: [("DESIRED_Sites","s")] <b>("DESIRED_Sites","s")</b>
-What kind of jobs do you want to monitor?: [(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)] <b>(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)</b>
-Where will you host your config and log files?: [/home/frontend/frontend_fe1] <b>/home/frontend/frontend_fe1</b>
-Directory '/home/factory_frontend_fe1' does not exist, should I create it?: (y/n) <b>y</b></pre>
+  just specify True (the default)
+Match string: [True] <b>glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")</b>
+What job attributres are you using in the match expression?
+I have computed my best estimate for your match string,
+please verify and correct if needed.
+Job attributes: [DESIRED_Sites] <b>DESIRED_Sites</b>
+What glidein/factory attributres are you using in the match expression?
+I have computed my best estimate for your match string,
+please verify and correct if needed.
+Factory attributes: [GLIDEIN_Site] <b>GLIDEIN_Site</b>
+My DN = '/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org'
+
+VO frontend proxy = '/home/sfiligoi/.globus/x509_service_proxy'
+Do you want to use is to submit glideins: (y/n) [y] <b>n</b>
+You may want to use other proxies
+Please add all the proxies that this glidein will use
+
+An empty entry means you are done.
+proxy fname: <b>/home/sfiligoi/.globus/x509_glidein_proxy1</b>
+proxy fname: <b>/home/sfiligoi/.globus/x509_glidein_proxy2</b>
+proxy fname: <b>/home/sfiligoi/.globus/x509_glidein_proxy3</b>
+proxy fname:
+My DNs = ['/DC=org/DC=doegrids/OU=Service/CN=pilot1/myVO.my.org', '/DC=org/DC=doegrids/OU=Service/CN=pilot2/myVO.my.org', '/DC=org/DC=doegrids/OU=Service/CN=pilot3/myVO.my.org']
+
+You will most probably need other DNs in the glidein grid mapfile
+Please add all the DNs that this glidein will connect to
+(usually the Pool Collector and the Submit nodes)
+
+Please insert all such DNs, together with a user nickname.
+An empty DN entry means you are done.
+
+DN: <b>/DC=org/DC=doegrids/OU=Services/CN-collector1.my.org</b>
+nickname: [condor001] <b>collector</b>
+
+DN: <b>/DC=org/DC=doegrids/OU=Services/CN=schedd1.my.org</b>
+nickname: [condor002] <b>schedd1</b>
+
+DN (leave empty when finished):
+Do you want to use the more efficient Match authentication (works for Condor v7.3.0 and later)?: (y/n) <b>y</b>
+
+Make sure you use Match authentication in the schedds, too
+
+Do you want to expose the Grid env. to the user jobs?: (y/n) <b>y</b>
+Do you want to create the VO Frontend instance (as opposed to just the config file)?: (y/n) [n] <b>n</b>
+To create the VO Frontend instance, you need to run
+/home/frontend/glideinWMS/creation/create_frontend
+
+Configuration files are located in /home/frontend/frontstage/instance_v1.cfg
+Remember to set X509_USER_PROXY before starting the daemon
+</pre>
 
 <h3><font face="Utopia, serif"><font size="3">5.1. Starting the VO Frontend
 </font></font> </h3>
