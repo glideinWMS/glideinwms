@@ -306,12 +306,13 @@ class ProxyUserMapWRecycling:
         user_map=self.config_data['user_map']
 
         for user in users:
-            if not user_maps.has_key(user):
+            if not user_map.has_key(user):
                 # user not in cache, get the oldest unused entry
                 # not ordered, need to loop over the whole cache
-                min_key=0 # will compare all others to the first
-                keys=user_map.keys()[1:]
-                for k in keys:
+                keys=user_map.keys()
+                keys.sort()
+                min_key=keys[0] # will compare all others to the first
+                for k in keys[1:]:
                     if user_map[k]['last_seen']<user_map[min_key]['last_seen']:
                         min_key=k
 
@@ -337,13 +338,13 @@ class ProxyUserMapWRecycling:
     # load from self.config_fname into self.config_data
     # if the file does not exist, create a new config_data
     def load(self):
-        if not os.path.exist(self.config_fname):
+        if not os.path.exists(self.config_fname):
             # no cache, create new cache structure from scratch
             self.config_data={}
             user_map={}
             nr_proxies=len(self.proxy_list)
             for i in range(nr_proxies):
-                # use numbers for keys, so we are user will not mutch to any user string
+                # use numbers for keys, so we are sure will not match to any user string
                 user_map[i]={'proxy':self.proxy_list[i],
                              'proxy_index':i,
                              'last_seen':0} #0 is the oldest UNIX have ever seen ;)
