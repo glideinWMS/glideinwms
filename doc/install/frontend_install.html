@@ -26,6 +26,8 @@ Frontend </font></font> </h1>
       <td><a href="#system">Base tools installation</a></td>
       <td>|</td>
       <td><a href="#frontend">VO Frontend installation</a></td>
+      <td>|</td>
+      <td><a href="#monitoring">VO Frontend monitoring</a></td>
       <td>]</td>
     </tr>
   </tbody>
@@ -488,6 +490,91 @@ script:</font></font></p>
 
 <p><font face="Liberation Serif"><font size="3">The same script can be used
 to stop, reconfig and restart the VO Frontend.</font></font> </p>
+
+<h2><a name="monitoring"><font face="Bitstream Vera Serif"><font size="4">6.
+VO Frontend monitoring </font></font> </a></h2>
+
+<p><font face="Liberation Serif"><font size="3">There are several ways to
+monitor the Vo Frontend:</font></font></p>
+<ul>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_web">Using the Web monitoring</a></font></font></p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_tools">Using the WMS tools</a></font></font></p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_logs">Looking at the VO frontend log
+    files</a></font></font> </p>
+  </li>
+  <li><p><font face="Liberation Serif"><font size="3"><a
+    href="#monitoring_condor">Checking the WMS collector
+    ads</a></font></font></p>
+  </li>
+</ul>
+
+<h3><a name="monitoring_web"><font face="Verdana"><font size="3">6.1 VO frontend entry Web monitoring</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You can either monitor the
+frontend as a whole, or just a single entry point.<br>
+<br>
+The frontend monitoring is located at a URL like the one
+below</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Moreover, each frontend group
+has its own history on the Web.<br>
+<br>
+Assuming you have a main group, it can be monitored at</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/group_main/</font></font></blockquote>
+
+<h3><a name="monitoring_tools"><font face="Verdana"><font size="3">6.2
+VO frontend monitoring via WMS tools</font></font></a></h3>
+
+<p><font face="Liberation Serif"><font size="3">You can get the equivalent of
+the Web page snaphot by using </font></font> </p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">cd glideinWMS/tools/<br>
+  ./wmsXMLView.py -pool gfactory1.my.org</font></font></blockquote>
+
+<h3><a name="monitoring_logs"><font face="Verdana"><font size="3">6.3 VO
+frontend group log files </font></font> </a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The vo frontend writes
+two log files per entry point <b>frontend_info.YYYYMMDD.log</b> and
+<b>frontend_err.YYYYMMDD.log</b>.<br>
+<br>
+Assuming you have a main group, the log files are in</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font
+  size="3">/home/frontend/frontstage/frontend_myVO1_v1/group_main/log</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">All errors are reported in
+the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log
+</b>contains entries about what the VO frontend is doing.</font></font></p>
+
+<h3><a name="monitoring_condor"><font face="Verdana"><font size="3">6.4
+VO frontend ClassAds in the WMS Collector </font></font> </a></h3>
+
+<p><font face="Liberation Serif"><font size="3">The VO frontned also
+advertises summary information in the WMS collector.<br>
+<br>
+Use <b>condor_status</b>:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">condor_status -pool gfrontend1.my.org
+  -any</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and look for
+<b>glideclient</b> ads.</font></font></p>
 <hr size="1">
 
 <p><font face="Liberation Serif"><font size="3"><a href="index.html">Back to
