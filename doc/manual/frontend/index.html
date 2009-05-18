@@ -18,7 +18,7 @@
 	<LI><A HREF="#overview">Overview</A> 
 	<LI><A HREF="#implementation">Implementation</A> 
 	<LI><A HREF="#management">The VO Frontend management</A> 
-	<LI><A HREF="#run_daemon">Starting a VO Frontend Daemon</A> 
+	<LI><A HREF="#run_daemon">Starting a VO Frontend Daemons</A> 
 	<LI><A HREF="#ref">Reference</A> 
 </UL>
 <H2><A NAME="overview"></A>Overview</H2>
@@ -70,83 +70,31 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
 	above steps.</P></DD></DL>
 <H2>
 <A NAME="management"></A>The VO Frontend management</H2>
-<P>The VO Frontend configuration is composed of a single file that
-needs to be passed as a parameter to the executable.<BR><BR>The
-configuration file is essentially a piece of Python code that needs
-to define the following objects:</P>
-<UL>
-	<LI><FONT FACE="monospace"><B>frontend_name</B></FONT><BR>This is
-	the name of the frontend, and must be a string (like
-	<FONT FACE="monospace">'cms-fe1.fnal.us'</FONT>) 
-	<LI><FONT FACE="monospace"><B>factory_pool</B></FONT><BR>This is the
-	name of the WMS Condor Collector, and it must be a string (like
-	<FONT FACE="monospace">'cmswms1.fnal.gov'</FONT>).<BR>If you are
-	using a single Collector, this can be set to None. 
-	<LI><FONT FACE="monospace"><B>schedd_names</B></FONT><BR>This is the
-	list of schedd names where user jobs are being queued, each name
-	being a string (like
-	<FONT FACE="monospace">['schedd1@cmssubmit1.fnal.gov','schedd2@cmssubmit1.fnal.gov','cmssubmit2.fnal.gov']</FONT>)
-	
-	<LI><FONT FACE="monospace"><B>factory_constraint</B></FONT><BR>A
-	<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_status.html">Condor
-	constraint</A> to be used with condor_status when looking for
-	glidein factories in the WMS collector. (like
-	'<FONT FACE="monospace">GLIDEIN_Expose_Grid_Env=?=&quot;True&quot;'</FONT>,
-	i.e. consider only glidein factories that pass on the Grid
-	environment)<BR>If you want to consider all glidein factories, this
-	can be set to None. 
-	<LI><FONT FACE="monospace"><B>job_constraint</B></FONT><BR>A <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">Condor
-	constraint</A> to be used with condor_q when looking for user jobs.
-	(like '<FONT FACE="monospace">JobUniverse=?=5'</FONT>, i.e. consider
-	only Vanilla jobs)<BR>If you want to consider all user jobs, this
-	can be set to None. 
-	<LI><FONT FACE="monospace"><B>match_string</B></FONT><BR>This is the
-	matchmaking policy the frontend will use. See the <A HREF="#match_expr">Implementation
-	section</A> for more information. 
-	<LI><FONT FACE="monospace"><B>max_idle_glideins_per_entry</B></FONT><BR>The
-	maximum number of idle glideins that will be requested for every
-	glidein factory entry.<LI>
-	<FONT FACE="monospace"><B>reserve_idle_glideins_per_entry</B></FONT><BR>The
-	maximum overestimate used (to account for Condor-G errors).<LI>
-	<FONT FACE="monospace"><B>max_idle_vms_per_entry</B></FONT><BR>The
-	maximum number of idle VMs that will be tolerated before stopping
-	submitting new glideins (independently on the number of idle jobs).<LI>
-	<FONT FACE="monospace"><B>curb_idle_vms_per_entry</B></FONT><BR>The
-	number of idle VMs needed to start reducing the number of requested
-	glideins.<LI>
-	<FONT FACE="monospace"><B>max_running_jobs</B></FONT><BR>When this
-	number is reached, no more idle jobs will be requested. 
-	<LI><FONT FACE="monospace"><B>glidein_params</B></FONT><BR>This is
-	the dictionary of parameters to set in the frontend requests. In
-	this version it is not flexible and will send the same parameters
-	for all the requests.<BR>One parameter is always needed:
-	<FONT FACE="monospace"><B>GLIDEIN_Collector</B></FONT>, and it is
-	used to specify the location of the VO/glidein/user Collector (or of
-	the <A HREF="../factory/entry.html#multicol">slave collectors</A>).<BR>(An
-	example: <FONT FACE="monospace">glidein_params={&quot;GLIDEIN_Collector&quot;:&quot;cms-fe1.fnal.gov&quot;}</FONT>)
-	
-	<LI><FONT FACE="monospace"><B>log_dir</B></FONT><BR>Where to put the
-	Frontend log files.<BR>(An example:
-	<FONT FACE="monospace">log_dir='/tmp/glideFrontendLogs_%s'%frontend_name</FONT>)
-	
-	<LI><P><FONT FACE="monospace"><B>loop_delay</B></FONT><BR>This
-	specifies how much time (in seconds) should pass between polling
-	loops.<BR>(An example: <FONT FACE="monospace">loop_delay=60</FONT>) 
-	</P>
-</UL>
-<H2><A NAME="run_daemon"></A>Starting a VO Frontent Daemon</H2>
+<P>The VO Frontend configuration is similar to the Glidein Factory one,
+in the sense that it is a XML file that gets converted into a configuration
+tree by a configuration tool.</P>
+<P>Due to limited time available, the configuration options are not described
+in this release. Please use the installer to create a base configuration
+file, and then follow by analogy to the Glidein Factory one.</P>
+<P>Next releases will document this better.</P>
+<H2><A NAME="run_daemon"></A>Starting a VO Frontent Daemons</H2>
 <P>Once you have the desired configuration file, move to the VO
 frontend directory&nbsp; and launch the command:</P>
 <DL>
 	<DD><PRE>./frontend_startup start</PRE><DD>
 	<BR>
-	</DD><DD>
-	All the activity messages will go into</DD><DD>
-	<FONT FACE="monospace">&lt;log_dir&gt;/frontend_info.&lt;date&gt;.log</FONT></DD><DT>
-	while the warnings go into</DT><DD><P>
-	<FONT FACE="monospace">&lt;log_dir&gt;/frontend_err.&lt;date&gt;.log</FONT></P></DD></DL>
+	</DD>
+</DL>
+All the activity messages will go into
+<blockquote>
+	<FONT FACE="monospace">group_*/log/frontend_info.&lt;date&gt;.log</FONT>
+</blockquote>
+while the warnings go into
+<blockquote>
+	<FONT FACE="monospace">group_*/log/frontend_err.&lt;date&gt;.log</FONT><
+</blockquote>
 <P>
-<A NAME="ref"></A>The fronted logs are deleted after a week.<BR><BR><BR><BR>
+<A NAME="ref"></A>The frontend logs are deleted after a week.<BR><BR><BR><BR>
 </P>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
 	<TR VALIGN=TOP>
