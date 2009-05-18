@@ -128,10 +128,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                     proxy_fd.close()
                 x509_proxies_data.append((proxy_idx,proxy_data))
             except:
-                warning_log.write("Could not read proxy file '%s'"%proxy_fname)
+                glideinFrontendLib.log_files.logWarning("Could not read proxy file '%s'"%proxy_fname)
                 pass # do nothing else, just warn
         if len(x509_proxies_data)==0:
-            warning_log.write("All proxies failed, not advertizing")
+            glideinFrontendLib.log_files.logWarning("All proxies failed, not advertizing")
             return
         
         # ignore glidein factories that do not have a public key
