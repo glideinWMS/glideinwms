@@ -13,6 +13,7 @@ import os,os.path
 import time
 import string
 import pubCrypto,symCrypto
+import glideinFrontendLib
 
 ############################################################
 #
@@ -83,7 +84,17 @@ def findGlideins(factory_pool,
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
-    status.load(status_constraint)
+
+    try:
+        status.load(status_constraint)
+    except condorExe.ExeError, e:
+        if factory_pool!=None:
+            glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool)
+            glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool, e))
+        else:
+            glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
+            glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
+        return {} # retrun empty set
 
     data=status.fetchStored()
 
