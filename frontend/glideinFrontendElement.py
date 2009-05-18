@@ -259,7 +259,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                      signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                      glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors)
         except RuntimeError, e:
-          glideinFrontendLib.log_files.logWarning("Advertize %s failed: %s"%(glideid_str,e))
+          glideinFrontendLib.log_files.logWarning("Advertize %s failed. See debug log for more details."%glideid_str)
+          glideinFrontendLib.log_files.logDebug("Advertize %s failed: %s"%(glideid_str,e))
         except:
           glideinFrontendLib.log_files.logWarning("Advertize %s failed: Reason unknown"%glideid_str)
 
@@ -304,7 +305,8 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                     # never fail for stats reasons!
                     tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                     sys.exc_info()[2])
-                    glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))                
+                    glideinFrontendLib.log_files.logWarning("Unhandled exception, ignoring. See debug log for more details.")
+                    glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),tb))
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
@@ -314,7 +316,8 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                     # if not the first pass, just warn
                     tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                     sys.exc_info()[2])
-                    glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+                    glideinFrontendLib.log_files.logWarning("Unhandled exception, ignoring. See debug log for more details.")
+                    glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),tb))
                 
             is_first=0
             glideinFrontendLib.log_files.logActivity("Sleep")
@@ -361,7 +364,8 @@ def main(parent_pid, work_dir, group_name):
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+            glideinFrontendLib.log_files.logWarning("Unhandled exception, dying. See debug log for more details.")
+            glideinFrontendLib.log_files.logDebug("Exception at %s, dying: %s" % (time.ctime(),tb))
     finally:
         pid_obj.relinquish()
 
