@@ -1514,7 +1514,7 @@ def vofrontend_install():
             fd.write('   <work base_dir="%s"/>\n'%frontstage_base_dir)
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
-            fd.write('   <security>\n')
+            fd.write('   <security proxy_selection_plugin="ProxyAll">\n')
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
                 fd.write('         <proxy absfname="%s"/>\n'%a_fname)
