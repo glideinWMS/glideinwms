@@ -1,110 +1,153 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>Installation of a VO Frontend</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
-	<META NAME="CREATED" CONTENT="20071113;16540800">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080806;12593100">
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
-VO Frontend </FONT></FONT>
-</H1>
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>Installation of a VO Frontend</title>
+  <meta name="CREATED" content="20071113;16540800">
+  <meta name="CHANGEDBY" content="Igor Sfiligoi">
+  <meta name="CHANGED" content="20080806;12593100">
+</head>
+
+<body lang="en-US" dir="ltr">
+<h1><font face="Bitstream Vera Serif"><font size="4">Installation of a VO
+Frontend </font></font> </h1>
 <hr>
+
 <table>
-<tr valign="center" align="center">
-<td>[</td><td><a href="#description">Description</a></td>
-<td>|</td><td><a href="#hardware">Hardware requirements</a></td>
-<td>|</td><td><a href="#software">Needed software</a></td>
-<td>|</td><td><a href="#system">Base tools installation</a></td>
-<td>|</td><td><a href="#frontend">VO Frontend installation</a></td>
-<td>]</td>
-</tr>
+  <tbody>
+    <tr align="center">
+      <td>[</td>
+      <td><a href="#description">Description</a></td>
+      <td>|</td>
+      <td><a href="#hardware">Hardware requirements</a></td>
+      <td>|</td>
+      <td><a href="#software">Needed software</a></td>
+      <td>|</td>
+      <td><a href="#system">Base tools installation</a></td>
+      <td>|</td>
+      <td><a href="#frontend">VO Frontend installation</a></td>
+      <td>]</td>
+    </tr>
+  </tbody>
 </table>
 <hr>
-<TABLE CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD VALIGN=TOP>
-                        <A NAME="description">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend will
-			match user jobs with glidein factory ads. It is responsible for
-			the submission of new glideins.</FONT></FONT></P>
-                        <A NAME="hardware">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
-			requirements </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
-			fast CPU</B> and a moderate amount of <B>memory</B> (<B>1GB </B>should
-			be enough).<BR>The <B>disk</B> needed is just for binaries, config
-			files and log files (<B>20GB</B> should be enough)</FONT></FONT></P>
-                        <A NAME="software">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed
-			software </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
-			OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
-			client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-			distribution</A>.<BR>
-A HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
-href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.<br>
-The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a> (v1.2.18 or
-later)<br>
-The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python
-library</a> (v0.17 or later)<br>
-The <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package (0.4 or later)<br>
-The <a
-href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
-software</a>.
 
-</FONT></FONT></TD>
-		<TD>
-			<P><IMG SRC="overview_frontend.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0>
-			
-		</TD>
-	</TR>
-</TABLE>
-<A NAME="system">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Base tools
-installation instructions</FONT></FONT></H2>
+<table cellpadding="2" cellspacing="2">
+  <tbody>
+    <tr>
+      <td valign="top"><h2><a name="description"><font
+        face="Bitstream Vera Serif"><font size="4">1. Description
+        </font></font> </a></h2>
 
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.1 VDT and Condor</FONT><FONT></H3>
+        <p><font face="Liberation Serif"><font size="3">The VO Frontend will
+        match user jobs with glidein factory ads. It is responsible for the
+        submission of new glideins.</font></font></p>
 
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend will
-need the OSG client and the Condor binaries. You can reuse an existing installation, if available, 
-like if you host the VO Frontend on the <A HREF="schedd_install.html">a submitter node</A>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Else you need
-to install a local copy. The suggested way is to install as the same non privileged 
-<FONT FACE="Liberation Serif"><FONT SIZE=3><B>VO Frontend</B></FONT></FONT> user (see <A HREF="#frontend">below</A>).
-<BR>
-The whole process is managed by
-a install script described below. You will need to provide
-a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-tarball</A>, so you may as well download it before starting the
-installer.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>6</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions. The installation is straightforward.</FONT></FONT></P>
+        <p><font face="Liberation Serif"><font size="3">The VO frontend also keeps part of the configuration of a glidein,
+        and can also provide the <a href="factory_install.html">glidein
+        Factory</a> with the pilot proxies.</font></font></p>
+
+        <h2><a name="hardware"><font face="Bitstream Vera Serif"><font
+        size="4">2. Hardware requirements </font></font> </a></h2>
+
+        <p><font face="Liberation Serif"><font size="3">This machine needs
+        <b>a fast CPU</b> and a moderate amount of <b>memory</b> (<b>1GB
+        </b>should be enough).<br>
+        The <b>disk</b> needed is just for binaries, config files and log
+        files (<b>20GB</b> should be enough)</font></font></p>
+
+        <h2><a name="software"><font face="Bitstream Vera Serif"><font
+        size="4">3. Needed software </font></font> </a></h2>
+
+        <p><font face="Liberation Serif"><font size="3">Any <a
+        href="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
+        OS</a>.<br>
+        The <a
+        href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
+        client software</a>.<br>
+        The <a href="http://www.cs.wisc.edu/condor/downloads/">Condor
+        distribution</a>.<br>
+        A HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
+        href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.<br>
+        The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a>
+        (v1.2.18 or later)<br>
+        The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python
+        library</a> (v0.17 or later)<br>
+        The <a
+        href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a>
+        package (0.4 or later)<br>
+        The <a
+        href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
+        software</a>. </font></font></p>
+      </td>
+      <td><p><img src="overview_frontend.png" name="graphics1" align="bottom"
+        border="0"> </p>
+      </td>
+    </tr>
+  </tbody>
+</table>
+<h2><a name="system"><font face="Bitstream Vera Serif"><font size="4">4. Base
+tools installation instructions</font></font></a></h2>
+
+<h3><font face="Liberation Serif"><font size="3">4.1 VDT and
+Condor</font><font></font></font></h3>
+
+<p><font face="Liberation Serif"><font size="3">The VO Frontend will need the
+OSG client and the Condor binaries. You can reuse an existing installation,
+if available, like if you host the VO Frontend on the <a
+href="schedd_install.html">a submitter node</a>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Else you need to install a
+local copy. The suggested way is to install as the same non privileged <font
+face="Liberation Serif"><font size="3"><b>VO Frontend</b></font></font> user
+(see <a href="#frontend">below</a>). <br>
+The whole process is managed by a install script described below. You will
+need to provide a valid <a
+href="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</a>, so you
+may as well download it before starting the installer.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>6</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
+The installation is straightforward.</font></font></p>
 
 <h3><a name="system_httpd"><font face="Liberation Serif"><font size="3">4.2
 HTTP server</font></font></a></h3>
 
-<p><font face="Liberation Serif"><font size="3">The VO frontend needs a
-HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
+<p><font face="Liberation Serif"><font size="3">The VO frontend needs a HTTP
+server, like <a href="http://www.apache.org/">Apache</a> or <a
 href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.
 The server should be installed on the same node, but a different node can be
 used as long as the web area is writable from this one.</font></font></p>
@@ -186,9 +229,10 @@ and related dependencies.</font></font></p>
 
 <p><font face="Liberation Serif"><font size="3">If installing as root is not
 an option, you can build from the sources, as the </font></font><font
-face="Liberation Serif"><font size="3"><b>vo frontend</b></font></font>
-<font face="Liberation Serif"><font size="3">user (see <A HREF="#frontend">below</A>), and put the python
-libraries into the PYTHON_PATH.<br>
+face="Liberation Serif"><font size="3"><b>vo frontend</b></font></font> <font
+face="Liberation Serif"><font size="3">user (see <a
+href="#frontend">below</a>), and put the python libraries into the
+PYTHON_PATH.<br>
 The source code can be downloaded from:<br>
 <a
 href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a></font></font></p>
@@ -197,105 +241,155 @@ href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a>
 several dependencies that make it complicated. Use this option only if you
 cannot install from RPMs (or similar). </font></font> </p>
 
-<H3><FONT FACE="Liberation Serif"><FONT SIZE=3>4.4 M2Crypto</FONT><FONT></H3>
+<h3><font face="Liberation Serif"><font size="3">4.4
+M2Crypto</font><font></font></font></h3>
 
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If you are passing the proxy
-from the VO Frontend to the glidein Factory, you will need the
-<A HREF="http://freshmeat.net/projects/m2crypto">M2Crypto python
-library</A>. A few systems include it in the software distribution;
-if possible install the system one.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If your system does not
-come with m2crypto package, or you do not can/want install it as
-root, compile it from source as the </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>VO frontend</B></FONT></FONT> 
-<FONT FACE="Liberation Serif"><FONT SIZE=3>user (see <A HREF="#frontend">below</A>).<BR>
-The source code can be downloaded
-from:<BR><A HREF="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</A></FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The build process is
-very easy:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>python
-setup.py build<BR>python setup.py install --root <I>&lt;base dir&gt;</I></FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Finally add M2Crypto
-into the PYTHONPATH, possibly in the .profile, .bashrc, and/or in the .cshrc:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>export
-PYTHONPATH=$PYTHONPATH:<I>&lt;base
-dir&gt;</I>/usr/lib/python2.3/site-packages/</FONT></FONT></BLOCKQUOTE>
+<p><font face="Liberation Serif"><font size="3">If you are passing the proxy
+from the VO Frontend to the glidein Factory, you will need the <a
+href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. A
+few systems include it in the software distribution; if possible install the
+system one.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">If your system does not come
+with m2crypto package, or you do not can/want install it as root, compile it
+from source as the </font></font><font face="Liberation Serif"><font
+size="3"><b>VO frontend</b></font></font> <font face="Liberation Serif"><font
+size="3">user (see <a href="#frontend">below</a>).<br>
+The source code can be downloaded from:<br>
+<a
+href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a></font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">The build process is very
+easy:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">python setup.py build<br>
+  python setup.py install --root <i>&lt;base
+dir&gt;</i></font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Finally add M2Crypto into the
+PYTHONPATH, possibly in the .profile, .bashrc, and/or in the
+.cshrc:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">export
+  PYTHONPATH=$PYTHONPATH:<i>&lt;base
+  dir&gt;</i>/usr/lib/python2.3/site-packages/</font></font></blockquote>
 
 <h3><a name="system_javascriptRRD"><font face="Liberation Serif"><font
 size="3">4.5 javascriptRRD</font></font></a></h3>
 
 <p><font face="Liberation Serif"><font size="3">You will need the <a
-href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>. 
-It contains the javascript libraries needed by the monitoring.</font></font></p>
+href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD
+package</a>. It contains the javascript libraries needed by the
+monitoring.</font></font></p>
 
 <p><font face="Liberation Serif"><font size="3">Just download the tarball,
-and untar it. You will need to point the installer to this directory.</font></font></p>
+and untar it. You will need to point the installer to this
+directory.</font></font></p>
 
-<A NAME="frontend">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. VO Frontend
-installation </FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend
-needs a x509 proxy to communicate with the glidein Factory. You
-need to create such proxy before starting a VO Frontend and
-then keep it valid for the life of the frontend. If used for job
-submission (i.e. if it is passed to the glidein Factory),
-this proxy must at any point in time have a validity of at least the
-longest expected job being run by the glideinWMS (and not less than
-12 hours).<BR>How you keep this proxy valid (via MyProxy, kx509,
-voms-proxy-init from a local certificate, scp from other nodes, or
-other methods), is beyond the scope of this document.
-</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The VO Frontend
-should be installed as a non privileged user. The provided installer 
-can be used to create the configuration file, although some manual tunning will probably be needed.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>7</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will need to
-specify the selection and matching criteria for the user jobs. The
-suggested values</FONT></FONT>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>jobs_constraint
-= (JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<BR>match_string
-= glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;] in
-job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;)</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>should be fine for some
-basic matchmatching, providing that your user jobs add</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
-= “site1,site2,...siteN”<BR>requirements=stringListMember(GLIDEIN_Site,
-DESIRED_Sites)</FONT></FONT></P></BLOCKQUOTE>
-<FONT FACE="Liberation Serif"><FONT SIZE=3>
-(Look at the <A HREF="../manual/frontend/index.html#management">glideinWMS
-manual</A> for more details.)</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
-answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the VO Frontend you need a valid GSI proxy.
-Where is your proxy located?: [/home/frontend/.globus/x509_service_proxy] <B>/home/frontend/.globus/x509_service_proxy</B>
+<h2><a name="frontend"><font face="Bitstream Vera Serif"><font size="4">5. VO
+Frontend installation </font></font> </a></h2>
 
-Give a name to this VO Frontend?: [org_frontend1] <B>fe1</B>
-What node is the WMS collector running?: <B>gfactory1.my.org</B>
+<p><font face="Liberation Serif"><font size="3">The VO Frontend needs a x509
+proxy to communicate with the glidein Factory. You need to create such proxy
+before starting a VO Frontend and then keep it valid for the life of the
+frontend. If used for job submission (i.e. if it is passed to the glidein
+Factory), this proxy must at any point in time have a validity of at least
+the longest expected job being run by the glideinWMS (and not less than 12
+hours).<br>
+How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a
+local certificate, scp from other nodes, or other methods), is beyond the
+scope of this document. </font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">The VO frontend can also host the x509 proxies used for glidein
+submission. If you do use this (recommended) method, you need to keep these
+proxies valid at all time, as you do for the main frontend proxy.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">The VO Frontend should be
+installed as a non privileged user. The provided installer can be used to
+create the configuration file, although some manual tunning will probably be
+needed.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>7</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the
+instructions.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">You will need to specify the
+selection and matching criteria for the user jobs. The suggested
+values</font></font> </p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">jobs_constraint =
+  (JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<br>
+  match_string = glidein["attrs"]["GLIDEIN_Site"] in
+  job["DESIRED_Sites"].split(",")</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">should be fine for some basic
+matchmatching, providing that your user jobs add</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">+DESIRED_Sites =
+  “site1,site2,...siteN”<br>
+  requirements=stringListMember(GLIDEIN_Site, DESIRED_Sites)</font></font></p>
+</blockquote>
+<font face="Liberation Serif"><font size="3">(Look at the <a
+href="../manual/frontend/index.html#management">glideinWMS manual</a> for
+more details.)</font></font>
+<p><font face="Liberation Serif"><font size="3">Here a possible set of
+answers is presented; your setup will probably be slightly
+different:</font></font></p>
+<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">To use the VO Frontend you need a valid GSI proxy.
+Where is your proxy located?: [/home/frontend/.globus/x509_service_proxy] <b>/home/frontend/.globus/x509_service_proxy</b>
+
+Give a name to this VO Frontend?: [org_frontend1] <b>fe1</b>
+What node is the WMS collector running?: <b>gfactory1.my.org</b>
 
 What node is the pool collector running on?
 If you have a hierarchy of collectors, list them all
 (for example: master1.my.org:9621,master1.my.org:9622)
-Collector name(s): [collector1.my.org] <B>collector1.my.org:9620,collector1.my.org:9621,collector1.my.org:9622,collector1.my.org:9623</B>
+Collector name(s): [collector1.my.org] <b>collector1.my.org:9620,collector1.my.org:9621,collector1.my.org:9622,collector1.my.org:9623</b>
 The following schedds have been found:
  [1] schedd1.my.org
  [2] schedd_jobs1@schedd1.my.org
  [3] schedd_jobs2@schedd1.my.org
  [4] schedd_jobs3@schedd1.my.org
  [5] schedd_jobs4@schedd1.my.org
-Do you want to monitor all of them?: (y/n) <B>y</B>
+Do you want to monitor all of them?: (y/n) <b>y</b>
 
 What expression do you want to use to match glideins to jobs?
 It is an arbitrary python boolean expression using the dictionaries
@@ -304,23 +398,28 @@ A simple example expression would be:
   glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
 If you want to match all (OK for simple setups),
   just specify 1 (the default)
-Match string: [1] <B>glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;] in job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;)</B>
-Job attributes: [("DESIRED_Sites","s")] <B>("DESIRED_Sites","s")</B>
-What kind of jobs do you want to monitor?: [(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)] <B>(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)&&(DESIRED_Sites=!=UNDEFINED)</B>
-Where will you host your config and log files?: [/home/frontend/frontend_fe1] <B>/home/frontend/frontend_fe1</B>
-Directory '/home/factory_frontend_fe1' does not exist, should I create it?: (y/n) <B>y</B>
-</PRE>
+Match string: [1] <b>glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")</b>
+Job attributes: [("DESIRED_Sites","s")] <b>("DESIRED_Sites","s")</b>
+What kind of jobs do you want to monitor?: [(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)] <b>(JobUniverse==5)&amp;&amp;(GLIDEIN_Is_Monitor =!= TRUE)&amp;&amp;(JOB_Is_Monitor =!= TRUE)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)</b>
+Where will you host your config and log files?: [/home/frontend/frontend_fe1] <b>/home/frontend/frontend_fe1</b>
+Directory '/home/factory_frontend_fe1' does not exist, should I create it?: (y/n) <b>y</b></pre>
 
-<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>5.1. Starting the VO
-Frontend </FONT></FONT>
-</H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Use the startup script:</FONT></FONT></P>
-<BLOCKQUOTE><P><FONT FACE="Liberation Serif"><FONT SIZE=3>cd
-&lt;install dir&gt;<BR>./frontend_startup start</FONT></FONT></P></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The same script can be used to stop and restart the VO Frontend.</FONT></FONT>
-</P>
-<HR SIZE=1>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
-to the index</A></FONT></FONT></P>
-</BODY>
-</HTML>
+<h3><font face="Utopia, serif"><font size="3">5.1. Starting the VO Frontend
+</font></font> </h3>
+
+<p><font face="Liberation Serif"><font size="3">Use the startup
+script:</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">cd &lt;install dir&gt;<br>
+  ./frontend_startup start</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">The same script can be used
+to stop and restart the VO Frontend.</font></font> </p>
+<hr size="1">
+
+<p><font face="Liberation Serif"><font size="3"><a href="index.html">Back to
+the index</a></font></font></p>
+</body>
+</html>
