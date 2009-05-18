@@ -112,6 +112,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     if x509_proxy_plugin!=None:
         x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
                                                       status_dict,status_dict_types)
+        glideinFrontendLib.log_files.logActivity("Using %i proxies"%len(x509_proxy_list))
+        
         x509_proxies_data=[]
         for x509_proxy_list_el in x509_proxy_list:
             proxy_idx,proxy_fname=x509_proxy_list_el
