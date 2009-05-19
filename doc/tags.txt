@@ -9,6 +9,7 @@ v2Next	Refactoring creation libs;
 	Added tools/glidein_status.py.
 	The monitoring page now has client-side monitoring based on
             javascriptRRD.
+	Support multiple proxies... frontend drives this via plugins.
 
 v1_6+	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
