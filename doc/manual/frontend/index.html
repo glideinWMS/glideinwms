@@ -33,17 +33,18 @@ easier, as it only has to worry about matching user job requirements
 to the factory attributes.</P>
 <H2><A NAME="implementation"></A>Implementation</H2>
 <P>The current implementation of the VO frontend is <A HREF="http://www.python.org/">Python</A>
-based, and is very simple.<BR><BR>The code is composed of 4 logical
+based. It uses a tree of process like the factory does.<BR><BR>
+The sub-process (group) code is composed of 4 logical
 pieces:</P>
 <UL>
-	<LI>a&nbsp;class that holds the Glidein Factory Ads, 
-	<LI>a&nbsp;class that holds the user jobs Ads, 
-	<LI>a&nbsp;matchmaking procedure,&nbsp; 
+	<LI>an element that holds the Glidein Factory Ads, 
+	<LI>an element that holds the user jobs Ads, 
+	<LI>a matchmaking procedure,
 	<LI>a procedure that advertises the requests, and 
 	<LI><P>the glue that links the above together. 
 	</P>
 </UL>
-<P><A NAME="match_expr"></A>The top two classes simply contact the
+<P><A NAME="match_expr"></A>The top two elements simply contact the
 appropriate Condor Collector and store the data in memory.<BR><BR>The
 matchmaking procedure loops over all the <A HREF="../index.html#factory_classads">factory
 ads</A> and&nbsp;counts the number of idle user jobs that match the
@@ -62,12 +63,14 @@ and values being attribute values.<BR><BR>A few examples:</P>
 <DL>
 	<DD><PRE>job[&quot;CDFMaxHours&quot;]&lt;glidein[&quot;attrs&quot;][&quot;WMSMaxHours&quot;]
 job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot;SitesWithRequiredData&quot;]))
-(job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE><DD><P>
-	<BR>Finally, the advertise procedure loops over the counts and
+(job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE></DD></DL><P>
+<P>Finally, the advertise procedure loops over the counts and
 	converts them into appropriate <A HREF="../index.html#frontend_classads">Condor
 	Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
 	input parameters, loading the configuration values and loop over the
-	above steps.</P></DD></DL>
+	above steps.</P>
+
+<P>The frontend also can handle multiple proxies. The proxy selection is handled by a plugin mechanism.</P>
 <H2>
 <A NAME="management"></A>The VO Frontend management</H2>
 <P>The VO Frontend configuration is similar to the Glidein Factory one,
