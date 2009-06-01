@@ -1,4 +1,6 @@
-v2Next	Refactoring creation libs;
+vNext	Fixed a bug that was throwing an exception if a glidein failed.
+
+v2_0	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code
 	Added create_frontend, recreate_frontend.
 	Frontend now has a stage web area and passes it to the factory
