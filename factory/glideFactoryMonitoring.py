@@ -638,7 +638,7 @@ class condorLogSummary:
 
             count_total['Glideins']+=1
             if not enle_condor_started:
-                count_total['Failed']+=1
+                count_total['FailedNr']+=1
 
             # find and save time range
             count_total['Lasted']+=enle_glidein_duration
