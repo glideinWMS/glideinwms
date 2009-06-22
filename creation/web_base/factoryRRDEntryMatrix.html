@@ -78,6 +78,7 @@
       // Load the status of the factory
       var factoryQStats=loadFactoryQStats();
       var entries=getFactoryEntries(factoryQStats);
+      char_count=0;
       for (var entry in entries) {
 	var cb_el = document.createElement("input");
 	cb_el.type = "checkbox";
@@ -86,9 +87,14 @@
 	cb_el.checked = cb_el.defaultChecked = true;
 
         var html_el=document.getElementById("entries");
-	html_el.appendChild(cb_el);
+        if (char_count>60) {
+          html_el.appendChild(document.createElement("br"));
+          char_count=0;
+        }
+        html_el.appendChild(cb_el);
         html_el.appendChild(document.createTextNode(entries[entry]));
-      }
+        char_count+=1+cb_el.value.length;
+       }
 
      // fname and rrd_data are the global variable used by all the functions below
       rrd_name="";
