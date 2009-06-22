@@ -41,13 +41,15 @@
     <table border=0>
      <tr>
        <th>Entry</th>
-       <td><form id="entries">
-	<input type="radio" name="entry" value="total" checked>total<br>
-       </form></td>
+       <td valing="middle">
+         <select id="entries">
+	  <option value="total">total</option>
+	 </select>
+       </td>
      </tr>
      <tr>
        <th>Info group</th>
-       <td><form id="gtypes">
+       <td valign="middle"><form id="gtypes">
 	<input type="radio" name="gtype" value="running" checked>Running
 	<input type="radio" name="gtype" value="idle">Idle
 	<input type="radio" name="gtype" value="other">Other
@@ -81,15 +83,10 @@
       // Load the status of the factory
       var factoryQStats=loadFactoryQStats();
       var entries=getFactoryEntries(factoryQStats);
+      var entries_select=document.getElementById("entries");
+      entries_select.appendChild(new Option("--------","total"));
       for (var entry in entries) {
-        var elRadio=document.createElement("input");
-        elRadio.type = "radio";
-        elRadio.name = "entry";
-        elRadio.value = entries[entry];
-
-        var html_el=document.getElementById("entries");
-        html_el.appendChild(elRadio);
-        html_el.appendChild(document.createTextNode(entries[entry]));
+         entries_select.appendChild(new Option(entries[entry],entries[entry]));
       }
 
      // fname, gtype_id and rrd_data are the global variable used by all the functions below
@@ -178,12 +175,7 @@
         gtype_id=undefined;
 
         var entries_obj=document.getElementById("entries")
-        for (var i in entries_obj.entry) {
-         var entry=entries_obj.entry[i];
-         if (entry.checked==true) {
-  	   entry_name=entry.value;
-         }
-        }
+        entry_name=entries_obj.options[entries_obj.selectedIndex].value;
 
         var gtypes_obj=document.getElementById("gtypes");
         for (var i in gtypes_obj.gtype) {

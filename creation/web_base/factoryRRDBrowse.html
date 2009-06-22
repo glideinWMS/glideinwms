@@ -40,13 +40,15 @@
     <table border=0>
      <tr>
        <th>Entry</th>
-       <td><form id="entries">
-	<input type="radio" name="entry" value="total" checked>total<br>
-       </form></td>
+       <td valing="middle">
+         <select id="entries">
+	  <option value="total">total</option>
+	 </select>
+       </td>
      </tr>
      <tr>
        <th>RRD</th>
-       <td><form id="rrds">
+       <td valign="middle"><form id="rrds">
 	<input type="radio" name="rrd" value="Status_Attributes" checked>Status_Attributes
 	<input type="radio" name="rrd" value="Log_Counts">Log_Counts
 	<input type="radio" name="rrd" value="Log_Completed">Log_Completed
@@ -82,15 +84,10 @@
       // Load the status of the factory
       var factoryQStats=loadFactoryQStats();
       var entries=getFactoryEntries(factoryQStats);
+      var entries_select=document.getElementById("entries");
+      entries_select.appendChild(new Option("--------","total"));
       for (var entry in entries) {
-        var elRadio=document.createElement("input");
-        elRadio.type = "radio";
-        elRadio.name = "entry";
-        elRadio.value = entries[entry];
-
-        var html_el=document.getElementById("entries");
-        html_el.appendChild(elRadio);
-        html_el.appendChild(document.createTextNode(entries[entry]));
+         entries_select.appendChild(new Option(entries[entry],entries[entry]));
       }
 
      // fname and rrd_data are the global variable used by all the functions below
@@ -129,12 +126,7 @@
         var rrd_name="";
 
         var entries_obj=document.getElementById("entries")
-        for (var i in entries_obj.entry) {
-         var entry=entries_obj.entry[i];
-         if (entry.checked==true) {
-  	   entry_name=entry.value;
-         }
-        }
+        entry_name=entries_obj.options[entries_obj.selectedIndex].value;
 
         var rrds_obj=document.getElementById("rrds")
         for (var i in rrds_obj.rrd) {
