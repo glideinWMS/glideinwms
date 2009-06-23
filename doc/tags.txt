@@ -1,4 +1,6 @@
 vNext	Fixed a bug that was throwing an exception if a glidein failed.
+	Improvements to the monitoring.
+	Improvements to the installer.
 
 v2_0	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code
