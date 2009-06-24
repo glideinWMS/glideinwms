@@ -173,7 +173,8 @@ class MonitoringConfig:
 #########################################################################################################################################
 
 class condorQStats:
-    def __init__(self):
+    def __init__(self,myname={}):
+        self.factory_data={'Attributes':{},'DefParams':{},'MyName':copy.deepcopy(myname)}
         self.data={}
         self.updated=time.time()
 
@@ -182,6 +183,20 @@ class condorQStats:
                          'Requested':("Idle","MaxRun"),
                          'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
 
+
+    def logAttributes(self,attributes):
+        """
+        Factory/Entry attributes published.
+        """
+
+        self.factory_data['Attributes']=copy.deepcopy(attributes)
+
+    def logDefaultParameters(self,default_parameters):
+        """
+        Factory/Entry default parameters published.
+        """
+
+        self.factory_data['DefParams']=copy.deepcopy(default_parameters)
 
     def logSchedd(self,client_name,qc_status):
         """
@@ -264,6 +279,11 @@ class condorQStats:
             el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
 
         self.updated=time.time()
+
+    def get_xml_factory_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        return xmlFormat.class2string(self.factory_data,'published',
+                                      dicts_params={'Attributes':{'el_name':'Attribute'},'DefParams':{'el_name':'DefParam'}},
+                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_data(self):
         data1=copy.deepcopy(self.data)
@@ -365,6 +385,7 @@ class condorQStats:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<glideFactoryEntryQStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_factory_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</glideFactoryEntryQStats>\n")

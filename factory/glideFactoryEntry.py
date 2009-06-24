@@ -262,11 +262,9 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
-        myJobAttributes=jobAttributes.data.copy()
-        myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
-                                               myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
+                                               jobAttributes.data.copy(),jobParams.data.copy(),glidein_monitors.copy(),
                                                pub_key_obj,allowed_proxy_source)
     except:
         glideFactoryLib.factoryConfig.warning_log.write("Advertize failed")
@@ -325,11 +323,17 @@ def iterate(parent_pid,cleanupObjs,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.activity_log.write("Downtime iteration at %s" % time.ctime())
         else:
             glideFactoryLib.factoryConfig.activity_log.write("Iteration at %s" % time.ctime())
+        jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
-            glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
+            glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats({'FactoryName':glideinDescript.data['FactoryName'],
+                                                                                        'GlideinName':glideinDescript.data['GlideinName'],
+                                                                                        'EntryName':jobDescript.data['EntryName']})
             glideFactoryLib.factoryConfig.client_internals = {}
 
+            glideFactoryLib.factoryConfig.qc_stats.logAttributes(jobAttributes.data)
+            glideFactoryLib.factoryConfig.qc_stats.logDefaultParameters(jobParams.data)
+            
             done_something=iterate_one(count==0,in_downtime,
                                        glideinDescript,jobDescript,jobAttributes,jobParams)
             
