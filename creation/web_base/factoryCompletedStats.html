@@ -28,7 +28,7 @@
   <body>
     <table width="100%">
     <tr>
-     <td><h1 id="title">Glidein factory status from logs</h1>
+     <td><h1 id="title">Completed glidein factory stats</h1>
      <td align="right">[ 
 	    <a href="factoryStatus.html">Status</a> |
 	    <a href="factoryLogStatus.html">Log status</a> |
@@ -87,6 +87,9 @@
 
       // Load the status of the factory
       var factoryQStats=loadFactoryQStats();
+      var factory_name=getFactoryName(factoryQStats);
+      document.title=document.getElementById("title").firstChild.data="Completed glidein factory "+factory_name+" stats"
+    
       var entries=getFactoryEntries(factoryQStats);
       var entries_select=document.getElementById("entries");
       entries_select.appendChild(new Option("--------","total"));

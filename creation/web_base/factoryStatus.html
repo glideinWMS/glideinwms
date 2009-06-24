@@ -81,6 +81,9 @@
 
       // Load the status of the factory
       var factoryQStats=loadFactoryQStats();
+      var factory_name=getFactoryName(factoryQStats);
+      document.title=document.getElementById("title").firstChild.data="Glidein factory "+factory_name+" status"
+    
       var entries=getFactoryEntries(factoryQStats);
       var entries_select=document.getElementById("entries");
       entries_select.appendChild(new Option("--------","total"));
