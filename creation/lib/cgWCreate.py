@@ -67,6 +67,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                self.add("globus_rsl",rsl)
             elif gridtype=='gt4':
                self.add("globus_xml",rsl)
+            elif gridtype=='nordugrid':
+               self.add("nordugrid_rsl",rsl)
             else:
                raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
         self.add("Executable",exe_fname)
