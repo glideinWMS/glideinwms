@@ -3,6 +3,7 @@ vNext	Better randomization of GCBs and collectors
 	Fixed Condor-G log parsing
 	Better treatment of multiple-collectors in the installer
 	Add support for CCB and USE_MATCH_AUTH in the installer.
+	Better handling of Nordugrid sites.
 	Improved documentation
 
 v1_6	The XML file now supports comments.
