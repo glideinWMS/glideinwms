@@ -38,7 +38,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         self.dicts['file_list'].add_placeholder(cWConsts.CONSTS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.VARS_FILE,allow_overwrite=True)
         self.dicts['file_list'].add_placeholder(cWConsts.UNTAR_CFG_FILE,allow_overwrite=True) # this one must be loaded before any tarball
-        self.dicts['file_list'].add_placeholder(cWConsts.GRIDMAP_FILE,allow_overwrite=True) # this one must be loaded before setup_x509.sh
         
         # Load initial system scripts
         # These should be executed before the other scripts
@@ -73,14 +72,11 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for attr_name in params.attrs.keys():
             add_attr_unparsed(attr_name, params,self.dicts,"main")
 
-        if self.dicts['file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
-            self.dicts['file_list'].remove(cWConsts.GRIDMAP_FILE)
-
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
         # add additional system scripts
-        for script_name in ('validate_node.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
+        for script_name in ('validate_node.sh','create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
