@@ -417,7 +417,7 @@ def hash_status(el):
         # idle jobs, look of GridJobStatus
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
-            if grid_status=="PENDING":
+            if grid_status in ("PENDING","INLRMS: Q","PREPARED","SUBMITTING"):
                 return 1002
             else:
                 return 1100
@@ -427,7 +427,7 @@ def hash_status(el):
         # count only real running, all others become Other
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
-            if grid_status=="ACTIVE":
+            if grid_status in ("ACTIVE","INLRMS: R"):
                 return 2
             else:
                 return 1100
