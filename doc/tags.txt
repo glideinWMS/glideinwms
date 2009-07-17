@@ -1,5 +1,6 @@
 vNext	Fixed a bug that was throwing an exception if a glidein failed.
 	Fixed handling of grid-mapfiles coming from client.
+	Fixed support for nordugrid.
 	Improvements to the monitoring.
 	Improvements to the installer.
 
