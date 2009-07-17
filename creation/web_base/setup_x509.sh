@@ -86,39 +86,6 @@ function check_x509_proxy {
     return 0
 }
 
-# add the current DN to the list of allowed DNs
-# create a new file if none exist
-function create_gridmapfile {
-    id=`grid-proxy-info -identity`
-    if [ $? -ne 0 ]; then
-	id=`voms-proxy-info -identity`
-	if [ $? -ne 0 ]; then
-	    echo "Cannot get user identity!" 1>&2
-	    echo "Tried both grid-proxy-info and voms-proxy-info." 1>&2
-	    exit 1
-	fi
-    fi
-
-    idp=`echo $id |awk '{split($0,a,"/CN=proxy"); print a[1]}'`
-    if [ $? -ne 0 ]; then
-	echo "Cannot remove proxy part from user identity!" 1>&2
-	exit 1
-    fi
-
-    touch "$X509_GRIDMAP"
-    echo "\"$idp\"" condor >> "$X509_GRIDMAP"
-    if [ $? -ne 0 ]; then
-	echo "Cannot add user identity to $X509_GRIDMAP!" 1>&2
-	exit 1
-    fi
-
-    return 0
-}
-
-
-function extract_gridmap_DNs {
-    awk -F '"' '/CN/{dn=$2;if (dns=="") {dns=dn;} else {dns=dns "," dn}}END{print dns}' $X509_GRIDMAP
-}
 
 # returns the expiration time of the proxy
 function get_x509_expiration {
@@ -145,34 +112,6 @@ function get_x509_expiration {
     return 0
 }
 
-# create a condor_mapfile starting from a grid-mapfile
-function create_condormapfile {
-    id=`id -un`
-
-    # make sure there is nothing in place already
-    rm -f "$X509_CONDORMAP"
-    touch "$X509_CONDORMAP"
-    chmod go-wx "$X509_CONDORMAP"
-
-    # copy with formatting the glide-mapfile into condor_mapfile
-    # fileter out lines starting with the comment (#)
-    grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
-    do
-      if [ -n "$file" ]; then # ignore empty lines
-	echo "GSI $file" >> "$X509_CONDORMAP"
-      fi
-    done
-
-    # add local user
-    echo "FS $id localuser" >> "$X509_CONDORMAP"
-
-    # deny any other type of traffic 
-    echo "GSI (.*) anonymous" >> "$X509_CONDORMAP"
-    echo "FS (.*) anonymous" >> "$X509_CONDORMAP"
-
-    return 0
-}
-
 ############################################################
 #
 # Main
@@ -181,14 +120,9 @@ function create_condormapfile {
 
 # Assume all functions exit on error
 config_file="$1"
-X509_GRIDMAP="$PWD/main/grid-mapfile"
-X509_CONDORMAP="$PWD/condor_mapfile"
 
 check_x509_certs
 check_x509_proxy
-create_gridmapfile
-X509_GRIDMAP_DNS=`extract_gridmap_DNs`
-create_condormapfile
 
 # get X509 expiration time and store it into the config file
 X509_EXPIRE=`get_x509_expiration`
@@ -197,9 +131,6 @@ cat >> "$config_file" <<EOF
 X509_EXPIRE              $X509_EXPIRE
 X509_CERT_DIR            $X509_CERT_DIR
 X509_USER_PROXY          $X509_USER_PROXY
-X509_CONDORMAP           $X509_CONDORMAP
-X509_GRIDMAP_DNS         $X509_GRIDMAP_DNS
-X509_GRIDMAP_TRUSTED_DNS $X509_GRIDMAP_DNS
 ###############################
 EOF
 
