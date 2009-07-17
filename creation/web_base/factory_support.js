@@ -16,25 +16,6 @@ function loadFactoryQStats() {
   return factoryQStats;
 }
 
-// Extract Factory name from a factoryQStats XML object
-function getFactoryName(factoryQStats) {
-  out_name="Unknown"
-  for (var elc=0; elc<factoryQStats.childNodes.length; elc++) {
-    var el=factoryQStats.childNodes[elc];
-    if ((el.nodeType==1) && (el.nodeName=="published")) {
-      for (var etc=0; etc<el.childNodes.length; etc++) {
-	var entry=el.childNodes[etc];
-	if ((entry.nodeType==1)&&(entry.nodeName=="MyName")) {
-	  var factory_name=entry.attributes.getNamedItem("FactoryName").value;
-	  var glidein_name=entry.attributes.getNamedItem("GlideinName").value;
-	  out_name=glidein_name+"@"+factory_name;
-	}
-      }
-    }
-  }
-  return out_name;
-}
-
 // Extract entry names from a factoryQStats XML object
 function getFactoryEntries(factoryQStats) {
   entries=new Array();
