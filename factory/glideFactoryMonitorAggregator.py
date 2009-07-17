@@ -53,14 +53,14 @@ status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn",
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
-def aggregateStatus(myname={}):
+def aggregateStatus():
     global monitorAggregatorConfig
 
     avgEntries=('InfoAge',)
 
     type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
-    status={'entries':{},'total':copy.deepcopy(global_total),'published':{'MyName':copy.deepcopy(myname)}}
+    status={'entries':{},'total':copy.deepcopy(global_total)}
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
@@ -86,7 +86,7 @@ def aggregateStatus(myname={}):
             continue # file not found, ignore
 
         # update entry 
-        status['entries'][entry]={'frontends':entry_data['frontends'],'published':entry_data['published']}
+        status['entries'][entry]={'frontends':entry_data['frontends']}
 
         # update total
         if entry_data.has_key('total'):
@@ -129,7 +129,6 @@ def aggregateStatus(myname={}):
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<glideFactoryQStats>\n'+
              get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-             xmlFormat.class2string(status["published"],inst_name="published",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
                                    subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
                                                                                           "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",

@@ -33,11 +33,10 @@ import glideFactoryMonitorAggregator
 import logSupport
 
 ############################################################
-def aggregate_stats(glideinDescript):
+def aggregate_stats():
     global rrd_thread
     
-    status=glideFactoryMonitorAggregator.aggregateStatus({'FactoryName':glideinDescript.data['FactoryName'],
-                                                          'GlideinName':glideinDescript.data['GlideinName']})
+    status=glideFactoryMonitorAggregator.aggregateStatus()
     status=glideFactoryMonitorAggregator.aggregateLogSummary()
 
     return
@@ -91,7 +90,7 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                     raise RuntimeError,"Entry '%s' exited, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
 
             glideFactoryLib.factoryConfig.activity_log.write("Aggregate monitoring data")
-            aggregate_stats(glideinDescript)
+            aggregate_stats()
 
             glideFactoryLib.factoryConfig.activity_log.write("Sleep")
             time.sleep(sleep_time)

@@ -124,7 +124,9 @@ factoryConfig=FactoryConfig()
 # To be passed to the main functions
 #
 
-def getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name,
+def getCondorQData(factory_name,glidein_name,entry_name,
+                   client_name,                    # if None, return all clients
+                   schedd_name,
                    factory_schedd_attribute=None,  # if None, use the global one
                    glidein_schedd_attribute=None,  # if None, use the global one
                    entry_schedd_attribute=None,    # if None, use the global one
@@ -151,9 +153,14 @@ def getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name,
     else:
         csa_str=client_schedd_attribute
 
+    if client_name==None:
+        client_constraint=""
+    else:
+        client_constraint=' && (%s =?= "%s")'%(csa_str,client_name)
+
     x509id_str=factoryConfig.x509id_schedd_attribute
 
-    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =!= UNDEFINED)'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name,x509id_str)
+    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,client_constraint,x509id_str)
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factory_name
     q.glidein_name=glidein_name
@@ -161,6 +168,14 @@ def getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name,
     q.client_name=client_name
     q.load(q_glidein_constraint)
     return q
+
+def getQStatus(condorq):
+    qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
+    return qc_status
+
+def getQStatusStale(condorq):
+    qc_status=condorMonitor.Summarize(condorq,hash_statusStale).countStored()
+    return qc_status
 
 def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_name=None,
                         factory_startd_attribute=None,  # if None, use the global one
@@ -294,7 +309,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
     #
 
     # Count glideins by status
-    qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
+    qc_status=getQStatus(condorq)
 
     #   Held==JobStatus(5)
     if qc_status.has_key(5):
@@ -329,7 +344,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
     # Now check we don't have problems
 
     # Check if we have stale idle glideins
-    qc_stale=condorMonitor.Summarize(condorq,hash_statusStale).countStored()
+    qc_stale=getQStatusStale(condorq)
 
     # Check if there are stuck running glideins
     #   Running==Jobstatus(2), Stale==1
@@ -405,7 +420,7 @@ def logStats(condorq,condorstatus,client_int_name):
     #
 
     # Count glideins by status
-    qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
+    qc_status=getQStatus(condorq)
     sum_idle_count(qc_status)
     if condorstatus!=None:
         s_running=len(condorstatus.fetchStored().keys())
