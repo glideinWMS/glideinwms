@@ -21,13 +21,13 @@
 
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
-    <title>RRD matrix by glidein factory entries</title>
+    <title>RRD matrix by gfactory entries</title>
   </head>
 
   <body>
     <table width="100%">
     <tr>
-     <td><h1 id="title">RRD matrix by glidein factory entries</h1>
+     <td><h1 id="title">RRD matrix by gfactory entries</h1>
      <td align="right">[ 
 	    <a href="factoryStatus.html">Status</a> |
 	    <a href="factoryLogStatus.html">Log status</a> |
@@ -77,9 +77,6 @@
 
       // Load the status of the factory
       var factoryQStats=loadFactoryQStats();
-      var factory_name=getFactoryName(factoryQStats);
-      document.title=document.getElementById("title").firstChild.data="RRD matrix by glidein factory "+factory_name+" entries"
-    
       var entries=getFactoryEntries(factoryQStats);
       char_count=0;
       for (var entry in entries) {
