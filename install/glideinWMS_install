@@ -101,7 +101,7 @@ def main():
                      "3":{"title":"GCB","proc":gcb_install,"order":15}, #must be after any other condor
                      "4":{"title":"pool Collector",
                           "proc":collector_install,"order":11}, # must be before any schedd
-                     "5":{"title":"Schedd node",
+                     "5":{"title":"User Schedd",
                           "proc":schedd_node_install,"order":12},
                      "6":{"title":"Condor for VO Frontend",
                           "proc":condor_frontend_install,"order":14},
@@ -158,7 +158,12 @@ def collector_install():
         install_condor()
 
     if not GSI_SECURITY_CONFIGURED:
-        configure_gsi_security()
+        gsi_setup = { 'server': 'Pool Collector',
+                      'client': 'User Schedd, glidein startd',
+                      'server_comment': 'The cert/proxy subject of Pool Collector will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
+                      'client_comment': 'The User Schedd and Glidein startd will connect to and act as client to the Pool Collector. Subjects for these services should be in the gridmap file of the Pool Collector'
+                    }
+        configure_gsi_security(gsi_setup)
 
     if not COLLECTOR_INSTALLED:
         while 1:
@@ -213,7 +218,12 @@ def schedd_node_install():
         install_condor()
 
     if not GSI_SECURITY_CONFIGURED:
-        configure_gsi_security()
+        gsi_setup = { 'server': 'User Schedd',
+                      'client': 'Glidein Startd, User Pool Collector, VO Frontend',
+                      'server_comment': 'The cert/proxy subject of User Schedd, Glidein Pool Collector and VO Frontend (used by glidein startd) will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
+                      'client_comment': 'Glidein Pool Collector and VO Frontend and glidein startd will connect to and act as client to User Schedd. ubjects for these services should be in the gridmap file of the User Schedd.',
+                    }
+        configure_gsi_security(gsi_setup)
 
     # USE_MATCH_AUTH
     while 1:
@@ -326,7 +336,12 @@ def wms_install():
         install_condor()
 
     if not GSI_SECURITY_CONFIGURED:
-        configure_gsi_security()
+        gsi_setup = { 'server': 'WMS Collector',
+                      'client': 'WMS Schedd, VO Frontend, Glidein Factory',
+                      'server_comment': 'The cert/proxy subject of WMS Collector will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
+                      'client_comment': 'The WMS Schedd, VO Frontend, Glidein Factory will connect to and act as client to the WMS Collector. Subjects for these services should be in the gridmap file of WMS Collector'
+                    }
+        configure_gsi_security(gsi_setup)
 
     # Don't even ask... nobody uses 6.8.X anymore
     #if not QUILL_CONFIG_DONE:
@@ -744,6 +759,9 @@ def gfactory_install():
     ###################################
     # Ask about the proxy
     print "To use the Glidein Factory you need a valid GSI proxy."
+    print "Subject of the Glidein Factory cert/proxy should be authenticated"
+    print "and authorized at the compute elements (CE) you are submitting"
+    print "glidein jobs to."
     while 1:
         if os.environ.has_key('X509_USER_PROXY'):
             proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
@@ -763,8 +781,7 @@ def gfactory_install():
 
     print
     print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the condor_mapfiles of the WMS and pool collectors"
-    print "  as well as all the Condor schedds."
+    print "Make sure this DN is in the condor gridmap files of the WMS, Pool collectors and all the Condor schedds."
     print
 
     #################################
@@ -774,15 +791,17 @@ def gfactory_install():
 
     # Submit base directory
     def_submit_base_dir="%s/glideinsubmit"%os.environ['HOME']
-    while 1:
-        submit_base_dir=raw_input("Where will you host your config and log files?: [%s]"%def_submit_base_dir)
-        if submit_base_dir=="":
-            submit_base_dir=def_submit_base_dir
-        if not os.path.isdir(submit_base_dir):
-            print "'%s' is not a directory!"%submit_base_dir
-            continue
-        # found it
-        break
+
+    #while 1:
+    #    submit_base_dir=raw_input("Where will you host your config and log files?: [%s]"%def_submit_base_dir)
+    #    if submit_base_dir=="":
+    #        submit_base_dir=def_submit_base_dir
+    #    if not os.path.isdir(submit_base_dir):
+    #        print "'%s' is not a directory!"%submit_base_dir
+    #        continue
+    #    # found it
+    #    break
+    submit_base_dir=create_empty_dir("Where will you host your config and log files?: [%s]"%def_submit_base_dir,def_submit_base_dir)
 
     (web_base_dir,web_base_url)=query_WebLocation('glidefactory');
     
@@ -1080,7 +1099,7 @@ def gfactory_install():
             print "You may need to change the configuration file first"
     else:
         print "To create the glidein, you need to run"
-        print '%s/creation/create_glidein'%glideinWMS_base_dir
+        print '%s/creation/create_glidein %s'%(glideinWMS_base_dir,cfg_name)
 
     print
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
@@ -1170,6 +1189,7 @@ def vofrontend_install():
     ###################################
     # Ask about the proxy
     print "To use the VO Frontend you need a valid GSI proxy."
+    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
     while 1:
         if os.environ.has_key('X509_USER_PROXY'):
             proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
@@ -2404,7 +2424,7 @@ def get_proxy_vo(proxy_fname):
 # Update condor config with
 # GSI security
 ################################
-def configure_gsi_security():
+def configure_gsi_security(gsi_setup=None):
     global CONDOR_BASE_PATH
     global VDT_BASE_PATH
     global GSI_SECURITY_CONFIGURED
@@ -2412,6 +2432,21 @@ def configure_gsi_security():
 
     print "Configuring GSI security"
     print
+
+    
+    #################################
+    # Useful to make user understand 
+    # the gsi setup
+    server = ""
+    client = ""
+    server_comment = ""
+    client_comment = ""
+    if (gsi_setup != none):
+        server = gsi_setup['server']
+        client = gsi_setup['client']
+        server_comment = gsi_setup['server_comment']
+        client_comment = gsi_setup['client_comment']
+
 
     #################################
     # Create security support directory 
@@ -2422,6 +2457,7 @@ def configure_gsi_security():
     # and verify
     print "To use the GSI security, you either need a valid GSI proxy or "
     print "a valid x509 certificate and relative key"
+    print "%s\n", server_comment
     while 1:
         pc=raw_input("Will you be using a proxy or a cert? (proxy/cert) ")
         if (pc!="proxy") and (pc!="cert"):
@@ -2471,7 +2507,7 @@ def configure_gsi_security():
     print "You will most probably need other DNs in the condor grid mapfile"
     print "Please add all the DNs that can be used to connect to the "
     print "Condor daemons running on this node"
-    print
+    print "%s\n", client_comment
     print "Please insert all such DNs, together with a user nickname."
     print "An empty DN entry means you are done."
     while 1:
@@ -2617,6 +2653,11 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
         config_fd.write("PREEMPTION_REQUIREMENTS = False\n")
         config_fd.write("# negotiator/GCB optimization\n")
         config_fd.write("NEGOTIATOR_INFORM_STARTD = False\n")
+
+        if (default_poolname == "My pool"):
+            config_fd.write("# Causes Negotiator to run faster. PREEMPTION_REQUIREMENTS and all condor_startd rank expressions must be False for NEGOTIATOR_CONSIDER_PREEMPTION to be False\n")
+            config_fd.write("NEGOTIATOR_CONSIDER_PREEMPTION = False\n")
+
 
         if nr_secondary_collectors>0:
             config_fd.write("\n################################################\n")
