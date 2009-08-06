@@ -143,7 +143,7 @@ def main(startup_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+        glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
         print tb
         raise
 
@@ -159,7 +159,7 @@ def main(startup_dir):
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+            glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
             print tb
     finally:
         pid_obj.relinquish()
@@ -177,15 +177,17 @@ if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
 
+    warning_log=logSupport.DayLogFile(os.path.join(sys.argv[1],"log/factory_err"))
+    glideFactoryLib.factoryConfig.warning_log=warning_log
     # check that the GSI environment is properly set
     if not os.environ.has_key('X509_USER_PROXY'):
+        glideFactoryLib.factoryConfig.warning_log.write("Environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
         raise RuntimeError, "Need X509_USER_PROXY to work!"
     if not os.environ.has_key('X509_CERT_DIR'):
+        glideFactoryLib.factoryConfig.warning_log.write("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
         raise RuntimeError, "Need X509_CERT_DIR to work!"
 
     try:
         main(sys.argv[1])
     except KeyboardInterrupt,e:
         print glideFactoryLib.factoryConfig.activity_log.write("Terminating: %s"%e)
- 
-
