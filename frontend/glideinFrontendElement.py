@@ -308,7 +308,7 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                     tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                     sys.exc_info()[2])
                     glideinFrontendLib.log_files.logWarning("Unhandled exception, ignoring. See debug log for more details.")
-                    glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),tb))
+                    glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
             except KeyboardInterrupt:
                 raise # this is an exit signal, pass trough
             except:
@@ -319,7 +319,7 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                     tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                     sys.exc_info()[2])
                     glideinFrontendLib.log_files.logWarning("Unhandled exception, ignoring. See debug log for more details.")
-                    glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),tb))
+                    glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
             is_first=0
             glideinFrontendLib.log_files.logActivity("Sleep")
@@ -367,7 +367,7 @@ def main(parent_pid, work_dir, group_name):
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
             glideinFrontendLib.log_files.logWarning("Unhandled exception, dying. See debug log for more details.")
-            glideinFrontendLib.log_files.logDebug("Exception at %s, dying: %s" % (time.ctime(),tb))
+            glideinFrontendLib.log_files.logDebug("Exception at %s, dying: %s" % (time.ctime(),string.join(tb,'')))
     finally:
         pid_obj.relinquish()
 

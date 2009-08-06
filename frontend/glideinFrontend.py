@@ -122,7 +122,7 @@ def main(work_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+        glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
         print tb
         raise
 
@@ -140,7 +140,7 @@ def main(work_dir):
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+            glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
             print tb
     finally:
         pid_obj.relinquish()
