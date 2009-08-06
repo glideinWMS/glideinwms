@@ -78,6 +78,7 @@ Frontend </font></font> </h1>
         The <a
         href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a>
         package (0.4 or later)<br>
+        The perl-Time-HiRes rpm.<br>
         The <a
         href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/">glideinWMS
         software</a>. </font></font></p>
@@ -91,11 +92,11 @@ Frontend </font></font> </h1>
 <h2><a name="system"><font face="Bitstream Vera Serif"><font size="4">4. Base
 tools installation instructions</font></font></a></h2>
 
-<h3><font face="Liberation Serif"><font size="3">4.1 VDT and
-Condor</font><font></font></font></h3>
+<h3><font face="Liberation Serif"><font size="3">4.1 Condor</font>
+</font></h3>
 
 <p><font face="Liberation Serif"><font size="3">The VO Frontend will need the
-OSG client and the Condor binaries. You can reuse an existing installation,
+the Condor binaries. You can reuse an existing installation,
 if available, like if you host the VO Frontend on the <a
 href="schedd_install.html">a submitter node</a>.</font></font></p>
 
@@ -145,7 +146,76 @@ this screen:</font></font></p>
 <p><font face="Liberation Serif"><font size="3">Now follow the instructions.
 The installation is straightforward.</font></font></p>
 
-<h3><a name="system_httpd"><font face="Liberation Serif"><font size="3">4.2
+<h3><font face="Liberation Serif"><font size="3">4.2 OSG VDT Client
+</font></font></h3>
+
+<p><font face="Liberation Serif"><font size="3">The VO Frontend will need the
+OSG client provided by VDT. You can reuse an existing installation,
+if available, like if you host the VO Frontend on the <a
+href="schedd_install.html">a submitter node</a>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Else you need to install a
+local copy. The suggested way is to install as the same non privileged <font
+face="Liberation Serif"><font size="3"><b>VO Frontend</b></font></font> user
+(see <a href="#frontend">below</a>). <br>
+The whole process is managed by a install script described below.
+</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">glideinWMS/install</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">./glideinWMS_install</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">You will be presented with
+this screen:</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [1] glideinWMS Collector<br>
+  [2] Glidein Factory<br>
+  [3] GCB<br>
+  [4] pool Collector<br>
+  [5] Schedd node<br>
+  [6] Condor for VO Frontend<br>
+  [7] VO Frontend<br>
+  [8] Components</font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>8</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">You will be given another
+menu:</font></font></p>
+
+<blockquote>
+  <font face="Liberation Serif"><font size="3">What do you want to
+  install?<br>
+  (May select several options at one, using a , separated list)<br>
+  [a] OSG VDT client<br>
+  [b] Base Condor installation<br>
+  [c] Web server<br>
+  [d] rrdtool graphics package<br>
+  [e] PostgreSQL database<br>
+  [f] Quill-specific PostgreSQL database</font></font></blockquote>
+
+<p><font face="Liberation Serif"><font size="3">Select
+<b>a</b>.</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
+The installation is straightforward.</font></font></p>
+
+<h3><a name="system_httpd"><font face="Liberation Serif"><font size="3">4.3
 HTTP server</font></font></a></h3>
 
 <p><font face="Liberation Serif"><font size="3">The VO frontend needs a HTTP
@@ -211,7 +281,7 @@ menu:</font></font></p>
 <p><font face="Liberation Serif"><font size="3">Now follow the instructions.
 Most of the questions should be fairly straightforward.</font></font></p>
 
-<h3><a name="system_rrdtool"><font face="Liberation Serif"><font size="3">4.3
+<h3><a name="system_rrdtool"><font face="Liberation Serif"><font size="3">4.4
 RRDTool</font></font></a></h3>
 
 <p><font face="Liberation Serif"><font size="3">You will also need the python
@@ -243,7 +313,7 @@ href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a>
 several dependencies that make it complicated. Use this option only if you
 cannot install from RPMs (or similar). </font></font> </p>
 
-<h3><font face="Liberation Serif"><font size="3">4.4
+<h3><font face="Liberation Serif"><font size="3">4.5
 M2Crypto</font><font></font></font></h3>
 
 <p><font face="Liberation Serif"><font size="3">If you are passing the proxy
@@ -279,7 +349,7 @@ PYTHONPATH, possibly in the .profile, .bashrc, and/or in the
   dir&gt;</i>/usr/lib/python2.3/site-packages/</font></font></blockquote>
 
 <h3><a name="system_javascriptRRD"><font face="Liberation Serif"><font
-size="3">4.5 javascriptRRD</font></font></a></h3>
+size="3">4.6 javascriptRRD</font></font></a></h3>
 
 <p><font face="Liberation Serif"><font size="3">You will need the <a
 href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD
@@ -313,6 +383,16 @@ installed as a non privileged user. The provided installer can be used to
 create the configuration file, although some manual tunning will probably be
 needed.</font></font></p>
 
+<p><font face="Liberation Serif"><font size="3">Before starting the installation
+of the VO Frontend make sure that the WMS Collector is started and running.
+</font></font></p>
+
+<p><font face="Liberation Serif"><font size="3">Assuming VDT is installed in $VDT_LOCATION, source VDT's setup as follows</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font
+  size="3">source $VDT_LOCATION/setup.sh</font></font></p>
+</blockquote>
 <p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
 
 <blockquote>
@@ -484,7 +564,10 @@ and than create the frontend instance with:</font></font></p>
 script:</font></font></p>
 
 <blockquote>
-  <p><font face="Liberation Serif"><font size="3">cd &lt;install dir&gt;<br>
+  <p><font face="Liberation Serif"><font size="3">
+  source $VDT_LOCATION/setup.sh<br>
+  export X509_USER_PROXY=&lt;Proxy that this frontend instance should use&gt;<br>
+  cd &lt;install dir&gt;<br>
   ./frontend_startup start</font></font></p>
 </blockquote>
 

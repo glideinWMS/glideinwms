@@ -173,6 +173,29 @@ Is this a trusted Condor daemon?: (y/n) <B>n</B>
 DN: <I>enter</I>
 What name would you like to use for this pool?: [My pool] <B>TestPool</B>
 How many slave collectors do you want?: [10] <B>10</B></PRE>
+
+<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. To Start/Stop Pool Collector</FONT></FONT></H2>
+Setup the environment
+<div style=MARGIN-LEFT:40px>
+  source /home/collector/condor/condor.sh
+</div>
+<br>
+To start Condor run:<br>
+<div style=MARGIN-LEFT:40px>
+  /home/condor/sbin/condor_master<br>
+</div>
+<br>
+You should see three processes run as user condor: condor_master,
+condor_collector and condor_negotiator.<br>
+<br>
+The log files can be found in
+<span style=FONT-WEIGHT:bold>/home/condor/condor_local/log</span>.<br>
+<br>
+To stop Condor run:<br>
+<div style=MARGIN-LEFT:40px>
+  /home/condor/sbin/condor_off -master<br>
+</div>
+<br>
 <HR SIZE=1>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3><A HREF="index.html">Back
 to the index</A><BR><BR></FONT></FONT><BR><BR>

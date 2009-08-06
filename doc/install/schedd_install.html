@@ -186,6 +186,11 @@ The installer will also start the Condor daemons.
 <BLOCKQUOTE><FONT FACE="Liberation Serif">
 <FONT SIZE=3>/etc/init.d/condor</FONT></FONT></BLOCKQUOTE>
 <P>Use it to stop and restart the schedd(s)</P>
+<P>NOTE: Since Schedd node is installed as root, condor installer will
+create condor.sh and condor.csh files in /etc/profile.d so that you have correct
+environment setup. If this machine hosts another condor installation or you 
+prefer not to have user PATH and CONDOR_CONFIG point to this condor setup
+automatically, you need to manually move these files out from the /etc/profile.d
 <A NAME="submit">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. Submitting user
 jobs </FONT></FONT>
@@ -210,6 +215,13 @@ user should thus add the following line:</FONT></FONT></P>
 = <I>&lt;path to X509 proxy&gt;</I></FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>to their Condor
 submission file.</FONT></FONT></P>
+
+<H3><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>6. Fine Tunning for Large Scale Installations</FONT></FONT></H3>
+<H4><FONT FACE="Utopia, serif"><FONT SIZE=3>6.1 Increase the number of available file descriptors</FONT></FONT></H4>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><FONT FACE="Liberation Serif"><FONT SIZE=3>Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in the queue at any given time. This is particularly required for large scale installations. 
+<br><br>
+In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor This is a good place to set higher file descriptor limit for the schedd process.
+</p>
 <HR SIZE=1>
 <P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
 to the index</FONT></FONT></A></P>

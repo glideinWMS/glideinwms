@@ -138,6 +138,7 @@ check that tey are working well, by pinging it with gcb_broker_query:</FONT></FO
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>&lt;install
 dir&gt;/sbin/gcb_broker_query <I>your_ip</I> freesockets</FONT></FONT></BLOCKQUOTE>
 <H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.2 Fine tunning</FONT></FONT></H3>
+<H4><FONT FACE="Utopia, serif"><FONT SIZE=2>4.2.1 Increase the number of available ports</FONT></FONT></H4>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>The default
 installation will set up GCB to handle up to 20k requests. Look in
 the &lt;install dir&gt;/etc/condor_config.local for</FONT></FONT></P>
@@ -153,11 +154,13 @@ example<FONT FACE="Liberation Serif"><FONT SIZE=3>:</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>$ cat
 /proc/sys/net/ipv4/ip_local_port_range<BR>32768   61000 </FONT></FONT>
 </BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><FONT FACE="Liberation Serif"><FONT SIZE=3>the
-system has only ~28k ports available. If you want to configure GCB to
-serve more than that, first change the system limit, then the GCB
-configuration.</FONT></FONT></FONT><FONT SIZE=3><BR></FONT></FONT><BR><BR>
+system has only ~28k ports available. If you want to configure GCB/CCB to
+serve more than that, first change the system limit, then the GCB/CCB
+configuration.</FONT></FONT></FONT><FONT SIZE=3><BR></FONT></FONT>
 </P>
+<H4><FONT FACE="Utopia, serif"><FONT SIZE=2>4.2.1 Increase the number of available file descriptors</FONT></FONT></H4>
+<P><FONT FACE="Liberation Serif"><FONT SIZE=3><FONT FACE="Liberation Serif"><FONT SIZE=3>Note that every port used by the GCB/CCB also consumes available file descriptors. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of ports GCB/CCB is allowed to open.
+</p>
 <HR SIZE=1>
 <P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
 to the index</FONT></FONT></A></P>
