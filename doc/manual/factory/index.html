@@ -334,6 +334,14 @@ This will update the directory tree and restart the factory and entry dameons.
 Please notice that if you make any errors in the new configuration file, the reconfig 
 script will throw an error and do nothing. So you should never need to worry about
 corrupting the installation tree using this tool.
+<p>
+<B>NOTE</B>: The reconfig tool does not kill the factory in case of errors.
+Hence is recommended that you disable any entry points that will not be used.
+</p>
+
+
+
+
 </P>
 
 <H3><A NAME="localtest"></A>Testing with a local glidein</H3>
