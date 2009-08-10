@@ -150,6 +150,8 @@ Do you want to split the config files between condor_config and condor_config.lo
 
 To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
+The cert/proxy subject of Pool Collector will be added as the trusted daemon in
+GSI_DAEMON_NAME in the condor configuration.
 Will you be using a proxy or a cert? (proxy/cert) <B>cert</B>
 Where is your certificate located?: <B>/home/collector/grid-security/servicecert.pem</B>
 Where is your certificate key located?: <B>/home/collector/grid-security/servicekey.pem</B>
@@ -158,6 +160,9 @@ My DN = '/DC=org/DC=doegrids/OU=Services/CN=collector/master1.my.org'
 You will most probably need other DNs in the condor grid mapfile
 Please add all the DNs that can be used to connect to the
 Condor daemons running on this node
+The User Schedd and Glidein startd will connect to and act as client to the
+Pool Collector. Subjects for these services should be in the gridmap file of
+the Pool Collector
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.

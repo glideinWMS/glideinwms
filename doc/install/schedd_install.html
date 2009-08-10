@@ -158,11 +158,17 @@ Configuring GSI security
 
 To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
+The cert/proxy subject of User Schedd, Glidein Pool Collector and VO Frontend
+(used by glidein startd) will be added as the trusted daemon in GSI_DAEMON_NAME 
+in the condor configuration.
 Will you be using a proxy or a cert? (proxy/cert) <B>cert</B>
 Where is your certificate located?: <B>/etc/grid-security/hostcert.pem</B>
 Where is your certificate key located?: <B>/etc/grid-security/hostkey.pem</B>
 My DN = '/DC=org/DC=doegrids/OU=Services/CN=submit1.my.org'
 
+Glidein Pool Collector and VO Frontend and glidein startd will connect to and
+act as client to User Schedd. Subjects for these services should be in the 
+gridmap file of the User Schedd.
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
 DN: <B>/DC=org/DC=doegrids/OU=Services/CN=collector1.my.org</B>

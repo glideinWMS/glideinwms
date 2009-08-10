@@ -374,6 +374,8 @@ Do you want to split the config files between condor_config and condor_config.lo
 
 To use the GSI security, you either need a valid GSI proxy or
 a valid x509 certificate and relative key
+The cert/proxy subject of WMS Collector will be added as the trusted daemon
+in GSI_DAEMON_NAME in the condor configuration.
 Will you be using a proxy or a cert? (proxy/cert) <b>proxy</b>
 Where is your proxy located?: <b>/home/gfactory/.globus/x509_service_proxy</b>
 My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
@@ -381,6 +383,9 @@ My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
 You will most probably need other DNs in the condor grid mapfile
 Please add all the DNs that can be used to connect to the
 Condor daemons running on this node
+The WMS Schedd, VO Frontend, Glidein Factory will connect to and act as client
+to the WMS Collector. Subjects for these services should be in the gridmap file
+of WMS Collector
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
@@ -471,6 +476,8 @@ Do you have already a javascriptRRD installation?: (y/n) y
 Where is javascriptRRD installed?: <b>/home/gfactory/javascriptrrd-0.4</b>
 To use the Glidein Factory you need a valid GSI proxy.
 Where is your proxy located?: [/home/gfactory/.globus/x509_service_proxy] <b>/home/gfactory/.globus/x509_service_proxy</b>
+Make sure this DN is in the condor gridmap files of the WMS, Pool collectors
+and all the User schedds.
 
 Where will you host your config and log files?: [/home/gfactory/glideinsubmit] <b>/home/gfactory/glideinsubmit</b>
 Where will the web data be hosted?: [/var/www/html/glidefactory] <b>/var/www/html/glidefactory</b>
@@ -506,7 +513,8 @@ Please list all additional glidein entry points,
 Entry name (leave empty when finished): <i>enter</i>
 Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n] <b>n</b>
 To create the glidein, you need to run
-/home/gfactory/glideinWMS/creation/create_glidein
+/home/gfactory/glideinWMS/creation/create_glidein /home/gfactory/glideinsubmit/glidein_v1_0.cfg
+
 
 Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
 Remember to set X509_USER_PROXY before starting the daemon</pre>

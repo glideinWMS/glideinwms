@@ -221,7 +221,7 @@ def schedd_node_install():
         gsi_setup = { 'server': 'User Schedd',
                       'client': 'Glidein Startd, User Pool Collector, VO Frontend',
                       'server_comment': 'The cert/proxy subject of User Schedd, Glidein Pool Collector and VO Frontend (used by glidein startd) will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'Glidein Pool Collector and VO Frontend and glidein startd will connect to and act as client to User Schedd. ubjects for these services should be in the gridmap file of the User Schedd.',
+                      'client_comment': 'Glidein Pool Collector and VO Frontend and glidein startd will connect to and act as client to User Schedd. Subjects for these services should be in the gridmap file of the User Schedd.',
                     }
         configure_gsi_security(gsi_setup)
 
@@ -781,7 +781,7 @@ def gfactory_install():
 
     print
     print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the condor gridmap files of the WMS, Pool collectors and all the Condor schedds."
+    print "Make sure this DN is in the condor gridmap files of the WMS, Pool collectors and all the User schedds."
     print
 
     #################################
