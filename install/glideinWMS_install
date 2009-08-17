@@ -2457,7 +2457,7 @@ def configure_gsi_security(gsi_setup=None):
     # and verify
     print "To use the GSI security, you either need a valid GSI proxy or "
     print "a valid x509 certificate and relative key"
-    print "%s\n", server_comment
+    print "%s\n" % server_comment
     while 1:
         pc=raw_input("Will you be using a proxy or a cert? (proxy/cert) ")
         if (pc!="proxy") and (pc!="cert"):
@@ -2507,7 +2507,7 @@ def configure_gsi_security(gsi_setup=None):
     print "You will most probably need other DNs in the condor grid mapfile"
     print "Please add all the DNs that can be used to connect to the "
     print "Condor daemons running on this node"
-    print "%s\n", client_comment
+    print "%s\n" % client_comment
     print "Please insert all such DNs, together with a user nickname."
     print "An empty DN entry means you are done."
     while 1:
