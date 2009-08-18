@@ -1601,7 +1601,7 @@ def vofrontend_install():
             print "You may need to change the configuration file first"
     else:
         print "To create the VO Frontend instance, you need to run"
-        print '%s/creation/create_frontend'%glideinWMS_base_dir
+        print '%s/creation/create_frontend %s'%(glideinWMS_base_dir, cfg_name)
 
     print
     print "Configuration files are located in %s/instance_%s.cfg"%(frontstage_base_dir,version_name)
