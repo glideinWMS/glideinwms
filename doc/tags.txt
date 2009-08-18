@@ -3,6 +3,7 @@ vNext	Fixed a bug that was throwing an exception if a glidein failed.
 	Fixed support for nordugrid.
 	Improvements to the monitoring.
 	Improvements to the installer.
+        Improved documentation.
 
 v2_0	Refactoring creation libs;
 	  create_frontend and create_glidein now share much code

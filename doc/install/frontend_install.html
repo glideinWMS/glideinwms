@@ -575,6 +575,24 @@ script:</font></font></p>
 <p><font face="Liberation Serif"><font size="3">The same script can be used
 to stop, reconfig and restart the VO Frontend.</font></font> </p>
 
+<h3><font face="Utopia, serif"><font size="3">5.1. Reconfiguring the VO Frontend
+</font></font> </h3>
+
+<p><font face="Liberation Serif"><font size="3">If you make changes to the configuration file /home/frontend/glideinWMS/creation/create_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
+script:</font></font></p>
+
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">
+    glideinWMS/creation/reconfig_frontend -writeback yes /home/frontend/frontstage/instance_v1.cfg/frontend.xml
+  </font></font></p>
+</blockquote>
+
+<p><font face="Liberation Serif"><font size="3">If you make changes to the frontend.xml configuration file in the &lt;install dir&gt; use following command to propagate the changes<br>
+<blockquote>
+  <p><font face="Liberation Serif"><font size="3">
+frontend_startup reconfig
+</font></font></p>
+</blockquote>
 <h2><a name="monitoring"><font face="Bitstream Vera Serif"><font size="4">6.
 VO Frontend monitoring </font></font> </a></h2>
 
