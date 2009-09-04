@@ -77,12 +77,16 @@ fi
 if [ "$glexec_job" == "True" ]; then
     add_config_line "GLEXEC_STARTER" "False"
     add_config_line "GLEXEC_JOB" "True"
+    add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
+    add_condor_vars_line "GLEXEC_JOB"     "C" "True"  "+" "Y" "Y" "-"
 else
     add_config_line "GLEXEC_STARTER" "True"
     add_config_line "GLEXEC_JOB" "False"
+    add_condor_vars_line "GLEXEC_STARTER" "C" "True"  "+" "Y" "Y" "-"
+    add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
 fi
-add_condor_vars_line "GLEXEC_STARTER" "C" "-" "+" "Y" "N" "-"
-add_condor_vars_line "GLEXEC_JOB"     "C" "-" "+" "Y" "N" "-"
+#add_condor_vars_line "GLEXEC_STARTER" "C" "-" "+" "Y" "N" "-"
+#add_condor_vars_line "GLEXEC_JOB"     "C" "-" "+" "Y" "N" "-"
 
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 

@@ -3,7 +3,17 @@ vNext	Better randomization of GCBs and collectors
 	Fixed Condor-G log parsing
 	Better treatment of multiple-collectors in the installer
 	Add support for CCB and USE_MATCH_AUTH in the installer.
+	Add OSG:vo-client to the minimal VDT install
 	Better handling of Nordugrid sites.
+	Start factory in nice mode to give priority to Condor daemons 
+	In condor_config for glideins remove explicit STARTER_UPDATE_INTERVAL
+	Removing GLIDEIN_Use_TCP, now uses UPDATE_COLLECTOR_WITH_TCP instead
+	Force integrity on reads from WMS collector
+ 	Better layout of monitoring pages
+	Better error handling in Factory downtime management
+	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
+	  classds. This was preventing psuedo interactive monitoring to work
+	  in case of GLEXEC
 	Improved documentation
 
 v1_6	The XML file now supports comments.
