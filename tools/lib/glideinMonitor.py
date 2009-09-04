@@ -83,9 +83,14 @@ def monitor(jid,schedd_name,pool_name,
     if condor_status.has_key('GLEXEC_STARTER'):
         glexec_starter=condor_status['GLEXEC_STARTER']
     else:
-        glexec_starter=False #if not defined, assume no gLExec
+        glexec_starter=False #if not defined, assume no gLExec for old way
 
-    if glexec_starter:
+    if condor_status.has_key('GLEXEC_JOB'):
+        glexec_job=condor_status['GLEXEC_JOB']
+    else:
+        glexec_job=False #if not defined, assume no gLExec for new way
+
+    if glexec_starter or glexec_job:
         if not os.environ.has_key('X509_USER_PROXY'):
             raise RuntimeError, "Job running on a gLExec enabled resource; X509_USER_PROXY must be defined"
         x509_file=os.environ['X509_USER_PROXY']
@@ -156,7 +161,7 @@ def getMonitorVM(pool_name,jobVM):
 def getMonitorVMStatus(pool_name,monitorVM):
     cs=condorMonitor.CondorStatus(pool_name=pool_name)
     data=cs.fetch(constraint='(Name=="%s")'%monitorVM,
-                  format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('State','s'),('Activity','s'),('vm2_State','s'),('vm2_Activity','s'),('GLEXEC_STARTER','b'),('USES_MONITOR_STARTD','b')])
+                  format_list=[('IS_MONITOR_VM','b'),('HAS_MONITOR_VM','b'),('State','s'),('Activity','s'),('vm2_State','s'),('vm2_Activity','s'),('GLEXEC_STARTER','b'),('USES_MONITOR_STARTD','b'),('GLEXEC_JOB','b')])
     if not data.has_key(monitorVM):
         raise RuntimeError, "Monitor slot %s does not exist!"%monitorVM
 
