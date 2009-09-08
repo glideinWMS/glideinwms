@@ -1,4 +1,4 @@
-vNext	Better randomization of GCBs and collectors
+v1_6_1	Better randomization of GCBs and collectors
 	Collector list now supports ranges of ports
 	Fixed Condor-G log parsing
 	Better treatment of multiple-collectors in the installer
@@ -11,6 +11,7 @@ vNext	Better randomization of GCBs and collectors
 	Force integrity on reads from WMS collector
  	Better layout of monitoring pages
 	Better error handling in Factory downtime management
+	Better formatting of error logs for factory and frontend
 	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
 	  classds. This was preventing psuedo interactive monitoring to work
 	  in case of GLEXEC
