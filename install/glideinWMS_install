@@ -1146,10 +1146,11 @@ def vofrontend_install():
         raise RuntimeError,"Cannot find %s/frontend"%glideinWMS_base_dir
 
     if VDT_BASE_PATH==None:
-        if not os.environ.has_key('OSG_VDT_BASE'):
-            raise "Cannot find the OSG VDT client! (OSG_VDT_BASE not defined)"
-        else:
+        if os.environ.has_key('OSG_VDT_BASE'):
             VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
 
     ###################################
     # Ask about the proxy
