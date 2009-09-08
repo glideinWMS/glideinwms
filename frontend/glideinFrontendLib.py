@@ -21,6 +21,7 @@ def getCondorQ(schedd_names,constraint=None,format_list=None):
         format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i')])
     return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
 
+
 #
 # Return a dictionary of schedds containing idle jobs
 # Each element is a condorQ
@@ -30,7 +31,7 @@ def getCondorQ(schedd_names,constraint=None,format_list=None):
 def getIdleCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==1)
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('JobStatus') and (el['JobStatus']==1)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -44,7 +45,7 @@ def getIdleCondorQ(condorq_dict):
 def getRunningCondorQ(condorq_dict):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:el['JobStatus']==2)
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('JobStatus') and (el['JobStatus']==2)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -58,7 +59,7 @@ def getRunningCondorQ(condorq_dict):
 def getOldCondorQ(condorq_dict,min_age):
     out={}
     for schedd_name in condorq_dict.keys():
-        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el['ServerTime']-el['EnteredCurrentStatus'])>=min_age)
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('ServerTime') and el.has_key('EnteredCurrentStatus') and ((el['ServerTime']-el['EnteredCurrentStatus'])>=min_age)))
         sq.load()
         out[schedd_name]=sq
     return out
@@ -126,7 +127,7 @@ def getCondorStatus(collector_names,constraint=None,format_list=None):
 def getIdleCondorStatus(status_dict):
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Unclaimed") and (el['Activity']=="Idle")))
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State']=="Unclaimed") and (el['Activity']=="Idle")))
         sq.load()
         out[collector_name]=sq
     return out
@@ -140,7 +141,7 @@ def getIdleCondorStatus(status_dict):
 def getRunningCondorStatus(status_dict):
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:((el['State']=="Claimed") and (el['Activity'] in ("Busy","Retiring"))))
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('State') and el.has_key('Activity') and (el['State']=="Claimed") and (el['Activity'] in ("Busy","Retiring"))))
         sq.load()
         out[collector_name]=sq
     return out
@@ -155,7 +156,8 @@ def getClientCondorStatus(status_dict,frontend_name,request_name):
     client_name="%s@%s"%(request_name,frontend_name)
     out={}
     for collector_name in status_dict.keys():
-        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:el['GLIDEIN_Client']==client_name)
+        sq=condorMonitor.SubQuery(status_dict[collector_name],lambda el:(el.has_key('GLIDECLIENT_Name') and (el['GLIDECLIENT_Name']==client_name)))
+
         sq.load()
         out[collector_name]=sq
     return out
@@ -193,7 +195,14 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
 
         try:
             condorq.load(full_constraint,format_list)
-        except condorExe.ExeError:
+        except condorExe.ExeError, e:
+            if schedd!=None:
+                log_files.logWarning("Failed to talk to schedd %s. See debug log for more details."%schedd)
+                log_files.logDebug("Failed to talk to schedd %s: %s"%(schedd, e))
+            else:
+                log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
+                log_files.logDebug("Failed to talk to schedd: %s"%e)
+
             continue # if schedd not found it is equivalent to no jobs in the queue
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
@@ -216,7 +225,13 @@ def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,f
 
         try:
             status.load(full_constraint,format_list)
-        except condorExe.ExeError:
+        except condorExe.ExeError, e:
+            if collector!=None:
+                log_files.logWarning("Failed to talk to collector %s. See debug log for more details."%collector)
+                log_files.logDebug("Failed to talk to collector %s: %s"%(collector, e))
+            else:
+                log_files.logWarning("Failed to talk to collector. See debug log for more details.")
+                log_files.logDebug("Failed to talk to collector: %s"%e)
             continue # if collector not found it is equivalent to no classads
         if len(status.fetchStored())>0:
             out_status_dict[collector]=status
