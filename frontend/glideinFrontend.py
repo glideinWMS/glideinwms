@@ -272,7 +272,7 @@ def iterate(log_dir,sleep_time,
                             # if not the first pass, just warn
                             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                             sys.exc_info()[2])
-                            log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+                            log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
                     is_first=0
                     log_files.logActivity("Sleep")
@@ -282,7 +282,7 @@ def iterate(log_dir,sleep_time,
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+                log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 raise
         finally:
             try:
@@ -292,7 +292,7 @@ def iterate(log_dir,sleep_time,
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
                 log_files.logWarning("Failed to deadvertize my ads")
-                log_files.logWarning("Exception at %s: %s" % (time.ctime(),tb))
+                log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
     finally:
         fd.close()
 

@@ -170,7 +170,7 @@ def main(startup_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+        glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
         print tb
         raise
 
@@ -186,7 +186,7 @@ def main(startup_dir):
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),tb))
+            glideFactoryLib.factoryConfig.warning_log.write("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
             print tb
     finally:
         pid_obj.relinquish()
