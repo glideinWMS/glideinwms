@@ -1095,7 +1095,7 @@ def gfactory_install():
             print "You may need to change the configuration file first"
     else:
         print "To create the glidein, you need to run"
-        print '%s/creation/create_glidein'%glideinWMS_base_dir
+        print '%s/creation/create_glidein %s'%(glideinWMS_base_dir,cfg_name)
 
     print
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
