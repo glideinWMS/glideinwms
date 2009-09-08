@@ -1623,7 +1623,7 @@ def install_vdt(minimal):
     user_dir=create_empty_dir("Where do you want the VDT installed?: ",def_vdt_base_path)
 
     while 1:
-        default_pacman_version="pacman-3.26"
+        default_pacman_version="pacman-3.28"
         pacman_version=raw_input("What pacman version should I use?: [%s] "%default_pacman_version)
         if pacman_version=="":
             pacman_version=default_pacman_version
