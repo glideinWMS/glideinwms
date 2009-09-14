@@ -1,3 +1,5 @@
+v1_6_2	Fixed a bug where Frontend would crash during certain conditions.
+
 v1_6_1	Better randomization of GCBs and collectors
 	Collector list now supports ranges of ports
 	Fixed Condor-G log parsing
