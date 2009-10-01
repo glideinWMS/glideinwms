@@ -21,8 +21,6 @@ import xmlFormat
 #
 #############################
 
-# Where is the OSG VDT client installed
-VDT_BASE_PATH=None
 # What port does the HTTPd listening on
 HTTPD_PORT=None
 # Where is RRD installed
