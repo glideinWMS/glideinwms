@@ -33,8 +33,12 @@ FLOT_PATH=None
 CONDOR_BASE_PATH=None
 # Where should the changes to Condor go
 CONDOR_UPD_CONFIG_FILE=None
-# Where is the OSG VDT client installed
+# Where is the OSG VDT client installed (if any)
 VDT_BASE_PATH=None
+# voms_proxy_info location (if false, the user already said it does not have one installed)
+VOMS_PROXY_INFO_BIN=None
+# where are the certificates
+GSI_TRUSTED_CA_DIR=None
 # Has the GSI securtiy been configured
 GSI_SECURITY_CONFIGURED=0
 # Which port the PostgreSQL is running, if installed 
@@ -140,16 +144,12 @@ def main_install_components():
 
 #-------------------------------------------------------------------------------
 def collector_install():
-    global VDT_BASE_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
     global COLLECTOR_INSTALLED
 
     print "Installing pool collector"
     print
-
-    if VDT_BASE_PATH==None:
-        query_vdt()
 
     condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
@@ -196,7 +196,6 @@ def collector_install():
 
 #-------------------------------------------------------------------------------
 def schedd_node_install():
-    global VDT_BASE_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
     global QUILL_CONFIG_DONE
@@ -207,9 +206,6 @@ def schedd_node_install():
 
     print "Installing user submit schedds"
     print
-
-    if VDT_BASE_PATH==None:
-        query_vdt()
 
     condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
@@ -315,7 +311,6 @@ def schedd_node_install():
 
 #-------------------------------------------------------------------------------
 def wms_install():
-    global VDT_BASE_PATH
     global CONDOR_BASE_PATH
     global GSI_SECURITY_CONFIGURED
     global QUILL_CONFIG_DONE
@@ -325,9 +320,6 @@ def wms_install():
 
     print "Installing WMS collector"
     print
-
-    if VDT_BASE_PATH==None:
-        query_vdt()
 
     condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
@@ -407,10 +399,10 @@ def wms_install():
 #-------------------------------------------------------------------------------
 def condor_frontend_install():
     global CONDOR_BASE_PATH
-    global VDT_BASE_PATH
+    global GSI_TRUSTED_CA_DIR
     global CONDOR_UPD_CONFIG_FILE
 
-    if (CONDOR_BASE_PATH==None) or (VDT_BASE_PATH==None):
+    if (CONDOR_BASE_PATH==None):
         if os.getuid()==0:
             print
             print "You are trying to install Condor for the VO Frontend as root"
@@ -428,13 +420,13 @@ def condor_frontend_install():
     print "Installing Condor for VO Frontend"
     print
 
-    if VDT_BASE_PATH==None:
-        query_vdt()
-
     if CONDOR_BASE_PATH==None:
         install_condor()
 
         setup_main_schedd()
+        
+        if GSI_TRUSTED_CA_DIR==None:
+            query_ca_dir()
         
         ####################################################
         # If used only for the VO frontend, disable daemons
@@ -443,7 +435,9 @@ def condor_frontend_install():
             config_fd.write("\n######################################################\n")
             config_fd.write("## The client needs GSI authentication\n")
             config_fd.write("######################################################\n")
-            config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n\n")
+            config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
+            config_fd.write("# Grid Certificate directory\n")
+            config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
             config_fd.write("######################################################\n")
             config_fd.write("## This machine should run no daemons\n")
             config_fd.write("######################################################\n")
@@ -712,7 +706,6 @@ def query_WebLocation(web_subdir):
 
 #-------------------------------------------------------------------------------
 def gfactory_install():
-    global VDT_BASE_PATH
     global HTTPD_PORT
     global JAVASCRIPTRRD_PATH,FLOT_PATH
     
@@ -741,13 +734,6 @@ def gfactory_install():
     check_import('rrdtool')
     check_import('M2Crypto')
     
-    if VDT_BASE_PATH==None:
-        if os.environ.has_key('OSG_VDT_BASE'):
-            VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
-
-    if VDT_BASE_PATH==None:
-        query_vdt()
-
     if JAVASCRIPTRRD_PATH==None:
         query_javascriptRRD()
 
@@ -756,31 +742,44 @@ def gfactory_install():
 
     ###################################
     # Ask about the proxy
-    print "To use the Glidein Factory you need a valid GSI proxy."
-    print "Subject of the Glidein Factory cert/proxy should be authenticated"
-    print "and authorized at the compute elements (CE) you are submitting"
-    print "glidein jobs to."
+    proxy_fname=None
+    print "The Glidein Factory can be configured to use a default GSI proxy for submission.\n"
     while 1:
-        if os.environ.has_key('X509_USER_PROXY'):
-            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
-            if proxy_fname=="":
-                proxy_fname=os.environ['X509_USER_PROXY']
-        else:
-            proxy_fname=raw_input("Where is your proxy located?: ")
-        proxy_fname=os.path.abspath(proxy_fname)
+        match_yn=raw_input("Do you want to use such a proxy?: (y/n) ")
+        if (match_yn!="y") and (match_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    if match_yn=='y':
+        print
+        print "Subject of the Glidein Factory cert/proxy should be authenticated"
+        print "and authorized at the compute elements (CE) you will be submitting"
+        print "glidein jobs to."
+        while 1:
+            if os.environ.has_key('X509_USER_PROXY'):
+                proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
+                if proxy_fname=="":
+                    proxy_fname=os.environ['X509_USER_PROXY']
+            else:
+                proxy_fname=raw_input("Where is your proxy located?: ")
+            proxy_fname=os.path.abspath(proxy_fname)
 
-        try:
-            my_dn=get_proxy_dn(proxy_fname)
-        except RuntimeError,e:
-            print e
-            continue
-            
-        break # proxy found
+            if not os.path.isfile(proxy_fname):
+                print "File not found: '%s'"%proxy_fname
+                continue
 
-    print
-    print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the condor gridmap files of the WMS, Pool collectors and all the User schedds."
-    print
+            try:
+                my_dn=get_proxy_dn(proxy_fname)
+            except RuntimeError,e:
+                print e
+                continue
+
+            break # proxy found
+
+        print
+        print "Using DN '%s'"%my_dn
+        print "Make sure this DN is in the condor gridmap files of the User Pool collector and all the User schedds."
+        print
 
     #################################
     # get config vals
@@ -799,7 +798,7 @@ def gfactory_install():
     #        continue
     #    # found it
     #    break
-    submit_base_dir=create_empty_dir("Where will you host your config and log files?: [%s]"%def_submit_base_dir,def_submit_base_dir)
+    submit_base_dir=create_empty_dir("Where will you host your config and log files?: ",def_submit_base_dir)
 
     (web_base_dir,web_base_url)=query_WebLocation('glidefactory');
     
@@ -940,34 +939,42 @@ def gfactory_install():
         break
     
     # Security setup
-    while 1:
-        voproxy_yn=raw_input("Force VO frontend to provide its own proxy?: (y/n) [y] ")
-        if voproxy_yn=="":
-            voproxy_yn="y"
+    if proxy_fname!=None:
+        while 1:
+            voproxy_yn=raw_input("Force VO frontend to provide its own proxy?: (y/n) [y] ")
+            if voproxy_yn=="":
+                voproxy_yn="y"
+                break
+            if (voproxy_yn!="y") and (voproxy_yn!="n"):
+                print "Please answer y or n"
+                continue 
             break
-        if (voproxy_yn!="y") and (voproxy_yn!="n"):
-            print "Please answer y or n"
-            continue 
-        break
+    else:
+        # no factory proxy, so I must use the VO proxy; no choice
+        voproxy_yn="y"
 
     # entries
     entries_list={}
 
     yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
     if yn=='y':
-        try:
-            vo=get_proxy_vo(proxy_fname)
-        except RuntimeError:
+        if proxy_fname!=None:
             vo=None # VOMS extensions are not required
+            try:
+                vo=get_proxy_vo(proxy_fname)
+            except RuntimeError:
+                pass # VOMS extensions are not required
             
         get_ress_glidein_entries(vo,entries_list,glexec_yn=="y")
 
     yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
     if yn=='y':
-        try:
-            vo=get_proxy_vo(proxy_fname)
-        except RuntimeError:
-            vo=None # VOMS extensions are not required
+        vo=None # VOMS extensions are not required
+        if proxy_fname!=None:
+            try:
+                vo=get_proxy_vo(proxy_fname)
+            except RuntimeError:
+                pass # VOMS extensions are not required
             
         get_bdii_glidein_entries(vo,entries_list,glexec_yn=="y")
 
@@ -1026,6 +1033,10 @@ def gfactory_install():
             fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
             fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
+
+            # Reminder to self(Igor)
+            # Add factory proxy in the config file... not reliable to use the ENV(X509_USER_PROXY)
+
             if voproxy_yn=="y":
                 # disable factory proxy
                 fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA"/>\n')
@@ -1140,7 +1151,6 @@ def extract_job_attrs(match_str):
     
 #-------------------------------------------------------------------------------
 def vofrontend_install():
-    global VDT_BASE_PATH
     global JAVASCRIPTRRD_PATH,FLOT_PATH
 
     if os.getuid()==0:
@@ -1170,13 +1180,6 @@ def vofrontend_install():
     check_import('rrdtool')
     check_import('M2Crypto')
 
-    if VDT_BASE_PATH==None:
-        if os.environ.has_key('OSG_VDT_BASE'):
-            VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
-
-    if VDT_BASE_PATH==None:
-        query_vdt()
-
     if JAVASCRIPTRRD_PATH==None:
         query_javascriptRRD()
 
@@ -1196,6 +1199,10 @@ def vofrontend_install():
         else:
             proxy_fname=raw_input("Where is your proxy located?: ")
         proxy_fname=os.path.abspath(proxy_fname)
+
+        if not os.path.isfile(proxy_fname):
+            print "File not found: '%s'"%proxy_fname
+            continue
 
         try:
             my_dn=get_proxy_dn(proxy_fname)
@@ -1420,11 +1427,6 @@ def vofrontend_install():
             print "Please answer y or n"
             continue 
 
-        try:
-            yn_dn=get_proxy_dn(proxy_fname)
-        except RuntimeError,e:
-            print e
-            continue
         break
     if (yn=='y'):
         glidein_proxies.append(proxy_fname)
@@ -1440,6 +1442,12 @@ def vofrontend_install():
         a_fname=raw_input("proxy fname: ")
         if a_fname=="":
             break # done
+
+        a_fname=os.path.abspath(a_fname)
+        if not os.path.isfile(a_fname):
+            print "File not found: '%s'"%a_fname
+            continue
+
         try:
             a_dn=get_proxy_dn(a_fname)
         except RuntimeError,e:
@@ -1532,6 +1540,10 @@ def vofrontend_install():
             fd.write('   <work base_dir="%s"/>\n'%frontstage_base_dir)
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
+
+            # Note to self(Igor)
+            # The proxy should be put into the config file; not reliable to use ENV(X509_USER_PROXY)
+
             fd.write('   <security proxy_selection_plugin="ProxyAll">\n')
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
@@ -1661,11 +1673,90 @@ def create_empty_dir(question, def_dir,empty_required=True):
         
         return user_dir #obtained and checked the directory
  
+# Ask the user where is the CA dir
+########################################
+def query_ca_dir():
+    global GSI_TRUSTED_CA_DIR
+
+    print "GSI security relies on a list of trusted CAs"
+    print "Where can I find the directory with the trusted CAs?"
+    print
+    
+    while 1:
+        # try VDT first
+        yn=raw_input("Do you want to get it from VDT?: (y/n) ")
+        if yn!="n":
+            return query_vdt()
+
+        if os.environ.has_key('X509_CERT_DIR'):
+            def_ca_dir=os.environ['X509_CERT_DIR']
+        else:
+            def_ca_dir='/etc/grid-security/certificates'
+
+        user_dir=raw_input("Where are the trusted CAs installed?: [%s] "%def_ca_dir)
+        if user_dir=='':
+            user_dir=def_ca_dir
+        user_dir=os.path.abspath(user_dir)
+        if not os.path.isdir(user_dir):
+            print "Directory '%s' does not exist"%user_dir
+            continue
+        if not os.path.exists("%s/1c3f2ca8.r0"%user_dir):
+            print "Directory '%s' not a trusted CA area"%user_dir
+            continue
+
+        # found and verified the installation
+        print "Using trusted CA dir %s"%user_dir
+        print
+        GSI_TRUSTED_CA_DIR=user_dir
+        return
+
+# Ask the user where is the CA dir
+########################################
+def query_voms_proxy_info():
+    global VDT_BASE_PATH
+    global VOMS_PROXY_INFO_BIN
+
+    print "voms-proxy-info is needed to extract the VO information from the proxy"
+    
+    while VOMS_PROXY_INFO_BIN==None:
+        if VDT_BASE_PATH==None:
+            # try VDT first, if not already tried
+            yn=raw_input("Do you want to get it from VDT?: (y/n) ")
+            if yn!="n":
+                query_vdt()
+                continue
+
+        user_bin=raw_input("Where is voms-proxy-init installed?\n(optional, leave empty if you don't have one): ")
+        if user_bin=='':
+            print "Not using voms-proxy-info"
+            print
+            VOMS_PROXY_INFO_BIN=False
+            break
+        
+        user_bin=os.path.abspath(user_bin)
+        if not os.path.isfile(user_bin):
+            print "File '%s' does not exist"%user_bin
+            continue
+
+        # found and verified the installation
+        print "Using %s"%user_bin
+        print
+        VOMS_PROXY_INFO_BIN=user_bin
+        break
+    return
+            
+
 # Ask the user if it has an OSG client
 # Install one else
 ########################################
 def query_vdt():
     global VDT_BASE_PATH
+    global GSI_TRUSTED_CA_DIR
+    global VOMS_PROXY_INFO_BIN
+
+    # reminder
+    #if os.environ.has_key('OSG_VDT_BASE'):
+    #    VDT_BASE_PATH=os.environ['OSG_VDT_BASE']
 
     while 1:
         yn=raw_input("Do you have already a VDT installation?: (y/n) ")
@@ -1674,7 +1765,13 @@ def query_vdt():
             continue 
 
         if yn=="y":
-            user_dir=raw_input("Where is the VDT installed?: ")
+            if os.environ.has_key('OSG_VDT_BASE'):
+                def_dir=os.environ['OSG_VDT_BASE']
+                user_dir=raw_input("Where is the VDT installed?: [%s] "%def_dir)
+                if user_dir=="":
+                    user_dir=def_dir
+            else:
+                user_dir=raw_input("Where is the VDT installed?: ")
             user_dir=os.path.abspath(user_dir)
             if not os.path.isfile("%s/setup.sh"%user_dir):
                 print "Directory '%s' not a VDT area (does not contain setup.sh)"%user_dir
@@ -1686,7 +1783,7 @@ def query_vdt():
             print "Using VDT installation in %s"%user_dir
             print
             VDT_BASE_PATH=user_dir
-            return
+            break
         else:
             print
             print "This installer can install the full OSG VDT client,"
@@ -1712,7 +1809,7 @@ def query_vdt():
                     except RuntimeError,e:
                         print "%s"%e
                         continue # ask again
-                    return
+                    break
             else:
               # install OSG VDT client
               try:
@@ -1720,7 +1817,12 @@ def query_vdt():
               except RuntimeError,e:
                 print "%s"%e
                 continue # ask again
-              return
+              break
+
+    GSI_TRUSTED_CA_DIR="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
+    if os.path.isfile("%s/globus/bin/voms-proxy-info"%user_dir):
+        VOMS_PROXY_INFO_BIN="source %s/setup.sh;voms-proxy-info"%VDT_BASE_PATH
+    return
 
 # add a bunch of lines to crontab
 ###################################
@@ -1876,53 +1978,55 @@ def install_vdt(minimal):
         
     if os.getuid()==0: # different if root or not
         # as root
+        yn=raw_input("Do you want OSG_VDT_BASE defined globally?: (y/n) ")
+        if yn!="n":
+            # put rrd binaries in system wide path
+            fd=open("/etc/profile.d/osg_vdt.sh","w")
+            try:
+                fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
+                fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
+            finally:
+                fd.close()
+            os.chmod("/etc/profile.d/osg_vdt.sh",
+                     stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
 
-        # put rrd binaries in system wide path
-        fd=open("/etc/profile.d/osg_vdt.sh","w")
-        try:
-            fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
-            fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
-        finally:
-            fd.close()
-        os.chmod("/etc/profile.d/osg_vdt.sh",
-                 stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
-
-        fd=open("/etc/profile.d/osg_vdt.csh","w")
-        try:
-            fd.write("setenv OSG_VDT_BASE %s\n"%user_dir)
-            fd.write("setenv X509_CERT_DIR $OSG_VDT_BASE/globus/TRUSTED_CA\n")
-        finally:
-            fd.close()
-        os.chmod("/etc/profile.d/osg_vdt.csh",
-                 stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
+            fd=open("/etc/profile.d/osg_vdt.csh","w")
+            try:
+                fd.write("setenv OSG_VDT_BASE %s\n"%user_dir)
+                fd.write("setenv X509_CERT_DIR $OSG_VDT_BASE/globus/TRUSTED_CA\n")
+            finally:
+                fd.close()
+            os.chmod("/etc/profile.d/osg_vdt.csh",
+                     stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
     else:
         # as regular user
-        
-        # put rrd path in .profile
-        fd=open("%s/.profile"%os.environ['HOME'],"a")
-        try:
-            fd.write("\n# OSG vdt client settings\n")
-            fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
-            fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
-        finally:
-            fd.close()
-            
-        fd=open("%s/.bashrc"%os.environ['HOME'],"a")
-        try:
-            fd.write("\n# OSG vdt client settings\n")
-            fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
-            fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
-        finally:
-            fd.close()
-            
-        # and in .cshrc
-        fd=open("%s/.cshrc"%os.environ['HOME'],"a")
-        try:
-            fd.write("\n# OSG vdt client settings\n")
-            fd.write("setenv OSG_VDT_BASE %s\n"%user_dir)
-            fd.write("setenv X509_CERT_DIR $OSG_VDT_BASE/globus/TRUSTED_CA\n")
-        finally:
-            fd.close()
+        yn=raw_input("Do you want OSG_VDT_BASE in you mode.dir config?: (y/n) ")
+        if yn!="n":        
+            # put rrd path in .profile
+            fd=open("%s/.profile"%os.environ['HOME'],"a")
+            try:
+                fd.write("\n# OSG vdt client settings\n")
+                fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
+                fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
+            finally:
+                fd.close()
+
+            fd=open("%s/.bashrc"%os.environ['HOME'],"a")
+            try:
+                fd.write("\n# OSG vdt client settings\n")
+                fd.write("export OSG_VDT_BASE=%s\n"%user_dir)
+                fd.write("export X509_CERT_DIR=$OSG_VDT_BASE/globus/TRUSTED_CA\n")
+            finally:
+                fd.close()
+
+            # and in .cshrc
+            fd=open("%s/.cshrc"%os.environ['HOME'],"a")
+            try:
+                fd.write("\n# OSG vdt client settings\n")
+                fd.write("setenv OSG_VDT_BASE %s\n"%user_dir)
+                fd.write("setenv X509_CERT_DIR $OSG_VDT_BASE/globus/TRUSTED_CA\n")
+            finally:
+                fd.close()
 
     # everything went well, register
     print
@@ -2360,31 +2464,14 @@ def restart_condor():
 # Extact x509 info
 ################################
 def get_proxy_dn(proxy_fname):
-    if not os.path.isfile(proxy_fname):
-        raise RuntimeError,"Proxy '%s' not found"%proxy_fname
+    return get_cert_dn(proxy_fname,type_text='proxy')
 
-    #extract DN
-    dn_fd=os.popen("source %s/setup.sh;grid-proxy-info -file %s"%(VDT_BASE_PATH,proxy_fname))
-    dn_blob=dn_fd.read()
-    err=dn_fd.close()
-    if err!=None:
-        raise RuntimeError,"Failed to extract DN from proxy '%s'!"%proxy_fname
-
-    i=dn_blob.find("identity : ")
-    if i<0:
-        raise RuntimeError,"Failed to extract Identity from proxy '%s'!"%proxy_fname
-
-    dn_blob=dn_blob[i+11:] # remove part before identity
-    my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
-            
-    return my_dn
-
-def get_cert_dn(cert_fname):
+def get_cert_dn(cert_fname,type_text='certificate'):
     if not os.path.isfile(cert_fname):
-        raise RuntimeError,"Certificate '%s' not found"%cert_fname
+        raise RuntimeError,"File '%s' not found"%cert_fname
 
     #extract DN
-    dn_fd=os.popen("openssl x509 -subject -in %s"%cert_fname)
+    dn_fd=os.popen("openssl x509 -subject -in %s -out /dev/null"%cert_fname)
     dn_blob=dn_fd.read()
     err=dn_fd.close()
     if err!=None:
@@ -2397,14 +2484,27 @@ def get_cert_dn(cert_fname):
     dn_blob=dn_blob[i+9:] # remove part before subject
     my_dn=dn_blob[:dn_blob.find('\n')] # keep only the part until the newline
 
+    # remove the proxy part
+    while my_dn[-9:]=='/CN=proxy':
+        my_dn=my_dn[:-9]
+
     return my_dn
 
+# if cannnot get one, returns None
 def get_proxy_vo(proxy_fname):
+    global VOMS_PROXY_INFO_BIN
+
     if not os.path.isfile(proxy_fname):
         raise RuntimeError,"Proxy '%s' not found"%proxy_fname
 
+    if VOMS_PROXY_INFO_BIN==None:
+        query_voms_proxy_info()
+        
+    if VOMS_PROXY_INFO_BIN==False:
+        return None # User said he does not have voms-proxy-info
+    
     #extract VO
-    vo_fd=os.popen("source %s/setup.sh;voms-proxy-info -all -file %s"%(VDT_BASE_PATH,proxy_fname))
+    vo_fd=os.popen("%s -all -file %s"%(VOMS_PROXY_INFO_BIN,proxy_fname))
     vo_blob=vo_fd.read()
     err=vo_fd.close()
     #if err!=None:
@@ -2412,7 +2512,7 @@ def get_proxy_vo(proxy_fname):
 
     i=vo_blob.find("VO        : ")
     if i<0:
-        raise RuntimeError,"Failed to extract VO from proxy '%s'!"%proxy_fname
+        return None # proxy did not have VOMS extension
 
     vo_blob=vo_blob[i+12:] # remove part before VO
     my_vo=vo_blob[:vo_blob.find('\n')] # keep only the part until the newline
@@ -2424,12 +2524,15 @@ def get_proxy_vo(proxy_fname):
 ################################
 def configure_gsi_security(gsi_setup=None):
     global CONDOR_BASE_PATH
-    global VDT_BASE_PATH
+    global GSI_TRUSTED_CA_DIR
     global GSI_SECURITY_CONFIGURED
     global CONDOR_UPD_CONFIG_FILE
 
     print "Configuring GSI security"
     print
+
+    if GSI_TRUSTED_CA_DIR==None:
+        query_ca_dir()
 
     
     #################################
@@ -2566,7 +2669,7 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("DENY_DAEMON = anonymous@*\n")
         config_fd.write("DENY_NEGOTIATOR = anonymous@*\n\n")
         config_fd.write("# Grid Certificate directory\n")
-        config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s/globus/TRUSTED_CA\n\n"%VDT_BASE_PATH)
+        config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
         config_fd.write("############################\n")
         config_fd.write("# Set daemon cert location\n")
         config_fd.write("############################\n")
@@ -3746,6 +3849,10 @@ def get_ress_glidein_entries(vo,             #vo can be None
     else:
         def_glexec_bin='NONE'
 
+    #
+    # Note to self (Igor):
+    # should ask if user wants to provide a VO, if not defined
+
 
     default_reqs=""
     if vo!=None:
@@ -3939,6 +4046,10 @@ def get_bdii_glidein_entries(vo,             #vo can be None
             continue
         #found and verified
         break
+
+    #
+    # Note to self (Igor):
+    # should ask if user wants to provide a VO, if not defined
 
     default_reqs=""
     if vo!=None:
