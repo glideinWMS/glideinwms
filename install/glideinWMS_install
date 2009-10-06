@@ -1701,8 +1701,9 @@ def query_ca_dir():
             print "Directory '%s' does not exist"%user_dir
             continue
         if not os.path.exists("%s/1c3f2ca8.r0"%user_dir):
-            print "Directory '%s' not a trusted CA area"%user_dir
-            continue
+            if not os.path.exists("%s/67e8acfa.r0"%user_dir):
+                print "Directory '%s' not a trusted CA area"%user_dir
+                continue
 
         # found and verified the installation
         print "Using trusted CA dir %s"%user_dir
