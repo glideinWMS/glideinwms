@@ -1884,7 +1884,7 @@ def install_vdt(minimal):
         package_list=['OSG:client']
 
     # ask user about the appropriate platform
-    tested_platforms=('linux-rhel-3','SL-3','linux-rhel-4','SL-4','linux-fedora-4','linux-rhel-5','SL-5')
+    tested_platforms=('linux-rhel-4','SL-4','linux-rhel-5','SL-5')
     print "VDT client installation tends to be very picky about the platforms it installs under"
     print "Most of the time, one needs to pretent to be one of the tested platforms"
     print "The platforms known to work are: %s"%string.join(tested_platforms,',')
