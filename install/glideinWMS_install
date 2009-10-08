@@ -1700,8 +1700,8 @@ def query_ca_dir():
         if not os.path.isdir(user_dir):
             print "Directory '%s' does not exist"%user_dir
             continue
-        if not os.path.exists("%s/1c3f2ca8.r0"%user_dir):
-            if not os.path.exists("%s/67e8acfa.r0"%user_dir):
+        if not os.path.exists("%s/1c3f2ca8.0"%user_dir):
+            if not os.path.exists("%s/67e8acfa.0"%user_dir):
                 print "Directory '%s' not a trusted CA area"%user_dir
                 continue
 
