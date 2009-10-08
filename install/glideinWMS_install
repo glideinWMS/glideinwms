@@ -1923,20 +1923,16 @@ def install_vdt(minimal):
     if not minimal:
         os.system("cd %s/%s;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,pacman_version,user_dir))
 
-    # initialize CA CRL config 
+    # initialize CA CRL config
+    print "VDT does not provide a default URL for CA fetching"
+    print "You need to provide one"
     default_crl_url="http://software.grid.iu.edu/pacman/cadist/ca-certs-version"
+    print "The default OSG location is: %s"%default_crl_url
     crl_url=raw_input("Where should I fetch the CAs from?: [%s] "%default_crl_url)
     if crl_url=="":
         crl_url=default_crl_url
 
-    fd=open("%s/vdt/etc/vdt-update-certs.conf"%user_dir,"a")
-    try:
-        fd.write("\n#CA URL provided during glideinWMS installation\n")
-        fd.write("cacerts_url = %s\n"%crl_url)
-    finally:
-        fd.close()
-        
-    err=os.system("cd %s;source setup.sh;source vdt-questions.sh; ./vdt/sbin/vdt-setup-ca-certificates"%user_dir)
+    err=os.system("cd %s;source setup.sh; vdt-ca-manage setupca --location local --url %s"%(user_dir, crl_url))
     if err!=0:
         raise RuntimeError,"Failed to initalize the CAs!"
 
