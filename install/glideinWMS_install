@@ -2829,7 +2829,7 @@ def setup_main_schedd():
             config_fd.write("######################################################\n")
             config_fd.write("## This is both a Collector and a Schedd machine\n")
             config_fd.write("######################################################\n")
-            config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR, %s\n\n"%schedd_daemons)
+            config_fd.write("DAEMON_LIST   = $(DAEMON_LIST) %s\n\n"%schedd_daemons)
         finally:
             config_fd.close()
 
