@@ -1958,15 +1958,15 @@ def install_vdt(minimal):
 
         cron_lines=[]
         for line in lines:
-            els=line.split(None,8)
-            if len(els)!=9:
+            els=line.split(None,9)
+            if len(els)!=10:
                 continue # ignore, not a good line
             if (els[1]!='cron') or (els[2]!='enable'):
                 continue # not a cron line
-            cron_lines.append(string.join(els[3:]))
+            cron_lines.append(string.join(els[4:]))
             # also run it once by hand
             print "Initializing %s"%els[0]
-            os.system(els[8])
+            os.system(els[9])
 
         # add them to cron
         print "Adding %i lines to crontab"%len(cron_lines)
