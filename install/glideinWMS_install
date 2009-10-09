@@ -1862,7 +1862,7 @@ def install_vdt(minimal):
             pacman_version=default_pacman_version
 
         # install pacman
-        err=os.system("cd %s&&wget http://vdt.cs.wisc.edu/software/pacman/%s/pacman-%s.tar.gz&&tar --no-same-owner -xzvf %s.tar.gz&&rm -f  %s.tar.gz"%(user_dir,pacman_version,pacman_version,pacman_version,pacman_version))
+        err=os.system("cd %s&&wget http://vdt.cs.wisc.edu/software/pacman/%s/pacman-%s.tar.gz&&tar --no-same-owner -xzvf pacman-%s.tar.gz&&rm -f  pacman-%s.tar.gz"%(user_dir,pacman_version,pacman_version,pacman_version,pacman_version))
         if err!=0:
             print "Failed to install pacman!"
             continue
