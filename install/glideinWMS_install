@@ -1913,7 +1913,7 @@ def install_vdt(minimal):
 
     # install the VDT client
     for p in package_list:
-        err=os.system("cd %s/%s;source setup.sh;cd pacman-%s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,p))
+        err=os.system("cd %s/pacman-%s;source setup.sh;cd %s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,p))
         if err!=0:
             raise RuntimeError,"Failed to install the VDT client!"
 
@@ -1921,7 +1921,7 @@ def install_vdt(minimal):
     # remove the condor component
     # ignore any error
     if not minimal:
-        os.system("cd %s/%s;source setup.sh;cd pacman-%s&&pacman -remove Condor >/dev/null"%(user_dir,pacman_version,user_dir))
+        os.system("cd %s/pacman-%s;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,pacman_version,user_dir))
 
     # initialize CA CRL config
     print "VDT does not provide a default URL for CA fetching"
