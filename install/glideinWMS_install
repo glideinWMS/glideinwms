@@ -1856,13 +1856,13 @@ def install_vdt(minimal):
     user_dir=create_empty_dir("Where do you want the VDT installed?: ",def_vdt_base_path)
 
     while 1:
-        default_pacman_version="pacman-3.28"
+        default_pacman_version="3.28"
         pacman_version=raw_input("What pacman version should I use?: [%s] "%default_pacman_version)
         if pacman_version=="":
             pacman_version=default_pacman_version
 
         # install pacman
-        err=os.system("cd %s&&wget http://physics.bu.edu/pacman/sample_cache/tarballs/%s.tar.gz&&tar --no-same-owner -xzvf %s.tar.gz&&rm -f  %s.tar.gz"%(user_dir,pacman_version,pacman_version,pacman_version))
+        err=os.system("cd %s&&wget http://vdt.cs.wisc.edu/software/pacman/%s/pacman-%s.tar.gz&&tar --no-same-owner -xzvf %s.tar.gz&&rm -f  %s.tar.gz"%(user_dir,pacman_version,pacman_version,pacman_version,pacman_version))
         if err!=0:
             print "Failed to install pacman!"
             continue
