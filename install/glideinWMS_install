@@ -1844,7 +1844,7 @@ def cron_append(lines,tmp_dir='/tmp'):
 
 # Install OSG client
 ################################
-MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','VOMS-Client','CA-Certificates-Updater']
+MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','Globus-Client','VOMS-Client','MyProxy-Client','CA-Certificates-Updater']
 
 def install_vdt(minimal):
     global VDT_BASE_PATH
