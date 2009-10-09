@@ -1,6 +1,9 @@
 v2_Next	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
           classds. This was preventing psuedo interactive monitoring to work
-          in case of GLEXEC
+          in case of GLEXEC.
+	Made VDT optional.
+	Addedd support for VDT 2.0, and made it the default.
+	  Added Globus-Client and Myproxy-Client in the minimal VDT install. 
 
 v2_1	Fixed a bug that was throwing an exception if a glidein failed.
 	Fixed handling of grid-mapfiles coming from client.
