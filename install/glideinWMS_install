@@ -1796,7 +1796,7 @@ def query_vdt():
             print "The minimal Grid VDT client will install just the bare minimum needed"
             print "to run and debug the glideinWMS instance."
             print "The minimum install packages are"
-            print "PPDG-Cert-Scripts,VOMS-Client,CA-Certificates-Updater,OSG:vo-client"
+            print "PPDG-Cert-Scripts,Clobus-Client,VOMS-Client,Myproxy-Client,CA-Certificates-Updater,OSG:vo-client"
             print
             yn=raw_input("Do you want to install the full OSG VDT client?: (y/n) ")
             if (yn!="y"):
@@ -2722,7 +2722,7 @@ def configure_gsi_security(gsi_setup=None):
 # Update condor config with
 # collector and negotiator settings
 ######################################
-def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector_base_port=9620):
+def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector_port_diff=2):
     global CONDOR_BASE_PATH
     global COLLECTOR_INSTALLED
     global CONDOR_UPD_CONFIG_FILE
@@ -2731,13 +2731,39 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
     if a_poolname=="":
         a_poolname=default_poolname
 
+    default_collector_port=9618
+    while 1:
+        collector_port_str=raw_input("What port should the collector be running?: [%i] "%default_collector_port)
+        try:
+            collector_port=int(collector_port_str)
+        except:
+            print "%s not a number"%collector_port_str
+            continue
+        if collector_port>65535:
+            print "Cannot use port number that high: %i"%collector_port
+            continue
+        if collector_port<1:
+            print "Cannot use port number that low: %i"%collector_port
+            continue
+        if collector_port<1024:
+            if os.getuid()!=0:
+                print "Only root can use prots below 1024: %i"%collector_port
+                continue
+            yn=raw_input("Do you really want to use the privileged oirt %i? (y/n)"%collector_port)
+            if yn!='y':
+                continue
+        # we have a valid port
+        break
+        
+
     config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
     try:
         config_fd.write("\n######################################################\n")
         config_fd.write("## This is a Collector machine, limit deamons\n")
         config_fd.write("######################################################\n")
         config_fd.write("DAEMON_LIST   = MASTER, COLLECTOR, NEGOTIATOR\n")
-        config_fd.write("COLLECTOR_NAME = %s\n\n"%a_poolname)
+        config_fd.write("COLLECTOR_NAME = %s\n"%a_poolname)
+        config_fd.write("COLLECTOR_HOST  = $(CONDOR_HOST):%i\n\n"%collector_port)
         config_fd.write("############################################################\n")
         config_fd.write("## Negotiator tuning\n")
         config_fd.write("############################################################\n")
@@ -2766,7 +2792,7 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
             for collector_nr in range(nr_secondary_collectors):
                 config_fd.write("COLLECTOR%i = $(COLLECTOR)\n"%collector_nr)
                 config_fd.write('COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog"\n'%(collector_nr,collector_nr))
-                config_fd.write("COLLECTOR%i_ARGS = -f -p %i\n\n"%(collector_nr,secondary_collector_base_port+collector_nr))
+                config_fd.write("COLLECTOR%i_ARGS = -f -p %i\n\n"%(collector_nr,collector_port+secondary_collector_port_diff+collector_nr))
 
             config_fd.write("# Add subcollectors to the list of things to start\n")
             config_fd.write("DAEMON_LIST = $(DAEMON_LIST) \\\n")
