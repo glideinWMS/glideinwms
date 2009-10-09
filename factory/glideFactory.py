@@ -133,6 +133,18 @@ def main(startup_dir):
                                                float(glideinDescript.data['LogRetentionMaxMBs'])*1024*1024,
                                                activity_log,warning_log)
         
+        # check that the GSI environment is properly set
+        if not os.environ.has_key('X509_CERT_DIR'):
+            glideFactoryLib.factoryConfig.warning_log.write("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
+            raise RuntimeError, "Need X509_CERT_DIR to work!"
+
+        allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
+        if 'factory' in allowed_proxy_source:
+            if not os.environ.has_key('X509_USER_PROXY'):
+                glideFactoryLib.factoryConfig.warning_log.write("Factory is supposed to allow provide a proxy, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
+                raise RuntimeError, "Factory is supposed to allow provide a proxy. Need X509_USER_PROXY to work!"
+            
+
         sleep_time=int(glideinDescript.data['LoopDelay'])
         advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
         
@@ -176,16 +188,6 @@ def termsignal(signr,frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
-
-    warning_log=logSupport.DayLogFile(os.path.join(sys.argv[1],"log/factory_err"))
-    glideFactoryLib.factoryConfig.warning_log=warning_log
-    # check that the GSI environment is properly set
-    if not os.environ.has_key('X509_USER_PROXY'):
-        glideFactoryLib.factoryConfig.warning_log.write("Environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
-        raise RuntimeError, "Need X509_USER_PROXY to work!"
-    if not os.environ.has_key('X509_CERT_DIR'):
-        glideFactoryLib.factoryConfig.warning_log.write("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
-        raise RuntimeError, "Need X509_CERT_DIR to work!"
 
     try:
         main(sys.argv[1])
