@@ -1997,7 +1997,7 @@ def install_vdt(minimal):
                      stat.S_IRWXU|stat.S_IROTH|stat.S_IRGRP|stat.S_IXOTH|stat.S_IXGRP)
     else:
         # as regular user
-        yn=raw_input("Do you want OSG_VDT_BASE in you mode.dir config?: (y/n) ")
+        yn=raw_input("Do you want OSG_VDT_BASE in you home dir config?: (y/n) ")
         if yn!="n":        
             # put rrd path in .profile
             fd=open("%s/.profile"%os.environ['HOME'],"a")
