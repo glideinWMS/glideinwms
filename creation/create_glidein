@@ -93,19 +93,28 @@ def copy_submit_exe(filename,work_dir,org_dir):
 ############################################################
 
 if __name__ == '__main__':
-    usage_prefix="create_glidein [-writeback yes|no]"
+    usage_prefix="create_glidein [-writeback yes|no] [-debug]"
     argv=sys.argv
     writeback='yes'
+    debug=False
     while len(argv)>2:
         if argv[1]=='-writeback':
             writeback=argv[2]
             argv=argv[0:1]+argv[3:]
+        elif argv[1]=='-debug':
+            debug=True
+            argv=argv[0:1]+argv[2:]
         else:
             break
             
     try:
         params=cgWParams.GlideinParams(usage_prefix,os.path.join(STARTUP_DIR,"web_base"),argv)
     except RuntimeError,e:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
         print e
         sys.exit(1)
         
@@ -118,6 +127,11 @@ if __name__ == '__main__':
     try:
         main(params)
     except RuntimeError, e:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
         print params.usage()
         print ""
         print e
@@ -127,6 +141,11 @@ if __name__ == '__main__':
         if writeback=='yes':
             params.save_into_file_wbackup(params.cfg_name)
     except:
+        if debug:
+            import traceback
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            print string.join(tb,'\n')
         print "Writing back config file failed"
         sys.exit(1)
 
