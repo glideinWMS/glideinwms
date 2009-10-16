@@ -44,17 +44,6 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         for script_name in ('cat_consts.sh','setup_x509.sh'):
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
-        #load condor tarball
-        if params.condor.tar_file!=None: # condor tarball available
-            self.dicts['file_list'].add_from_file(cgWConsts.CONDOR_FILE,(cWConsts.insert_timestr(cgWConsts.CONDOR_FILE),"untar","TRUE",cgWConsts.CONDOR_ATTR),params.condor.tar_file)
-        else: # create a new tarball
-            condor_fd=cgWCreate.create_condor_tar_fd(params.condor.base_dir)
-            condor_fname=cWConsts.insert_timestr(cgWConsts.CONDOR_FILE)
-            self.dicts['file_list'].add_from_fd(cgWConsts.CONDOR_FILE,(condor_fname,"untar","TRUE",cgWConsts.CONDOR_ATTR),condor_fd)
-            condor_fd.close()
-            params.subparams.data['condor']['tar_file']=os.path.join(self.dicts['file_list'].dir,condor_fname)
-        self.dicts['untar_cfg'].add(cgWConsts.CONDOR_FILE,cgWConsts.CONDOR_DIR)
-
         #load system files
         for file_name in ('parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.monitor.include" ):
             self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
@@ -75,13 +64,38 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         # add the basic standard params
         self.dicts['params'].add("GLIDEIN_Collector",'Fake')
 
+        # Prepare to load condor tarballs (after entry, as I may need data from there)
+        for script_name in ('validate_node.sh','condor_platform_select.sh'):
+            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+                
+        #load condor tarballs
+        for condor_idx in range(len(params.condor_tarballs)):
+            condor_el=params.condor_tarballs[condor_idx]
+            condor_platform="%s-%s"%(condor_el.os,condor_el.arch)
+            cond_name="CONDOR_PLATFORM_%s"%condor_platform
+            condor_fname=cgWConsts.CONDOR_FILE%condor_platform
+            # register the tarball, but make the download conditional to cond_name
+            if condor_el.tar_file!=None: # condor tarball available
+                self.dicts['after_file_list'].add_from_file(condor_fname,(cWConsts.insert_timestr(condor_fname),"untar",cond_name,cgWConsts.CONDOR_ATTR),condor_el.tar_file)
+            else: # create a new tarball
+                condor_fd=cgWCreate.create_condor_tar_fd(condor_el.base_dir)
+                condor_fname=cWConsts.insert_timestr(condor_fname)
+                self.dicts['after_file_list'].add_from_fd(condor_fname,(condor_fname,"untar",cond_name,cgWConsts.CONDOR_ATTR),condor_fd)
+                condor_fd.close()
+                # insert the newly created tarball fname back into the config
+                params.subparams.data['condor_tarballs'][condor_idx]['tar_file']=os.path.join(self.dicts['file_list'].dir,condor_fname)
+            # add cond_name in the config, so that it is known it is there
+            # but leave it disabled by default
+            self.dicts['consts'].add(cond_name,"0",allow_overwrite=False)
+            self.dicts['untar_cfg'].add(condor_fname,cgWConsts.CONDOR_DIR)
+
         # add additional system scripts
-        for script_name in ('validate_node.sh','create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
+        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
         for script_name in (cgWConsts.CONDOR_STARTUP_FILE,):
-            self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
+            self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
         self.dicts['description'].add(cgWConsts.CONDOR_STARTUP_FILE,"last_script")
 
         # populate complex files

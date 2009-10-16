@@ -1023,7 +1023,11 @@ def gfactory_install():
             fd.write('   <submit base_dir="%s"/>\n'%submit_base_dir)
             fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
-            fd.write('   <condor base_dir="%s"/>\n'%condor_base_dir)
+            # Reminder to self(Igor)
+            # Would be nice if the installer allowed to provide multiple binaries
+            fd.write('   <condor_tarballs>\n')
+            fd.write('       <condor_tarball arch="default" os="default" base_dir="%s"/>\n'%condor_base_dir)
+            fd.write('   </condor_tarballs>\n')
 
             # Reminder to self(Igor)
             # Add factory proxy in the config file... not reliable to use the ENV(X509_USER_PROXY)
@@ -1063,6 +1067,8 @@ def gfactory_install():
                 fd.write('         </infosys_refs>\n')
                 fd.write('         <attrs>\n')
                 fd.write('            <attr name="GLIDEIN_Site" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="True" parameter="True"/>\n'%entry_el['site_name'])
+                fd.write('            <attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
+                fd.write('            <attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
                 if ccb_yn=="y":
                     # Put USE_CCB in the entries so that it is easy to disable it selectively
                     fd.write('            <attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')

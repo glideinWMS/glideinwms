@@ -71,7 +71,7 @@ fi
 condor_platform="${condor_os}-${condor_arch}"
 condor_platform_id="CONDOR_PLATFORM_$condor_platform"
 
-condor_platform_check=`grep "^$condor_platform_id " "$condor_platfors_file" | awk '{print $2}'`
+condor_platform_check=`grep "^$condor_platform_id " "$glidein_config" | awk '{print $2}'`
 if [ -z "$condor_platform_check" ]; then
     # the line does not exist, so the platform is not supported
     echo "Condor platform $condor_platform not supported. Quitting" 1>&2

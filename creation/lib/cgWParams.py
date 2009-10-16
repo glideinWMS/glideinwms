@@ -124,9 +124,12 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["security"]=security_default
         
         condor_defaults=cWParams.commentedOrderedDict()
+        condor_defaults["os"]=(None,"osname","Operating System (like linux-rhel3)",None)
+        condor_defaults["arch"]=(None,"arch","Architecture (like x86)",None)
         condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
-        condor_defaults["base_dir"]=(find_condor_base_dir(),"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
-        self.defaults["condor"]=condor_defaults
+        condor_defaults["base_dir"]=(None,"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
+
+        self.defaults["condor_tarballs"]=([],'List of condor tarballs',"Each entry contains",condor_defaults)
 
         self.defaults["downtimes"]=self.downtimes_defaults
 
@@ -177,7 +180,8 @@ class GlideinParams(cWParams.CommonParams):
 
     # return xml formatting
     def get_xml_format(self):
-        return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
+        return {'lists_params':{'condor_tarballs':{'el_name':'condor_tarball','subtypes_params':{'class':{}}},
+                                'files':{'el_name':'file','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'entries':{'el_name':'entry','subtypes_params':{'class':{}}}}}
 

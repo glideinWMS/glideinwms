@@ -113,6 +113,14 @@ It is composed of two parts:</p>
     refer the <a href="index.html#management">Glidein Factory management
     section</a></p>
   </li>
+  <li><p style="margin-bottom: 0in"><font face="monospace">
+	    &lt;<b>glidein</b>&gt;&lt;<b>condor_tarballs</b>&gt;
+              &lt;<b>condor_tarball os=</b>"<i>os</i>"<b> arch=</b>"<i>arch</i>"<b>base_dir=</b>"<i>directory</i>"/&gt;</font><br>
+    Where to find the Condor binaries.<br>
+    You can list as many as you need, but at least one is required.<br>
+    <br>
+    It is recommended to have one default entry with <font face="monospace"><b>os="default" arch="default"</b></font>.</p>
+  </li>
 </ul>
 
 <p>You <b>most probably want to set</b> the following arguments, too:</p>
@@ -393,6 +401,13 @@ arguments:</p>
 
 <p>Some other arguments you <b>might want to set</b>, are:</p>
 <ul>
+  <li><p style="margin-bottom: 0in"><font face="monospace">&lt;<b>glidein</b>&gt;&lt;<b>entries</b>&gt;
+    &lt;<b>entry name=</b>"<i>entry name</i>"&gt;&lt;<b>attrs</b>&gt;<br>
+     &nbsp; &lt;<b>attr name="CONDOR_OS" value</b>="<i>os</i>" <b>type="string" const="True" parameter="True" publish="False"</b>/&gt;<br>
+     &nbsp; &lt;<b>attr name="CONDOR_ARCH" value</b>="<i>arch</i>" <b>type="string" const="True" parameter="True" publish="False"</b>/&gt;</font><br>
+    Select a non-default condor binary.<br>
+    The entry will default to <font face="monospace"><b>CONDOR_OS="default" CONDOR_ARCH="default"</b></font>, if not otherwise defined.
+  </li>
   <li><p><font face="monospace">&lt;</font><font
     face="monospace"><b>glidein</b></font><font
     face="monospace">&gt;&lt;</font><font
