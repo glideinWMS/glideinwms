@@ -210,7 +210,13 @@ if [ -z "$proxy_url" ]; then
 fi
 
 if [ "$proxy_url" == "OSG" ]; then
-  proxy_url="$OSG_SQUID_LOCATION:3128"
+  if [ -z "$OSG_SQUID_LOCATION" ]; then
+     # if OSG does not define a Squid, then don't use any
+     proxy_url="None"
+     warn "OSG_SQUID_LOCATION undefined, not using any Squid URL" 1>&2
+  else
+     proxy_url=`echo $OSG_SQUID_LOCATION |awk -F ':' '{if ($2 =="") {print $1 ":3128"} else {print $0}}'`
+  fi
 fi
 
 if [ -z "$sign_id" ]; then
