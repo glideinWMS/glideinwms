@@ -1076,7 +1076,7 @@ def gfactory_install():
                     # Put GCB_ORDER in the entries so that it is easy to disable it selectively
                     if len(gcb_list)>0:
                         fd.write('            <attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
-                fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
+                fd.write('            <attr name="GLEXEC_BIN" value="%s" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n'%entry_el['glexec_path'])
                 fd.write('         </attrs>\n')
                 fd.write('         <files>\n')
                 fd.write('         </files>\n')
