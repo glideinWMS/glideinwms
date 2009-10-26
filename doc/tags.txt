@@ -6,7 +6,12 @@ v2_Next	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
 	  Added Globus-Client and Myproxy-Client in the minimal VDT install.
 	Installer now allows the collector to run on non-standard port.
 	Factory now only checks X509_USER_PROXY if it needs it.  
-	Added support for mulitple versions of condor in a single factory.
+	Added support for multiple versions of condor in a single factory.
+	Added ReqEncIdentity to the frontend->factory protocol 
+	   to prevent replay attacks.
+	   WARNING: This effectively prevents old-style frontends to talk
+                    to new style factories.
+	   NOTE: Will only work with Condor 7.3.1 or newer
 
 v2_1	Fixed a bug that was throwing an exception if a glidein failed.
 	Fixed handling of grid-mapfiles coming from client.

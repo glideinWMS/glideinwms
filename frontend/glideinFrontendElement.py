@@ -46,6 +46,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
 
+    classad_identity="%s"%elementDescript.frontend_data['ClassAdIdentity']
+
     web_url=elementDescript.frontend_data['WebURL']
 
     # query condor
@@ -251,6 +253,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                      signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                      signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                      glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+                                                     classad_identity,
                                                      glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
                                                      glidein_symKey=None, # should reuse it, but none will work for now
                                                      glidein_params_to_encrypt=enc_data)
@@ -265,6 +268,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
           glideinFrontendLib.log_files.logDebug("Advertize %s failed: %s"%(glideid_str,e))
         except:
           glideinFrontendLib.log_files.logWarning("Advertize %s failed: Reason unknown"%glideid_str)
+          tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                          sys.exc_info()[2])
+          glideinFrontendLib.log_files.logDebug("Advertize %s failed: %s"%(glideid_str,string.join(tb,'')))
 
     return
 
@@ -353,6 +359,9 @@ def main(parent_pid, work_dir, group_name):
         # no proxies, will try to use the factory one
         x509_proxy_plugin=None
 
+    # set the frontend proxy globally, so I don't need to worry about it later on
+    os.environ['X509_USER_PROXY']=elementDescript.frontend_data['ClassAdProxy']
+
     # create lock file
     pid_obj=glideinFrontendPidLib.ElementPidSupport(work_dir,group_name)
 
@@ -383,8 +392,6 @@ def termsignal(signr,frame):
 
 if __name__ == '__main__':
     # check that the GSI environment is properly set
-    if not os.environ.has_key('X509_USER_PROXY'):
-        raise RuntimeError, "Need X509_USER_PROXY to work!"
     if not os.environ.has_key('X509_CERT_DIR'):
         raise RuntimeError, "Need X509_CERT_DIR to work!"
 

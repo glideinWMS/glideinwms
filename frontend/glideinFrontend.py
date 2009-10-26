@@ -159,8 +159,6 @@ if __name__ == '__main__':
     signal.signal(signal.SIGQUIT,termsignal)
 
     # check that the GSI environment is properly set
-    if not os.environ.has_key('X509_USER_PROXY'):
-        raise RuntimeError, "Need X509_USER_PROXY to work!"
     if not os.environ.has_key('X509_CERT_DIR'):
         raise RuntimeError, "Need X509_CERT_DIR to work!"
 

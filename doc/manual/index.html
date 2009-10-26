@@ -109,11 +109,14 @@ pieces publish.</P>
 class-ad contains 
 </P>
 <UL>
-	<LI>the name of the glidein (and&nbsp;the factory),&nbsp; 
-	<LI>the attributes that describe the glidein, and&nbsp; 
+	<LI>the name of the glidein (and the factory),
+	<LI>the attributes that describe the glidein,
 	<LI>the list of parameters that the glidein accepts. All the
-	parameters&nbsp;have also default values associated with them, in
-	case a frontend does not redefine them.&nbsp; 
+	parameters have also default values associated with them, in
+	case a frontend does not redefine them, and
+	<LI>the (optional) public key algorithm, ID and value, together with the
+	    supported symmetric algorithms, that the frontend can use
+            to push back encrypted values.
 	<LI>Plus a list of monitoring values (like how many glideins are
 	already in the queues, etc.) 
 </UL>
@@ -134,18 +137,27 @@ attributes. For each fitting glidein, a frontend class-ad will be
 published. Such a class-ad will contain 
 </P>
 <UL>
-	<LI>the name of the frontend and a request ID,&nbsp; 
-	<LI>the desired glidein name,&nbsp; 
-	<LI>the rate of glidein submissions, and 
-	<LI>the glidein parameters. 
+	<LI>the name of the frontend and a request ID,
+	<LI>the desired glidein name,
+	<LI>the (optional) URL and signatures for the frontend specific scripts and data,
+	<LI>the desired rate and limits of glidein submissions,
+	<LI>the glidein parameters (in clear),and
+	<LI>the (optional) factory public key ID used, together with
+	<UL>
+	  <LI>the symmetric encryption algorithm and key,
+	  <LI>the encrypted identity, and
+	  <LI>the encrypted parameters.
+	</UL>
 	<LI>Plus a list of monitoring values (like how many jobs are
 	currently running, etc.) 
 </UL>
+<P>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the condor collector <b>(needs Condor version 7.3.1 or better)</b></P>
+
 <P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0></P>
 <P>The most important parameters that the VO fronted sends to the factory are:</P>
 <UL>
       <LI>The address of the <A HREF="#pool_glidein">VO pool collector(s)</A> - <B>GLIDEIN_Collector</B>.</LI>
-      <LI>The pilot proxies. These are always encrypted. Three types of information are sent:
+      <LI>The pilot proxies. If present, these are always encrypted. Three types of information are sent:
 	<UL>
 	  <LI>Number of proxies sent - <B>nr_x509_proxies</B></LI>
 	  <LI>The proxy identifiers; given an identifier, the proxy DN must not change between updates. - <B>x509_proxy_0_identifier</B> ... <B>x509_proxy_N_identifier</B></LI>

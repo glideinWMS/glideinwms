@@ -358,6 +358,18 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('FrontendName',params.frontend_name)
         frontend_dict.add('WebURL',params.web_url)
+
+        if params.security.classad_proxy==None:
+            raise RuntimeError, "Missing security.classad_proxy"
+        params.subparams.data['security']['classad_proxy']=os.path.abspath(params.security.classad_proxy)
+        if not os.path.isfile(params.security.classad_proxy):
+            raise RuntimeError, "security.classad_proxy(%s) is not a file"%params.security.classad_proxy
+        frontend_dict.add('ClassAdProxy',params.security.classad_proxy)
+        
+        if params.security.classad_identity==None:
+            raise RuntimeError, "Missing security.classad_identity"
+        frontend_dict.add('ClassAdIdentity',params.security.classad_identity)
+        
         frontend_dict.add('SymKeyType',params.security.sym_key)
 
         active_sub_list[:] # erase all

@@ -126,6 +126,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["monitor"]=self.monitor_defaults
         
         self.defaults["security"]=copy.deepcopy(security_defaults)
+        self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
+        self.defaults["security"]["classad_identity"]=(None,"authenticated_identity","What is the AuthenticatedIdentity of the proxy at the WMS collector",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
         
         self.defaults["match"]=copy.deepcopy(match_defaults)

@@ -13,12 +13,15 @@ import os
 import time
 import string
 
-
 ############################################################
 #
 # Configuration
 #
 ############################################################
+
+class FakeLog:
+    def write(self,str):
+        pass
 
 class FactoryConfig:
     def __init__(self):
@@ -50,6 +53,9 @@ class FactoryConfig:
         self.factory_signtype_id = "SupportedSignTypes"
         self.client_web_signtype_suffix = "SignType"
 
+        # warning log files
+        # default is FakeLog, any other value must implement the write(str) method
+        self.warning_log = FakeLog()
 
 
 # global configuration of the module
@@ -86,7 +92,7 @@ def findWork(factory_name,glidein_name,entry_name,
         if pub_key_obj!=None:
             # get only classads that have my key or no key at all
             # any other key will not work
-            status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
+            status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
             if not ('factory' in allowed_proxy_source):
                 # the proxy is required, so look for it 
                 status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || (GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
@@ -101,7 +107,7 @@ def findWork(factory_name,glidein_name,entry_name,
 
     data=status.fetchStored()
 
-    reserved_names=("ReqName","ReqGlidein","ClientName","FrontendName","GroupName","ReqPubKeyID","ReqEncKeyCode")
+    reserved_names=("ReqName","ReqGlidein","ClientName","FrontendName","GroupName","ReqPubKeyID","ReqEncKeyCode","ReqEncIdentity","AuthenticatedIdentity")
 
     out={}
 
@@ -133,6 +139,18 @@ def findWork(factory_name,glidein_name,entry_name,
         else:
             sym_key_obj=None # have no key, will not decrypt
 
+        if sym_key_obj!=None:
+            try:
+                enc_identity=sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
+            except:
+                factoryConfig.warning_log.write("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons."%k)
+                continue # corrupted classad
+            if enc_identity!=kel['AuthenticatedIdentity']:
+                factoryConfig.warning_log.write("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons."%(k,enc_identity,kel['AuthenticatedIdentity']))
+                continue # uh oh... either the client is misconfigured, or someone is trying to cheat
+            
+
+        invalid_classad=False
         for (key,prefix) in (("params_decrypted",factoryConfig.encrypted_param_prefix),):
             plen=len(prefix)
             for attr in kel.keys():
@@ -144,10 +162,15 @@ def findWork(factory_name,glidein_name,entry_name,
                         try:
                             el[key][attr[plen:]]=sym_key_obj.decrypt_hex(kel[attr])
                         except:
-                            pass # oh well, I don't understand it
+                            invalid_classad=True
+                            break # I don't understand it -> invalid
+        if invalid_classad:
+            factoryConfig.warning_log.write("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."%k)
+            continue # need to go this way as I may have problems in an inner loop
+
 
         for attr in kel.keys():
-            if attr in ("ClientName","FrontendName","GroupName","ReqName","LastHeardFrom","ReqPubKeyID"):
+            if attr in ("ClientName","FrontendName","GroupName","ReqName","LastHeardFrom","ReqPubKeyID","AuthenticatedIdentity"):
                 el["internals"][attr]=kel[attr]
         
         out[k]=el

@@ -1214,6 +1214,10 @@ def vofrontend_install():
     print "Make sure this DN is in the WMS collector grid-mapfile"
     print
 
+    print "For security reasons, we need to know what will the WMS collector map us to."
+    print "It will likely be something like joe@collector1.myorg.com"
+    proxy_identity = raw_input("What is the mapped name?: ")
+
 
     #################################
     # get config vals
@@ -1530,10 +1534,7 @@ def vofrontend_install():
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
-            # Note to self(Igor)
-            # The proxy should be put into the config file; not reliable to use ENV(X509_USER_PROXY)
-
-            fd.write('   <security proxy_selection_plugin="ProxyAll">\n')
+            fd.write('   <security proxy_selection_plugin="ProxyAll" classad_proxy="%s" classad_identity="%s">\n'%(proxy_fname,proxy_identity))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
                 fd.write('         <proxy absfname="%s"/>\n'%a_fname)

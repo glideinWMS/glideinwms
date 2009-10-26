@@ -190,6 +190,7 @@ def advertizeWork(factory_pool,
                   signtype, main_sign, group_sign,
                   min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
+                  classad_identity=None, # needed only if sending over encrypted info
                   factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
                   glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
                   glidein_params_to_encrypt=None):  #params_to_encrypt need pub_key
@@ -201,9 +202,11 @@ def advertizeWork(factory_pool,
     fd=file(tmpnam,"w")
     try:
         try:
+            classad_name="%s@%s"%(request_name,client_name)
+            
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
-            fd.write('Name = "%s@%s"\n'%(request_name,client_name))
+            fd.write('Name = "%s"\n'%classad_name)
             fd.write('ClientName = "%s"\n'%client_name)
             fd.write('FrontendName = "%s"\n'%frontend_name)
             fd.write('GroupName = "%s"\n'%group_name)
@@ -227,11 +230,17 @@ def advertizeWork(factory_pool,
                 glidein_symKey_str=glidein_symKey.get_code()
                 
                 fd.write('ReqPubKeyID = "%s"\n'%factory_pub_key_id)
-                if factory_pub_key!=None:
-                    fd.write('ReqEncKeyCode = "%s"\n'%factory_pub_key.encrypt_hex(glidein_symKey_str))
-                    if encrypted_params!=None:
-                        for attr in glidein_params_to_encrypt.keys():
-                            encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
+
+                fd.write('ReqEncKeyCode = "%s"\n'%factory_pub_key.encrypt_hex(glidein_symKey_str))
+
+                # this attribute will be checked against the AuthenticatedIdentity
+                # this will prevent replay attacks, as only who knows the symkey can change this field
+                # no other changes needed, as Condor provides integrity of the whole classAd
+                fd.write('ReqEncIdentity = "%s"\n'%glidein_symKey.encrypt_hex(classad_identity))
+                
+                if encrypted_params!=None:
+                    for attr in glidein_params_to_encrypt.keys():
+                        encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
                         
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
