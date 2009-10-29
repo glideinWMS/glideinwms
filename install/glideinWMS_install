@@ -1262,6 +1262,12 @@ def vofrontend_install():
             print "'%s' not a valid host name!"%pool_node.split(':')[0]
             continue
         #have a valid pool_node
+
+        def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
+        pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
+        if pool_identity=="":
+            pool_identity=def_pool_identity
+        # have all I need, get out of the loop
         break
 
     # collector
@@ -1534,23 +1540,32 @@ def vofrontend_install():
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
-            fd.write('   <security proxy_selection_plugin="ProxyAll" classad_proxy="%s" classad_identity="%s">\n'%(proxy_fname,proxy_identity))
+            fd.write('   <security proxy_selection_plugin="ProxyAll" classad_proxy=%s classad_identity=%s>\n'%(xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(proxy_identity)))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
-                fd.write('         <proxy absfname="%s"/>\n'%a_fname)
+                fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
             fd.write('      </proxies>\n')
             fd.write('   </security>\n')
             fd.write('   <match>\n')
-            fd.write('      <factory collectors="%s" comment="Define factory collectors globally for simplicity"/>\n'%pool_node)
-            fd.write('      <job schedds=%s query_expr=%s  comment="Define job constraint and schedds globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(string.join(schedds,",")),xmlFormat.xml_quoteattr(job_constraint)))
+            fd.write('      <factory>\n')
+            fd.write('        <collectors>\n')
+            fd.write('          <collector node=%s classad_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_identity)))
+            fd.write('        </collectors>\n')
+            fd.write('      </factory>\n')
+            fd.write('      <job query_expr=%s comment="Define job constraint and schedds globally for simplicity">\n'%xmlFormat.xml_quoteattr(job_constraint))
+            fd.write('        <schedds>\n')
+            for schedd in schedds:
+                fd.write('         <schedd fullname=%s/>\n'%xmlFormat.xml_quoteattr(schedd))
+            fd.write('        </schedds>\n')
+            fd.write('      </job>\n')
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%(match_yn=='y'))
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
-            fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%local_collector)
+            fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value=%s/>\n'%xmlFormat.xml_quoteattr(local_collector))
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
-            fd.write('      <group name="%s" enabled="True">\n'%group_name)
+            fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
             fd.write('         <match match_expr=%s>\n'%xmlFormat.xml_quoteattr(match_str))
             if len(factory_attr_list)>0:
                 attr_query_arr=[]
@@ -1559,7 +1574,7 @@ def vofrontend_install():
                 fd.write('            <factory query_expr=%s>\n'%xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")))
                 fd.write('               <match_attrs>\n')
                 for factory_attr in factory_attr_list:
-                    fd.write('                  <match_attr name="%s" type="string"/>\n'%factory_attr)
+                    fd.write('                  <match_attr name=%s type="string"/>\n'%xmlFormat.xml_quoteattr(factory_attr))
                 fd.write('               </match_attrs>\n')
                 fd.write('            </factory>\n')
             if len(job_attr_list)>0:
@@ -1569,14 +1584,14 @@ def vofrontend_install():
                 fd.write('            <job query_expr=%s>\n'%xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")))
                 fd.write('               <match_attrs>\n')
                 for job_attr in job_attr_list:
-                    fd.write('                  <match_attr name="%s" type="string"/>\n'%job_attr)
+                    fd.write('                  <match_attr name=%s type="string"/>\n'%xmlFormat.xml_quoteattr(job_attr))
                 fd.write('               </match_attrs>\n')
                 fd.write('            </job>\n')
             fd.write('         </match>\n')
             fd.write('      </group>\n')
             fd.write('   </groups>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>\n'%grid_mapfile)
+            fd.write('      <file executable="False" absfname=%s untar="False" const="True" relfname="grid-mapfile"/>\n'%xmlFormat.xml_quoteattr(grid_mapfile))
             fd.write('   </files>\n')
             fd.write('</frontend>\n')
         finally:

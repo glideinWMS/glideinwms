@@ -68,11 +68,18 @@ class VOFrontendParams(cWParams.CommonParams):
         fj_match_defaults["query_expr"]=['True','CondorExpr','Expression for selecting user jobs',None]
         fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
 
+        collector_defaults=cWParams.commentedOrderedDict()
+        collector_defaults["node"]=(None,"nodename","Factroy collector node name (for example, fg2.my.org:9999)",None)
+        collector_defaults["classad_identity"]=("changeme@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+
         factory_match_defaults=copy.deepcopy(fj_match_defaults)
-        factory_match_defaults["collectors"]=(None,'list of names','List of glidein factory collectors (like gf1.my.org,fg2.my.org:9999)',None)
+        factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
+
+        schedd_defaults=cWParams.commentedOrderedDict()
+        schedd_defaults["fullname"]=(None,"name","User schedd name (for example, schedd_3@sb1.my.org)",None)
 
         job_match_defaults=copy.deepcopy(fj_match_defaults)
-        job_match_defaults["schedds"]=(None,'list of names','List of job schedds (like sb1.my.org,schedd_3@sb1.my.org)',None)
+        job_match_defaults["schedds"]=([],"List of user schedds","Each schedd contains",schedd_defaults)
 
         match_defaults=cWParams.commentedOrderedDict()
         match_defaults["factory"]=factory_match_defaults
@@ -201,6 +208,8 @@ class VOFrontendParams(cWParams.CommonParams):
     # return xml formatting
     def get_xml_format(self):
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                                'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
+                                'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
                                 'proxies':{'el_name':'proxy','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},

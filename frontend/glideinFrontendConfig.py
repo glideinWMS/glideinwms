@@ -168,8 +168,12 @@ class ElementMergedDescript:
     def merge(self):
         self.merged_data={}
 
-        for t in ('FactoryCollectors','JobSchedds'):
+        for t in ('JobSchedds',):
             self.merged_data[t]=self.split_list(self.frontend_data[t])+self.split_list(self.element_data[t])
+            if len(self.merged_data[t])==0:
+                raise RuntimeError,"Found empty %s!"%t
+        for t in ('FactoryCollectors',):
+            self.merged_data[t]=eval(self.frontend_data[t])+eval(self.element_data[t])
             if len(self.merged_data[t])==0:
                 raise RuntimeError,"Found empty %s!"%t
         for t in ('FactoryQueryExpr','JobQueryExpr'):

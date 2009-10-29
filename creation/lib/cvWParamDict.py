@@ -423,8 +423,15 @@ def populate_common_descript(descript_dict,        # will be modified
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
-    descript_dict.add('FactoryCollectors',params.match.factory.collectors)
-    descript_dict.add('JobSchedds',params.match.job.schedds)
+    collectors=[]
+    for el in params.match.factory.collectors:
+        collectors.append((el['node'],el['classad_identity']))
+    descript_dict.add('FactoryCollectors',repr(collectors))
+
+    schedds=[]
+    for el in params.match.job.schedds:
+        schedds.append(el['fullname'])
+    descript_dict.add('JobSchedds',string.join(schedds,','))
 
     if params.security.proxy_selection_plugin!=None:
         descript_dict.add('ProxySelectionPlugin',params.security.proxy_selection_plugin)

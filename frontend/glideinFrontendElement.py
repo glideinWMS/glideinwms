@@ -55,9 +55,17 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
     factory_pools=elementDescript.merged_data['FactoryCollectors']
     for factory_pool in factory_pools:
-        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None)
+        factory_pool_node=factory_pool[0]
+        factory_identity=factory_pool[1]
+        if (factory_identity==None) or (factory_identity=='*'):
+            # the admin can disable the identity checking, if really wanted
+            full_factory_constraint=factory_constraint
+        else:
+            # but usually, we want to filter based on AuthenticatedIdentity
+            full_factory_constraint='(AuthenticatedIdentity=?="%s") && (%s)'%(factory_identity,factory_constraint)
+        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,signatureDescript.signature_type,full_factory_constraint,x509_proxy_plugin!=None)
         for glidename in factory_glidein_dict.keys():
-            glidein_dict[(factory_pool,glidename)]=factory_glidein_dict[glidename]
+            glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
 
     ## schedd
     condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
@@ -174,9 +182,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
     
     for glideid in condorq_dict_types['Idle']['count'].keys():
-        factory_pool=glideid[0]
+        factory_pool_node=glideid[0]
         request_name=glideid[1]
-        glideid_str="%s@%s"%(request_name,factory_pool)
+        glideid_str="%s@%s"%(request_name,factory_pool_node)
         glidein_el=glidein_dict[glideid]
 
         count_jobs={}
@@ -248,7 +256,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                   x509_proxy_idx,x509_proxy_data=x509_proxies_data[i]
                   enc_data['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
                   enc_data['x509_proxy_%i'%i]=x509_proxy_data
-              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
+              glideinFrontendInterface.advertizeWork(factory_pool_node,client_name,frontend_name,group_name,request_name,request_name,
                                                      web_url,
                                                      signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                      signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
@@ -258,7 +266,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                      glidein_symKey=None, # should reuse it, but none will work for now
                                                      glidein_params_to_encrypt=enc_data)
           else:
-              glideinFrontendInterface.advertizeWork(factory_pool,client_name,frontend_name,group_name,request_name,request_name,
+              glideinFrontendInterface.advertizeWork(factory_pool_node,client_name,frontend_name,group_name,request_name,request_name,
                                                      web_url,
                                                      signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                      signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
@@ -333,8 +341,9 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
     finally:
         glideinFrontendLib.log_files.logActivity("Deadvertize my ads")
         for factory_pool in factory_pools:
+            factory_pool_node=factory_pool[0]
             try:
-                glideinFrontendInterface.deadvertizeAllWork(factory_pool,published_frontend_name)
+                glideinFrontendInterface.deadvertizeAllWork(factory_pool_node,published_frontend_name)
             except:
                 pass # just ignore errors... this was cleanup
 
