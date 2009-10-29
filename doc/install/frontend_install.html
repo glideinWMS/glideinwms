@@ -457,13 +457,17 @@ answers is presented; your setup will probably be slightly
 different:</font></font></p>
 <pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
 Do you have already a javascriptRRD installation?: (y/n) y
-Where is javascriptRRD installed?: <B>/home/frontend/javascriptrrd-0.4</B>
+Where is javascriptRRD installed?: <B>/home/frontend/javascriptrrd-0.4.1</B>
 To use the VO Frontend you need a valid GSI proxy.
 VO Frontend will use this proxy to talk to the WMS Collector and User Schedd
 Where is your proxy located?: [/home/frontend/.globus/x509_service_proxy] <b>/home/frontend/.globus/x509_service_proxy</b>
 
 Using DN '/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org'
 Make sure this DN is in the WMS collector grid-mapfile
+
+For security reasons, we need to know what will the WMS collector map us to.
+It will likely be something like joe@collector1.myorg.com
+What is the mapped name?: <b>myfe@gfactory1.my.org</b>
 
 Where will you host your config and log files?: [/home/frontend/frontstage] <b>/home/frontend/frontstage</b>
 Where will the web data be hosted?: [/var/www/html/vofrontend] <b>/var/www/html/vofrontend</b>
@@ -473,6 +477,7 @@ What Web URL will you use?: [http://frontend1.my.org/vofrontend/] <b><http://fro
 Give a name to this VO Frontend?: [myVO-frontend1] <b>myVO1</b>
 Give a name to this VO Frontend instance?: [v1_0] <b>v1</b>
 What node is the WMS collector running?: <b>gfactory1.my.org</b>
+What is the classad identity of the glidein factory?: [gfactory@gfactory1.my.org] <b>gfactory@gfactory1.my.org</b>
 
 What node is the pool collector running on?
 If you have a hierarchy of collectors, list them all
