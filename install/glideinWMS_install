@@ -1217,7 +1217,7 @@ def vofrontend_install():
     print "For security reasons, we need to know what will the WMS collector map us to."
     print "It will likely be something like joe@collector1.myorg.com"
     proxy_identity = raw_input("What is the mapped name?: ")
-
+    print
 
     #################################
     # get config vals
