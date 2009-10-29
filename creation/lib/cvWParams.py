@@ -69,7 +69,7 @@ class VOFrontendParams(cWParams.CommonParams):
         fj_match_defaults["match_attrs"]=(xmlParse.OrderedDict(),"Dictionary of ClassAd attributes","Each attribute contains",query_attrs_defaults)
 
         collector_defaults=cWParams.commentedOrderedDict()
-        collector_defaults["node"]=(None,"nodename","Factroy collector node name (for example, fg2.my.org:9999)",None)
+        collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
         collector_defaults["classad_identity"]=("changeme@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
 
         factory_match_defaults=copy.deepcopy(fj_match_defaults)
