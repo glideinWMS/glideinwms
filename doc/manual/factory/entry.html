@@ -227,7 +227,51 @@ It is composed of two parts:</p>
     face="monospace"><i><span
     style="font-weight: normal">comment</span></i></font><font
     face="monospace"><b>"</b></font><font face="monospace">/&gt;</font><br>
-    Attributes you want to publish.<br>
+    Attributes you want to publish.<br><br>
+    Table below describes the &lt;attrs ... &gt; tag. <br><br> 
+
+    <table width="100%" cellpadding='2' cellspacing='0' border='1px' valign='top' style='border-color: #020263; border-style: solid; border-width: 1;  text-align: justify; ' frame='box' >
+      <tr style='border-width: 0; font-weight: bold; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Attribute Name</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Attribute Description</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>name</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Name of the attribute</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>value</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Value of the attribute</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>const</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>If this attribute is a constant so that VO Frontend can not change it. If set to const, the attribute will be available in the constants file created in the staging area. Used only if parameter is True.</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>parameter</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Set True if the attribute should be passed as a parameter. Always set this to True unless you know what you are doing.</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>publish</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>If set to True, the attribute will be published in Factory's classad</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>glidein_publish</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>If set to True, the attribute will be available in the condor_startd's classad. Used only if parameter is True.</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>job_publish</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>If set to True, the attribute will be available in the user job's environment. Used only if parameter is True.</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>comment</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>You can specify description of the attribute here.</td>
+      </tr>
+      <tr style='border-width: 0; '>
+        <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>type</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Type of the attribute. Supported types are 'int' and 'string'</td>
+      </tr>
+    </table>
     <br>
     These are used by the <a href="../frontend/index.html#match_expr">VO
     frontend matchmaking</a> and job matchmaking.<br>
