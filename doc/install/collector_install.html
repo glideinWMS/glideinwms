@@ -71,6 +71,19 @@ OS</A>.<BR>The <A HREF="http://www.python.org/">Python</A>
 interpreter (for the installer, v2.3.4 or above)<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
 client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
 distribution</A>.</FONT></FONT></P>
+
+<p><font face="Liberation Serif"><font size="3"><strong>NOTE:</strong>
+<ul>
+  <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+  <li>If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by condor daemons other than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
+  USE_VOMS_ATTRIBUTES = False <br>
+  or for individual condor daemons like collector<br>
+  COLLECTOR.USE_VOMS_ATTRIBUTES = False <br>
+  </li>
+</ul>
+</p>
+
+
 <a name="condor">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
 instructions</FONT></FONT></H2>

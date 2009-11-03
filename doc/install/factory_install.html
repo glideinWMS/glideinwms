@@ -124,6 +124,17 @@ software</a>.</font></font></p>
   </tbody>
 </table>
 
+<p><font face="Liberation Serif"><font size="3"><strong>NOTE:</strong>
+<ul>
+  <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+  <li>If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by condor daemons other than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
+  USE_VOMS_ATTRIBUTES = False <br> 
+  or for individual condor daemons like collector<br>
+  COLLECTOR.USE_VOMS_ATTRIBUTES = False <br> 
+  </li>
+</ul>
+</p>
+
 <h2><a name="system"><font face="Bitstream Vera Serif"><font size="4">4.
 System services</font></font></a></h2>
 

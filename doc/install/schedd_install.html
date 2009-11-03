@@ -59,6 +59,19 @@ scheduler node in the glideinWMS </FONT></FONT>
 		</TD>
 	</TR>
 </TABLE>
+
+<p><font face="Liberation Serif"><font size="3"><strong>NOTE:</strong>
+<ul>
+  <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+  <li>If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by condor daemons other than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
+  USE_VOMS_ATTRIBUTES = False <br>
+  or for individual condor daemons like collector<br>
+  COLLECTOR.USE_VOMS_ATTRIBUTES = False <br>
+  </li>
+</ul>
+</p>
+
+
 <A NAME="condor">
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
 instructions </FONT></FONT>
