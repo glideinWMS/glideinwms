@@ -1802,7 +1802,7 @@ def query_vdt():
             print "The minimal Grid VDT client will install just the bare minimum needed"
             print "to run and debug the glideinWMS instance."
             print "The minimum install packages are"
-            print "PPDG-Cert-Scripts,Clobus-Client,VOMS-Client,Myproxy-Client,CA-Certificates-Updater,OSG:vo-client"
+            print "PPDG-Cert-Scripts,Globus-Client,VOMS-Client,Myproxy-Client,CA-Certificates-Updater,OSG:vo-client"
             print
             yn=raw_input("Do you want to install the full OSG VDT client?: (y/n) ")
             if (yn!="y"):
@@ -1885,9 +1885,9 @@ def install_vdt(minimal):
         package_list=[]
         for p in MINIMAL_VDT_PACKAGES:
             package_list.append("%s:%s"%(cache_location,p))
-        package_list.append("OSG:vo-client")
+        package_list.append("http://software.grid.iu.edu/osg-1.2:vo-client")
     else:
-        package_list=['OSG:client']
+        package_list=['http://software.grid.iu.edu/osg-1.2:client']
 
     # ask user about the appropriate platform
     tested_platforms=('linux-rhel-4','SL-4','linux-rhel-5','SL-5')
