@@ -1,4 +1,4 @@
-v2_Next	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
+v2_2	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
           classds. This was preventing psuedo interactive monitoring to work
           in case of GLEXEC.
 	Made VDT optional.
@@ -12,6 +12,7 @@ v2_Next	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
 	   WARNING: This effectively prevents old-style frontends to talk
                     to new style factories.
 	   NOTE: Will only work with Condor 7.3.1 or newer
+	KNOWN ISSUES: Pseudo interactive monitoring will not work with glexec. 
 
 v2_1	Fixed a bug that was throwing an exception if a glidein failed.
 	Fixed handling of grid-mapfiles coming from client.
