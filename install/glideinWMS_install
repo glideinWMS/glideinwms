@@ -101,7 +101,7 @@ def main():
                      "2":{"title":"Glidein Factory",
                           "proc":gfactory_install,"order":16},
                      "3":{"title":"GCB","proc":gcb_install,"order":15}, #must be after any other condor
-                     "4":{"title":"pool Collector",
+                     "4":{"title":"User Pool Collector",
                           "proc":collector_install,"order":11}, # must be before any schedd
                      "5":{"title":"User Schedd",
                           "proc":schedd_node_install,"order":12},
@@ -2740,6 +2740,8 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
     default_collector_port=9618
     while 1:
         collector_port_str=raw_input("What port should the collector be running?: [%i] "%default_collector_port)
+        if collector_port_str.strip() == "":
+            collector_port_str = "9618"
         try:
             collector_port=int(collector_port_str)
         except:
@@ -2807,7 +2809,12 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
 
             config_fd.write("\n# forward ads to the main collector\n# (this is ignored by the main collector, since the address matches itself)\n")
             config_fd.write("CONDOR_VIEW_HOST = $(COLLECTOR_HOST)\n")
-        
+
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## DISABLE VOMS CHECKING\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("COLLECTOR.USE_VOMS_ATTRIBUTES = False\n")
+        config_fd.write("NEGOTIATOR.USE_VOMS_ATTRIBUTES = False\n")
     finally:
         config_fd.close()
 
