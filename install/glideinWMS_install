@@ -1918,7 +1918,7 @@ def install_vdt(minimal):
     print
 
     # install the VDT client
-    err=os.system("cd %s/pacman-%s;source setup.sh;cd %s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,' '.join(package_list))
+    err=os.system("cd %s/pacman-%s;source setup.sh;cd %s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,' '.join(package_list)))
     if err!=0:
         raise RuntimeError,"Failed to install the VDT client!"
     
