@@ -257,6 +257,9 @@ def countCondorStatus(status_dict):
 def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_list=None):
     out_condorq_dict={}
     for schedd in schedd_names:
+        if schedd=='':
+            log_files.logWarning("Skipping empty schedd name")
+            continue
         condorq=condorMonitor.CondorQ(schedd)
         full_constraint=type_constraint[0:] #make copy
         if constraint!=None:
@@ -267,10 +270,10 @@ def getCondorQConstrained(schedd_names,type_constraint,constraint=None,format_li
         except condorExe.ExeError, e:
             if schedd!=None:
                 log_files.logWarning("Failed to talk to schedd %s. See debug log for more details."%schedd)
-                log_files.logDebug("Failed to talk to schedd %s: %s"%(schedd, e))
+                log_files.logDebug("Failed to talk to schedd %s: %s"%(schedd, ''.join(e)))
             else:
                 log_files.logWarning("Failed to talk to schedd. See debug log for more details.")
-                log_files.logDebug("Failed to talk to schedd: %s"%e)
+                log_files.logDebug("Failed to talk to schedd: %s"%''.join(e))
             continue # if schedd not found it is equivalent to no jobs in the queue
         if len(condorq.fetchStored())>0:
             out_condorq_dict[schedd]=condorq
@@ -296,10 +299,10 @@ def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,f
         except condorExe.ExeError, e:
             if collector!=None:
                 log_files.logWarning("Failed to talk to collector %s. See debug log for more details."%collector)
-                log_files.logDebug("Failed to talk to collector %s: %s"%(collector, e))
+                log_files.logDebug("Failed to talk to collector %s: %s"%(collector, string.join(e,'')))
             else:
                 log_files.logWarning("Failed to talk to collector. See debug log for more details.")
-                log_files.logDebug("Failed to talk to collector: %s"%e)
+                log_files.logDebug("Failed to talk to collector: %s"%string.join(e,''))
             continue # if collector not found it is equivalent to no classads
         if len(status.fetchStored())>0:
             out_status_dict[collector]=status
