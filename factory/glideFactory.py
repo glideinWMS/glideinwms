@@ -42,15 +42,44 @@ def aggregate_stats():
     return
 
 ############################################################
+def is_crashing_often(startup_time, restart_interval, restart_attempts):
+    crashing_often = True
+
+    if (len(startup_time) < restart_attempts):
+        # We haven't exhausted restart attempts
+        crashing_often = False
+    else:
+        # Check if the service has been restarted often
+        if restart_attempts == 1:
+            crashing_often = True
+        elif (time.time() - startup_time[0]) >= restart_interval:
+            crashing_often = False
+        else:
+            crashing_often = True
+
+    return crashing_often
+
+############################################################
 def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
-          glideinDescript,entries):
+          glideinDescript,entries,restart_attempts,restart_interval):
 
     global STARTUP_DIR
     childs={}
+
+    childs_uptime={}
+    # Allow max 3 restarts every 30 min before giving up
+    #restart_attempts = 3
+    #restart_interval = 1800
+
     glideFactoryLib.factoryConfig.activity_log.write("Starting entries %s"%entries)
     try:
         for entry_name in entries:
             childs[entry_name]=popen2.Popen3("%s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
+            # Get the startup time. Used to check if the entry is crashing
+            # periodically and needs to be restarted.
+            childs_uptime[entry_name]=list()
+            childs_uptime[entry_name].insert(0,time.time())
+        glideFactoryLib.factoryConfig.activity_log.write("Entry startup times: %s"%childs_uptime)
 
         for entry_name in childs.keys():
             childs[entry_name].tochild.close()
@@ -59,8 +88,6 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
             for fd  in (childs[entry_name].fromchild.fileno(),childs[entry_name].childerr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-
 
         while 1:
             glideFactoryLib.factoryConfig.activity_log.write("Checking entries %s"%entries)
@@ -81,13 +108,29 @@ def spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
                 except IOError:
                     pass # ignore
                 
-                # look for exit childs
+                # look for exited child
                 if child.poll()!=-1:
                     # the child exited
+                    glideFactoryLib.factoryConfig.warning_log.write("Child %s exited. Checking if it should be restarted."%(entry_name))
                     tempOut = child.fromchild.readlines()
                     tempErr = child.childerr.readlines()
-                    del childs[entry_name]
-                    raise RuntimeError,"Entry '%s' exited, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
+
+                    if is_crashing_often(childs_uptime[entry_name], restart_interval, restart_attempts):
+                        del childs[entry_name]
+                        raise RuntimeError,"Entry '%s' has been crashing too often, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
+                    else:
+                        # Restart the entry setting its restart time
+                        glideFactoryLib.factoryConfig.warning_log.write("Restarting child %s."%(entry_name))
+                        del childs[entry_name]
+                        childs[entry_name]=popen2.Popen3("%s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
+                        if len(childs_uptime[entry_name]) == restart_attempts:
+                            childs_uptime[entry_name].pop(0)
+                        childs_uptime[entry_name].append(time.time())
+                        childs[entry_name].tochild.close()
+                        for fd  in (childs[entry_name].fromchild.fileno(),childs[entry_name].childerr.fileno()):
+                            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+                            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+                        glideFactoryLib.factoryConfig.warning_log.write("Entry startup/restart times: %s"%childs_uptime)
 
             glideFactoryLib.factoryConfig.activity_log.write("Aggregate monitoring data")
             aggregate_stats()
@@ -147,6 +190,8 @@ def main(startup_dir):
 
         sleep_time=int(glideinDescript.data['LoopDelay'])
         advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
+        restart_attempts=int(glideinDescript.data['RestartAttempts'])
+        restart_interval=int(glideinDescript.data['RestartInterval'])
         
         entries=string.split(glideinDescript.data['Entries'],',')
         entries.sort()
@@ -167,7 +212,7 @@ def main(startup_dir):
     try:
         try:
             spawn(cleanupObj,sleep_time,advertize_rate,startup_dir,
-                  glideinDescript,entries)
+                  glideinDescript,entries,restart_attempts,restart_interval)
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])

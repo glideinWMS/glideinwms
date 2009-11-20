@@ -106,6 +106,8 @@ class GlideinParams(cWParams.CommonParams):
 
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
+        self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
+        self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 
         stage_defaults=cWParams.commentedOrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/glidefactory/stage","base_dir","Stage base dir",None)
