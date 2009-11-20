@@ -1,3 +1,8 @@
+vNEXT	Attempt to restart a crashed entry few times before shutting down the
+	  factory. Restarting is allowed for max restart_attempts in time
+	  interval restart_interval sec in te factory. 
+	
+
 v2_2	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
           classds. This was preventing psuedo interactive monitoring to work
           in case of GLEXEC.
