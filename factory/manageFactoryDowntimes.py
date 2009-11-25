@@ -17,7 +17,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../creation/lib"))
 
 def usage():
     print "Usage:"
-    print "  manageFactoryDowntimes.py factory_dir ['factory'|'entries'|entry_name] [command]"
+    print "  manageFactoryDowntimes.py factory_dir ['all'|'factory'|'entries'|entry_name] [command]"
     print "where command is one of:"
     print "  add start_time end_time - Add a scheduled downtime period"
     print "  down [delay]            - Put the factory down now(+delay)" 
@@ -26,6 +26,10 @@ def usage():
     print "  bdii [ISinfo]           - Set the up/down based on bdii status"
     print "  ress+bdii [ISinfo]      - Set the up/down based both on RESS and bdii status"
     print "  check [delay]           - Report if the factory is in downtime now(+delay)"
+    #print "  export filename         - Export downtimes into a standardized XML file"
+    print "the following commands can be used with factory turned off:"
+    print "  vacuum                  - Remove all expired downtime info"
+    #print "  import filename [wipe]  - Import the downtimes from a standardized XML file"
     print "where *_time is in one of the two formats:"
     print "  [[[YYYY-]MM-]DD-]HH:MM[:SS]"
     print "  unix_time"
@@ -76,8 +80,8 @@ def str2time(timeStr):
 #
 #
 def get_downtime_fd(entry_name,cmdname):
-    if entry_name=='entries':
-        print "entries not supported for %s"%cmdname
+    if entry_name in ('entries','all'):
+        print "%s not supported for %s"%(entry_name,cmdname)
         sys.exit(1)
 
     try:
@@ -91,6 +95,19 @@ def get_downtime_fd(entry_name,cmdname):
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
     return fd
 
+def get_downtime_fd_dict(entry_or_id,cmdname):
+    out_fds={}
+    if entry_or_id in ('entries','all'):
+        glideinDescript=glideFactoryConfig.GlideinDescript()
+        entries=string.split(glideinDescript.data['Entries'],',')
+        for entry in entries:
+            out_fds[entry]=get_downtime_fd(entry,cmdname)
+        if entry_or_id=='all':
+            out_fds['factory']=get_downtime_fd('factory',cmdname)
+    else:
+        out_fds[entry_or_id]=get_downtime_fd(entry_or_id,cmdname)
+
+    return out_fds
 
 def add(entry_name,argv):
     down_fd=get_downtime_fd(entry_name,argv[0])
@@ -143,20 +160,8 @@ def up(entry_name,argv):
         down_fd.endDowntime(when)
     return 0
 
-def check(entry_name,argv):
-    config_els={}
-    if entry_name=='entries':
-        glideinDescript=glideFactoryConfig.GlideinDescript()
-        entries=string.split(glideinDescript.data['Entries'],',')
-        for entry in entries:
-            config_els[entry]=get_downtime_fd(entry,argv[0])
-    else:
-        try:
-            config_els[entry_name]=get_downtime_fd(entry_name,argv[0])
-        except RuntimeError, e:
-            usage()
-            print "Error: %s"%e
-            return 1
+def check(entry_or_id,argv):
+    config_els=get_downtime_fd_dict(entry_or_id,argv)
 
     when=0
     if len(argv)>1:
@@ -173,6 +178,17 @@ def check(entry_name,argv):
             print "%s\tDown"%entry
         else:
             print "%s\tUp"%entry
+
+    return 0
+
+def vacuum(entry_or_id,argv):
+    config_els=get_downtime_fd_dict(entry_or_id,argv)
+
+    entry_keys=config_els.keys()
+    entry_keys.sort()
+    for entry in entry_keys:
+        down_fd=config_els[entry]
+        down_fd.purgeOldPeriods()
 
     return 0
 
@@ -217,7 +233,8 @@ def infosys_based(entry_name,argv,infosys_types):
     config_els={}
     if entry_name=='factory':
         return 0 # nothing to do... the whole factory cannot be controlled by infosys
-    elif entry_name=='entries':
+    elif entry_name in ('entries','all'):
+        # all==entries in this case, since there is nothing to do for the factory
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
@@ -330,6 +347,8 @@ def main(argv):
         return infosys_based(entry_name,argv[3:],['BDII'])
     elif cmd=='ress+bdii':
         return infosys_based(entry_name,argv[3:],['RESS','BDII'])
+    elif cmd=='vacuum':
+        return vacuum(entry_name,argv[3:])
     else:
         usage()
         print "Invalid command %s"%cmd
