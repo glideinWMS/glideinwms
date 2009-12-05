@@ -304,7 +304,7 @@ def advertizeWork(factory_pool,
                             web_url, main_descript, group_descript,
                             signtype, main_sign, group_sign,
                             min_nr_glideins,max_run_glideins,
-                            glidein_params={},glidein_monitors={},
+                            glidein_params,glidein_monitors,
                             factory_pub_key_id,factory_pub_key,glidein_symKey,
                             classad_identity,glidein_params_to_encrypt,x509_proxies_data)
     try:
