@@ -57,13 +57,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for factory_pool in factory_pools:
         factory_pool_node=factory_pool[0]
         factory_identity=factory_pool[1]
-        if (factory_identity==None) or (factory_identity=='*'):
-            # the admin can disable the identity checking, if really wanted
-            full_factory_constraint=factory_constraint
-        else:
-            # but usually, we want to filter based on AuthenticatedIdentity
-            full_factory_constraint='(AuthenticatedIdentity=?="%s") && (%s)'%(factory_identity,factory_constraint)
-        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,signatureDescript.signature_type,full_factory_constraint,x509_proxy_plugin!=None)
+        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,factory_identity,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
         for glidename in factory_glidein_dict.keys():
             glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
 

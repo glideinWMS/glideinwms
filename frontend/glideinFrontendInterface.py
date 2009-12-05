@@ -61,7 +61,7 @@ frontendConfig=FrontendConfig()
 ############################################################
 
 
-def findGlideins(factory_pool,
+def findGlideins(factory_pool,factory_identity,
                  signtype,
                  additional_constraint=None,
                  have_proxy=False,
@@ -69,6 +69,10 @@ def findGlideins(factory_pool,
     global frontendConfig
     
     status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factory_id
+    if not ((factory_identity==None) or (factory_identity=='*')): # identity checking can be disabled, if really wanted
+        # filter based on AuthenticatedIdentity
+        status_constraint+=' && (AuthenticatedIdentity=?="%s")'%factory_identity
+
     if signtype!=None:
         status_constraint+=' && stringListMember("%s",%s)'%(signtype,frontendConfig.factory_signtype_id)
 
