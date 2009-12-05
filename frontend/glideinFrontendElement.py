@@ -158,6 +158,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 del glidein_dict[glideid] # not trusted
                 
 
+
+    # here we have all the data needed to build a GroupAvertizeType object
+    advertize_group_obj=glideinFrontendInterface.GroupAvertizeType(client_name,frontend_name,group_name,
+                                                                   web_url,
+                                                                   signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                                   signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                                   x509_proxies_data)
+    
+
     glideinFrontendLib.log_files.logActivity("Match")
 
     for dt in condorq_dict_types.keys():
@@ -242,24 +251,18 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
               glidein_monitors[t]=count_jobs[t]
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
-          if x509_proxies_data!=None:
-              pub_key_id=glidein_el['attrs']['PubKeyID']
-              pub_key_obj=glidein_el['attrs']['PubKeyObj']
-              sym_key_obj=None # should reuse it, but None will work for now
+          if advertize_group_obj.need_encryption():
+              key_obj=glideinFrontendInterface.FactoryKeys4Advertize(classad_identity,
+                                                                     glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
+                                                                     glidein_symKey=None) # should probably reuse it, but None will work for now
           else:
               # if no proxies, no reason to encode
-              pub_key_id=None
-              pub_key_obj=None
-              sym_key_obj=None
-          glideinFrontendInterface.advertizeWork(factory_pool_node,client_name,frontend_name,group_name,request_name,request_name,
-                                                 web_url,
-                                                 signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
-                                                 signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+              key_obj=None
+
+          glideinFrontendInterface.advertizeWork(factory_pool_node,advertize_group_obj,
+                                                 request_name,request_name,
                                                  glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                 pub_key_id,pub_key_obj,sym_key_obj,
-                                                 classad_identity, # needed only if sending over encrypted info
-                                                 glidein_params_to_encrypt=None,
-                                                 x509_proxies_data=x509_proxies_data)
+                                                 key_obj,glidein_params_to_encrypt=None)
         except RuntimeError, e:
           glideinFrontendLib.log_files.logWarning("Advertize %s failed. See debug log for more details."%glideid_str)
           glideinFrontendLib.log_files.logDebug("Advertize %s failed: %s"%(glideid_str,e))

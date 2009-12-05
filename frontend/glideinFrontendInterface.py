@@ -185,77 +185,116 @@ def findGlideinClientMonitoring(factory_pool,client_name,
 
     return out
 
+############################################
+class GroupAvertizeType:
+    def __init__(self,
+                 client_name,frontend_name,group_name,
+                 web_url, main_descript, group_descript,
+                 signtype, main_sign, group_sign,
+                 x509_proxies_data=None):
+        self.client_name=client_name
+        self.frontend_name=frontend_name
+        self.group_name=group_name
+        self.web_url=web_url
+        self.main_descript=main_descript
+        self.group_descript=group_descript
+        self.signtype=signtype
+        self.main_sign=main_sign
+        self.group_sign=group_sign
+        self.x509_proxies_data=x509_proxies_data
+
+    # returns a boolean
+    def need_encryption(self):
+        return self.x509_proxies_data!=None
+
+    # returns a list of strings
+    def get_web_attrs(self):
+        return ('WebURL = "%s"'%self.web_url,
+                'WebGroupURL = "%s"'%os.path.join(self.web_url,"group_%s"%self.group_name),
+                'WebSignType = "%s"'%self.signtype,
+                'WebDescriptFile = "%s"'%self.main_descript,
+                'WebDescriptSign = "%s"'%self.main_sign,
+                'WebGroupDescriptFile = "%s"'%self.group_descript,
+                'WebGroupDescriptSign = "%s"'%self.group_sign)
+
+class FactoryKeys4Advertize:
+    def __init__(self,
+                 classad_identity,
+                 factory_pub_key_id,factory_pub_key,
+                 glidein_symKey=None): # if a symkey is not provided, or is not initialized, one will be generated
+        self.classad_identity=classad_identity
+        self.factory_pub_key_id=factory_pub_key_id
+        self.factory_pub_key=factory_pub_key
+
+        if glidein_symKey==None:
+            glidein_symKey=symCrypto.SymAES256Key()
+        if not glidein_symKey.is_valid():
+            glidein_symKey=copy.deepcopy(glidein_symKey)
+            glidein_symKey.new()
+        self.glidein_symKey=glidein_symKey
+
+    # returns a list of strings
+    def get_key_attrs(self):
+        glidein_symKey_str=self.glidein_symKey.get_code()
+        
+        return ('ReqPubKeyID = "%s"\n'%self.factory_pub_key_id,
+                'ReqEncKeyCode = "%s"\n'%self.factory_pub_key.encrypt_hex(glidein_symKey_str),
+                # this attribute will be checked against the AuthenticatedIdentity
+                # this will prevent replay attacks, as only who knows the symkey can change this field
+                # no other changes needed, as Condor provides integrity of the whole classAd
+                'ReqEncIdentity = "%s"\n'%self.encrypt_hex(self.classad_identity))
+    
+    def encrypt_hex(self,str):
+        return self.glidein_symKey.encrypt_hex(str)
+
+
 #######################################
 # INTERNAL, do not use directly
 # Create file needed by advertize Work
 def createAdvertizeWorkFile(fname,
-                            client_name,frontend_name,group_name,
+                            group_obj,               # must be of type GroupAvertizeType
                             request_name,glidein_name,
-                            web_url, main_descript, group_descript,
-                            signtype, main_sign, group_sign,
                             min_nr_glideins,max_run_glideins,
                             glidein_params={},glidein_monitors={},
-                            factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
-                                                                                    glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
-                            classad_identity=None, # needed only if sending over encrypted info
-                            glidein_params_to_encrypt=None,  #params_to_encrypt needs pub_key
-                            x509_proxies_data=None):         #list of pairs (id, x509_proxy), needs pub_key
+                            key_obj=None,                     # must be of type FactoryKeys4Advertize
+                            glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
     global frontendConfig
 
     fd=file(fname,"w")
     try:
         try:
-            classad_name="%s@%s"%(request_name,client_name)
+            classad_name="%s@%s"%(request_name,group_obj.client_name)
             
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
             fd.write('Name = "%s"\n'%classad_name)
-            fd.write('ClientName = "%s"\n'%client_name)
-            fd.write('FrontendName = "%s"\n'%frontend_name)
-            fd.write('GroupName = "%s"\n'%group_name)
+            fd.write('ClientName = "%s"\n'%group_obj.client_name)
+            fd.write('FrontendName = "%s"\n'%group_obj.frontend_name)
+            fd.write('GroupName = "%s"\n'%group_obj.group_name)
             fd.write('ReqName = "%s"\n'%request_name)
             fd.write('ReqGlidein = "%s"\n'%glidein_name)
 
-            fd.write('WebURL = "%s"\n'%web_url)
-            fd.write('WebGroupURL = "%s"\n'%os.path.join(web_url,"group_%s"%group_name))
-            fd.write('WebSignType = "%s"\n'%signtype)
-            fd.write('WebDescriptFile = "%s"\n'%main_descript)
-            fd.write('WebDescriptSign = "%s"\n'%main_sign)
-            fd.write('WebGroupDescriptFile = "%s"\n'%group_descript)
-            fd.write('WebGroupDescriptSign = "%s"\n'%group_sign)
+            fd.write(string.join(group_obj.get_web_attrs(),'\n')+"\n")
 
             encrypted_params={} # none by default
-            if (factory_pub_key_id!=None) and (factory_pub_key!=None):
-                if glidein_symKey==None:
-                    glidein_symKey=symCrypto.SymAES256Key()
-                if not glidein_symKey.is_valid():
-                    glidein_symKey.new()
-                glidein_symKey_str=glidein_symKey.get_code()
+            if key_obj!=None:
+                fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
                 
-                fd.write('ReqPubKeyID = "%s"\n'%factory_pub_key_id)
-
-                fd.write('ReqEncKeyCode = "%s"\n'%factory_pub_key.encrypt_hex(glidein_symKey_str))
-
-                # this attribute will be checked against the AuthenticatedIdentity
-                # this will prevent replay attacks, as only who knows the symkey can change this field
-                # no other changes needed, as Condor provides integrity of the whole classAd
-                fd.write('ReqEncIdentity = "%s"\n'%glidein_symKey.encrypt_hex(classad_identity))
-                
-                if x509_proxies_data!=None:
+                if group_obj.x509_proxies_data!=None:
                     if glidein_params_to_encrypt==None:
                         glidein_params_to_encrypt={}
                     else:
                         glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
-                    nr_proxies=len(x509_proxies_data)
+                    nr_proxies=len(group_obj.x509_proxies_data)
                     glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
                     for i in range(nr_proxies):
-                        x509_proxy_idx,x509_proxy_data=x509_proxies_data[i]
+                        x509_proxy_idx,x509_proxy_data=group_obj.x509_proxies_data[i]
                         glidein_params_to_encrypt['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
                         glidein_params_to_encrypt['x509_proxy_%i'%i]=x509_proxy_data
 
                 if glidein_params_to_encrypt!=None:
                     for attr in glidein_params_to_encrypt.keys():
-                        encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
+                        encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
                         
             fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
@@ -284,33 +323,26 @@ def createAdvertizeWorkFile(fname,
 #  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
 # similar for glidein_monitors
 def advertizeWork(factory_pool,
-                  client_name,frontend_name,group_name,
+                  group_obj,               # must be of type GroupAvertizeType
                   request_name,glidein_name,
-                  web_url, main_descript, group_descript,
-                  signtype, main_sign, group_sign,
                   min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
-                  factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
-                  glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
-                  classad_identity=None, # needed only if sending over encrypted info
-                  glidein_params_to_encrypt=None,  #params_to_encrypt needs pub_key
-                  x509_proxies_data=None):         #list of pairs (id, x509_proxy), needs pub_key
+                  key_obj=None,                     # must be of type FactoryKeys4Advertize
+                  glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
     tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
     createAdvertizeWorkFile(tmpnam,
-                            client_name,frontend_name,group_name,
+                            group_obj,
                             request_name,glidein_name,
-                            web_url, main_descript, group_descript,
-                            signtype, main_sign, group_sign,
                             min_nr_glideins,max_run_glideins,
                             glidein_params,glidein_monitors,
-                            factory_pub_key_id,factory_pub_key,glidein_symKey,
-                            classad_identity,glidein_params_to_encrypt,x509_proxies_data)
+                            key_obj,glidein_params_to_encrypt)
     try:
         condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s %s"%(pool2str(factory_pool),tmpnam))
     finally:
         os.remove(tmpnam)
+
 
 
 # Remove ClassAd from Collector
