@@ -10,6 +10,7 @@
 import condorExe
 import condorMonitor
 import os,os.path
+import copy
 import time
 import string
 import pubCrypto,symCrypto
@@ -194,10 +195,11 @@ def advertizeWork(factory_pool,
                   signtype, main_sign, group_sign,
                   min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
-                  classad_identity=None, # needed only if sending over encrypted info
                   factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
                   glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
-                  glidein_params_to_encrypt=None):  #params_to_encrypt need pub_key
+                  classad_identity=None, # needed only if sending over encrypted info
+                  glidein_params_to_encrypt=None,  #params_to_encrypt needs pub_key
+                  x509_proxies_data=None):         #list of pairs (id, x509_proxy), needs pub_key
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -242,7 +244,19 @@ def advertizeWork(factory_pool,
                 # no other changes needed, as Condor provides integrity of the whole classAd
                 fd.write('ReqEncIdentity = "%s"\n'%glidein_symKey.encrypt_hex(classad_identity))
                 
-                if encrypted_params!=None:
+                if x509_proxies_data!=None:
+                    if glidein_params_to_encrypt==None:
+                        glidein_params_to_encrypt={}
+                    else:
+                        glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
+                    nr_proxies=len(x509_proxies_data)
+                    glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
+                    for i in range(nr_proxies):
+                        x509_proxy_idx,x509_proxy_data=x509_proxies_data[i]
+                        glidein_params_to_encrypt['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
+                        glidein_params_to_encrypt['x509_proxy_%i'%i]=x509_proxy_data
+
+                if glidein_params_to_encrypt!=None:
                     for attr in glidein_params_to_encrypt.keys():
                         encrypted_params[attr]=glidein_symKey.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
                         
