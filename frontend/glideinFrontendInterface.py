@@ -185,27 +185,24 @@ def findGlideinClientMonitoring(factory_pool,client_name,
 
     return out
 
-# glidein_params is a dictionary of values to publish
-#  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
-# similar for glidein_monitors
-def advertizeWork(factory_pool,
-                  client_name,frontend_name,group_name,
-                  request_name,glidein_name,
-                  web_url, main_descript, group_descript,
-                  signtype, main_sign, group_sign,
-                  min_nr_glideins,max_run_glideins,
-                  glidein_params={},glidein_monitors={},
-                  factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
-                  glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
-                  classad_identity=None, # needed only if sending over encrypted info
-                  glidein_params_to_encrypt=None,  #params_to_encrypt needs pub_key
-                  x509_proxies_data=None):         #list of pairs (id, x509_proxy), needs pub_key
+#######################################
+# INTERNAL, do not use directly
+# Create file needed by advertize Work
+def createAdvertizeWorkFile(fname,
+                            client_name,frontend_name,group_name,
+                            request_name,glidein_name,
+                            web_url, main_descript, group_descript,
+                            signtype, main_sign, group_sign,
+                            min_nr_glideins,max_run_glideins,
+                            glidein_params={},glidein_monitors={},
+                            factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
+                                                                                    glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
+                            classad_identity=None, # needed only if sending over encrypted info
+                            glidein_params_to_encrypt=None,  #params_to_encrypt needs pub_key
+                            x509_proxies_data=None):         #list of pairs (id, x509_proxy), needs pub_key
     global frontendConfig
 
-    # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
-    fd=file(tmpnam,"w")
+    fd=file(fname,"w")
     try:
         try:
             classad_name="%s@%s"%(request_name,client_name)
@@ -277,10 +274,44 @@ def advertizeWork(factory_pool,
                         fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
         finally:
             fd.close()
+    except:
+        # remove file in case of problems
+        os.remove(fname)
+        raise
 
+
+# glidein_params is a dictionary of values to publish
+#  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
+# similar for glidein_monitors
+def advertizeWork(factory_pool,
+                  client_name,frontend_name,group_name,
+                  request_name,glidein_name,
+                  web_url, main_descript, group_descript,
+                  signtype, main_sign, group_sign,
+                  min_nr_glideins,max_run_glideins,
+                  glidein_params={},glidein_monitors={},
+                  factory_pub_key_id=None,factory_pub_key=None, #pub_key needs pub_key_id
+                  glidein_symKey=None, # if a symkey is not provided, or is not initialized, generate one
+                  classad_identity=None, # needed only if sending over encrypted info
+                  glidein_params_to_encrypt=None,  #params_to_encrypt needs pub_key
+                  x509_proxies_data=None):         #list of pairs (id, x509_proxy), needs pub_key
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
+    createAdvertizeWorkFile(tmpnam,
+                            client_name,frontend_name,group_name,
+                            request_name,glidein_name,
+                            web_url, main_descript, group_descript,
+                            signtype, main_sign, group_sign,
+                            min_nr_glideins,max_run_glideins,
+                            glidein_params={},glidein_monitors={},
+                            factory_pub_key_id,factory_pub_key,glidein_symKey,
+                            classad_identity,glidein_params_to_encrypt,x509_proxies_data)
+    try:
         condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s %s"%(pool2str(factory_pool),tmpnam))
     finally:
         os.remove(tmpnam)
+
 
 # Remove ClassAd from Collector
 def deadvertizeWork(factory_pool,
