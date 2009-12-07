@@ -165,7 +165,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                                    signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                                    signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                                    x509_proxies_data)
-    
+    if advertize_group_obj.need_encryption():
+        # reuse between loops might be a good idea, but this will work for now
+        key_builder=glideinFrontendInterface.Key4AdvertizeBuilder()
+    else:
+        key_builder=None #not used, but just for consistency
+        
 
     glideinFrontendLib.log_files.logActivity("Match")
 
@@ -252,9 +257,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
           for t in count_status.keys():
               glidein_monitors['Glideins%s'%t]=count_status[t]
           if advertize_group_obj.need_encryption():
-              key_obj=glideinFrontendInterface.FactoryKeys4Advertize(classad_identity,
-                                                                     glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'],
-                                                                     glidein_symKey=None) # should probably reuse it, but None will work for now
+              key_obj=key_builder.get_key_obj(classad_identity,
+                                              glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
+                                              
           else:
               # if no proxies, no reason to encode
               key_obj=None

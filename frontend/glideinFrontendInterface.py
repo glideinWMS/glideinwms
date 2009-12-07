@@ -247,6 +247,62 @@ class FactoryKeys4Advertize:
     def encrypt_hex(self,str):
         return self.glidein_symKey.encrypt_hex(str)
 
+# class for creating FactoryKeys4Advertize objects
+# will reuse the symkey as much as possible
+class Key4AdvertizeBuilder:
+    def __init__(self):
+        self.keys_cache={} # will contain a tuple of (key_obj,creation_time, last_access_time)
+
+    def get_key_obj(self,
+                    classad_identity,
+                    factory_pub_key_id,factory_pub_key,
+                    glidein_symKey=None): # will use one, if provided, but better to leave it blank and let the Builder create one
+        # whoever can decrypt the pub key can anyhow get the symkey
+        cache_id=factory_pub_key
+    
+        if glidein_symKey!=None:
+            # when a key is explicitly given, cannot reuse a cached one
+            key_obj=FactoryKeys4Advertize(classad_identity,
+                                        factory_pub_key_id,factory_pub_key,
+                                          glidein_symKey)
+            # but I can use it for others
+            if not self.keys_cache.has_key(cache_id):
+                now=time.time()
+                self.keys_cache[cache_id]=(key_obj,now,now)
+            return key_obj
+        else:
+            if self.keys_cache.has_key(cache_id):
+                self.keys_cache[cache_id][2]=time.time()
+                return  self.keys_cache[cache_id][0]
+            else:
+                key_obj=FactoryKeys4Advertize(classad_identity,
+                                              factory_pub_key_id,factory_pub_key,
+                                             glidein_symKey=None)
+                now=time.time()
+                self.keys_cache[cache_id]=(key_obj,now,now)
+                return key_obj
+
+    # clear the cache
+    def clear(self,
+              created_after=None,   # if not None, only clear entries older than this
+              accessed_after=None): # if not None, only clear entries not accessed recently
+        if (created_after==None) && (accessed_after==None):
+            # just delete everything
+            self.keys_cache={}
+            return
+        
+        for cache_id in self.keys_cache.keys():
+            # if at least one criteria is not satisfied, delete the entry
+            delete_entry=False
+            
+            if created_after!=None:
+                delete_entry = delete_entry or (self.keys_cache[cache_id][1]<created_after)
+
+            if accessed_after!=None:
+                delete_entry = delete_entry or (self.keys_cache[cache_id][2]<accessed_after)
+
+            if delete_entry:
+                del self.keys_cache[cache_id]
 
 #######################################
 # INTERNAL, do not use directly
