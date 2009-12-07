@@ -55,6 +55,23 @@ class FrontendConfig:
 # global configuration of the module
 frontendConfig=FrontendConfig()
 
+#####################################################
+# Exception thrown when multiple executions are used
+# Helps handle partial failures
+
+class MultiExeError(condorExe.ExeError):
+    def __init__(self,arr): # arr is a list of ExeError exceptions
+        self.arr=arr
+
+        # First approximation of implementation, can be improved
+        str_arr=[]
+        for e in arr:
+            str_arr.append('%s'%e)
+        
+        str=string.join(str_arr,'\\n')
+        
+        condorExe.ExeError.__init__(self,str)
+
 ############################################################
 #
 # User functions
@@ -306,20 +323,32 @@ class Key4AdvertizeBuilder:
 
 #######################################
 # INTERNAL, do not use directly
+
+class AdvertizeParams:
+    def __init__(self,
+                 request_name,glidein_name,
+                 min_nr_glideins,max_run_glideins,
+                 glidein_params={},glidein_monitors={},
+                 glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+        self.request_name=request_name
+        self.glidein_name=glidein_name
+        self.min_nr_glideins=min_nr_glideins
+        self.max_run_glideins=max_run_glideins
+        self.glidein_params=glidein_params
+        self.glidein_monitors=glidein_monitors
+        self.glidein_params_to_encrypt=glidein_params_to_encrypt
+
 # Create file needed by advertize Work
 def createAdvertizeWorkFile(fname,
                             group_obj,               # must be of type GroupAvertizeType
-                            request_name,glidein_name,
-                            min_nr_glideins,max_run_glideins,
-                            glidein_params={},glidein_monitors={},
-                            key_obj=None,                     # must be of type FactoryKeys4Advertize
-                            glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+                            params_obj,              # must be of type AdvertizeParams
+                            key_obj=None):           # must be of type FactoryKeys4Advertize
     global frontendConfig
 
     fd=file(fname,"w")
     try:
         try:
-            classad_name="%s@%s"%(request_name,group_obj.client_name)
+            classad_name="%s@%s"%(params_obj.request_name,group_obj.client_name)
             
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
@@ -327,15 +356,16 @@ def createAdvertizeWorkFile(fname,
             fd.write('ClientName = "%s"\n'%group_obj.client_name)
             fd.write('FrontendName = "%s"\n'%group_obj.frontend_name)
             fd.write('GroupName = "%s"\n'%group_obj.group_name)
-            fd.write('ReqName = "%s"\n'%request_name)
-            fd.write('ReqGlidein = "%s"\n'%glidein_name)
+            fd.write('ReqName = "%s"\n'%params_obj.request_name)
+            fd.write('ReqGlidein = "%s"\n'%params_obj.glidein_name)
 
             fd.write(string.join(group_obj.get_web_attrs(),'\n')+"\n")
 
             encrypted_params={} # none by default
             if key_obj!=None:
                 fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
-                
+
+                glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
                 if group_obj.x509_proxies_data!=None:
                     if glidein_params_to_encrypt==None:
                         glidein_params_to_encrypt={}
@@ -352,12 +382,12 @@ def createAdvertizeWorkFile(fname,
                     for attr in glidein_params_to_encrypt.keys():
                         encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
                         
-            fd.write('ReqIdleGlideins = %i\n'%min_nr_glideins)
-            fd.write('ReqMaxRunningGlideins = %i\n'%max_run_glideins)
+            fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
+            fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
 
             # write out both the params and monitors
-            for (prefix,data) in ((frontendConfig.glidein_param_prefix,glidein_params),
-                                  (frontendConfig.glidein_monitor_prefix,glidein_monitors),
+            for (prefix,data) in ((frontendConfig.glidein_param_prefix,params_obj.glidein_params),
+                                  (frontendConfig.glidein_monitor_prefix,params_obj.glidein_monitors),
                                   (frontendConfig.encrypted_param_prefix,encrypted_params)):
                 for attr in data.keys():
                     el=data[attr]
@@ -374,10 +404,55 @@ def createAdvertizeWorkFile(fname,
         os.remove(fname)
         raise
 
+# Given a file, advertize
+# Can throw a CondorExe/ExeError exception
+def advertizeWorkFromFile(factory_pool,
+                          fname,
+                          remove_file=True):
+    try:
+        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s %s"%(pool2str(factory_pool),fname))
+    finally:
+        if remove_file:
+            os.remove(fname)
+
+# do the advertizing from start to end
+# Can throw a CondorExe/ExeError exception
+def advertizeWorkOnce(factory_pool,
+                      tmpnam,                  # what fname should should i use
+                      group_obj,               # must be of type GroupAvertizeType
+                      params_obj,              # must be of type AdvertizeParams
+                      key_obj=None,            # must be of type FactoryKeys4Advertize
+                      remove_file=True):
+    createAdvertizeWorkFile(tmpnam,
+                            group_obj,params,key_obj)
+    advertizeWorkFromFile(factory_pool, tmpnam, remove_file)
+
+# As above, but combine many together
+# can throw a MultiExeError exception
+def advertizeWorkMulti(factory_pool,
+                       tmpnam,                 # what fname should should I use
+                       group_obj,              # must be of type GroupAvertizeType
+                       paramkey_list):         # list of tuple (params_obj,key_obj)
+    error_arr=[]
+    for el in paramkey_list:
+        params_obj,key_obj=el
+        createAdvertizeWorkFile(tmpnam,
+                                group_obj,params_obj,key_obj)
+        try:
+            advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True)
+        except condorExe.ExeError, e:
+            error_arr.append(e)
+    if len(error_arr)>0:
+        raise MultiExeError, error_arr
+
+# END INTERNAL
+########################################
+
 
 # glidein_params is a dictionary of values to publish
 #  like {"GLIDEIN_Collector":"myname.myplace.us","MinDisk":200000}
 # similar for glidein_monitors
+# Can throw condorExe.ExeError
 def advertizeWork(factory_pool,
                   group_obj,               # must be of type GroupAvertizeType
                   request_name,glidein_name,
@@ -385,20 +460,60 @@ def advertizeWork(factory_pool,
                   glidein_params={},glidein_monitors={},
                   key_obj=None,                     # must be of type FactoryKeys4Advertize
                   glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+    params_obj=AdvertizeParams(request_name,glidein_name,
+                               min_nr_glideins,max_run_glideins,
+                               glidein_params,glidein_monitors,
+                               glidein_params_to_encrypt)
+
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
     tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
-    createAdvertizeWorkFile(tmpnam,
-                            group_obj,
-                            request_name,glidein_name,
-                            min_nr_glideins,max_run_glideins,
-                            glidein_params,glidein_monitors,
-                            key_obj,glidein_params_to_encrypt)
-    try:
-        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s %s"%(pool2str(factory_pool),tmpnam))
-    finally:
-        os.remove(tmpnam)
+    advertizeWorkOnce(factory_pool,tmpnam,group_obj,params_obj,key_obj,remove_file=True)
 
+
+class MultiAdvertizeWork:
+    def __init__(self,
+                 group_obj):        # must be of type GroupAvertizeType
+        self.group_obj=group_obj
+        self.factory_queue={}       # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+
+    # add a request to the list
+    def add(self,
+            factory_pool,
+            request_name,glidein_name,
+            min_nr_glideins,max_run_glideins,
+            glidein_params={},glidein_monitors={},
+            key_obj=None,                     # must be of type FactoryKeys4Advertize
+            glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+        params_obj=AdvertizeParams(request_name,glidein_name,
+                                   min_nr_glideins,max_run_glideins,
+                                   glidein_params,glidein_monitors,
+                                   glidein_params_to_encrypt)
+        if not self.factory_queue.has_key(factory_pool):
+            self.factory_queue[factory_pool]=[]
+        self.factory_queue[factory_pool].append((params_obj,key_obj))
+
+    # do the actual advertizing
+    # can throw MultiExeError
+    def do_advertize(self):
+        error_arr=[]
+
+        # get a 9 digit number that will stay 9 digit for the next 25 years
+        short_time = time.time()-1.05e9
+        idx=0
+        for factory_pool in self.factory_queue.keys():
+            idx=idx+1
+            tmpnam="/tmp/gfi_aw_%li_%li_%li"%(short_time,os.getpid(),idx)
+            
+            # this should be done in parallel, but keep it serial for now
+            try:
+                advertizeWorkMulti(factory_pool,tmpnam,self.group_obj,self.factory_queue[factory_pool])
+            except MultiExeError, e:
+                error_arr= error_arr + e.arr
+        self.factory_queue={} # clean queue
+        
+        if len(error_arr)>0:
+            raise MultiExeError, error_arr
 
 
 # Remove ClassAd from Collector
