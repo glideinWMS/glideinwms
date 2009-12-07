@@ -258,8 +258,8 @@ class Key4AdvertizeBuilder:
                     factory_pub_key_id,factory_pub_key,
                     glidein_symKey=None): # will use one, if provided, but better to leave it blank and let the Builder create one
         # whoever can decrypt the pub key can anyhow get the symkey
-        cache_id=factory_pub_key
-    
+        cache_id=factory_pub_key.get()
+
         if glidein_symKey!=None:
             # when a key is explicitly given, cannot reuse a cached one
             key_obj=FactoryKeys4Advertize(classad_identity,
@@ -268,7 +268,7 @@ class Key4AdvertizeBuilder:
             # but I can use it for others
             if not self.keys_cache.has_key(cache_id):
                 now=time.time()
-                self.keys_cache[cache_id]=(key_obj,now,now)
+                self.keys_cache[cache_id]=[key_obj,now,now]
             return key_obj
         else:
             if self.keys_cache.has_key(cache_id):
@@ -279,7 +279,7 @@ class Key4AdvertizeBuilder:
                                               factory_pub_key_id,factory_pub_key,
                                              glidein_symKey=None)
                 now=time.time()
-                self.keys_cache[cache_id]=(key_obj,now,now)
+                self.keys_cache[cache_id]=[key_obj,now,now]
                 return key_obj
 
     # clear the cache
