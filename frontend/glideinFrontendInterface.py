@@ -286,7 +286,7 @@ class Key4AdvertizeBuilder:
     def clear(self,
               created_after=None,   # if not None, only clear entries older than this
               accessed_after=None): # if not None, only clear entries not accessed recently
-        if (created_after==None) && (accessed_after==None):
+        if (created_after==None) and (accessed_after==None):
             # just delete everything
             self.keys_cache={}
             return
