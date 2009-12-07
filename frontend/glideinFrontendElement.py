@@ -188,7 +188,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     
     total_running=condorq_dict_types['Running']['total']
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
-    
+
+
+    advertizer=glideinFrontendInterface.MultiAdvertizeWork(advertize_group_obj)
     for glideid in condorq_dict_types['Idle']['count'].keys():
         factory_pool_node=glideid[0]
         request_name=glideid[1]
@@ -250,32 +252,41 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             # convert kexpr -> kval
             glidein_params[k]=glideinFrontendLib.evalParamExpr(kexpr,paramsDescript.const_data,glidein_el)
 
-        try:
-          glidein_monitors={}
-          for t in count_jobs.keys():
-              glidein_monitors[t]=count_jobs[t]
-          for t in count_status.keys():
-              glidein_monitors['Glideins%s'%t]=count_status[t]
-          if advertize_group_obj.need_encryption():
-              key_obj=key_builder.get_key_obj(classad_identity,
-                                              glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
-                                              
-          else:
-              # if no proxies, no reason to encode
-              key_obj=None
+        glidein_monitors={}
+        for t in count_jobs.keys():
+            glidein_monitors[t]=count_jobs[t]
+        for t in count_status.keys():
+            glidein_monitors['Glideins%s'%t]=count_status[t]
+        if advertize_group_obj.need_encryption():
+            key_obj=key_builder.get_key_obj(classad_identity,
+                                            glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
+        else:
+            # if no proxies, no reason to encode
+            key_obj=None
 
-          glideinFrontendInterface.advertizeWork(factory_pool_node,advertize_group_obj,
-                                                 request_name,request_name,
-                                                 glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                                                 key_obj,glidein_params_to_encrypt=None)
-        except RuntimeError, e:
-          glideinFrontendLib.log_files.logWarning("Advertize %s failed. See debug log for more details."%glideid_str)
-          glideinFrontendLib.log_files.logDebug("Advertize %s failed: %s"%(glideid_str,e))
-        except:
-          glideinFrontendLib.log_files.logWarning("Advertize %s failed: Reason unknown"%glideid_str)
-          tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                          sys.exc_info()[2])
-          glideinFrontendLib.log_files.logDebug("Advertize %s failed: %s"%(glideid_str,string.join(tb,'')))
+        advertizer.add(factory_pool_node,
+                       request_name,request_name,
+                       glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
+                       key_obj,glidein_params_to_encrypt=None)
+    # end for glideid in condorq_dict_types['Idle']['count'].keys()
+    
+    try:
+        glideinFrontendLib.log_files.logActivity("Advertizing")
+        advertizer.do_advertize()
+        glideinFrontendLib.log_files.logActivity("Done advertizing")
+    except glideinFrontendInterface.MultiExeError, e:
+        glideinFrontendLib.log_files.logWarning("Advertizing partially failed. See debug log for more details.")
+        for ee in e.arr:
+            glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%ee)
+        
+    except RuntimeError, e:
+      glideinFrontendLib.log_files.logWarning("Advertizing failed. See debug log for more details.")
+      glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%e)
+    except:
+      glideinFrontendLib.log_files.logWarning("Advertizing failed: Reason unknown")
+      tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                      sys.exc_info()[2])
+      glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%string.join(tb,''))
 
     return
 
