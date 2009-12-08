@@ -9,7 +9,7 @@
 #
 
 import os.path
-import sets
+import sets,string
 import condorMonitor,condorExe
 import logSupport
 
