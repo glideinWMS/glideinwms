@@ -282,11 +282,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
     
     try:
-        glideinFrontendLib.log_files.logActivity("Advertizing")
+        glideinFrontendLib.log_files.logActivity("Advertizing %i requests"%advertizer.get_queue_len())
         advertizer.do_advertize()
         glideinFrontendLib.log_files.logActivity("Done advertizing")
     except glideinFrontendInterface.MultiExeError, e:
-        glideinFrontendLib.log_files.logWarning("Advertizing partially failed. See debug log for more details.")
+        glideinFrontendLib.log_files.logWarning("Advertizing failed for %i requests. See debug log for more details."%len(e.arr))
         for ee in e.arr:
             glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%ee)
         
