@@ -57,7 +57,18 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for factory_pool in factory_pools:
         factory_pool_node=factory_pool[0]
         factory_identity=factory_pool[1]
-        factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,factory_identity,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+        try:
+            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,factory_identity,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+        except RuntimeError,e:
+            if factory_pool_node!=None:
+                glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
+                glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
+            else:
+                glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
+                glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
+            # failed to talk, like empty... maybe the next factory will have something
+            factory_glidein_dict={}
+             
         for glidename in factory_glidein_dict.keys():
             glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
 
