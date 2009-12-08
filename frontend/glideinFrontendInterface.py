@@ -483,6 +483,13 @@ class MultiAdvertizeWork:
             self.factory_queue[factory_pool]=[]
         self.factory_queue[factory_pool].append((params_obj,key_obj))
 
+    # retirn the queue depth
+    def get_queue_len(self):
+        count=0
+        for factory_pool in self.factory_queue.keys():
+            count+=len(self.factory_queue[factory_pool])
+        return count
+
     # do the actual advertizing
     # can throw MultiExeError
     def do_advertize(self):
