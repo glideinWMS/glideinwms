@@ -193,7 +193,7 @@ def findGlideinClientMonitoring(factory_pool,client_name,
     return out
 
 ############################################
-class GroupAvertizeType:
+class GroupAdvertizeType:
     def __init__(self,
                  client_name,frontend_name,group_name,
                  web_url, main_descript, group_descript,
@@ -330,7 +330,7 @@ class AdvertizeParams:
 
 # Create file needed by advertize Work
 def createAdvertizeWorkFile(fname,
-                            group_obj,               # must be of type GroupAvertizeType
+                            group_obj,               # must be of type GroupAdvertizeType
                             params_obj,              # must be of type AdvertizeParams
                             key_obj=None):           # must be of type FactoryKeys4Advertize
     global frontendConfig
@@ -409,7 +409,7 @@ def advertizeWorkFromFile(factory_pool,
 # Can throw a CondorExe/ExeError exception
 def advertizeWorkOnce(factory_pool,
                       tmpnam,                  # what fname should should i use
-                      group_obj,               # must be of type GroupAvertizeType
+                      group_obj,               # must be of type GroupAdvertizeType
                       params_obj,              # must be of type AdvertizeParams
                       key_obj=None,            # must be of type FactoryKeys4Advertize
                       remove_file=True):
@@ -421,7 +421,7 @@ def advertizeWorkOnce(factory_pool,
 # can throw a MultiExeError exception
 def advertizeWorkMulti(factory_pool,
                        tmpnam,                 # what fname should should I use
-                       group_obj,              # must be of type GroupAvertizeType
+                       group_obj,              # must be of type GroupAdvertizeType
                        paramkey_list):         # list of tuple (params_obj,key_obj)
     error_arr=[]
     for el in paramkey_list:
@@ -444,7 +444,7 @@ def advertizeWorkMulti(factory_pool,
 # similar for glidein_monitors
 # Can throw condorExe.ExeError
 def advertizeWork(factory_pool,
-                  group_obj,               # must be of type GroupAvertizeType
+                  group_obj,               # must be of type GroupAdvertizeType
                   request_name,glidein_name,
                   min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
@@ -463,7 +463,7 @@ def advertizeWork(factory_pool,
 
 class MultiAdvertizeWork:
     def __init__(self,
-                 group_obj):        # must be of type GroupAvertizeType
+                 group_obj):        # must be of type GroupAdvertizeType
         self.group_obj=group_obj
         self.factory_queue={}       # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
 

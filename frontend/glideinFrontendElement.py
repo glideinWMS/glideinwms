@@ -170,12 +170,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 
 
 
-    # here we have all the data needed to build a GroupAvertizeType object
-    advertize_group_obj=glideinFrontendInterface.GroupAvertizeType(client_name,frontend_name,group_name,
-                                                                   web_url,
-                                                                   signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
-                                                                   signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
-                                                                   x509_proxies_data)
+    # here we have all the data needed to build a GroupAdvertizeType object
+    advertize_group_obj=glideinFrontendInterface.GroupAdvertizeType(client_name,frontend_name,group_name,
+                                                                    web_url,
+                                                                    signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                                    signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                                    x509_proxies_data)
     if advertize_group_obj.need_encryption():
         # reuse between loops might be a good idea, but this will work for now
         key_builder=glideinFrontendInterface.Key4AdvertizeBuilder()
