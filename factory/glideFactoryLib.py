@@ -268,23 +268,40 @@ def update_x509_proxy_file(client_id, proxy_data):
 # Main function
 #   Will keep the required number of Idle glideins
 #
-class ClientWeb:
+class ClientWebNoGroup:
     def __init__(self,client_web_url,
                  client_signtype,
-                 client_descript,client_sign,
-                 client_group,client_group_web_url,
-                 client_group_descript,client_group_sign):
+                 client_descript,client_sign):
         if not (client_signtype in factoryConfig.supported_signtypes):
             raise ValueError, "Signtype '%s' not supported!"%client_signtype
         self.url=client_web_url
         self.signtype=client_signtype
         self.descript=client_descript
         self.sign=client_sign
+        return
+
+    def get_glidein_args(self):
+        return "-clientweb %s -clientsign %s -clientsigntype %s -clientdescript %s"%(self.url,self.sign,self.signtype,self.descript)
+
+
+class ClientWeb(ClientWebNoGroup):
+    def __init__(self,client_web_url,
+                 client_signtype,
+                 client_descript,client_sign,
+                 client_group,client_group_web_url,
+                 client_group_descript,client_group_sign):
+        ClientWebNoGroup.__init__(self,client_web_url,
+                                  client_signtype,
+                                  client_descript,client_sign)
         self.group_name=client_group
         self.group_url=client_group_web_url
         self.group_descript=client_group_descript
         self.group_sign=client_group_sign
         return
+
+    def get_glidein_args(self):
+        return (ClientWebNoGroup.get_glidein_args(self)+
+                "-clientgroup %s -clientwebgroup %s -clientsigngroup %s -clientdescriptgroup %s"%(self.group_name,self.group_url,self.group_sign,self.group_descript))
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
@@ -710,9 +727,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
 
     client_web_str=""
     if client_web!=None:
-        client_web_str="-clientgroup %s -clientweb %s -clientwebgroup %s -clientsign %s -clientsigngroup %s -clientsigntype %s -clientdescript %s -clientdescriptgroup %s"%(
-            client_web.group_name,client_web.url,client_web.group_url,client_web.sign,client_web.group_sign,client_web.signtype,
-            client_web.descript,client_web.group_descript)
+        client_web_str=client_web.get_glidein_args()
 
     try:
         nr_submitted=0
