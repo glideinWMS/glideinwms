@@ -144,13 +144,13 @@ def findGlideins(factory_pool,factory_identity,
 
     return out
 
-def findGlideinClientMonitoring(factory_pool,client_name,
+def findGlideinClientMonitoring(factory_pool,my_name,
                                 additional_constraint=None):
     global frontendConfig
     
     status_constraint='(GlideinMyType=?="%s")'%frontendConfig.factoryclient_id
-    if client_name!=None:
-        status_constraint='%s && (ReqClientName=?="%s")'%client_name
+    if my_name!=None:
+        status_constraint='%s && (ReqClientName=?="%s")'%my_name
     if additional_constraint!=None:
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
@@ -195,11 +195,11 @@ def findGlideinClientMonitoring(factory_pool,client_name,
 ############################################
 class GroupAdvertizeType:
     def __init__(self,
-                 client_name,frontend_name,group_name,
+                 my_name,frontend_name,group_name,
                  web_url, main_descript, group_descript,
                  signtype, main_sign, group_sign,
                  x509_proxies_data=None):
-        self.client_name=client_name
+        self.my_name=my_name
         self.frontend_name=frontend_name
         self.group_name=group_name
         self.web_url=web_url
@@ -338,12 +338,12 @@ def createAdvertizeWorkFile(fname,
     fd=file(fname,"w")
     try:
         try:
-            classad_name="%s@%s"%(params_obj.request_name,group_obj.client_name)
+            classad_name="%s@%s"%(params_obj.request_name,group_obj.my_name)
             
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
             fd.write('Name = "%s"\n'%classad_name)
-            fd.write('ClientName = "%s"\n'%group_obj.client_name)
+            fd.write('ClientName = "%s"\n'%group_obj.my_name)
             fd.write('FrontendName = "%s"\n'%group_obj.frontend_name)
             fd.write('GroupName = "%s"\n'%group_obj.group_name)
             fd.write('ReqName = "%s"\n'%params_obj.request_name)
@@ -515,7 +515,7 @@ class MultiAdvertizeWork:
 
 # Remove ClassAd from Collector
 def deadvertizeWork(factory_pool,
-                    client_name,request_name):
+                    my_name,request_name):
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -526,7 +526,7 @@ def deadvertizeWork(factory_pool,
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n'%frontendConfig.client_id)
-            fd.write('Requirements = Name == "%s@%s"\n'%(request_name,client_name))
+            fd.write('Requirements = Name == "%s@%s"\n'%(request_name,my_name))
         finally:
             fd.close()
 
@@ -536,7 +536,7 @@ def deadvertizeWork(factory_pool,
 
 # Remove ClassAd from Collector
 def deadvertizeAllWork(factory_pool,
-                       client_name):
+                       my_name):
     global frontendConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -547,7 +547,7 @@ def deadvertizeAllWork(factory_pool,
         try:
             fd.write('MyType = "Query"\n')
             fd.write('TargetType = "%s"\n'%frontendConfig.client_id)
-            fd.write('Requirements = ClientName == "%s"\n'%client_name)
+            fd.write('Requirements = ClientName == "%s"\n'%my_name)
         finally:
             fd.close()
 
