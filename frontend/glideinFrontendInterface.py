@@ -193,36 +193,59 @@ def findGlideinClientMonitoring(factory_pool,my_name,
     return out
 
 ############################################
-class GroupAdvertizeType:
+class FrontendDescriptNoGroup:
     def __init__(self,
-                 my_name,frontend_name,group_name,
-                 web_url, main_descript, group_descript,
-                 signtype, main_sign, group_sign,
+                 my_name,frontend_name,
+                 web_url, main_descript,
+                 signtype, main_sign,
                  x509_proxies_data=None):
         self.my_name=my_name
         self.frontend_name=frontend_name
-        self.group_name=group_name
         self.web_url=web_url
         self.main_descript=main_descript
-        self.group_descript=group_descript
         self.signtype=signtype
         self.main_sign=main_sign
-        self.group_sign=group_sign
         self.x509_proxies_data=x509_proxies_data
 
     # returns a boolean
     def need_encryption(self):
         return self.x509_proxies_data!=None
 
-    # returns a list of strings
+    # return a list of strings
+    def get_id_attrs(self):
+        return ('ClientName = "%s"'%self.my_name,
+                'FrontendName = "%s"'%self.frontend_name)
+
     def get_web_attrs(self):
         return ('WebURL = "%s"'%self.web_url,
-                'WebGroupURL = "%s"'%os.path.join(self.web_url,"group_%s"%self.group_name),
                 'WebSignType = "%s"'%self.signtype,
                 'WebDescriptFile = "%s"'%self.main_descript,
-                'WebDescriptSign = "%s"'%self.main_sign,
-                'WebGroupDescriptFile = "%s"'%self.group_descript,
-                'WebGroupDescriptSign = "%s"'%self.group_sign)
+                'WebDescriptSign = "%s"'%self.main_sign)
+
+class FrontendDescript(FrontendDescriptNoGroup):
+    def __init__(self,
+                 my_name,frontend_name,group_name,
+                 web_url, main_descript, group_descript,
+                 signtype, main_sign, group_sign,
+                 x509_proxies_data=None):
+        FrontendDescriptNoGroup.__init__(self,my_name,frontend_name,
+                                         web_url, main_descript,
+                                         signtype, main_sign,
+                                         x509_proxies_data)
+        self.group_name=group_name
+        self.group_descript=group_descript
+        self.group_sign=group_sign
+
+    # return a list of strings
+    def get_id_attrs(self):
+        return (FrontendDescriptNoGroup.get_id_attrs(self)+
+                ('GroupName = "%s"\n'%self.group_name,))
+
+    def get_web_attrs(self):
+        return (FrontendDescriptNoGroup.get_web_attrs(self)+
+                ('WebGroupURL = "%s"'%os.path.join(self.web_url,"group_%s"%self.group_name),
+                 'WebGroupDescriptFile = "%s"'%self.group_descript,
+                 'WebGroupDescriptSign = "%s"'%self.group_sign))
 
 class FactoryKeys4Advertize:
     def __init__(self,
@@ -330,7 +353,7 @@ class AdvertizeParams:
 
 # Create file needed by advertize Work
 def createAdvertizeWorkFile(fname,
-                            group_obj,               # must be of type GroupAdvertizeType
+                            descript_obj,            # must be of type FrontendDescriptNoGroup (or child)
                             params_obj,              # must be of type AdvertizeParams
                             key_obj=None):           # must be of type FactoryKeys4Advertize
     global frontendConfig
@@ -338,33 +361,31 @@ def createAdvertizeWorkFile(fname,
     fd=file(fname,"w")
     try:
         try:
-            classad_name="%s@%s"%(params_obj.request_name,group_obj.my_name)
+            classad_name="%s@%s"%(params_obj.request_name,descript_obj.my_name)
             
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
             fd.write('Name = "%s"\n'%classad_name)
-            fd.write('ClientName = "%s"\n'%group_obj.my_name)
-            fd.write('FrontendName = "%s"\n'%group_obj.frontend_name)
-            fd.write('GroupName = "%s"\n'%group_obj.group_name)
+            fd.write(string.join(descript_obj.get_id_attrs(),'\n')+"\n")
             fd.write('ReqName = "%s"\n'%params_obj.request_name)
             fd.write('ReqGlidein = "%s"\n'%params_obj.glidein_name)
 
-            fd.write(string.join(group_obj.get_web_attrs(),'\n')+"\n")
+            fd.write(string.join(descript_obj.get_web_attrs(),'\n')+"\n")
 
             encrypted_params={} # none by default
             if key_obj!=None:
                 fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
 
                 glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
-                if group_obj.x509_proxies_data!=None:
+                if descript_obj.x509_proxies_data!=None:
                     if glidein_params_to_encrypt==None:
                         glidein_params_to_encrypt={}
                     else:
                         glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
-                    nr_proxies=len(group_obj.x509_proxies_data)
+                    nr_proxies=len(descript_obj.x509_proxies_data)
                     glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
                     for i in range(nr_proxies):
-                        x509_proxy_idx,x509_proxy_data=group_obj.x509_proxies_data[i]
+                        x509_proxy_idx,x509_proxy_data=descript_obj.x509_proxies_data[i]
                         glidein_params_to_encrypt['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
                         glidein_params_to_encrypt['x509_proxy_%i'%i]=x509_proxy_data
 
@@ -409,25 +430,25 @@ def advertizeWorkFromFile(factory_pool,
 # Can throw a CondorExe/ExeError exception
 def advertizeWorkOnce(factory_pool,
                       tmpnam,                  # what fname should should i use
-                      group_obj,               # must be of type GroupAdvertizeType
+                      descript_obj,            # must be of type FrontendDescriptNoGroup (or child)
                       params_obj,              # must be of type AdvertizeParams
                       key_obj=None,            # must be of type FactoryKeys4Advertize
                       remove_file=True):
     createAdvertizeWorkFile(tmpnam,
-                            group_obj,params,key_obj)
+                            descript_obj,params,key_obj)
     advertizeWorkFromFile(factory_pool, tmpnam, remove_file)
 
 # As above, but combine many together
 # can throw a MultiExeError exception
 def advertizeWorkMulti(factory_pool,
                        tmpnam,                 # what fname should should I use
-                       group_obj,              # must be of type GroupAdvertizeType
+                       descript_obj,           # must be of type FrontendDescriptNoGroup (or child)
                        paramkey_list):         # list of tuple (params_obj,key_obj)
     error_arr=[]
     for el in paramkey_list:
         params_obj,key_obj=el
         createAdvertizeWorkFile(tmpnam,
-                                group_obj,params_obj,key_obj)
+                                descript_obj,params_obj,key_obj)
         try:
             advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True)
         except condorExe.ExeError, e:
@@ -444,7 +465,7 @@ def advertizeWorkMulti(factory_pool,
 # similar for glidein_monitors
 # Can throw condorExe.ExeError
 def advertizeWork(factory_pool,
-                  group_obj,               # must be of type GroupAdvertizeType
+                  descript_obj,               # must be of type FrontendDescriptNoGroup (or child)
                   request_name,glidein_name,
                   min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
@@ -458,14 +479,14 @@ def advertizeWork(factory_pool,
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
     tmpnam="/tmp/gfi_aw_%li_%li"%(short_time,os.getpid())
-    advertizeWorkOnce(factory_pool,tmpnam,group_obj,params_obj,key_obj,remove_file=True)
+    advertizeWorkOnce(factory_pool,tmpnam,descript_obj,params_obj,key_obj,remove_file=True)
 
 
 class MultiAdvertizeWork:
     def __init__(self,
-                 group_obj):        # must be of type GroupAdvertizeType
-        self.group_obj=group_obj
-        self.factory_queue={}       # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+                 descript_obj):        # must be of type FrontendDescriptNoGroup (or child)
+        self.descript_obj=descript_obj
+        self.factory_queue={}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
 
     # add a request to the list
     def add(self,
@@ -504,7 +525,7 @@ class MultiAdvertizeWork:
             
             # this should be done in parallel, but keep it serial for now
             try:
-                advertizeWorkMulti(factory_pool,tmpnam,self.group_obj,self.factory_queue[factory_pool])
+                advertizeWorkMulti(factory_pool,tmpnam,self.descript_obj,self.factory_queue[factory_pool])
             except MultiExeError, e:
                 error_arr= error_arr + e.arr
         self.factory_queue={} # clean queue
