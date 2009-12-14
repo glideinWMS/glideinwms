@@ -210,21 +210,34 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                 max_running=0
             
 
-            if work[work_key]['web'].has_key('URL') and work[work_key]['internals'].has_key('GroupName'):
-                client_group=work[work_key]['internals']['GroupName']
-                client_web_url=work[work_key]['web']['URL']
-                client_group_web_url=work[work_key]['web']['GroupURL']
-                client_signtype=work[work_key]['web']['SignType']
-                client_descript=work[work_key]['web']['DescriptFile']
-                client_group_descript=work[work_key]['web']['GroupDescriptFile']
-                client_sign=work[work_key]['web']['DescriptSign']
-                client_group_sign=work[work_key]['web']['GroupDescriptSign']
-                client_web=glideFactoryLib.ClientWeb(client_web_url,
-                                                     client_signtype,
-                                                     client_descript,client_sign,
-                                                     client_group,client_group_web_url,
-                                                     client_group_descript,client_group_sign)
+            if work[work_key]['web'].has_key('URL'):
+                try:
+                    client_web_url=work[work_key]['web']['URL']
+                    client_signtype=work[work_key]['web']['SignType']
+                    client_descript=work[work_key]['web']['DescriptFile']
+                    client_sign=work[work_key]['web']['DescriptSign']
+
+                    if work[work_key]['internals'].has_key('GroupName'):
+                        client_group=work[work_key]['internals']['GroupName']
+                        client_group_web_url=work[work_key]['web']['GroupURL']
+                        client_group_descript=work[work_key]['web']['GroupDescriptFile']
+                        client_group_sign=work[work_key]['web']['GroupDescriptSign']
+                        client_web=glideFactoryLib.ClientWeb(client_web_url,
+                                                             client_signtype,
+                                                             client_descript,client_sign,
+                                                             client_group,client_group_web_url,
+                                                             client_group_descript,client_group_sign)
+                    else:
+                        # new style, but without a group (basic frontend)
+                        client_web=glideFactoryLib.ClientWebNoGroup(client_web_url,
+                                                                    client_signtype,
+                                                                    client_descript,client_sign)
+                except:
+                    # malformed classad, skip
+                    glideFactoryLib.factoryConfig.warning_log.write("Malformed classad '%s', skipping"%work_key)
+                    continue
             else:
+                # old style
                 client_web=None
 
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
