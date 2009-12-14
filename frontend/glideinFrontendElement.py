@@ -171,12 +171,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
 
     # here we have all the data needed to build a GroupAdvertizeType object
-    advertize_group_obj=glideinFrontendInterface.GroupAdvertizeType(client_name,frontend_name,group_name,
-                                                                    web_url,
-                                                                    signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
-                                                                    signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
-                                                                    x509_proxies_data)
-    if advertize_group_obj.need_encryption():
+    descript_obj=glideinFrontendInterface.FrontendDescript(client_name,frontend_name,group_name,
+                                                           web_url,
+                                                           signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
+                                                           signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
+                                                           x509_proxies_data)
+    if descript_obj.need_encryption():
         # reuse between loops might be a good idea, but this will work for now
         key_builder=glideinFrontendInterface.Key4AdvertizeBuilder()
     else:
@@ -201,7 +201,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
 
 
-    advertizer=glideinFrontendInterface.MultiAdvertizeWork(advertize_group_obj)
+    advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     for glideid in condorq_dict_types['Idle']['count'].keys():
         factory_pool_node=glideid[0]
         request_name=glideid[1]
@@ -268,7 +268,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glidein_monitors[t]=count_jobs[t]
         for t in count_status.keys():
             glidein_monitors['Glideins%s'%t]=count_status[t]
-        if advertize_group_obj.need_encryption():
+        if descript_obj.need_encryption():
             key_obj=key_builder.get_key_obj(classad_identity,
                                             glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
         else:
