@@ -9,6 +9,12 @@
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
+condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
+
+# import add_config_line and add_condor_vars_line functions
+add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
+source $add_config_line_source
+
 glexec_bin=`grep '^GLEXEC_BIN ' $glidein_config | awk '{print $2}'`
 if [ -z "$glexec_bin" ]; then
     glexec_bin="NONE"
@@ -16,14 +22,13 @@ fi
 
 if [ "$glexec_bin" == "NONE" ]; then
     echo "Not using glexec"
+    # still explicitly disable it in the config
+    add_config_line "GLEXEC_STARTER" "False"
+    add_config_line "GLEXEC_JOB" "False"
+    add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
+    add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
     exit 0
 fi
-
-condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}'`
-
-# import add_config_line and add_condor_vars_line functions
-add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
-source $add_config_line_source
 
 # --------------------------------------------------
 # create a local copy of the shell
