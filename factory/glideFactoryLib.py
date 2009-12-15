@@ -301,7 +301,7 @@ class ClientWeb(ClientWebNoGroup):
 
     def get_glidein_args(self):
         return (ClientWebNoGroup.get_glidein_args(self)+
-                "-clientgroup %s -clientwebgroup %s -clientsigngroup %s -clientdescriptgroup %s"%(self.group_name,self.group_url,self.group_sign,self.group_descript))
+                " -clientgroup %s -clientwebgroup %s -clientsigngroup %s -clientdescriptgroup %s"%(self.group_name,self.group_url,self.group_sign,self.group_descript))
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
