@@ -19,7 +19,7 @@ import cvWConsts,cWConsts
 
 class frontendMainDicts(cvWDictFile.frontendMainDicts):
     def __init__(self,params,workdir_name):
-        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name)
+        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,assume_groups=True)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
