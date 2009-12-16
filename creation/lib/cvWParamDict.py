@@ -19,7 +19,7 @@ import cvWConsts,cWConsts
 
 class frontendMainDicts(cvWDictFile.frontendMainDicts):
     def __init__(self,params,workdir_name):
-        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,assume_groups=True)
+        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -120,7 +120,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
-        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
+        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False)
         self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
@@ -180,7 +180,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
             sub_list=params.groups.keys()
 
         self.params=params
-        cvWDictFile.frontendDicts(self,params.work_dir,params.stage_dir,sub_list)
+        cvWDictFile.frontendDicts(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]
