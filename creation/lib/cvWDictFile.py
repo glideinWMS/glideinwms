@@ -81,12 +81,13 @@ def get_common_dicts(work_dir,stage_dir):
     refresh_description(common_dicts)
     return common_dicts
 
-def get_main_dicts(work_dir,stage_dir):
+def get_main_dicts(work_dir,stage_dir,assume_groups):
     main_dicts=get_common_dicts(work_dir,stage_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
-    main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_FILE_LISTFILE)
-    main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
+    if assume_groups:
+        main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_FILE_LISTFILE)
+        main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
 
     return main_dicts
 
@@ -123,8 +124,10 @@ def load_main_dicts(main_dicts): # update in place
     # load the description
     main_dicts['description'].load(fname=main_dicts['summary_signature']['main'][1])
     # all others are keyed in the description
-    main_dicts['aftergroup_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_file_list'])
-    main_dicts['aftergroup_preentry_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_preentry_file_list'])
+    if main_dicts.has_key('aftergroup_file_list'):
+        main_dicts['aftergroup_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_file_list'])
+        # no need for another test, always paired
+        main_dicts['aftergroup_preentry_file_list'].load(fname=main_dicts['description'].vals2['aftergroup_preentry_file_list'])
     load_common_dicts(main_dicts,main_dicts['description'])
 
 def load_group_dicts(group_dicts,                   # update in place
@@ -291,6 +294,14 @@ def reuse_group_dicts(group_dicts, other_group_dicts,group_name):
 ################################################
 
 class frontendMainDicts(cWDictFile.fileMainDicts):
+    def __init__(self,
+                 work_dir,stage_dir,
+                 workdir_name,
+                 assume_groups=True):
+        self.assume_groups=assume_groups
+        cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name)
+        
+
     ######################################
     # Redefine methods needed by parent
     def load(self):
@@ -308,9 +319,9 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
     # Internal
     ####################
 
-    # Child must overwrite this
+    # Overwritting the empty one
     def get_main_dicts(self):
-        return get_main_dicts(self.work_dir,self.stage_dir)
+        return get_main_dicts(self.work_dir,self.stage_dir,self.assume_groups)
     
         
 ################################################
@@ -370,7 +381,7 @@ class frontendDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name)
+        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name,assume_groups=True)
 
     def new_SubDicts(self,sub_name):
         return frontendGroupDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
