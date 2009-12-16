@@ -69,20 +69,22 @@ class ParamsDictFile(cWDictFile.DictFile):
 ################################################
 
 # internal, do not use from outside the module
-def get_common_dicts(work_dir,stage_dir):
+def get_common_dicts(work_dir,stage_dir,
+                     simple_work_dir): # if True, do not create params
     common_dicts={'description':cWDictFile.DescriptionDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.DESCRIPTION_FILE),fname_idx=cWConsts.DESCRIPTION_FILE),
                   'consts':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.CONSTS_FILE),fname_idx=cWConsts.CONSTS_FILE),
-                  'params':ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE),
                   'vars':cWDictFile.VarsDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.VARS_FILE),fname_idx=cWConsts.VARS_FILE),
                   'untar_cfg':cWDictFile.StrDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.UNTAR_CFG_FILE),fname_idx=cWConsts.UNTAR_CFG_FILE),
                   'file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cWConsts.FILE_LISTFILE),fname_idx=cWConsts.FILE_LISTFILE),
                   'preentry_file_list':cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.PREENTRY_FILE_LISTFILE),
                   "signature":cWDictFile.SHA1DictFile(stage_dir,cWConsts.insert_timestr(cWConsts.SIGNATURE_FILE),fname_idx=cWConsts.SIGNATURE_FILE)}
+    if not simple_work_dir:
+        common_dicts['params']=ParamsDictFile(work_dir,cvWConsts.PARAMS_FILE)
     refresh_description(common_dicts)
     return common_dicts
 
-def get_main_dicts(work_dir,stage_dir,assume_groups):
-    main_dicts=get_common_dicts(work_dir,stage_dir)
+def get_main_dicts(work_dir,stage_dir,simple_work_dir,assume_groups):
+    main_dicts=get_common_dicts(work_dir,stage_dir,simple_work_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
     if assume_groups:
@@ -91,8 +93,8 @@ def get_main_dicts(work_dir,stage_dir,assume_groups):
 
     return main_dicts
 
-def get_group_dicts(group_work_dir,group_stage_dir,group_name):
-    group_dicts=get_common_dicts(group_work_dir,group_stage_dir)
+def get_group_dicts(group_work_dir,group_stage_dir,group_name,simple_work_dir):
+    group_dicts=get_common_dicts(group_work_dir,group_stage_dir,simple_work_dir)
     group_dicts['group_descript']=cWDictFile.StrDictFile(group_work_dir,cvWConsts.GROUP_DESCRIPT_FILE)
     return group_dicts
 
@@ -106,7 +108,8 @@ def get_group_dicts(group_work_dir,group_stage_dir,group_name):
 def load_common_dicts(dicts,           # update in place
                       description_el):
     # first work dir ones (mutable)
-    dicts['params'].load()
+    if dicts.has_key('params'):
+        dicts['params'].load()
     # now the ones keyed in the description
     dicts['signature'].load(fname=description_el.vals2['signature'])
     dicts['file_list'].load(fname=description_el.vals2['file_list'])
@@ -204,7 +207,8 @@ def save_common_dicts(dicts,     # will update in place, too
     dicts['signature'].save(set_readonly=set_readonly)
 
     #finally save the mutable one(s)
-    dicts['params'].save(set_readonly=set_readonly)
+    if dicts.has_key('params'):
+        dicts['params'].save(set_readonly=set_readonly)
 
 # must be invoked after all the groups have been saved
 def save_main_dicts(main_dicts, # will update in place, too
@@ -265,7 +269,8 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             
     # check the mutable ones
     for k in ('params',):
-        reuse_simple_dict(dicts,other_dicts,k)
+        if dicts.has_key(k):
+            reuse_simple_dict(dicts,other_dicts,k)
 
     return all_reused
 
@@ -297,7 +302,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
     def __init__(self,
                  work_dir,stage_dir,
                  workdir_name,
-                 simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs, nor the params dict
                  assume_groups=True):
         self.assume_groups=assume_groups
         cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,simple_work_dir)
@@ -322,7 +327,7 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
 
     # Overwritting the empty one
     def get_main_dicts(self):
-        return get_main_dicts(self.work_dir,self.stage_dir,self.assume_groups)
+        return get_main_dicts(self.work_dir,self.stage_dir,self.simple_work_dir,self.assume_groups)
     
         
 ################################################
@@ -359,7 +364,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
         return cvWConsts.get_group_stage_dir(base_dir,self.sub_name)
     
     def get_sub_dicts(self):
-        return get_group_dicts(self.work_dir,self.stage_dir,self.sub_name)
+        return get_group_dicts(self.work_dir,self.stage_dir,self.sub_name,self.simple_work_dir)
     
     def reuse_nocheck(self):
         reuse_group_dicts(self.dicts,other.dicts,self.sub_name)
@@ -373,7 +378,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
 
 class frontendDicts(cWDictFile.fileDicts):
     def __init__(self,work_dir,stage_dir,group_list=[],workdir_name='submit',
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs, nor the params dict
         cWDictFile.fileDicts.__init__(work_dir,stage_dir,group_list,workdir_name,simple_work_dir)
 
     ###########
