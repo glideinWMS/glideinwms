@@ -2843,7 +2843,7 @@ def setup_main_schedd():
         while 1:
             pool_node=raw_input("What node is the collector running (i.e. CONDOR_HOST)?: ")
             try:
-                socket.gethostbyname(pool_node)
+                socket.gethostbyname(pool_node.split(':')[0])
             except:
                 print "'%s' not a valid host name!"%pool_node
                 continue
