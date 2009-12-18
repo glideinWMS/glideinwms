@@ -51,7 +51,7 @@ while (i<alen):
     i=i+1
 
 # get data
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,get_only_matching=False)
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,None,get_only_matching=False)
 clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name,None)
 
 # extract data
