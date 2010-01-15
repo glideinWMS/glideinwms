@@ -60,12 +60,12 @@ def perform_work(factory_name,glidein_name,entry_name,
     try:
         condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
-        glideFactoryLib.factoryConfig.activity_log.write("Schedd not responding, skipping")
+        glideFactoryLib.factoryConfig.activity_log.write("Client '%s', schedd not responding, skipping"%client_int_name)
         glideFactoryLib.factoryConfig.warning_log.write("getCondorQData failed: %s"%e)
         # protect and skip
         return 0
     except:
-        glideFactoryLib.factoryConfig.activity_log.write("Schedd not responding, skipping")
+        glideFactoryLib.factoryConfig.activity_log.write("Client '%s', schedd not responding, skipping"%client_int_name)
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
         glideFactoryLib.factoryConfig.warning_log.write("getCondorQData failed, traceback: %s"%string.join(tb,''))
