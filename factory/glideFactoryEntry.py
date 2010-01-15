@@ -57,7 +57,21 @@ def perform_work(factory_name,glidein_name,entry_name,
         condor_pool=None
     
     #glideFactoryLib.factoryConfig.activity_log.write("QueryQ (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
-    condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name)
+    try:
+        condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name)
+    except glideFactoryLib.condorExe.ExeError,e:
+        glideFactoryLib.factoryConfig.activity_log.write("Schedd not responding, skipping")
+        glideFactoryLib.factoryConfig.warning_log.write("getCondorQData failed: %s"%e)
+        # protect and skip
+        return 0
+    except:
+        glideFactoryLib.factoryConfig.activity_log.write("Schedd not responding, skipping")
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.factoryConfig.warning_log.write("getCondorQData failed, traceback: %s"%string.join(tb,''))
+        # protect and skip
+        return 0
+
     #glideFactoryLib.factoryConfig.activity_log.write("QueryS (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
 
     # Temporary disable queries to the collector
