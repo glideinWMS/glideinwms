@@ -235,7 +235,7 @@ function params2file {
  -e 's/\.tilde,/~/g'\
  -e 's/\.not,/!/g'\
  -e 's/\.question,/?/g'\
- -e 's/\.start,/*/g'\
+ -e 's/\.star,/*/g'\
  -e 's/\.dollar,/$/g'\
  -e 's/\.comment,/#/g'\
  -e 's/\.sclose,/]/g'\
