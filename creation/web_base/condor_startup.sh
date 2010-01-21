@@ -223,7 +223,7 @@ let "x509_duration=$X509_EXPIRE - $now - 1"
 #    let "glidein_expire=$now + $max_job_time"
 #fi
 
-#let "glidein_toretire=$now + $glidein_retire_time"
+let "glidein_toretire=$now + $GLIDEIN_Retire_Time"
 
 # put some safety margin
 let "session_duration=$x509_duration + 300"
@@ -236,7 +236,7 @@ SEC_DEFAULT_SESSION_DURATION = $session_duration
 LOCAL_DIR = $PWD
 
 #GLIDEIN_EXPIRE = $glidein_expire
-#GLIDEIN_TORETIRE = $glidein_toretire
+GLIDEIN_TORETIRE = $glidein_toretire
 GLIDEIN_START_TIME = $now
 
 STARTER_JOB_ENVIRONMENT = $job_env
