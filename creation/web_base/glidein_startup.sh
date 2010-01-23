@@ -978,13 +978,13 @@ do
 
   if [ -z "$client_repository_url" ]; then
       if [ "$gs_id" == "client" ]; then
-	  # no client file when no cilent_repository
+	  # no client file when no client_repository
 	  continue
       fi
   fi
   if [ -z "$client_repository_group_url" ]; then
       if [ "$gs_id" == "client_group" ]; then
-	      # no client group file when no cilent_repository_group
+	      # no client group file when no client_repository_group
 	  continue
       fi
   fi
@@ -997,6 +997,12 @@ do
   # extract list file name
   gs_file_list_line=`grep "^$gs_file_list_id " "${gs_id_work_dir}/$gs_id_descript_file"`
   if [ $? -ne 0 ]; then
+      if [ -z "$client_repository_group_url" ]; then
+	  if [ "${gs_file_list_id:0:11}" == "aftergroup_" ]; then
+	      # afterfile_.. files optional when no client_repository_group
+	      continue
+	  fi
+      fi
       warn "No '$gs_file_list_id' in description file ${gs_id_work_dir}/${gs_id_descript_file}." 1>&2
       glidein_exit 1
   fi
