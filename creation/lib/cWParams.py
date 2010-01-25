@@ -304,10 +304,10 @@ class commentedOrderedDict(xmlParse.OrderedDict):
 #
 # return attribute value in the proper python format
 def extract_attr_val(attr_obj):
-    if (not attr_obj.type in ("string","int")):
+    if (not attr_obj.type in ("string","int","expr")):
         raise RuntimeError, "Wrong attribute type '%s', must be either 'int' or 'string'"%attr_obj.type
 
-    if attr_obj.type=="string":
+    if attr_obj.type in ("string","expr"):
         return str(attr_obj.value)
     else:
         return int(attr_obj.value)

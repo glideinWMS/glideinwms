@@ -453,6 +453,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
                 attr_var_el=dicts['vars'][attr_name]
                 attr_var_type=attr_var_el[0]
                 if (((attr_obj.type=="int") and (attr_var_type!='I')) or
+                    ((attr_obj.type=="expr") and (attr_var_type=='I')) or
                     ((attr_obj.type=="string") and (attr_var_type=='I'))):
                     raise RuntimeError, "Types not compatible (%s,%s)"%(attr_obj.type,attr_var_type)
                 attr_var_export=attr_var_el[4]
@@ -462,7 +463,7 @@ def add_attr_unparsed_real(attr_name,params,dicts):
                 if do_job_publish and (attr_var_job_publish=='-'):
                     raise RuntimeError, "Cannot force job publishing"
             else:
-                dicts['vars'].add_extended(attr_name,attr_obj.type=="string",None,None,False,do_glidein_publish,do_job_publish)
+                dicts['vars'].add_extended(attr_name,attr_obj.type,None,None,False,do_glidein_publish,do_job_publish)
 
 ###################################
 # Create the glidein descript file

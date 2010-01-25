@@ -212,6 +212,16 @@ It is composed of two parts:</p>
     should pass between each polling loop, with the collector being updated
     every <font face="monospace"><b>advertise_delay</b></font> loops. </p>
   </li>
+  <li><p style="margin-bottom: 0in"><font face="monospace">&lt;</font><font
+    face="monospace"><b>restart_attempts</b></font><font
+    face="monospace">="</font><font
+    face="monospace"><i>nr</i></font><font face="monospace">"</font>
+    <font face="monospace"><b>restart_interval</b></font><font
+    face="monospace">="</font><font face="monospace"><i>seconds</i></font><font
+    face="monospace">" &gt;</font><br>
+    Defines how many times restart_attempts should be applied within restart_interval seconds for an entry if the entry crashes.
+    <br>
+  </li>
   <li><p><font face="monospace">&lt;</font><font
     face="monospace"><b>glidein</b></font><font
     face="monospace">&gt;&lt;</font><font
@@ -272,7 +282,7 @@ It is composed of two parts:</p>
       </tr>
       <tr style='border-width: 0; '>
         <td width="25%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>type</td>
-        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Type of the attribute. Supported types are 'int' and 'string'</td>
+        <td width="75%" style='text-align:justify; border:1px solid #000000; background-color:#cccccc; layer-background-color:#cccccc;'>Type of the attribute. Supported types are 'int', 'string' and 'expr'. Typeexpr is equivalent to condor constant/expression in condor_vars.lst</td>
       </tr>
     </table>
     <br>

@@ -666,7 +666,7 @@ class VarsDictFile(DictFile):
         return DictFile.add(self,key,val,allow_overwrite)
 
     def add_extended(self,key,
-                     is_string,
+                     type,
                      val_default, # None or False==No default (i.e. -)
                      condor_name, # if None or false, Varname (i.e. +)
                      required,
@@ -674,8 +674,10 @@ class VarsDictFile(DictFile):
                      user_name,   # If None or false, do not export (i.e. -)
                                   # if True, set to VarName (i.e. +)
                      allow_overwrite=0):
-        if is_string:
+        if type=="string":
             type_str='S'
+        elif type=="expr":
+            type_str='C'
         else:
             type_str='I'
             
