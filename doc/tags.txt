@@ -5,6 +5,7 @@ vNEXT	Attempt to restart a crashed entry few times before shutting down the
 	Factory now properly handles new-style frontends without a group.
 	Frontend code has been refactored to allow use as a library.
 	More protections in place.
+	Fixed a bug in glidein_startup.sh that prevented the passing of * as a parameter value
 	Minor bugs fixed.
 
 v2_2	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
