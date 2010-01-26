@@ -2703,9 +2703,7 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("#####################################\n")
         config_fd.write("# Limit session caching to ~12h\n")
         config_fd.write("#####################################\n")
-        config_fd.write("SEC_DEFAULT_SESSION_DURATION = 50000\n")
-        config_fd.write("# But command line tools should have it really short\n")
-        config_fd.write("SEC_TOOL_SESSION_DURATION = 60\n")
+        config_fd.write("SEC_DAEMON_SESSION_DURATION = 50000\n")
 
 
         config_fd.write("#####################################################\n")
