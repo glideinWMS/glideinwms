@@ -75,6 +75,7 @@ function check_x509_proxy {
 	voms-proxy-info -exists -valid 12:0
 	if [ $? -ne 0 ]; then
 	    echo "Proxy not valid in 12 hours!" 1>&2
+	    echo "Proxy shorter than 12 hours are not allowed" 1>&2
 	    echo "grid-proxy-info:" 1>&2
 	    grid-proxy-info 1>&2
 	    echo "voms-proxy-info:" 1>&2
