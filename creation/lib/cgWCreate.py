@@ -32,7 +32,8 @@ def create_condor_tar_fd(condor_base_dir):
         # check if optional binaries exist, if they do, include
         for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper',
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
-                  'libexec/condor_glexec_run','libexec/condor_glexec_setup']:
+                  'libexec/condor_glexec_run','libexec/condor_glexec_setup',
+                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         
