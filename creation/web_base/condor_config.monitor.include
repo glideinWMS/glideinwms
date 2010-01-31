@@ -28,7 +28,7 @@ IsOwner = (START =?= False)
 
 # Max time a job is guaranteed to run in the glidein
 # This is a monitoring job, so low limits
-MaxJobRetirementTime=10
+MaxJobRetirementTime=120
 SHUTDOWN_GRACEFUL_TIMEOUT=10
 
 

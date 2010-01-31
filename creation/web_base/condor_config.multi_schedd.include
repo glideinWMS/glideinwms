@@ -42,7 +42,9 @@ START = ((VirtualMachineID == 1) && ($(VM1_START_CONDITION))) || ((VirtualMachin
 IsOwner = (VirtualMachineID == 1) && (START =?= False)
 
 # Max time a job is guaranteed to run in the glidein
-MaxJobRetirementTime=$(GLIDEIN_Job_Max_Time)
+# set it to several months... i.e. infinity
+MaxJobRetirementTime=10000000
+# How long does the job have after the startd enters retiring state
 SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 
 # How long will it wait in an unclaimed state before exiting
