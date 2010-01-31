@@ -6,6 +6,8 @@ vNEXT	Attempt to restart a crashed entry few times before shutting down the
 	Frontend code has been refactored to allow use as a library.
 	More protections in place.
 	Fixed a bug in glidein_startup.sh that prevented the passing of * as a parameter value
+	Fixed a logical bug in the glidein config that resulted in job preemption.
+	Added support for condor_ssh (v7.4 and up)
 	Add support for unquoted string to be published in classads. The type is 'expr'
 	Documentation Changes
 	Minor bugs fixed.
