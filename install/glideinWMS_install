@@ -240,14 +240,6 @@ def schedd_node_install():
         finally:
             config_fd.close()
 
-    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
-    try:
-        config_fd.write("\n#####################################\n")
-        config_fd.write("# DISABLE VOMS ATTRIBUTES CHECKING\n")
-        config_fd.write("#####################################\n")
-        config_fd.write("USE_VOMS_ATTRIBUTES = False\n")
-    finally:
-        config_fd.close()
     # Don't even ask... nobody uses 6.8.X anymore
     #if not QUILL_CONFIG_DONE:
     #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
@@ -364,10 +356,6 @@ def wms_install():
         config_fd.write("GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000\n")
         config_fd.write("GRIDMANAGER_MAX_PENDING_REQUESTS=500\n")
-        config_fd.write("\n#####################################\n")
-        config_fd.write("# DISABLE VOMS ATTRIBUTES CHECKING\n")
-        config_fd.write("#####################################\n")
-        config_fd.write("USE_VOMS_ATTRIBUTES = False\n")
     finally:
         config_fd.close()
 
@@ -455,11 +443,6 @@ def condor_frontend_install():
             config_fd.write("######################################################\n")
             config_fd.write("DAEMON_LIST=MASTER\n")
             config_fd.write("DAEMON_SHUTDOWN=True\n\n")
-
-            config_fd.write("\n#####################################\n")
-            config_fd.write("# DISABLE VOMS ATTRIBUTES CHECKING\n")
-            config_fd.write("#####################################\n")
-            config_fd.write("USE_VOMS_ATTRIBUTES = False\n")
         finally:
             config_fd.close()
     # else nothing to be done
@@ -2831,7 +2814,6 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
         config_fd.write("\n######################################################\n")
         config_fd.write("## DISABLE VOMS CHECKING\n")
         config_fd.write("######################################################\n\n")
-        config_fd.write("USE_VOMS_ATTRIBUTES = False\n")
         config_fd.write("COLLECTOR.USE_VOMS_ATTRIBUTES = False\n")
         config_fd.write("NEGOTIATOR.USE_VOMS_ATTRIBUTES = False\n")
     finally:
