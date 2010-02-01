@@ -106,7 +106,7 @@ class SymKey:
         
         b=M2Crypto.BIO.MemoryBuffer()
         c=M2Crypto.BIO.CipherStream(b)
-        c.set_cipher(self.cypher_name,self.key_str,self.iv_str,1)
+        c.set_cipher(self.cypher_name,binascii.a2b_hex(self.key_str),binascii.a2b_hex(self.iv_str),1)
         c.write(data)
         c.flush()
         c.close()
@@ -130,7 +130,7 @@ class SymKey:
         
         b=M2Crypto.BIO.MemoryBuffer()
         c=M2Crypto.BIO.CipherStream(b)
-        c.set_cipher(self.cypher_name,self.key_str,self.iv_str,0)
+        c.set_cipher(self.cypher_name,binascii.a2b_hex(self.key_str),binascii.a2b_hex(self.iv_str),0)
         c.write(data)
         c.flush()
         c.close()
