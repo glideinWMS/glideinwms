@@ -5,6 +5,7 @@ vNEXT	Attempt to restart a crashed entry few times before shutting down the
 	Factory now properly handles new-style frontends without a group.
 	Frontend code has been refactored to allow use as a library.
 	More protections in place.
+        Fixed a security bug in key handling. BREAKES BACKWARDS COMPATIBILITY! But it is needed.
 	Fixed a bug in glidein_startup.sh that prevented the passing of * as a parameter value
 	Fixed a logical bug in the glidein config that resulted in job preemption.
 	Added support for condor_ssh (v7.4 and up)
