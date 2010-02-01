@@ -97,6 +97,9 @@ class PidSupport:
             # if I can get a lock, it means that there is no process
             return
         except IOError:
+            # there is a process
+            # I will read it even if locked, so that I can report what the PID is
+            # if the data is corrupted, I will deal with it later
             lines=fd.readlines()
             fd.close()
 
