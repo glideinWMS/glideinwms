@@ -1,4 +1,4 @@
-vNEXT	Attempt to restart a crashed entry few times before shutting down the
+v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
 	  interval restart_interval sec in te factory. 
 	Add vacuum option to manageDowntimes.
@@ -12,6 +12,7 @@ vNEXT	Attempt to restart a crashed entry few times before shutting down the
 	Add support for unquoted string to be published in classads. The type is 'expr'
 	Documentation Changes
 	Minor bugs fixed.
+ 	KNOWN ISSUES: If using condor 7.4.0-7.4.2 and 7.5.0, USE_VOMS_ATTRIBUTESshould be set to false for Collector and negotiator to avoid potential problems and memory leaks in GSI libraries.
 
 v2_2	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
           classds. This was preventing psuedo interactive monitoring to work
