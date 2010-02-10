@@ -132,7 +132,7 @@ class groupStats:
         return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -365,7 +365,7 @@ class factoryStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
