@@ -10,7 +10,6 @@
 
 import os
 import time
-import string
 import re
 import condorExe
 import condorMonitor
@@ -89,24 +88,24 @@ class FactoryConfig:
     # The following are used by the module
     #
 
-    def logActivity(self,str):
+    def logActivity(self,msg):
         if self.activity_log!=None:
             try:
-                self.activity_log.write(str+"\n")
+                self.activity_log.write(msg+"\n")
             except:
                 # logging must never throw an exception!
-                self.logWarning("logActivity failed, was logging: %s"+str,False)
+                self.logWarning("logActivity failed, was logging: %s"+msg,False)
 
-    def logWarning(self,str, log_in_activity=True):
+    def logWarning(self,msg, log_in_activity=True):
         if self.warning_log!=None:
             try:
-                self.warning_log.write(str+"\n")
+                self.warning_log.write(msg+"\n")
             except:
                 # logging must throw an exception!
                 # silently ignore
                 pass
         if log_in_activity:
-            self.logActivity("WARNING: %s"%str)
+            self.logActivity("WARNING: %s" % msg)
 
 
 # global configuration of the module
@@ -717,13 +716,13 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
     submit_attrs_arr=[]
     for e in submit_attrs:
         submit_attrs_arr.append("'"+e+"'")
-    submit_attrs_str = string.join(submit_attrs_arr," ")
+    submit_attrs_str = ' '.join(submit_attrs_arr)
 
     params_arr=[]
     for k in params.keys():
         params_arr.append(k)
         params_arr.append(escapeParam(str(params[k])))
-    params_str=string.join(params_arr," ")
+    params_str = ' '.join(params_arr)
 
     client_web_str=""
     if client_web!=None:
@@ -742,7 +741,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
             try:
                 submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
-                factoryConfig.logWarning("condor_submit failed: %s"%e);
+                factoryConfig.logWarning("condor_submit failed: %s" % e)
                 submit_out=[]
                 
             cluster,count=extractJobId(submit_out)
@@ -770,7 +769,6 @@ def removeGlideins(schedd_name,jid_list):
             removed_jids.append(jid)
         except condorExe.ExeError, e:
             factoryConfig.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
-            pass # silently ignore errors, and try next one
 
         if len(removed_jids)>=factoryConfig.max_removes:
             break # limit reached, stop
@@ -793,7 +791,6 @@ def releaseGlideins(schedd_name,jid_list):
             released_jids.append(jid)
         except condorExe.ExeError, e:
             factoryConfig.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
-            pass # silently ignore errors, and try next one
 
         if len(released_jids)>=factoryConfig.max_releases:
             break # limit reached, stop
