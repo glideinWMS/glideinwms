@@ -81,11 +81,11 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
         </p></li>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>factory</b>&gt;&lt;<b>collectors</b>&gt;&lt;<b>collector classad_identity</b>="<i>joe@collector1.myorg.com</i>" <b>node</b>="<i>collector1.myorg.com</i>" /&gt;</font><br>This shows what WMS Collector the VO Frontend will map to.  It is the mapped name for the identity of the classad.
         </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job query_expr</b>="<i>expression</i>" &gt;</font><br>A <a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">Condor constraint</a> to be used with condor_q when looking for user jobs. (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs).  If you want to consider all user jobs, this can be set to TRUE.  
+        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job query_expr</b>="<i>expression</i>" &gt;</font><br>A <a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">Condor constraint</a> to be used with condor_q when looking for user jobs. (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs).  If you want to consider all user jobs, this can be set to True.  
         </p></li>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job</b>&gt;&lt;<b>schedds</b>&gt;&lt;<b>schedd fullname</b>="<i>schedd name</i>" /&gt;</font><br>When you provide the user pool collector to the installer, it will find all the available schedds.  You can specify which schedds to monitor here for user jobs.  The schedd fullname is the name under which schedd is registered with the user pool collector. 
         </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>monitor base_dir</b>="<i>web_dir</i>" <b>flot_dir</b>="<i>web_dir</i>" <b>javascriptRRD_dir</b>="<i>web_dir</i>" <b>jquery_dir</b>="<i>web_dir</i>" /&gt;</font><br>The <strong>base_dir</strong> defines where the web monitoring is.  The other entries point to where javascriptRRD, Flot and JQuery libraries are located.        
+        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>monitor base_dir</b>="<i>web_dir</i>" <b>flot_dir</b>="<i>web_dir</i>" <b>javascriptRRD_dir</b>="<i>web_dir</i>" <b>jquery_dir</b>="<i>web_dir</i>" /&gt;</font><br>The base_dir defines where the web monitoring is.  The other entries point to where javascriptRRD, Flot and JQuery libraries are located.        
         </p></li>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>security classad_identity</b>="<i>joe@collector1.myorg.com</i>" <b>classad_proxy</b>="<i>proxy_dir</i>" <b>proxy_selection_plugin</b>="<i>ProxyAll</i>" &gt;</font><br>The classad identity the VO Frontend will use to talk to the WMS Collector and User Pool Collector.  It is located in the classad_proxy directory and you must specify the full path to the proxy.
         </p></li>
@@ -95,18 +95,59 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
         </p></li>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>work base_dir</b>="<i>directory</i>" /&gt;</font><br>This defines the path to the VO Frontend directory.  
         </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>attrs</b>&gt;&lt;<b>attr name</b>="<i>attr_name</i>" <b>value</b>="<i>value</i>" <b>parameter</b>="<b>True</b>" <b>type</b>="<b>string</b>" <b>glidein_publish</b>="<i>boolean</i>" <b>job_publish</b>="<i>boolean</i>" &gt;</font><br>The following three attributes are required to be set in the frontend requests and/or published for jobs.  Others can be specified as well.
+        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>attrs</b>&gt;&lt;<b>attr name</b>="<i>attr_name</i>" <b>value</b>="<i>value</i>" <b>parameter</b>="<b>True</b>" <b>type</b>="<b>string</b>" <b>glidein_publish</b>="<i>boolean</i>" <b>job_publish</b>="<i>boolean</i>" &gt;</font><br>The following three attributes are required to be set in the frontend requests and/or published for jobs.  
 	  <ul>
 	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>GLIDEIN_Collector</b>" &gt;</font><br>The contains the name of the pool collector, i.e. mymachine.mydomain.</p></li>
 	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>GLIDEIN_Expose_Grid_Env</b>" &gt;</font><br>This determines if you want to expose the user to the grid environment.</p></li>
 	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>USE_MATCH_AUTH</b>" &gt;</font><br>This determines whether or not you want to use match authentication.  You specify the match expression in a group section of the config file.</p></li>
 	  </ul>
+Other attributes can be specified as well.  They are used by the VO frontend matchmaking and job matchmaking. The format is similar to the attributes on the Factory config file.  The table below describes the &lt;attrs ... &gt; tag in more detail. <br><br> 
+    <table valign="top" style="border: 1px solid rgb(2, 2, 99); text-align: justify;" frame="box" width="100%" border="1px" cellpadding="2" cellspacing="0">
+      <tbody><tr style="border-width: 0pt; font-weight: bold;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">Attribute Name</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Attribute Description</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">name</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Name of the attribute</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">value</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Value of the attribute</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">const</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">If set to True, the attribute will be available in the constants file created in the staging area. Used only if parameter is True.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">parameter</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Set to True if the attribute should be passed as a parameter. Always set this to True unless you know what you are doing.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">glidein_publish</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">If set to True, the attribute will be available in the condor_startd's classad. Used only if parameter is True.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">job_publish</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">If set to True, the attribute will be available in the user job's environment. Used only if parameter is True.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">comment</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">You can specify description of the attribute here.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">type</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Type of the attribute. Supported types are 'int', 'string' and 'expr'. Type expr is equivalent to condor constant/expression in condor_vars.lst</td>
+      </tr>
+    </tbody></table>
+<br>
+An example attribute would be:</p><pre>&lt;attrs&gt;&lt;attr name="GLIDEIN_Collector" value="mymachine.mydomain" publish="True" parameter="True" const="True" glidein_publish="True" comment=”Just a test attribute”/&gt;</pre>
         </p></li>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>files</b>&gt;&lt;<b>file absfname</b>="<i>filepath</i>" <b>relfname</b>="<i>filename</i>" <b>executable</b>="<i>boolean</i>" /&gt;</font><br>The file parameters are used to specify the location of additional files.  The grid mapfile location must be specified.
         </p></li>
 </UL>
 
-<P>The following group parameters are used to configure multiple frontends.  If only one group is specified, they apply to all frontends.  The objects specified are used for creating and monitoring glideins.</P>
+<P>The following group parameters are used to configure multiple frontends.  If only one group is specified, they apply to all frontends.  The parameters are used for creating and monitoring glideins.</P>
 <UL>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>group name</b>="<i>name</i>" <b>enabled</b>="<i>boolean</i>" &gt;</font><br>This specifies the name of the group and whether it is enabled.
         </p></li>
