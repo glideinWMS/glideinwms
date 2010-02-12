@@ -44,6 +44,13 @@ function getFactoryEntryGroups(factoryQStats) {
 	var entry=el.childNodes[etc];
 	if ((entry.nodeType==1)&&(entry.nodeName=="entry")) {
 	  var entry_name=entry.attributes.getNamedItem("name");
+          if (entry_name.value in groups) {
+            (groups[entry_name.value]).push(entry_name.value);
+          } 
+          else {
+            groups[entry_name.value] = new Array();
+            (groups[entry_name.value]).push(entry_name.value);
+          }
           for (var etgs=0; etgs<entry.childNodes.length; etgs++) {
             var grps=entry.childNodes[etgs];
 	    if ((grps.nodeType==1)&&(grps.nodeName=="monitor")) {
@@ -58,7 +65,6 @@ function getFactoryEntryGroups(factoryQStats) {
                     groups[group_name.value] = new Array();
                     (groups[group_name.value]).push(entry_name.value);
                   }
-	          //groups.push(group_name.value);
                 }
               }
             }
