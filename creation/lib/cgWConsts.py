@@ -35,6 +35,7 @@ LOCAL_START_WRAPPER="local_start.sh"
 XML_CONFIG_FILE="glideinWMS.xml"
 INFOSYS_FILE="infosys.descript"
 RSA_KEY="rsa.key"
+MONITOR_CONFIG_FILE="monitor.xml"
 
 INITD_STARTUP_FILE="factory_startup"
 

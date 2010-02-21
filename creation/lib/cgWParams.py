@@ -26,6 +26,7 @@ import cWParams
 class GlideinParams(cWParams.CommonParams):
     # populate self.defaults
     def init_defaults(self):
+     
         self.init_support_defaults()
 
         # publishing specific to factory
@@ -36,6 +37,10 @@ class GlideinParams(cWParams.CommonParams):
         self.infosys_defaults["type"]=(None,"RESS|BDII","Type of information system",None)
         self.infosys_defaults["server"]=(None,"host","Location of the infosys server",None)
         self.infosys_defaults["ref"]=(None,"id","Referenced for the entry point in the infosys",None)
+
+        self.mongroup_defaults=cWParams.commentedOrderedDict()
+        self.mongroup_defaults["group_name"]=(None,"groupname","Name of the monitoring group",None)
+
 
         entry_config_defaults=cWParams.commentedOrderedDict()
 
@@ -56,11 +61,11 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_defaults['release']=copy.deepcopy(entry_config_queue_defaults)
         entry_config_defaults['release']['max_per_cycle'][0]='20'
 
-
         # not exported and order does not matter, can stay a regular dictionary
         sub_defaults={'attrs':(xmlParse.OrderedDict(),'Dictionary of attributes',"Each attribute entry contains",self.attr_defaults),
                       'files':([],'List of files',"Each file entry contains",self.file_defaults),
-                      'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults)}
+                      'infosys_refs':([],'List of information system references',"Each reference points to this entry",self.infosys_defaults),
+                      'monitorgroups':([],'List of monitoring groups',"Each group entry belongs to",self.mongroup_defaults)}
         
         
         self.entry_defaults=cWParams.commentedOrderedDict()
@@ -77,7 +82,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["files"]=sub_defaults['files']
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=self.downtimes_defaults
-        
+        self.entry_defaults["monitorgroups"]=copy.deepcopy(sub_defaults['monitorgroups'])
 
         ###############################
         # Start defining the defaults
@@ -184,8 +189,10 @@ class GlideinParams(cWParams.CommonParams):
     def get_xml_format(self):
         return {'lists_params':{'condor_tarballs':{'el_name':'condor_tarball','subtypes_params':{'class':{}}},
                                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
-                'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},'entries':{'el_name':'entry','subtypes_params':{'class':{}}}}}
+                'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
+                                'entries':{'el_name':'entry','subtypes_params':{'class':{}}} }}
 
 
 

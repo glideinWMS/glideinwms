@@ -10,6 +10,54 @@ import cgWConsts,cWConsts
 import cWDictFile
 
 
+# values are (group_name)
+class MonitorGroupDictFile(cWDictFile.DictFile):
+    def file_header(self,want_comments):
+        if want_comments:
+            return ("<!-- This entry is part of following monitoring groups -->\n") + ("<monitorgroups>")
+        else:
+            return ("<monitorgroups>")
+
+    def file_footer(self,want_comments):
+        return ("</monitorgroups>")
+
+    # key can be None
+    # in that case it will be composed out of value
+    def add(self,key,val,allow_overwrite=0):
+        if not (type(val) in (type(()),type([]))):
+            raise RuntimeError, "Values '%s' not a list or tuple"%val
+        if len(val)!=1:
+            raise RuntimeError, "Values '%s' not (group_name)"%str(val)
+
+        if key==None:
+            key="%s"%val
+        return cWDictFile.DictFile.add(self,key,val,allow_overwrite)
+
+    def add_extended(self,
+                     group_name,
+                     allow_overwrite=0):
+        print (group_name)
+        self.add(None,(group_name,))
+        
+    def format_val(self,key,want_comments):
+        return "  <monitorgroup group_name=\"%s\">"%(self.vals[key][0],)
+        
+
+    def parse_val(self,line):
+        if len(line)==0:
+            return #ignore emoty lines
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split(None,3)
+        if len(arr)==0:
+            return # empty line
+        if len(arr)!=4:
+            raise RuntimeError,"Not a valid var line (expected 4, found %i elements): '%s'"%(len(arr),line)
+
+        key=arr[-1]
+        return self.add(key,arr[:-1])
+
+
 # values are (Type,System,Ref)
 class InfoSysDictFile(cWDictFile.DictFile):
     def file_header(self,want_comments):
@@ -138,6 +186,7 @@ def get_entry_dicts(entry_submit_dir,entry_stage_dir,entry_name):
     entry_dicts=get_common_dicts(entry_submit_dir,entry_stage_dir)
     entry_dicts['job_descript']=cWDictFile.StrDictFile(entry_submit_dir,cgWConsts.JOB_DESCRIPT_FILE)
     entry_dicts['infosys']=InfoSysDictFile(entry_submit_dir,cgWConsts.INFOSYS_FILE)
+    entry_dicts['mongroup']=MonitorGroupDictFile(entry_submit_dir,cgWConsts.MONITOR_CONFIG_FILE)
     return entry_dicts
 
 ################################################
@@ -265,6 +314,7 @@ def save_main_dicts(main_dicts, # will update in place, too
 def save_entry_dicts(entry_dicts,                   # will update in place, too
                      entry_name,summary_signature,  # update in place
                      set_readonly=True):
+    entry_dicts['mongroup'].save(set_readonly=set_readonly)
     entry_dicts['infosys'].save(set_readonly=set_readonly)
     entry_dicts['job_descript'].save(set_readonly=set_readonly)
     save_common_dicts(entry_dicts,False,set_readonly=set_readonly)
@@ -439,4 +489,3 @@ class glideinDicts(cWDictFile.fileDicts):
 
     def get_sub_name_from_sub_stage_dir(self,sign_key):
         return cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
-    

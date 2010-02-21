@@ -1238,3 +1238,56 @@ class fileDicts:
         raise RuntimeError, "Undefined"
  
 
+class MonitorFileDicts:
+    def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
+                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+        self.work_dir=work_dir
+        self.workdir_name=workdir_name
+        self.stage_dir=stage_dir
+        self.simple_work_dir=simple_work_dir
+
+        self.main_dicts=self.new_MainDicts()
+        self.sub_list=sub_list[:]
+        self.sub_dicts={}
+        for sub_name in sub_list:
+            self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+        return
+
+    def set_readonly(self,readonly=True):
+        self.main_dicts.set_readonly(readonly)
+        for el in self.sub_dicts.values():
+            el.set_readonly(readonly)
+
+    def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
+        self.main_dicts.erase()
+        if destroy_old_subs:
+            self.sub_list=[]
+            self.sub_dicts={}
+        else:
+            for sub_name in self.sub_list:
+                self.sub_dicts[sub_name].erase()
+        return
+
+    def load(self,destroy_old_subs=True): # if false, overwrite the subs you load, but leave the others as they are
+        
+        self.main_dicts.load()
+        if destroy_old_subs:
+            self.sub_list=[]
+            self.sub_dicts={}
+        # else just leave as it is, will rewrite just the loaded ones
+
+        for sign_key in self.main_dicts.get_summary_signature().keys:
+            if sign_key!='main': # main is special, not an sub
+                sub_name=self.get_sub_name_from_sub_stage_dir(sign_key)
+                if not(sub_name in self.sub_list):
+                    self.sub_list.append(sub_name)
+                self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+                self.sub_dicts[sub_name].load()
+
+
+    def save(self,set_readonly=True):
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].save(set_readonly=set_readonly)
+        self.main_dicts.save(set_readonly=set_readonly)
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)

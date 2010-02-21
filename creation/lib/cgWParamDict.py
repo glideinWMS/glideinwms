@@ -129,6 +129,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             mfobj.load()
             self.monitor_htmls.append(mfobj)
 
+        # populate the monitor configuration file
+        populate_monitor_config(self.work_dir,self.dicts['glidein'],params)
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
@@ -247,6 +250,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for infosys_ref in sub_params.infosys_refs:
             self.dicts['infosys'].add_extended(infosys_ref['type'],infosys_ref['server'],infosys_ref['ref'],allow_overwrite=True)
 
+        # populate monitorgroups
+        for monitorgroup in sub_params.monitorgroups:
+            self.dicts['mongroup'].add_extended(monitorgroup['group_name'],allow_overwrite=True)
+
         # populate complex files
         populate_job_descript(self.work_dir,self.dicts['job_descript'],
                               self.sub_name,sub_params)
@@ -263,7 +270,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         
         return cgWDictFile.glideinEntryDicts.reuse(self,other)
 
-        
 ################################################
 #
 # This Class contains both the main and
@@ -480,9 +486,11 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('WebURL',params.web_url)
         glidein_dict.add('PubKeyType',params.security.pub_key)
         del active_sub_list[:] # clean
+
         for sub in params.entries.keys():
             if eval(params.entries[sub].enabled,{},{}):
                 active_sub_list.append(sub)
+
         glidein_dict.add('Entries',string.join(active_sub_list,','))
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
@@ -530,6 +538,37 @@ def populate_job_descript(work_dir,job_descript_dict,        # will be modified
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
 
+###################################
+# Create the monitor config file
+def populate_monitor_config(work_dir, glidein_dict, params):
+    monitor_config_file = os.path.join(params.monitor_dir, cgWConsts.MONITOR_CONFIG_FILE)
+    monitor_config_line = []
+    
+    monitor_config_fd = open(monitor_config_file,'w')
+    monitor_config_line.append("<monitor_config>")
+    monitor_config_line.append("  <entries>")
+    try:
+      try:
+        for sub in params.entries.keys():
+            if eval(params.entries[sub].enabled,{},{}):
+                monitor_config_line.append("    <entry name=\"%s\">" % sub)
+                monitor_config_line.append("      <monitorgroups>")                
+                for group in params.entries[sub].monitorgroups:
+                    monitor_config_line.append("        <monitorgroup name=\"%s\">" % group['group_name'])
+                    monitor_config_line.append("        </monitorgroup>")
+                
+                monitor_config_line.append("      </monitorgroups>")
+                monitor_config_line.append("    </entry name=\"%s\">" % sub)
+
+        monitor_config_line.append("  </entries>")
+        monitor_config_line.append("</monitor_config>")
+
+        for line in monitor_config_line:
+            monitor_config_fd.write(line + "\n")
+      except IOError,e:
+        raise RuntimeError,"Error writing into file %s"%filepath
+    finally:
+        monitor_config_fd.close()
 
     
 #################################
