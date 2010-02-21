@@ -34,8 +34,21 @@ function getFactoryEntries(factoryQStats) {
   return entries;
 }
 
+// Get monitor_config. If not present return factoryQStats
+function loadMonitorConfig() {
+  try {
+    var request =  new XMLHttpRequest();
+    request.open("GET", "monitor_config.xml",false)
+    request.send(null);
+    return request.responseXML.firstChild;
+  } catch (err) {
+    return loadFactoryQStats;
+  }
+}
+
 // Extract group names from each entry XML object
 function getFactoryEntryGroups(factoryQStats) {
+  factoryQStats = loadMonitorConfig();
   groups=new Array();
   for (var elc=0; elc<factoryQStats.childNodes.length; elc++) {
     var el=factoryQStats.childNodes[elc];
@@ -53,11 +66,11 @@ function getFactoryEntryGroups(factoryQStats) {
           }
           for (var etgs=0; etgs<entry.childNodes.length; etgs++) {
             var grps=entry.childNodes[etgs];
-	    if ((grps.nodeType==1)&&(grps.nodeName=="monitor")) {
+	    if ((grps.nodeType==1)&&(grps.nodeName=="monitorgroups")) {
               for (var etg=0; etg<grps.childNodes.length; etg++) {
                 var grp=grps.childNodes[etg];
-	        if ((grp.nodeType==1)&&(grp.nodeName=="group")) {
-	          var group_name=grp.attributes.getNamedItem("name");
+	        if ((grp.nodeType==1)&&(grp.nodeName=="monitorgroup")) {
+	          var group_name=grp.attributes.getNamedItem("group_name");
                   if (group_name.value in groups) {
                     (groups[group_name.value]).push(entry_name.value);
                   } 

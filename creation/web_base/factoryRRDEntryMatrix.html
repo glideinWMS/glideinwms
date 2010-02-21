@@ -12,6 +12,7 @@
   
     <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
     <script type="text/javascript" src="jslibs/rrdFile.js"></script>
+    <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
 
     <!-- rrdFlot class needs the following four include files !-->
     <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
@@ -79,7 +80,12 @@
       var factoryQStats=loadFactoryQStats();
       var entries=getFactoryEntries(factoryQStats);
       char_count=0;
+
+      var groups=getFactoryEntryGroups(factoryQStats);
+
+      entries = groups;
       for (var entry in entries) {
+  
 	var cb_el = document.createElement("input");
 	cb_el.type = "checkbox";
 	cb_el.name = "entry";
@@ -101,27 +107,58 @@
       entry_names=[];
       fnames=[];
       rrd_data=[];
+      rrd_group_data=[];
 
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
       function update_fname() {
         // Finally, update the file name and enable the update button
         document.getElementById("fname").firstChild.data=rrd_name;
-
 	var rrd_files=[];
-	for (var i in rrd_data) {
-	   rrd_files.push([entry_names[i],rrd_data[i]]);
+        var num_ent = (rrd_data.length >= rrd_group_data.length) ? rrd_data.length : rrd_group_data.length;
+	for (var i=0; i<num_ent; i++) {
+           if (rrd_data[i] != null) {
+	     rrd_files.push([entry_names[i],rrd_data[i]]);
+           } 
+           else if (rrd_group_data[i] != null) {
+                var rrd_data_sum=new RRDFileSum(rrd_group_data[i], false);
+                rrd_files.push([entry_names[i],rrd_data_sum]);
+            }
 	} 
 
         // the rrdFlot object creates and handles the graph
         var f=new rrdFlotMatrix("mygraph",rrd_files);
       }
 
-      // This is the callback function that,
-      // given a binary file object and an index,
-      // verifies that it is a valid RRD archive
-      // checks if all have been updated
-      // and performs the update of the Web page
+      function update_grouped_fname_handler(bf, idx) {
+          document.getElementById("fname").firstChild.data=document.getElementById("fname").firstChild.data+".";
+
+          var i_rrd_data=undefined;
+          try {
+            var i_rrd_data=new RRDFile(bf);            
+          } catch(err) {
+            alert("File "+fnames[idx]+" is not a valid RRD archive!");
+          }
+          if (i_rrd_data!=undefined) {
+            if (rrd_group_data[idx]==null) {
+              rrd_group_data[idx] = new Array();
+            }
+            rrd_data[idx] = null;
+            rrd_group_data[idx][(rrd_group_data[idx]).length]=i_rrd_data;
+          }
+	  var all_defined=true;
+          for (var i in rrd_group_data) {
+            if ((rrd_group_data[idx]==null) && (rrd_data[idx]==null)) {
+	       all_defined=false;
+	    }
+	  } 
+
+          if (all_defined) {
+            update_fname()
+          }
+      }
+
+
       function update_fname_handler(bf, idx) {
           document.getElementById("fname").firstChild.data=document.getElementById("fname").firstChild.data+".";
 
@@ -133,18 +170,21 @@
           }
           if (i_rrd_data!=undefined) {
             rrd_data[idx]=i_rrd_data;
+            rrd_group_data[idx] = null;
           }
 	  var all_defined=true;
           for (var i in rrd_data) {
-            if (rrd_data[idx]==null) {
+            if ((rrd_group_data[idx]==null) && (rrd_data[idx]==null)) {
 	       all_defined=false;
 	    }
 	  } 
 
-           if (all_defined) {
+          if (all_defined) {
             update_fname()
           }
       }
+
+
 
       // this function is invoked when the RRD file name changes
       function fname_update() {
@@ -156,29 +196,41 @@
 
         var entries_obj=document.getElementById("entries")
         for (var i in entries_obj.entry) {
-         var entry=entries_obj.entry[i];
-         if (entry.checked==true) {
-  	   entry_names.push(entry.value);
-         }
+          var entry=entries_obj.entry[i];
+          if (entry.checked==true) {
+  	    entry_names.push(entry.value);
+          }
         }
 
         var rrds_obj=document.getElementById("rrds")
         for (var i in rrds_obj.rrd) {
-         var rrd=rrds_obj.rrd[i];
-         if (rrd.checked==true) {
-  	   rrd_name=rrd.value;
-         }
+          var rrd=rrds_obj.rrd[i];
+          if (rrd.checked==true) {
+  	    rrd_name=rrd.value;
+          }
         }
 
         for (var i in entry_names) {
-          fnames.push("entry_"+entry_names[i]+"/total/"+rrd_name+".rrd");
+          var ent_list = entry_names[i].split(",");
+          var fn_array = new Array();
+          for(var j=0; j<ent_list.length; j++) {
+            fn_array.push("entry_"+ent_list[j]+"/total/"+rrd_name+".rrd");
+          }
+          fnames.push(fn_array.join(","));
           rrd_data.push(null);
         }
 
 	document.getElementById("fname").firstChild.data="Loading "+rrd_name;
         for (var i in entry_names) {
           try {
-            FetchBinaryURLAsync(fnames[i],update_fname_handler,i);
+            if ((fnames[i].split(",")).length == 1) {
+                FetchBinaryURLAsync(fnames[i],update_fname_handler,i);
+            } else {
+                var fn_array = fnames[i].split(",");
+                for (var j=0; j<fn_array.length; j++) {
+                    FetchBinaryURLAsync(fn_array[j],update_grouped_fname_handler, i);
+                }
+            }
           } catch (err) {
              alert("Failed loading "+fnames[i]+"\n"+err);
           }
