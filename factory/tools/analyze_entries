@@ -1,0 +1,217 @@
+#!/bin/bash
+
+# This script evaluates the percentage of user jobs failing from:
+# a) validation timeouts (1000s), (completed_jobs logs)
+# b) 0 jobs per glidein, ("")
+# c) badput timeouts, (1000) ("") 
+# d) gfactory holding indefinitely (condor_activity logs), and
+# e) SIGKILLs (StartdLogs)
+# and generates a report to be emailed to Igor. 
+#
+# Future plans: check the individual logs of failing
+#     nodes against known good logs, for inconsistancies and values
+#     out of range.  
+# Created Sun, Jan 3rd by Alison
+
+# defaults:
+RATIO=50					#ratio to report 
+DIR=~ 						#output dir
+GF=Production_v2_0 				#glidein factory name
+GFBASE=/home/gfactory/glideinsubmit 		#glidein factory base dir
+
+# todays date in form used in completed_jobs log
+TODAY=$(eval date +%Y%m%d) #yyyymmdd
+DATE=$(eval date +%m-%d-%Y_%T) 
+
+### TO DO: adjust for base dir (-s) option
+
+#Unless user sets ratio/output path:
+while getopts ":hr:o:f:l:ys:" opt; do
+  case "$opt" in
+    r)
+       RATIO="$OPTARG" ;;
+    y) TODAY=$(($TODAY-1))
+       DATE=$(echo `date --date='1 day ago' +%m-%d-%Y`) ;;
+    o)
+       DIR="$OPTARG" ;;
+    f)
+       GF="$OPTARG" ;;
+    l)  
+       LOC="$OPTARG" ;;
+    s)
+       GFBASE="$OPTARG" ;;
+    h) 
+       echo -e  "Usage:\t-r [RATIO] (int) : min % of jobs/site to be reported (default 50%)"
+       echo -e "\t-y : report on yesterday's logs (default is today's logs)"
+       echo -e "\t-f [FACTORY NAME]: glidein factory name (default Production_v2_0)"
+       echo -e "\t-s [FACTORY LOC]: base directory of glidein factory (default $HOME/glideinsubmit)"
+       echo -e "\t-l [PATH] (exclude \): script location, relative to home (default alisonjm (cd ../..))"
+       echo -e "\t-o [PATH] (exclude \): path to generated log (dir must exist beforehand - default is ~)"
+       echo -e "\t-h : this help message"
+       exit 0
+       ;;
+    \?)
+      echo "Invalid option. -h for help." >&2
+      exit 1
+      ;;
+    :)
+      echo "Option -$OPTARG requires an argument." >&2
+      exit 1
+      ;;
+  esac
+done
+
+
+cd $GFBASE/glidein_$GF
+
+#list of job sites
+SITES=entry_*
+
+#variables for arrays
+i=0; j=0; k=0; s=0; t=0
+TOTKILL=0; TOTAL=0; ALLTOTAL=0
+
+for site in $SITES
+do
+   TOTAL=0;VAL=0;BAD=0;ZERO=0;HOLD=0;KILL=0;
+   VALP=0;BADP=0;ZEROP=0;HOLDP=0;KILLP=0;TOTKILL=0;
+   #check if completed log exists
+   if [ -e $site/log/completed_jobs_$TODAY.log ]
+   then 
+      #echo -e Checking $site........
+      TOTAL=`grep -c validation $site/log/completed_jobs_$TODAY.log`
+      ALLTOTAL=$((ALLTOTAL+TOTAL))
+      VAL=`grep -c validation=\"1000\" $site/log/completed_jobs_$TODAY.log`
+      BAD=`grep -c badput=\"1000\" $site/log/completed_jobs_$TODAY.log`
+      ZERO=`grep -c jobsnr=\"0\" $site/log/completed_jobs_$TODAY.log`
+      #echo total:$TOTAL val:$VAL badput:$BAD nojobs:$ZERO	
+
+      #Search condor_activity logs for "Job held." 
+      siteb=${site:5}
+      if [ -e $site/log/condor_activity_$TODAY$siteb\\@$GF*.log ]
+      then
+         HOLD=`grep -c held $site/log/condor_activity_$TODAY$siteb\\@$GF*.log`
+      fi
+ 
+      #List of all jobs completed today for the site
+      #Regex below doesnt work for unknown reasons 
+      #JOBS=`grep -o id=\"\d{5}.\d{3}\" $site/log/completed_jobs_$TODAY.log`
+      JOBS=`grep -o id=\"\.\.\.\.\..\.\.\.\" $site/log/completed_jobs_$TODAY.log`
+
+      #Reformat id string to be used with StartDLog.py
+      for job in $JOBS   
+      do
+         job_beg=${job:4:6}
+         job_end=${job:12:1}
+         job2="${job_beg}${job_end}"
+         if [ -s $site/log/job.$job2.err -a -r $site/log/job.$job2.err ]
+         then
+            KILL=`/home/alisonjm/glideinWMS/factory/tools/cat_StartdLog.py $GFBASE/glidein_$GF/$site/log/job.$job2.err | grep -c SIGKILL`
+            TOTKILL=$(($TOTKILL+$KILL)) 
+         fi
+      done
+   
+      # Create ratios (bc to allow floating point)
+      # Then convert back to ints
+      # messy solutions for 100% and single-digit percents
+      if [ "$VAL" -eq "$TOTAL" ]; then VALP=100
+      else VALP=$(echo "scale=2; $VAL/$TOTAL*100" | bc)
+           VALP=${VALP:0:2}; 
+           VALP=${VALP%.}; fi
+      if [ $BAD -eq $TOTAL ]; then BADP=100
+      else BADP=$(echo "scale=2; $BAD/$TOTAL*100" | bc) 
+           BADP=${BADP:0:2}; 
+           BADP=${BADP%.}; fi
+      if [ $ZERO -eq $TOTAL ]; then ZEROP=100
+      else ZEROP=$(echo "scale=2; $ZERO/$TOTAL*100" | bc)
+           ZEROP=${ZEROP:0:2}; 
+           ZEROP=${ZEROP%.}; fi
+      if [ $HOLD -eq $TOTAL ]; then HOLDP=100
+      else HOLDP=$(echo "scale=2; $HOLD/$TOTAL*100" | bc)
+           HOLDP=${HOLDP:0:2}; 
+           HOLDP=${HOLDP%.}; fi
+      if [ $TOTKILL -eq $TOTAL ]; then KILLP=100
+      else KILLP=$(echo "scale=2; $TOTKILL/$TOTAL*100" | bc)
+           KILLP=${KILLP:0:2}; 
+           KILLP=${KILLP%.}; fi
+      #echo percentages: val:$VALP bad:$BADP zero:$ZEROP hold:$HOLDP kill:$KILLP
+
+      # If the % of jobs failing is greater than ratio,
+      # put into array to be appended to report.
+
+      if [ "$BADP" -ge "$RATIO" ]
+      then
+         BADPUT[i]="$site:\t$BADP%/$TOTAL"
+         i=`expr $i+1`
+      fi
+   
+      if [ "$VALP" -ge "$RATIO" ]
+      then
+         VALIDATION[j]="$site:\t$VALP%/$TOTAL"
+         j=`expr $j+1`
+      fi
+ 
+      if [ "$ZEROP" -ge "$RATIO" ]
+      then
+         ZEROJOBS[k]="$site:\t$ZEROP%/$TOTAL"
+         k=`expr $k+1`
+      fi
+
+      if [ "$HOLDP" -ge "$RATIO" ]
+      then
+         HOLDING[s]="$site:\t$HOLDP%/$TOTAL"
+         s=`expr $s+1`
+      fi
+
+      if [ "$KILLP" -ge "$RATIO" ]
+      then
+        SIGKILL[t]="$site:\t$KILLP%/TOTAL"
+        t=`expr $t+1`
+      fi
+   
+   fi
+done    #end looping through sites
+
+# Begin report
+echo -e "\nGlidein Failure Report for $DATE\n" >> $DIR/log_$DATE
+echo -e "Total Jobs: $ALLTOTAL\n" >> $DIR/log_$DATE
+
+echo _____________________________________________ >> $DIR/log_$DATE
+echo -e "Sites with > $RATIO% of jobs having validation timeouts (1000s):\n" >> $DIR/log_$DATE
+for node in ${VALIDATION[@]}
+do
+   echo -e "$node" >> $DIR/log_$DATE
+done
+
+echo -e "\n"
+#echo _____________________________________________ >> $DIR/log_$DATE
+
+#echo -e "Sites with > $RATIO% jobs with \"badput=1000\":\n" >> $DIR/log_$DATE
+#for node in ${BADPUT[@]}
+#do
+#   echo -e "$node" >> $DIR/log_$DATE
+#done
+
+echo _____________________________________________ >> $DIR/log_$DATE
+echo -e "Sites with > $RATIO% glideins with zero jobs:\n" >> $DIR/log_$DATE
+for node in ${ZEROJOBS[@]}
+do
+   echo -e "$node" >> $DIR/log_$DATE
+done
+
+echo _____________________________________________ >> $DIR/log_$DATE
+echo -e "Sites with > $RATIO% jobs holding forever in the gfactory:\n" >> $DIR/log_$DATE
+for node in ${HOLDING[@]}
+do
+   echo -e "$node" >> $DIR/log_$DATE
+done
+
+echo _____________________________________________ >> $DIR/log_$DATE
+echo -e "Sites with > $RATIO% jobs recieving SIGKILLs:\n" >> $DIR/log_$DATE
+for node in ${SIGKILL[@]}
+do
+   echo -e "$node" >> $DIR/log_$DATE
+done
+echo "--End Log" >> $DIR/log_$DATE
+
+exit 0
