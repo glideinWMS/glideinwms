@@ -17,7 +17,8 @@
 RATIO=50					#ratio to report 
 DIR=~ 						#output dir
 GF=Production_v2_0 				#glidein factory name
-GFBASE=/home/gfactory/glideinsubmit 		#glidein factory base dir
+GFBASE=$HOME/glideinsubmit 			#glidein factory base dir
+LOC=$HOME/glideinWMS				# where is glideinWMS installed
 
 # todays date in form used in completed_jobs log
 TODAY=$(eval date +%Y%m%d) #yyyymmdd
@@ -45,7 +46,7 @@ while getopts ":hr:o:f:l:ys:" opt; do
        echo -e "\t-y : report on yesterday's logs (default is today's logs)"
        echo -e "\t-f [FACTORY NAME]: glidein factory name (default Production_v2_0)"
        echo -e "\t-s [FACTORY LOC]: base directory of glidein factory (default $HOME/glideinsubmit)"
-       echo -e "\t-l [PATH] (exclude \): script location, relative to home (default alisonjm (cd ../..))"
+       echo -e "\t-l [PATH] (exclude \): script location (default $LOC)"
        echo -e "\t-o [PATH] (exclude \): path to generated log (dir must exist beforehand - default is ~)"
        echo -e "\t-h : this help message"
        exit 0
@@ -106,7 +107,7 @@ do
          job2="${job_beg}${job_end}"
          if [ -s $site/log/job.$job2.err -a -r $site/log/job.$job2.err ]
          then
-            KILL=`/home/alisonjm/glideinWMS/factory/tools/cat_StartdLog.py $GFBASE/glidein_$GF/$site/log/job.$job2.err | grep -c SIGKILL`
+            KILL=`$LOC/factory/tools/cat_StartdLog.py $GFBASE/glidein_$GF/$site/log/job.$job2.err | grep -c SIGKILL`
             TOTKILL=$(($TOTKILL+$KILL)) 
          fi
       done
