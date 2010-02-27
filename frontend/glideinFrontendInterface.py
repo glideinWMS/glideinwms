@@ -385,9 +385,14 @@ def createAdvertizeWorkFile(fname,
                     nr_proxies=len(descript_obj.x509_proxies_data)
                     glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
                     for i in range(nr_proxies):
-                        x509_proxy_idx,x509_proxy_data=descript_obj.x509_proxies_data[i]
+                        x509_proxies_data_el=descript_obj.x509_proxies_data[i]
+                        x509_proxy_idx=x509_proxies_data_el[0]
+                        x509_proxy_data=x509_proxies_data_el[1]
                         glidein_params_to_encrypt['x509_proxy_%i_identifier'%i]="%s"%x509_proxy_idx
                         glidein_params_to_encrypt['x509_proxy_%i'%i]=x509_proxy_data
+                        if len(x509_proxies_data_el)>2: # for backwards compatibility
+                            x509_proxy_security_class=x509_proxies_data_el[2]
+                            glidein_params_to_encrypt['x509_proxy_%i_security_class'%i]="%s"%x509_proxy_security_class
 
                 if glidein_params_to_encrypt!=None:
                     for attr in glidein_params_to_encrypt.keys():

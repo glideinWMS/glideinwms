@@ -125,6 +125,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     # get the proxy
     x509_proxies_data=None
     if x509_proxy_plugin!=None:
+        proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']:
         x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
                                                       status_dict,status_dict_types)
         glideinFrontendLib.log_files.logActivity("Using %i proxies"%len(x509_proxy_list))
@@ -143,7 +144,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                     proxy_data=proxy_fd.read()
                 finally:
                     proxy_fd.close()
-                x509_proxies_data.append((proxy_idx,proxy_data))
+                if proxy_security_classes.has_key(proxy_fname):
+                    proxy_security_class=proxy_security_classes[proxy_fname]
+                else:
+                    proxy_security_class=proxy_idx
+                x509_proxies_data.append((proxy_idx,proxy_data,proxy_security_class))
             except:
                 glideinFrontendLib.log_files.logWarning("Could not read proxy file '%s'"%proxy_fname)
                 pass # do nothing else, just warn
@@ -162,12 +167,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
                 except:
-                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified" %
-                                                            (glideid[1],glideid[0]))
+                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glidein[0]))
                     del glidein_dict[glideid] # no valid key
             else:
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified" %
-                                                         (glideid[1],glideid[0],glidein_el['attrs']['PubKeyType']))
+                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glidein[0],glidein_el['attrs']['PubKeyType']))
                 del glidein_dict[glideid] # not trusted
                 
 
