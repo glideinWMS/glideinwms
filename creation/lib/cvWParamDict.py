@@ -440,6 +440,7 @@ def populate_common_descript(descript_dict,        # will be modified
     if len(params.security.proxies)>0:
         proxies=[]
         proxy_refresh_scripts={}
+        proxy_security_classes={}
         for pel in params.security.proxies:
             if pel['absfname']==None:
                 raise RuntimeError,"All proxies need a absfname!"
@@ -448,6 +449,8 @@ def populate_common_descript(descript_dict,        # will be modified
                 proxies.append(pel['absfname'])
                 if pel['proxy_refresh_script']!=None:
                     proxy_refresh_scripts[pel['absfname']]=pel['proxy_refresh_script']
+                if pel['security_class']!=None:
+                    proxy_security_classes[pel['absfname']]=pel['security_class']
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
@@ -455,10 +458,14 @@ def populate_common_descript(descript_dict,        # will be modified
                     proxies.append(absfname)
                     if pel['proxy_refresh_script']!=None:
                         proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
+                    if pel['security_class']!=None:
+                        proxy_security_classes[absfname]=pel['security_class']
 
         descript_dict.add('Proxies',repr(proxies))
         if len(proxy_refresh_scripts.keys())>0:
              descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
+        if len(proxy_security_classes.keys())>0:
+             descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
 
     descript_dict.add('MatchExpr',params.match.match_expr)
 
