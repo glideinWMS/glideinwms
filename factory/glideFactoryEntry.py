@@ -197,6 +197,16 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                     continue #skip proxy
                 x509_proxy=decrypted_params['x509_proxy_%i'%i]
                 x509_proxy_identifier=decrypted_params['x509_proxy_%i_identifier'%i]
+                if decrypted_params.has_key('x509_proxy_%i_security_class'%i):
+                    x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
+                else:
+                    x509_proxy_security_class=x509_proxy_identifier
+
+                #
+                # At this point we should somehow get the uid
+                # security_class_uid=covert_somehow(client_int_name,x509_proxy_security_class)
+                #
+                
                 x509_proxy_fnames[x509_proxy_identifier]=glideFactoryLib.update_x509_proxy_file("%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
 
             if len(x509_proxy_fnames.keys())<1:
