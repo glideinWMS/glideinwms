@@ -1,17 +1,17 @@
 #!/bin/bash
 
+# Author: Alison McCrea, created 1/3/2010
 # This script evaluates the percentage of user jobs failing from:
 # a) validation timeouts (1000s), (completed_jobs logs)
 # b) 0 jobs per glidein, ("")
 # c) badput timeouts, (1000) ("") 
 # d) gfactory holding indefinitely (condor_activity logs), and
 # e) SIGKILLs (StartdLogs)
-# and generates a report to be emailed to Igor. 
+# and generates a report. 
 #
 # Future plans: check the individual logs of failing
 #     nodes against known good logs, for inconsistancies and values
 #     out of range.  
-# Created Sun, Jan 3rd by Alison
 
 # defaults:
 RATIO=50					#ratio to report 
@@ -23,8 +23,6 @@ LOC=$HOME/glideinWMS				# where is glideinWMS installed
 # todays date in form used in completed_jobs log
 TODAY=$(eval date +%Y%m%d) #yyyymmdd
 DATE=$(eval date +%m-%d-%Y_%T) 
-
-### TO DO: adjust for base dir (-s) option
 
 #Unless user sets ratio/output path:
 while getopts ":hr:o:f:l:ys:" opt; do
