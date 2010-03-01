@@ -19,6 +19,7 @@
     <script type="text/javascript" src="jslibs/rrdFlotMatrix.js"></script>
     <script type="text/javascript" src="jslibs/jquery.js"></script>
     <script type="text/javascript" src="jslibs/jquery.flot.js"></script>
+    <script type="text/javascript" src="jslibs/jquery.flot.selection.js"></script>
 
     <script type="text/javascript" src="jslibs/factory_support.js"></script>
   <head>
@@ -77,13 +78,9 @@
       document.getElementById("infotable").deleteRow(0);
 
       // Load the status of the factory
-      var factoryQStats=loadFactoryQStats();
-      var entries=getFactoryEntries(factoryQStats);
+      var entries=getFactoryEntryGroups(factoryQStats);
       char_count=0;
 
-      var groups=getFactoryEntryGroups(factoryQStats);
-
-      entries = groups;
       for (var entry in entries) {
   
 	var cb_el = document.createElement("input");
