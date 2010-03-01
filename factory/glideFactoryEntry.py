@@ -174,6 +174,9 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
 
         x509_proxy_fnames={}
         if decrypted_params.has_key('x509_proxy'):
+            # if there are decrypted params, there is an identity
+            client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
+
             if decrypted_params['x509_proxy']==None:
                 glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
                 continue #skip request
@@ -204,8 +207,18 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
 
                 #
                 # At this point we should somehow get the uid
-                # security_class_uid=covert_somehow(client_int_name,x509_proxy_security_class)
+                # try: 
+                #   security_class_uid=covert_somehow(client_int_name,client_authenticated_identity,x509_proxy_security_class)
+                # except:
+                #   glideFactoryLib.factoryConfig.warning_log.write("Not allowed")
+                #   continue # skip request
                 #
+                # We do make sure the frontend is who he claims to be
+                # Now it is important to check
+                #  the client_int_name against AuthenticatedIdentity
+                #  else an attacker may get mapped to a UID he is not authorized to
+                #  This may have been a problem before, too, just less critical
+
                 
                 x509_proxy_fnames[x509_proxy_identifier]=glideFactoryLib.update_x509_proxy_file("%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
 
