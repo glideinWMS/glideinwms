@@ -252,7 +252,7 @@ source %s/condor.sh
 
       data = data + """%s</attrs>""" % (common.indent(3))
       data = data + """%s</entry>\n""" % (common.indent(2))
-      data = data + """%s</entries>""" % (common.indent(1))
+    data = data + """%s</entries>""" % (common.indent(1))
     return data
 
   #----------------------------
