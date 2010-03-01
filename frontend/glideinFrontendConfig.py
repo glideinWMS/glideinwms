@@ -211,6 +211,14 @@ class ElementMergedDescript:
                     proxy_refresh_scripts[k]=dprs[k]
         self.merged_data['ProxyRefreshScripts']=proxy_refresh_scripts
 
+        proxy_security_classes={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxySecurityClasses'):
+                dprs=eval(data['ProxySecurityClasses'])
+                for k in dprs.keys():
+                    proxy_security_classes[k]=dprs[k]
+        self.merged_data['ProxySecurityClasses']=proxy_security_classes
+
         return
 
     def split_list(self,val):
