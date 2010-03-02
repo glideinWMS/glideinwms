@@ -10,6 +10,7 @@
 
 import os
 import time
+import string
 import re
 import condorExe
 import condorMonitor
@@ -88,24 +89,24 @@ class FactoryConfig:
     # The following are used by the module
     #
 
-    def logActivity(self,msg):
+    def logActivity(self,str):
         if self.activity_log!=None:
             try:
-                self.activity_log.write(msg+"\n")
+                self.activity_log.write(str+"\n")
             except:
                 # logging must never throw an exception!
-                self.logWarning("logActivity failed, was logging: %s"+msg,False)
+                self.logWarning("logActivity failed, was logging: %s"+str,False)
 
-    def logWarning(self,msg, log_in_activity=True):
+    def logWarning(self,str, log_in_activity=True):
         if self.warning_log!=None:
             try:
-                self.warning_log.write(msg+"\n")
+                self.warning_log.write(str+"\n")
             except:
                 # logging must throw an exception!
                 # silently ignore
                 pass
         if log_in_activity:
-            self.logActivity("WARNING: %s" % msg)
+            self.logActivity("WARNING: %s"%str)
 
 
 # global configuration of the module
@@ -216,7 +217,19 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 #
 # Create/update the proxy file
 # returns the proxy fname
-def update_x509_proxy_file(client_id, proxy_data):
+def update_x509_proxy_file(username,client_id, proxy_data):
+    ####
+    #
+    # To Be written:
+    #
+    # Must use username
+    #
+    # This should include creating all the relevant directories, if needed,
+    # since this is the only non-Condor related uid-switching call we make
+    #
+    ####
+
+    
     fname=os.path.realpath('client_proxies/x509_%s.proxy'%escapeParam(client_id))
 
     if not os.path.isfile(fname):
@@ -305,7 +318,7 @@ class ClientWeb(ClientWebNoGroup):
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,
-                     x509_proxy_identifier,x509_proxy_fname,
+                     x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
     global factoryConfig
@@ -350,7 +363,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         factoryConfig.logActivity("Need more glideins: %s"%stat_str)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,
+        submitGlideins(condorq.entry_name,condorq.schedd_name,username,
                        condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
@@ -394,7 +407,7 @@ def sanitizeGlideins(condorq,status):
     held_list=extractHeld(condorq,status)
     if len(held_list)>0:
         factoryConfig.logWarning("Found %i held glideins"%len(held_list))
-        removeGlideins(condorq.schedd_name,held_list)
+        releaseGlideins(condorq.schedd_name,held_list)
 
     # Now look for VMs that have not been claimed for a long time
     staleunclaimed_list=extractStaleUnclaimed(condorq,status)
@@ -702,10 +715,18 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
+def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submit_attrs,
                    x509_proxy_identifier,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
+    ####
+    #
+    # To Be written:
+    #
+    # Must use username
+    #
+    ####
+
     global factoryConfig
 
     submitted_jids=[]
@@ -716,13 +737,13 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
     submit_attrs_arr=[]
     for e in submit_attrs:
         submit_attrs_arr.append("'"+e+"'")
-    submit_attrs_str = ' '.join(submit_attrs_arr)
+    submit_attrs_str = string.join(submit_attrs_arr," ")
 
     params_arr=[]
     for k in params.keys():
         params_arr.append(k)
         params_arr.append(escapeParam(str(params[k])))
-    params_str = ' '.join(params_arr)
+    params_str=string.join(params_arr," ")
 
     client_web_str=""
     if client_web!=None:
@@ -741,7 +762,7 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
             try:
                 submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
             except condorExe.ExeError,e:
-                factoryConfig.logWarning("condor_submit failed: %s" % e)
+                factoryConfig.logWarning("condor_submit failed: %s"%e);
                 submit_out=[]
                 
             cluster,count=extractJobId(submit_out)
@@ -754,6 +775,12 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
 
 # remove the glideins in the list
 def removeGlideins(schedd_name,jid_list):
+    ####
+    # We are assuming the gfactory to be
+    # a condor superuser and thus does not need
+    # identity switching to remove jobs
+    ####
+
     global factoryConfig
 
     removed_jids=[]
@@ -769,6 +796,7 @@ def removeGlideins(schedd_name,jid_list):
             removed_jids.append(jid)
         except condorExe.ExeError, e:
             factoryConfig.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            pass # silently ignore errors, and try next one
 
         if len(removed_jids)>=factoryConfig.max_removes:
             break # limit reached, stop
@@ -776,6 +804,12 @@ def removeGlideins(schedd_name,jid_list):
 
 # release the glideins in the list
 def releaseGlideins(schedd_name,jid_list):
+    ####
+    # We are assuming the gfactory to be
+    # a condor superuser and thus does not need
+    # identity switching to release jobs
+    ####
+
     global factoryConfig
 
     released_jids=[]
@@ -791,6 +825,7 @@ def releaseGlideins(schedd_name,jid_list):
             released_jids.append(jid)
         except condorExe.ExeError, e:
             factoryConfig.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            pass # silently ignore errors, and try next one
 
         if len(released_jids)>=factoryConfig.max_releases:
             break # limit reached, stop
