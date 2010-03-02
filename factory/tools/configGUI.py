@@ -17,6 +17,8 @@ import wx.grid
 #import system libraries
 import sys
 import os.path
+import copy
+
 STARTUP_DIR=sys.path[0]
 
 # import glideinWMS libraries
@@ -26,9 +28,11 @@ import cgWParams
 
 # current entry for site
 currentSiteEntry = ""
+
 #configuration file, temporary one
 cfg = None
 rowToRemove = ""
+defaultSite = ""
 
 class MyGrid(wx.grid.Grid):
 
@@ -70,7 +74,7 @@ class MyGrid(wx.grid.Grid):
         # in case of Unicode wxWidgets
         attribute = attribute.encode('ascii','ignore')
         
-        
+
 
         # was set to True, now make it False
         if(self.GetCellBackgroundColour(row, column) ==  wx.Colour(204, 255, 153) ):
@@ -146,6 +150,7 @@ class GlideFrame(wx.Frame):
         global cfg
         global cfg
         global dataFile
+        global defaultSite
        
         self.targetFile = os.path.join(STARTUP_DIR,'glideinWMS.xml')
 
@@ -208,9 +213,48 @@ class GlideFrame(wx.Frame):
         # parse GlideinWMS XML file
 
         cfg=cgWParams.GlideinParams('','',['',self.targetFile])
+
+        # default entry code
+        # we're going to use a shortcut hack here and copy the first entry, only changing what we need
+        cfg.data['entries'][u'DEFAULT'] = cfg.data['entries'][cfg.data['entries'].keys()[0]].copy()
+
+#        print cfg.data['entries'][u'DEFAULT']
+
+        # open condor_vars.lst and condor_vars.lst.entry for parsing  
+        fcondor_vars = open("../../creation/web_base/condor_vars.lst")
+        fcondor_vars_lst = open("../../creation/web_base/condor_vars.lst.entry")
+
+        condor_vars = fcondor_vars.readlines()
+        condor_vars_lst = fcondor_vars_lst.readlines()
         
-        #insert the global data entry
-        
+        #merge the two lists
+        for line in condor_vars_lst:
+            condor_vars.append(line)
+
+        print condor_vars
+        for i in condor_vars:
+            # ignore comments
+            if i[0]!= "#":
+                defaultentr = i.split("\t")[0].strip()
+                if(defaultentr!=""):
+                    cfg.data['entries'][u'DEFAULT']['attrs'][defaultentr] = cgWParams.cWParams.SubParams({
+                        u"comment":u"None",
+                        u"const":u"False",
+                        u"glidein_publish":u"False",
+                        u"job_publish":u"False",
+                        u"parameter":u"False",
+                        u"publish":u"False",
+                        u"type":u"None",
+                        u"value":u"None"
+                        })
+     
+
+        # reload file       
+        cfg.save_into_file_wbackup(self.targetFile)
+    
+        del cfg
+        cfg = cgWParams.GlideinParams('','',['', self.targetFile])
+
         # get only entries
         self.doTable()
         
@@ -413,8 +457,14 @@ class GlideFrame(wx.Frame):
         answer = wx.MessageBox("Are you sure you want to quit?", "Confirm",
                             wx.YES_NO, self);
         if answer == wx.YES:
-            sys.exit(1)
-            
+           answer = wx.MessageBox("Do you want to save?", "Confirm",
+                            wx.YES_NO, self);
+
+           if answer == wx.YES:
+               cfg.data["entries"][u'DEFAULT'] = None
+               cfg.save_into_file_wbackup(self.targetFile)
+               sys.exit(1)           
+
     def openFile(self, event):
         global cfg
         filename = wx.FileSelector("Choose a configuration to load.");
