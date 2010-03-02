@@ -16,6 +16,7 @@ class FactoryConfig:
         self.job_descript_file = "job.descript"
         self.job_attrs_file = "attributes.cfg"
         self.job_params_file = "params.cfg"
+        self.frontend_descript_file = "frontend.descript"
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
@@ -163,4 +164,28 @@ class JobParams(JoinConfigFile):
                                 lambda s:s) # values are in python format
 
 
+# Data format:
+#  obj.data[frontend]['ident']=identity
+#  obj.data[frontend]['usermap'][sec_class]=username
+class FrontendDescript(ConfigFile):
+    def __init__(self):
+        global factoryConfig
+        ConfigFile.__init__(self,factoryConfig.uid_mapper_file,
+                            lambda s:s) # values are in python format
 
+    # returns None if the frontend is unknown
+    def get_identity(self,frontend):
+        if self.data.has_key(frontend):
+            fe=self.data[frontend]['usermap']
+            return fe['ident']
+        else:
+            return None
+
+    # return None, if not found/not authorized
+    def get_username(self,frontend,sec_class):
+        if self.data.has_key(frontend):
+            fe=self.data[frontend]['usermap']
+            if fe.has_key(sec_class):
+                return fe[sec_class]
+
+        return None
