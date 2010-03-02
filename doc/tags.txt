@@ -1,4 +1,5 @@
 vNext	Add proxy security classes to the frontend
+	Add SecurityName to the frontend.
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
