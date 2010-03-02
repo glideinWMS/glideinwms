@@ -45,9 +45,9 @@ def wmscollector(service,action,inifile):
      obj.install()
      return
   if action == "start":
-    cmd2 = "%s/condor_wms %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "stop":
-    cmd2 = "%s/condor_wms %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "status":
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q -global" 
@@ -64,9 +64,9 @@ def usercollector(service,action,inifile):
      obj.install()
      return
   if action == "start":
-    cmd2 = "%s/condor_userpool %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "stop":
-    cmd2 = "%s/condor_userpool %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "status":
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q -global" 
@@ -83,9 +83,9 @@ def submit(service,action,inifile):
      obj.install()
      return
   if action == "start":
-    cmd2 = "%s/condor_submit %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "stop":
-    cmd2 = "%s/condor_submit %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "status":
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q " 
