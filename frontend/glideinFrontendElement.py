@@ -284,7 +284,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         advertizer.add(factory_pool_node,
                        request_name,request_name,
                        glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                       key_obj,glidein_params_to_encrypt={'SecurityName':security_name})
+                       key_obj,glidein_params_to_encrypt=None,security_name=security_name)
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
     
     try:
