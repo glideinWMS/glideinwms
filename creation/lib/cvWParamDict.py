@@ -424,6 +424,9 @@ def populate_common_descript(descript_dict,        # will be modified
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
+    if params.security.security_name!=None:
+        descript_dict.add('SecurityName',params.security.security_name)
+
     collectors=[]
     for el in params.match.factory.collectors:
         collectors.append((el['node'],el['classad_identity']))

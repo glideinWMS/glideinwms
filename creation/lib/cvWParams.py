@@ -96,6 +96,7 @@ class VOFrontendParams(cWParams.CommonParams):
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
         security_defaults["proxies"]=([],'List of proxies',"Each proxy element contains",proxy_defaults)
+        security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
         
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
@@ -173,6 +174,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         self.derive_match_attrs()
 
+        ####################
         has_collector=self.attrs.has_key('GLIDEIN_Collector')
         if not has_collector:
             # collector not defined at global level, must be defined in every group
@@ -182,6 +184,20 @@ class VOFrontendParams(cWParams.CommonParams):
 
         if not has_collector:
             raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
+
+        ####################
+        has_security_name=(self.security.security_name!=None)
+        if not has_security_name:
+            # security_name not defined at global level, look if defined in every group
+            has_security_name=True
+            for  group_name in self.groups.keys():
+               has_security_name&=(self.groups[group_name].security.security_name!=None)
+
+        if not has_security_name:
+            # explicity define one, so it will not change if config copied
+            # it also makes the frontend admins aware of the name
+            self.data['security']['security_name']=self.frontend_name
+
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
@@ -204,6 +220,8 @@ class VOFrontendParams(cWParams.CommonParams):
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             self.validate_match('group %s'%group_name,match_expr,
                                 factory_attrs,job_attrs)
+
+            if 
         return
 
     # return xml formatting
