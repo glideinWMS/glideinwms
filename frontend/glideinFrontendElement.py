@@ -45,6 +45,7 @@ def write_stats(stats):
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
+    security_name=elementDescript.merged_data['SecurityName']
 
     classad_identity="%s"%elementDescript.frontend_data['ClassAdIdentity']
 
@@ -283,7 +284,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         advertizer.add(factory_pool_node,
                        request_name,request_name,
                        glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                       key_obj,glidein_params_to_encrypt=None)
+                       key_obj,glidein_params_to_encrypt={'SecurityName':security_name})
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
     
     try:
