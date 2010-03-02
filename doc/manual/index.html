@@ -164,6 +164,9 @@ published. Such a class-ad will contain
 	  <LI>The security classes; proxies within the same class may have access to one another - <B>x509_proxy_0_security_class</B> ... <B>x509_proxy_N_security_class</B></LI>
 	  <LI>The proxies themselves - <B>x509_proxy_0</B> ... <B>x509_proxy_N</B></LI>
         </UL></LI>
+      <LI>The security name associated with the proxies - <B>SecurityName</B>. 
+          The factory uses it for frontend whitelisting.
+          If present, it is always encrypted.</LI> 
 </UL>
 <P>The picture below shows this in a graphics format.<BR>
    <IMG SRC="frontend_publish_params.png" NAME="graphics5b" ALIGN=BOTTOM BORDER=0></P>
