@@ -46,7 +46,7 @@ def perform_work(factory_name,glidein_name,entry_name,
                  client_name,client_int_name,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
-                 x509_proxy_fnames,
+                 x509_proxy_fnames,x509_proxy_usernames,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
@@ -104,7 +104,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
-                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],
+                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
     if nr_submitted>0:
         #glideFactoryLib.factoryConfig.activity_log.write("Submitted")
@@ -121,7 +121,7 @@ def perform_work(factory_name,glidein_name,entry_name,
     
 
 ############################################################
-def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
+def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
     factory_name=glideinDescript.data['FactoryName']
     glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
@@ -167,20 +167,54 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             if not ('frontend' in allowed_proxy_source):
                 glideFactoryLib.factoryConfig.warning_log.write("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
+
+            if decrypted_params.has_key('SecurityName'):
+                client_security_name=decrypted_params['SecurityName']
+            else:
+                # backwards compatibility
+                client_security_name=client_int_name
+
+            client_expected_identity=frontendDescript.get_identity(client_security_name)
+            if client_expected_identity==None:
+                 glideFactoryLib.factoryConfig.warning_log.write("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
+                continue #skip request
+            
+            client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
+
+            if client_authenticated_identity!=client_expected_identity:
+                # silently drop... like if we never read it in the first place
+                # this is compatible with what the frontend does
+                 glideFactoryLib.factoryConfig.warning_log.write("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
+                continue #skip request
+
         else:
             if not ('factory' in allowed_proxy_source):
                 glideFactoryLib.factoryConfig.warning_log.write("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
                 continue #skip request
 
         x509_proxy_fnames={}
+        x509_proxy_usernames={}
         if decrypted_params.has_key('x509_proxy'):
-            # if there are decrypted params, there is an identity
-            client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
-
             if decrypted_params['x509_proxy']==None:
                 glideFactoryLib.factoryConfig.warning_log.write("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
                 continue #skip request
-            x509_proxy_fnames['main']=glideFactoryLib.update_x509_proxy_file(work_key,decrypted_params['x509_proxy'])
+
+            # This old style protocol does not support SecurityName, use default
+            x509_proxy_security_class=x509_proxy_identifier
+            
+            x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+            if x509_proxy_username==None:
+                glideFactoryLib.factoryConfig.warning_log.write("No mapping for security class %s of x509_proxy for %s, skipping and trying the others"%(x509_proxy_security_class,client_int_name))
+                continue # cannot map, skip proxy
+
+            try:
+                x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(x509_proxy_username,work_key,decrypted_params['x509_proxy'])
+            except:
+                glideFactoryLib.factoryConfig.warning_log.write("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
+                continue # skip request
+            
+            x509_proxy_fnames['main']=x509_proxy_fname
+            x509_proxy_usernames['main']=x509_proxy_username
         elif decrypted_params.has_key('x509_proxy_0'):
             if not decrypted_params.has_key('nr_x509_proxies'):
                 glideFactoryLib.factoryConfig.warning_log.write("Could not determine number of proxies for %s, skipping request"%client_int_name)
@@ -200,27 +234,25 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
                     continue #skip proxy
                 x509_proxy=decrypted_params['x509_proxy_%i'%i]
                 x509_proxy_identifier=decrypted_params['x509_proxy_%i_identifier'%i]
+
                 if decrypted_params.has_key('x509_proxy_%i_security_class'%i):
                     x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
                 else:
                     x509_proxy_security_class=x509_proxy_identifier
 
-                #
-                # At this point we should somehow get the uid
-                # try: 
-                #   security_class_uid=covert_somehow(client_int_name,client_authenticated_identity,x509_proxy_security_class)
-                # except:
-                #   glideFactoryLib.factoryConfig.warning_log.write("Not allowed")
-                #   continue # skip request
-                #
-                # We do make sure the frontend is who he claims to be
-                # Now it is important to check
-                #  the client_int_name against AuthenticatedIdentity
-                #  else an attacker may get mapped to a UID he is not authorized to
-                #  This may have been a problem before, too, just less critical
+                x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+                if x509_proxy_username==None:
+                    glideFactoryLib.factoryConfig.warning_log.write("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others"%(x509_proxy_security_class,i,client_int_name,client_security_name))
+                    continue # cannot map, skip proxy
 
+                try:
+                    x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(x509_proxy_username,"%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
+                except:
+                    glideFactoryLib.factoryConfig.warning_log.write("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
+                    continue # skip request
                 
-                x509_proxy_fnames[x509_proxy_identifier]=glideFactoryLib.update_x509_proxy_file("%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
+                x509_proxy_fnames[x509_proxy_identifier]=x509_proxy_fname
+                x509_proxy_usernames[x509_proxy_identifier]=x509_proxy_username
 
             if len(x509_proxy_fnames.keys())<1:
                 glideFactoryLib.factoryConfig.warning_log.write("No good proxies for %s, skipping request"%client_int_name)
@@ -228,6 +260,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
         else:
             # no proxy passed, use factory one
             x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY']
+            x509_proxy_usernames['factory']=None # no user switching
             
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
@@ -280,7 +313,7 @@ def find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams):
             done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
-                                         jobDescript,x509_proxy_fnames,
+                                         jobDescript,x509_proxy_fnames,x509_proxy_usernames,
                                          client_web,params)
         #else, it is malformed and should be skipped
 
@@ -350,8 +383,8 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
 
 ############################################################
 def iterate_one(do_advertize,in_downtime,
-                glideinDescript,jobDescript,jobAttributes,jobParams):
-    done_something = find_and_perform_work(in_downtime,glideinDescript,jobDescript,jobParams)
+                glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+    done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams)
 
     if do_advertize or done_something:
         glideFactoryLib.factoryConfig.activity_log.write("Advertize")
@@ -361,7 +394,7 @@ def iterate_one(do_advertize,in_downtime,
 
 ############################################################
 def iterate(parent_pid,cleanupObjs,sleep_time,advertize_rate,
-            glideinDescript,jobDescript,jobAttributes,jobParams):
+            glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     is_first=1
     count=0;
 
@@ -381,7 +414,7 @@ def iterate(parent_pid,cleanupObjs,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.client_internals = {}
 
             done_something=iterate_one(count==0,in_downtime,
-                                       glideinDescript,jobDescript,jobAttributes,jobParams)
+                                       glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
             
             glideFactoryLib.factoryConfig.activity_log.write("Writing stats")
             try:
@@ -434,6 +467,8 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
 
     glideFactoryMonitoring.monitoringConfig.my_name="%s@%s"%(entry_name,glideinDescript.data['GlideinName'])
+
+    frontendDescript=glideFactoryConfig.FrontendDescript()
 
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
@@ -490,7 +525,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 iterate(parent_pid,
                         (jobCleanupObj,logCleanupObj,summaryCleanupObj,condorCleanupObj),
                         sleep_time,advertize_rate,
-                        glideinDescript,jobDescript,jobAttributes,jobParams)
+                        glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
             except KeyboardInterrupt:
                 glideFactoryLib.factoryConfig.activity_log.write("Received signal...exit")
             except:
