@@ -172,6 +172,7 @@ do
 done    #end looping through sites
 
 # Begin report
+
 echo -e "\nGlidein Failure Report for $DATE\n" >> $DIR/log_$DATE
 echo -e "Total Jobs: $ALLTOTAL\n" >> $DIR/log_$DATE
 
@@ -212,5 +213,6 @@ do
    echo -e "$node" >> $DIR/log_$DATE
 done
 echo "--End Log" >> $DIR/log_$DATE
+echo -e "Finished; Report created in $DIR.\n"
 
 exit 0
