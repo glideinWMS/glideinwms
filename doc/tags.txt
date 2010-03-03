@@ -1,3 +1,6 @@
+vNext	Add proxy security classes to the frontend
+	Aggregate gatekeeper/sites for factory monitoring. Introduced monitoringgroups to group sites together for monitoring purposes
+
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
 	  interval restart_interval sec in te factory. 
