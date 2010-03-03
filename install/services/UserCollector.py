@@ -50,7 +50,7 @@ class UserCollector(Condor):
     common.logit("")
     common.logit("You will need to have the User Collector running if you intend\nto install the other glideinWMS components.")
     yn = common.ask_yn("... would you like to start it now")
-    cmd ="manage-glideins  --start usercollector --ini %s" % (self.inifile)
+    cmd ="./manage-glideins  --start usercollector --ini %s" % (self.inifile)
     if yn == "y":
       common.run_script(cmd)
     else:
