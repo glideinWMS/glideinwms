@@ -7,32 +7,33 @@
 #   Igor Sfiligoi
 #
 
-import string,time
+import string
+import time
 
 class BaseRRDSupport:
     #############################################################
-    def __init__(self,rrd_obj):
-        self.rrd_obj=rrd_obj
+    def __init__(self, rrd_obj):
+        self.rrd_obj = rrd_obj
 
     def isDummy(self):
-        return (self.rrd_obj==None)
+        return (self.rrd_obj == None)
 
     #############################################################
     # The default will do nothing
     # Children should overwrite it, if needed
-    def get_disk_lock(self,fname):
+    def get_disk_lock(self, fname):
         return dummy_disk_lock()
 
     #############################################################
     # The default will do nothing
     # Children should overwrite it, if needed
-    def get_graph_lock(self,fname):
+    def get_graph_lock(self, fname):
         return dummy_disk_lock()
 
     #############################################################
     def create_rrd(self,
                    rrdfname,
-                   rrd_step,rrd_archives,
+                   rrd_step, rrd_archives,
                    rrd_ds):
         """
         Create a new RRD archive
@@ -56,14 +57,14 @@ class BaseRRDSupport:
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
         self.create_rrd_multi(rrdfname,
-                              rrd_step,rrd_archives,
+                              rrd_step, rrd_archives,
                               (rrd_ds,))
         return
 
     #############################################################
     def create_rrd_multi(self,
                          rrdfname,
-                         rrd_step,rrd_archives,
+                         rrd_step, rrd_archives,
                          rrd_ds_arr):
         """
         Create a new RRD archive
@@ -86,18 +87,20 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None==self.rrd_obj:
+        if None == self.rrd_obj:
             return # nothing to do in this case
 
-        start_time=(long(time.time()-1)/rrd_step)*rrd_step # make the start time to be aligned on the rrd_step boundary - needed for optimal resoultion selection 
+        # make the start time to be aligned on the rrd_step boundary
+        # This is needed for optimal resoultion selection 
+        start_time = (long(time.time() - 1)/rrd_step) * rrd_step 
         #print (rrdfname,start_time,rrd_step)+rrd_ds
-        args=[str(rrdfname),'-b','%li'%start_time,'-s','%i'%rrd_step]
+        args = [str(rrdfname), '-b', '%li' % start_time, '-s', '%i' % rrd_step]
         for rrd_ds in rrd_ds_arr:
-            args.append('DS:%s:%s:%i:%s:%s'%rrd_ds)
+            args.append('DS:%s:%s:%i:%s:%s' % rrd_ds)
         for archive in rrd_archives:
-            args.append("RRA:%s:%g:%i:%i"%archive)
+            args.append("RRA:%s:%g:%i:%i" % archive)
 
-        lck=self.get_disk_lock(rrdfname)
+        lck = self.get_disk_lock(rrdfname)
         try:
             self.rrd_obj.create(*args)
         finally:
@@ -107,7 +110,7 @@ class BaseRRDSupport:
     #############################################################
     def update_rrd(self,
                    rrdfname,
-                   time,val):
+                   time, val):
         """
         Create an RRD archive with a new value
 
@@ -116,12 +119,13 @@ class BaseRRDSupport:
           time     - When was the value taken
           val      - What vas the value
         """
-        if None==self.rrd_obj:
-            return # nothing to do in this case
+        if None == self.rrd_obj:
+            # nothing to do in this case
+            return
 
-        lck=self.get_disk_lock(rrdfname)
+        lck = self.get_disk_lock(rrdfname)
         try:
-            self.rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
+            self.rrd_obj.update(str(rrdfname), '%li:%i' % (time, val))
         finally:
             lck.close()
 
@@ -130,7 +134,7 @@ class BaseRRDSupport:
     #############################################################
     def update_rrd_multi(self,
                          rrdfname,
-                         time,val_dict):
+                         time, val_dict):
         """
         Create an RRD archive with a set of values (possibly all of the supported)
 
@@ -139,28 +143,28 @@ class BaseRRDSupport:
           time     - When was the value taken
           val_dict - What was the value
         """
-        if None==self.rrd_obj:
+        if self.rrd_obj == None:
             return # nothing to do in this case
 
-        args=[str(rrdfname)]
-        ds_names=val_dict.keys()
+        args = [str(rrdfname)]
+        ds_names = val_dict.keys()
         ds_names.sort()
 
-        ds_names_real=[]
-        ds_vals=[]
+        ds_names_real = []
+        ds_vals = []
         for ds_name in ds_names:
-            if val_dict[ds_name]!=None:
-                ds_vals.append("%i"%val_dict[ds_name])
+            if val_dict[ds_name] != None:
+                ds_vals.append("%i" % val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
-        if len(ds_names_real)==0:
+        if len(ds_names_real) == 0:
             return
 
         args.append('-t')
-        args.append(string.join(ds_names_real,':'))
-        args.append(('%li:'%time)+string.join(ds_vals,':'))
+        args.append(string.join(ds_names_real, ':'))
+        args.append(('%li:' % time) + string.join(ds_vals, ':'))
     
-        lck=self.get_disk_lock(rrdfname)
+        lck = self.get_disk_lock(rrdfname)
         try:
             #print args
             self.rrd_obj.update(*args)
@@ -170,11 +174,11 @@ class BaseRRDSupport:
         return
 
     #############################################################
-    def rrd2graph(self,fname,
-                  rrd_step,ds_name,ds_type,
-                  start,end,
-                  width,height,
-                  title,rrd_files,cdef_arr=None,trend=None,
+    def rrd2graph(self, fname,
+                  rrd_step, ds_name, ds_type,
+                  start, end,
+                  width, height,
+                  title, rrd_files, cdef_arr=None, trend=None,
                   img_format='PNG'):
         """
         Create a graph file out of a set of RRD files
@@ -204,19 +208,19 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None==self.rrd_obj:
+        if None == self.rrd_obj:
             return # nothing to do in this case
 
-        multi_rrd_files=[]
+        multi_rrd_files = []
         for rrd_file in rrd_files:
-            multi_rrd_files.append((rrd_file[0],rrd_file[1],ds_name,ds_type,rrd_file[2],rrd_file[3]))
-        return self.rrd2graph_multi(fname,rrd_step,start,end,width,height,title,multi_rrd_files,cdef_arr,trend,img_format)
+            multi_rrd_files.append((rrd_file[0], rrd_file[1], ds_name, ds_type, rrd_file[2], rrd_file[3]))
+        return self.rrd2graph_multi(fname, rrd_step, start, end, width, height, title, multi_rrd_files, cdef_arr, trend, img_format)
 
     #############################################################
-    def rrd2graph_now(self,fname,
-                      rrd_step,ds_name,ds_type,
-                      period,width,height,
-                      title,rrd_files,cdef_arr=None,trend=None,
+    def rrd2graph_now(self, fname,
+                      rrd_step, ds_name, ds_type,
+                      period, width, height,
+                      title, rrd_files, cdef_arr=None, trend=None,
                       img_format='PNG'):
         """
         Create a graph file out of a set of RRD files
@@ -246,17 +250,17 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        now=long(time.time())
-        start=((now-period)/rrd_step)*rrd_step
-        end=((now-1)/rrd_step)*rrd_step
-        return self.rrd2graph(fname,rrd_step,ds_name,ds_type,start,end,width,height,title,rrd_files,cdef_arr,trend,img_format)
+        now = long(time.time())
+        start = ((now-period)/rrd_step)*rrd_step
+        end = ((now-1)/rrd_step)*rrd_step
+        return self.rrd2graph(fname, rrd_step, ds_name, ds_type, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
 
     #############################################################
-    def rrd2graph_multi(self,fname,
+    def rrd2graph_multi(self, fname,
                         rrd_step,
-                        start,end,
-                        width,height,
-                        title,rrd_files,cdef_arr=None,trend=None,
+                        start, end,
+                        width, height,
+                        title, rrd_files, cdef_arr=None, trend=None,
                         img_format='PNG'):
         """
         Create a graph file out of a set of RRD files
@@ -287,66 +291,68 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        if None==self.rrd_obj:
+        if None == self.rrd_obj:
             return # nothing to do in this case
 
-        args=[str(fname),'-s','%li'%start,'-e','%li'%end,'--step','%i'%rrd_step,'-l','0','-w','%i'%width,'-h','%i'%height,'--imgformat',str(img_format),'--title',str(title)]
+        args = [str(fname), '-s', '%li' % start, '-e', '%li' % end, '--step', '%i' % rrd_step, '-l', '0', '-w', '%i' % width, '-h', '%i' % height, '--imgformat', str(img_format), '--title', str(title)]
         for rrd_file in rrd_files:
-            ds_id=rrd_file[0]
-            ds_fname=rrd_file[1]
-            ds_name=rrd_file[2]
-            ds_type=rrd_file[3]
-            if trend==None:
-                args.append(str("DEF:%s=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
+            ds_id = rrd_file[0]
+            ds_fname = rrd_file[1]
+            ds_name = rrd_file[2]
+            ds_type = rrd_file[3]
+            if trend == None:
+                args.append(str("DEF:%s=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
             else:
-                args.append(str("DEF:%s_inst=%s:%s:%s"%(ds_id,ds_fname,ds_name,ds_type)))
-                args.append(str("CDEF:%s=%s_inst,%i,TREND"%(ds_id,ds_id,trend)))
+                args.append(str("DEF:%s_inst=%s:%s:%s" % (ds_id, ds_fname, ds_name, ds_type)))
+                args.append(str("CDEF:%s=%s_inst,%i,TREND" % (ds_id, ds_id, trend)))
 
-        plot_arr=rrd_files
-        if cdef_arr!=None:
-            plot_arr=cdef_arr # plot the cdefs not the files themselves, when we have them
+        plot_arr = rrd_files
+        if cdef_arr != None:
+            # plot the cdefs not the files themselves, when we have them
+            plot_arr = cdef_arr
+
             for cdef_el in cdef_arr:
-                ds_id=cdef_el[0]
-                cdef_formula=cdef_el[1]
-                ds_graph_type=rrd_file[2]
-                ds_color=rrd_file[3]
-                args.append(str("CDEF:%s=%s"%(ds_id,cdef_formula)))
+                ds_id = cdef_el[0]
+                cdef_formula = cdef_el[1]
+                ds_graph_type = rrd_file[2]
+                ds_color = rrd_file[3]
+                args.append(str("CDEF:%s=%s" % (ds_id, cdef_formula)))
         else:
-            plot_arr=[]
+            plot_arr = []
             for rrd_file in rrd_files:
-                plot_arr.append((rrd_file[0],None,rrd_file[4],rrd_file[5]))
+                plot_arr.append((rrd_file[0], None, rrd_file[4], rrd_file[5]))
 
 
-        if plot_arr[0][2]=="STACK":
+        if plot_arr[0][2] == "STACK":
             # add an invisible baseline to stack upon
             args.append("AREA:0")
 
         for plot_el in plot_arr:
-            ds_id=plot_el[0]
-            ds_graph_type=plot_el[2]
-            ds_color=plot_el[3]
-            args.append("%s:%s#%s:%s"%(ds_graph_type,ds_id,ds_color,ds_id))
+            ds_id = plot_el[0]
+            ds_graph_type = plot_el[2]
+            ds_color = plot_el[3]
+            args.append("%s:%s#%s:%s" % (ds_graph_type, ds_id, ds_color, ds_id))
             
 
-        args.append("COMMENT:Created on %s"%time.strftime("%b %d %H\:%M\:%S %Z %Y"))
+        args.append("COMMENT:Created on %s" % time.strftime("%b %d %H\:%M\:%S %Z %Y"))
 
     
         try:
-            lck=self.get_graph_lock(fname)
+            lck = self.get_graph_lock(fname)
             try:
                 self.rrd_obj.graph(*args)
             finally:
                 lck.close()
         except:
-            print "Failed graph: %s"%str(args)
+            print "Failed graph: %s" % str(args)
 
         return args
 
     #############################################################
-    def rrd2graph_multi_now(self,fname,
+    def rrd2graph_multi_now(self, fname,
                             rrd_step,
-                            period,width,height,
-                            title,rrd_files,cdef_arr=None,trend=None,
+                            period, width, height,
+                            title, rrd_files, cdef_arr=None, trend=None,
                             img_format='PNG'):
         """
         Create a graph file out of a set of RRD files
@@ -377,21 +383,21 @@ class BaseRRDSupport:
         For more details see
           http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
         """
-        now=long(time.time())
-        start=((now-period)/rrd_step)*rrd_step
-        end=((now-1)/rrd_step)*rrd_step
-        return self.rrd2graph_multi(fname,rrd_step,start,end,width,height,title,rrd_files,cdef_arr,trend,img_format)
+        now = long(time.time())
+        start = ((now-period)/rrd_step)*rrd_step
+        end = ((now-1)/rrd_step)*rrd_step
+        return self.rrd2graph_multi(fname, rrd_step, start, end, width, height, title, rrd_files, cdef_arr, trend, img_format)
 
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
     def __init__(self):
         import rrdtool
-        BaseRRDSupport.__init__(self,rrdtool)
+        BaseRRDSupport.__init__(self, rrdtool)
 
 # This class uses rrdtool cmdline for rrd_obj
 class ExeRRDSupport(BaseRRDSupport):
     def __init__(self):
-        BaseRRDSupport.__init__(self,rrdtool_exe())
+        BaseRRDSupport.__init__(self, rrdtool_exe())
 
 # This class tries to use the rrdtool module for rrd_obj
 # then tries the rrdtool cmdline
@@ -400,13 +406,13 @@ class rrdSupport(BaseRRDSupport):
     def __init__(self):
         try:
             import rrdtool
-            rrd_obj=rrdtool
-        except ImportError,e:
+            rrd_obj = rrdtool
+        except ImportError:
             try:
-                rrd_obj=rrdtool_exe()
+                rrd_obj = rrdtool_exe()
             except:
-                rrd_obj=None
-        BaseRRDSupport.__init__(self,rrd_obj)
+                rrd_obj = None
+        BaseRRDSupport.__init__(self, rrd_obj)
 
 
 ##################################################################
@@ -426,9 +432,9 @@ def dummy_disk_lock():
 
 #################################
 def string_quote_join(arglist):
-    l2=[]
+    l2 = []
     for e in arglist:
-        l2.append('"%s"'%e)
+        l2.append('"%s"' % e)
     return string.join(l2)
 
 #################################
@@ -437,41 +443,41 @@ def string_quote_join(arglist):
 class rrdtool_exe:
     def __init__(self):
         import popen2
-        self.popen2_obj=popen2
-        self.rrd_bin=self.iexe_cmd("which rrdtool")[0][:-1]
+        self.popen2_obj = popen2
+        self.rrd_bin = self.iexe_cmd("which rrdtool")[0][:-1]
 
-    def create(self,*args):
-        cmdline='%s create %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+    def create(self, *args):
+        cmdline = '%s create %s' % (self.rrd_bin, string_quote_join(args))
+        self.iexe_cmd(cmdline)
         return
 
-    def update(self,*args):
-        cmdline='%s update %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+    def update(self, *args):
+        cmdline = '%s update %s' % (self.rrd_bin, string_quote_join(args))
+        self.iexe_cmd(cmdline)
         return
 
-    def graph(self,*args):
-        cmdline='%s graph %s'%(self.rrd_bin,string_quote_join(args))
-        outstr=self.iexe_cmd(cmdline)
+    def graph(self, *args):
+        cmdline = '%s graph %s' % (self.rrd_bin, string_quote_join(args))
+        self.iexe_cmd(cmdline)
         return
 
     ##########################################
-    def iexe_cmd(cmd):
-        child=self.popen2_obj.Popen3(cmd,True)
+    def iexe_cmd(self, cmd):
+        child = self.popen2_obj.Popen3(cmd, True)
         child.tochild.close()
         tempOut = child.fromchild.readlines()
         child.fromchild.close()
         tempErr = child.childerr.readlines()
         child.childerr.close()
         try:
-            errcode=child.wait()
+            errcode = child.wait()
         except OSError, e:
-            if len(tempOut)!=0:
+            if len(tempOut) != 0:
                 # if there was some output, it is probably just a problem of timing
                 # have seen a lot of those when running very short processes
-                errcode=0
+                errcode = 0
             else:
-                raise RuntimeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
-        if (errcode!=0):
-            raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
+                raise RuntimeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, tempOut, tempErr, e)
+        if (errcode != 0):
+            raise RuntimeError, "Error running '%s'\ncode %i:%s" % (cmd, errcode, tempErr)
         return tempOut

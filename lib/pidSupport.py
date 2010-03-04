@@ -6,7 +6,10 @@
 #   Igor Sfiligoi
 #
 
-import sys,os,os.path,fcntl,time
+import os
+import os.path
+import fcntl
+import time
 
 
 ############################################################
@@ -15,7 +18,7 @@ import sys,os,os.path,fcntl,time
 # Verify if the system knows about a pid
 #
 def check_pid(pid):
-    return os.path.isfile("/proc/%s/cmdline"%pid)
+    return os.path.isfile("/proc/%s/cmdline" % pid)
 
 ############################################################
 
@@ -29,36 +32,36 @@ class AlreadyRunning(RuntimeError):
 # self.mypid is valid only if self.fd is valid
 # or after a load
 class PidSupport:
-    def __init__(self,pid_fname):
-        self.pid_fname=pid_fname
-        self.fd=None
-        self.mypid=None
+    def __init__(self, pid_fname):
+        self.pid_fname = pid_fname
+        self.fd = None
+        self.mypid = None
         
     # open the pid_file and gain the exclusive lock
     # also write in the PID information
     def register(self,
-                 pid=None,              # if none, will default to os.getpid()
-                 started_time=None):    # if none, use time.time()
-        if self.fd!=None:
+                 pid = None,            # if none, will default to os.getpid()
+                 started_time = None):  # if none, use time.time()
+        if self.fd != None:
             raise RuntimeError, "Cannot register two pids in the same object!"
 
-        
-        if pid==None:
-            pid=os.getpid()
-        if started_time==None:
-            started_time=time.time()
+        if pid == None:
+            pid = os.getpid()
+        if started_time == None:
+            started_time = time.time()
 
-        self.mypid=pid
-        self.started_time=started_time
+        self.mypid = pid
+        self.started_time = started_time
 
         # check lock file
-        if not os.path.exists(self.pid_fname): #create a lock file if needed
-            fd=open(self.pid_fname,"w")
+        if not os.path.exists(self.pid_fname): 
+            #create a lock file if needed
+            fd = open(self.pid_fname, "w")
             fd.close()
 
-        fd=open(self.pid_fname,"r+")
+        fd = open(self.pid_fname, "r+")
         try:
-            fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except IOError:
             fd.close()
             raise AlreadyRunning, "Another process already running"
@@ -67,7 +70,7 @@ class PidSupport:
         fd.write(self.format_pid_file_content())
         fd.flush()
 
-        self.fd=fd
+        self.fd = fd
         return
 
     # release the lock on the PID file
@@ -77,22 +80,22 @@ class PidSupport:
         self.fd.truncate()
         self.fd.flush()
         self.fd.close()
-        self.fd=None
-        self.mypid=None
+        self.fd = None
+        self.mypid = None
         
     def load_registered(self):
-        if self.fd!=None:
+        if self.fd != None:
             return # we own it, so nothing to do
 
         # make sure it is initialized (to not registered)
-        self.mypid=None
+        self.mypid = None
         # else I don't own it
         if not os.path.isfile(self.pid_fname):
             return
 
-        fd=open(self.pid_fname,"r")
+        fd = open(self.pid_fname, "r")
         try:
-            fcntl.flock(fd,fcntl.LOCK_EX | fcntl.LOCK_NB)
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
             fd.close()
             # if I can get a lock, it means that there is no process
             return
@@ -100,7 +103,7 @@ class PidSupport:
             # there is a process
             # I will read it even if locked, so that I can report what the PID is
             # if the data is corrupted, I will deal with it later
-            lines=fd.readlines()
+            lines = fd.readlines()
             fd.close()
 
         try:
@@ -109,7 +112,8 @@ class PidSupport:
             return
 
         if not check_pid(self.mypid):
-            self.mypid=None # found not running
+            # found not running
+            self.mypid = None
         return
 
         
@@ -119,22 +123,22 @@ class PidSupport:
     ###############################
 
     def format_pid_file_content(self):
-        return "PID: %s\nStarted: %s\n"%(self.mypid,time.ctime(self.started_time))
+        return "PID: %s\nStarted: %s\n" % (self.mypid, time.ctime(self.started_time))
 
-    def parse_pid_file_content(self,lines):
-        if len(lines)<2:
+    def parse_pid_file_content(self, lines):
+        if len(lines) < 2:
             raise RuntimeError, "Corrupted lock file: too short"
 
-        pidarr=lines[0].split()
-        if (len(pidarr)!=2) or (pidarr[0]!='PID:'):
+        pidarr = lines[0].split()
+        if (len(pidarr) !=2) or (pidarr[0] != 'PID:'):
             raise RuntimeError, "Corrupted lock file: no PID"
 
         try:
-            pid=long(pidarr[1])
+            pid = long(pidarr[1])
         except:
             raise RuntimeError, "Corrupted lock file: invalid PID"
         
-        self.mypid=pid
+        self.mypid = pid
         return
     
 #######################################################
@@ -142,21 +146,21 @@ class PidSupport:
 # self.mypid and self.parent_pid are valid only
 # if self.fd is valid or after a load
 class PidWParentSupport(PidSupport):
-    def __init__(self,pid_fname):
-        PidSupport.__init__(self,pid_fname)
-        self.parent_pid=None
+    def __init__(self, pid_fname):
+        PidSupport.__init__(self, pid_fname)
+        self.parent_pid = None
         
     # open the pid_file and gain the exclusive lock
     # also write in the PID information
     def register(self,
                  parent_pid,
-                 pid=None,              # if none, will default to os.getpid()
-                 started_time=None):    # if none, use time.time()
-        if self.fd!=None:
+                 pid = None,            # if none, will default to os.getpid()
+                 started_time = None):  # if none, use time.time()
+        if self.fd != None:
             raise RuntimeError, "Cannot register two pids in the same object!"
 
-        self._parent_pid=parent_pid
-        PidSupport.register(self,pid,started_time)
+        self._parent_pid = parent_pid
+        PidSupport.register(self, pid, started_time)
         
     ###############################
     # INTERNAL
@@ -164,31 +168,30 @@ class PidWParentSupport(PidSupport):
     ###############################
 
     def format_pid_file_content(self):
-        return ("PID: %s\nParent PID:%s\nStarted: %s\n"%(self.mypid,self.parent_pid,time.ctime(self.started_time)))
+        return ("PID: %s\nParent PID:%s\nStarted: %s\n" % (self.mypid, self.parent_pid, time.ctime(self.started_time)))
 
-    def parse_pid_file_content(self,lines):
-        if len(lines)<3:
+    def parse_pid_file_content(self, lines):
+        if len(lines) < 3:
             raise RuntimeError, "Corrupted lock file: too short"
 
-        pidarr=lines[0].split()
-        if (len(pidarr)!=2) or (pidarr[0]!='PID:'):
+        pidarr = lines[0].split()
+        if (len(pidarr) != 2) or (pidarr[0] != 'PID:'):
             raise RuntimeError, "Corrupted lock file: no PID"
 
         try:
-            pid=long(pidarr[1])
+            pid = long(pidarr[1])
         except:
             raise RuntimeError, "Corrupted lock file: invalid PID"
         
-        pidarr=lines[1].split(':')
-        if (len(pidarr)!=2) or (pidarr[0]!='Parent PID'):
+        pidarr = lines[1].split(':')
+        if (len(pidarr) != 2) or (pidarr[0] != 'Parent PID'):
             raise RuntimeError, "Corrupted lock file: no Parent PID"
 
         try:
-            parent_pid=long(pidarr[1])
+            parent_pid = long(pidarr[1])
         except:
             raise RuntimeError, "Corrupted lock file: invalid Parent PID"
         
-        self.mypid=pid
-        self.parent_pid=parent_pid
+        self.mypid = pid
+        self.parent_pid = parent_pid
         return
-

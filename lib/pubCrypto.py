@@ -6,7 +6,8 @@
 ##########################################
 
 import M2Crypto
-import os,binascii
+import os
+import binascii
 
 # use a dummy passwd
 # good for service key processing where human not present
