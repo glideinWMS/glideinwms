@@ -246,7 +246,7 @@ setenv CONDOR_CONFIG %s
   def __setup_user_condor_env__(self,sh_profile,csh_profile):
     common.logit( "... setting up condor environment as %s" % os.environ["LOGNAME"])
  
-    common.logit("...JGW THIS IS NOT BEING DONE")
+    common.logit("... appending to bashrc/cshrc scripts IS NOT BEING DONE")
     ##filename = "%s/.profile" % os.environ['HOME']
     ##common.write_file("a",0644,filename,sh_profile) 
 
@@ -256,8 +256,8 @@ setenv CONDOR_CONFIG %s
     ##filename = "%s/.cshrc" % os.environ['HOME']
     ##common.write_file("a",0644,filename,csh_profile) 
 
-    common.logit( "The Condor config has been put in your login files")
-    common.logit( "Please remember to exit and reenter the terminal after the install")
+    ##common.logit( "The Condor config has been put in your login files")
+    ##common.logit( "Please remember to exit and reenter the terminal after the install")
  
   #--------------------------------
   def __install_condor__(self):
@@ -456,7 +456,17 @@ LOCAL_CONFIG_FILE =
   def __update_condor_config_schedd__(self):
     if self.daemon_list.find("SCHEDD") >= 0:
       data = self.__condor_config_schedd_data__()
+      #-- checking for zero swap space --
+      rtn = os.system("free | tail -1 |awk '{ if ( $2 == 0 ) {exit 0} else {exit 1} }'")
+      if rtn == 0:
+        data = data + """
+################
+# No swap space 
+################
+RESERVED_SWAP = 0
+"""
       self.__append_to_condor_config__(data,"SCHEDD")
+
 
   #--------------------------------
   def __update_condor_config_collector__(self):
