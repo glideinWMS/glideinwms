@@ -1,3 +1,5 @@
+v2_3_1	Updated documentation. This is document change only release
+
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
 	  interval restart_interval sec in te factory. 
