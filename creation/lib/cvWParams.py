@@ -113,7 +113,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
 
         work_defaults=cWParams.commentedOrderedDict()
-        work_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Frontend base dir",None)
+        work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
+        work_defaults["base_log_dir"]=("%s/frontlog"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
         self.defaults["work"]=work_defaults
 
         log_retention_defaults=cWParams.commentedOrderedDict()
@@ -170,6 +171,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
         self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
+        self.log_dir=os.path.join(self.work.base_log_dir,frontend_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
         self.derive_match_attrs()

@@ -39,6 +39,10 @@ def get_group_name_from_group_work_dir(group_work_dir):
         raise ValueError('%s not a group_work_dir'%group_work_dir)
     return group_name_arr[1]
 
+def get_group_log_dir(log_dir,group_name):
+    group_log_dir=os.path.join(log_dir,"group_"+group_name)
+    return group_log_dir
+
 def get_group_stage_dir(stage_dir,group_name):
     group_stage_dir=os.path.join(stage_dir,"group_"+group_name)
     return group_stage_dir

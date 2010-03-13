@@ -884,12 +884,16 @@ class multiSimpleDirSupport(dirSupport,dirsSupport):
 class workDirSupport(multiSimpleDirSupport):
     def __init__(self,work_dir,workdir_name):
         multiSimpleDirSupport.__init__(self,
-                                       (work_dir,os.path.join(work_dir,'log'),os.path.join(work_dir,'lock')),
+                                       (work_dir,os.path.join(work_dir,'lock')),
                                        workdir_name)
 
-# similar to workDirSupport but without log and lock subdirs
+# similar to workDirSupport but without lock subdir
 class simpleWorkDirSupport(simpleDirSupport):
     pass
+
+class logDirSupport(simpleDirSupport):
+    def __init__(self,log_dir,dir_name='log'):
+        simpleDirSupport.__init__(self,log_dir,dir_name)
 
 class stageDirSupport(simpleDirSupport):
     def __init__(self,stage_dir,dir_name='stage'):
@@ -955,7 +959,8 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     def __init__(self,
                  work_dir,stage_dir,
                  workdir_name,
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False,           # if True, do not create the lib and lock work_dir subdirs
+                 log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
@@ -965,9 +970,17 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
 
         self.simple_work_dir=simple_work_dir
         if simple_work_dir:
+            self.log_dir=None
+            self.logdir_name=None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
         else:
+            self.log_dir=log_dir
+            self.logdir_name=logdir_name
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(logDirSupport(self.log_dir,self.logdir_name))
+            # make it easier to find; create a symlink in work
+            self.add_dir_obj(symlinkSupport(self.log_dir,os.path.join(self.work_dir,"log"),"%s_symlink"%self.logdir_name))
+
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
         self.erase()
@@ -1023,7 +1036,8 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
 class fileSubDicts(fileCommonDicts,dirsSupport):
     def __init__(self,base_work_dir,base_stage_dir,sub_name,
                  summary_signature,workdir_name,
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False,           # if True, do not create the lib and lock work_dir subdirs
+                 base_log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
@@ -1038,9 +1052,17 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
 
         self.simple_work_dir=simple_work_dir
         if simple_work_dir:
+            self.log_dir=None
+            self.logdir_name=None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
         else:
+            self.log_dir=self.get_sub_work_dir(base_log_dir)
+            self.logdir_name=logdir_name
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(logDirSupport(self.log_dir,self.logdir_name))
+            # make it easier to find; create a symlink in work
+            self.add_dir_obj(symlinkSupport(self.log_dir,os.path.join(self.work_dir,"log"),"%s_symlink"%self.logdir_name))
+
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
         self.summary_signature=summary_signature
@@ -1090,6 +1112,10 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         return base_dir+"/sub_"+self.sub_name
 
     # Child should overwrite this
+    def get_sub_log_dir(self,base_dir):
+        return base_dir+"/sub_"+self.sub_name
+
+    # Child should overwrite this
     def get_sub_stage_dir(self,base_dir):
         return base_dir+"/sub_"+self.sub_name
 
@@ -1110,11 +1136,14 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
 
 class fileDicts:
     def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs
+                 log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
         self.work_dir=work_dir
         self.workdir_name=workdir_name
         self.stage_dir=stage_dir
         self.simple_work_dir=simple_work_dir
+        self.log_dir=log_dir
+        self.logdir_name=logdir_name
 
         self.main_dicts=self.new_MainDicts()
         self.sub_list=sub_list[:]
@@ -1226,12 +1255,12 @@ class fileDicts:
     # this should be redefined by the child
     # and return a child of fileMainDicts
     def new_MainDicts(self):
-        return fileMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir)
+        return fileMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,self.log_dir,self.logdir_name)
 
     # this should be redefined by the child
     # and return a child of fileSubDicts
     def new_SubDicts(self,sub_name):
-        return fileSubDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir)
+        return fileSubDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,self.log_dir,self.logdir_name)
 
     # this should be redefined by the child
     def get_sub_name_from_sub_stage_dir(self,sign_key):
