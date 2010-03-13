@@ -131,6 +131,7 @@ def get_main_dicts(submit_dir,stage_dir):
     main_dicts=get_common_dicts(submit_dir,stage_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(submit_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['glidein']=cWDictFile.StrDictFile(submit_dir,cgWConsts.GLIDEIN_FILE)
+    main_dicts['frontend_descript']=cWDictFile.ReprDictFile(submit_dir,cgWConsts.FRONTEND_DESCRIPT_FILE)
     main_dicts['after_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cgWConsts.AFTER_FILE_LISTFILE),fname_idx=cgWConsts.AFTER_FILE_LISTFILE)
     return main_dicts
 
@@ -163,6 +164,7 @@ def load_common_dicts(dicts,           # update in place
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['glidein'].load()
+    main_dicts['frontend_descript'].load()
     # summary_signature has keys for description
     main_dicts['summary_signature'].load()
     # load the description
@@ -256,6 +258,7 @@ def save_common_dicts(dicts,     # will update in place, too
 def save_main_dicts(main_dicts, # will update in place, too
                     set_readonly=True):
     main_dicts['glidein'].save(set_readonly=set_readonly)
+    main_dicts['frontend_decript'].save(set_readonly=set_readonly)
     save_common_dicts(main_dicts,True,set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
@@ -318,6 +321,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
 
 def reuse_main_dicts(main_dicts, other_main_dicts):
     reuse_simple_dict(main_dicts, other_main_dicts,'glidein')
+    reuse_simple_dict(main_dicts, other_main_dicts,'frontend_descript')
     all_reused=reuse_common_dicts(main_dicts, other_main_dicts,True,True)
     # will not try to reuse the summary_signature... being in submit_dir
     # can be rewritten and it is not worth the pain to try to prevent it

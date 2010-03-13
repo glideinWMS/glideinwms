@@ -100,6 +100,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
+        populate_frontend_descript(self.dicts['frontend_descript'],params)
 
 
         # populate the monitor files
@@ -530,6 +531,27 @@ def populate_job_descript(work_dir,job_descript_dict,        # will be modified
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
 
+
+###################################
+# Create the frontend descript file
+def populate_frontend_descript(frontend_dict,     # will be modified
+                               params):
+    for fe in params.security.frontends.keys():
+        fe_el=params.security.frontends[fe]
+
+        ident=fe_el['identity']
+        if ident==None:
+            raise RuntimeError, 'security.frontends[%s][identity] not defined, but required'%fe
+
+        maps={}
+        for sc in fe_el['security_classes'].keys():
+            sc_el=fe_el['security_classes'][sc]
+            username=sc_el['username']
+            if username==None:
+                raise RuntimeError, 'security.frontends[%s].security_sclasses[%s][username] not defined, but required'%(fe,sc)
+            maps[sc]=username
+        
+        frontend_dict[fe]={'ident':ident,'usermap':maps}
 
     
 #################################

@@ -117,11 +117,21 @@ class GlideinParams(cWParams.CommonParams):
 
         self.monitor_defaults["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
+
+
+        self.frontend_sec_class_defaults=cWParams.commentedOrderedDict()
+        self.frontend_sec_class_defaults["username"]=(None,'username','UNIX ID to be used for this security class',None)
+
+        self.frontend_defaults=cWParams.commentedOrderedDict()
+        self.frontend_defaults["identity"]=(None,'identity','Authenticated Identity',None)
+        self.frontend_defaults["security_classes"]=(xmlParse.OrderedDict(),"Dictionary of security class maps","Each mapping contains",self.frontend_sec_class_defaults)
+
         
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
         security_default["allow_proxy"]=("factory,frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
+        security_default["frontends"]=(xmlParse.OrderedDict(),"Dictionary of frontend","Each frontend contains",self.frontend_defaults)
         
         self.defaults["security"]=security_default
         
