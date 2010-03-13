@@ -56,6 +56,10 @@ def get_entry_name_from_entry_submit_dir(entry_submit_dir):
         raise ValueError('%s not a entry_submit_dir'%entry_submit_dir)
     return entry_name_arr[1]
 
+def get_entry_log_dir(log_dir,entry_name):
+    entry_log_dir=os.path.join(log_dir,"entry_"+entry_name)
+    return entry_log_dir
+
 def get_entry_stage_dir(stage_dir,entry_name):
     entry_stage_dir=os.path.join(stage_dir,"entry_"+entry_name)
     return entry_stage_dir

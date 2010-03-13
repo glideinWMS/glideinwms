@@ -86,7 +86,9 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
 
         submit_defaults=cWParams.commentedOrderedDict()
-        submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
+        submit_defaults["base_dir"]=("%s/glideinsubmit"%os.environ["HOME"],"base_dir","Submit base dir",None)
+        submit_defaults["base_log_dir"]=("%s/glideinlog"%os.environ["HOME"],"log_dir","Submit base log dir",None)
+        submit_defaults["base_client_proxies_dir"]=("%s/glideinproxies"%os.environ["HOME"],"client_proxies_dir","Submit base dir ofr client proxies",None)
         self.defaults["submit"]=submit_defaults
 
         one_log_retention_defaults=cWParams.commentedOrderedDict()
@@ -170,6 +172,8 @@ class GlideinParams(cWParams.CommonParams):
         self.stage_dir=os.path.join(self.stage.base_dir,glidein_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
+        self.log_dir=os.path.join(self.submit.base_log_dir,glidein_subdir)
+        self.client_proxies_dir=os.path.join(self.submit.base_client_proxies_dir,glidein_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
 
         if not cWParams.is_valid_name(self.factory_name):

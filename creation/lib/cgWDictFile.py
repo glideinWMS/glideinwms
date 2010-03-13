@@ -340,8 +340,8 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
 ################################################
 
 class proxyDirSupport(cWDictFile.chmodDirSupport):
-    def __init__(self,proxy_dir):
-        cWDictFile.chmodDirSupport.__init__(self,proxy_dir,0700,'proxy')
+    def __init__(self,proxy_dir,proxydir_name="proxy"):
+        cWDictFile.chmodDirSupport.__init__(self,proxy_dir,0700,proxydir_name)
 
 ################################################
 #
@@ -352,10 +352,17 @@ class proxyDirSupport(cWDictFile.chmodDirSupport):
 class glideinMainDicts(cWDictFile.fileMainDicts):
     def __init__(self,
                  work_dir,stage_dir,
-                 workdir_name):
-        cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name)
-        proxy_dir=os.path.join(self.work_dir,'client_proxies')
-        self.add_dir_obj(proxyDirSupport(proxy_dir))
+                 workdir_name,
+                 log_dir,logdir_name,
+                 client_proxies_dir,proxiesdir_name):
+        cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,
+                                          False, #simple_work_dir=False
+                                          log_dir,logdir_name)
+        self.client_proxies_dir=client_proxies_dir
+        self.proxiesdir_name=proxiesdir_name
+        self.add_dir_obj(proxyDirSupport(self.client_proxies_dir,self.proxiesdir_name))
+        # make it easier to find; create a symlink in work
+        self.add_dir_obj(cWDictFile.symlinkSupport(self.client_proxies_dir,os.path.join(self.work_dir,"client_proxies"),"%s_symlink"%self.proxiesdir_name))
     
     ######################################
     # Redefine methods needed by parent
@@ -386,6 +393,14 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
 ################################################
 
 class glideinEntryDicts(cWDictFile.fileSubDicts):
+    def __init__(self,base_work_dir,base_stage_dir,sub_name,
+                 summary_signature,workdir_name,
+                 base_log_dir,logdir_name):
+        cWDictFile.fileSubDicts.__init__(self,base_work_dir,base_stage_dir,sub_name,
+                                         summary_signature,workdir_name,
+                                         False, # simple_work_dir=False
+                                         base_log_dir,logdir_name)
+
     ######################################
     # Redefine methods needed by parent
     def load(self):
@@ -409,6 +424,9 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
     def get_sub_work_dir(self,base_dir):
         return cgWConsts.get_entry_submit_dir(base_dir,self.sub_name)
     
+    def get_sub_log_dir(self,base_dir):
+        return cgWConsts.get_entry_log_dir(base_dir,self.sub_name)
+    
     def get_sub_stage_dir(self,base_dir):
         return cgWConsts.get_entry_stage_dir(base_dir,self.sub_name)
     
@@ -426,8 +444,14 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 ################################################
 
 class glideinDicts(cWDictFile.fileDicts):
-    def __init__(self,work_dir,stage_dir,entry_list=[],workdir_name='submit'):
-        cWDictFile.fileDicts.__init__(work_dir,stage_dir,entry_list,workdir_name)
+    def __init__(self,work_dir,log_dir,client_proxies_dir,stage_dir,entry_list=[],
+                 workdir_name='submit',logdir_name="log",proxiesdir_name="proxies"):
+        cWDictFile.fileDicts.__init__(work_dir,stage_dir,entry_list,workdir_name,
+                                      False, # simple_work_dir=False
+                                      log_dir,logdir_name)
+        self.client_proxies_dir=client_proxies_dir
+        self.proxiesdir_name=proxiesdir_name
+        
 
     ###########
     # PRIVATE
@@ -436,10 +460,10 @@ class glideinDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name)
+        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name,slef.log_dir,self.logdir_name,self.client_proxies_dir,self.proxiesdir_name)
 
     def new_SubDicts(self,sub_name):
-        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name)
+        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.log_dir,self.logdir_name)
 
     def get_sub_name_from_sub_stage_dir(self,sign_key):
         return cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)

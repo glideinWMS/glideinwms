@@ -19,8 +19,10 @@ import cgWConsts,cWConsts
 ################################################
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
-    def __init__(self,params,workdir_name):
-        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
+    def __init__(self,params,workdir_name,logdir_name,proxiesdir_name):
+        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name,
+                                              params.log_dir,logdir_name,
+                                              params.client_proxies_dir,proxiesdir_name)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -183,8 +185,10 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self,params,sub_name,
-                 summary_signature,workdir_name):
-        cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
+                 summary_signature,workdir_name,logdir_name):
+        cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name,
+                                               params.log_dir,logdir_name)
+                                               
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
@@ -279,7 +283,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             sub_list=params.entries.keys()
 
         self.params=params
-        cgWDictFile.glideinDicts(self,params.submit_dir,params.stage_dir,sub_list)
+        cgWDictFile.glideinDicts(self,params.submit_dir,params.log_dir,params.client_proxies_dir,params.stage_dir,sub_list)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]
@@ -324,11 +328,11 @@ class glideinDicts(cgWDictFile.glideinDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.params,self.workdir_name)
+        return glideinMainDicts(self.params,self.workdir_name,self.logdir_name,self.proxiesdir_name)
 
     def new_SubDicts(self,sub_name):
         return glideinEntryDicts(self.params,sub_name,
-                                 self.main_dicts.get_summary_signature(),self.workdir_name)
+                                 self.main_dicts.get_summary_signature(),self.workdir_name,self.logdir_name)
 
 ############################################################
 #
@@ -492,6 +496,8 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         validate_job_proxy_source(params.security.allow_proxy)
         glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
+        glidein_dict.add('LogDir',params.log_dir)
+        glidein_dict.add('ClientProxiesDir',params.client_proxies_dir)
         glidein_dict.add('DowntimesFile',down_fname)
         for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
