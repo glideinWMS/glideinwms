@@ -16,9 +16,9 @@ import logSupport
 class LogFiles:
     def __init__(self,log_dir):
         self.log_dir=log_dir
-        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend","info.log"))
-        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend","err.log"))
-        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend","debug.log"))
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend"),"info.log")
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend"),"err.log")
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend"),"debug.log")
         self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend\.[0-9]*\.info\.log)|(frontend\.[0-9]*\.err\.log)|(frontend\.[0-9]*\.debug\.log)",
                                               31*24*3600,
                                               self.activity_log,self.warning_log)
