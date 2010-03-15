@@ -982,7 +982,7 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
             self.add_dir_obj(symlinkSupport(self.log_dir,os.path.join(self.work_dir,"log"),"%s_symlink"%self.logdir_name))
 
             # in order to keep things clean, put daemon process logs into a separate dir
-            self.add_dir_obj(self.get_daemon_log_dir(log_dir),self.logdir_name)
+            self.add_dir_obj(logDirSupport(self.get_daemon_log_dir(log_dir),self.logdir_name))
 
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
