@@ -307,6 +307,9 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
                  log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
         self.assume_groups=assume_groups
         cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,simple_work_dir,log_dir,logdir_name)
+        if not simple_work_dir:
+            # in order to keep things clean, put frontend main process logs into a separate dir
+            self.add_dir_obj(cWDictFile.logDirSupport(os.path.join(self.log_dir,"frontend"),self.logdir_name))
         
 
     ######################################
@@ -396,7 +399,10 @@ class frontendDicts(cWDictFile.fileDicts):
         return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,assume_groups=True,self.log_dir,self.logdir_name)
 
     def new_SubDicts(self,sub_name):
-        return frontendGroupDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,self.log_dir,self.logdir_name)
+        log_dir=self.log_dir
+        if not self.simple_work_dir:
+            log_dir=os.path.join(self.log_dir,"group_%s"%sub_name)
+        return frontendGroupDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,log_dir,self.logdir_name)
 
     def get_sub_name_from_sub_stage_dir(self,sign_key):
         return cvWConsts.get_group_name_from_group_stage_dir(sign_key)
