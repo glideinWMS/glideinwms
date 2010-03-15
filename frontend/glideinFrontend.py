@@ -89,6 +89,9 @@ def spawn(sleep_time,advertize_rate,work_dir,
 
             glideinFrontendLib.log_files.logActivity("Aggregate monitoring data")
             aggregate_stats()
+            
+            # do it just before the sleep
+            glideinFrontendLib.log_files.cleanup()
 
             glideinFrontendLib.log_files.logActivity("Sleep")
             time.sleep(sleep_time)
@@ -105,13 +108,16 @@ def spawn(sleep_time,advertize_rate,work_dir,
 def main(work_dir):
     startup_time=time.time()
 
-    # create log files in the glidein log directory
-    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"log"))
+    glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
+    frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
+
+    # the log dir is shared between the frontend main and the groups, so use a subdir
+    log_dir=os.path.join(frontendDescript.data['LogDir'],"frontend")
+
+    # Configure the process to use the proper LogDir as soon as you get the info
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir)
     
     try:
-        glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
-        frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
-
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
         

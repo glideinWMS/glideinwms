@@ -361,6 +361,10 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                     glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
             is_first=0
+            
+            # do it just before the sleep
+            glideinFrontendLib.log_files.cleanup()
+
             glideinFrontendLib.log_files.logActivity("Sleep")
             time.sleep(sleep_time)
     finally:
@@ -376,9 +380,14 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
 def main(parent_pid, work_dir, group_name):
     startup_time=time.time()
 
-    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"group_%s/log"%group_name))
-
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
+
+    # the log dir is shared between the frontend main and the groups, so use a subdir
+    log_dir=os.path.join(elementDescript.data['LogDir'],"group_%s"%group_name)
+
+    # Configure the process to use the proper LogDir as soon as you get the info
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir)
+
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
 

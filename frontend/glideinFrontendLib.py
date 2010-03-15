@@ -16,11 +16,11 @@ import logSupport
 class LogFiles:
     def __init__(self,log_dir):
         self.log_dir=log_dir
-        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
-        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
-        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_debug"))
-        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)|(frontend_debug\..*)",
-                                              7*24*3600,
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend","info.log"))
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend","err.log"))
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend","debug.log"))
+        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend\.[0-9]*\.info\.log)|(frontend\.[0-9]*\.err\.log)|(frontend\.[0-9]*\.debug\.log)",
+                                              31*24*3600,
                                               self.activity_log,self.warning_log)
 
     def logActivity(self,str):
@@ -47,6 +47,13 @@ class LogFiles:
             # logging must never throw an exception!
             # silently ignore
             pass
+
+    def cleanup(self):
+        try:
+            self.cleanupObj.cleanup()
+        except:
+            # logging must never throw an exception!
+            self.logWarning("log cleanup failed.")
 
 # someone needs to initialize this
 # type LogFiles
