@@ -1067,8 +1067,6 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
             self.logdir_name=logdir_name
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir,self.logdir_name))
-            # make it easier to find; create a symlink in work
-            self.add_dir_obj(symlinkSupport(self.log_dir,os.path.join(self.work_dir,"log"),"%s_symlink"%self.logdir_name))
 
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
