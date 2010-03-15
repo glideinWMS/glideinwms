@@ -383,7 +383,7 @@ def main(parent_pid, work_dir, group_name):
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
 
     # the log dir is shared between the frontend main and the groups, so use a subdir
-    log_dir=os.path.join(elementDescript.data['LogDir'],"group_%s"%group_name)
+    log_dir=os.path.join(elementDescript.frontend_data['LogDir'],"group_%s"%group_name)
 
     # Configure the process to use the proper LogDir as soon as you get the info
     glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir)
