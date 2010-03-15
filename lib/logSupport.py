@@ -11,8 +11,9 @@ import re
 
 # this class can be used instead of a file for writing
 class DayLogFile:
-    def __init__(self,base_fname):
+    def __init__(self,base_fname,extension="log"):
         self.base_fname=base_fname
+        self.extension=extension
         return
 
     def close(self):
@@ -46,7 +47,7 @@ class DayLogFile:
         return 
 
     def get_fname(self,timestamp):
-        return "%s.%s.log"%(self.base_fname,time.strftime("%Y%m%d",time.localtime(timestamp)))
+        return "%s.%s.%s"%(self.base_fname,time.strftime("%Y%m%d",time.localtime(timestamp)),self.extension)
 
     def format_msg(self,timestamp,msg):
         return "[%s %s] %s"%(self.format_time(timestamp),os.getpid(),msg)
