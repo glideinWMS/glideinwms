@@ -120,7 +120,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name,logdir_name):
-        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False,log_dir=params.log_dir,logdir_name=logdir_name)
+        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False,base_log_dir=params.log_dir,logdir_name=logdir_name)
         self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params

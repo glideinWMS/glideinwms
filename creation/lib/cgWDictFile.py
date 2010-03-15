@@ -381,6 +381,9 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
     # Internal
     ####################
 
+    def get_daemon_log_dir(self,base_dir):
+        return os.path.join(base_dir,"factory")
+
     # Child must overwrite this
     def get_main_dicts(self):
         return get_main_dicts(self.work_dir,self.stage_dir)

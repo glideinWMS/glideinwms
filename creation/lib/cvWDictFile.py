@@ -307,9 +307,6 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
                  log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
         self.assume_groups=assume_groups
         cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,simple_work_dir,log_dir,logdir_name)
-        if not simple_work_dir:
-            # in order to keep things clean, put frontend main process logs into a separate dir
-            self.add_dir_obj(cWDictFile.logDirSupport(os.path.join(self.log_dir,"frontend"),self.logdir_name))
         
 
     ######################################
@@ -328,6 +325,9 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
     ####################
     # Internal
     ####################
+
+    def get_daemon_log_dir(self,base_dir):
+        return os.path.join(base_dir,"frontend")
 
     # Overwritting the empty one
     def get_main_dicts(self):

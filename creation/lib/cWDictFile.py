@@ -981,6 +981,9 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
             # make it easier to find; create a symlink in work
             self.add_dir_obj(symlinkSupport(self.log_dir,os.path.join(self.work_dir,"log"),"%s_symlink"%self.logdir_name))
 
+            # in order to keep things clean, put daemon process logs into a separate dir
+            self.add_dir_obj(self.get_daemon_log_dir(log_dir),self.logdir_name))
+
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
         self.erase()
@@ -1023,6 +1026,10 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     # Internal
     ####################
 
+    # Child should overwrite this
+    def get_daemon_log_dir(self,base_dir):
+        return os.path.join(base_dir,"main")
+
     # Child must overwrite this
     def get_main_dicts(self):
         raise RuntimeError, "Undefined"
@@ -1056,7 +1063,7 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
             self.logdir_name=None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
         else:
-            self.log_dir=self.get_sub_work_dir(base_log_dir)
+            self.log_dir=self.get_sub_log_dir(base_log_dir)
             self.logdir_name=logdir_name
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir,self.logdir_name))
