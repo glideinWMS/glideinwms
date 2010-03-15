@@ -396,7 +396,7 @@ class frontendDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,assume_groups=True,self.log_dir,self.logdir_name)
+        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,assume_groups=True,log_dir=self.log_dir,logdir_name=self.logdir_name)
 
     def new_SubDicts(self,sub_name):
         log_dir=self.log_dir

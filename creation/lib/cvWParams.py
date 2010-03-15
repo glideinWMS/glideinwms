@@ -223,7 +223,6 @@ class VOFrontendParams(cWParams.CommonParams):
             self.validate_match('group %s'%group_name,match_expr,
                                 factory_attrs,job_attrs)
 
-            if 
         return
 
     # return xml formatting
