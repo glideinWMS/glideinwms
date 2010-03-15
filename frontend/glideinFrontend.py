@@ -115,7 +115,10 @@ def main(work_dir):
     log_dir=os.path.join(frontendDescript.data['LogDir'],"frontend")
 
     # Configure the process to use the proper LogDir as soon as you get the info
-    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir)
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir,
+                                                             float(frontendDescript.data['LogRetentionMaxDays']),
+                                                             float(frontendDescript.data['LogRetentionMinDays']),
+                                                             float(frontendDescript.data['LogRetentionMaxMBs']))
     
     try:
         sleep_time=int(frontendDescript.data['LoopDelay'])

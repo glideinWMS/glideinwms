@@ -386,7 +386,10 @@ def main(parent_pid, work_dir, group_name):
     log_dir=os.path.join(elementDescript.frontend_data['LogDir'],"group_%s"%group_name)
 
     # Configure the process to use the proper LogDir as soon as you get the info
-    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir)
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir,
+                                                             float(elementDescript.frontend_data['LogRetentionMaxDays']),
+                                                             float(elementDescript.frontend_data['LogRetentionMinDays']),
+                                                             float(elementDescript.frontend_data['LogRetentionMaxMBs']))
 
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
