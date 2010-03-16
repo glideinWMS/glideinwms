@@ -36,6 +36,21 @@ def mkdir(base_dir,subdir,target_user):
 def rmtree(base_dir,subdir):
     exe_privsep("rmdir","user-dir=%s/%s"%(base_dir,subdir))
     
+########################################################
+#
+# Change owndership of the subdir tree within base_dir
+#   from old_user to new_user
+# The base_name (and all the parents) must be root owned
+#   and being authorized in the
+#   valid-dirs of
+#    /etc/condor/privsep_config
+# Both old_user and new_user must be authorized in the 
+#   valid-target-uids list of
+#   /etc/condor/privsep_config
+def chowntree(base_dir,subdir,old_user,new_user):
+    exe_privsep("chowndir","user-dir=%s/%s\nchown-source-uid=%s\nuser-uid=%s"%(base_dir,subdir,old_user,new_user))
+
+
 ##################################
 #
 # INTERNAL
