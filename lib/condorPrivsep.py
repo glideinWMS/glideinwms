@@ -23,7 +23,7 @@ from condorExe import ExeError,UnconfigError
 #   valid-target-uids list of
 #   /etc/condor/privsep_config
 def mkdir(base_dir,subdir,target_user):
-    exe_privsep("mkdir","user-uid=%s\nuser-dir=%s/%s"%(target_user,base_dir,subdir))
+    return exe_privsep("mkdir","user-uid=%s\nuser-dir=%s/%s"%(target_user,base_dir,subdir))
     
 ########################################################
 #
@@ -34,7 +34,7 @@ def mkdir(base_dir,subdir,target_user):
 #    /etc/condor/privsep_config
 # Any subdir, owned by any user in the base_dir can be removed
 def rmtree(base_dir,subdir):
-    exe_privsep("rmdir","user-dir=%s/%s"%(base_dir,subdir))
+    return exe_privsep("rmdir","user-dir=%s/%s"%(base_dir,subdir))
     
 ########################################################
 #
@@ -48,7 +48,45 @@ def rmtree(base_dir,subdir):
 #   valid-target-uids list of
 #   /etc/condor/privsep_config
 def chowntree(base_dir,subdir,old_user,new_user):
-    exe_privsep("chowndir","user-dir=%s/%s\nchown-source-uid=%s\nuser-uid=%s"%(base_dir,subdir,old_user,new_user))
+    return exe_privsep("chowndir","user-dir=%s/%s\nchown-source-uid=%s\nuser-uid=%s"%(base_dir,subdir,old_user,new_user))
+
+########################################################
+#
+# Execute a command as a target_user
+# The target_user must be authorized in the 
+#   valid-target-uids list of
+#   /etc/condor/privsep_config
+# The init_dir is the initial working directory
+# The exe must be an abspath
+# The optional args is a list of arguments,
+#   args[0] should contain the exe name
+# The env is a list of 'key=value' strings
+# The stdin_fname, stdout_fname, stderr_fname can be used
+#   to redirect tdin, stdout and/or stderr to/from files
+# If stdout_fname=='-', it is just passed through (not available for stdin and stderr)
+def execute(target_user,init_dir,exe,args=None,env=None,
+            stdin_fname=None,stdout_fname=None,stderr_fname=None):
+    other=""
+    if args!=None:
+        for arg in args:
+            arg=str(arg) #get rid of unicode
+            other+="\nexec-arg<%d>\n%s"%(len(arg),arg)
+    if env!=None:
+        for el in env:
+            el=str(el) #get rid of unicode
+            other+="\nexec-env<%d>\n%s"%(len(el),el)
+    if stdin_fname!=None:
+        other+="\nexec-stdin=%s"%stdin_fname
+    if stdout_fname!=None:
+        if stdout_fname=='-':
+            # special case, pass through
+            other+="\nexec-keep-open-fd=1"
+        else:
+            other+="\nexec-stdout=%s"%stdout_fname
+    if stderr_fname!=None:
+        other+="\nexec-stderr=%s"%stderr_fname
+
+    return exe_privsep("exec","user-uid=%s\nexec-init-dir=%s\nexec-path=%s%s"%(target_user,init_dir,exe,other))
 
 
 ##################################
@@ -58,5 +96,5 @@ def chowntree(base_dir,subdir,old_user,new_user):
 ##################################
 
 def exe_privsep(cmd,options):
-    condorExe.exe_cmd("../sbin/condor_root_switchboard","%s 0 1"%cmd,
-                      options)
+    return condorExe.exe_cmd("../sbin/condor_root_switchboard","%s 0 2"%cmd,
+                             options)
