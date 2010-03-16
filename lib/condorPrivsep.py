@@ -6,6 +6,7 @@
 #   Igor Sfiligoi (Mar 16th 2010)
 #
 
+import os.path
 import condorExe
 from condorExe import ExeError,UnconfigError
 
@@ -62,10 +63,10 @@ def chowntree(base_dir,subdir,old_user,new_user):
 #   args[0] should contain the exe name
 # The env is a list of 'key=value' strings
 # The stdin_fname, stdout_fname, stderr_fname can be used
-#   to redirect tdin, stdout and/or stderr to/from files
-# If stdout_fname=='-', it is just passed through (not available for stdin and stderr)
+#   to redirect stdin, stdout and/or stderr to/from files
+# If stdout_fname=='-' (the default), it is just passed through (not available for stdin and stderr)
 def execute(target_user,init_dir,exe,args=None,env=None,
-            stdin_fname=None,stdout_fname=None,stderr_fname=None):
+            stdin_fname=None,stdout_fname="-",stderr_fname=None):
     other=""
     if args!=None:
         for arg in args:
@@ -88,6 +89,20 @@ def execute(target_user,init_dir,exe,args=None,env=None,
 
     return exe_privsep("exec","user-uid=%s\nexec-init-dir=%s\nexec-path=%s%s"%(target_user,init_dir,exe,other))
 
+########################################################
+#
+# Similar to the above 'execute', but less flexible
+# The condor_exe binary is relative to the condor_bin_path
+# By default, the stdout will be passed through
+#  but stderr can only be redirected to a file (no way to pass it through)
+def condor_execute(target_user,init_dir,condor_exe,args,
+                   stdin_fname=None,stdout_fname="-",stderr_fname=None):
+    if condorExe.condor_bin_path==None:
+        raise UnconfigError, "condor_bin_path is undefined!"
+    condor_exe_path=os.path.join(condorExe.condor_bin_path,condor_exe)
+
+    return execute(target_user,init_dir,condor_exe_path,args,
+                   stdin_fname=stdin_fname,stdout_fname=stdout_fname,stderr_fname=stderr_fname)
 
 ##################################
 #
