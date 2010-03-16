@@ -64,11 +64,6 @@ class FactoryConfig:
         # submit file name
         self.submit_file = "job.condor"
 
-        # log files
-        # default is None, any other value must implement the write(str) method
-        self.activity_log = None
-        self.warning_log = None
-
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
@@ -85,33 +80,62 @@ class FactoryConfig:
         self.remove_sleep=sleepBetweenRemoves
         self.max_removes=maxRemovesXCycle
 
-    #
-    # The following are used by the module
-    #
-
-    def logActivity(self,str):
-        if self.activity_log!=None:
-            try:
-                self.activity_log.write(str+"\n")
-            except:
-                # logging must never throw an exception!
-                self.logWarning("logActivity failed, was logging: %s"+str,False)
-
-    def logWarning(self,str, log_in_activity=True):
-        if self.warning_log!=None:
-            try:
-                self.warning_log.write(str+"\n")
-            except:
-                # logging must throw an exception!
-                # silently ignore
-                pass
-        if log_in_activity:
-            self.logActivity("WARNING: %s"%str)
-
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
 
+############################################################
+#
+# Log files
+#
+############################################################
+
+class LogFiles:
+    def __init__(self,log_dir,max_days,min_days,max_mbs):
+        self.log_dir=log_dir
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"info.log")
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"err.log")
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"debug.log")
+        self.cleanupObj=logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
+                                                    int(max_days*24*3600),int(min_days*24*3600),
+                                                    long(max_mbs*(1024.0*1024.0)),
+                                                    self.activity_log,self.warning_log)
+
+    def logActivity(self,str):
+        try:
+            self.activity_log.write(str+"\n")
+        except:
+            # logging must never throw an exception!
+            self.logWarning("logActivity failed, was logging: %s"%str,False)
+
+    def logWarning(self,str, log_in_activity=True):
+        try:
+            self.warning_log.write(str+"\n")
+        except:
+            # logging must throw an exception!
+            # silently ignore
+            pass
+        if log_in_activity:
+            self.logActivity("WARNING: %s"%str)
+
+    def logDebug(self,str):
+        try:
+            self.debug_log.write(str+"\n")
+        except:
+            # logging must never throw an exception!
+            # silently ignore
+            pass
+
+    def cleanup(self):
+        try:
+            self.cleanupObj.cleanup()
+        except:
+            # logging must never throw an exception!
+            self.logWarning("log cleanup failed.")
+
+# someone needs to initialize this
+# type LogFiles
+log_files=None
 
 ############################################################
 #
