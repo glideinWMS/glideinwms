@@ -802,12 +802,17 @@ class chmodDirSupport(simpleDirSupport):
         self.chmod=chmod
                 
     def create_dir(self,fail_if_exists=True):
-        res=simpleDirSupport.create_dir(self,fail_if_exists)
-        if res:
-            # only chdir if it was just created
-            os.chmod(self.dir,self.chmod)
-        return res
+        if os.path.isdir(self.dir):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+            else:
+                return False # already exists, nothing to do
 
+        try:
+            os.mkdir(self.dir,self.chmod)
+        except OSError,e:
+            raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+        return True
 
 class symlinkSupport(dirSupport):
     def __init__(self,target_dir,symlink,dir_name):
