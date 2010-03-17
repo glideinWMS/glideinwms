@@ -8,7 +8,10 @@
 import os,os.path,string,copy
 import cgWConsts,cWConsts
 import cWDictFile
+import pwd
+import condorPrivsep
 
+MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
 # values are (Type,System,Ref)
 class InfoSysDictFile(cWDictFile.DictFile):
@@ -339,9 +342,152 @@ def reuse_entry_dicts(entry_dicts, other_entry_dicts,entry_name):
 #
 ################################################
 
-class proxyDirSupport(cWDictFile.chmodDirSupport):
-    def __init__(self,proxy_dir,proxydir_name="proxy"):
-        cWDictFile.chmodDirSupport.__init__(self,proxy_dir,0700,proxydir_name)
+################################################
+#
+# Support classes
+#
+################################################
+
+###########################################
+# Privsep support classes
+
+class clientDirSupport(cWDictFile.simpleDirSupport):
+    def __init__(self,user,dir,dir_name,privsep_mkdir=False):
+        cWDictFile.simpleDirSupport.__init__(self,dir,dir_name)
+        self.user=user
+        self.privsep_mkdir=privsep_mkdir
+
+    def create_dir(self,fail_if_exists=True):
+        base_dir=os.path.dirname(self.dir)
+        if not os.path.isdir(base_dir):
+            raise RuntimeError,"Missing base %s directory %s."%(self.dir_name,base_dir)
+
+        if os.path.isdir(self.dir):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+            else:
+                return False # already exists, nothing to do
+
+        if self.user==MY_USERNAME:
+            # keep it simple, if possible
+            try:
+                os.mkdir(self.dir)
+            except OSError,e:
+                raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+        elif privsep_mkdir:
+                # use privsep mkdir, as requested
+                condorPrivsep.mkdir(base_dir,os.path.basename(self.dir),self.user)
+            except condorPrivsep.ExeError, e:
+                raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
+            except:
+                raise RuntimeError,"Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
+        else:
+            try:
+                # use the execute command
+                # do not use the mkdir one, as we do not need root privileges
+                condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir',self.dir],stdout_fname=None)
+            except condorPrivsep.ExeError, e:
+                raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
+            except:
+                raise RuntimeError,"Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
+        return True
+
+    def delete_dir(self):
+        base_dir=os.path.dirname(self.dir)
+        if not os.path.isdir(base_dir):
+            raise RuntimeError,"Missing base %s directory %s!"%(self.dir_name,base_dir)
+
+        if self.user==MY_USERNAME:
+            # keep it simple, if possible
+            shutil.rmtree(self.dir)
+        elif privsep_mkdir:
+            try:
+                # use privsep rmtree, as requested
+                condorPrivsep.rmtree(base_dir,os.path.basename(self.dir))
+            except condorPrivsep.ExeError, e:
+                raise RuntimeError,"Failed to remove %s dir (user %s): %s"%(self.dir_name,self.user,e)
+            except:
+                raise RuntimeError,"Failed to remove %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
+        else:
+            try:
+                # use the execute command
+                # do not use the rmtree one, as we do not need root privileges
+                condorPrivsep.execute(self.user,base_dir,'/bin/rm',['rm','-fr',self.dir],stdout_fname=None)
+            except condorPrivsep.ExeError, e:
+                raise RuntimeError,"Failed to remove %s dir (user %s): %s"%(self.dir_name,self.user,e)
+            except:
+                raise RuntimeError,"Failed to remove %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
+
+class chmodClientDirSupport(clientDirSupport):
+    def __init__(self,user,dir,chmod,dir_name):
+        clientDirSupport.__init__(self,user,dir,dir_name)
+        self.chmod=chmod
+
+    def create_dir(self,fail_if_exists=True):
+        base_dir=os.path.dirname(self.dir)
+        if not os.path.isdir(base_dir):
+            raise RuntimeError,"Missing base %s directory %s."%(self.dir_name,base_dir)
+
+        if os.path.isdir(self.dir):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+            else:
+                return False # already exists, nothing to do
+
+        if self.user==MY_USERNAME:
+            # keep it simple, if possible
+            try:
+                os.mkdir(self.dir,chmod)
+            except OSError,e:
+                raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+        else:
+            try:
+                # use the execute command
+                # do not use the mkdir one, as we do not need root privileges
+                condorPrivsep.execute(self.user,base_dir,'/bin/mkdir',['mkdir','-m',"0%o"%self.chmod,self.dir],stdout_fname=None)
+            except condorPrivsep.ExeError, e:
+                raise RuntimeError,"Failed to create %s dir (user %s): %s"%(self.dir_name,self.user,e)
+            except:
+                raise RuntimeError,"Failed to create %s dir (user %s): Unknown privsep error"%(self.dir_name,self.user)
+        return True
+
+
+###########################################
+# Support classes used my Main
+
+class baseClientDirSupport(cWDictFile.dirsSupport):
+    def __init__(self,user,dir,dir_name='client'):
+        cWDictFile.dirsSupport.__init__(self)
+        self.dir=dir
+        self.dir_name=dir_name
+        self.user=user
+        
+        self.base_dir=os.path.dirname(self.dir)
+        if not os.path.isdir(self.base_dir):
+            # Parent does not exist
+            # This is the user base directory
+            # In order to make life easier for the factory admins, create it automatically when needed
+            self.add_dir_obj(clientDirSupport(user,self.base_dir,"base %s"%dir_name,privsep_mkdir=True))
+        
+        self.add_dir_obj(clientDirSupport(user,dir,dir_name))
+
+class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
+    def __init__(self,user_dirs,work_dir,symlink_base_subdir,dir_name):
+        self.symlink_base_dir=os.path.join(work_dir,symlink_base_subdir)
+        cWDictFile.multiSimpleDirSupport.__init__(self,(self.symlink_base_dir,),dir_name)
+        for user in user_dirs.keys():
+            self.add_dir_obj(cWDictFile.symlinkSupport(user_dirs[user],os.path.join(self.symlink_base_dir,"user_%s"%user),dir_name))
+
+###########################################
+# Support classes used my Entry
+
+class clientLogDirSupport(clientDirSupport):
+    def __init__(self,user,log_dir,dir_name='clientlog'):
+        clientDirSupport.__init__(self,user,log_dir,dir_name)
+
+class clientProxiesDirSupport(chmodClientDirSupport):
+    def __init__(self,user,proxies_dir,proxiesdir_name="clientproxies"):
+        chmodClientDirSupport.__init__(self,user,proxies_dir,0700,proxiesdir_name)
 
 ################################################
 #
@@ -353,16 +499,22 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
     def __init__(self,
                  work_dir,stage_dir,
                  workdir_name,
-                 log_dir,logdir_name,
-                 client_proxies_dir,proxiesdir_name):
+                 log_dir,
+                 client_log_dirs,client_proxies_dirs):
         cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,
                                           False, #simple_work_dir=False
-                                          log_dir,logdir_name)
-        self.client_proxies_dir=client_proxies_dir
-        self.proxiesdir_name=proxiesdir_name
-        self.add_dir_obj(proxyDirSupport(self.client_proxies_dir,self.proxiesdir_name))
-        # make it easier to find; create a symlink in work
-        self.add_dir_obj(cWDictFile.symlinkSupport(self.client_proxies_dir,os.path.join(self.work_dir,"client_proxies"),"%s_symlink"%self.proxiesdir_name))
+                                          log_dir)
+        self.client_log_dirs=client_log_dirs
+        for user in client_log_dirs.keys():
+            self.add_dir_obj(baseClientDirSupport(user,client_log_dirs[user],'clientlog'))
+        
+        self.client_proxies_dirs=client_proxies_dirs
+        for user in client_proxies_dirs:
+            self.add_dir_obj(baseClientDirSupport(user,client_proxies_dirs[user],'clientproxies'))
+
+        # make them easier to find; create symlinks in work/client_proxies
+        self.add_dir_obj(clientSymlinksSupport(client_log_dirs,work_dir,'client_log','clientlog'))
+        self.add_dir_obj(clientSymlinksSupport(client_proxies_dirs,work_dir,'client_proxies','clientproxies'))
     
     ######################################
     # Redefine methods needed by parent
@@ -398,11 +550,17 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
 class glideinEntryDicts(cWDictFile.fileSubDicts):
     def __init__(self,base_work_dir,base_stage_dir,sub_name,
                  summary_signature,workdir_name,
-                 base_log_dir,logdir_name):
+                 base_log_dir,base_client_log_dirs,base_client_proxies_dirs):
         cWDictFile.fileSubDicts.__init__(self,base_work_dir,base_stage_dir,sub_name,
                                          summary_signature,workdir_name,
                                          False, # simple_work_dir=False
-                                         base_log_dir,logdir_name)
+                                         base_log_dir)
+
+        for user in base_client_log_dirs.keys():
+            self.add_dir_obj(clientLogDirSupport(user,cgWConsts.get_entry_userlog_dir(base_client_log_dirs[user],sub_name)))
+        
+        for user in base_client_proxies_dirs:
+            self.add_dir_obj(clientProxiesDirSupport(user,cgWConsts.get_entry_userproxies_dir(base_client_proxies_dirs[user],sub_name)))
 
     ######################################
     # Redefine methods needed by parent
@@ -447,13 +605,15 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 ################################################
 
 class glideinDicts(cWDictFile.fileDicts):
-    def __init__(self,work_dir,log_dir,client_proxies_dir,stage_dir,entry_list=[],
-                 workdir_name='submit',logdir_name="log",proxiesdir_name="proxies"):
+    def __init__(self,work_dir,stage_dir,log_dir,
+                 client_log_dirs,client_proxies_dirs,
+                 entry_list=[],
+                 workdir_name='submit'):
         cWDictFile.fileDicts.__init__(work_dir,stage_dir,entry_list,workdir_name,
                                       False, # simple_work_dir=False
-                                      log_dir,logdir_name)
-        self.client_proxies_dir=client_proxies_dir
-        self.proxiesdir_name=proxiesdir_name
+                                      log_dir)
+        self.client_log_dirs=client_log_dirs
+        self.client_proxies_dirs=client_proxies_dirs
         
 
     ###########
@@ -463,10 +623,10 @@ class glideinDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name,slef.log_dir,self.logdir_name,self.client_proxies_dir,self.proxiesdir_name)
+        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name,slef.log_dir,self.client_log_dirs,self.client_proxies_dirs)
 
     def new_SubDicts(self,sub_name):
-        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.log_dir,self.logdir_name)
+        return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.log_dir,self.client_log_dirs,self.client_proxies_dirs)
 
     def get_sub_name_from_sub_stage_dir(self,sign_key):
         return cgWConsts.get_entry_name_from_entry_stage_dir(sign_key)
