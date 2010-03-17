@@ -304,9 +304,9 @@ class frontendMainDicts(cWDictFile.fileMainDicts):
                  workdir_name,
                  simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs, nor the params dict
                  assume_groups=True,
-                 log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
+                 log_dir=None):         # used only if simple_work_dir=False
         self.assume_groups=assume_groups
-        cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,simple_work_dir,log_dir,logdir_name)
+        cWDictFile.fileMainDicts.__init__(self,work_dir,stage_dir,workdir_name,simple_work_dir,log_dir)
         
 
     ######################################
@@ -386,8 +386,8 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
 class frontendDicts(cWDictFile.fileDicts):
     def __init__(self,work_dir,stage_dir,group_list=[],workdir_name='submit',
                  simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs, nor the params dict
-                 log_dir=None,logdir_name="log"): # used only if simple_work_dir=False
-        cWDictFile.fileDicts.__init__(work_dir,stage_dir,group_list,workdir_name,simple_work_dir,log_dir,logdir_name)
+                 log_dir=None):         # used only if simple_work_dir=False
+        cWDictFile.fileDicts.__init__(work_dir,stage_dir,group_list,workdir_name,simple_work_dir,log_dir)
 
     ###########
     # PRIVATE
@@ -396,10 +396,10 @@ class frontendDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,assume_groups=True,log_dir=self.log_dir,logdir_name=self.logdir_name)
+        return frontendMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,assume_groups=True,log_dir=self.log_dir)
 
     def new_SubDicts(self,sub_name):
-        return frontendGroupDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,self.log_dir,self.logdir_name)
+        return frontendGroupDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,self.log_dir)
 
     def get_sub_name_from_sub_stage_dir(self,sign_key):
         return cvWConsts.get_group_name_from_group_stage_dir(sign_key)

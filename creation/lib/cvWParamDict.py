@@ -18,8 +18,8 @@ import cvWConsts,cWConsts
 ################################################
 
 class frontendMainDicts(cvWDictFile.frontendMainDicts):
-    def __init__(self,params,workdir_name,logdir_name):
-        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True,log_dir=params.log_dir,logdir_name=logdir_name)
+    def __init__(self,params,workdir_name):
+        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True,log_dir=params.log_dir)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -119,8 +119,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
 class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self,params,sub_name,
-                 summary_signature,workdir_name,logdir_name):
-        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False,base_log_dir=params.log_dir,logdir_name=logdir_name)
+                 summary_signature,workdir_name):
+        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False,base_log_dir=params.log_dir)
         self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
@@ -215,11 +215,11 @@ class frontendDicts(cvWDictFile.frontendDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return frontendMainDicts(self.params,self.workdir_name,self.logdir_name)
+        return frontendMainDicts(self.params,self.workdir_name)
 
     def new_SubDicts(self,sub_name):
         return frontendGroupDicts(self.params,sub_name,
-                                 self.main_dicts.get_summary_signature(),self.workdir_name,self.logdir_name)
+                                 self.main_dicts.get_summary_signature(),self.workdir_name)
 
 ############################################################
 #
