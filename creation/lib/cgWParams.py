@@ -88,7 +88,8 @@ class GlideinParams(cWParams.CommonParams):
         submit_defaults=cWParams.commentedOrderedDict()
         submit_defaults["base_dir"]=("%s/glideinsubmit"%os.environ["HOME"],"base_dir","Submit base dir",None)
         submit_defaults["base_log_dir"]=("%s/glideinlog"%os.environ["HOME"],"log_dir","Submit base log dir",None)
-        submit_defaults["base_client_proxies_dir"]=("%s/glideinproxies"%os.environ["HOME"],"client_proxies_dir","Submit base dir ofr client proxies",None)
+        submit_defaults["base_client_log_dir"]=("%s/glideclientlog"%os.environ["HOME"],"client_dir","Base dir for client logs, needs a user_<uid> subdir per frontend user",None)
+        submit_defaults["base_client_proxies_dir"]=("%s/glideclientproxies"%os.environ["HOME"],"client_dir","Base dir for client proxies, needs a user_<uid> subdir per frontend user",None)
         self.defaults["submit"]=submit_defaults
 
         one_log_retention_defaults=cWParams.commentedOrderedDict()
@@ -173,8 +174,14 @@ class GlideinParams(cWParams.CommonParams):
         self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
         self.log_dir=os.path.join(self.submit.base_log_dir,glidein_subdir)
-        self.client_proxies_dir=os.path.join(self.submit.base_client_proxies_dir,glidein_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+
+        self.client_log_dirs={}
+        self.client_proxies_dirs={}
+        for fename in self.security.frontends.keys():
+            username=self.security.frontends[fename].username
+            self.client_log_dirs[username]=os.path.join(os.path.join(self.submit.base_client_log_dir,"user_%s"%username),glidein_subdir)
+            self.client_proxies_dirs[username]=os.path.join(os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username),glidein_subdir)
 
         if not cWParams.is_valid_name(self.factory_name):
             raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
