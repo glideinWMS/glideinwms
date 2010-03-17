@@ -895,6 +895,10 @@ class logDirSupport(simpleDirSupport):
     def __init__(self,log_dir,dir_name='log'):
         simpleDirSupport.__init__(self,log_dir,dir_name)
 
+class logSymlinkSupport(symlinkSupport):
+    def __init__(self,log_dir,work_dir,symlink_subdir='log',dir_name='log'):
+        symlinkSupport.__init__(self,log_dir,os.path.join(work_dir,symlink_subdir),dir_name)
+        
 class stageDirSupport(simpleDirSupport):
     def __init__(self,stage_dir,dir_name='stage'):
         simpleDirSupport.__init__(self,stage_dir,dir_name)
@@ -977,7 +981,7 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
             self.add_dir_obj(logDirSupport(self.log_dir))
             # make it easier to find; create a symlink in work
-            self.add_dir_obj(symlinkSupport(self.log_dir,os.path.join(self.work_dir,"log"),"log"))
+            self.add_dir_obj(logSymlinkSupport(self.log_dir,self.work_dir))
 
             # in order to keep things clean, put daemon process logs into a separate dir
             self.add_dir_obj(logDirSupport(self.get_daemon_log_dir(log_dir)))
