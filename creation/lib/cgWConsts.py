@@ -60,6 +60,14 @@ def get_entry_log_dir(log_dir,entry_name):
     entry_log_dir=os.path.join(log_dir,"entry_"+entry_name)
     return entry_log_dir
 
+def get_entry_userlog_dir(log_dir,entry_name):
+    entry_log_dir=os.path.join(log_dir,"entry_"+entry_name)
+    return entry_log_dir
+
+def get_entry_userproxies_dir(proxies_dir,entry_name):
+    proxies_log_dir=os.path.join(proxies_dir,"entry_"+entry_name)
+    return proxies_log_dir
+
 def get_entry_stage_dir(stage_dir,entry_name):
     entry_stage_dir=os.path.join(stage_dir,"entry_"+entry_name)
     return entry_stage_dir
