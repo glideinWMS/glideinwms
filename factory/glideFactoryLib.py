@@ -63,9 +63,6 @@ class FactoryConfig:
         self.max_removes = 5
         self.max_releases = 20
 
-        # submit file name
-        self.submit_file = "job.condor"
-
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
@@ -73,6 +70,26 @@ class FactoryConfig:
         self.log_stats = None
 
         self.supported_signtypes=['sha1']
+
+        # who am I
+        self.factory_name=None
+        self.glidein_name=None
+        # do not add the entry_name, as we may decide someday to share
+        # the same process between multiple entries
+
+        # used directories
+        self.submit_dir=None
+        self.client_log_base_dir=None
+        self.client_proxies_base_dir=None
+
+    def config_whoamI(self,factory_name,glidein_name):
+        self.factory_name=factory_name
+        self.glidein_name=glidein_name
+
+    def config_dirs(self,submit_dir,client_log_base_dir,client_proxies_base_dir):
+        self.submit_dir=submit_dir
+        self.client_log_base_dir=client_log_base_dir
+        self.client_proxies_base_dir=client_proxies_base_dir
 
     def config_submit_freq(self,sleepBetweenSubmits,maxSubmitsXCycle):
         self.submit_sleep=sleepBetweenSubmits
@@ -82,6 +99,14 @@ class FactoryConfig:
         self.remove_sleep=sleepBetweenRemoves
         self.max_removes=maxRemovesXCycle
 
+    def get_client_log_dir(self,entry_name,username):
+        log_dir=os.path.join(self.client_log_base_dir,"user_%s/entry_%s"%(username,entry_name))
+        return log_dir
+
+    def get_client_proxies_dir(self,entry_name,username):
+        proxy_dir=os.path.join(self.client_proxies_base_dir,"user_%s/entry_%s"%(username,entry_name))
+        return proxy_dir
+
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
@@ -89,6 +114,9 @@ factoryConfig=FactoryConfig()
 ############################################################
 #
 # Log files
+#
+# Consider moving them to a dedicated file
+# since it is the only part in common between main and entries
 #
 ############################################################
 
@@ -150,7 +178,7 @@ log_files=None
 # To be passed to the main functions
 #
 
-def getCondorQData(factory_name,glidein_name,entry_name,
+def getCondorQData(entry_name,
                    client_name,                    # if None, return all clients
                    schedd_name,
                    factory_schedd_attribute=None,  # if None, use the global one
@@ -186,10 +214,10 @@ def getCondorQData(factory_name,glidein_name,entry_name,
 
     x509id_str=factoryConfig.x509id_schedd_attribute
 
-    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,client_constraint,x509id_str)
+    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
     q=condorMonitor.CondorQ(schedd_name)
-    q.factory_name=factory_name
-    q.glidein_name=glidein_name
+    q.factory_name=factoryConfig.factory_name
+    q.glidein_name=factoryConfig.glidein_name
     q.entry_name=entry_name
     q.client_name=client_name
     q.load(q_glidein_constraint)
@@ -203,7 +231,7 @@ def getQStatusStale(condorq):
     qc_status=condorMonitor.Summarize(condorq,hash_statusStale).countStored()
     return qc_status
 
-def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_name=None,
+def getCondorStatusData(entry_name,client_name,pool_name=None,
                         factory_startd_attribute=None,  # if None, use the global one
                         glidein_startd_attribute=None,  # if None, use the global one
                         entry_startd_attribute=None,    # if None, use the global one
@@ -230,10 +258,10 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
     else:
         csa_str=client_startd_attribute
 
-    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name)
+    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,csa_str,client_name)
     status=condorMonitor.CondorStatus(pool_name=pool_name)
-    status.factory_name=factory_name
-    status.glidein_name=glidein_name
+    status.factory_name=factoryConfig.factory_name
+    status.glidein_name=factoryConfig.glidein_name
     status.entry_name=entry_name
     status.client_name=client_name
     status.load(status_glidein_constraint)
@@ -243,8 +271,8 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 #
 # Create/update the proxy file
 # returns the proxy fname
-def update_x509_proxy_file(client_proxies_base_dir,entry_name,username,client_id, proxy_data):
-    proxy_dir=os.path.join(client_proxies_base_dir,"user_%s/entry_%s"%(username,entry_name))
+def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
+    proxy_dir=factoryConfig.get_client_proxies_dir(entry_name,username)
     fname_short='x509_%s.proxy'%escapeParam(client_id)
     fname=os.path.join(proxy_dir,fname_short)
     if username!=MY_USERNAME:
@@ -256,8 +284,7 @@ def update_x509_proxy_file(client_proxies_base_dir,entry_name,username,client_id
                 update_proxy_env.append('%s=%s'%(var,os.environ[var]))
 
         try:
-            cwd=os.getcwd();
-            condorPrivsep.execute(username,cwd,os.path.join(cwd,'update_proxy.py'),['update_proxy.py'],update_proxy_env)
+            condorPrivsep.execute(username,factoryConfig.submit_dir,os.path.join(factoryConfig.submit_dir,'update_proxy.py'),['update_proxy.py'],update_proxy_env)
         except condorPrivsep.ExeError, e:
             raise RuntimeError,"Failed to update proxy %s in %s (user %s): %s"%(client_id,proxy_dir,username,e)
         except:

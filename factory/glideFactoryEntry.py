@@ -41,7 +41,7 @@ def check_parent(parent_pid):
 
 
 ############################################################
-def perform_work(factory_name,glidein_name,entry_name,
+def perform_work(entry_name,
                  schedd_name,
                  client_name,client_int_name,client_int_req,
                  idle_glideins,max_running,max_held,
@@ -56,9 +56,9 @@ def perform_work(factory_name,glidein_name,entry_name,
     else:
         condor_pool=None
     
-    #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
+    #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
     try:
-        condorQ=glideFactoryLib.getCondorQData(factory_name,glidein_name,entry_name,client_name,schedd_name)
+        condorQ=glideFactoryLib.getCondorQData(entry_name,client_name,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
         glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
         glideFactoryLib.log_files.logWarning("getCondorQData failed: %s"%e)
@@ -72,12 +72,12 @@ def perform_work(factory_name,glidein_name,entry_name,
         # protect and skip
         return 0
 
-    #glideFactoryLib.log_files.logActivity("QueryS (%s,%s,%s,%s,%s)"%(factory_name,glidein_name,entry_name,client_name,schedd_name))
+    #glideFactoryLib.log_files.logActivity("QueryS (%s,%s,%s,%s,%s)"%(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
 
     # Temporary disable queries to the collector
     # Not really used by anybody, so let reduce the load
     #try:
-    #    condorStatus=glideFactoryLib.getCondorStatusData(factory_name,glidein_name,entry_name,client_name,condor_pool)
+    #    condorStatus=glideFactoryLib.getCondorStatusData(entry_name,client_name,condor_pool)
     #except:
     if 1:
         condorStatus=None # this is not fundamental information, can live without
@@ -122,15 +122,12 @@ def perform_work(factory_name,glidein_name,entry_name,
 
 ############################################################
 def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
-    factory_name=glideinDescript.data['FactoryName']
-    glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-    client_proxies_base_dir=glideinDescript.data['ClientProxiesBaseDir']
 
     #glideFactoryLib.log_files.logActivity("Find work")
-    work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,
+    work = glideFactoryInterface.findWork(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
                                           pub_key_obj,allowed_proxy_source)
     glideFactoryLib.logWorkRequests(work)
@@ -209,7 +206,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 continue # cannot map, skip proxy
 
             try:
-                x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(client_proxies_base_dir,entry_name,x509_proxy_username,work_key,decrypted_params['x509_proxy'])
+                x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(entry_name,x509_proxy_username,work_key,decrypted_params['x509_proxy'])
             except:
                 glideFactoryLib.log_files.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
                 continue # skip request
@@ -247,7 +244,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     continue # cannot map, skip proxy
 
                 try:
-                    x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(client_proxies_base_dir,entry_name,x509_proxy_username,"%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
+                    x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(entry_name,x509_proxy_username,"%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
                 except:
                     glideFactoryLib.log_files.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
                     continue # skip request
@@ -311,7 +308,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 # old style
                 client_web=None
 
-            done_something+=perform_work(factory_name,glidein_name,entry_name,schedd_name,
+            done_something+=perform_work(entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
                                          jobDescript,x509_proxy_fnames,x509_proxy_usernames,
@@ -333,8 +330,6 @@ def write_stats():
 
 ############################################################
 def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
-    factory_name=glideinDescript.data['FactoryName']
-    glidein_name=glideinDescript.data['GlideinName']
     entry_name=jobDescript.data['EntryName']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj=glideinDescript.data['PubKeyObj']
@@ -348,7 +343,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(factory_name,glidein_name,entry_name,
+        glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
                                                pub_key_obj,allowed_proxy_source)
@@ -375,7 +370,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
             if p in params.keys(): # can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
         try:
-            glideFactoryInterface.advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
+            glideFactoryInterface.advertizeGlideinClientMonitoring(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
         except:
             glideFactoryLib.log_files.logWarning("Advertize of '%s' failed"%client_name)
         
@@ -501,6 +496,12 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                  activity_log,warning_log)
 
     # use config values to configure the factory
+    glideFactoryLib.factoryConfig.config_whoamI(glideinDescript.data['FactoryName'],
+                                                glideinDescript.data['GlideinName'])
+    glideFactoryLib.factoryConfig.config_dirs(startup_dir,
+                                              glideinDescript.data['ClientLogBaseDir'],
+                                              glideinDescript.data['ClientProxiesBaseDir'])
+    
     glideFactoryLib.factoryConfig.max_submits=int(jobDescript.data['MaxSubmitRate'])
     glideFactoryLib.factoryConfig.max_cluster_size=int(jobDescript.data['SubmitCluster'])
     glideFactoryLib.factoryConfig.submit_sleep=float(jobDescript.data['SubmitSleep'])
