@@ -7,7 +7,7 @@
 #
 ####################################
 
-import os,os.path
+import os,os.path,shutil
 import stat
 import string
 import traceback
@@ -260,3 +260,18 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 
     return
 
+#####################
+# INTERNAL
+# Simply copy a file
+def copy_file(infile,outfile):
+    try:
+        shutil.copy2(infile,outfile)
+    except IOError, e:
+        raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
+        
+#####################################
+# Copy an executable between two dirs
+def copy_exe(filename,work_dir,org_dir):
+    copy_file(os.path.join(org_dir,filename),work_dir)
+    os.chmod(os.path.join(work_dir,filename),0544)
+    
