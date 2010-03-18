@@ -71,7 +71,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             else:
                raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
         self.add("Executable",exe_fname)
-
+        # Force the copy to spool to prevent caching at the CE side
+        self.add("copy_to_spool","True")
+        
         self.add("Arguments","-fail") # just a placeholder for now
         self.add('+GlideinFactory','"%s"'%factory_name)
         self.add('+GlideinName','"%s"'%glidein_name)
