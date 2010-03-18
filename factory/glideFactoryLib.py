@@ -12,9 +12,11 @@ import os
 import time
 import string
 import re
-import condorExe
+import pwd
+import condorExe,condorPrivsep
 import condorMonitor
 
+MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
 ############################################################
 #
@@ -241,65 +243,74 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 #
 # Create/update the proxy file
 # returns the proxy fname
-def update_x509_proxy_file(username,client_id, proxy_data):
-    ####
-    #
-    # To Be written:
-    #
-    # Must use username
-    #
-    # This should include creating all the relevant directories, if needed,
-    # since this is the only non-Condor related uid-switching call we make
-    #
-    ####
+def update_x509_proxy_file(client_proxies_base_dir,entry_name,username,client_id, proxy_data):
+    proxy_dir=os.path.join(client_proxies_base_dir,"user_%s/entry_%s"%(username,entry_name))
+    fname_short='x509_%s.proxy'%escapeParam(client_id)
+    fname=os.path.join(proxy_dir,fname_short)
+    if username!=MY_USERNAME:
+        # use privsep
+        # all args go through the environment, so they are protected
+        update_proxy_env=['HEXDATA=%s'%binascii.b2a_hex(proxy_data),'FNAME=%s'%fname]
+        for var in ('PATH','LD_LIBRARY_PATH','PYTHON_PATH'):
+            if os.environ.has_key(var):
+                update_proxy_env.append('%s=%s'%(var,os.environ[var]))
 
+        try:
+            cwd=os.getcwd();
+            condorPrivsep.execute(username,cwd,os.path.join(cwd,'update_proxy.py'),['update_proxy.py'],update_proxy_env)
+        except condorPrivsep.ExeError, e:
+            raise RuntimeError,"Failed to update proxy %s in %s (user %s): %s"%(client_id,proxy_dir,username,e)
+        except:
+            raise RuntimeError,"Failed to update proxy %s in %s (user %s): Unknown privsep error"%(client_id,proxy_dir,username)
+        return fname
+    else:
+        # do it natively when you can
+        if not os.path.isfile(fname):
+            # new file, create
+            fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
+            try:
+                os.write(fd,proxy_data)
+            finally:
+                os.close(fd)
+            return fpath
+
+        # old file exists, check if same content
+        fl=open(fname,'r')
+        try:
+            old_data=fl.read()
+        finally:
+            fl.close()
+        if proxy_data==old_data:
+            # nothing changed, done
+            return fpath
+
+        #
+        # proxy changed, neeed to update
+        #
+        
+        # remove any previous backup file
+        try:
+            os.remove(fname+".old")
+        except:
+            pass # just protect
     
-    fname=os.path.realpath('client_proxies/x509_%s.proxy'%escapeParam(client_id))
-
-    if not os.path.isfile(fname):
-        # new file, create
-        fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
+        # create new file
+        fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
         try:
             os.write(fd,proxy_data)
         finally:
             os.close(fd)
+
+        # move the old file to a tmp and the new one into the official name
+        try:
+            os.rename(fname,fname+".old")
+        except:
+            pass # just protect
+        os.rename(fname+".new",fname)
         return fname
 
-    # old file exists, check if same content
-    fl=open(fname,'r')
-    try:
-        old_data=fl.read()
-    finally:
-        fl.close()
-    if proxy_data==old_data:
-        # nothing changed, done
-        return fname
-
-    #
-    # proxy changed, neeed to update
-    #
-
-    # remove any previous backup file
-    try:
-        os.remove(fname+".old")
-    except:
-        pass # just protect
-    
-    # create new file
-    fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
-    try:
-        os.write(fd,proxy_data)
-    finally:
-        os.close(fd)
-
-    # move the old file to a tmp and the new one into the official name
-    try:
-        os.rename(fname,fname+".old")
-    except:
-        pass # just protect
-    os.rename(fname+".new",fname)
-    return fname
-    
+    # end of update_x509_proxy_file
+    # should never reach this point
 #
 # Main function
 #   Will keep the required number of Idle glideins
