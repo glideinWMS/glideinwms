@@ -461,7 +461,7 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
         cWDictFile.multiSimpleDirSupport.__init__(self,(),dir_name)
         self.user=user
         
-        self.base_dir=os.path.dirname(self.dir)
+        self.base_dir=os.path.dirname(dir)
         if not os.path.isdir(self.base_dir):
             # Parent does not exist
             # This is the user base directory
