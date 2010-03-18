@@ -261,7 +261,7 @@ def save_common_dicts(dicts,     # will update in place, too
 def save_main_dicts(main_dicts, # will update in place, too
                     set_readonly=True):
     main_dicts['glidein'].save(set_readonly=set_readonly)
-    main_dicts['frontend_descript'].save(set_readonly=set_readonly)
+    main_dicts['frontend_decript'].save(set_readonly=set_readonly)
     save_common_dicts(main_dicts,True,set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
@@ -374,7 +374,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 os.mkdir(self.dir)
             except OSError,e:
                 raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
-        elif self.privsep_mkdir:
+        elif privsep_mkdir:
             try:
                 # use privsep mkdir, as requested
                 condorPrivsep.mkdir(base_dir,os.path.basename(self.dir),self.user)
@@ -401,7 +401,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         if self.user==MY_USERNAME:
             # keep it simple, if possible
             shutil.rmtree(self.dir)
-        elif self.privsep_mkdir:
+        elif privsep_mkdir:
             try:
                 # use privsep rmtree, as requested
                 condorPrivsep.rmtree(base_dir,os.path.basename(self.dir))
@@ -461,7 +461,7 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
         cWDictFile.multiSimpleDirSupport.__init__(self,(),dir_name)
         self.user=user
         
-        self.base_dir=os.path.dirname(dir)
+        self.base_dir=os.path.dirname(self.dir)
         if not os.path.isdir(self.base_dir):
             # Parent does not exist
             # This is the user base directory
