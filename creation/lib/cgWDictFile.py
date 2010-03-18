@@ -375,6 +375,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
             except OSError,e:
                 raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
         elif privsep_mkdir:
+            try:
                 # use privsep mkdir, as requested
                 condorPrivsep.mkdir(base_dir,os.path.basename(self.dir),self.user)
             except condorPrivsep.ExeError, e:
