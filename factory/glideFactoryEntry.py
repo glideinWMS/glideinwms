@@ -127,6 +127,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
+    client_proxies_base_dir=glideinDescript.data['ClientProxiesBaseDir']
 
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,
@@ -208,7 +209,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 continue # cannot map, skip proxy
 
             try:
-                x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(x509_proxy_username,work_key,decrypted_params['x509_proxy'])
+                x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(client_proxies_base_dir,entry_name,x509_proxy_username,work_key,decrypted_params['x509_proxy'])
             except:
                 glideFactoryLib.log_files.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
                 continue # skip request
@@ -246,7 +247,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     continue # cannot map, skip proxy
 
                 try:
-                    x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(x509_proxy_username,"%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
+                    x509_proxy_fname=glideFactoryLib.update_x509_proxy_file(client_proxies_base_dir,entry_name,x509_proxy_username,"%s_%s"%(work_key,x509_proxy_identifier),x509_proxy)
                 except:
                     glideFactoryLib.log_files.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
                     continue # skip request
