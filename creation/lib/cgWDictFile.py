@@ -374,7 +374,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
                 os.mkdir(self.dir)
             except OSError,e:
                 raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
-        elif privsep_mkdir:
+        elif self.privsep_mkdir:
             try:
                 # use privsep mkdir, as requested
                 condorPrivsep.mkdir(base_dir,os.path.basename(self.dir),self.user)
@@ -401,7 +401,7 @@ class clientDirSupport(cWDictFile.simpleDirSupport):
         if self.user==MY_USERNAME:
             # keep it simple, if possible
             shutil.rmtree(self.dir)
-        elif privsep_mkdir:
+        elif self.privsep_mkdir:
             try:
                 # use privsep rmtree, as requested
                 condorPrivsep.rmtree(base_dir,os.path.basename(self.dir))
