@@ -36,6 +36,8 @@ XML_CONFIG_FILE="glideinWMS.xml"
 INFOSYS_FILE="infosys.descript"
 RSA_KEY="rsa.key"
 
+UPDATE_PROXY_FILE="update_proxy.py"
+
 FRONTEND_DESCRIPT_FILE="frontend.descript"
 
 INITD_STARTUP_FILE="factory_startup"
