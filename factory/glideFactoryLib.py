@@ -46,6 +46,8 @@ class FactoryConfig:
 
         self.count_env = 'GLIDEIN_COUNT'
 
+        self.submit_fname="job_submit.sh"
+
 
         # Stale value settings, in seconds
         self.stale_maxage={ 1:7*24*3600,      # 1 week for idle
@@ -355,7 +357,7 @@ class ClientWebNoGroup:
         return
 
     def get_glidein_args(self):
-        return "-clientweb %s -clientsign %s -clientsigntype %s -clientdescript %s"%(self.url,self.sign,self.signtype,self.descript)
+        return ["-clientweb",self.url,"-clientsign",self.sign,"-clientsigntype",self.signtype,"-clientdescript",self.descript)
 
 
 class ClientWeb(ClientWebNoGroup):
@@ -375,7 +377,7 @@ class ClientWeb(ClientWebNoGroup):
 
     def get_glidein_args(self):
         return (ClientWebNoGroup.get_glidein_args(self)+
-                " -clientgroup %s -clientwebgroup %s -clientsigngroup %s -clientdescriptgroup %s"%(self.group_name,self.group_url,self.group_sign,self.group_descript))
+                ["-clientgroup",self.group_name,"-clientwebgroup",self.group_url,"-clientsigngroup",self.group_sign,"-clientdescriptgroup",self.group_descript])
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
@@ -781,14 +783,6 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                    x509_proxy_identifier,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
-    ####
-    #
-    # To Be written:
-    #
-    # Must use username
-    #
-    ####
-
     global factoryConfig
 
     submitted_jids=[]
@@ -807,9 +801,10 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
         params_arr.append(escapeParam(str(params[k])))
     params_str=string.join(params_arr," ")
 
-    client_web_str=""
+    client_web_arr=[]
     if client_web!=None:
-        client_web_str=client_web.get_glidein_args()
+        client_web_arr=client_web.get_glidein_args()
+    client_web_str=string.join(client_web_arr," ")
 
     try:
         nr_submitted=0
@@ -821,11 +816,34 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            try:
-                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
-            except condorExe.ExeError,e:
-                factoryConfig.logWarning("condor_submit failed: %s"%e);
-                submit_out=[]
+            if username!=MY_USERNAME:
+                # use privsep
+                exe_env=['X509_USER_PROXY=%s'%x509_proxy_fname]
+                # need to push all the relevant env variables through
+                for var in os.environ.keys():
+                    if ((var in ('PATH','LD_LIBRARY_PATH','X509_CERT_DIR')) or
+                        (var[:8]=='_CONDOR_') or (var[:7]=='CONDOR_')):
+                        if os.environ.has_key(var):
+                            exe_env.append('%s=%s'%(var,os.environ[var]))
+                try:
+                    condorPrivsep.execute(username,factoryConfig.submit_dir,
+                                          os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
+                                          [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,]+
+                                          client_web_arr+submit_attrs+
+                                          ['--']+params_arr,
+                                          exe_env)
+                except condorPrivsep.ExeError, e:
+                    factoryConfig.logWarning("condor_submit failed (user %s): %s"%(username,e))
+                except:
+                    factoryConfig.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
+            else:
+                # avoid using privsep, if possible
+                try:
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
+                except condorExe.ExeError,e:
+                    factoryConfig.logWarning("condor_submit failed: %s"%e);
+                    submit_out=[]
+                
                 
             cluster,count=extractJobId(submit_out)
             for j in range(count):
