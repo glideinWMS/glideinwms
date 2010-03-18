@@ -58,9 +58,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
                  web_base,proxy_url,
-                 work_dir):
-        entry_submit_dir=cgWConsts.get_entry_submit_dir("",entry_name)
-        
+                 work_dir,client_log_base_dir):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
@@ -92,9 +90,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("WhenToTransferOutput ","ON_EXIT")
         self.add("Notification","Never")
         self.add("+Owner","undefined")
-        self.add("Log","%s/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%entry_submit_dir)
-        self.add("Output","%s/log/job.$(Cluster).$(Process).out"%entry_submit_dir)
-        self.add("Error","%s/log/job.$(Cluster).$(Process).err"%entry_submit_dir)
+        self.add("Log","%s/user_$ENV(GLIDEIN_USER)/entry_%s/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%(client_log_base_dir,entry_name))
+        self.add("Output","%s/user_$ENV(GLIDEIN_USER)/entry_%s/job.$(Cluster).$(Process).out"%(client_log_base_dir,entry_name))
+        self.add("Error","%s/user_$ENV(GLIDEIN_USER)/entry_%s/job.$(Cluster).$(Process).err"%(client_log_base_dir,entry_name))
         self.add("stream_output","False")
         self.add("stream_error ","False")
         self.jobs_in_cluster="$ENV(GLIDEIN_COUNT)"

@@ -259,7 +259,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
                                           params.factory_name,params.glidein_name,self.sub_name,
                                           sub_params.gridtype,sub_params.gatekeeper,sub_params.rsl,
-                                          params.web_url,sub_params.proxy_url,sub_params.work_dir)
+                                          params.web_url,sub_params.proxy_url,sub_params.work_dir,
+                                          params.submit.base_client_log_dir)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
