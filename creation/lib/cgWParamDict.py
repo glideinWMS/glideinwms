@@ -558,7 +558,7 @@ def populate_frontend_descript(frontend_dict,     # will be modified
                 raise RuntimeError, 'security.frontends[%s].security_sclasses[%s][username] not defined, but required'%(fe,sc)
             maps[sc]=username
         
-        frontend_dict[fe]={'ident':ident,'usermap':maps}
+        frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
     
 #################################
