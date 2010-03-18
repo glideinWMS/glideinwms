@@ -1,5 +1,7 @@
 #!/bin/bash
 
+export GLIDEIN_USER=`id -u -n`
+
 if [ $# -lt 4 ]; then
  echo "At least 4 args expected!" 1>&2
  echo "Usage: job_submit.sh entry_name client x509_id count [attrs]* -- [params]*"
