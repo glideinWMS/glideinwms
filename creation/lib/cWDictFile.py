@@ -763,6 +763,39 @@ class SimpleFile(DictFile):
         raise RuntimeError,"Not defined in SimpleFile"
 
 
+# This class holds the content of the whole file in the single val
+# with key 'content'
+# Any other key is invalid
+# When saving, it will make it executable
+class ExeFile(SimpleFile):
+    def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
+             sort_keys=None,set_readonly=True,reset_changed=True,
+             save_only_if_changed=True,
+             want_comments=True): 
+        if save_only_if_changed and (not self.changed):
+            return # no change -> don't save
+
+        if dir==None:
+            dir=self.dir
+        if fname==None:
+            fname=self.fname
+        if sort_keys==None:
+            sort_keys=self.sort_keys
+
+
+        filepath=os.path.join(dir,fname)
+        try:
+            fd=open(filepath,"w")
+        except IOError,e:
+            raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+        try:
+            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
+        finally:
+            fd.close()
+        fd.chmod(filepath,0544)
+
+        return
+
 ########################################################################################################################
 
 # abstract class for a directory creation
