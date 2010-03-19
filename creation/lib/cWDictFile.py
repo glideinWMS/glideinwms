@@ -792,7 +792,7 @@ class ExeFile(SimpleFile):
             self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
         finally:
             fd.close()
-        fd.chmod(filepath,0544)
+        fd.chmod(filepath,0755)
 
         return
 
