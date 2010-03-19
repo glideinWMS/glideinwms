@@ -189,3 +189,15 @@ class FrontendDescript(ConfigFile):
                 return fe[sec_class]
 
         return None
+
+    # returns a list of all the usernames assigned to the frontends
+    def get_all_usernames(self):
+        usernames={}
+        for frontend in self.data.keys():
+            fe=self.data[frontend]['usermap']
+            for sec_class in fe.keys():
+                username=fe[sec_class]
+                usernames[username]=True
+        return usernames.keys()
+    
+        
