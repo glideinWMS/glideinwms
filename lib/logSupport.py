@@ -82,7 +82,7 @@ class DirCleanup:
             update_time=fstat[stat.ST_MTIME]
             if update_time<treshold_time:
                 try:
-                    os.unlink(fpath)
+                    self.delete_file(fpath)
                     count_removes+=1
                 except:
                    if self.warning_log!=None:
@@ -113,7 +113,10 @@ class DirCleanup:
             out_data[fpath]=fstat
 
         return out_data
-        
+
+    # this may reimplemented by the children
+    def delete_file(self,fpath):
+        os.unlink(fpath)
 
 # this class is used for cleanup
 class DirCleanupWSpace(DirCleanup):
@@ -156,7 +159,7 @@ class DirCleanupWSpace(DirCleanup):
             if ((update_time<treshold_time) or
                 ((update_time<min_treshold_time) and (used_space>self.maxspace))):
                 try:
-                    os.unlink(fpath)
+                    self.delete_file(fpath)
                     count_removes+=1
                     count_removes_bytes+=fsize
                     used_space-=fsize
