@@ -397,7 +397,7 @@ class ClientWebNoGroup:
         return
 
     def get_glidein_args(self):
-        return ["-clientweb",self.url,"-clientsign",self.sign,"-clientsigntype",self.signtype,"-clientdescript",self.descript)
+        return ["-clientweb",self.url,"-clientsign",self.sign,"-clientsigntype",self.signtype,"-clientdescript",self.descript]
 
 
 class ClientWeb(ClientWebNoGroup):

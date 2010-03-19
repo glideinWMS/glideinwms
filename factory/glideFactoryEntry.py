@@ -184,7 +184,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
             client_expected_identity=frontendDescript.get_identity(client_security_name)
             if client_expected_identity==None:
-                 glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
+                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
                 continue #skip request
             
             client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
