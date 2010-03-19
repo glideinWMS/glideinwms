@@ -260,8 +260,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     glideFactoryLib.log_files.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: %s"%(i,x509_proxy_username,client_int_name,e))
                     continue # skip request
                 except:
+                    tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                    sys.exc_info()[2])
                     glideFactoryLib.log_files.logWarning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request"%(i,x509_proxy_username,client_int_name))
-                    glideFactoryLib.log_files.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: Reason unknown"%(i,x509_proxy_username,client_int_name))
+                    glideFactoryLib.log_files.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s"%(i,x509_proxy_username,client_int_name,string.join(tb,'')))
                     continue # skip request
                 
                 x509_proxy_fnames[x509_proxy_identifier]=x509_proxy_fname

@@ -12,6 +12,7 @@ import os
 import time
 import string
 import re
+import traceback
 import pwd
 import condorExe,condorPrivsep
 import logSupport
@@ -190,9 +191,11 @@ class LogFiles:
                 cleanupObj.cleanup()
             except:
                 # logging must never throw an exception!
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                sys.exc_info()[2])
                 self.logWarning("%s cleanup failed."%cleanupObj.dirname)
-
-
+                self.logDebug("%s cleanup failed: Exception %s"%(cleanupObj.dirname,string.join(tb,'')))
+                
     #
     # Clients can add additional cleanup objects, if needed
     #
