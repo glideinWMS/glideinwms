@@ -370,6 +370,9 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     current_qc_data=glideFactoryLib.factoryConfig.qc_stats.get_data()
     for client_name in current_qc_data.keys():
         client_qc_data=current_qc_data[client_name]
+        if not glideFactoryLib.factoryConfig.client_internals.has_key(client_name):
+            glideFactoryLib.log_files.logWarning("Client '%s' has stats, but no classad! Ignoring."%client_name)
+            continue
         client_internals=glideFactoryLib.factoryConfig.client_internals[client_name]
 
         client_monitors={}
