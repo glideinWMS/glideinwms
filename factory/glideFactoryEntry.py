@@ -82,12 +82,22 @@ def perform_work(entry_name,
     if 1:
         condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.log_files.logActivity("Work")
-    log_stats=glideFactoryLogParser.dirSummaryTimingsOut("entry_%s/log"%entry_name,client_name)
-    log_stats.load()
+
+    # find out the users it is using
+    usernames={}
+    for x509_proxy_id in x509_proxy_keys:
+        username=x509_proxy_usernames[x509_proxy_id]
+        usernames[username]=True
+
+    log_stats={}
+    for username in usernames.keys():
+        log_stats[username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_usernames[x509_proxy_id]),client_name)
+        # should not need privsep for reading logs
+        log_stats[username].load()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
-
+        
 
     submit_attrs=[]
 

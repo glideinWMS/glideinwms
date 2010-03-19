@@ -443,7 +443,7 @@ class condorLogSummary:
         self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
-        self.current_stats_data={}     # will contain dictionary client->dirSummary.data
+        self.current_stats_data={}     # will contain dictionary client->username->dirSummary.data
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
         self.job_statuses_short=('Running','Idle','Wait','Held') #const
@@ -493,25 +493,29 @@ class condorLogSummary:
          stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
         if self.current_stats_data.has_key(client_name):
-            self.stats_diff[client_name]=stats.diff(self.current_stats_data[client_name])
+            for username in stats.keys():
+                if self.current_stats_data[client_name].has_key(username):
+                    self.stats_diff[client_name][username]=stats[username].diff(self.current_stats_data[client_name][username])
         else:
-            self.stats_diff[client_name]=None # should only compare agains a known result
+            self.stats_diff[client_name]={} # should only compare agains a known result
         
-        self.current_stats_data[client_name]=stats.data
+        for username in stats.keys():
+            self.current_stats_data[client_name][username]=stats[username].data
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
 
     def get_stats_data_summary(self):
         stats_data={}
         for client_name in self.current_stats_data.keys():
-            client_el=self.current_stats_data[client_name]
             out_el={}
             for s in self.job_statuses:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-                    if ((client_el!=None) and (s in client_el.keys())):
-                        count=len(client_el[s])
-                    else:
-                        count=0
+                    count=0
+                    for username in self.current_stats_data[client_name].keys():
+                        client_el=self.current_stats_data[client_name][username]
+                        if ((client_el!=None) and (s in client_el.keys())):
+                            count+=len(client_el[s])
+
                     out_el[s]=count
             stats_data[client_name]=out_el
         return stats_data
@@ -523,7 +527,7 @@ class condorLogSummary:
                                      subtypes_params={"class":{}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
-    # in: entered_list=self.stats_diff[client_name]['Entered']
+    # in: entered_list=self.stats_diff[*]['Entered']
     # out: entered_list[job_id]{'duration','condor_started','condor_duration','jobsnr',wastemill':{'validation','idle','nosuccess','badput'}}
     def get_completed_stats(self,entered_list):
         out_list={}
@@ -697,24 +701,27 @@ class condorLogSummary:
     def get_data_summary(self):
         stats_data={}
         for client_name in self.stats_diff.keys():
-            stats_el=self.current_stats_data[client_name]
-            diff_el=self.stats_diff[client_name]
             out_el={'Current':{},'Entered':{},'Exited':{}}
             for s in self.job_statuses:
-                if ((diff_el!=None) and (s in diff_el.keys())):
-                    entered_list=diff_el[s]['Entered']
-                    entered=len(entered_list)
-                    exited=-len(diff_el[s]['Exited'])
-                else:
-                    entered=0
-                    entered_list=[]
-                    exited=0
+                entered=0
+                entered_list=[]
+                exited=0
+                for username in self.stats_diff[client_name].keys():
+                    diff_el=self.stats_diff[client_name][username]
+                
+                    if ((diff_el!=None) and (s in diff_el.keys())):
+                        entered_list+=diff_el[s]['Entered']
+                        entered+=len(diff_el[s]['Entered'])
+                        exited-=len(diff_el[s]['Exited'])
+
                 out_el['Entered'][s]=entered
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
-                    if ((stats_el!=None) and (s in stats_el.keys())):
-                        count=len(stats_el[s])
-                    else:
-                        count=0
+                    count=0
+                    for username in self.current_stats_data[client_name].keys():
+                        stats_el=self.current_stats_data[client_name][username]
+
+                        if ((stats_el!=None) and (s in stats_el.keys())):
+                            count+=len(stats_el[s])
                     out_el['Current'][s]=count
                     # and we can never get out of the terminal state
                     out_el['Exited'][s]=exited
@@ -738,9 +745,10 @@ class condorLogSummary:
         for k in total.keys():
             tdata=[]
             for client_name in self.current_stats_data.keys():
-                sdata=self.current_stats_data[client_name]
-                if ((sdata!=None) and (k in sdata.keys())):
-                    tdata=tdata+sdata[k]
+                for username in self.current_stats_data[client_name]:
+                    sdata=self.current_stats_data[client_name][username]
+                    if ((sdata!=None) and (k in sdata.keys())):
+                        tdata=tdata+sdata[k]
             total[k]=tdata
         return total
 
@@ -757,16 +765,31 @@ class condorLogSummary:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
+    def get_diff_summary(self):
+        out_data={}
+        for client_name in self.stats_diff.keys():
+            client_el={'Wait':None,'Idle':None,'Running':None,'Held':None,'Completed':None,'Removed':None}
+            for k in client_el.keys():
+                client_el[k]={'Entered':[],'Exited':[]}
+                tdata=client_el[k]
+                for username in self.stats_diff[client_name].keys():
+                    sdiff=self.stats_diff[client_name][username]
+                    if ((sdiff!=None) and (k in sdiff.keys())):
+                        for e in tdata.keys():
+                            tdata[e]=tdata[e]+sdiff[k][e]
+        return out_data
+
     def get_diff_total(self):
         total={'Wait':None,'Idle':None,'Running':None,'Held':None,'Completed':None,'Removed':None}
         for k in total.keys():
             total[k]={'Entered':[],'Exited':[]}
             tdata=total[k]
             for client_name in self.stats_diff.keys():
-                sdiff=self.stats_diff[client_name]
-                if ((sdiff!=None) and (k in sdiff.keys())):
-                    for e in tdata.keys():
-                        tdata[e]=tdata[e]+sdiff[k][e]
+                for username in self.stats_diff[client_name].keys():
+                    sdiff=self.stats_diff[client_name][username]
+                    if ((sdiff!=None) and (k in sdiff.keys())):
+                        for e in tdata.keys():
+                            tdata[e]=tdata[e]+sdiff[k][e]
         return total
 
     def get_total_summary(self):
@@ -826,8 +849,9 @@ class condorLogSummary:
 
         # update rrds
         stats_data_summary=self.get_stats_data_summary()
+        diff_summary=self.get_diff_summary()
         stats_total_summary=self.get_stats_total_summary()
-        for client_name in [None]+self.stats_diff.keys():
+        for client_name in [None]+diff_summary.keys():
             if client_name==None:
                 fe_dir="total"
                 sdata=stats_total_summary
@@ -835,7 +859,7 @@ class condorLogSummary:
             else:
                 fe_dir="frontend_"+client_name
                 sdata=stats_data_summary[client_name]
-                sdiff=self.stats_diff[client_name]
+                sdiff=diff_summary[client_name]
 
             monitoringConfig.establish_dir(fe_dir)
             val_dict_counts={}
