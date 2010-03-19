@@ -51,7 +51,7 @@ while (i<alen):
         print "wmsXMLView.py [-pool <node>[:<port>]] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
         sys.exit(1)
     else:
-        raise RuntimeError,"Unknown option '%s'"%ael
+        raise RuntimeError,"Unknown option '%s', try -help"%ael
     i=i+1
 
 # get data
