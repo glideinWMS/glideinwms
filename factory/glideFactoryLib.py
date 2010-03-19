@@ -81,6 +81,7 @@ class FactoryConfig:
 
         # used directories
         self.submit_dir=None
+        self.log_base_dir=None
         self.client_log_base_dir=None
         self.client_proxies_base_dir=None
 
@@ -88,8 +89,9 @@ class FactoryConfig:
         self.factory_name=factory_name
         self.glidein_name=glidein_name
 
-    def config_dirs(self,submit_dir,client_log_base_dir,client_proxies_base_dir):
+    def config_dirs(self,submit_dir,log_base_dir,client_log_base_dir,client_proxies_base_dir):
         self.submit_dir=submit_dir
+        self.log_base_dir=log_base_dir
         self.client_log_base_dir=client_log_base_dir
         self.client_proxies_base_dir=client_proxies_base_dir
 

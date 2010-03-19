@@ -500,6 +500,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.config_whoamI(glideinDescript.data['FactoryName'],
                                                 glideinDescript.data['GlideinName'])
     glideFactoryLib.factoryConfig.config_dirs(startup_dir,
+                                              glideinDescript.data['LogDir'],
                                               glideinDescript.data['ClientLogBaseDir'],
                                               glideinDescript.data['ClientProxiesBaseDir'])
     
