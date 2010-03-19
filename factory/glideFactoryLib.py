@@ -14,6 +14,7 @@ import string
 import re
 import traceback
 import pwd
+import binascii
 import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
