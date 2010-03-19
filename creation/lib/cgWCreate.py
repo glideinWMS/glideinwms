@@ -273,5 +273,5 @@ def copy_file(infile,outfile):
 # Copy an executable between two dirs
 def copy_exe(filename,work_dir,org_dir):
     copy_file(os.path.join(org_dir,filename),work_dir)
-    os.chmod(os.path.join(work_dir,filename),0544)
+    os.chmod(os.path.join(work_dir,filename),0555)
     
