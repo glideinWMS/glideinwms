@@ -36,8 +36,12 @@ while (i<alen):
         pool_name=sys.argv[i]
     elif ael in ('Entries','Sites','Gatekeepers'):
         txt_type=ael
+    elif ael=='-help':
+        print "Usage:"
+        print "wmsTxtView.py [-pool <node>[:<port>]] [Entries|Sites|Gatekeepers] [-help]"
+        sys.exit(1)
     else:
-        raise RuntimeError,"Unknown option '%s'"%ael
+        raise RuntimeError,"Unknown option '%s', try -help"%ael
     i=i+1
 
 # get data
