@@ -14,6 +14,7 @@ import string
 import re
 import pwd
 import condorExe,condorPrivsep
+import logSupport
 import condorMonitor
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
