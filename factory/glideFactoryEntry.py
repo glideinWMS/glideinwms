@@ -83,6 +83,9 @@ def perform_work(entry_name,
         condorStatus=None # this is not fundamental information, can live without
     #glideFactoryLib.log_files.logActivity("Work")
 
+    x509_proxy_keys=x509_proxy_fnames.keys()
+    random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another
+
     # find out the users it is using
     usernames={}
     for x509_proxy_id in x509_proxy_keys:
@@ -102,8 +105,6 @@ def perform_work(entry_name,
     submit_attrs=[]
 
     # use the extended params for submission
-    x509_proxy_keys=x509_proxy_fnames.keys()
-    random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another
     proxy_fraction=1.0/len(x509_proxy_keys)
 
     # I will shuffle proxies around, so I may as well round up all of them
