@@ -56,7 +56,7 @@ def perform_work(entry_name,
     else:
         condor_pool=None
     
-    #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
+    #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
     try:
         condorQ=glideFactoryLib.getCondorQData(entry_name,client_name,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
@@ -72,7 +72,7 @@ def perform_work(entry_name,
         # protect and skip
         return 0
 
-    #glideFactoryLib.log_files.logActivity("QueryS (%s,%s,%s,%s,%s)"%(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
+    #glideFactoryLib.log_files.logActivity("QueryS (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
 
     # Temporary disable queries to the collector
     # Not really used by anybody, so let reduce the load
@@ -137,7 +137,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     #glideFactoryLib.log_files.logActivity("Find work")
-    work = glideFactoryInterface.findWork(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,
+    work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
                                           pub_key_obj,allowed_proxy_source)
     glideFactoryLib.logWorkRequests(work)
@@ -353,7 +353,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     try:
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
-        glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,
+        glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
                                                pub_key_obj,allowed_proxy_source)
@@ -380,7 +380,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
             if p in params.keys(): # can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
         try:
-            glideFactoryInterface.advertizeGlideinClientMonitoring(glideFactory.factoryConfig.factory_name,glideFactory.factoryConfig.glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
+            glideFactoryInterface.advertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
         except:
             glideFactoryLib.log_files.logWarning("Advertize of '%s' failed"%client_name)
         
