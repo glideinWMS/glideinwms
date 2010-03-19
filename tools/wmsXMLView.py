@@ -46,6 +46,10 @@ while (i<alen):
     elif ael=='-rsa_key':
         i=i+1
         key_obj=glideFactoryConfig.GlideinKey('RSA',sys.argv[i])
+    elif ael=='-help':
+        print "Usage:"
+        print "wmsXMLView.py [-pool <node>[:<port>]] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
+        sys.exit(1)
     else:
         raise RuntimeError,"Unknown option '%s'"%ael
     i=i+1
