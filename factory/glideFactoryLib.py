@@ -124,16 +124,39 @@ factoryConfig=FactoryConfig()
 #
 ############################################################
 
+class PrivsepDirCleanupWSpace(logSupport.DirCleanupWSpace):
+    def __init__(self,
+                 username,         # if None, no privsep
+                 dirname,
+                 fname_expression, # regular expression, used with re.match
+                 maxlife,          # max lifetime after which it is deleted
+                 minlife,maxspace, # max space allowed for the sum of files, unless they are too young
+                 activity_log,warning_log): # if None, no logging
+        logSupport.DirCleanupWSpace.__init__(self,dirname,fname_expression,
+                                             maxlife,minlife,maxspace,
+                                             activity_log,warning_log)
+        self.username=username
+
+    def delete_file(self,fpath):
+        if (self.username!=None) and (self.username!=MY_USERNAME):
+            # use privsep
+            # do not use rmtree as we do not want root privileges
+            condorPrivsep.execute(self.username,os.path.dirname(fpath),'/bin/rm',['rm',fpath],stdout_fname=None)
+        else:
+            # use the native method, if possible
+            os.unlink(fpath)
+
 class LogFiles:
     def __init__(self,log_dir,max_days,min_days,max_mbs):
         self.log_dir=log_dir
         self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"info.log")
         self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"err.log")
         self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"debug.log")
-        self.cleanupObj=logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
-                                                    int(max_days*24*3600),int(min_days*24*3600),
-                                                    long(max_mbs*(1024.0*1024.0)),
-                                                    self.activity_log,self.warning_log)
+        # no need to use the privsep version
+        self.cleanupObjs=[logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
+                                                      int(max_days*24*3600),int(min_days*24*3600),
+                                                      long(max_mbs*(1024.0*1024.0)),
+                                                      self.activity_log,self.warning_log)]
 
     def logActivity(self,str):
         try:
@@ -161,11 +184,26 @@ class LogFiles:
             pass
 
     def cleanup(self):
-        try:
-            self.cleanupObj.cleanup()
-        except:
-            # logging must never throw an exception!
-            self.logWarning("log cleanup failed.")
+        for cleanupObj in self.cleanupObjs:
+            try:
+                cleanupObj.cleanup()
+            except:
+                # logging must never throw an exception!
+                self.logWarning("%s cleanup failed."%cleanupObj.dirname)
+
+
+    #
+    # Clients can add additional cleanup objects, if needed
+    #
+    def add_dir_to_cleanup(self,
+                           username,       # if None, no privsep
+                           dir_to_cleanup,fname_expression,
+                           max_days,min_days,max_mbs):
+        self.cleanupObjs.append(PrivsepDirCleanupWSpace(username,dir_to_cleanup,fname_expression,
+                                                        int(max_days*24*3600),int(min_days*24*3600),
+                                                        long(max_mbs*(1024.0*1024.0)),
+                                                        self.activity_log,self.warning_log))
+        
 
 # someone needs to initialize this
 # type LogFiles
