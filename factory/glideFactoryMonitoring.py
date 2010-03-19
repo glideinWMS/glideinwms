@@ -891,6 +891,10 @@ class condorLogSummary:
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
+                        # Here we lost the detail of which username was used
+                        # this will make the debugging difficult
+                        # Should move somewhere else where we do have this detail
+                        # But not today (To be written)
                         monitoringConfig.logCompleted(completed_stats)
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
