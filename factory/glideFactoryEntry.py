@@ -503,7 +503,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
 
     # add cleaners for the user log directories
     for username in frontendDescript.get_all_usernames():
-        user_log_dir=glideFactoryLib.factoryConfig.get_client_lib_dir(entry_name,username)
+        user_log_dir=glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,username)
         glideFactoryLib.log_files.add_dir_to_cleanup(username,user_log_dir,
                                                      "(job\..*\.out)|(job\..*\.err)",
                                                      float(glideinDescript.data['JobLogRetentionMaxDays']),

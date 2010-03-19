@@ -170,7 +170,7 @@ class JobParams(JoinConfigFile):
 class FrontendDescript(ConfigFile):
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.uid_mapper_file,
+        ConfigFile.__init__(self,factoryConfig.frontend_mapper_file,
                             lambda s:s) # values are in python format
 
     # returns None if the frontend is unknown
