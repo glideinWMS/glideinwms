@@ -488,12 +488,11 @@ class condorLogSummary:
         """
          stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
+        self.stats_diff[client_name]={}
         if self.current_stats_data.has_key(client_name):
             for username in stats.keys():
                 if self.current_stats_data[client_name].has_key(username):
                     self.stats_diff[client_name][username]=stats[username].diff(self.current_stats_data[client_name][username])
-        else:
-            self.stats_diff[client_name]={} # should only compare agains a known result
 
         self.current_stats_data[client_name]={}
         for username in stats.keys():
