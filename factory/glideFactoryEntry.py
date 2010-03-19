@@ -399,7 +399,7 @@ def iterate_one(do_advertize,in_downtime,
     return done_something
 
 ############################################################
-def iterate(parent_pid,cleanupObjs,sleep_time,advertize_rate,
+def iterate(parent_pid,sleep_time,advertize_rate,
             glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     is_first=1
     count=0;
@@ -532,7 +532,6 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
             try:
                 glideFactoryLib.log_files.logActivity("Starting up")
                 iterate(parent_pid,
-                        (jobCleanupObj,glideFactoryLib.log_files,summaryCleanupObj,condorCleanupObj),
                         sleep_time,advertize_rate,
                         glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
             except KeyboardInterrupt:
