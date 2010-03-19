@@ -106,11 +106,11 @@ class FactoryConfig:
         self.max_removes=maxRemovesXCycle
 
     def get_client_log_dir(self,entry_name,username):
-        log_dir=os.path.join(self.client_log_base_dir,"user_%s/entry_%s"%(username,entry_name))
+        log_dir=os.path.join(self.client_log_base_dir,"user_%s/glidein_%s,entry_%s"%(username,self.glidein_name,entry_name))
         return log_dir
 
     def get_client_proxies_dir(self,entry_name,username):
-        proxy_dir=os.path.join(self.client_proxies_base_dir,"user_%s/entry_%s"%(username,entry_name))
+        proxy_dir=os.path.join(self.client_proxies_base_dir,"user_%s/glidein_%s/entry_%s"%(username,self.glidein_name,entry_name))
         return proxy_dir
 
 
