@@ -12,6 +12,9 @@ import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
 import rrdSupport
 
+import logSupport
+import glideFactoryLib
+
 ############################################################
 #
 # Configuration
@@ -32,11 +35,24 @@ class MonitoringConfig:
 
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
+
+        
         self.log_dir="log/"
+        self.logCleanupObj=None
 
         self.rrd_obj=rrdSupport.rrdSupport()
 
         self.my_name="Unknown"
+
+    def config_log(self,log_dir,max_days,min_days,max_mbs):
+        self.log_dir=log_dir
+        self.logCleanupObj=logSupport.DirCleanupWSpace(log_dir,
+                                                       "(completed_jobs_\..*\.log)",
+                                                       int(max_days*24*3600),int(min_days*24*3600),
+                                                       long(max_mbs*(1024.0*1024.0)),
+                                                       glideFactoryLib.log_files.activity_log,
+                                                       glideFactoryLib.log_files.warning_log)
+        
 
     def logCompleted(self,entered_dict):
         now=time.time()
@@ -902,6 +918,9 @@ class condorLogSummary:
 
         self.files_updated=self.updated
         return
+
+    def cleanup(self):
+        monitoringConfig.logCleanupObj.cleanup()      
     
 ############### P R I V A T E ################
 
