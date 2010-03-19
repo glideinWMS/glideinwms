@@ -472,7 +472,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,username,
+        submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
                        condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
