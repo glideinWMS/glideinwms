@@ -8,7 +8,7 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os
+import os,sys
 import time
 import string
 import re
