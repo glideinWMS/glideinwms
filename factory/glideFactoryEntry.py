@@ -192,7 +192,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             if client_authenticated_identity!=client_expected_identity:
                 # silently drop... like if we never read it in the first place
                 # this is compatible with what the frontend does
-                 glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
+                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
                 continue #skip request
 
         else:
