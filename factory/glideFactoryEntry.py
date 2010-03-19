@@ -336,9 +336,6 @@ def write_stats():
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
 
-    # do a periodic cleanup of the log directory
-    glideFactoryLib.factoryConfig.log_stats.cleanup()
-    
     return
 
 ############################################################
@@ -446,8 +443,7 @@ def iterate(parent_pid,cleanupObjs,sleep_time,advertize_rate,
                                                 sys.exc_info()[2])
                 glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
-        for cleanupObj in cleanupObjs:
-            cleanupObj.cleanup()
+        glideFactoryLib.log_files.cleanup()
 
         glideFactoryLib.log_files.logActivity("Sleep %is"%sleep_time)
         time.sleep(sleep_time)
@@ -479,12 +475,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                        float(glideinDescript.data['SummaryLogRetentionMinDays']),
                                                        float(glideinDescript.data['SummaryLogRetentionMaxMBs']))
 
-    # quick hack,expose the log_files internals
-    # only a temporary measure... until I properly implement the rest of the logging
-    activity_log=glideFactoryLib.log_files.activity_log
-    warning_log=glideFactoryLib.log_files.warning_log
-
-    glideFactoryInterface.factoryConfig.warning_log=warning_log
+    glideFactoryInterface.factoryConfig.warning_log=glideFactoryLib.log_files.warning_log
 
     glideFactoryMonitoring.monitoringConfig.my_name="%s@%s"%(entry_name,glideinDescript.data['GlideinName'])
 
@@ -493,18 +484,6 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
-
-    jobCleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(job\..*\.out)|(job\..*\.err)",
-                                              float(glideinDescript.data['JobLogRetentionMaxDays'])*24*3600,
-                                              float(glideinDescript.data['JobLogRetentionMinDays'])*24*3600,
-                                              float(glideinDescript.data['JobLogRetentionMaxMBs'])*1024*1024,
-                                              activity_log,warning_log)
-
-    condorCleanupObj=logSupport.DirCleanupWSpace(os.path.join(startup_dir,"entry_%s/log"%entry_name),"(condor_activity_\..*\.log)|(condor_activity_\..*\.log.ftstpk)",
-                                                 float(glideinDescript.data['CondorLogRetentionMaxDays'])*24*3600,
-                                                 float(glideinDescript.data['CondorLogRetentionMinDays'])*24*3600,
-                                                 float(glideinDescript.data['CondorLogRetentionMaxMBs'])*1024*1024,
-                                                 activity_log,warning_log)
 
     # use config values to configure the factory
     glideFactoryLib.factoryConfig.config_whoamI(glideinDescript.data['FactoryName'],
@@ -521,6 +500,20 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.remove_sleep=float(jobDescript.data['RemoveSleep'])
     glideFactoryLib.factoryConfig.max_releases=int(jobDescript.data['MaxReleaseRate'])
     glideFactoryLib.factoryConfig.release_sleep=float(jobDescript.data['ReleaseSleep'])
+
+    # add cleaners for the user log directories
+    for username in frontendDescript.get_all_usernames():
+        user_log_dir=glideFactoryLib.factoryConfig.get_client_lib_dir(entry_name,username)
+        glideFactoryLib.log_files.add_dir_to_cleanup(username,user_log_dir,
+                                                     "(job\..*\.out)|(job\..*\.err)",
+                                                     float(glideinDescript.data['JobLogRetentionMaxDays']),
+                                                     float(glideinDescript.data['JobLogRetentionMinDays']),
+                                                     float(glideinDescript.data['JobLogRetentionMaxMBs']))
+        glideFactoryLib.log_files.add_dir_to_cleanup(username,user_log_dir,
+                                                     "(condor_activity_\..*\.log)|(condor_activity_\..*\.log.ftstpk)",
+                                                     float(glideinDescript.data['CondorLogRetentionMaxDays']),
+                                                     float(glideinDescript.data['CondorLogRetentionMinDays']),
+                                                     float(glideinDescript.data['CondorLogRetentionMaxMBs']))
 
     # create lock file
     pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
