@@ -467,7 +467,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
         stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
-        factoryConfig.logActivity("Need more glideins: %s"%stat_str)
+        log_files.logActivity("Need more glideins: %s"%stat_str)
         submitGlideins(condorq.entry_name,condorq.schedd_name,username,
                        condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
@@ -489,7 +489,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
     if runstale_glideins>0:
         # remove the held glideins
         runstale_list=extractRunStale(condorq)
-        factoryConfig.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
         removeGlideins(condorq.schedd_name,runstale_list)
 
     return 0
@@ -505,19 +505,19 @@ def sanitizeGlideins(condorq,status):
     # Check if some glideins have been in idle state for too long
     stale_list=extractStale(condorq,status)
     if len(stale_list)>0:
-        factoryConfig.logWarning("Found %i stale glideins"%len(stale_list))
+        log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
 
     # Check if there are held glideins
     held_list=extractHeld(condorq,status)
     if len(held_list)>0:
-        factoryConfig.logWarning("Found %i held glideins"%len(held_list))
+        log_files.logWarning("Found %i held glideins"%len(held_list))
         releaseGlideins(condorq.schedd_name,held_list)
 
     # Now look for VMs that have not been claimed for a long time
     staleunclaimed_list=extractStaleUnclaimed(condorq,status)
     if len(staleunclaimed_list)>0:
-        factoryConfig.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
+        log_files.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
         removeGlideins(condorq.schedd_name,staleunclaimed_list)
 
 
@@ -536,13 +536,13 @@ def sanitizeGlideinsSimple(condorq):
     # Check if some glideins have been in idle state for too long
     stale_list=extractStaleSimple(condorq)
     if len(stale_list)>0:
-        factoryConfig.logWarning("Found %i stale glideins"%len(stale_list))
+        log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
 
     # Check if there are held glideins
     held_list=extractHeldSimple(condorq)
     if len(held_list)>0:
-        factoryConfig.logWarning("Found %i held glideins"%len(held_list))
+        log_files.logWarning("Found %i held glideins"%len(held_list))
         releaseGlideins(condorq.schedd_name,held_list)
 
     return
@@ -561,7 +561,7 @@ def logStats(condorq,condorstatus,client_int_name):
     else:
         s_running="?" # temporary glitch
     
-    factoryConfig.logActivity("Client '%s', schedd status %s, collector running %s"%(client_int_name,qc_status,s_running))
+    log_files.logActivity("Client '%s', schedd status %s, collector running %s"%(client_int_name,qc_status,s_running))
     if factoryConfig.qc_stats!=None:
         factoryConfig.qc_stats.logSchedd(client_int_name,qc_status)
     
@@ -570,9 +570,9 @@ def logStats(condorq,condorstatus,client_int_name):
 def logWorkRequests(work):
     for work_key in work.keys():
         if work[work_key]['requests'].has_key('IdleGlideins'):
-            factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
-            factoryConfig.logActivity("  Params: %s"%work[work_key]['params'])
-            factoryConfig.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
+            log_files.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
+            log_files.logActivity("  Params: %s"%work[work_key]['params'])
+            log_files.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
             factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
             factoryConfig.qc_stats.logClientMonitor(work[work_key]['internals']["ClientName"],work[work_key]['monitor'],work[work_key]['internals'])
 
@@ -874,15 +874,15 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                                           ['--']+params_arr,
                                           exe_env)
                 except condorPrivsep.ExeError, e:
-                    factoryConfig.logWarning("condor_submit failed (user %s): %s"%(username,e))
+                    log_files.logWarning("condor_submit failed (user %s): %s"%(username,e))
                 except:
-                    factoryConfig.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
+                    log_files.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
             else:
                 # avoid using privsep, if possible
                 try:
                     submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
-                    factoryConfig.logWarning("condor_submit failed: %s"%e);
+                    log_files.logWarning("condor_submit failed: %s"%e);
                     submit_out=[]
                 
                 
@@ -892,7 +892,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             nr_submitted+=count
     finally:
         # write out no matter what
-        factoryConfig.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
+        log_files.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
 
 # remove the glideins in the list
 def removeGlideins(schedd_name,jid_list):
@@ -916,12 +916,12 @@ def removeGlideins(schedd_name,jid_list):
             condorExe.exe_cmd("condor_rm","%s %li.%li"%(schedd_str,jid[0],jid[1]))
             removed_jids.append(jid)
         except condorExe.ExeError, e:
-            factoryConfig.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            log_files.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
             pass # silently ignore errors, and try next one
 
         if len(removed_jids)>=factoryConfig.max_removes:
             break # limit reached, stop
-    factoryConfig.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
+    log_files.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
 
 # release the glideins in the list
 def releaseGlideins(schedd_name,jid_list):
@@ -945,11 +945,11 @@ def releaseGlideins(schedd_name,jid_list):
             condorExe.exe_cmd("condor_release","%s %li.%li"%(schedd_str,jid[0],jid[1]))
             released_jids.append(jid)
         except condorExe.ExeError, e:
-            factoryConfig.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            log_files.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
             pass # silently ignore errors, and try next one
 
         if len(released_jids)>=factoryConfig.max_releases:
             break # limit reached, stop
-    factoryConfig.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
+    log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
 
 
