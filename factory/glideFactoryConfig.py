@@ -176,7 +176,7 @@ class FrontendDescript(ConfigFile):
     # returns None if the frontend is unknown
     def get_identity(self,frontend):
         if self.data.has_key(frontend):
-            fe=self.data[frontend]['usermap']
+            fe=self.data[frontend]
             return fe['ident']
         else:
             return None
