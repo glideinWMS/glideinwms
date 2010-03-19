@@ -494,9 +494,11 @@ class condorLogSummary:
                     self.stats_diff[client_name][username]=stats[username].diff(self.current_stats_data[client_name][username])
         else:
             self.stats_diff[client_name]={} # should only compare agains a known result
-        
+
+        self.current_stats_data[client_name]={}
         for username in stats.keys():
             self.current_stats_data[client_name][username]=stats[username].data
+        
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
 
