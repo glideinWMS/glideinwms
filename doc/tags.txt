@@ -1,5 +1,10 @@
 vNext	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
+	Add frontend autentication info to the factory config.
+	Put log files in a separate tree.
+	Put client logs and client proxies in separate trees.
+	Implement privilege separation in the factory.
+	Various minor refactoring of code to achieve the above.
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
