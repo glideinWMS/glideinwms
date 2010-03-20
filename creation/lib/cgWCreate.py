@@ -92,9 +92,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("WhenToTransferOutput ","ON_EXIT")
         self.add("Notification","Never")
         self.add("+Owner","undefined")
-        self.add("Log","%s/user_$ENV(GLIDEIN_USER)/entry_%s/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%(client_log_base_dir,entry_name))
-        self.add("Output","%s/user_$ENV(GLIDEIN_USER)/entry_%s/job.$(Cluster).$(Process).out"%(client_log_base_dir,entry_name))
-        self.add("Error","%s/user_$ENV(GLIDEIN_USER)/entry_%s/job.$(Cluster).$(Process).err"%(client_log_base_dir,entry_name))
+        self.add("Log","%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%(client_log_base_dir,glidein_name,entry_name))
+        self.add("Output","%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).out"%(client_log_base_dir,glidein_name,entry_name))
+        self.add("Error","%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).err"%(client_log_base_dir,glidein_name,entry_name))
         self.add("stream_output","False")
         self.add("stream_error ","False")
         self.jobs_in_cluster="$ENV(GLIDEIN_COUNT)"
