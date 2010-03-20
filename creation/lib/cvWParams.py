@@ -200,6 +200,19 @@ class VOFrontendParams(cWParams.CommonParams):
             # it also makes the frontend admins aware of the name
             self.data['security']['security_name']=self.frontend_name
 
+        ####################
+        for i in range(len(self.security.proxies)):
+            pel=self.subparams.data['security']['proxies'][i]
+            if pel['security_class']==None:
+                # define an explicit security, so the admin is aware of it
+                pel['security_class']="frontend"
+        group_names=self.groups.keys()
+        for group_name in group_names:
+            for i in range(len(self.groups[group_name].security.proxies)):
+                pel=self.subparams.data['groups'][group_name]['security']['proxies'][i]
+                if pel['security_class']==None:
+                    # define an explicit security, so the admin is aware of it
+                    pel['security_class']="group_%s"%group_name
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
