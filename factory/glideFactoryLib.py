@@ -871,16 +871,18 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                         if os.environ.has_key(var):
                             exe_env.append('%s=%s'%(var,os.environ[var]))
                 try:
-                    condorPrivsep.execute(username,factoryConfig.submit_dir,
-                                          os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-                                          [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,]+
-                                          client_web_arr+submit_attrs+
-                                          ['--']+params_arr,
-                                          exe_env)
+                    submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
+                                                     os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
+                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,]+
+                                                     client_web_arr+submit_attrs+
+                                                     ['--']+params_arr,
+                                                     exe_env)
                 except condorPrivsep.ExeError, e:
                     log_files.logWarning("condor_submit failed (user %s): %s"%(username,e))
+                    submit_out=[]
                 except:
                     log_files.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
+                    submit_out=[]
             else:
                 # avoid using privsep, if possible
                 try:
