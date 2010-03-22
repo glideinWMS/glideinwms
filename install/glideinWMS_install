@@ -55,6 +55,8 @@ SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=0
 COLLECTOR_INSTALLED=0
 # Was a main schedd configured on this machine?
 MAIN_SCHEDD_INSTALLED=0
+# Condor user
+CONDOR_IDS = ""
 
 ##########################################
 #
@@ -2116,8 +2118,10 @@ def create_condor_initd(fname='/etc/init.d/condor',user_condor_base_dir=None):
 def install_condor():
     global CONDOR_BASE_PATH
     global CONDOR_USER
+    global CONDOR_IDS
     global CONDOR_LOCAL_DIR
     global CONDOR_UPD_CONFIG_FILE
+    user = []
 
     print "Installing condor"
     print
@@ -2139,8 +2143,12 @@ def install_condor():
                 continue
             break # got and verified the user
         CONDOR_USER=condor_user
+        user = pwd.getpwnam(condor_user)      #JGW change 3.12.10
     else:
         CONDOR_USER=pwd.getpwuid(os.getuid())[0]
+        user = pwd.getpwuid(os.getuid())      #JGW change 3.12.10
+    CONDOR_IDS = "%s.%s" % (user[2],user[3])  #JGW change 3.12.10
+
 
 
     ################################
@@ -3425,8 +3433,9 @@ def create_secondary_schedd_support_files():
 ####################################
 def configure_secondary_schedd(schedd_name):
     global CONDOR_BASE_PATH
+    global CONDOR_IDS
 
-    err=os.system('%s/init_schedd.sh %s'%(CONDOR_BASE_PATH,schedd_name))
+    err=os.system('export CONDOR_IDS=%s;%s/init_schedd.sh %s'%(CONDOR_IDS,CONDOR_BASE_PATH,schedd_name))
     if err!=0:
         raise RuntimeError, "Failed to initialize schedd '%s'!"%schedd_name
 
