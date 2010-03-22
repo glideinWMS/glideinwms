@@ -2902,7 +2902,7 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
             continue
         if collector_port<1024:
             if os.getuid()!=0:
-                print "Only root can use prots below 1024: %i"%collector_port
+                print "Only root can use ports below 1024: %i"%collector_port
                 continue
             yn=raw_input("Do you really want to use the privileged port %i? (y/n)"%collector_port)
             if yn!='y':
