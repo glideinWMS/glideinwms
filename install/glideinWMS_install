@@ -1050,6 +1050,49 @@ def gfactory_install():
             continue 
         break
 
+    print
+    print "For security reasons, we want to whitelist all the frontends that we will be serving."
+    print "Each frontend should be segregated to its own (set of) username(s)."
+    print "If you do not want privilege separation, you can still just use the factory user."
+    print
+    print "Please list the frontends you will be serving:"
+    full_host_name=socket.getfqdn()
+    frontends={}
+    while 1:
+        print
+        frontend_name=raw_input("Frontend name (leave empty when finished): ")
+        if frontend_name=="":
+            if len(frontend_list.keys())<1:
+                print "You must list at least one frontend"
+                continue
+            break
+
+        if frontend_name in frontends.keys():
+            print "You already insterted '%s'!"%frontend_name
+            continue
+
+        frontend_identity=raw_input("Frontend identity (like vo1@%s): "%full_host_name)
+        if frontend_identity=="":
+            print "Frontend identity cannot be empty!"
+            continue
+
+        # each frontend could have multiple proxy security classes
+        # ask for just one for simplicity
+        
+        frontend_secclass=raw_input("Frontend proxy security class: [frontend] ")
+        if frontend_secclass=="":
+            frontend_secclass="frontend"
+
+        frontend_uid=raw_input("Username: ")
+        try:
+            pwd.getpwnam(frontend_uid)
+        except:
+            print "User '%s' does not exist!"%condor_user
+            continue
+        
+        frontends[frontend_name]={'id':frontend_identity,'security_class':frontend_secclass,'user':frontend_uid}
+
+
     os.mkdir('%s/glidein_%s.cfg'%(submit_base_dir,glidein_name))
     
     #####################################
@@ -1075,10 +1118,18 @@ def gfactory_install():
 
             if voproxy_yn=="y":
                 # disable factory proxy
-                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA"/>\n')
+                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA">\n')
             else:
                 # allow both factory proxy and VO proxy
-                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>\n')
+                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>n')
+            for fe_name in frontends.keys():
+                fd.write('     <frontend name="%s" identity="%s">\n'%(fe_name,frontends[fe_name]['identity']))
+                fd.write('       <security_classes>\n')
+                fd.write('         <security_class name="%s" username="%s"/>\n'%(frontends[fe_name]['frontend_secclass'],frontends[fe_name]['frontend_uid']))
+                fd.write('       </security_classes>\n')
+                fd.write('     </frontend>\n')
+            fd.write('   </security>\n')
+            
             fd.write('   <attrs>\n')
             if ccb_yn!="y":
                 fd.write('      <attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
