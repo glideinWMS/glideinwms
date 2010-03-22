@@ -765,6 +765,7 @@ def gfactory_install():
     # Ask about the proxy
     proxy_fname=None
     print "The Glidein Factory can be configured to use a default GSI proxy for submission.\n"
+    print "However, this operation mode is not recommended.\n"
     while 1:
         match_yn=raw_input("Do you want to use such a proxy?: (y/n) ")
         if (match_yn!="y") and (match_yn!="n"):
@@ -807,10 +808,29 @@ def gfactory_install():
     full_host_name=socket.getfqdn()
     fhn_arr=full_host_name.split(".")
 
-    # Submit base directory
-    def_submit_base_dir="%s/glideinsubmit"%os.environ['HOME']
+    print
+    print "As you probably know, privilege separation "
+    print "is needed to securely support multiple frontends."
+    print "If you are using privilege separation, the factory directories"
+    print "must be world readable (except for the proxies dirs)"
+    print
+    print "Hosting the config and log files in the factory home directory"
+    print "is thus not recommended anymore."
+    print
 
-    submit_base_dir=create_empty_dir("Where will you host your config and log files?: ",def_submit_base_dir,empty_required=False)
+    # Submit base directory
+    def_submit_base_dir="/opt/%s/glideinsubmit"%pwd.getpwnam(os.getuid())[0]
+
+    submit_base_dir=create_empty_dir("Where will you host your config files?: ",def_submit_base_dir,empty_required=False)
+
+    def_log_base_dir="/opt/%s/glideinlog"%pwd.getpwnam(os.getuid())[0]
+    log_base_dir=create_empty_dir("Where will you host your log files?: ",def_log_base_dir,empty_required=False)
+
+    def_clientlog_base_dir="/opt/clientlogs"
+    clientlog_base_dir=create_empty_dir("Where will you host the client log files?: ",def_clientlog_base_dir,empty_required=False)
+
+    def_clientproxies_base_dir="/opt/clientproxies"
+    clientproxies_base_dir=create_empty_dir("Where will you host the client proxies files?: ",def_clientproxies_base_dir,empty_required=False)
 
     (web_base_dir,web_base_url)=query_WebLocation('glidefactory');
     
@@ -1041,7 +1061,7 @@ def gfactory_install():
             fd.write('<glidein factory_name="%s" glidein_name="%s"\n'%(factory_name,glidein_name))
             fd.write('         schedd_name="%s"\n'%string.join(schedds,','))
             fd.write('         loop_delay="60" advertise_delay="5" restart_attempts="3" restart_interval="1800">\n')
-            fd.write('   <submit base_dir="%s"/>\n'%submit_base_dir)
+            fd.write('   <submit base_dir="%s" base_log_dir="%s" base_client_log_dir="%s" base_client_proxies_dir="%s"/>\n'%(submit_base_dir,log_base_dir,clientlog_base_dir,clientproxies_base_dir))
             fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
             # Reminder to self(Igor)
@@ -2844,8 +2864,8 @@ def setup_privsep():
         print
         print "Directories needed by the factory will be given special"
         print "treatment to ease administration."
-        userlog_dir=create_empty_dir('Where will the factory store the client logs?','/opt/clinetlogs',False)
-        userproxy_dir=create_empty_dir('Where will the factory store the client proxies?','/opt/gfactory/clinetproxies',False)
+        userlog_dir=create_empty_dir('Where will the factory store the client logs?','/opt/clientlogs',False)
+        userproxy_dir=create_empty_dir('Where will the factory store the client proxies?','/opt/clientproxies',False)
 
         fd=open('/etc/condor/privsep_config','w')
         try:
