@@ -261,7 +261,7 @@ def save_common_dicts(dicts,     # will update in place, too
 def save_main_dicts(main_dicts, # will update in place, too
                     set_readonly=True):
     main_dicts['glidein'].save(set_readonly=set_readonly)
-    main_dicts['frontend_decript'].save(set_readonly=set_readonly)
+    main_dicts['frontend_descript'].save(set_readonly=set_readonly)
     save_common_dicts(main_dicts,True,set_readonly=set_readonly)
     summary_signature=main_dicts['summary_signature']
     summary_signature.add_from_file(key="main",filepath=main_dicts['signature'].get_filepath(),fname2=main_dicts['description'].get_fname(),allow_overwrite=True)
@@ -608,7 +608,7 @@ class glideinDicts(cWDictFile.fileDicts):
                  client_log_dirs,client_proxies_dirs,
                  entry_list=[],
                  workdir_name='submit'):
-        cWDictFile.fileDicts.__init__(work_dir,stage_dir,entry_list,workdir_name,
+        cWDictFile.fileDicts.__init__(self,work_dir,stage_dir,entry_list,workdir_name,
                                       False, # simple_work_dir=False
                                       log_dir)
         self.client_log_dirs=client_log_dirs
