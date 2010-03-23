@@ -2841,7 +2841,7 @@ def setup_privsep():
     if os.stat(switchboard_bin)[stat.ST_UID]!=0:
         raise RuntimeError, "Privsep binary (%s) not owned by root! Not doing anything!"%switchboard_bin
 
-    if os.path.exists('/etc/condor'):
+    if not os.path.exists('/etc/condor'):
         # Condor may have been installed in a different way
         # But provsep is hardwired to look in this dir
         os.mkdir('/etc/condor')
