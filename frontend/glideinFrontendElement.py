@@ -59,7 +59,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         factory_pool_node=factory_pool[0]
         factory_identity=factory_pool[1]
         try:
-            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,factory_identity,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
         except RuntimeError,e:
             if factory_pool_node!=None:
                 glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
@@ -71,7 +71,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             factory_glidein_dict={}
              
         for glidename in factory_glidein_dict.keys():
-            glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
+            if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
+                glideinFrontendLib.log_files.logWarning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
+                if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
+                    glideinFrontendLib.log_files.logDebug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
+            else:
+                glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
 
     ## schedd
     condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
