@@ -521,7 +521,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                      float(glideinDescript.data['JobLogRetentionMinDays']),
                                                      float(glideinDescript.data['JobLogRetentionMaxMBs']))
         glideFactoryLib.log_files.add_dir_to_cleanup(username,user_log_dir,
-                                                     "(condor_activity_\..*\.log)|(condor_activity_\..*\.log.ftstpk)",
+                                                     "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
                                                      float(glideinDescript.data['CondorLogRetentionMaxDays']),
                                                      float(glideinDescript.data['CondorLogRetentionMinDays']),
                                                      float(glideinDescript.data['CondorLogRetentionMaxMBs']))
