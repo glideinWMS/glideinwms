@@ -735,7 +735,7 @@ def gfactory_install():
         print "You are trying to install the Glidein Factory as root"
         print "While this is possible, it is not recommended."
         print "For security reasons, it is better to install it as a non-priviledged user"
-        yn=raw_input("Do you want to continue?: (y/n) ")
+        yn=raw_input("Do you want to continue?: (y/n) [n] ")
         if yn!='y':
             print
             print "Not installing the Glidein Factory as root."
@@ -767,7 +767,9 @@ def gfactory_install():
     print "The Glidein Factory can be configured to use a default GSI proxy for submission.\n"
     print "However, this operation mode is not recommended.\n"
     while 1:
-        match_yn=raw_input("Do you want to use such a proxy?: (y/n) ")
+        match_yn=raw_input("Do you want to use such a proxy?: (y/n) [n] ")
+        if match_yn=="":
+            match_yn="n"
         if (match_yn!="y") and (match_yn!="n"):
             print "Please answer y or n"
             continue 
