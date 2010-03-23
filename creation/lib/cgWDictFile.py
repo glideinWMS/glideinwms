@@ -608,12 +608,11 @@ class glideinDicts(cWDictFile.fileDicts):
                  client_log_dirs,client_proxies_dirs,
                  entry_list=[],
                  workdir_name='submit'):
+        self.client_log_dirs=client_log_dirs
+        self.client_proxies_dirs=client_proxies_dirs
         cWDictFile.fileDicts.__init__(self,work_dir,stage_dir,entry_list,workdir_name,
                                       False, # simple_work_dir=False
                                       log_dir)
-        self.client_log_dirs=client_log_dirs
-        self.client_proxies_dirs=client_proxies_dirs
-        
 
     ###########
     # PRIVATE
