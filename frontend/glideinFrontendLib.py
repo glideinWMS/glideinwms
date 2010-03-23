@@ -26,14 +26,14 @@ class LogFiles:
 
     def logActivity(self,str):
         try:
-            self.activity_log.write(str+"\n")
+            self.activity_log.write(str)
         except:
             # logging must never throw an exception!
             self.logWarning("logActivity failed, was logging: %s"%str,False)
 
     def logWarning(self,str, log_in_activity=True):
         try:
-            self.warning_log.write(str+"\n")
+            self.warning_log.write(str)
         except:
             # logging must throw an exception!
             # silently ignore
@@ -43,7 +43,7 @@ class LogFiles:
 
     def logDebug(self,str):
         try:
-            self.debug_log.write(str+"\n")
+            self.debug_log.write(str)
         except:
             # logging must never throw an exception!
             # silently ignore
