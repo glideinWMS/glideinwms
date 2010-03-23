@@ -1081,7 +1081,7 @@ def gfactory_install():
     frontends={}
     while 1:
         print
-        frontend_name=raw_input("Frontend name (leave empty when finished): ")
+        frontend_name=raw_input("Frontend security name (leave empty when finished): ")
         if frontend_name=="":
             if len(frontends.keys())<1:
                 print "You must list at least one frontend"
