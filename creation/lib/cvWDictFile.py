@@ -387,7 +387,7 @@ class frontendDicts(cWDictFile.fileDicts):
     def __init__(self,work_dir,stage_dir,group_list=[],workdir_name='submit',
                  simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs, nor the params dict
                  log_dir=None):         # used only if simple_work_dir=False
-        cWDictFile.fileDicts.__init__(work_dir,stage_dir,group_list,workdir_name,simple_work_dir,log_dir)
+        cWDictFile.fileDicts.__init__(self,work_dir,stage_dir,group_list,workdir_name,simple_work_dir,log_dir)
 
     ###########
     # PRIVATE

@@ -622,7 +622,7 @@ class glideinDicts(cWDictFile.fileDicts):
     ######################################
     # Redefine methods needed by parent
     def new_MainDicts(self):
-        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name,slef.log_dir,self.client_log_dirs,self.client_proxies_dirs)
+        return glideinMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.log_dir,self.client_log_dirs,self.client_proxies_dirs)
 
     def new_SubDicts(self,sub_name):
         return glideinEntryDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.log_dir,self.client_log_dirs,self.client_proxies_dirs)
