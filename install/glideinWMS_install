@@ -1040,8 +1040,13 @@ def gfactory_install():
             print "You already insterted '%s'!"%entry_name
             continue
         gatekeeper_name=raw_input("Gatekeeper for '%s': "%entry_name)
+        if gatekeeper_name=="":
+            print "Gatekkeper cannot be empty!"
+            continue
         rsl_name=raw_input("RSL for '%s': "%entry_name)
-        work_dir=raw_input("Work dir for '%s': "%entry_name)
+        work_dir=raw_input("Work dir for '%s': [.] "%entry_name)
+        if work_dir=="":
+            work_dir="."
         site_name=raw_input("Site name for '%s': [%s] "%(entry_name,entry_name))
         if site_name=="":
             site_name=entry_name
