@@ -829,10 +829,24 @@ def gfactory_install():
     log_base_dir=create_empty_dir("Where will you host your log files?: ",def_log_base_dir,empty_required=False)
 
     def_clientlog_base_dir="/opt/clientlogs"
-    clientlog_base_dir=create_empty_dir("Where will you host the client log files?: ",def_clientlog_base_dir,empty_required=False)
+    while 1:
+        clientlog_base_dir=raw_input("Where will you host the client log files?: [%s] "%def_clientlog_base_dir)
+        if clientlog_base_dir=="":
+            clientlog_base_dir=def_clientlog_base_dir
+        if not os.path.isdir(clientlog_base_dir):
+            print "%s does not exist"
+            continue
+        break
 
     def_clientproxies_base_dir="/opt/clientproxies"
-    clientproxies_base_dir=create_empty_dir("Where will you host the client proxies files?: ",def_clientproxies_base_dir,empty_required=False)
+    while 1:
+        clientproxies_base_dir=raw_input("Where will you host the client proxies files?: [%s]"%def_clientproxies_base_dir)
+        if clientproxies_base_dir=="":
+            clientproxies_base_dir=def_clientproxies_base_dir
+        if not os.path.isdir(clientproxies_base_dir):
+            print "%s does not exist"
+            continue
+        break
 
     (web_base_dir,web_base_url)=query_WebLocation('glidefactory');
     
