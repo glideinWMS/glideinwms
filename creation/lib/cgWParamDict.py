@@ -284,7 +284,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             sub_list=params.entries.keys()
 
         self.params=params
-        cgWDictFile.glideinDicts(self,params.submit_dir,params.stage_dir,params.log_dir,params.client_log_dirs,params.client_proxies_dirs,sub_list)
+        cgWDictFile.glideinDicts.__init__(self,params.submit_dir,params.stage_dir,params.log_dir,params.client_log_dirs,params.client_proxies_dirs,sub_list)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]

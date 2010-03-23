@@ -180,7 +180,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
             sub_list=params.groups.keys()
 
         self.params=params
-        cvWDictFile.frontendDicts(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False,log_dir=params.log_dir)
+        cvWDictFile.frontendDicts.__init__(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False,log_dir=params.log_dir)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]
