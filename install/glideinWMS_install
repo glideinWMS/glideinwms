@@ -821,11 +821,11 @@ def gfactory_install():
     print
 
     # Submit base directory
-    def_submit_base_dir="/opt/%s/glideinsubmit"%pwd.getpwnam(os.getuid())[0]
+    def_submit_base_dir="/opt/%s/glideinsubmit"%pwd.getpwuid(os.getuid())[0]
 
     submit_base_dir=create_empty_dir("Where will you host your config files?: ",def_submit_base_dir,empty_required=False)
 
-    def_log_base_dir="/opt/%s/glideinlog"%pwd.getpwnam(os.getuid())[0]
+    def_log_base_dir="/opt/%s/glideinlog"%pwd.getpwuid(os.getuid())[0]
     log_base_dir=create_empty_dir("Where will you host your log files?: ",def_log_base_dir,empty_required=False)
 
     def_clientlog_base_dir="/opt/clientlogs"
