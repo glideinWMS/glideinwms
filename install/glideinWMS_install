@@ -821,14 +821,14 @@ def gfactory_install():
     print
 
     # Submit base directory
-    def_submit_base_dir="/opt/%s/glideinsubmit"%pwd.getpwuid(os.getuid())[0]
+    def_submit_base_dir="/opt/glideinsubmit"
 
     submit_base_dir=create_empty_dir("Where will you host your config files?: ",def_submit_base_dir,empty_required=False)
 
-    def_log_base_dir="/opt/%s/glideinlog"%pwd.getpwuid(os.getuid())[0]
+    def_log_base_dir="/var/gfactory/glideinlogs"
     log_base_dir=create_empty_dir("Where will you host your log files?: ",def_log_base_dir,empty_required=False)
 
-    def_clientlog_base_dir="/opt/clientlogs"
+    def_clientlog_base_dir="/var/gfactory/clientlogs"
     while 1:
         clientlog_base_dir=raw_input("Where will you host the client log files?: [%s] "%def_clientlog_base_dir)
         if clientlog_base_dir=="":
@@ -838,7 +838,7 @@ def gfactory_install():
             continue
         break
 
-    def_clientproxies_base_dir="/opt/clientproxies"
+    def_clientproxies_base_dir="/var/gfactory/clientproxies"
     while 1:
         clientproxies_base_dir=raw_input("Where will you host the client proxies files?: [%s]"%def_clientproxies_base_dir)
         if clientproxies_base_dir=="":
@@ -2938,8 +2938,8 @@ def setup_privsep():
         print
         print "Directories needed by the factory will be given special"
         print "treatment to ease administration."
-        userlog_dir=create_empty_dir('Where will the factory store the client logs?','/opt/clientlogs',False)
-        userproxy_dir=create_empty_dir('Where will the factory store the client proxies?','/opt/clientproxies',False)
+        userlog_dir=create_empty_dir('Where will the factory store the client logs?','/var/gfactory/clientlogs',False)
+        userproxy_dir=create_empty_dir('Where will the factory store the client proxies?','/var/gfactory/clientproxies',False)
 
         fd=open('/etc/condor/privsep_config','w')
         try:
