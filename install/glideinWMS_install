@@ -1138,12 +1138,14 @@ def gfactory_install():
             else:
                 # allow both factory proxy and VO proxy
                 fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>n')
+            fd.write('    <frontends>\n')
             for fe_name in frontends.keys():
                 fd.write('     <frontend name="%s" identity="%s">\n'%(fe_name,frontends[fe_name]['id']))
                 fd.write('       <security_classes>\n')
                 fd.write('         <security_class name="%s" username="%s"/>\n'%(frontends[fe_name]['security_class'],frontends[fe_name]['user']))
                 fd.write('       </security_classes>\n')
                 fd.write('     </frontend>\n')
+            fd.write('    </frontends>\n')
             fd.write('   </security>\n')
             
             fd.write('   <attrs>\n')
