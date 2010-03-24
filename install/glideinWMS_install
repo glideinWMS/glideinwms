@@ -1666,7 +1666,7 @@ def vofrontend_install():
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
-            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s classad_identity=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(proxy_identity)))
+            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname)))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
                 fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
@@ -1675,7 +1675,7 @@ def vofrontend_install():
             fd.write('   <match>\n')
             fd.write('      <factory>\n')
             fd.write('        <collectors>\n')
-            fd.write('          <collector node=%s classad_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_identity)))
+            fd.write('          <collector node=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
             fd.write('        </collectors>\n')
             fd.write('      </factory>\n')
             fd.write('      <job query_expr=%s comment="Define job constraint and schedds globally for simplicity">\n'%xmlFormat.xml_quoteattr(job_constraint))
