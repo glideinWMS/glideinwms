@@ -215,7 +215,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for glideid in condorq_dict_types['Idle']['count'].keys():
         factory_pool_node=glideid[0]
         request_name=glideid[1]
-        my_identity=glideid[2]
+        my_identity=str(glideid[2]) # get rid of unicode
         glideid_str="%s@%s"%(request_name,factory_pool_node)
         glidein_el=glidein_dict[glideid]
 
