@@ -47,8 +47,6 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     group_name=elementDescript.element_data['GroupName']
     security_name=elementDescript.merged_data['SecurityName']
 
-    classad_identity="%s"%elementDescript.frontend_data['ClassAdIdentity']
-
     web_url=elementDescript.frontend_data['WebURL']
 
     # query condor
@@ -58,6 +56,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for factory_pool in factory_pools:
         factory_pool_node=factory_pool[0]
         factory_identity=factory_pool[1]
+        my_identity_at_factory_pool=factory_pool[2]
         try:
             factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
         except RuntimeError,e:
@@ -76,7 +75,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
                     glideinFrontendLib.log_files.logDebug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
             else:
-                glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
+                glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
     ## schedd
     condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
@@ -216,6 +215,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for glideid in condorq_dict_types['Idle']['count'].keys():
         factory_pool_node=glideid[0]
         request_name=glideid[1]
+        my_identity=glideid[2]
         glideid_str="%s@%s"%(request_name,factory_pool_node)
         glidein_el=glidein_dict[glideid]
 
@@ -280,7 +280,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         for t in count_status.keys():
             glidein_monitors['Glideins%s'%t]=count_status[t]
         if descript_obj.need_encryption():
-            key_obj=key_builder.get_key_obj(classad_identity,
+            key_obj=key_builder.get_key_obj(my_identity,
                                             glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
         else:
             # if no proxies, no reason to encode
