@@ -367,10 +367,6 @@ def populate_frontend_descript(work_dir,
             raise RuntimeError, "security.classad_proxy(%s) is not a file"%params.security.classad_proxy
         frontend_dict.add('ClassAdProxy',params.security.classad_proxy)
         
-        if params.security.classad_identity==None:
-            raise RuntimeError, "Missing security.classad_identity"
-        frontend_dict.add('ClassAdIdentity',params.security.classad_identity)
-        
         frontend_dict.add('SymKeyType',params.security.sym_key)
 
         active_sub_list[:] # erase all
@@ -430,7 +426,11 @@ def populate_common_descript(descript_dict,        # will be modified
 
     collectors=[]
     for el in params.match.factory.collectors:
-        collectors.append((el['node'],el['classad_identity']))
+        if el['factory_identity'][-9:]=='@fake.org':
+            raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
+        if el['my_identity'][-9:]=='@fake.org':
+            raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        collectors.append((el['node'],el['factory_identity'],el['my_identity']))
     descript_dict.add('FactoryCollectors',repr(collectors))
 
     schedds=[]

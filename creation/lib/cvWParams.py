@@ -70,7 +70,8 @@ class VOFrontendParams(cWParams.CommonParams):
 
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
-        collector_defaults["classad_identity"]=("changeme@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+        collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+        collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
         factory_match_defaults=copy.deepcopy(fj_match_defaults)
         factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
@@ -137,7 +138,6 @@ class VOFrontendParams(cWParams.CommonParams):
         
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
-        self.defaults["security"]["classad_identity"]=(None,"authenticated_identity","What is the AuthenticatedIdentity of the proxy at the WMS collector",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
         
         self.defaults["match"]=copy.deepcopy(match_defaults)
