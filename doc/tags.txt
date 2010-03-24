@@ -1,6 +1,7 @@
 vNext	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
 	Add frontend autentication info to the factory config.
+	Add support for different frontend identities in different WMS collectors.
 	Put log files in a separate tree.
 	Put client logs and client proxies in separate trees.
 	Implement privilege separation in the factory.
