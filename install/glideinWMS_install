@@ -1351,7 +1351,7 @@ def vofrontend_install():
     (web_base_dir,web_base_url)=query_WebLocation('vofrontend');
 
     # log base directory
-    def_frontstage_log_dir="%s/frontlog"%os.environ['HOME']
+    def_frontstage_log_dir="%s/frontlogs"%os.environ['HOME']
     frontstage_log_dir=create_empty_dir("Where will you host your log files?: ",def_frontstage_log_dir,empty_required=False)
 
     # VO Frontend name

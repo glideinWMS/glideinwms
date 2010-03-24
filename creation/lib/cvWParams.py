@@ -115,7 +115,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         work_defaults=cWParams.commentedOrderedDict()
         work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
-        work_defaults["base_log_dir"]=("%s/frontlog"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
+        work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
         self.defaults["work"]=work_defaults
 
         log_retention_defaults=cWParams.commentedOrderedDict()
