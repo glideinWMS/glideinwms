@@ -1009,6 +1009,7 @@ def gfactory_install():
     # entries
     entries_list={}
 
+    vo=None # VOMS extensions are not required
     yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
     if yn=='y':
         if proxy_fname!=None:
