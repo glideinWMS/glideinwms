@@ -91,7 +91,10 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults['schedd_name']=("schedd_glideins@%s"%socket.gethostname(),"ScheddName","Which schedd to use, can be a comma separated list",None)
 
         submit_defaults=cWParams.commentedOrderedDict()
-        submit_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Submit base dir",None)
+        submit_defaults["base_dir"]=("%s/glideinsubmit"%os.environ["HOME"],"base_dir","Submit base dir",None)
+        submit_defaults["base_log_dir"]=("%s/glideinlog"%os.environ["HOME"],"log_dir","Submit base log dir",None)
+        submit_defaults["base_client_log_dir"]=("%s/glideclientlog"%os.environ["HOME"],"client_dir","Base dir for client logs, needs a user_<uid> subdir per frontend user",None)
+        submit_defaults["base_client_proxies_dir"]=("%s/glideclientproxies"%os.environ["HOME"],"client_dir","Base dir for client proxies, needs a user_<uid> subdir per frontend user",None)
         self.defaults["submit"]=submit_defaults
 
         one_log_retention_defaults=cWParams.commentedOrderedDict()
@@ -122,11 +125,21 @@ class GlideinParams(cWParams.CommonParams):
 
         self.monitor_defaults["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
+
+
+        self.frontend_sec_class_defaults=cWParams.commentedOrderedDict()
+        self.frontend_sec_class_defaults["username"]=(None,'username','UNIX ID to be used for this security class',None)
+
+        self.frontend_defaults=cWParams.commentedOrderedDict()
+        self.frontend_defaults["identity"]=(None,'identity','Authenticated Identity',None)
+        self.frontend_defaults["security_classes"]=(xmlParse.OrderedDict(),"Dictionary of security class maps","Each mapping contains",self.frontend_sec_class_defaults)
+
         
         security_default=cWParams.commentedOrderedDict()
-        security_default["pub_key"]=("None","None|RSA","Type of public key system used for secure message passing",None)
+        security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
-        security_default["allow_proxy"]=("factory,frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
+        security_default["allow_proxy"]=("frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
+        security_default["frontends"]=(xmlParse.OrderedDict(),"Dictionary of frontend","Each frontend contains",self.frontend_defaults)
         
         self.defaults["security"]=security_default
         
@@ -165,7 +178,16 @@ class GlideinParams(cWParams.CommonParams):
         self.stage_dir=os.path.join(self.stage.base_dir,glidein_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,glidein_subdir)
         self.submit_dir=os.path.join(self.submit.base_dir,glidein_subdir)
+        self.log_dir=os.path.join(self.submit.base_log_dir,glidein_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,glidein_subdir)
+
+        self.client_log_dirs={}
+        self.client_proxies_dirs={}
+        for fename in self.security.frontends.keys():
+            for scname in self.security.frontends[fename].security_classes.keys():
+                username=self.security.frontends[fename].security_classes[scname].username
+                self.client_log_dirs[username]=os.path.join(os.path.join(self.submit.base_client_log_dir,"user_%s"%username),glidein_subdir)
+                self.client_proxies_dirs[username]=os.path.join(os.path.join(self.submit.base_client_proxies_dir,"user_%s"%username),glidein_subdir)
 
         if not cWParams.is_valid_name(self.factory_name):
             raise RuntimeError, "Invalid factory name '%s'"%self.factory_name
@@ -192,7 +214,8 @@ class GlideinParams(cWParams.CommonParams):
                                 'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
-                                'entries':{'el_name':'entry','subtypes_params':{'class':{}}} }}
+                                'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
+                                'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}}}}
 
 
 

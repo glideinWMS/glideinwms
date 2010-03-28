@@ -11,8 +11,9 @@ import re
 
 # this class can be used instead of a file for writing
 class DayLogFile:
-    def __init__(self,base_fname):
+    def __init__(self,base_fname,extension="log"):
         self.base_fname=base_fname
+        self.extension=extension
         return
 
     def close(self):
@@ -46,7 +47,7 @@ class DayLogFile:
         return 
 
     def get_fname(self,timestamp):
-        return "%s.%s.log"%(self.base_fname,time.strftime("%Y%m%d",time.localtime(timestamp)))
+        return "%s.%s.%s"%(self.base_fname,time.strftime("%Y%m%d",time.localtime(timestamp)),self.extension)
 
     def format_msg(self,timestamp,msg):
         return "[%s %s] %s"%(self.format_time(timestamp),os.getpid(),msg)
@@ -81,7 +82,7 @@ class DirCleanup:
             update_time=fstat[stat.ST_MTIME]
             if update_time<treshold_time:
                 try:
-                    os.unlink(fpath)
+                    self.delete_file(fpath)
                     count_removes+=1
                 except:
                    if self.warning_log!=None:
@@ -112,7 +113,10 @@ class DirCleanup:
             out_data[fpath]=fstat
 
         return out_data
-        
+
+    # this may reimplemented by the children
+    def delete_file(self,fpath):
+        os.unlink(fpath)
 
 # this class is used for cleanup
 class DirCleanupWSpace(DirCleanup):
@@ -155,7 +159,7 @@ class DirCleanupWSpace(DirCleanup):
             if ((update_time<treshold_time) or
                 ((update_time<min_treshold_time) and (used_space>self.maxspace))):
                 try:
-                    os.unlink(fpath)
+                    self.delete_file(fpath)
                     count_removes+=1
                     count_removes_bytes+=fsize
                     used_space-=fsize

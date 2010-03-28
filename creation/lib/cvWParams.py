@@ -70,7 +70,8 @@ class VOFrontendParams(cWParams.CommonParams):
 
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
-        collector_defaults["classad_identity"]=("changeme@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+        collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+        collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
         factory_match_defaults=copy.deepcopy(fj_match_defaults)
         factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
@@ -96,6 +97,7 @@ class VOFrontendParams(cWParams.CommonParams):
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
         security_defaults["proxies"]=([],'List of proxies',"Each proxy element contains",proxy_defaults)
+        security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
         
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
@@ -112,7 +114,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
 
         work_defaults=cWParams.commentedOrderedDict()
-        work_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Frontend base dir",None)
+        work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
+        work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
         self.defaults["work"]=work_defaults
 
         log_retention_defaults=cWParams.commentedOrderedDict()
@@ -135,7 +138,6 @@ class VOFrontendParams(cWParams.CommonParams):
         
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
-        self.defaults["security"]["classad_identity"]=(None,"authenticated_identity","What is the AuthenticatedIdentity of the proxy at the WMS collector",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
         
         self.defaults["match"]=copy.deepcopy(match_defaults)
@@ -169,10 +171,12 @@ class VOFrontendParams(cWParams.CommonParams):
         self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
         self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
+        self.log_dir=os.path.join(self.work.base_log_dir,frontend_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
         self.derive_match_attrs()
 
+        ####################
         has_collector=self.attrs.has_key('GLIDEIN_Collector')
         if not has_collector:
             # collector not defined at global level, must be defined in every group
@@ -182,6 +186,33 @@ class VOFrontendParams(cWParams.CommonParams):
 
         if not has_collector:
             raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
+
+        ####################
+        has_security_name=(self.security.security_name!=None)
+        if not has_security_name:
+            # security_name not defined at global level, look if defined in every group
+            has_security_name=True
+            for  group_name in self.groups.keys():
+               has_security_name&=(self.groups[group_name].security.security_name!=None)
+
+        if not has_security_name:
+            # explicity define one, so it will not change if config copied
+            # it also makes the frontend admins aware of the name
+            self.data['security']['security_name']=self.frontend_name
+
+        ####################
+        for i in range(len(self.security.proxies)):
+            pel=self.subparams.data['security']['proxies'][i]
+            if pel['security_class']==None:
+                # define an explicit security, so the admin is aware of it
+                pel['security_class']="frontend"
+        group_names=self.groups.keys()
+        for group_name in group_names:
+            for i in range(len(self.groups[group_name].security.proxies)):
+                pel=self.subparams.data['groups'][group_name]['security']['proxies'][i]
+                if pel['security_class']==None:
+                    # define an explicit security, so the admin is aware of it
+                    pel['security_class']="group_%s"%group_name
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
@@ -204,6 +235,7 @@ class VOFrontendParams(cWParams.CommonParams):
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             self.validate_match('group %s'%group_name,match_expr,
                                 factory_attrs,job_attrs)
+
         return
 
     # return xml formatting

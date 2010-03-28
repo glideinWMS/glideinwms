@@ -1,4 +1,5 @@
 #!/bin/bash
+export GLIDEIN_USER=`id -u -n`
 
 if [ $# -lt 2 ]; then
  echo "At least 2 args expected!" 1>&2

@@ -20,7 +20,9 @@ import cgWConsts,cWConsts
 
 class glideinMainDicts(cgWDictFile.glideinMainDicts):
     def __init__(self,params,workdir_name):
-        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name)
+        cgWDictFile.glideinMainDicts.__init__(self,params.submit_dir,params.stage_dir,workdir_name,
+                                              params.log_dir,
+                                              params.client_log_dirs,params.client_proxies_dirs)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -100,6 +102,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 
         # populate complex files
         populate_factory_descript(self.work_dir,self.dicts['glidein'],self.active_sub_list,params)
+        populate_frontend_descript(self.dicts['frontend_descript'],params)
 
 
         # populate the monitor files
@@ -187,7 +190,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
 class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
-        cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name)
+        cgWDictFile.glideinEntryDicts.__init__(self,params.submit_dir,params.stage_dir,sub_name,summary_signature,workdir_name,
+                                               params.log_dir,params.client_log_dirs,params.client_proxies_dirs)
+                                               
         self.monitor_dir=cgWConsts.get_entry_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
@@ -262,7 +267,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         self.dicts['condor_jdl'].populate(cgWConsts.STARTUP_FILE,
                                           params.factory_name,params.glidein_name,self.sub_name,
                                           sub_params.gridtype,sub_params.gatekeeper,sub_params.rsl,
-                                          params.web_url,sub_params.proxy_url,sub_params.work_dir)
+                                          params.web_url,sub_params.proxy_url,sub_params.work_dir,
+                                          params.submit.base_client_log_dir)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -285,7 +291,7 @@ class glideinDicts(cgWDictFile.glideinDicts):
             sub_list=params.entries.keys()
 
         self.params=params
-        cgWDictFile.glideinDicts(self,params.submit_dir,params.stage_dir,sub_list)
+        cgWDictFile.glideinDicts.__init__(self,params.submit_dir,params.stage_dir,params.log_dir,params.client_log_dirs,params.client_proxies_dirs,sub_list)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]
@@ -500,6 +506,9 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         validate_job_proxy_source(params.security.allow_proxy)
         glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
+        glidein_dict.add('LogDir',params.log_dir)
+        glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
+        glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
         glidein_dict.add('DowntimesFile',down_fname)
         for lel in (("logs",'Log'),("job_logs",'JobLog'),("summary_logs",'SummaryLog'),("condor_logs",'CondorLog')):
             param_lname,str_lname=lel
@@ -570,6 +579,27 @@ def populate_monitor_config(work_dir, glidein_dict, params):
         raise RuntimeError,"Error writing into file %s"%filepath
     finally:
         monitor_config_fd.close()
+
+###################################
+# Create the frontend descript file
+def populate_frontend_descript(frontend_dict,     # will be modified
+                               params):
+    for fe in params.security.frontends.keys():
+        fe_el=params.security.frontends[fe]
+
+        ident=fe_el['identity']
+        if ident==None:
+            raise RuntimeError, 'security.frontends[%s][identity] not defined, but required'%fe
+
+        maps={}
+        for sc in fe_el['security_classes'].keys():
+            sc_el=fe_el['security_classes'][sc]
+            username=sc_el['username']
+            if username==None:
+                raise RuntimeError, 'security.frontends[%s].security_sclasses[%s][username] not defined, but required'%(fe,sc)
+            maps[sc]=username
+        
+        frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
     
 #################################

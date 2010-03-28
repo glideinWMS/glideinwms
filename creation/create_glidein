@@ -12,7 +12,6 @@ import sys
 STARTUP_DIR=sys.path[0]
 import os.path
 import string
-import shutil
 import traceback
 sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
@@ -37,9 +36,12 @@ def main(params):
         glidein_dicts_obj.set_readonly(True)
 
         # copy the submit files
-        copy_submit_exe(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
-        copy_submit_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
-        copy_submit_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.STARTUP_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.SUBMIT_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+        cgWCreate.copy_exe(cgWConsts.LOCAL_START_WRAPPER,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
+
+        # copy privsep helper executables
+        cgWCreate.copy_exe(cgWConsts.UPDATE_PROXY_FILE,glidein_dicts_obj.main_dicts.work_dir,params.src_dir)
 
         # save config into file
         cfgfile=os.path.join(glidein_dicts_obj.main_dicts.work_dir,cgWConsts.XML_CONFIG_FILE)
@@ -61,31 +63,11 @@ def main(params):
     for entry in glidein_dicts_obj.active_sub_list:
         print "  %s"%entry
     print "Submit files can be found in %s"%glidein_dicts_obj.main_dicts.work_dir
+    print "Log files can be found in %s"%glidein_dicts_obj.main_dicts.log_dir
     print "Support files are in %s"%glidein_dicts_obj.main_dicts.stage_dir
     print "Monitoring files are in %s"%glidein_dicts_obj.main_dicts.monitor_dir
 
 
-############################################################
-#
-# P R I V A T E - Do not use
-# 
-############################################################
-
-
-#####################
-# Simply copy a file
-def copy_file(infile,outfile):
-    try:
-        shutil.copy2(infile,outfile)
-    except IOError, e:
-        raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
-        
-#####################
-# Copy a regular file
-def copy_submit_exe(filename,work_dir,org_dir):
-    copy_file(os.path.join(org_dir,filename),work_dir)
-    os.chmod(os.path.join(work_dir,filename),0544)
-    
 ############################################################
 #
 # S T A R T U P

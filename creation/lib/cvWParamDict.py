@@ -19,7 +19,7 @@ import cvWConsts,cWConsts
 
 class frontendMainDicts(cvWDictFile.frontendMainDicts):
     def __init__(self,params,workdir_name):
-        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True)
+        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True,log_dir=params.log_dir)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -121,7 +121,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
-        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False)
+        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False,base_log_dir=params.log_dir)
         self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
@@ -181,7 +181,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
             sub_list=params.groups.keys()
 
         self.params=params
-        cvWDictFile.frontendDicts(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False)
+        cvWDictFile.frontendDicts.__init__(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False,log_dir=params.log_dir)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]
@@ -368,10 +368,6 @@ def populate_frontend_descript(work_dir,
             raise RuntimeError, "security.classad_proxy(%s) is not a file"%params.security.classad_proxy
         frontend_dict.add('ClassAdProxy',params.security.classad_proxy)
         
-        if params.security.classad_identity==None:
-            raise RuntimeError, "Missing security.classad_identity"
-        frontend_dict.add('ClassAdIdentity',params.security.classad_identity)
-        
         frontend_dict.add('SymKeyType',params.security.sym_key)
 
         active_sub_list[:] # erase all
@@ -383,6 +379,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
 
+        frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('DowntimesFile',down_fname)
         for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
             param_tname,str_tname=tel
@@ -425,9 +422,16 @@ def populate_common_descript(descript_dict,        # will be modified
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
+    if params.security.security_name!=None:
+        descript_dict.add('SecurityName',params.security.security_name)
+
     collectors=[]
     for el in params.match.factory.collectors:
-        collectors.append((el['node'],el['classad_identity']))
+        if el['factory_identity'][-9:]=='@fake.org':
+            raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
+        if el['my_identity'][-9:]=='@fake.org':
+            raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        collectors.append((el['node'],el['factory_identity'],el['my_identity']))
     descript_dict.add('FactoryCollectors',repr(collectors))
 
     schedds=[]

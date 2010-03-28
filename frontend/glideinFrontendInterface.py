@@ -342,7 +342,8 @@ class AdvertizeParams:
                  request_name,glidein_name,
                  min_nr_glideins,max_run_glideins,
                  glidein_params={},glidein_monitors={},
-                 glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+                 glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
+                 security_name=None):             # needs key_obj
         self.request_name=request_name
         self.glidein_name=glidein_name
         self.min_nr_glideins=min_nr_glideins
@@ -350,6 +351,7 @@ class AdvertizeParams:
         self.glidein_params=glidein_params
         self.glidein_monitors=glidein_monitors
         self.glidein_params_to_encrypt=glidein_params_to_encrypt
+        self.security_name=security_name
 
 # Create file needed by advertize Work
 def createAdvertizeWorkFile(fname,
@@ -377,11 +379,14 @@ def createAdvertizeWorkFile(fname,
                 fd.write(string.join(key_obj.get_key_attrs(),'\n')+"\n")
 
                 glidein_params_to_encrypt=params_obj.glidein_params_to_encrypt
+                if glidein_params_to_encrypt==None:
+                    glidein_params_to_encrypt={}
+                else:
+                    glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
+                if params_obj.security_name!=None:
+                    glidein_params_to_encrypt['SecurityName']=params_obj.security_name
+                
                 if descript_obj.x509_proxies_data!=None:
-                    if glidein_params_to_encrypt==None:
-                        glidein_params_to_encrypt={}
-                    else:
-                        glidein_params_to_encrypt=copy.deepcopy(glidein_params_to_encrypt)
                     nr_proxies=len(descript_obj.x509_proxies_data)
                     glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_proxies
                     for i in range(nr_proxies):
@@ -392,11 +397,10 @@ def createAdvertizeWorkFile(fname,
                         glidein_params_to_encrypt['x509_proxy_%i'%i]=x509_proxy_data
                         if len(x509_proxies_data_el)>2: # for backwards compatibility
                             x509_proxy_security_class=x509_proxies_data_el[2]
-                            glidein_params_to_encrypt['x509_proxy_%i_security_class'%i]="%s"%x509_proxy_security_class
+                            glidein_params_to_encrypt['x509_proxy_%i_security_class'%i]=str("%s"%x509_proxy_security_class)
 
-                if glidein_params_to_encrypt!=None:
-                    for attr in glidein_params_to_encrypt.keys():
-                        encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
+                for attr in glidein_params_to_encrypt.keys():
+                    encrypted_params[attr]=key_obj.encrypt_hex(glidein_params_to_encrypt["%s"%attr])
                         
             fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
@@ -475,11 +479,12 @@ def advertizeWork(factory_pool,
                   min_nr_glideins,max_run_glideins,
                   glidein_params={},glidein_monitors={},
                   key_obj=None,                     # must be of type FactoryKeys4Advertize
-                  glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+                  glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
+                  security_name=None):              # needs key_obj
     params_obj=AdvertizeParams(request_name,glidein_name,
                                min_nr_glideins,max_run_glideins,
                                glidein_params,glidein_monitors,
-                               glidein_params_to_encrypt)
+                               glidein_params_to_encrypt,security_name)
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
@@ -500,11 +505,12 @@ class MultiAdvertizeWork:
             min_nr_glideins,max_run_glideins,
             glidein_params={},glidein_monitors={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
-            glidein_params_to_encrypt=None):  # params_to_encrypt needs key_obj
+            glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
+            security_name=None):              # needs key_obj
         params_obj=AdvertizeParams(request_name,glidein_name,
                                    min_nr_glideins,max_run_glideins,
                                    glidein_params,glidein_monitors,
-                                   glidein_params_to_encrypt)
+                                   glidein_params_to_encrypt,security_name)
         if not self.factory_queue.has_key(factory_pool):
             self.factory_queue[factory_pool]=[]
         self.factory_queue[factory_pool].append((params_obj,key_obj))

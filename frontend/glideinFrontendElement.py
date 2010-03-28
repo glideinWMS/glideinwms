@@ -45,8 +45,7 @@ def write_stats(stats):
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
-
-    classad_identity="%s"%elementDescript.frontend_data['ClassAdIdentity']
+    security_name=elementDescript.merged_data['SecurityName']
 
     web_url=elementDescript.frontend_data['WebURL']
 
@@ -57,8 +56,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for factory_pool in factory_pools:
         factory_pool_node=factory_pool[0]
         factory_identity=factory_pool[1]
+        my_identity_at_factory_pool=factory_pool[2]
         try:
-            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,factory_identity,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
         except RuntimeError,e:
             if factory_pool_node!=None:
                 glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
@@ -70,7 +70,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             factory_glidein_dict={}
              
         for glidename in factory_glidein_dict.keys():
-            glidein_dict[(factory_pool_node,glidename)]=factory_glidein_dict[glidename]
+            if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
+                glideinFrontendLib.log_files.logWarning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
+                if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
+                    glideinFrontendLib.log_files.logDebug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
+            else:
+                glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
 
     ## schedd
     condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
@@ -125,7 +130,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     # get the proxy
     x509_proxies_data=None
     if x509_proxy_plugin!=None:
-        proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']:
+        proxy_security_classes=elementDescript.merged_data['ProxySecurityClasses']
         x509_proxy_list=x509_proxy_plugin.get_proxies(condorq_dict,condorq_dict_types,
                                                       status_dict,status_dict_types)
         glideinFrontendLib.log_files.logActivity("Using %i proxies"%len(x509_proxy_list))
@@ -210,6 +215,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     for glideid in condorq_dict_types['Idle']['count'].keys():
         factory_pool_node=glideid[0]
         request_name=glideid[1]
+        my_identity=str(glideid[2]) # get rid of unicode
         glideid_str="%s@%s"%(request_name,factory_pool_node)
         glidein_el=glidein_dict[glideid]
 
@@ -274,7 +280,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         for t in count_status.keys():
             glidein_monitors['Glideins%s'%t]=count_status[t]
         if descript_obj.need_encryption():
-            key_obj=key_builder.get_key_obj(classad_identity,
+            key_obj=key_builder.get_key_obj(my_identity,
                                             glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
         else:
             # if no proxies, no reason to encode
@@ -283,7 +289,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         advertizer.add(factory_pool_node,
                        request_name,request_name,
                        glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                       key_obj,glidein_params_to_encrypt=None)
+                       key_obj,glidein_params_to_encrypt=None,security_name=security_name)
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
     
     try:
@@ -360,6 +366,10 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                     glideinFrontendLib.log_files.logDebug("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
             is_first=0
+            
+            # do it just before the sleep
+            glideinFrontendLib.log_files.cleanup()
+
             glideinFrontendLib.log_files.logActivity("Sleep")
             time.sleep(sleep_time)
     finally:
@@ -375,9 +385,17 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
 def main(parent_pid, work_dir, group_name):
     startup_time=time.time()
 
-    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"group_%s/log"%group_name))
-
     elementDescript=glideinFrontendConfig.ElementMergedDescript(work_dir,group_name)
+
+    # the log dir is shared between the frontend main and the groups, so use a subdir
+    log_dir=os.path.join(elementDescript.frontend_data['LogDir'],"group_%s"%group_name)
+
+    # Configure the process to use the proper LogDir as soon as you get the info
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir,
+                                                             float(elementDescript.frontend_data['LogRetentionMaxDays']),
+                                                             float(elementDescript.frontend_data['LogRetentionMinDays']),
+                                                             float(elementDescript.frontend_data['LogRetentionMaxMBs']))
+
     paramsDescript=glideinFrontendConfig.ParamsDescript(work_dir,group_name)
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
 
