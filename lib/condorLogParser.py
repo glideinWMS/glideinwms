@@ -500,9 +500,11 @@ class cacheDirClass:
         now = time.time()
         # load and merge data
         for fname in fnames:
-            absfname = os.path.join(self.dirname, fname)
-            last_mod = os.path.getmtime(absfname)
-            obj = self.logClass(absfname)
+            absfname=os.path.join(self.dirname,fname)
+            if os.path.getsize(absfname)<1:
+                continue # skip empty files
+            last_mod=os.path.getmtime(absfname)
+            obj=self.logClass(absfname)
             obj.load()
             mydata = obj.merge(mydata)
             if ( ((now-last_mod) > self.inactive_timeout) and 
@@ -651,8 +653,12 @@ def parseSubmitLogFastRaw(fname):
     jobs = {}
     
     size = os.path.getsize(fname)
-    fd = open(fname, "r")
-    buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    if size==0:
+        # nothing to read, if empty
+        return jobs
+    
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -696,8 +702,12 @@ def parseSubmitLogFastRawTimings(fname):
     last_time = None
     
     size = os.path.getsize(fname)
-    fd = open(fname, "r")
-    buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    if size==0:
+        # nothing to read, if empty
+        return jobs,first_time,last_time
+    
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -747,8 +757,12 @@ def parseSubmitLogFastRawCallback(fname, callback):
     jobs = {}
 
     size = os.path.getsize(fname)
-    fd = open(fname,"r")
-    buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    if size==0:
+        # nothing to read, if empty
+        return
+
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
     idx = 0
 
