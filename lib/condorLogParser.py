@@ -497,6 +497,8 @@ class cacheDirClass:
         # load and merge data
         for fname in fnames:
             absfname=os.path.join(self.dirname,fname)
+            if os.path.getsize(absfname)<1:
+                continue # skip empty files
             last_mod=os.path.getmtime(absfname)
             obj=self.logClass(absfname)
             obj.load()
