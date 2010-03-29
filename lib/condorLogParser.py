@@ -646,6 +646,10 @@ def parseSubmitLogFastRaw(fname):
     jobs={}
     
     size = os.path.getsize(fname)
+    if size==0:
+        # nothing to read, if empty
+        return jobs
+    
     fd=open(fname,"r")
     buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
@@ -692,6 +696,10 @@ def parseSubmitLogFastRawTimings(fname):
     last_time=None
     
     size = os.path.getsize(fname)
+    if size==0:
+        # nothing to read, if empty
+        return jobs,first_time,last_time
+    
     fd=open(fname,"r")
     buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
@@ -745,6 +753,10 @@ def parseSubmitLogFastRawCallback(fname,callback):
     jobs={}
 
     size = os.path.getsize(fname)
+    if size==0:
+        # nothing to read, if empty
+        return
+
     fd=open(fname,"r")
     buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
