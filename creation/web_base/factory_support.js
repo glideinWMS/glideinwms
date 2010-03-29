@@ -38,9 +38,11 @@ function getFactoryEntries(factoryQStats) {
 function loadMonitorConfig() {
   try {
     var request =  new XMLHttpRequest();
-    request.open("GET", "monitor_config.xml",false)
+    request.open("GET", "monitor.xml",false)
     request.send(null);
-    return request.responseXML.firstChild;
+    var factoryQStats=request.responseXML.firstChild;
+    return factoryQStats;
+    //return request.responseXML.firstChild;
   } catch (err) {
     return loadFactoryQStats;
   }
@@ -48,7 +50,7 @@ function loadMonitorConfig() {
 
 // Extract group names from each entry XML object
 function getFactoryEntryGroups(factoryQStats) {
-  factoryQStats = loadMonitorConfig();
+  var factoryQStats = loadMonitorConfig();
   groups=new Array();
   for (var elc=0; elc<factoryQStats.childNodes.length; elc++) {
     var el=factoryQStats.childNodes[elc];
