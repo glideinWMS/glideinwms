@@ -134,7 +134,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.monitor_htmls.append(mfobj)
 
         # populate the monitor configuration file
-        populate_monitor_config(self.work_dir,self.dicts['glidein'],params)
+        #populate_monitor_config(self.work_dir,self.dicts['glidein'],params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -147,6 +147,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         cgWDictFile.glideinMainDicts.save(self,set_readonly)
         self.save_pub_key()
         self.save_monitor()
+        self.save_monitor_config(self.work_dir,self.dicts['glidein'],self.params)
 
 
     ########################################
@@ -181,6 +182,38 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             fobj.save(dir=self.monitor_dir,save_only_if_changed=False)
         return
 
+    ###################################
+    # Create the monitor config file
+    def save_monitor_config(self, work_dir, glidein_dict, params):
+        monitor_config_file = os.path.join(params.monitor_dir, cgWConsts.MONITOR_CONFIG_FILE)
+        monitor_config_line = []
+        
+        monitor_config_fd = open(monitor_config_file,'w')
+        monitor_config_line.append("<monitor_config>")
+        monitor_config_line.append("  <entries>")
+        try:
+          try:
+            for sub in params.entries.keys():
+                if eval(params.entries[sub].enabled,{},{}):
+                    monitor_config_line.append("    <entry name=\"%s\">" % sub)
+                    monitor_config_line.append("      <monitorgroups>")                
+                    for group in params.entries[sub].monitorgroups:
+                        monitor_config_line.append("        <monitorgroup group_name=\"%s\">" % group['group_name'])
+                        monitor_config_line.append("        </monitorgroup>")
+                    
+                    monitor_config_line.append("      </monitorgroups>")
+                    monitor_config_line.append("    </entry>")
+    
+            monitor_config_line.append("  </entries>")
+            monitor_config_line.append("</monitor_config>")
+    
+            for line in monitor_config_line:
+                monitor_config_fd.write(line + "\n")
+          except IOError,e:
+            raise RuntimeError,"Error writing into file %s"%filepath
+        finally:
+            monitor_config_fd.close()
+    
 ################################################
 #
 # This Class contains the entry dicts
@@ -547,38 +580,6 @@ def populate_job_descript(work_dir,job_descript_dict,        # will be modified
     job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
-
-###################################
-# Create the monitor config file
-def populate_monitor_config(work_dir, glidein_dict, params):
-    monitor_config_file = os.path.join(params.monitor_dir, cgWConsts.MONITOR_CONFIG_FILE)
-    monitor_config_line = []
-    
-    monitor_config_fd = open(monitor_config_file,'w')
-    monitor_config_line.append("<monitor_config>")
-    monitor_config_line.append("  <entries>")
-    try:
-      try:
-        for sub in params.entries.keys():
-            if eval(params.entries[sub].enabled,{},{}):
-                monitor_config_line.append("    <entry name=\"%s\">" % sub)
-                monitor_config_line.append("      <monitorgroups>")                
-                for group in params.entries[sub].monitorgroups:
-                    monitor_config_line.append("        <monitorgroup name=\"%s\">" % group['group_name'])
-                    monitor_config_line.append("        </monitorgroup>")
-                
-                monitor_config_line.append("      </monitorgroups>")
-                monitor_config_line.append("    </entry name=\"%s\">" % sub)
-
-        monitor_config_line.append("  </entries>")
-        monitor_config_line.append("</monitor_config>")
-
-        for line in monitor_config_line:
-            monitor_config_fd.write(line + "\n")
-      except IOError,e:
-        raise RuntimeError,"Error writing into file %s"%filepath
-    finally:
-        monitor_config_fd.close()
 
 ###################################
 # Create the frontend descript file
