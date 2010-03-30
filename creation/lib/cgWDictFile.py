@@ -39,7 +39,6 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
     def add_extended(self,
                      group_name,
                      allow_overwrite=0):
-        print (group_name)
         self.add(None,(group_name,))
         
     def format_val(self,key,want_comments):
