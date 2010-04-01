@@ -1,0 +1,16 @@
+#!/bin/env python
+
+#
+# Description:
+#   This tool adds a DN to the Condor security configuration
+#
+# Author:
+#   Igor Sfiligoi @UCSD (Apr 2010)
+#
+# Part of the glideinWMS package
+#
+
+import sys
+import re
+
+# To be written
