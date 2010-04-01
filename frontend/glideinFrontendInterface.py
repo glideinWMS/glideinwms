@@ -444,7 +444,7 @@ def advertizeWorkOnce(factory_pool,
                       key_obj=None,            # must be of type FactoryKeys4Advertize
                       remove_file=True):
     createAdvertizeWorkFile(tmpnam,
-                            descript_obj,params,key_obj)
+                            descript_obj,params_obj,key_obj)
     advertizeWorkFromFile(factory_pool, tmpnam, remove_file)
 
 # As above, but combine many together
