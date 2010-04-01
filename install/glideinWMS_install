@@ -691,7 +691,7 @@ def query_WebLocation(web_subdir):
 
         if web_url_type=="ftp":
             try:
-                fc=ftplist.FTP(web_base_url_host)
+                fc=ftplib.FTP(web_base_url_host)
                 rc=fc.login()
                 rc=fc.cwd(web_base_url_path+"stage/")
                 fc.close()
@@ -720,7 +720,7 @@ def query_WebLocation(web_subdir):
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:
-                    raise RuntimError,"http failed %i"%rc.status
+                    raise RuntimeError,"http failed %i"%rc.status
             except:
                 print "Failed connecting to: %s"%web_base_url
                 continue
@@ -2775,19 +2775,11 @@ def configure_gsi_security(gsi_setup=None):
     gridmap_fd=open(condor_mapfile,"w")
     try:
         for a_uid in dns.keys():
-            gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid][0],a_uid))
+            gridmap_fd.write('GSI "^%s$" %s\n'%(re.escape(dns[a_uid][0]),a_uid))
         gridmap_fd.write('GSI (.*) anonymous\n')
         gridmap_fd.write('FS (.*) \\1\n')
     finally:
         gridmap_fd.close()
-
-    #format the daemon_list
-    daemon_dns=[]
-    for a_uid in dns.keys():
-        a_dn,is_daemon=dns[a_uid]
-        if is_daemon:
-            daemon_dns.append(a_dn)
-    daemon_dns_str=string.join(daemon_dns,',')
 
     #################################
     # do the config
@@ -2832,9 +2824,16 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("#####################################\n")
         config_fd.write("# Add whitelist of condor daemon DNs\n")
         config_fd.write("#####################################\n")
-        config_fd.write("GSI_DAEMON_NAME=%s\n\n"%daemon_dns_str)
+        config_fd.write("# My DN\n")
+        config_fd.write("GSI_DAEMON_NAME=%s\n"%dns['condor'][0])
+        config_fd.write("# DNs of other trusted daemons provided at installation time\n")
+        for a_uid in dns.keys():
+            a_dn,is_daemon=dns[a_uid]
+            if (a_uid!='condor') and is_daemon:
+                config_fd.write("# The following DN will map to %s\n"%a_uid)
+                config_fd.write("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%a_dn)
 
-        config_fd.write("#####################################\n")
+        config_fd.write("\n#####################################\n")
         config_fd.write("# Limit session caching to ~12h\n")
         config_fd.write("#####################################\n")
         config_fd.write("SEC_DAEMON_SESSION_DURATION = 50000\n")
