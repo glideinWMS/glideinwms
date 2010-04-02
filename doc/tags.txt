@@ -1,3 +1,11 @@
+v2_3_2	Fixed a security bug in which certificate/proxy DN(s) are handled. If
+	  you are upgrading the installation rather than full install, you
+	  should patch the condor_mapfile used by Condor daemons in your
+	  installation using the convert_condormap tool available from the
+	  glideinWMS download page. For additional security, users should
+	  add new DN to the condor_mapfile only by using the glidecondor_addDN 
+	  tool available in the glideinWMS/install directory.
+
 v2_3_1	Updated documentation. This is document change only release
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
