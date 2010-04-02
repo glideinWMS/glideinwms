@@ -163,9 +163,9 @@ def collector_install():
 
     if not GSI_SECURITY_CONFIGURED:
         gsi_setup = { 'server': 'Pool Collector',
-                      'client': 'User Schedd, glidein startd',
-                      'server_comment': 'The cert/proxy subject of Pool Collector will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'The User Schedd and Glidein startd will connect to and act as client to the Pool Collector. Subjects for these services should be in the gridmap file of the Pool Collector'
+                      'client': 'User Schedd, Glidein Startd',
+                      'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
+                      'client_comment': 'The User Schedd(s) and Glidein startds will connect to \nand act as daemons to the Pool Collector. Any other node or process \nthat needs to talk securely with the Collector (like the \nVO Frontend) also needs to be authenticated, but not as \na daemon. Finally, if you expect any processes on this node \nto use condor security toward other nodes (e.g. the VO Frontend \ntalking to the WMS Collector), the remote services will also \nneed to be authenticated. The subjects (i.e. DNs) \nfor these services will thus most likely be needed.Their subjects \n(i.e. DNs) will most likely be needed.'
                     }
         configure_gsi_security(gsi_setup)
 
@@ -219,9 +219,9 @@ def schedd_node_install():
 
     if not GSI_SECURITY_CONFIGURED:
         gsi_setup = { 'server': 'User Schedd',
-                      'client': 'Glidein Startd, User Pool Collector, VO Frontend',
-                      'server_comment': 'The cert/proxy subject of User Schedd, Glidein Pool Collector and VO Frontend (used by glidein startd) will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'Glidein Pool Collector and VO Frontend and glidein startd will connect to and act as client to User Schedd. Subjects for these services should be in the gridmap file of the User Schedd.',
+                      'client': 'User Pool Collector, Glidein Startd, VO Frontend',
+                      'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
+                      'client_comment': 'The schedd will need to talk to the Pool Collector on a \ndaemon to daemon level. The Glidein startds will also need \nto be authenticated as daemons. Any other node or process \nthat needs to talk securely with the schedd (like the \nVO Frontend) also needs to be authenticated, but not as \na daemon. Finally, if you expect any processes on this node \nto use condor security toward other nodes (e.g. the VO Frontend \ntalking to the WMS Collector), the remote services will also \nneed to be authenticated. The subjects (i.e. DNs) \nfor these services will thus most likely be needed.',
                     }
         configure_gsi_security(gsi_setup)
 
@@ -353,9 +353,9 @@ def wms_install():
 
     if not GSI_SECURITY_CONFIGURED:
         gsi_setup = { 'server': 'WMS Collector',
-                      'client': 'WMS Schedd, VO Frontend, Glidein Factory',
-                      'server_comment': 'The cert/proxy subject of WMS Collector will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'The WMS Schedd, VO Frontend, Glidein Factory will connect to and act as client to the WMS Collector. Subjects for these services should be in the gridmap file of WMS Collector'
+                      'client': 'VO Frontend',
+                      'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
+                      'client_comment': 'The VO Frontend(s) will be contacting the WMS Collector \nand will interact as daemons. Their subjects (i.e. DNs) \nwill most likely be needed.'
                     }
         configure_gsi_security(gsi_setup)
 
@@ -449,22 +449,22 @@ def condor_frontend_install():
     if CONDOR_BASE_PATH==None:
         install_condor()
 
-        setup_main_schedd()
-        
-        if GSI_TRUSTED_CA_DIR==None:
-            query_ca_dir()
-        
+        if not GSI_SECURITY_CONFIGURED:
+            gsi_setup = { 'server': 'Condor',
+                          'client': 'VO Frontend',
+                          'server_comment': 'Its subject (i.e. DN) will be added in the condor configuration.',
+                          'client_comment': 'The VO Frontend will need to securely talk to \nthe WMS Collector, the Pool Collector and the user schedd(s).\nThe subjects (i.e. DNs) for these services will most likely be needed.',
+                          }
+            configure_gsi_security(gsi_setup)
+
+        if not MAIN_SCHEDD_INSTALLED:
+            setup_main_schedd()
+
         ####################################################
         # If used only for the VO frontend, disable daemons
         config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("\n######################################################\n")
-            config_fd.write("## The client needs GSI authentication\n")
-            config_fd.write("######################################################\n")
-            config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
-            config_fd.write("# Grid Certificate directory\n")
-            config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
-            config_fd.write("######################################################\n")
             config_fd.write("## This machine should run no daemons\n")
             config_fd.write("######################################################\n")
             config_fd.write("DAEMON_LIST=MASTER\n")
@@ -2692,8 +2692,8 @@ def configure_gsi_security(gsi_setup=None):
     #################################
     # Ask if uses proxy or cert
     # and verify
-    print "To use the GSI security, you either need a valid GSI proxy or "
-    print "a valid x509 certificate and relative key"
+    print "To use the GSI security for %s, you either need "%server
+    print "a valid GSI proxy or a valid x509 certificate and relative key."
     print "%s\n" % server_comment
     while 1:
         pc=raw_input("Will you be using a proxy or a cert? (proxy/cert) ")
@@ -2741,9 +2741,7 @@ def configure_gsi_security(gsi_setup=None):
     # create condor_mapfile
     # ask user for additional DNs
     dns={"condor":[my_dn,True]}
-    print "You will most probably need other DNs in the condor grid mapfile"
-    print "Please add all the DNs that can be used to connect to the "
-    print "Condor daemons running on this node"
+    print "You will most probably need other DNs in the condor grid mapfile."
     print "%s\n" % client_comment
     print "Please insert all such DNs, together with a user nickname."
     print "An empty DN entry means you are done."
@@ -2796,6 +2794,7 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("DENY_ADMINISTRATOR = anonymous@*\n")
         config_fd.write("DENY_DAEMON = anonymous@*\n")
         config_fd.write("DENY_NEGOTIATOR = anonymous@*\n\n")
+        config_fd.write("DENY_CLIENT = anonymous@*\n")
         config_fd.write("# Grid Certificate directory\n")
         config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
         config_fd.write("############################\n")
