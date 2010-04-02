@@ -165,7 +165,7 @@ def collector_install():
         gsi_setup = { 'server': 'Pool Collector',
                       'client': 'User Schedd, Glidein Startd',
                       'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
-                      'client_comment': 'The User Schedd(s) and Glidein startds will connect to \nand act as daemons to the Pool Collector. Any other node or process \nthat needs to talk securely with the Collector (like the \nVO Frontend) also needs to be authenticated, but not as \na daemon. Finally, if you expect any processes on this node \nto use condor security toward other nodes (e.g. the VO Frontend \ntalking to the WMS Collector), the remote services will also \nneed to be authenticated. The subjects (i.e. DNs) \nfor these services will thus most likely be needed.Their subjects \n(i.e. DNs) will most likely be needed.'
+                      'client_comment': 'The User Schedd(s) and Glidein startds will connect to \nand act as daemons to the Pool Collector. Any other node or process \nthat needs to talk securely with the Collector (like the \nVO Frontend) also needs to be authenticated, but not as \na daemon. Finally, if you expect any processes on this node \nto use condor security toward other nodes (e.g. the VO Frontend \ntalking to the WMS Collector), the remote services will also \nneed to be authenticated. The subjects (i.e. DNs) \nfor these services will thus most likely be needed.'
                     }
         configure_gsi_security(gsi_setup)
 
