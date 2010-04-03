@@ -70,6 +70,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
+        collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",None)
         collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
         collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
@@ -78,6 +79,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         schedd_defaults=cWParams.commentedOrderedDict()
         schedd_defaults["fullname"]=(None,"name","User schedd name (for example, schedd_3@sb1.my.org)",None)
+        schedd_defaults["DN"]=(None,"dn","User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",None)
 
         job_match_defaults=copy.deepcopy(fj_match_defaults)
         job_match_defaults["schedds"]=([],"List of user schedds","Each schedd contains",schedd_defaults)
