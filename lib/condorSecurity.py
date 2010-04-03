@@ -18,6 +18,10 @@ CONDOR_AUTH_FEATURE_LIST=('AUTHENTICATION',
                           'INTEGRITY','ENCRYPTION',
                           'NEGOTIATION')
 
+# This special value will unset any value and leave the default
+# This is different than None, that will not do anything
+UNSET_VALUE='UNSET'
+
 CONDOR_AUTH_VALUE_LIST=('NEVER','OPTIONAL','PREFERRED','REQUIRED')
 
 
@@ -42,7 +46,7 @@ class AuthCondorSecurity:
             raise ValueError, "Invalid security context '%s'."%context
         if not (feature in CONDOR_AUTH_FEATURE_LIST):
             raise ValueError, "Invalid authentication feature '%s'."%feature
-        if not (value in CONDOR_AUTH_VALUE_LIST):
+        if not (value in (CONDOR_AUTH_VALUE_LIST+(UNSET_VALUE,))):
             raise ValueError, "Invalid value type '%s'."%value
         self.set_nocheck(context,feature,value)
 
@@ -142,5 +146,10 @@ class AuthCondorSecurity:
                 condor_key="SEC_%s_%s"%(context,feature)
                 env_key="_CONDOR_%s"%condor_key
                 val=requests[context][feature]
-                os.environ[env_key]=val
+                if val!=UNSET_VALUE:
+                    os.environ[env_key]=val
+                else:
+                    # unset -> make sure it is not in the env after the call
+                    if os.environ.has_key(env_key):
+                        del os.environ[env_key]
         return
