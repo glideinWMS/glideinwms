@@ -9,7 +9,9 @@
 #
 
 import condorExe
+import condorSecurity
 import os,string
+import copy
 import xml.parsers.expat
 
 #
@@ -56,7 +58,7 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
 #  "b" - bool
 #
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
-    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None):
+    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None):
         self.exe_name=exe_name
         self.resource_str=resource_str
         self.group_attribute=group_attribute
@@ -66,20 +68,46 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
         else:
             self.pool_str="-pool %s"%pool_name
 
-        self.requested_sec={'INTEGRITY':None,'ENCRYPTION':None}
+        if security_obj!=None:
+            if security_obj.has_saved_state():
+                raise RuntimeError, "Cannot use a security object which has saved state."
+            self.security_obj=copy.deepcopy(security_obj)
+        else:
+            self.security_obj=condorSecurity.AuthCondorSecurity()
 
     def require_integrity(self,requested_integrity): # if none, dont change, else forse that one
-        self.requested_sec['INTEGRITY']=requested_integrity
+        if requested_integrity==None:
+            condor_val=None
+        elif requested_integrity:
+            condor_val="REQUIRED"
+        else:
+            # if not required, still should not fail if the other side requires it
+            condor_val='OPTIONAL'
+
+        self.security_obj.set('CLIENT','INTEGRITY',condor_val)
 
     def get_requested_integrity(self):
-        return self.requested_sec['INTEGRITY']
+        condor_val = self.security_obj.get('CLIENT','INTEGRITY')
+        if condor_val==None:
+            return None
+        return (condor_val=='REQUIRED')
 
     def require_encryption(self,requested_encryption): # if none, dont change, else forse that one
-        self.requested_sec['ENCRYPTION']=requested_encryption
+        if requested_encryption==None:
+            condor_val=None
+        elif requested_encryption:
+            condor_val="REQUIRED"
+        else:
+            # if not required, still should not fail if the other side requires it
+            condor_val='OPTIONAL'
+
+        self.security_obj.set('CLIENT','ENCRYPTION',condor_val)
 
     def get_requested_encryption(self):
-        return self.requested_sec['ENCRYPTION']
-    
+        condor_val = self.security_obj.get('CLIENT','ENCRYPTION')
+        if condor_val==None:
+            return None
+        return (condor_val=='REQUIRED')
 
     def fetch(self,constraint=None,format_list=None):
         if constraint==None:
@@ -97,23 +125,9 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
             format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
             format_str=string.join(format_arr," ")
 
-        # set environemnt for security settings
-        old_sec={}
-        for s in self.requested_sec.keys():
-            # set env setting for the ones that the user required
-            if self.requested_sec[s]!=None:
-                # preserve old value
-                if os.environ.has_key('_CONDOR_SEC_CLIENT_%s'%s):
-                    old_sec[s]=os.environ['_CONDOR_SEC_CLIENT_%s'%s]
-                else:
-                    old_sec[s]=None
-                # set new value
-                if self.requested_sec[s]:
-                    # required, so do it
-                    os.environ['_CONDOR_SEC_CLIENT_%s'%s]='REQUIRED'
-                else:
-                    # doesn't want it, but should not fail if the other side requires it
-                    os.environ['_CONDOR_SEC_CLIENT_%s'%s]='OPTIONAL'
+        # set environment for security settings
+        self.security_obj.save_state()
+        self.security_obj.enforce_requests()
 
         if full_xml:
             xml_data=condorExe.exe_cmd(self.exe_name,"%s -xml %s %s"%(self.resource_str,self.pool_str,constraint_str));
@@ -122,11 +136,7 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
             xml_data=['<?xml version="1.0"?><classads>']+xml_data+["</classads>"]
 
         # restore old values
-        for s in self.requested_sec.keys():
-            if self.requested_sec[s]!=None:
-                if old_sec[s]!=None:
-                    os.environ['_CONDOR_SEC_CLIENT_%s'%s]=old_sec[s]
-                # else it was not set 
+        self.security_obj.restore_state()
 
         list_data=xml2list(xml_data)
         del xml_data
