@@ -2098,6 +2098,7 @@ def install_condor():
         config_fd.write("SEC_CLIENT_ENCRYPTION = OPTIONAL\n\n")
         config_fd.write("##  Without strong security, the only secure connection is the local one\n")
         config_fd.write("HOSTALLOW_WRITE = $(FULL_HOSTNAME)\n\n")
+        config_fd.write("ALLOW_WRITE = $(HOSTALLOW_WRITE)\n\n")
     finally:
         config_fd.close()
 
@@ -2461,6 +2462,7 @@ def configure_gsi_security():
         config_fd.write("# With strong security, do not use IP based controls\n")
         config_fd.write("#####################################################\n")
         config_fd.write("HOSTALLOW_WRITE = *\n\n")
+        config_fd.write("ALLOW_WRITE = $(HOSTALLOW_WRITE)\n\n")
 
         config_fd.write("##########################################################\n")
         config_fd.write("# Prepare the Shadow for use with glexec-enabled glideins\n")
