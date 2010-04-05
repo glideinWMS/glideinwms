@@ -13,7 +13,9 @@ import string
 import traceback
 import tarfile
 import cStringIO
-import cvWConsts
+#import cvWConsts
+import condorExe
+import condorSecurity
 
 #########################################
 # Create init.d compatible startup file
@@ -160,3 +162,78 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
 
     return
 
+#########################################
+# Create init.d compatible startup file
+def create_condor_config(config_fname,mapfile_fname):
+    def_attrs=condorExe.exe_cmd('condor_config_val','-dump')
+
+    fd=open(config_fname,"w")
+    try:
+        fd.write("############################################\n")
+        fd.write("#\n")
+        fd.write("# Condor config file used by the VO Frontend\n")
+        fd.write("#\n")
+        fd.write("# This file is generated at each reconfig\n")
+        fd.write("# Do not change by hand!\n")
+        fd.write("#\n")
+        fd.write("############################################\n\n")
+
+        fd.write("###########################\n")
+        fd.write("# Base config values\n")
+        fd.write("# obtained from\n")
+        fd.write("#  condor_config_val -dump\n")
+        fd.write("# at config time.\n")
+        fd.write("###########################\n\n")
+
+        fd.writelines(def_attrs)
+
+        fd.write("\n##################################\n")
+        fd.write("# Add Frontend specific attributes\n")
+        fd.write("##################################\n\n")
+
+        fd.write("###########################\n")
+        fd.write("# Authentication settings\n")
+        fd.write("############################\n")
+
+        fd.write("\n# Force GSI authentication\n")
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("SEC_%s_AUTHENTICATION_METHODS = GSI\n"%context)
+        fd.write("\n")
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("SEC_%s_AUTHENTICATION = REQUIRED\n"%context)
+        
+        fd.write("\n#################################\n")
+        fd.write("# Where to find ID->uid mappings\n")
+        fd.write("# (also disable any GRIDMAP)\n")
+        fd.write("#################################\n")
+        fd.write("CERTIFICATE_MAPFILE=%s\n"%mapfile_fname)
+        fd.write("GRIDMAP=\n")
+
+        fd.write("\n# Specify that we trust anyone but not anonymous\n")
+        fd.write("# I.e. we only talk to servers that have \n")
+        fd.write("#  a DN mapped in our mapfile\n")
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("DENY_%s = anonymous@*\n"%context)
+        fd.write("\n")
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("ALLOW_%s = *@*\n"%context)
+
+        fd.write("\n# Get rid of GSI_DAEMON_NAME\n")
+        fd.write("# We will rely on *_CLIENT only\n")
+        fd.write("GSI_DAEMON_NAME=\n")
+
+        fd.write("\n# Force integrity\n")
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("SEC_%s_INTEGRITY = REQUIRED\n"%context)
+
+        fd.write("\n######################################################\n")
+        fd.write("## If someone tried to use this config to start a master\n")
+        fd.write("## make sure it is not used to run any daemons\n")
+        fd.write("######################################################\n")
+        fd.write("DAEMON_LIST=MASTER\n")
+        fd.write("DAEMON_SHUTDOWN=True\n")
+
+    finally:
+        fd.close()
+        
+    return
