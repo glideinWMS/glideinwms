@@ -57,6 +57,8 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
 #  "r" - real (float)
 #  "b" - bool
 #
+#
+# security_obj, if defined, should be a child of condorSecurity.ProtoRequest
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
     def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None):
         self.exe_name=exe_name
@@ -73,7 +75,7 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
                 raise RuntimeError, "Cannot use a security object which has saved state."
             self.security_obj=copy.deepcopy(security_obj)
         else:
-            self.security_obj=condorSecurity.AuthCondorSecurity()
+            self.security_obj=condorSecurity.ProtoRequest()
 
     def require_integrity(self,requested_integrity): # if none, dont change, else forse that one
         if requested_integrity==None:
@@ -153,14 +155,14 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
 # condor_q 
 class CondorQ(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None):
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
         self.schedd_name=schedd_name
         if schedd_name==None:
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
 
-        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name)
+        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,security_obj)
 
     def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
@@ -171,14 +173,14 @@ class CondorQ(QueryExe):
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(QueryExe):
-    def __init__(self,schedd_name=None,pool_name=None):
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
         self.schedd_name=schedd_name
         if schedd_name==None:
             schedd_str=""
         else:
             schedd_str="-name %s"%schedd_name
 
-        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name)
+        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,security_obj)
 
     def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
@@ -188,13 +190,13 @@ class CondorQLite(QueryExe):
 
 # condor_status
 class CondorStatus(QueryExe):
-    def __init__(self,subsystem_name=None,pool_name=None):
+    def __init__(self,subsystem_name=None,pool_name=None,security_obj=None):
         if subsystem_name==None:
             subsystem_str=""
         else:
             subsystem_str="-%s"%subsystem_name
 
-        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name)
+        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,security_obj)
 
     def fetch(self,constraint=None,format_list=None):
         if format_list!=None:
