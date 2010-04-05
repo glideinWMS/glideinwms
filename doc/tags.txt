@@ -1,3 +1,11 @@
+v1_6_3 Fixed a security bug in which certificate/proxy DN(s) are handled. If
+          you are upgrading the installation rather than full install, you
+          should patch the condor_mapfile used by Condor daemons in your
+          installation using the convert_condormap tool available from the
+          glideinWMS download page. For additional security, users should
+          add new DN to the condor_mapfile only by using the glidecondor_addDN
+          tool available in the glideinWMS/install directory.	
+
 v1_6_2	Fixed a bug where Frontend would crash during certain conditions.
 
 v1_6_1	Better randomization of GCBs and collectors

@@ -94,9 +94,9 @@ def main():
                      "2":{"title":"Glidein Factory",
                           "proc":gfactory_install,"order":16},
                      "3":{"title":"GCB","proc":gcb_install,"order":15}, #must be after any other condor
-                     "4":{"title":"pool Collector",
+                     "4":{"title":"User Pool Collector",
                           "proc":collector_install,"order":11}, # must be before any schedd
-                     "5":{"title":"Schedd node",
+                     "5":{"title":"User Schedd",
                           "proc":schedd_node_install,"order":12},
                      "6":{"title":"Condor for VO Frontend",
                           "proc":condor_frontend_install,"order":14},
@@ -423,7 +423,9 @@ def condor_frontend_install():
             config_fd.write("\n######################################################\n")
             config_fd.write("## The client needs GSI authentication\n")
             config_fd.write("######################################################\n")
-            config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n\n")
+            config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
+            config_fd.write("# Grid Certificate directory\n")
+            config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
             config_fd.write("######################################################\n")
             config_fd.write("## This machine should run no daemons\n")
             config_fd.write("######################################################\n")
@@ -728,7 +730,7 @@ def gfactory_install():
 
         if web_url_type=="ftp":
             try:
-                fc=ftplist.FTP(web_base_url_host)
+                fc=ftplib.FTP(web_base_url_host)
                 rc=fc.login()
                 rc=fc.cwd(web_base_url_path+"stage/")
                 fc.close()
@@ -757,7 +759,7 @@ def gfactory_install():
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:
-                    raise RuntimError,"http failed %i"%rc.status
+                    raise RuntimeError,"http failed %i"%rc.status
             except:
                 print "Failed connecting to: %s"%web_base_url
                 continue
@@ -2391,7 +2393,7 @@ def configure_gsi_security():
     gridmap_fd=open(condor_mapfile,"w")
     try:
         for a_uid in dns.keys():
-            gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid][0],a_uid))
+            gridmap_fd.write('GSI "^%s$" %s\n'%(re.escape(dns[a_uid][0]),a_uid))
         gridmap_fd.write('GSI (.*) anonymous\n')
         gridmap_fd.write('FS (.*) \\1\n')
     finally:

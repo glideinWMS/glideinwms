@@ -159,7 +159,18 @@ function create_condormapfile {
     grep -v "^[ ]*#"  "$X509_GRIDMAP" | while read file
     do
       if [ -n "$file" ]; then # ignore empty lines
-	echo "GSI $file" >> "$X509_CONDORMAP"
+        # split between DN and UID
+        # keep the quotes in DN to not loose trailing spaces
+        udn=`echo "$file" |awk '{print substr($0,1,length($0)-length($NF)-1)}'`
+        uid=`echo "$file" |awk '{print $NF}'`
+
+        # encode for regexp
+        edn_wq=`echo "$udn" | sed 's/[^[:alnum:]]/\\\&/g'`
+        # remove backslashes from the first and last quote
+        # and add begin and end matching chars
+        edn=`echo "$edn_wq" | awk '{print "\"^" substr(substr($0,3,length($0)-2),1,length($0)-4) "$\"" }'`
+
+        echo "GSI $edn $uid" >> "$X509_CONDORMAP"
       fi
     done
 
