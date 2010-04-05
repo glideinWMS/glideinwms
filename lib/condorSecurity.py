@@ -225,7 +225,7 @@ class ProtoRequest(SecEnvRequest):
 #
 ########################################################################
 
-class GSIRequests(ProtoRequest):
+class GSIRequest(ProtoRequest):
     def __init__(self, x509_proxy=None, allow_fs=True, proto_requests=None):
         auth_str="GSI"
         if allow_fs:
