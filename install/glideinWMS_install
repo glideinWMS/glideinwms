@@ -650,17 +650,9 @@ def gfactory_install():
 
     # Submit base directory
     def_submit_base_dir="%s/glideinsubmit"%os.environ['HOME']
-    while 1:
-        submit_base_dir=raw_input("Where will you host your config and log files?: [%s]"%def_submit_base_dir)
-        if submit_base_dir=="":
-            submit_base_dir=def_submit_base_dir
-        if not os.path.isdir(submit_base_dir):
-            print "'%s' is not a directory!"%submit_base_dir
-            continue
-        # found it
-        break
 
-    
+    submit_base_dir=create_empty_dir("Where will you host your config and log files?: ",def_submit_base_dir,empty_required=False)
+
     while 1:
         default_web_base_dir='/var/www/html/glidefactory'
         web_base_dir=create_empty_dir("Where will the web data be hosted?: ",default_web_base_dir,empty_required=False)
