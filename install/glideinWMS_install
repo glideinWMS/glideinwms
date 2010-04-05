@@ -3155,6 +3155,8 @@ def setup_main_schedd():
         config_fd.write("#GCB optimization\n")
         config_fd.write("SCHEDD_SEND_VACATE_VIA_TCP = True\n")
         config_fd.write("STARTD_SENDS_ALIVES = True\n")
+        config_fd.write("#Reduce disk IO - paranoid fsyncs are usully not needed\n")
+        config_fd.write("ENABLE_USERLOG_FSYNC = False\n")
     finally:
         config_fd.close()
 
