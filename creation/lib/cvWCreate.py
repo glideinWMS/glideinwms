@@ -10,6 +10,7 @@
 import os,os.path
 import stat
 import string
+import re
 import traceback
 import tarfile
 import cStringIO
@@ -163,7 +164,28 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
     return
 
 #########################################
-# Create init.d compatible startup file
+# Create frontend-specific mapfile
+def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_DNs):
+    fd=open(mapfile_fname,"w")
+    try:
+        fd.write('GSI "^%s$" %s\n'%(re.escape(my_DN),'me'))
+        for (uid,dns) in (('factory',factory_DNs),
+                          ('schedd',schedd_DNs),
+                          ('collector',collector_DNs)):
+            for i in range(len(dns)):
+                fd.write('GSI "^%s$" %s%i\n'%(re.escape(dns[i]),uid,i))
+        fd.write("GSI (.*) anonymous\n")
+        # Add FS and other mappings just for completeness
+        # Should never get here
+        for t in ('FS','SSL','KERBEROS','PASSWORD','FS_REMOTE','NTSSPI','CLAIMTOBE','ANONYMOUS'):
+            fd.write("%s (.*) anonymous\n"%t)
+    finally:
+        fd.close()
+        
+    return
+
+#########################################
+# Create frontend-specific condor_config
 def create_condor_config(config_fname,mapfile_fname):
     def_attrs=condorExe.exe_cmd('condor_config_val','-dump')
 
