@@ -442,10 +442,6 @@ def termsignal(signr,frame):
     raise KeyboardInterrupt, "Received signal %s"%signr
 
 if __name__ == '__main__':
-    # check that the GSI environment is properly set
-    if not os.environ.has_key('X509_CERT_DIR'):
-        raise RuntimeError, "Need X509_CERT_DIR to work!"
-
     # make sure you use GSI for authentication
     os.environ['_CONDOR_SEC_DEFAULT_AUTHENTICATION_METHODS']='GSI'
 
