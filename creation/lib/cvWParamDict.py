@@ -60,6 +60,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # create GLIDEIN_Collector attribute
         self.dicts['params'].add_extended('GLIDEIN_Collector',False,calc_glidein_collectors(params.collectors))
+        populate_gridmap(params,self.dicts['gridmap'])
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
             self.dicts['preentry_file_list'].remove(cWConsts.GRIDMAP_FILE)
@@ -539,7 +540,52 @@ def calc_glidein_collectors(collectors):
         collector_nodes.append(el.node)
     return string.join(collector_nodes,",")
 
+#####################################################
+# Populate gridmap to be used by the glideins
+def populate_gridmap(params,gridmap_dict):
+    collector_dns=[]
+    for el in params.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for pool collector %s"%el.node
+        if not (dn in collector_dns): #skip duplicates
+            collector_dns.append(dn)
+            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
 
+    # Add also the frontend DN, so it is easier to debug
+    if params.security.proxy_DN!=None:
+        gridmap_dict.add(params.security.proxy_DN,'frontend')
+
+def populate_group_security(client_security,params,sub_params):
+    factory_dns=[]
+    for el in params.match.factory.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for factory %s"%el.node
+        factory_dns.append(dn)
+    for el in sub_params.match.factory.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for factory %s"%el.node
+        # don't worry about conflict... there is nothing wrong if the DN is listed twice
+        factory_dns.append(dn)
+    client_security['factory_DNs']=factory_dns
+    
+    schedd_dns=[]
+    for el in params.match.job.schedds:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
+        schedd_dns.append(dn)
+    for el in sub_params.match.job.schedds:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
+        # don't worry about conflict... there is nothing wrong if the DN is listed twice
+        schedd_dns.append(dn)
+    client_security['schedd_DNs']=schedd_dns
+    
+                     
 #####################################################
 # Populate security values
 def populate_main_security(client_security,params):
