@@ -1116,7 +1116,7 @@ def gfactory_install():
         try:
             pwd.getpwnam(frontend_uid)
         except:
-            print "User '%s' does not exist!"%condor_user
+            print "User '%s' does not exist!"%frontend_uid
             continue
         
         frontends[frontend_name]={'id':frontend_identity,'security_class':frontend_secclass,'user':frontend_uid}
@@ -1335,7 +1335,7 @@ def vofrontend_install():
 
     print
     print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the WMS collector grid-mapfile"
+    print "Make sure this DN is in the WMS collector condor_mapfile"
     print
 
     print "For security reasons, we need to know what will the WMS collector map us to."
@@ -1390,12 +1390,18 @@ def vofrontend_install():
             print "'%s' not a valid host name!"%pool_node.split(':')[0]
             continue
         #have a valid pool_node
+        break
 
-        def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
-        pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
-        if pool_identity=="":
-            pool_identity=def_pool_identity
-        # have all I need, get out of the loop
+    def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
+    pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
+    if pool_identity=="":
+        pool_identity=def_pool_identity
+
+    while 1:
+        pool_dn=raw_input("What is the WMS collector DN (i.e. subject)?: ")
+        if len(pool_dn)<5:
+            print "Too short... likely invalid"
+            continue
         break
 
     # collector
@@ -1407,8 +1413,17 @@ def vofrontend_install():
     else:
         default_local_collector=lines[0][:-1]
 
+    main_local_collector=default_local_collector
+    print "Using pool collector %s"%main_local_collector
+    while 1:
+        main_local_dn=raw_input("What is the pool collector DN (i.e. subject)?: ")
+        if len(main_local_dn)<5:
+            print "Too short... likely invalid"
+            continue
+        break
+
     print
-    print "What node is the pool collector running on?"
+    print "What pool collector will the glideins talk to?"
     print "If you have a hierarchy of collectors, list them all"
     print "(for example master1.my.org:9620-9624"
     print "          or master1.my.org:9619,master2.my.org:9620-9624,master3.my.org)"
@@ -1670,6 +1685,9 @@ def vofrontend_install():
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
+            fd.write('   <collectors>\n')
+            fd.write('     <collector node=%s DN=%s/>\n'%(xmlFormat.xml_quoteattr(main_local_collector),xmlFormat.xml_quoteattr(main_local_dn)))
+            fd.write('   </collectors>\n')
             fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname)))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
@@ -1679,7 +1697,7 @@ def vofrontend_install():
             fd.write('   <match>\n')
             fd.write('      <factory>\n')
             fd.write('        <collectors>\n')
-            fd.write('          <collector node=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
+            fd.write('          <collector node=%s DN=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_dn),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
             fd.write('        </collectors>\n')
             fd.write('      </factory>\n')
             fd.write('      <job query_expr=%s comment="Define job constraint and schedds globally for simplicity">\n'%xmlFormat.xml_quoteattr(job_constraint))
