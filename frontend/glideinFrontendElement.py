@@ -172,10 +172,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
                 except:
-                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glidein[0]))
+                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glideid[0]))
                     del glidein_dict[glideid] # no valid key
             else:
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glidein[0],glidein_el['attrs']['PubKeyType']))
+                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glideid[0],glidein_el['attrs']['PubKeyType']))
                 del glidein_dict[glideid] # not trusted
                 
 
