@@ -521,11 +521,11 @@ def populate_main_security(client_security,params):
         raise RuntimeError,"DN not defined for classad_proxy"    
     client_security['proxy_DN']=params.security.proxy_DN
     
-    if len(params.security.collectors)==0:
+    if len(params.collectors)==0:
         raise RuntimeError,"Need at least one pool collector"
     collector_dns=[]
     collector_nodes=[]
-    for el in params.security.collectors:
+    for el in params.collectors:
         dn=el.DN
         if dn==None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
