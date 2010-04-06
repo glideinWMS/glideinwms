@@ -1308,41 +1308,6 @@ def vofrontend_install():
         query_flot()
 
 
-    ###################################
-    # Ask about the proxy
-    print "To use the VO Frontend you need a valid GSI proxy."
-    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
-    while 1:
-        if os.environ.has_key('X509_USER_PROXY'):
-            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
-            if proxy_fname=="":
-                proxy_fname=os.environ['X509_USER_PROXY']
-        else:
-            proxy_fname=raw_input("Where is your proxy located?: ")
-        proxy_fname=os.path.abspath(proxy_fname)
-
-        if not os.path.isfile(proxy_fname):
-            print "File not found: '%s'"%proxy_fname
-            continue
-
-        try:
-            my_dn=get_proxy_dn(proxy_fname)
-        except RuntimeError,e:
-            print e
-            continue
-            
-        break # proxy found
-
-    print
-    print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the WMS collector condor_mapfile"
-    print
-
-    print "For security reasons, we need to know what will the WMS collector map us to."
-    print "It will likely be something like joe@collector1.myorg.com"
-    proxy_identity = raw_input("What is the mapped name?: ")
-    print
-
     #################################
     # get config vals
     full_host_name=socket.getfqdn()
@@ -1383,7 +1348,7 @@ def vofrontend_install():
 
     # WMS collector node
     while 1:
-        pool_node=raw_input("What node is the WMS collector running?: ")
+        pool_node=raw_input("What node is the WMS collector (i.e. the gfactory) running?: ")
         try:
             socket.gethostbyname(pool_node.split(':')[0])
         except:
@@ -1403,6 +1368,41 @@ def vofrontend_install():
             print "Too short... likely invalid"
             continue
         break
+
+    ###################################
+    # Ask about the proxy
+    print "To use the VO Frontend you need a valid GSI proxy."
+    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
+    while 1:
+        if os.environ.has_key('X509_USER_PROXY'):
+            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
+            if proxy_fname=="":
+                proxy_fname=os.environ['X509_USER_PROXY']
+        else:
+            proxy_fname=raw_input("Where is your proxy located?: ")
+        proxy_fname=os.path.abspath(proxy_fname)
+
+        if not os.path.isfile(proxy_fname):
+            print "File not found: '%s'"%proxy_fname
+            continue
+
+        try:
+            my_dn=get_proxy_dn(proxy_fname)
+        except RuntimeError,e:
+            print e
+            continue
+            
+        break # proxy found
+
+    print
+    print "Using DN '%s'"%my_dn
+    print "Make sure this DN is in the WMS collector condor_mapfile"
+    print
+
+    print "For security reasons, we need to know what will the WMS collector map us to."
+    print "It will likely be something like joe@%s"%pool_node.split(':')[0]
+    proxy_identity = raw_input("What is the mapped name?: ")
+    print
 
     # collector
     fd=os.popen("condor_config_val COLLECTOR_HOST")
