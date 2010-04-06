@@ -196,6 +196,10 @@ class VOFrontendParams(cWParams.CommonParams):
             raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
 
         ####################
+        if self.security.proxy_DN==None:
+             raise RuntimeError, "security.proxy_DN not defined"
+
+        ####################
         has_security_name=(self.security.security_name!=None)
         if not has_security_name:
             # security_name not defined at global level, look if defined in every group
