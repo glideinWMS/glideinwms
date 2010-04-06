@@ -105,6 +105,20 @@ def spawn(sleep_time,advertize_rate,work_dir,
         
         
 ############################################################
+def cleanup_environ():
+    for val in os.environ.keys():
+        val_low=val.lower()
+        if val_low[:8]=="_condor_":
+            # remove any CONDOR environment variables
+            # don't want any surprises
+            del os.environ[val]
+        elif val_low[:5]=="x509_":
+            # remove any X509 environment variables
+            # don't want any surprises
+            del os.environ[val]
+            
+
+############################################################
 def main(work_dir):
     startup_time=time.time()
 
@@ -121,6 +135,10 @@ def main(work_dir):
                                                              float(frontendDescript.data['LogRetentionMaxMBs']))
     
     try:
+        cleanup_environ()
+        # we use a dedicated config... ignore the system-wide
+        os.environ['CONDOR_CONFIG']=frontendDescript.data['CondorConfig']
+        
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
         
