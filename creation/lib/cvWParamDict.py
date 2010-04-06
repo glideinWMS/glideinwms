@@ -418,6 +418,8 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
 
+        frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_MAP_FILE))
+
         frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('DowntimesFile',down_fname)
         for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
@@ -434,6 +436,9 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
         down_fname=os.path.join(work_dir,'group.downtimes')
 
     group_descript_dict.add('GroupName',sub_name)
+
+    group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
+
     group_descript_dict.add('DowntimesFile',down_fname)
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
