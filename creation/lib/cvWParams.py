@@ -141,6 +141,7 @@ class VOFrontendParams(cWParams.CommonParams):
         pool_collector_defaults=cWParams.commentedOrderedDict()
         pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
         pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
 
         self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
 
@@ -193,8 +194,8 @@ class VOFrontendParams(cWParams.CommonParams):
             for  group_name in self.groups.keys():
                has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
 
-        if not has_collector:
-            raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
+        if has_collector:
+            raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
 
         ####################
         if self.security.proxy_DN==None:

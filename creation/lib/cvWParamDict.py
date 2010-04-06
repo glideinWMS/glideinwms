@@ -58,6 +58,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for attr_name in params.attrs.keys():
             add_attr_unparsed(attr_name, params,self.dicts,"main")
 
+        # create GLIDEIN_Collector attribute
+        self.dicts['params'].add_extended('GLIDEIN_Collector',False,calc_glidein_collectors(params.collectors))
+
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
             self.dicts['preentry_file_list'].remove(cWConsts.GRIDMAP_FILE)
 
@@ -520,22 +523,43 @@ def populate_common_descript(descript_dict,        # will be modified
 
 
 #####################################################
+# Returns a string usable for GLIDEIN_Collector
+def calc_glidein_collectors(collectors):
+    collector_nodes=[]
+    for el in collectors:
+        is_secondary=eval(el.secondary)
+        if not is_secondary:
+            continue # only consider secondary collectors here
+        collector_nodes.append(el.node)
+    if len(collector_nodes)!=0:
+        return string.join(collector_nodes,",")
+
+    # no secondard nodes, will have to use the primary ones
+    for el in collectors:
+        collector_nodes.append(el.node)
+    return string.join(collector_nodes,",")
+
+
+#####################################################
 # Populate security values
 def populate_main_security(client_security,params):
     if params.security.proxy_DN==None:
         raise RuntimeError,"DN not defined for classad_proxy"    
     client_security['proxy_DN']=params.security.proxy_DN
     
-    if len(params.collectors)==0:
-        raise RuntimeError,"Need at least one pool collector"
     collector_dns=[]
     collector_nodes=[]
     for el in params.collectors:
         dn=el.DN
         if dn==None:
             raise RuntimeError,"DN not defined for pool collector %s"%el.node
+        is_secondary=eval(el.secondary)
+        if is_secondary:
+            continue # only consider primary collectors for the main security config
         collector_nodes.append(el.node)
         collector_dns.append(dn)
+    if len(collector_nodes)==0:
+        raise RuntimeError,"Need at least one non-secondary pool collector"
     client_security['collector_nodes']=collector_nodes
     client_security['collector_DNs']=collector_dns
 
