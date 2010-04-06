@@ -197,7 +197,10 @@ class VOFrontendParams(cWParams.CommonParams):
 
         ####################
         if self.security.proxy_DN==None:
-             raise RuntimeError, "security.proxy_DN not defined"
+            raise RuntimeError, "security.proxy_DN not defined"
+
+        if len(self.security.collectors)==0:
+            raise RuntimeError, "At least one pool collector is needed"
 
         ####################
         has_security_name=(self.security.security_name!=None)
