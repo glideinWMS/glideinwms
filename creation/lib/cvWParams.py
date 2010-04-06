@@ -146,7 +146,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
         self.defaults["security"]["proxy_DN"]=(None,"dn","Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
-        security_defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
+        self.defaults["security"]["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
         
         self.defaults["match"]=copy.deepcopy(match_defaults)
         # change default match value
