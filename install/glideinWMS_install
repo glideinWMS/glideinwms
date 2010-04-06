@@ -425,7 +425,7 @@ def condor_frontend_install():
             config_fd.write("######################################################\n")
             config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
             config_fd.write("# Grid Certificate directory\n")
-            config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
+            config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s/globus/TRUSTED_CA\n\n"%VDT_BASE_PATH)
             config_fd.write("######################################################\n")
             config_fd.write("## This machine should run no daemons\n")
             config_fd.write("######################################################\n")
