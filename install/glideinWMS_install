@@ -1423,17 +1423,29 @@ def vofrontend_install():
         break
 
     print
-    print "What pool collector will the glideins talk to?"
-    print "If you have a hierarchy of collectors, list them all"
-    print "(for example master1.my.org:9620-9624"
-    print "          or master1.my.org:9619,master2.my.org:9620-9624,master3.my.org)"
+    print "List and secondary pool collectory the glideins should use"
+    print "instead of the main collector."
+    print "(leave empty if you want to use the main collector only)"
+    print "Valid syntaxes are:"
+    print " master1.my.org:9620-9624"
+    print " master1.my.org:9619"
+    print " master3.my.org"
+    print "Leave an empty collector name when finished."
+    secondary_local_collectors=[]
+    secondary_local_dns={}
     while 1:
-        local_collector=raw_input("Collector name(s): [%s]"%default_local_collector)
-        if local_collector=="":
-            local_collector=default_local_collector
-        if local_collector!="":
+        add_collector=raw_input("Collector name: ")
+        if add_collector=="":
             break
-        print "Empty string not a valid collector"
+
+        add_dn=raw_input("Collector DN (i.e. subject): ")
+        if len(add_dn)<5:
+            print "Too short... likely invalid.. retry collector %s"%add_collector
+            continue
+
+        secondary_local_collectors.append(add_collector)
+        secondary_local_dns[add_collector]=add_dn
+
 
     # schedds
     fd=os.popen("condor_status -schedd -format '%s\n' Name")
@@ -1695,7 +1707,9 @@ def vofrontend_install():
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
             fd.write('   <collectors>\n')
-            fd.write('     <collector node=%s DN=%s/>\n'%(xmlFormat.xml_quoteattr(main_local_collector),xmlFormat.xml_quoteattr(main_local_dn)))
+            fd.write('     <collector node=%s DN=%s secondary="False"/>\n'%(xmlFormat.xml_quoteattr(main_local_collector),xmlFormat.xml_quoteattr(main_local_dn)))
+            for c in secondary_local_collectors:
+                fd.write('     <collector node=%s DN=%s secondary="True"/>\n'%(xmlFormat.xml_quoteattr(c),xmlFormat.xml_quoteattr(secondary_local_dns[c])))
             fd.write('   </collectors>\n')
             fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s proxy_DN=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(my_dn)))
             fd.write('      <proxies>\n')
@@ -1719,7 +1733,6 @@ def vofrontend_install():
             fd.write('   <attrs>\n')
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%(match_yn=='y'))
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
-            fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value=%s/>\n'%xmlFormat.xml_quoteattr(local_collector))
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
