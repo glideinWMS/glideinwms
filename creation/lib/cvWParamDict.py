@@ -92,7 +92,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             self.monitor_htmls.append(mfobj)
 
         # populate security data
-        self.client_security['proxy_DN']=params.security.proxy_DN
+        populate_main_security(self.client_security,params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -125,7 +125,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         # but the real mapfile will be (potentially) different for each
         # group, so frontend daemons will need to point to the real one at runtime
         cvWCreate.create_client_condor_config(os.path.join(self.work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE),
-                                              os.path.join(self.work_dir,cvWConsts.FRONTEND_MAP_FILE))
+                                              os.path.join(self.work_dir,cvWConsts.FRONTEND_MAP_FILE),
+                                              self.client_security['collector_nodes'])
         return
 
 ################################################
@@ -177,6 +178,7 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
         populate_common_descript(self.dicts['group_descript'],sub_params)
 
         # populate security data
+        populate_main_security(self.client_security,params)
         populate_group_security(self.client_security,params,sub_params)
 
     # reuse as much of the other as possible
@@ -514,11 +516,25 @@ def populate_common_descript(descript_dict,        # will be modified
 
 #####################################################
 # Populate security values
-def populate_group_security(client_security,params,sub_params):
+def populate_main_security(client_security,params):
     if params.security.proxy_DN==None:
         raise RuntimeError,"DN not defined for classad_proxy"    
     client_security['proxy_DN']=params.security.proxy_DN
     
+    if len(params.security.collectors)==0:
+        raise RuntimeError,"Need at least one pool collector"
+    collector_dns=[]
+    collector_nodes=[]
+    for el in params.security.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for pool collector %s"%el.node
+        collector_nodes.append(el.node)
+        collector_dns.append(dn)
+    client_security['collector_nodes']=collector_nodes
+    client_security['collector_DNs']=collector_dns
+
+def populate_group_security(client_security,params,sub_params):
     factory_dns=[]
     for el in params.match.factory.collectors:
         dn=el.DN
@@ -546,13 +562,5 @@ def populate_group_security(client_security,params,sub_params):
         # don't worry about conflict... there is nothing wrong if the DN is listed twice
         schedd_dns.append(dn)
     client_security['schedd_DNs']=schedd_dns
-    
-    collector_dns=[]
-    for el in params.security.collectors:
-        dn=el.DN
-        if dn==None:
-            raise RuntimeError,"DN not defined for pool collector %s"%el.node
-        collector_dns.append(dn)
-    client_security['collector_DNs']=collector_dns
 
     
