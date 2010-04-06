@@ -1371,7 +1371,7 @@ def vofrontend_install():
 
     ###################################
     # Ask about the proxy
-    print "To use the VO Frontend you need a valid GSI proxy."
+    print "\nTo use the VO Frontend you need a valid GSI proxy."
     print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
     while 1:
         if os.environ.has_key('X509_USER_PROXY'):
@@ -1697,7 +1697,7 @@ def vofrontend_install():
             fd.write('   <collectors>\n')
             fd.write('     <collector node=%s DN=%s/>\n'%(xmlFormat.xml_quoteattr(main_local_collector),xmlFormat.xml_quoteattr(main_local_dn)))
             fd.write('   </collectors>\n')
-            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s proxy_dn=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(my_dn)))
+            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s proxy_DN=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(my_dn)))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
                 fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
