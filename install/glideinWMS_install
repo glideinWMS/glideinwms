@@ -1495,6 +1495,15 @@ def vofrontend_install():
             break
     print "Using %s"%schedds
     print
+    schedd_dns={}
+    for schedd in schedds:
+        while 1:
+            schedd_dns[schedd]=raw_input("What is the DN (i.e. subject) for schedd %s?: "%schedd)
+            if len(schedd_dns[schedd])<5:
+                print "Too short... likely invalid"
+                continue
+            break
+        
 
     # job constraint
     default_job_constraint="(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)"
@@ -1703,7 +1712,7 @@ def vofrontend_install():
             fd.write('      <job query_expr=%s comment="Define job constraint and schedds globally for simplicity">\n'%xmlFormat.xml_quoteattr(job_constraint))
             fd.write('        <schedds>\n')
             for schedd in schedds:
-                fd.write('         <schedd fullname=%s/>\n'%xmlFormat.xml_quoteattr(schedd))
+                fd.write('         <schedd fullname=%s DN=%s/>\n'%(xmlFormat.xml_quoteattr(schedd),xmlFormat.xml_quoteattr(schedd_dns[schedd])))
             fd.write('        </schedds>\n')
             fd.write('      </job>\n')
             fd.write('   </match>\n')
