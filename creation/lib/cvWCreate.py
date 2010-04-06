@@ -186,7 +186,7 @@ def create_client_mapfile(mapfile_fname,my_DN,factory_DNs,schedd_DNs,collector_D
 
 #########################################
 # Create frontend-specific condor_config
-def create_client_condor_config(config_fname,mapfile_fname):
+def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
     def_attrs=condorExe.exe_cmd('condor_config_val','-dump')
 
     fd=open(config_fname,"w")
@@ -211,9 +211,14 @@ def create_client_condor_config(config_fname,mapfile_fname):
 
         fd.write("\n##################################\n")
         fd.write("# Add Frontend specific attributes\n")
-        fd.write("##################################\n\n")
+        fd.write("##################################\n")
 
+        fd.write("\n###########################\n")
+        fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
+        fd.write("CONDOR_HOST = %s\n"%string.join(collector_nodes,","))
+
+        fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")
         fd.write("############################\n")
 
