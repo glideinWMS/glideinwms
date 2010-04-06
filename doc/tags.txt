@@ -1,4 +1,4 @@
-v1_6_3 Fixed a security bug in which certificate/proxy DN(s) are handled. If
+v1_6_3 Fixed a security bug in way certificate/proxy DN(s) are handled. If
           you are upgrading the installation rather than full install, you
           should patch the condor_mapfile used by Condor daemons in your
           installation using the convert_condormap tool available from the
