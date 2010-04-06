@@ -233,6 +233,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("# Where to find ID->uid mappings\n")
         fd.write("# (also disable any GRIDMAP)\n")
         fd.write("#################################\n")
+        fd.write("# This is a fake file, redefine at runtime\n")
         fd.write("CERTIFICATE_MAPFILE=%s\n"%mapfile_fname)
         fd.write("GRIDMAP=\n")
 
