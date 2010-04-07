@@ -59,7 +59,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             add_attr_unparsed(attr_name, params,self.dicts,"main")
 
         # create GLIDEIN_Collector attribute
-        self.dicts['params'].add_extended('GLIDEIN_Collector',False,calc_glidein_collectors(params.collectors))
+        self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
         populate_gridmap(params,self.dicts['gridmap'])
 
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
@@ -556,36 +556,6 @@ def populate_gridmap(params,gridmap_dict):
     if params.security.proxy_DN!=None:
         gridmap_dict.add(params.security.proxy_DN,'frontend')
 
-def populate_group_security(client_security,params,sub_params):
-    factory_dns=[]
-    for el in params.match.factory.collectors:
-        dn=el.DN
-        if dn==None:
-            raise RuntimeError,"DN not defined for factory %s"%el.node
-        factory_dns.append(dn)
-    for el in sub_params.match.factory.collectors:
-        dn=el.DN
-        if dn==None:
-            raise RuntimeError,"DN not defined for factory %s"%el.node
-        # don't worry about conflict... there is nothing wrong if the DN is listed twice
-        factory_dns.append(dn)
-    client_security['factory_DNs']=factory_dns
-    
-    schedd_dns=[]
-    for el in params.match.job.schedds:
-        dn=el.DN
-        if dn==None:
-            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
-        schedd_dns.append(dn)
-    for el in sub_params.match.job.schedds:
-        dn=el.DN
-        if dn==None:
-            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
-        # don't worry about conflict... there is nothing wrong if the DN is listed twice
-        schedd_dns.append(dn)
-    client_security['schedd_DNs']=schedd_dns
-    
-                     
 #####################################################
 # Populate security values
 def populate_main_security(client_security,params):
