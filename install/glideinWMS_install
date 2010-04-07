@@ -1744,8 +1744,7 @@ def vofrontend_install():
         print '%s/creation/create_frontend %s'%(glideinWMS_base_dir, cfg_name)
 
     print
-    print "Configuration files are located in %s/instance_%s.cfg"%(frontstage_base_dir,version_name)
-    print "Remember to set X509_USER_PROXY before starting the daemon"
+    print "Configuration file is located at %s"%cfg_name
     print
 
     return
