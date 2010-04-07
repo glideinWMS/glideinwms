@@ -1710,7 +1710,6 @@ def vofrontend_install():
             fd.write('      </group>\n')
             fd.write('   </groups>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname=%s untar="False" const="True" relfname="grid-mapfile"/>\n'%xmlFormat.xml_quoteattr(grid_mapfile))
             fd.write('   </files>\n')
             fd.write('</frontend>\n')
         finally:
