@@ -213,6 +213,10 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("# Add Frontend specific attributes\n")
         fd.write("##################################\n")
 
+        fd.write("\n#############################\n")
+        fd.write("# Disable any local config file\n")
+        fd.write("LOCAL_CONFIG_FILE = \n")
+
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
