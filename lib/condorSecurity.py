@@ -62,7 +62,7 @@ class EnvState:
 def convert_sec_filter(sec_filter):
         filter=[]
         for context in sec_filter.keys():
-            for feature in sec_filter[context].keys():
+            for feature in sec_filter[context]:
                 condor_key="SEC_%s_%s"%(context,feature)
                 filter.append(condor_key)
         return filter
