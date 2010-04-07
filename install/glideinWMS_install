@@ -1351,6 +1351,7 @@ def vofrontend_install():
         break
 
     # WMS collector node
+    print
     while 1:
         pool_node=raw_input("What node is the WMS collector (i.e. the gfactory) running?: ")
         try:
