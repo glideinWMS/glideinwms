@@ -44,7 +44,7 @@ def write_stats(stats):
 ############################################################
 # Will log the factory_stat_arr (tuple composed of 10 numbers)
 # and return a sum of factory_stat_arr+old_factory_stat_arr
-def log_and_sum_factory_line(factory,factory_stat_arr,old_factory_stat_arr):
+def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_arr):
     # if numbers are too big, reduce them to either k or M for presentation
     form_arr=[]
     for i in factory_stat_arr:
@@ -55,8 +55,13 @@ def log_and_sum_factory_line(factory,factory_stat_arr,old_factory_stat_arr):
         else:
             form_arr.append("%4iM"%(i/1000000))
 
+    if is_down:
+        down_str="Down"
+    else:
+        down_str="Up  "
+
     glideinFrontendLib.log_files.logActivity(("%s(%s %s) %s(%s) | %s %s %s | %s %s "%tuple(form_arr))+
-                                             ("%s"%factory))
+                                             ("%s %s"%(down_str,factory)))
 
     new_arr=[]
     for i in range(len(factory_stat_arr)):
@@ -71,7 +76,7 @@ def init_factory_stats_arr():
 
 def log_factory_header():
     glideinFrontendLib.log_files.logActivity("     Jobs in schedd queues      |      Glideins     |   Request   ")
-    glideinFrontendLib.log_files.logActivity("Idle ( eff   old )  Run ( max ) | Total Idle   Run  | Idle MaxRun Factory")
+    glideinFrontendLib.log_files.logActivity("Idle ( eff   old )  Run ( max ) | Total Idle   Run  | Idle MaxRun Down Factory")
 
 ############################################################
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
@@ -245,13 +250,18 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     log_factory_header()
-    total_stats_arr=init_factory_stats_arr()
+    total_up_stats_arr=init_factory_stats_arr()
+    total_down_stats_arr=init_factory_stats_arr()
     for glideid in condorq_dict_types['Idle']['count'].keys():
         factory_pool_node=glideid[0]
         request_name=glideid[1]
         my_identity=str(glideid[2]) # get rid of unicode
         glideid_str="%s@%s"%(request_name,factory_pool_node)
         glidein_el=glidein_dict[glideid]
+
+        glidein_in_downtime=False
+        if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
+            glidein_in_downtime=(glidein_el['attrs']['GLIDEIN_In_Downtime']=='True')
 
         count_jobs={}
         for dt in condorq_dict_types.keys():
@@ -297,11 +307,13 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
-        total_stats_arr=log_and_sum_factory_line(glideid_str,
-                                                 (count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],max_running,
-                                                  count_status['Total'],count_status['Idle'],count_status['Running'],
-                                                  glidein_min_idle,glidein_max_run),
-                                                 total_stats_arr)
+        this_stats_arr=(count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],max_running,
+                        count_status['Total'],count_status['Idle'],count_status['Running'],
+                        glidein_min_idle,glidein_max_run)
+        if glidein_in_downtime:
+            total_down_stats_arr=log_and_sum_factory_line(glideid_str,glidein_in_downtime,this_stats_arr,total_down_stats_arr)
+        else:
+            total_up_stats_arr=log_and_sum_factory_line(glideid_str,glidein_in_downtime,this_stats_arr,total_up_stats_arr)
 
         # get the parameters
         glidein_params=copy.deepcopy(paramsDescript.const_data)
@@ -331,7 +343,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     # Print the totals
     # Ignore the resulting sum
     log_factory_header()
-    log_and_sum_factory_line('Total',tuple(total_stats_arr),total_stats_arr)
+    log_and_sum_factory_line('Sum of useful factories',False,tuple(total_up_stats_arr),total_down_stats_arr)
+    log_and_sum_factory_line('Sum of down factories',True,tuple(total_down_stats_arr),total_up_stats_arr)
         
     try:
         glideinFrontendLib.log_files.logActivity("Advertizing %i requests"%advertizer.get_queue_len())
