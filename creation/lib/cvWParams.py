@@ -70,6 +70,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
+        collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",None)
         collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
         collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
@@ -78,6 +79,7 @@ class VOFrontendParams(cWParams.CommonParams):
 
         schedd_defaults=cWParams.commentedOrderedDict()
         schedd_defaults["fullname"]=(None,"name","User schedd name (for example, schedd_3@sb1.my.org)",None)
+        schedd_defaults["DN"]=(None,"dn","User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",None)
 
         job_match_defaults=copy.deepcopy(fj_match_defaults)
         job_match_defaults["schedds"]=([],"List of user schedds","Each schedd contains",schedd_defaults)
@@ -136,10 +138,18 @@ class VOFrontendParams(cWParams.CommonParams):
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
         
+        pool_collector_defaults=cWParams.commentedOrderedDict()
+        pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
+        pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
+
+        self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
+
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
+        self.defaults["security"]["proxy_DN"]=(None,"dn","Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
-        
+
         self.defaults["match"]=copy.deepcopy(match_defaults)
         # change default match value
         # by default we want to look only for vanilla universe jobs that are not monitoring jobs
@@ -184,8 +194,15 @@ class VOFrontendParams(cWParams.CommonParams):
             for  group_name in self.groups.keys():
                has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
 
-        if not has_collector:
-            raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
+        if has_collector:
+            raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
+
+        ####################
+        if self.security.proxy_DN==None:
+            raise RuntimeError, "security.proxy_DN not defined"
+
+        if len(self.collectors)==0:
+            raise RuntimeError, "At least one pool collector is needed"
 
         ####################
         has_security_name=(self.security.security_name!=None)

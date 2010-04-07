@@ -172,10 +172,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 try:
                     glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
                 except:
-                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glidein[0]))
+                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glideid[0]))
                     del glidein_dict[glideid] # no valid key
             else:
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glidein[0],glidein_el['attrs']['PubKeyType']))
+                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glideid[0],glidein_el['attrs']['PubKeyType']))
                 del glidein_dict[glideid] # not trusted
                 
 
@@ -410,7 +410,9 @@ def main(parent_pid, work_dir, group_name):
         # no proxies, will try to use the factory one
         x509_proxy_plugin=None
 
-    # set the frontend proxy globally, so I don't need to worry about it later on
+    # set the condor configuration and GSI setup globally, so I don't need to worry about it later on
+    os.environ['CONDOR_CONFIG']=elementDescript.frontend_data['CondorConfig']
+    os.environ['_CONDOR_CERTIFICATE_MAPFILE']=elementDescript.element_data['MapFile']
     os.environ['X509_USER_PROXY']=elementDescript.frontend_data['ClassAdProxy']
 
     # create lock file
@@ -442,13 +444,6 @@ def termsignal(signr,frame):
     raise KeyboardInterrupt, "Received signal %s"%signr
 
 if __name__ == '__main__':
-    # check that the GSI environment is properly set
-    if not os.environ.has_key('X509_CERT_DIR'):
-        raise RuntimeError, "Need X509_CERT_DIR to work!"
-
-    # make sure you use GSI for authentication
-    os.environ['_CONDOR_SEC_DEFAULT_AUTHENTICATION_METHODS']='GSI'
-
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
     main(sys.argv[1],sys.argv[2],sys.argv[3])

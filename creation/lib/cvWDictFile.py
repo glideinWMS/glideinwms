@@ -61,6 +61,33 @@ class ParamsDictFile(cWDictFile.DictFile):
         key=arr[0]
         return self.add(key,(arr[1],eval(arr[2])))
 
+class GridMapDict(cWDictFile.DictFileTwoKeys):
+    def file_header(self,want_comments):
+        return None
+    
+    def format_val(self,key,want_comments):
+        return '"%s" %s'%(key,self.vals[key])
+
+    def parse_val(self,line):
+        if line[0]=='#':
+            return # ignore comments
+        arr=line.split()
+        if len(arr)==0:
+            return # empty line
+        if len(arr[0])==0:
+            return # empty key
+
+        if line[0:1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; not starting with ": %s'%line
+
+        user=arr[-1]
+
+        if line[-len(user)-2:-len(user)-1]!='"':
+            raise RuntimeError,'Not a valid gridmap line; DN not ending with ": %s'%line
+        
+        dn=line[1:-len(user)-2]
+        return self.add(dn,user)
+
 
 ################################################
 #
@@ -87,10 +114,11 @@ def get_main_dicts(work_dir,stage_dir,simple_work_dir,assume_groups):
     main_dicts=get_common_dicts(work_dir,stage_dir,simple_work_dir)
     main_dicts['summary_signature']=cWDictFile.SummarySHA1DictFile(work_dir,cWConsts.SUMMARY_SIGNATURE_FILE)
     main_dicts['frontend_descript']=cWDictFile.StrDictFile(work_dir,cvWConsts.FRONTEND_DESCRIPT_FILE)
+    main_dicts['gridmap']=GridMapDict(stage_dir,cWConsts.insert_timestr(cvWConsts.GRIDMAP_FILE))
     if assume_groups:
         main_dicts['aftergroup_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_FILE_LISTFILE)
         main_dicts['aftergroup_preentry_file_list']=cWDictFile.FileDictFile(stage_dir,cWConsts.insert_timestr(cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE),fname_idx=cvWConsts.AFTERGROUP_PREENTRY_FILE_LISTFILE)
-
+        
     return main_dicts
 
 def get_group_dicts(group_work_dir,group_stage_dir,group_name,simple_work_dir):
@@ -119,6 +147,8 @@ def load_common_dicts(dicts,           # update in place
     dicts['consts'].load(fname=file_el[cWConsts.CONSTS_FILE][0])
     dicts['vars'].load(fname=file_el[cWConsts.VARS_FILE][0])
     dicts['untar_cfg'].load(fname=file_el[cWConsts.UNTAR_CFG_FILE][0])
+    if dicts.has_key('gridmap'):
+        dicts['gridmap'].load(fname=file_el[cvWConsts.GRIDMAP_FILE][0])
 
 def load_main_dicts(main_dicts): # update in place
     main_dicts['frontend_descript'].load()
@@ -160,11 +190,13 @@ def refresh_file_list(dicts,is_main, # update in place
     file_dict.add(cWConsts.CONSTS_FILE,(dicts['consts'].get_fname(),"regular","TRUE","CONSTS_FILE",dicts['consts'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.VARS_FILE,(dicts['vars'].get_fname(),"regular","TRUE","CONDOR_VARS_FILE",dicts['vars'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
     file_dict.add(cWConsts.UNTAR_CFG_FILE,(dicts['untar_cfg'].get_fname(),"regular","TRUE","UNTAR_CFG_FILE",dicts['untar_cfg'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
+    if is_main:
+        file_dict.add(cvWConsts.GRIDMAP_FILE,(dicts['gridmap'].get_fname(),"regular","TRUE","GRIDMAP",dicts['gridmap'].save_into_str(set_readonly=files_set_readonly,reset_changed=files_reset_changed)),allow_overwrite=True)
 
 # dictionaries must have been written to disk before using this
 def refresh_signature(dicts): # update in place
     signature_dict=dicts['signature']
-    for k in ('consts','vars','untar_cfg','preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list','description'):
+    for k in ('consts','vars','untar_cfg','gridmap','preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list','description'):
         if dicts.has_key(k):
             signature_dict.add_from_file(dicts[k].get_filepath(),allow_overwrite=True)
     # add signatures of all the files linked in the lists
@@ -192,7 +224,7 @@ def save_common_dicts(dicts,     # will update in place, too
     for k in ('description',):
         dicts[k].save(set_readonly=set_readonly)
     # Load files into the file list
-    # 'consts','untar_cfg','vars' will be loaded
+    # 'consts','untar_cfg','vars','gridmap' will be loaded
     refresh_file_list(dicts,is_main)
     # save files in the file lists
     for k in ('preentry_file_list','file_list','aftergroup_preentry_file_list','aftergroup_file_list'):
@@ -250,8 +282,9 @@ def reuse_file_dict(dicts,other_dicts,key):
 def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # save the immutable ones
     # check simple dictionaries
-    for k in ('consts','untar_cfg','vars'):
-        all_reused=reuse_simple_dict(dicts,other_dicts,k) and all_reused
+    for k in ('consts','untar_cfg','vars','gridmap'):
+        if dicts.has_key(k):
+            all_reused=reuse_simple_dict(dicts,other_dicts,k) and all_reused
     # since the file names may have changed, refresh the file_list    
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries

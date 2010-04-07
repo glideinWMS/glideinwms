@@ -226,8 +226,12 @@ def schedd_node_install():
         configure_gsi_security(gsi_setup)
 
     # USE_MATCH_AUTH
+    print
+    print "Condor supports a more efficient Match authentication that is also more secure."
+    print "Newer versions of the VO Frontend will not work if you don't enable it,"
+    print "but you may still be able to use this schedd for other purposes."
     while 1:
-        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) ")
+        match_yn=raw_input("Do you want to enable Match authentication?: (y/n) ")
         if match_yn=="":
             match_yn="y"
         if (match_yn!="y") and (match_yn!="n"):
@@ -1116,7 +1120,7 @@ def gfactory_install():
         try:
             pwd.getpwnam(frontend_uid)
         except:
-            print "User '%s' does not exist!"%condor_user
+            print "User '%s' does not exist!"%frontend_uid
             continue
         
         frontends[frontend_name]={'id':frontend_identity,'security_class':frontend_secclass,'user':frontend_uid}
@@ -1308,41 +1312,6 @@ def vofrontend_install():
         query_flot()
 
 
-    ###################################
-    # Ask about the proxy
-    print "To use the VO Frontend you need a valid GSI proxy."
-    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
-    while 1:
-        if os.environ.has_key('X509_USER_PROXY'):
-            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
-            if proxy_fname=="":
-                proxy_fname=os.environ['X509_USER_PROXY']
-        else:
-            proxy_fname=raw_input("Where is your proxy located?: ")
-        proxy_fname=os.path.abspath(proxy_fname)
-
-        if not os.path.isfile(proxy_fname):
-            print "File not found: '%s'"%proxy_fname
-            continue
-
-        try:
-            my_dn=get_proxy_dn(proxy_fname)
-        except RuntimeError,e:
-            print e
-            continue
-            
-        break # proxy found
-
-    print
-    print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the WMS collector grid-mapfile"
-    print
-
-    print "For security reasons, we need to know what will the WMS collector map us to."
-    print "It will likely be something like joe@collector1.myorg.com"
-    proxy_identity = raw_input("What is the mapped name?: ")
-    print
-
     #################################
     # get config vals
     full_host_name=socket.getfqdn()
@@ -1382,23 +1351,71 @@ def vofrontend_install():
         break
 
     # WMS collector node
+    print
     while 1:
-        pool_node=raw_input("What node is the WMS collector running?: ")
+        pool_node=raw_input("What node is the WMS collector (i.e. the gfactory) running?: ")
         try:
             socket.gethostbyname(pool_node.split(':')[0])
         except:
             print "'%s' not a valid host name!"%pool_node.split(':')[0]
             continue
         #have a valid pool_node
-
-        def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
-        pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
-        if pool_identity=="":
-            pool_identity=def_pool_identity
-        # have all I need, get out of the loop
         break
 
+    def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
+    pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
+    if pool_identity=="":
+        pool_identity=def_pool_identity
+
+    while 1:
+        pool_dn=raw_input("What is the WMS collector DN (i.e. subject)?: ")
+        if len(pool_dn)<5:
+            print "Too short... likely invalid"
+            continue
+        break
+
+    ###################################
+    # Ask about the proxy
+    print "\nTo use the VO Frontend you need a valid GSI proxy."
+    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
+    while 1:
+        if os.environ.has_key('X509_USER_PROXY'):
+            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
+            if proxy_fname=="":
+                proxy_fname=os.environ['X509_USER_PROXY']
+        else:
+            proxy_fname=raw_input("Where is your proxy located?: ")
+        proxy_fname=os.path.abspath(proxy_fname)
+
+        if not os.path.isfile(proxy_fname):
+            print "File not found: '%s'"%proxy_fname
+            continue
+
+        try:
+            my_dn=get_proxy_dn(proxy_fname)
+        except RuntimeError,e:
+            print e
+            continue
+            
+        break # proxy found
+
+    print
+    print "Using DN '%s'"%my_dn
+    print "Make sure this DN is in the WMS collector condor_mapfile"
+    print
+
+    print "For security reasons, we need to know what will the WMS collector map us to."
+    print "It will likely be something like joe@%s"%pool_node.split(':')[0]
+    proxy_identity = raw_input("What is the mapped name?: ")
+    print
+
     # collector
+    
+    print
+    print "We are done with the WMS collector (i.e. gfactory) config"
+    print "Let's not configure the access to the local (user) pool"
+    print
+    
     fd=os.popen("condor_config_val COLLECTOR_HOST")
     lines=fd.readlines()
     err=fd.close()
@@ -1407,18 +1424,39 @@ def vofrontend_install():
     else:
         default_local_collector=lines[0][:-1]
 
-    print
-    print "What node is the pool collector running on?"
-    print "If you have a hierarchy of collectors, list them all"
-    print "(for example master1.my.org:9620-9624"
-    print "          or master1.my.org:9619,master2.my.org:9620-9624,master3.my.org)"
+    main_local_collector=default_local_collector
+    print "Using pool collector %s"%main_local_collector
     while 1:
-        local_collector=raw_input("Collector name(s): [%s]"%default_local_collector)
-        if local_collector=="":
-            local_collector=default_local_collector
-        if local_collector!="":
+        main_local_dn=raw_input("What is the pool collector DN (i.e. subject)?: ")
+        if len(main_local_dn)<5:
+            print "Too short... likely invalid"
+            continue
+        break
+
+    print
+    print "List and secondary pool collectory the glideins should use"
+    print "instead of the main collector."
+    print "(leave empty if you want to use the main collector only)"
+    print "Valid syntaxes are:"
+    print " master1.my.org:9620-9624"
+    print " master1.my.org:9619"
+    print " master3.my.org"
+    print "Leave an empty collector name when finished."
+    secondary_local_collectors=[]
+    secondary_local_dns={}
+    while 1:
+        add_collector=raw_input("Collector name: ")
+        if add_collector=="":
             break
-        print "Empty string not a valid collector"
+
+        add_dn=raw_input("Collector DN (i.e. subject): ")
+        if len(add_dn)<5:
+            print "Too short... likely invalid.. retry collector %s"%add_collector
+            continue
+
+        secondary_local_collectors.append(add_collector)
+        secondary_local_dns[add_collector]=add_dn
+
 
     # schedds
     fd=os.popen("condor_status -schedd -format '%s\n' Name")
@@ -1480,6 +1518,15 @@ def vofrontend_install():
             break
     print "Using %s"%schedds
     print
+    schedd_dns={}
+    for schedd in schedds:
+        while 1:
+            schedd_dns[schedd]=raw_input("What is the DN (i.e. subject) for schedd %s?: "%schedd)
+            if len(schedd_dns[schedd])<5:
+                print "Too short... likely invalid"
+                continue
+            break
+        
 
     # job constraint
     default_job_constraint="(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)"
@@ -1584,58 +1631,13 @@ def vofrontend_install():
         glidein_proxies.append(a_fname)
         glidein_proxies_dns.append(a_dn)
 
-    #################################
-    # create grid-mapfile
-    # ask user for additional DNs
-    dns={}
-
-    if len(glidein_proxies_dns)==0:
-        print "My DN = '%s'"%my_dn
-        dns['condor']=my_dn
-    else:
-        print "My DNs = %s"%glidein_proxies_dns
-        for a_dn in glidein_proxies_dns:
-            a_uid="condor%03i"%len(dns.keys())
-            dns[a_uid]=a_dn
-
-    print
-    print "You will most probably need other DNs in the glidein grid mapfile"
-    print "Please add all the DNs that this glidein will connect to"
-    print "(usually the Pool Collector and the Submit nodes)"
-    print
-    print "Please insert all such DNs, together with a user nickname."
-    print "An empty DN entry means you are done."
-    while 1:
-        print
-        a_dn=raw_input("DN (leave empty when finished): ")
-        if a_dn=="":
-            break # done
-        default_uid="condor%03i"%len(dns.keys())
-        a_uid=raw_input("nickname: [%s] "%default_uid)
-        if a_uid=="":
-            a_uid=default_uid
-        if a_uid.find(" ")>=0:
-            print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname."%a_uid
-            continue
-        if a_uid in dns.keys():
-            print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
-            continue
-        dns[a_uid]=a_dn
-
-
     # USE_MATCH_AUTH
-    while 1:
-        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) [y] ")
-        if match_yn=="":
-            match_yn="y"
-        if (match_yn!="y") and (match_yn!="n"):
-            print "Please answer y or n"
-            continue 
-        break
-    if match_yn=='y':
-        print
-        print "Make sure you use Match authentication in the schedds, too"
-        print
+    # This way the glidein does not need to have the DNs of all the schedds
+    match_yn="y"
+    print
+    print "Will use the more efficient Match authentication"
+    print "Make sure you use Match authentication in the schedds, too"
+    print
 
     # Expose Grid Env
     while 1:
@@ -1650,16 +1652,6 @@ def vofrontend_install():
     os.mkdir('%s/instance_%s.cfg'%(frontstage_base_dir,version_name))
     
     #####################################
-    # create grid mapfile
-    grid_mapfile='%s/instance_%s.cfg/grid-mapfile'%(frontstage_base_dir,version_name)
-    gridmap_fd=open(grid_mapfile,"w")
-    try:
-        for a_uid in dns.keys():
-            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
-    finally:
-        gridmap_fd.close()
-
-    #####################################
     # create config files
     cfg_name="%s/instance_%s.cfg/frontend.xml"%(frontstage_base_dir,version_name)
     fd=open(cfg_name,"w")
@@ -1670,7 +1662,12 @@ def vofrontend_install():
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
-            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname)))
+            fd.write('   <collectors>\n')
+            fd.write('     <collector node=%s DN=%s secondary="False"/>\n'%(xmlFormat.xml_quoteattr(main_local_collector),xmlFormat.xml_quoteattr(main_local_dn)))
+            for c in secondary_local_collectors:
+                fd.write('     <collector node=%s DN=%s secondary="True"/>\n'%(xmlFormat.xml_quoteattr(c),xmlFormat.xml_quoteattr(secondary_local_dns[c])))
+            fd.write('   </collectors>\n')
+            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s proxy_DN=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(my_dn)))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
                 fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
@@ -1679,20 +1676,19 @@ def vofrontend_install():
             fd.write('   <match>\n')
             fd.write('      <factory>\n')
             fd.write('        <collectors>\n')
-            fd.write('          <collector node=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
+            fd.write('          <collector node=%s DN=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_dn),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
             fd.write('        </collectors>\n')
             fd.write('      </factory>\n')
             fd.write('      <job query_expr=%s comment="Define job constraint and schedds globally for simplicity">\n'%xmlFormat.xml_quoteattr(job_constraint))
             fd.write('        <schedds>\n')
             for schedd in schedds:
-                fd.write('         <schedd fullname=%s/>\n'%xmlFormat.xml_quoteattr(schedd))
+                fd.write('         <schedd fullname=%s DN=%s/>\n'%(xmlFormat.xml_quoteattr(schedd),xmlFormat.xml_quoteattr(schedd_dns[schedd])))
             fd.write('        </schedds>\n')
             fd.write('      </job>\n')
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
-            fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%(match_yn=='y'))
+            fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
-            fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value=%s/>\n'%xmlFormat.xml_quoteattr(local_collector))
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
@@ -1721,7 +1717,6 @@ def vofrontend_install():
             fd.write('      </group>\n')
             fd.write('   </groups>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname=%s untar="False" const="True" relfname="grid-mapfile"/>\n'%xmlFormat.xml_quoteattr(grid_mapfile))
             fd.write('   </files>\n')
             fd.write('</frontend>\n')
         finally:
@@ -1749,8 +1744,7 @@ def vofrontend_install():
         print '%s/creation/create_frontend %s'%(glideinWMS_base_dir, cfg_name)
 
     print
-    print "Configuration files are located in %s/instance_%s.cfg"%(frontstage_base_dir,version_name)
-    print "Remember to set X509_USER_PROXY before starting the daemon"
+    print "Configuration file is located at %s"%cfg_name
     print
 
     return

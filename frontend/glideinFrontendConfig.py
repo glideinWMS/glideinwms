@@ -224,6 +224,8 @@ class ElementMergedDescript:
     def split_list(self,val):
         if val=='None':
             return []
+        elif val=='':
+            return []
         else:
             return string.split(val,',')
         
