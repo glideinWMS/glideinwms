@@ -1,5 +1,9 @@
 vNext	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
+	Add DNs for frontend proxy and all the daemons the frontend talks to;
+	  create own Condor config file and gldiein gridmap file out of them.
+	Frontend now dynalically creates GLIDEIN_Collector.
+	Frontend now requires Match authentication.
 	Add frontend autentication info to the factory config.
 	Add support for different frontend identities in different WMS collectors.
 	Put log files in a separate tree.
