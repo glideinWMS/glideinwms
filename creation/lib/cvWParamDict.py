@@ -422,7 +422,7 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
 
-        frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_MAP_FILE))
+        frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
         frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('DowntimesFile',down_fname)

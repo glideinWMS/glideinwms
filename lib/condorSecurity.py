@@ -46,7 +46,7 @@ class EnvState:
     def load(self):
         filter=self.filter
         saved_state={}
-        for condor_key in filter.keys():
+        for condor_key in filter:
             env_key="_CONDOR_%s"%condor_key
             if os.environ.has_key(env_key):
                 saved_state[condor_key]=os.environ[env_key]
