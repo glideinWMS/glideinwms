@@ -94,7 +94,9 @@ def perform_work(entry_name,
 
     log_stats={}
     for username in usernames.keys():
-        log_stats[username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_usernames[x509_proxy_id]),client_name)
+        log_stats[username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_usernames[x509_proxy_id]),
+                                                                       glideFactoryLib.log_files.log_dir,
+                                                                       client_name,username)
         # should not need privsep for reading logs
         log_stats[username].load()
 
@@ -512,6 +514,11 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.max_releases=int(jobDescript.data['MaxReleaseRate'])
     glideFactoryLib.factoryConfig.release_sleep=float(jobDescript.data['ReleaseSleep'])
 
+    glideFactoryLib.log_files.add_dir_to_cleanup(None,glideFactoryLib.log_files.log_dir,
+                                                 "(condor_activity_.*\.log\..*\.ftstpk)|(condor_activity_.*\.log\..*\.cifpk)",
+                                                 float(glideinDescript.data['CondorLogRetentionMaxDays']),
+                                                 float(glideinDescript.data['CondorLogRetentionMinDays']),
+                                                 float(glideinDescript.data['CondorLogRetentionMaxMBs']))
     # add cleaners for the user log directories
     for username in frontendDescript.get_all_usernames():
         user_log_dir=glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,username)
