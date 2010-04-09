@@ -221,6 +221,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("\n#############################\n")
         fd.write("# Disable any local config file\n")
         fd.write("LOCAL_CONFIG_FILE = \n")
+        fd.write("TOOL.LOCAL_CONFIG_FILE = \n")
 
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
@@ -271,6 +272,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("\n# Unset all the tool specifics\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("TOOL.DENY_%s=\n"%context)
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("TOOL.ALLOW_%s=\n"%context)
 
         fd.write("\n# Get rid of GSI_DAEMON_NAME\n")
