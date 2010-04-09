@@ -25,9 +25,12 @@ class cachedLogClass:
     # also loadFromLog, merge and isActive need to be implemented
 
     # init method to be used by real constructors
-    def clInit(self,logname,cache_ext):
+    def clInit(self,logname,cache_dir,cache_ext):
         self.logname=logname
-        self.cachename=logname+cache_ext
+        if cache_dir==None:
+            self.cachename=logname+cache_ext
+        else:
+            self.cachename=os.path.join(cache_dir,os.path.basename(logname))
 
     # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
@@ -87,8 +90,8 @@ class cachedLogClass:
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummary(cachedLogClass):
-    def __init__(self,logname):
-        self.clInit(logname,".cstpk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".cstpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -167,8 +170,8 @@ class logSummary(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'completed_jobs':['123.002','555.001'],'counts':{'Idle': 1145, 'Completed': 2}}
 class logCompleted(cachedLogClass):
-    def __init__(self,logname):
-        self.clInit(logname,".clspk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".clspk")
 
     def loadFromLog(self):
         tmpdata={}
@@ -264,9 +267,8 @@ class logCompleted(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'Idle': 1145, 'Completed': 2}
 class logCounts(cachedLogClass):
-    def __init__(self,logname):
-        self.logname=logname
-        self.cachename=logname+".clcpk"
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".clcpk")
 
     def loadFromLog(self):
         tmpdata={}
@@ -337,8 +339,8 @@ class logCounts(cachedLogClass):
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummaryTimings(cachedLogClass):
-    def __init__(self,logname):
-        self.clInit(logname,".ctstpk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".ctstpk")
 
     def loadFromLog(self):
         jobs,self.startTime,self.endTime = parseSubmitLogFastRawTimings(self.logname)
@@ -486,7 +488,7 @@ class cacheDirClass:
         ch=False
         fnames=self.getFileList(active_only=True)
         for fname in fnames:
-            obj=self.logClass(os.path.join(self.dirname,fname))
+            obj=self.logClass(os.path.join(self.dirname,fname),self.cache_dir)
             ch=(ch or obj.has_changed()) # it is enough that one changes
         return ch
 
@@ -505,7 +507,7 @@ class cacheDirClass:
             if os.path.getsize(absfname)<1:
                 continue # skip empty files
             last_mod=os.path.getmtime(absfname)
-            obj=self.logClass(absfname)
+            obj=self.logClass(absfname,self.cache_dir)
             obj.load()
             mydata=obj.merge(mydata)
             if ((now-last_mod)>self.inactive_timeout) and (not obj.isActive()):
@@ -527,7 +529,7 @@ class cacheDirClass:
 
     # diff self data with other info
     def diff(self,other):
-        dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'))
+        dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),self.cache_dir)
         dummyobj.data=self.data # a little rough but works
         return  dummyobj.diff(other) 
         
