@@ -211,7 +211,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 continue #skip request
 
             # This old style protocol does not support SecurityName, use default
-            x509_proxy_security_class=x509_proxy_identifier
+            x509_proxy_security_class="none"
             
             x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
             if x509_proxy_username==None:
