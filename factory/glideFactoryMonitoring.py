@@ -450,11 +450,8 @@ class condorLogSummary:
         # reserve only those that has been around this time
         new_stats_data={}
         for c in self.stats_diff.keys():
-            user_stats_data={}
-            for u in self.stats_diff[c].keys():
-                user_stats_data[u]=self.current_stats_data[c][u]
-            if len(user_stats_data.keys())!=0:
-                new_stats_data[c]=user_stats_data
+            # but carry over all the users... should not change that often
+            new_stats_data[c]=self.current_stats_data[c]
 
         self.current_stats_data=new_stats_data
 
