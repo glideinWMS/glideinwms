@@ -355,7 +355,9 @@ def wms_install():
         if not PRIVSEP_INSTALLED:
             setup_privsep()
 
+    needed_gsi_security_config=False
     if not GSI_SECURITY_CONFIGURED:
+        needed_gsi_security_config=True
         gsi_setup = { 'server': 'WMS Collector',
                       'client': 'VO Frontend',
                       'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
@@ -374,6 +376,24 @@ def wms_install():
     
     if not MAIN_SCHEDD_INSTALLED:
         setup_main_schedd()
+
+    if needed_gsi_security_config:
+        ###########################
+        # Limit master and schedd
+        # to only local access
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        try:
+            config_fd.write("\n######################################################\n")
+            config_fd.write("## Limit master and schedd to only local access\n")
+            config_fd.write("######################################################\n\n")
+            for dm in ('MASTER','SCHEDD'):
+                config_fd.write("%s.network_interface=127.0.0.1\n"%dm)
+                config_fd.write("%s.bind_all_interfaces=False\n"%dm)
+                config_fd.write("%s.SEC_DEFAULT_AUTHENTICATION_METHODS=FS\n"%dm)
+        finally:
+            config_fd.close()
+
+        
 
     ################################
     # Set optimized Condor-G values
