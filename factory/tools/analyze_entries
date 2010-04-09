@@ -1,218 +1,388 @@
-#!/bin/bash
-
-# Author: Alison McCrea, created 1/3/2010
-# This script evaluates the percentage of user jobs failing from:
-# a) validation timeouts (1000s), (completed_jobs logs)
-# b) 0 jobs per glidein, ("")
-# c) badput timeouts, (1000) ("") 
-# d) gfactory holding indefinitely (condor_activity logs), and
-# e) SIGKILLs (StartdLogs)
-# and generates a report. 
+#!/usr/bin/python
 #
-# Future plans: check the individual logs of failing
-#     nodes against known good logs, for inconsistancies and values
-#     out of range.  
+# analyze_entries_duration.py
+# Analyzes the completed_jobs logs of today and yesterday for
+# each entry point and averages the durations of glideins,
+#    and records the number (fraction) of jobs which had
+#    validation problems (validation=1000(s)) and for which
+#    condor failed to start.
+#        
+# Alison McCrea
+# Created 3.23.2010
 
-# defaults:
-RATIO=50					#ratio to report 
-DIR=~ 						#output dir
-GF=Production_v2_0 				#glidein factory name
-GFBASE=$HOME/glideinsubmit 			#glidein factory base dir
-LOC=$HOME/glideinWMS				# where is glideinWMS installed
+import os, getopt, sys, time, re, fnmatch
+import calendar, datetime
+from time import localtime
 
-# todays date in form used in completed_jobs log
-TODAY=$(eval date +%Y%m%d) #yyyymmdd
-DATE=$(eval date +%m-%d-%Y_%T) 
+# finds average durations of all jobs in a completed_jobs log
+def avgDur(dur_times):
 
-#Unless user sets ratio/output path:
-while getopts ":hr:o:f:l:ys:" opt; do
-  case "$opt" in
-    r)
-       RATIO="$OPTARG" ;;
-    y) TODAY=$(($TODAY-1))
-       DATE=$(echo `date --date='1 day ago' +%m-%d-%Y`) ;;
-    o)
-       DIR="$OPTARG" ;;
-    f)
-       GF="$OPTARG" ;;
-    l)  
-       LOC="$OPTARG" ;;
-    s)
-       GFBASE="$OPTARG" ;;
-    h) 
-       echo -e  "Usage:\t-r [RATIO] (int) : min % of jobs/site to be reported (default 50%)"
-       echo -e "\t-y : report on yesterday's logs (default is today's logs)"
-       echo -e "\t-f [FACTORY NAME]: glidein factory name (default Production_v2_0)"
-       echo -e "\t-s [FACTORY LOC]: base directory of glidein factory (default $HOME/glideinsubmit)"
-       echo -e "\t-l [PATH] (exclude \): script location (default $LOC)"
-       echo -e "\t-o [PATH] (exclude \): path to generated log (dir must exist beforehand - default is ~)"
-       echo -e "\t-h : this help message"
-       exit 0
-       ;;
-    \?)
-      echo "Invalid option. -h for help." >&2
-      exit 1
-      ;;
-    :)
-      echo "Option -$OPTARG requires an argument." >&2
-      exit 1
-      ;;
-  esac
-done
+   duration_sum = 0
+   
+   for i in dur_times:
+      dur_time = re.sub("\D", "", i)   # extract duration time
+      duration_sum += int(dur_time)       # sum all durations for a log
+   average = duration_sum/num_jobs   # average for a log (entry)
+   durations[entry] = average 
+   
+# finds jobs for which condor failed to start
+def condorStartFalse(falses):
+   
+   fraction = "%d/%d" % (len(falses), num_jobs)
+   if len(falses) > 0:
+      false_starts[entry] = fraction
+
+# finds all jobs with validation problems (validation=1000)
+def val(val_times):
+  
+   fraction = float(len(val_times))/float(num_jobs)
+   if fraction > ratio:
+      #if entry not in false_starts:
+      if len(val_times) == num_jobs:
+         fraction = 100
+      else:
+         fraction = fraction*100
+      val_timeouts[entry] = "%d/%d (%d%%)" % (len(val_times), num_jobs, fraction)
+   
 
 
-cd $GFBASE/glidein_$GF
+def printReport():
+   if one_entry == 0:
+      file.write("\nGlidein Factory Log Analysis for " + date + ":\n\n")
+      file.write( "Glidein factory name: %s\n" % gf)
+      file.write( "Glidein factory location: %s\n" % factory_loc)
 
-#list of job sites
-SITES=entry_*
+      file.write( "Checking jobs which completed within the past %d hours.\n" % h)
 
-#variables for arrays
-i=0; j=0; k=0; s=0; t=0
-TOTKILL=0; TOTAL=0; ALLTOTAL=0
+      file.write(  "-------------------------------------------------\n")
+      file.write( "Entries with average glidein durations less than 3600s (1 hour)\n\n")
+      for i in durations:
+         if durations[i] < 3600:
+            file.write( "Avg dur/%s:\t%d\n" % (i, durations[i]))
+      
+      file.write( "\n---------------------------------------------------\n")
+      file.write( "Entries with average glidein durations greater than 3600s (1 hour)\n\n")
+      for i in durations:
+         if durations[i] > 3600:
+            file.write( "Avg dur/%s:\t%d\n" % (i, durations[i]))
 
-for site in $SITES
-do
-   TOTAL=0;VAL=0;BAD=0;ZERO=0;HOLD=0;KILL=0;
-   VALP=0;BADP=0;ZEROP=0;HOLDP=0;KILLP=0;TOTKILL=0;
-   #check if completed log exists
-   if [ -e $site/log/completed_jobs_$TODAY.log ]
-   then 
-      #echo -e Checking $site........
-      TOTAL=`grep -c validation $site/log/completed_jobs_$TODAY.log`
-      ALLTOTAL=$((ALLTOTAL+TOTAL))
-      VAL=`grep -c validation=\"1000\" $site/log/completed_jobs_$TODAY.log`
-      BAD=`grep -c badput=\"1000\" $site/log/completed_jobs_$TODAY.log`
-      ZERO=`grep -c jobsnr=\"0\" $site/log/completed_jobs_$TODAY.log`
-      #echo total:$TOTAL val:$VAL badput:$BAD nojobs:$ZERO	
+      file.write("---------------------------------------------------\n")
+      file.write("\nAverage duration for all entry points: %d\n" % total_average)
+     
+      file.write( "\n---------------------------------------------------\n")
+      file.write( "Number of jobs where condor failed to start / total jobs:\n")
+      file.write( "(Note that all have 1000s validation times as well)\n\n" )
+      for i in false_starts:       
+         file.write( "%s: \t %s\n" % (i, false_starts[i]))
 
-      #Search condor_activity logs for "Job held." 
-      siteb=${site:5}
-      if [ -e $site/log/condor_activity_$TODAY$siteb\\@$GF*.log ]
-      then
-         HOLD=`grep -c held $site/log/condor_activity_$TODAY$siteb\\@$GF*.log`
-      fi
+      file.write("\n---------------------------------------------------\n")
+      file.write("Jobs with max validation times (1000s) / total jobs > %2f%%:\n\n" % (ratio*100))
+      for i in val_timeouts:
+         file.write( "%s: \t %s\n" % (i, val_timeouts[i]) )
+
+      file.write( "\nDone.\n\n")
+
+   elif one_entry == 1:
+      file.write( "\nGlidein Factory Log Analysis for " + entries[0] + ", " + date + ":\n\n")
+      file.write( "Glidein factory name: %s\n" % gf)
+      file.write( "Glidein factory location: %s\n" % factory_loc)
+
+      file.write(  "-------------------------------------------------\n")
+      
+      file.write( "Avgerage duration of glideins:\t%d\n" % durations[entries[0]])
+      if len(false_starts) != 0:
+         file.write( "Jobs where condor failed to start/total:\t%s\n" % false_starts[entries[0]])
+      if len(val_timeouts) != 0:
+         file.write( "Jobs with max validation times (1000s)/total:\t%s\n" % val_timeouts[entries[0]])
+
+      file.write( "\nDone.\n\n")
+   
+   file.close()
+   print "\ngf_log outputted to %s.\n" % outdir
+
+def condorActivityLogs():
+
+     #Search condor_activity logs for "Job held." 
+     siteb = entry[5:len(entry)]
+     cond_act_address = entry + "/log/condor_activity_" + today + siteb + "\\@" + gf + "*.log"
+     if os.path.isfile(cond_act_address):
+        infile = (cond_act_address)
+        cond_act = infile.read()
+        held = re.findall("held", cond_act)
+        holds[entry] = len(held)
+
+###############################################################################
+
+if __name__ == "__main__":
+   
+   ratio = .5
+   debug = 0      # don't output a report
+   printall = 0   # print a special report for a single entry point
+   one_entry = 0  # only one entry point
+   condAct = 0
+
+   outdir = os.environ['HOME'] # directory of outputted report
+   gf = 'Production_v2_0'      # glidein factory name
+   gf_base = "/home/gfactory/glideinsubmit"   # glidein factory base directory
+
+   usage = '''
+Usage:  -h: this help message.
+    -r [int] : min % of failing jobs per site to be reported (default 50%)
+    -e [ENTRY POINT]: run on a single entry point (example: entry_T2_US_UCSD)
+    -d : debugging mode (do not generate a report)  
+    -p : print all data instead of creating a report
  
-      #List of all jobs completed today for the site
-      #Regex below doesnt work for unknown reasons 
-      #JOBS=`grep -o id=\"\d{5}.\d{3}\" $site/log/completed_jobs_$TODAY.log`
-      JOBS=`grep -o id=\"\.\.\.\.\..\.\.\.\" $site/log/completed_jobs_$TODAY.log`
-
-      #Reformat id string to be used with StartDLog.py
-      for job in $JOBS   
-      do
-         job_beg=${job:4:6}
-         job_end=${job:12:1}
-         job2="${job_beg}${job_end}"
-         if [ -s $site/log/job.$job2.err -a -r $site/log/job.$job2.err ]
-         then
-            KILL=`$LOC/factory/tools/cat_StartdLog.py $GFBASE/glidein_$GF/$site/log/job.$job2.err | grep -c SIGKILL`
-            TOTKILL=$(($TOTKILL+$KILL)) 
-         fi
-      done
-   
-      # Create ratios (bc to allow floating point)
-      # Then convert back to ints
-      # messy solutions for 100% and single-digit percents
-      if [ "$VAL" -eq "$TOTAL" ]; then VALP=100
-      else VALP=$(echo "scale=2; $VAL/$TOTAL*100" | bc)
-           VALP=${VALP:0:2}; 
-           VALP=${VALP%.}; fi
-      if [ $BAD -eq $TOTAL ]; then BADP=100
-      else BADP=$(echo "scale=2; $BAD/$TOTAL*100" | bc) 
-           BADP=${BADP:0:2}; 
-           BADP=${BADP%.}; fi
-      if [ $ZERO -eq $TOTAL ]; then ZEROP=100
-      else ZEROP=$(echo "scale=2; $ZERO/$TOTAL*100" | bc)
-           ZEROP=${ZEROP:0:2}; 
-           ZEROP=${ZEROP%.}; fi
-      if [ $HOLD -eq $TOTAL ]; then HOLDP=100
-      else HOLDP=$(echo "scale=2; $HOLD/$TOTAL*100" | bc)
-           HOLDP=${HOLDP:0:2}; 
-           HOLDP=${HOLDP%.}; fi
-      if [ $TOTKILL -eq $TOTAL ]; then KILLP=100
-      else KILLP=$(echo "scale=2; $TOTKILL/$TOTAL*100" | bc)
-           KILLP=${KILLP:0:2}; 
-           KILLP=${KILLP%.}; fi
-      #echo percentages: val:$VALP bad:$BADP zero:$ZEROP hold:$HOLDP kill:$KILLP
-
-      # If the % of jobs failing is greater than ratio,
-      # put into array to be appended to report.
-
-      if [ "$BADP" -ge "$RATIO" ]
-      then
-         BADPUT[i]="$site:\t$BADP%/$TOTAL"
-         i=`expr $i+1`
-      fi
-   
-      if [ "$VALP" -ge "$RATIO" ]
-      then
-         VALIDATION[j]="$site:\t$VALP%/$TOTAL"
-         j=`expr $j+1`
-      fi
+    -t [int]: Check logs that completed within the previous X hours (up to 24)
+    -y : check yesterday's logs
  
-      if [ "$ZEROP" -ge "$RATIO" ]
-      then
-         ZEROJOBS[k]="$site:\t$ZEROP%/$TOTAL"
-         k=`expr $k+1`
-      fi
+    Path Options (Exclude final / for all paths entered)
+    -f [FACTORY NAME]: glidein factory name (default Production_v2_0)
+    -s [FACTORY LOC]: base directory of glidein factory (default home/gfactory/glideinsubmit)
+    -o [PATH]: path to generated log (dir must exist beforehand - default is user's home)
 
-      if [ "$HOLDP" -ge "$RATIO" ]
-      then
-         HOLDING[s]="$site:\t$HOLDP%/$TOTAL"
-         s=`expr $s+1`
-      fi
+    -v : Analyze the condor_activity logs for jobs being held. No completed_jobs logs. 
 
-      if [ "$KILLP" -ge "$RATIO" ]
-      then
-        SIGKILL[t]="$site:\t$KILLP%/TOTAL"
-        t=`expr $t+1`
-      fi
+    This script parses the completed_jobs_<today> log of each entry point for
+       average duration of glideins, 
+       glideins for which condor failed to start, 
+       glideins with validation problems,
+       and held jobs (-v option).
+'''
+
    
-   fi
-done    #end looping through sites
+   # todays date in form used in completed_jobs log
+   today = time.strftime("%Y%m%d")      #yyyymmdd
+   date = time.strftime("%m-%d-%Y_%H:%M:%S")
+   yesterday = int(today)-1
+   if debug == 1:
+      print "today is", today
+      print "date is", date
+      print "yesterday is", yesterday
 
-# Begin report
+   h = 24   # jobs completed within the previous X hours reported
 
-echo -e "\nGlidein Failure Report for $DATE\n" >> $DIR/log_$DATE
-echo -e "Total Jobs: $ALLTOTAL\n" >> $DIR/log_$DATE
+   try:
+     opts, args = getopt.getopt( sys.argv[1:], 'hvdyr:e:o:f:s:t:')
+   except getopt.GetoptError, err:
+      print str(err)
+      print usage
+      sys.exit(2)
+   output = None
+   verbose = False
 
-echo _____________________________________________ >> $DIR/log_$DATE
-echo -e "Sites with > $RATIO% of jobs having validation timeouts (1000s):\n" >> $DIR/log_$DATE
-for node in ${VALIDATION[@]}
-do
-   echo -e "$node" >> $DIR/log_$DATE
-done
+   for opt, arg in opts:
+      if opt == "-r":
+          if arg > 1.0:
+             ratio = float(arg)/100.0
+             print "ratio is %f" % ratio
+          else: 
+             ratio = arg
+             print "ratio is %f" % ratio
 
-echo -e "\n"
-#echo _____________________________________________ >> $DIR/log_$DATE
+      elif opt in ("-h", "-help", "--help"):
+         print usage
+         sys.exit()
 
-#echo -e "Sites with > $RATIO% jobs with \"badput=1000\":\n" >> $DIR/log_$DATE
-#for node in ${BADPUT[@]}
-#do
-#   echo -e "$node" >> $DIR/log_$DATE
-#done
+      elif opt == "-e":
+         factory_loc = gf_base + "/glidein_" + gf
+         address = factory_loc+"/"+arg+"/log/completed_jobs_"+today+".log"
+         if not os.path.isfile(address):
+            print "\nMalformed entry point name.\n"
+            sys.exit()
+         else: 
+            one_entry = 1
+            sole_entry = [arg]
+            ratio = 0.0    
+ 
+      elif opt == "-y":
+         today = int(today)-1
 
-echo _____________________________________________ >> $DIR/log_$DATE
-echo -e "Sites with > $RATIO% glideins with zero jobs:\n" >> $DIR/log_$DATE
-for node in ${ZEROJOBS[@]}
-do
-   echo -e "$node" >> $DIR/log_$DATE
-done
+      elif opt == "-t":
+         h = arg 
 
-echo _____________________________________________ >> $DIR/log_$DATE
-echo -e "Sites with > $RATIO% jobs holding forever in the gfactory:\n" >> $DIR/log_$DATE
-for node in ${HOLDING[@]}
-do
-   echo -e "$node" >> $DIR/log_$DATE
-done
+      elif opt == "-d":
+         debug = 1
 
-echo _____________________________________________ >> $DIR/log_$DATE
-echo -e "Sites with > $RATIO% jobs recieving SIGKILLs:\n" >> $DIR/log_$DATE
-for node in ${SIGKILL[@]}
-do
-   echo -e "$node" >> $DIR/log_$DATE
-done
-echo "--End Log" >> $DIR/log_$DATE
-echo -e "Finished; Report created in $DIR.\n"
+      elif opt == "-o":
+         outdir = arg
 
-exit 0
+      elif opt == "-f":
+         gf = arg
+
+      elif opt == "-s":
+         gf_base = arg
+
+      elif opt == "-v":
+         condAct = 1
+
+      else: 
+         print "Invalid option. -h for help."
+         sys.exit()
+
+   # only create output file if not in debug mode
+   if debug == 0:
+      file_loc = outdir + "/gf_log_" + date
+      file = open(file_loc, "w")
+
+   #get time boundary - time after which glideins should be checked
+   x = time.localtime()
+   day = x[2]
+   if debug ==1:
+      print "h = ", h
+      print "x2 = ", x[2]
+      print "x3 = ", x[3]
+   h = x[3] - int(h)
+
+   check_yesterday = 0 
+   # if X hours ago goes into yesterday, check yesterday's log as well
+   if h < 0:
+      day = x[2]-1
+      h = 24 + h
+      check_yesterday = 1
+      if debug == 1:
+         print "going into yesterday."
+         print "day is", day
+         print "hour is", h
+   #   (year, mnth,  day,   hour,  min,  sec, ...)
+   y = (x[0], x[1], day, h, x[4], x[5], x[6], x[7], x[8])
+
+   if debug == 1:
+      print "Checking glideins after ", y
+
+   # Get list of entry points
+   factory_loc = gf_base + "/glidein_" + gf
+   os.chdir(factory_loc)
+   dirList = os.listdir(os.getcwd())
+   entries = []
+   if one_entry == 1:
+      entries = sole_entry
+   else: 
+      for dir in dirList:
+         if fnmatch.fnmatch(dir, 'entry_*'):
+            entries.append(dir)
+
+   #if debug == 1:
+      #for i in entries:
+         #print i 
+ 
+   if condAct == 1:
+      holds = {}
+      if debug == 1:
+        print entries
+      for entry in entries:
+         condorActivityLogs()
+      print "Entries held: ", holds
+      sys.exit()
+ 
+   durations = {}   # {'entry_name' : average glidein duration }
+   false_starts = {}      # {'entry_name' : %/jobs false starts } 
+   val_timeouts = {}      # {'entry_name' : %/jobs with validation=1000s } 
+
+   
+   total_average = 0   # average of all entries avg glidein duration
+   total_logs = 0      # entries which have a compl jobs log today
+ 
+   #unixtime = timeConverter.extractISO8601_Local(term[0])
+   
+   for entry in entries:
+      address = os.getcwd()+"/"+entry+"/log/completed_jobs_"+today+".log"
+      if os.path.isfile(address):
+         total_logs += 1
+         infile = open(address, "r")
+         log = infile.read()
+
+         if debug == 1:
+            print "Checking ", entry, "..."
+
+         # list of jobs for this entry point
+         jobList = re.findall("<job.+", log)
+         if debug == 1:
+            print "jobList length for", entry, ":", len(jobList)
+            #for i in jobList:
+               #print i
+
+         # if need yesterday's log for this entry point, add those to job list
+         if check_yesterday == 1:
+            yest_address = os.getcwd()+"/"+entry+"/log/completed_jobs_%d.log" % yesterday
+            if os.path.isfile(yest_address):
+               # total_logs += 1
+               yest_infile = open(yest_address, "r")
+               yest_log = yest_infile.read()
+           
+               # add jobs that completed yesterday to job list 
+               # inserting at front of jobList keeps term times sequential
+               yestjobList = re.findall("<job.+", yest_log)
+               counter = 0
+               for i in yestjobList:
+                  jobList.insert(counter, i)
+                  counter += 1
+            else:
+               if debug == 1:
+                  print "yesterday's log does not exist for " + entry
+ 
+         # will be filled with entries and corresponding data 
+         jobdurs = {}
+         start = {}
+         vals = {}
+
+         end_found = 0
+         for i in jobList: #for each job,
+
+         ## loop until jobs within time frame found ####################
+         ## check if previous day's log needs to be checked as well. ### 
+
+            if end_found == 0:
+               termination = re.findall('terminated=".+-\d\d:00"', i)
+               termination_time = re.findall("20.+-\d\d:00", termination[0])
+   
+               # next 5 lines taken from timeConversion.exportISO8601_Local()
+               str = termination_time[0]
+               timestr=str[:-6]
+               tzstr=str[-6:]
+               tzval=(long(tzstr[:3])*60+long(tzstr[4:]))*60
+               x = calendar.timegm(time.strptime(timestr,"%Y-%m-%dT%H:%M:%S"))-tzval
+
+               # check the termination time. If too long ago, skip this job. 
+               #if debug==1:
+                 # print "time of termination:", x
+                 # print "Want to check glideins after:", time.mktime(y)
+               if x < time.mktime(y):
+                  continue
+            
+               # if the log is wanted, we know that all other logs after it
+               # will also be wanted (chronological order)
+               else:
+                  end_found = 1
+                  if debug == 1:
+                     print "found surpassing time at", x
+
+            
+            dur_times = re.findall('duration="\d+"', i)
+            num_jobs = len(dur_times)
+
+            falses = re.findall('condor_started="False"', i)
+            bad_vals = re.findall('validation="1000"', i)
+            
+            avgDur(dur_times)
+            
+            condorStartFalse(falses)    # returns the percentage of jobs
+         
+            val(bad_vals)
+
+         total_average += durations[entry]
+
+
+      else:
+         if (one_entry == 1):
+            print "\nNo completed_log for today for this entry point.\n"
+         else: 
+            continue   
+  
+   total_average = total_average/total_logs 
+   
+   if debug == 0:
+      printReport()
+
+   
+###############################################################################
+
