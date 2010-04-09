@@ -236,15 +236,17 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = GSI\n")
         fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
 
-        fd.write("\n")
+        fd.write("\n# Unset all but the default, and all the tool specifics\n")
         # only keep the default... make sure all others are undefined
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             if context!="DEFAULT":
                 fd.write("SEC_%s_AUTHENTICATION_METHODS=\n"%context)
-            fd.write("TOOL.SEC_%s_AUTHENTICATION_METHODS=\n"%context)
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             if context!="DEFAULT":
                 fd.write("SEC_%s_AUTHENTICATION=\n"%context)
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("TOOL.SEC_%s_AUTHENTICATION_METHODS=\n"%context)
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("TOOL.SEC_%s_AUTHENTICATION=\n"%context)
         
         fd.write("\n#################################\n")
@@ -253,8 +255,8 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("#################################\n")
         fd.write("# This is a fake file, redefine at runtime\n")
         fd.write("CERTIFICATE_MAPFILE=%s\n"%mapfile_fname)
-        fd.write("TOOL.CERTIFICATE_MAPFILE=\n")
         fd.write("GRIDMAP=\n")
+        fd.write("\nTOOL.CERTIFICATE_MAPFILE=\n")
         fd.write("TOOL.GRIDMAP=\n")
 
         fd.write("\n# Specify that we trust anyone but not anonymous\n")
@@ -266,6 +268,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("ALLOW_%s = *@*\n"%context)
         fd.write("\n")
+        fd.write("\n# Unset all the tool specifics\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("TOOL.DENY_%s=\n"%context)
             fd.write("TOOL.ALLOW_%s=\n"%context)
@@ -277,9 +280,11 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
 
         fd.write("\n# Force integrity\n")
         fd.write("SEC_DEFAULT_INTEGRITY = REQUIRED\n")
+        fd.write("\n# Unset all but the default, and all the tool specifics\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             if context!="DEFAULT":
                 fd.write("SEC_%s_INTEGRITY=\n"%context)
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("TOOL.SEC_%s_INTEGRITY=\n"%context)
 
         fd.write("\n######################################################\n")
