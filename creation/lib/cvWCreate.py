@@ -213,6 +213,11 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("# Add Frontend specific attributes\n")
         fd.write("##################################\n")
 
+        fd.write("\n###########################\n")
+        fd.write("# Make also sure there are no\n")
+        fd.write("#  tool specific configs\n")
+        fd.write("############################\n")
+
         fd.write("\n#############################\n")
         fd.write("# Disable any local config file\n")
         fd.write("LOCAL_CONFIG_FILE = \n")
@@ -221,17 +226,26 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
         fd.write("CONDOR_HOST = %s\n"%string.join(collector_nodes,","))
+        fd.write("TOOL.CONDOR_HOST = \n")
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")
         fd.write("############################\n")
 
         fd.write("\n# Force GSI authentication\n")
-        for context in condorSecurity.CONDOR_CONTEXT_LIST:
-            fd.write("SEC_%s_AUTHENTICATION_METHODS = GSI\n"%context)
+        fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = GSI\n")
+        fd.write("SEC_DEFAULT_AUTHENTICATION = REQUIRED\n")
+
         fd.write("\n")
+        # only keep the default... make sure all others are undefined
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
-            fd.write("SEC_%s_AUTHENTICATION = REQUIRED\n"%context)
+            if context!="DEFAULT":
+                fd.write("SEC_%s_AUTHENTICATION_METHODS=\n"%context)
+            fd.write("TOOL.SEC_%s_AUTHENTICATION_METHODS=\n"%context)
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            if context!="DEFAULT":
+                fd.write("SEC_%s_AUTHENTICATION=\n"%context)
+            fd.write("TOOL.SEC_%s_AUTHENTICATION=\n"%context)
         
         fd.write("\n#################################\n")
         fd.write("# Where to find ID->uid mappings\n")
@@ -239,7 +253,9 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("#################################\n")
         fd.write("# This is a fake file, redefine at runtime\n")
         fd.write("CERTIFICATE_MAPFILE=%s\n"%mapfile_fname)
+        fd.write("TOOL.CERTIFICATE_MAPFILE=\n")
         fd.write("GRIDMAP=\n")
+        fd.write("TOOL.GRIDMAP=\n")
 
         fd.write("\n# Specify that we trust anyone but not anonymous\n")
         fd.write("# I.e. we only talk to servers that have \n")
@@ -249,14 +265,22 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
             fd.write("ALLOW_%s = *@*\n"%context)
+        fd.write("\n")
+        for context in condorSecurity.CONDOR_CONTEXT_LIST:
+            fd.write("TOOL.DENY_%s=\n"%context)
+            fd.write("TOOL.ALLOW_%s=\n"%context)
 
         fd.write("\n# Get rid of GSI_DAEMON_NAME\n")
         fd.write("# We will rely on *_CLIENT only\n")
         fd.write("GSI_DAEMON_NAME=\n")
+        fd.write("TOOL.GSI_DAEMON_NAME=\n")
 
         fd.write("\n# Force integrity\n")
+        fd.write("SEC_DEFAULT_INTEGRITY = REQUIRED\n")
         for context in condorSecurity.CONDOR_CONTEXT_LIST:
-            fd.write("SEC_%s_INTEGRITY = REQUIRED\n"%context)
+            if context!="DEFAULT":
+                fd.write("SEC_%s_INTEGRITY=\n"%context)
+            fd.write("TOOL.SEC_%s_INTEGRITY=\n"%context)
 
         fd.write("\n######################################################\n")
         fd.write("## If someone tried to use this config to start a master\n")
