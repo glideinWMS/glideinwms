@@ -450,7 +450,11 @@ class condorLogSummary:
         # reserve only those that has been around this time
         new_stats_data={}
         for c in self.stats_diff.keys():
-            new_stats_data[c]=self.current_stats_data[c]
+            user_stats_data={}
+            for u in self.stats_diff[c].keys():
+                user_stats_data[u]=self.current_stats_data[c][u]
+            if len(user_stats_data.keys())!=0:
+                new_stats_data[c]=user_stats_data
 
         self.current_stats_data=new_stats_data
 
@@ -774,6 +778,7 @@ class condorLogSummary:
                     if ((sdiff!=None) and (k in sdiff.keys())):
                         for e in tdata.keys():
                             tdata[e]=tdata[e]+sdiff[k][e]
+            out_data[client_name]=client_el
         return out_data
 
     def get_diff_total(self):
