@@ -19,9 +19,10 @@ rawTime2cTime=condorLogParser.rawTime2cTime
 # when a output file is found, it adds a 4th parameter to the completed jobs
 # see extractLogData below for more details
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
-    def __init__(self,logname):
-        self.clInit(logname,".ftstpk")
+    def __init__(self,logname,cache_dir,username):
+        self.clInit(logname,cache_dir,".%s.ftstpk"%username)
         self.dirname=os.path.dirname(logname)
+        self.cache_dir=cache_dir
         self.now=time.time()
         self.year=time.localtime(self.now)[0]
 
@@ -151,13 +152,13 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
 # One client_name
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
-    def __init__(self,dirname,client_name,inactive_files=None,inactive_timeout=24*3600):
-        self.cdInit(logSummaryTimingsOut,dirname,"condor_activity_","_%s.log"%client_name,".cifpk",inactive_files,inactive_timeout)
+    def __init__(self,dirname,cache_dir,client_name,user_name,inactive_files=None,inactive_timeout=24*3600):
+        self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,user_name),dirname,"condor_activity_","_%s.log"%client_name,".%s.cifpk"%user_name,inactive_files,inactive_timeout,cache_dir)
 
 # All clients
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
-    def __init__(self,dirname,inactive_files=None,inactive_timeout=24*3600):
-        self.cdInit(logSummaryTimingsOut,dirname,"condor_activity_",".log",".cifpk",inactive_files,inactive_timeout)
+    def __init__(self,dirname,cache_dir,inactive_files=None,inactive_timeout=24*3600):
+        self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,"all"),dirname,"condor_activity_",".log",".all.cifpk",inactive_files,inactive_timeout,cache_dir)
 
 
 #########################################################
