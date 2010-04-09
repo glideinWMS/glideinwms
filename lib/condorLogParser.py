@@ -437,19 +437,24 @@ class cacheDirClass:
     def __init__(self,logClass,
                  dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
+                 inactive_timeout=24*3600,   # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):            # if None, use dirname
+        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
     def cdInit(self,logClass,
                dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                inactive_files=None,         # if ==None, will be reloaded from cache
-               inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+               inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+               cache_dir=None):             # if None, use dirname
         self.logClass=logClass # this is an actual class, not an object
         self.dirname=dirname
+        if cache_dir==None:
+            cache_dir=dirname
+        self.cache_dir=cache_dir
         self.log_prefix=log_prefix
         self.log_suffix=log_suffix
         self.inactive_timeout=inactive_timeout
-        self.inactive_files_cache=os.path.join(dirname,log_prefix+log_suffix+cache_ext)
+        self.inactive_files_cache=os.path.join(cache_dir,log_prefix+log_suffix+cache_ext)
         if inactive_files==None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files=loadCache(self.inactive_files_cache)
@@ -532,9 +537,10 @@ class cacheDirClass:
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class dirSummary(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None,          # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 
 # this class will keep track of:
@@ -545,8 +551,9 @@ class dirSummary(cacheDirClass):
 class dirCompleted(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 
 # this class will keep track of
@@ -556,8 +563,9 @@ class dirCompleted(cacheDirClass):
 class dirCounts(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 # this class will keep track of:
 #  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
@@ -565,9 +573,10 @@ class dirCounts(cacheDirClass):
 # for example self.data={'Idle':[('123.003','09/28 01:38:53', '09/28 01:42:23', '09/28 08:06:33'),('123.004','09/28 02:38:53', '09/28 02:42:23', '09/28 09:06:33')],'Running':[('123.001','09/28 01:32:53', '09/28 01:43:23', '09/28 08:07:33'),('123.002','09/28 02:38:53', '09/28 03:42:23', '09/28 06:06:33')]}
 class dirSummaryTimings(cacheDirClass):
     def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None,          # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logSummaryTimings,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout)
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logSummaryTimings,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 
 
