@@ -515,7 +515,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.release_sleep=float(jobDescript.data['ReleaseSleep'])
 
     glideFactoryLib.log_files.add_dir_to_cleanup(None,glideFactoryLib.log_files.log_dir,
-                                                 "(condor_activity_.*\.log\..*\.ftstpk)|(condor_activity_.*\.log\..*\.cifpk)",
+                                                 "(condor_activity_.*\.log\..*\.ftstpk)",
                                                  float(glideinDescript.data['CondorLogRetentionMaxDays']),
                                                  float(glideinDescript.data['CondorLogRetentionMinDays']),
                                                  float(glideinDescript.data['CondorLogRetentionMaxMBs']))
