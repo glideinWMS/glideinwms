@@ -30,7 +30,7 @@ class cachedLogClass:
         if cache_dir==None:
             self.cachename=logname+cache_ext
         else:
-            self.cachename=os.path.join(cache_dir,os.path.basename(logname))
+            self.cachename=os.path.join(cache_dir,os.path.basename(logname)+cache_ext)
 
     # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
