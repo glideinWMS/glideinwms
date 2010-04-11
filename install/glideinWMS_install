@@ -381,17 +381,22 @@ def wms_install():
         ###########################
         # Limit master and schedd
         # to only local access
-        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
-        try:
-            config_fd.write("\n######################################################\n")
-            config_fd.write("## Limit master and schedd to only local access\n")
-            config_fd.write("######################################################\n\n")
-            for dm in ('MASTER','SCHEDD'):
-                config_fd.write("%s.network_interface=127.0.0.1\n"%dm)
-                config_fd.write("%s.bind_all_interfaces=False\n"%dm)
-                config_fd.write("%s.SEC_DEFAULT_AUTHENTICATION_METHODS=FS\n"%dm)
-        finally:
-            config_fd.close()
+         
+        # DISABLE: Igor
+        # Does not seem to work in v7.4.1
+        # Collector will pick up the MASTER variables!
+        pass 
+        #config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        #try:
+        #    config_fd.write("\n######################################################\n")
+        #    config_fd.write("## Limit master and schedd to only local access\n")
+        #    config_fd.write("######################################################\n\n")
+        #    for dm in ('MASTER','SCHEDD'):
+        #        config_fd.write("%s.network_interface=127.0.0.1\n"%dm)
+        #        config_fd.write("%s.bind_all_interfaces=False\n"%dm)
+        #        config_fd.write("%s.SEC_DEFAULT_AUTHENTICATION_METHODS=FS\n"%dm)
+        #finally:
+        #    config_fd.close()
 
         
 
