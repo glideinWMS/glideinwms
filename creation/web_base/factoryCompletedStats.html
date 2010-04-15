@@ -137,6 +137,7 @@
       rrd_data=undefined;
       gtype_id=undefined;
       rrd_group_data=[];
+      files_loaded = 0;
 
       function entrylist2groupname(elist) {
           var gname = elist;
@@ -153,10 +154,6 @@
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
       function update_plot() {
-        // Finally, update the file name and enable the update button
-        document.getElementById("fname").firstChild.data=fname;
-        
-
         var lengthGTypes=['Lasted','JobsLasted'];
         var lengths=['Unknown','Minutes','30mins','2hours','8hours','32hours','Days'];
         var lengths_colors=['000000',   // Unknown
@@ -246,6 +243,17 @@
         }
         // the rrdFlot object creates and handles the graph
         var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
+
+        // Finally, update the files loaded so far
+        files_loaded = files_loaded + 1;
+        var total_file_to_load = fname.split(",").length
+        if (files_loaded < total_file_to_load) {
+            document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load;
+        }
+        else {
+            document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load + ": " + fname;
+        }
+
       }
 
       // This is the callback function that,
@@ -292,8 +300,9 @@
         gtype_id=undefined;
         rrd_group_data=[];
         rrd_data=undefined;
+        files_loaded = 0;
 
-        var entries_obj=document.getElementById("entries")
+        var entries_obj=document.getElementById("entries");
         entry_name=entries_obj.options[entries_obj.selectedIndex].value;
 
         var gtypes_obj=document.getElementById("gtypes");
@@ -320,7 +329,8 @@
         }
 
         if ( (entry_name == "total") || (((entry_name.split(",")).length == 1) && (entry_name == entrylist2groupname(entry_name.split(",")))) ){
-          document.getElementById("fname").firstChild.data="Loading "+fname;
+          //document.getElementById("fname").firstChild.data="Loading "+fname;
+          document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
           try {
             FetchBinaryURLAsync(fname,update_plot_handler);
           } catch (err) {
@@ -336,10 +346,10 @@
                   fname=fname+",entry_"+en_array[i]+"/total/"+rrd_fname+".rrd";
               }
           }
-          document.getElementById("fname").firstChild.data="Loading " + fname;
+          //document.getElementById("fname").firstChild.data="Loading " + fname;
+          document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
 
           for (var i=0; i<en_array.length; i++) {
-            //alert("GROUP SELECTED with entry: " + en_array[i]);
             var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
             try {
               FetchBinaryURLAsync(fn,update_grouped_plot_handler);

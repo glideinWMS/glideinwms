@@ -108,7 +108,7 @@
 	  cb_el.type = "checkbox";
 	  cb_el.name = "entry";
 	  cb_el.value = entries[entry];
-	  cb_el.checked = cb_el.defaultChecked = true;
+	  cb_el.checked = cb_el.defaultChecked = false;
           var html_el=document.getElementById("entries");
           if( (entries_processed > 0) && 
               (entries_processed==groups_starting_idx) ){
@@ -144,12 +144,12 @@
       rrd_data=[];
       rrd_group_data=[];
       entry_names_groups_start_idx = groups_starting_idx;
+      rrds_loaded = 0;
+      rrds_to_load = 0;
 
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
       function update_fname() {
-        // Finally, update the file name and enable the update button
-        document.getElementById("fname").firstChild.data=rrd_name;
 	var rrd_files=[];
         var num_ent = (rrd_data.length >= rrd_group_data.length) ? rrd_data.length : rrd_group_data.length;
 	for (var i=0; i<num_ent; i++) {
@@ -164,6 +164,10 @@
 
         // the rrdFlot object creates and handles the graph
         var f=new rrdFlotMatrix("mygraph",rrd_files);
+
+        // Finally, update the file name and enable the update button
+        rrds_loaded = rrds_loaded + 1;
+        document.getElementById("fname").firstChild.data="Loaded " + rrds_loaded + "/" + rrds_to_load + " : " + rrd_name;
       }
 
       function update_grouped_fname_handler(bf, idx) {
@@ -231,6 +235,8 @@
 	entry_names=[];
         rrd_name=""; 
         entry_names_groups_start_idx = 0;
+        rrds_loaded = 0;
+        rrds_to_load = 0;
 
         var entries_obj=document.getElementById("entries")
         for (var i in entries_obj.entry) {
@@ -266,10 +272,12 @@
           try {
             if (((fnames[i].split(",")).length == 1) && (i < entry_names_groups_start_idx)) {
                 FetchBinaryURLAsync(fnames[i],update_fname_handler,i);
+                rrds_to_load++;
             } else {
                 var fn_array = fnames[i].split(",");
                 for (var j=0; j<fn_array.length; j++) {
                     FetchBinaryURLAsync(fn_array[j],update_grouped_fname_handler, i);
+                    rrds_to_load++;
                 }
             }
           } catch (err) {
