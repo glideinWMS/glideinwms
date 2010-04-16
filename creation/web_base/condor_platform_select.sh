@@ -58,7 +58,7 @@ fi
 if [ "$condor_arch" == "auto" ]; then
     condor_arch=`uname -m`
     if [ "$condor_arch" -eq "x86_64" ]; then
-	condor_arch="x86_64"
+	condor_arch="x86_64,x86"
     elif [ "$condor_arch" == "i386" -o "$condor_arch" == "i486" -o "$condor_arch" == "i586" -o "$condor_arch" == "i686" ]; then
 	condor_arch="x86"
     else
@@ -67,15 +67,41 @@ if [ "$condor_arch" == "auto" ]; then
     fi
 fi
 
-# combine the two
-condor_platform="${condor_os}-${condor_arch}"
-condor_platform_id="CONDOR_PLATFORM_$condor_platform"
+condor_version=`grep '^CONDOR_VERSION ' $glidein_config | awk '{print $2}'`
+if [ -z "$condor_version" ]; then
+    condor_version="default"
+fi
 
-condor_platform_check=`grep "^$condor_platform_id " "$glidein_config" | awk '{print $2}'`
+condor_platform_check=""
+for version_el in `echo "$condor_version" |awk '{split($0,l,","); for (i in l) s=s " " l[i]; print s}'`; do
+  if [ -z "$condor_platform_check" ]; then
+    # not yet found, try to find it
+    for os_el in `echo "$condor_os" |awk '{split($0,l,","); for (i in l) s=s " " l[i]; print s}'`; do
+      if [ -z "$condor_platform_check" ]; then
+        # not yet found, try to find it
+        for arch_el in `echo "$condor_arch" |awk '{split($0,l,","); for (i in l) s=s " " l[i]; print s}'`; do
+          if [ -z "$condor_platform_check" ]; then
+            # not yet found, try to find it
+            # combine the three
+            condor_platform="${os_el}-${arch_el}-${version_el}"
+            condor_platform_id="CONDOR_PLATFORM_$condor_platform"
+  
+            condor_platform_check=`grep "^$condor_platform_id " "$glidein_config" | awk '{print $2}'`
+          fi
+        done
+      fi
+    done
+  fi
+done
+
 if [ -z "$condor_platform_check" ]; then
-    # the line does not exist, so the platform is not supported
-    echo "Condor platform $condor_platform not supported. Quitting" 1>&2
-    exit 1
+  # uhm... all tries failed
+  echo "Cannot find a supported platform" 1>&2
+  echo "CONDOR_VERSION '$condor_version'" 1>&2
+  echo "CONDOR_OS      '$condor_os'" 1>&2
+  echo "CONDOR_ARCH    '$condor_arch'" 1>&2
+  echo "Quitting" 1>&2
+  exit 1
 fi
 
 # this will enable this particular Condor version to be downloaded and unpacked
