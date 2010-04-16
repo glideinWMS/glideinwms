@@ -622,6 +622,7 @@ class dirSummaryTimings(cacheDirClass):
 # 025 - Grid Resource Back Up
 # 026 - Detected Down Grid Resource
 # 027 - Job submitted to grid resource
+# 028 - Job ad information event triggered
 # 029 - The job's remote status is unknown
 # 030 - The job's remote status is known again
 
@@ -642,7 +643,7 @@ def get_new_status(old_status,new_status):
             if old_status[0]!="0": # may have already fixed it, out of order
                 status=str(int(old_status[0])-1)+old_status[1:]
             # else keep the old one
-    elif old_status in ('003','006','008'):
+    elif old_status in ('003','006','008','028'):
         pass # do nothing, that was just informational
     else:
         # a significant status found, use it
