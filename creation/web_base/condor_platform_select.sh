@@ -83,7 +83,7 @@ for version_el in `echo "$condor_version" |awk '{split($0,l,","); for (i in l) s
           if [ -z "$condor_platform_check" ]; then
             # not yet found, try to find it
             # combine the three
-            condor_platform="${os_el}-${arch_el}-${version_el}"
+            condor_platform="${version_el}-${os_el}-${arch_el}"
             condor_platform_id="CONDOR_PLATFORM_$condor_platform"
   
             condor_platform_check=`grep "^$condor_platform_id " "$glidein_config" | awk '{print $2}'`
