@@ -73,7 +73,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
         #load condor tarballs
         for condor_idx in range(len(params.condor_tarballs)):
             condor_el=params.condor_tarballs[condor_idx]
-            condor_platform="%s-%s"%(condor_el.os,condor_el.arch)
+            condor_platform="%s-%s-%s"%(condor_el.version,condor_el.os,condor_el.arch)
             cond_name="CONDOR_PLATFORM_%s"%condor_platform
             condor_fname=cgWConsts.CONDOR_FILE%condor_platform
             # register the tarball, but make the download conditional to cond_name

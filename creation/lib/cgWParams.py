@@ -144,8 +144,9 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["security"]=security_default
         
         condor_defaults=cWParams.commentedOrderedDict()
-        condor_defaults["os"]=(None,"osname","Operating System (like linux-rhel3)",None)
-        condor_defaults["arch"]=(None,"arch","Architecture (like x86)",None)
+        condor_defaults["os"]=("default","osname","Operating System (like linux-rhel3)",None)
+        condor_defaults["arch"]=("default","arch","Architecture (like x86)",None)
+        condor_defaults["version"]=("default","arch","Architecture (like x86)",None)
         condor_defaults["tar_file"]=(None,"fname","Tarball containing condor binaries (overrides base_dir if defined)",None)
         condor_defaults["base_dir"]=(None,"base_dir","Condor distribution base dir (used only if tar_file undefined)",None)
 
