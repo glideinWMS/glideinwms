@@ -2882,6 +2882,7 @@ def configure_gsi_security(gsi_setup=None):
 def setup_privsep():
     global CONDOR_BASE_PATH
     global PRIVSEP_INSTALLED
+    global CONDOR_UPD_CONFIG_FILE
 
     if os.getuid()!=0:
         raise RuntimeError, "Privsep can only be installed as root! Not doing anything!"
@@ -2924,21 +2925,21 @@ def setup_privsep():
                 raise RuntimeError, "An old privsep config (/etc/condor/privsep_config) found! Not doing anything!"
     
 
+    while 1:
+        factory_user=raw_input("What is the factory username: ")
+
+        try:
+            factory_group=grp.getgrgid(pwd.getpwnam(factory_user)[3])[0]
+            user_valid=True
+        except KeyError:
+            user_valid=False
+
+        if not user_valid:
+            print "User '%s' does not exist. If it is not a typo, please create it and retry."
+            continue
+        break
+
     if create_config:
-        while 1:
-            factory_user=raw_input("What is the factory username: ")
-
-            try:
-                factory_group=grp.getgrgid(pwd.getpwnam(factory_user)[3])[0]
-                user_valid=True
-            except KeyError:
-                user_valis=False
-
-            if not user_valid:
-                print "User '%s' does not exist. If it is not a typo, please create it and retry."
-                continue
-            break
-
         groups={}
         users=[]
         print
@@ -2954,7 +2955,7 @@ def setup_privsep():
                 group=grp.getgrgid(pwd.getpwnam(user)[3])[0]
                 user_valid=True
             except KeyError:
-                user_valis=False
+                user_valid=False
 
             if not user_valid:
                 print "User '%s' does not exist. If it is not a typo, please create it and retry."
@@ -2994,6 +2995,19 @@ def setup_privsep():
 
     # finally set the setuid bit
     os.chmod(switchboard_bin,04755)
+
+    ########################################
+    # Make factory user a condor superuser
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## Make the factory user a condor superuser\n")
+        config_fd.write("## This is needed by the factory damemons in privsep mode\n")
+        config_fd.write("##  and it also makes the administration easier\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), %s\n"%factory_user)
+    finally:
+        config_fd.close()
 
     print
     print "Privilege separation setup completed"
