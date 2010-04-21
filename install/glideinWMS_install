@@ -1263,7 +1263,8 @@ def gfactory_install():
 
     print
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
-    print "Remember to set X509_USER_PROXY before starting the daemon"
+    if proxy_fname!=None:
+        print "Remember to set X509_USER_PROXY before starting the daemon"
     print
 
     return
