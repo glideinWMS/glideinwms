@@ -7,7 +7,6 @@
 # User modifiable variables
 GLIDEIN_Start		C	1		+				N	N	-
 GLIDEIN_Rank		C	1		+				N	N	-
-GLIDEIN_Expose_Grid_Env	C	False		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
 GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	21600		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	7200	+				N	N	-

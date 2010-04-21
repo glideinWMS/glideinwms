@@ -868,7 +868,7 @@ def gfactory_install():
         if clientlog_base_dir=="":
             clientlog_base_dir=def_clientlog_base_dir
         if not os.path.isdir(clientlog_base_dir):
-            print "%s does not exist"
+            print "%s does not exist, please create it if needed"%clientlog_base_dir
             continue
         break
 
@@ -878,7 +878,7 @@ def gfactory_install():
         if clientproxies_base_dir=="":
             clientproxies_base_dir=def_clientproxies_base_dir
         if not os.path.isdir(clientproxies_base_dir):
-            print "%s does not exist"
+            print "%s does not exist, please create it if needed"%clientproxies_base_dir
             continue
         break
 
@@ -1202,6 +1202,7 @@ def gfactory_install():
                 fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
             fd.write('      <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="True"/>\n')
             fd.write('      <attr name="USE_MATCH_AUTH" value="%s" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n'%(match_yn=='y'))
+            fd.write('      <attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1262,7 +1263,8 @@ def gfactory_install():
 
     print
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
-    print "Remember to set X509_USER_PROXY before starting the daemon"
+    if proxy_fname!=None:
+        print "Remember to set X509_USER_PROXY before starting the daemon"
     print
 
     return
@@ -1712,8 +1714,13 @@ def vofrontend_install():
             fd.write('      </job>\n')
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
-            fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
+            # this is needed for the security to work
+            fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            # the following are just so admins know they exist
+            # we put in the default values
+            fd.write('      <attr name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            fd.write('      <attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
