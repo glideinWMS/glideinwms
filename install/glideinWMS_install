@@ -868,7 +868,7 @@ def gfactory_install():
         if clientlog_base_dir=="":
             clientlog_base_dir=def_clientlog_base_dir
         if not os.path.isdir(clientlog_base_dir):
-            print "%s does not exist"
+            print "%s does not exist"%clientlog_base_dir
             continue
         break
 
@@ -878,7 +878,7 @@ def gfactory_install():
         if clientproxies_base_dir=="":
             clientproxies_base_dir=def_clientproxies_base_dir
         if not os.path.isdir(clientproxies_base_dir):
-            print "%s does not exist"
+            print "%s does not exist"%clientproxies_base_dir
             continue
         break
 
