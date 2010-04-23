@@ -406,7 +406,7 @@ class frontendGroupDicts(cWDictFile.fileSubDicts):
     def get_sub_dicts(self):
         return get_group_dicts(self.work_dir,self.stage_dir,self.sub_name,self.simple_work_dir)
     
-    def reuse_nocheck(self):
+    def reuse_nocheck(self,other):
         reuse_group_dicts(self.dicts,other.dicts,self.sub_name)
         
 ################################################
