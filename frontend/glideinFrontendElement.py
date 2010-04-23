@@ -164,6 +164,23 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                                                            status_dict_types['Idle']['abs'],
                                                                                            status_dict_types['Running']['abs']))
 
+    # extract the public key, if present
+    for glideid in glidein_dict.keys():
+        glidein_el=glidein_dict[glideid]
+        if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
+            pass # no public key, nothing to do
+        elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
+            try:
+                glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
+            except:
+                # if no valid key, just notify...
+                # if key needed, will handle the error later on
+                glideinFrontendLib.log_files.logWarning("Factory '%s@%s': invalid RSA key"%(glideid[1],glideid[0]))
+        else:
+            # don't know what to do with this key, notify the admin
+            # if key needed, will handle the error later on
+            glideinFrontendLib.log_files.logActivity("Factory '%s@%s': unsupported pub key type '%s'"%(glideid[1],glideid[0],glidein_el['attrs']['PubKeyType']))
+
     # get the proxy
     x509_proxies_data=None
     if x509_proxy_plugin!=None:
@@ -202,19 +219,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         # have no way to give them the proxy
         for glideid in glidein_dict.keys():
             glidein_el=glidein_dict[glideid]
-            if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': no pub key support, but x509_proxy specified"%(glideid[1],glideid[0]))
+            if not glidein_el['attrs'].has_key('PubKeyObj'):
+                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': does not have a valid key, but x509_proxy specified"%(glideid[1],glideid[0]))
                 del glidein_dict[glideid]
-            elif glidein_el['attrs']['PubKeyType']=='RSA': # only trust RSA for now
-                try:
-                    glidein_el['attrs']['PubKeyObj']=pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'],'\\n','\n')))
-                except:
-                    glideinFrontendLib.log_files.logWarning("Ignoring factory '%s@%s': invalid RSA key, but x509_proxy specified"%(glideid[1],glideid[0]))
-                    del glidein_dict[glideid] # no valid key
-            else:
-                glideinFrontendLib.log_files.logActivity("Ignoring factory '%s@%s': unsupported pub key type '%s', but x509_proxy specified"%(glideid[1],glideid[0],glidein_el['attrs']['PubKeyType']))
-                del glidein_dict[glideid] # not trusted
-                
 
 
     # here we have all the data needed to build a GroupAdvertizeType object
