@@ -173,31 +173,30 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             client_int_name="DummyName"
             client_int_req="DummyReq"
 
+        if decrypted_params.has_key('SecurityName'):
+            client_security_name=decrypted_params['SecurityName']
+        else:
+            # backwards compatibility
+            client_security_name=client_int_name
+
+        client_expected_identity=frontendDescript.get_identity(client_security_name)
+        if client_expected_identity==None:
+            glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
+            continue #skip request
+        
+        client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
+
+        if client_authenticated_identity!=client_expected_identity:
+            # silently drop... like if we never read it in the first place
+            # this is compatible with what the frontend does
+            glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
+            continue #skip request
+
         # Check if proxy passing is compatible with allowed_proxy_source
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
             if not ('frontend' in allowed_proxy_source):
                 glideFactoryLib.log_files.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
-
-            if decrypted_params.has_key('SecurityName'):
-                client_security_name=decrypted_params['SecurityName']
-            else:
-                # backwards compatibility
-                client_security_name=client_int_name
-
-            client_expected_identity=frontendDescript.get_identity(client_security_name)
-            if client_expected_identity==None:
-                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
-                continue #skip request
-            
-            client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
-
-            if client_authenticated_identity!=client_expected_identity:
-                # silently drop... like if we never read it in the first place
-                # this is compatible with what the frontend does
-                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
-                continue #skip request
-
         else:
             if not ('factory' in allowed_proxy_source):
                 glideFactoryLib.log_files.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
@@ -277,8 +276,15 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 continue #skip request
         else:
             # no proxy passed, use factory one
-            x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY']
-            x509_proxy_usernames['factory']=None # no user switching
+            x509_proxy_security_class="factory"
+            
+            x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+            if x509_proxy_username==None:
+                glideFactoryLib.log_files.logWarning("No mapping for security class %s for %s (secid: %s), skipping frontend"%(x509_proxy_security_class,client_int_name,client_security_name))
+                continue # cannot map, frontend
+
+            x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY'] # use the factory one
+            x509_proxy_usernames['factory']=x509_proxy_username
             
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
