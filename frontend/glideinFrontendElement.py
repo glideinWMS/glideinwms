@@ -223,12 +223,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                                                            signatureDescript.frontend_descript_fname, signatureDescript.group_descript_fname,
                                                            signatureDescript.signature_type, signatureDescript.frontend_descript_signature, signatureDescript.group_descript_signature,
                                                            x509_proxies_data)
-    if descript_obj.need_encryption():
-        # reuse between loops might be a good idea, but this will work for now
-        key_builder=glideinFrontendInterface.Key4AdvertizeBuilder()
-    else:
-        key_builder=None #not used, but just for consistency
-        
+    # reuse between loops might be a good idea, but this will work for now
+    key_builder=glideinFrontendInterface.Key4AdvertizeBuilder()
 
     glideinFrontendLib.log_files.logActivity("Match")
 
@@ -331,8 +327,13 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             key_obj=key_builder.get_key_obj(my_identity,
                                             glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
         else:
-            # if no proxies, no reason to encode
-            key_obj=None
+            if (glidein_el['attrs'].has_key('PubKeyObj') and glidein_el['attrs'].has_key('PubKeyID')):
+                # still want to encript the security_name
+                key_obj=key_builder.get_key_obj(my_identity,
+                                                glidein_el['attrs']['PubKeyID'],glidein_el['attrs']['PubKeyObj'])
+            else:
+                # if no proxies, encryption is not required
+                key_obj=None
 
         advertizer.add(factory_pool_node,
                        request_name,request_name,
