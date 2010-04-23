@@ -1440,7 +1440,7 @@ def vofrontend_install():
     
     print
     print "We are done with the WMS collector (i.e. gfactory) config"
-    print "Let's not configure the access to the local (user) pool"
+    print "Let's configure the access to the local (user) pool"
     print
     
     fd=os.popen("condor_config_val COLLECTOR_HOST")
