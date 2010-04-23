@@ -276,8 +276,15 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 continue #skip request
         else:
             # no proxy passed, use factory one
-            x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY']
-            x509_proxy_usernames['factory']=None # no user switching
+            x509_proxy_security_class="factory"
+            
+            x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+            if x509_proxy_username==None:
+                glideFactoryLib.log_files.logWarning("No mapping for security class %s for %s (secid: %s), skipping frontend"%(x509_proxy_security_class,client_int_name,client_security_name))
+                continue # cannot map, frontend
+
+            x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY'] # use the factory one
+            x509_proxy_usernames['factory']=x509_proxy_username
             
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
