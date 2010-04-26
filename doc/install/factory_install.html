@@ -4,13 +4,6 @@
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>Installation of the WMS Collector and collocated glidein
   Factory</title>
-  <meta name="CREATED" content="20071107;13514400">
-  <meta name="CHANGED" content="20081110;16491700">
-  <meta name="Info 1" content="">
-  <meta name="Info 2" content="">
-  <meta name="Info 3" content="">
-  <meta name="Info 4" content="">
-  <meta name="CHANGEDBY" content="Igor Sfiligoi">
 </head>
 
 <body lang="en-US" dir="ltr">
@@ -109,7 +102,7 @@ The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a> (v1.2.18 or
 later)<br>
 The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python
 library</a> (v0.17 or later)<br>
-The <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package (0.4 or later)<br>
+The <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package (0.5 or later)<br>
 The <a
 href="index.html">glideinWMS
 software</a>.</font></font></p>
@@ -311,102 +304,137 @@ may as well download it before starting the installer.</font></font></p>
   size="3">./glideinWMS_install</font></font></blockquote>
 
 <p><font face="Liberation Serif"><font size="3">You will be presented with
-this screen:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [1] glideinWMS Collector<br>
-  [2] Glidein Factory<br>
-  [3] GCB<br>
-  [4] pool Collector<br>
-  [5] Schedd node<br>
-  [6] Condor for VO Frontend<br>
-  [7] VO Frontend<br>
-  [8] Components</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>1</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Now follow the instructions
+the service selection screen. Follow the instructions
 and install all the software components. Most of the questions should be
 fairly straightforward. The part that is not completely automatic is the
 configuration of the GSI security; you will need to provide the DN of the
 glidein factory (if different from the collector one) and the DN of the VO
 frontend.</font></font></p>
-
+<p><font face="Liberation Serif" size="3">If you are installing privilage separation, you need to install glideinWMS Schedds and Collector as root</font></p>
 <p><font face="Liberation Serif"><font size="3">Here a possible set of
 answers is presented; your setup will probably be slightly
 different:</font></font></p>
-<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">Do you have already a VDT installation?: (y/n) <b>n</b>
-Do you want to install the full OSG VDT client?: (y/n) <b>n</b>
-Do you want to install a minimal Grid VDT client?: (y/n) <b>y</b>
-Where do you want the VDT installed?: [/opt/vdt] <b>/home/gfactory/vdt</b>
-Directory '/home/gfactory/vdt' does not exist, should I create it?: (y/n) <b>y</b>
-What pacman version should I use?: [pacman-3.26] <b>pacman-3.26</b>
+<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
+Welcome to the glideinWMS Installation Helper
 
-What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <b>http://vdt.cs.wisc.edu/vdt_1101_cache</b>
+What do you want to install?
+(May select several options at one, using a , separated list)
+[1] glideinWMS Schedds and Collector
+[2] Glidein Factory
+[3] GCB
+[4] User Pool Collector
+[5] User Schedd
+[6] Condor for VO Frontend
+[7] VO Frontend
+[8] Components
+Please select: <b>1</b>
 
-VDT client installation tends to be very picky about the platforms it installs under
-Most of the time, one needs to pretent to be one of the tested platforms
-The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
-Which platform do you want to use (leave empty for autodetect): <i>enter</i>
+The following profiles will be installed:
+[1] glideinWMS Schedds and Collector
 
-VDT 1.10.1 installs a variety of software, each with its own license.
-In order to continue, you must agree to the licenses.
-You can view the licenses online at:
+Installing WMS Schedds and Collector
 
-     http://vdt.cs.wisc.edu/licenses/1.10.1
+Installing condor
 
-After the installation has completed, you will also be able to
-view the licenses in the "licenses" directory.
+Which user should Condor run under?: [condor] <b>gfactory</b>
 
-Do you agree to the licenses? [y/n] <b>y</b>
+You will now need the Condor tarball
+You can find it on http://www.cs.wisc.edu/condor/
+Versions v7.2.2 and 7.3.1 have been tested, but you
+should always use the latest one
 
-Where would you like to install CA files?
+Where do you have the Condor tarball? <b>/home/gfactory/downloads/condor-7.4.2-linux-x86_64-rhel5-dynamic.tar.gz</b>
+Checking...
+Seems condor version 7.4.2
 
-Choices:
-        l (local) - install into $VDT_LOCATION/globus/share/certificates
-        n (no)    - do not install
-<b>l</b>
-
-Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <b>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</b>
-
-Where do you have the Condor tarball? <b>/home/gfactory/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</b>
-
-Where do you want to install it?: [/opt/glidecondor] <b>/home/gfactroy/glidecondor</b>
+Where do you want to install it?: [/opt/glidecondor] /home/gfactory/glidecondor
 Directory '/home/gfactory/glidecondor' does not exist, should I create it?: (y/n) <b>y</b>
-Installing condor in '/home/gfactroy/glidecondor'
+Installing condor in '/home/gfactory/glidecondor'
 
-If something goes wrong with Condor, who should get email about it?: <b>troubles@my.org</b>
+If something goes wrong with Condor, who should get email about it?: <b>admin@my.org</b>
+Extracting from tarball
+Running condor_configure
+Installing Condor from /home/gfactory/glidecondor/tar/condor-7.4.2 to /home/gfactory/glidecondor
+
+Condor has been installed into:
+    /home/gfactory/glidecondor
+
+Configured condor using these configuration files:
+  global: /home/gfactory/glidecondor/etc/condor_config
+  local:  /home/gfactory/glidecondor/condor_local/condor_config.local
+You should look inside the installation log for some details about how
+Condor was installed.
+Created scripts which can be sourced by users to setup their
+Condor environment variables.  These are:
+   sh: /home/gfactory/glidecondor/condor.sh
+  csh: /home/gfactory/glidecondor/condor.csh
 
 Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
+Condor installed
 
-To use the GSI security, you either need a valid GSI proxy or
-a valid x509 certificate and relative key
-The cert/proxy subject of WMS Collector will be added as the trusted daemon
-in GSI_DAEMON_NAME in the condor configuration.
+Privilege separation is needed to securely support multiple frontends.
+Do you want to install it?: (y/n) [y]<b>y</b>
+A privsep config (/etc/condor/privsep_config) is already in place. Do you want to recreate it?: (y/n) <b>y</b>
+What is the factory username: <b>gfactory</b>
+
+List the usernames the factroy will use
+to separate frontends from one another.
+An empty username entry means you are done.
+Username: <b>frontenduser1</b>
+Username: <b>frontenduser2</b>
+Username:
+
+Directories needed by the factory will be given special
+treatment to ease administration.
+Where will the factory store its config files?[/var/gfactory/glideinsubmit] <b>/home/gfactory/glideinsubmit</b>
+Directory '/home/gfactory/glideinsubmit' does not exist, should I create it?: (y/n) <b>y</b>
+Where will the factory store its log files?[/var/gfactory/glideinlogs] <b>/var/gfactory/glideinlogs</b>
+Where will the factory store the client log files?[/var/gfactory/clientlogs] <b>/var/gfactory/clientlogs</b>
+Directory '/var/gfactory/clientlogs' does not exist, should I create it?: (y/n) <b>y</b>
+Where will the factory store the client proxies?[/var/gfactory/clientproxies] <b>/var/gfactory/clientproxies</b>
+Directory '/var/gfactory/clientproxies' does not exist, should I create it?: (y/n) <b>y</b>
+
+Privilege separation setup completed
+
+Configuring GSI security
+
+GSI security relies on a list of trusted CAs
+Where can I find the directory with the trusted CAs?
+
+Do you want to get it from VDT?: (y/n) <b>y</b>
+Do you have already a VDT installation?: (y/n) <b>y</b>
+Where is the VDT installed?: <b>/home/gfactory/vdt</b>
+Using VDT installation in <b>/home/gfactory/vdt</b>
+
+To use the GSI security for WMS Collector, you either need
+a valid GSI proxy or a valid x509 certificate and relative key.
+Its subject (i.e. DN) will be added as the trusted daemon
+in the condor configuration.
+
 Will you be using a proxy or a cert? (proxy/cert) <b>proxy</b>
-Where is your proxy located?: <b>/home/gfactory/.globus/x509_service_proxy</b>
+Where is your proxy located?: <b>/home/condor/security/grid_proxy.wmspool</b>
 My DN = '/DC=org/DC=doegrids/OU=Service/CN=gfactory/gfactory1.my.org'
 
-You will most probably need other DNs in the condor grid mapfile
-Please add all the DNs that can be used to connect to the
-Condor daemons running on this node
-The WMS Schedd, VO Frontend, Glidein Factory will connect to and act as client
-to the WMS Collector. Subjects for these services should be in the gridmap file
-of WMS Collector
+
+You will most probably need other DNs in the condor grid mapfile.
+The VO Frontend(s) will be contacting the WMS Collector
+and will interact as daemons. Their subjects (i.e. DNs)
+will most likely be needed.
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
 DN: <b>/DC=org/DC=doegrids/OU=Services/CN=frontend1.my.org</b>
-nickname: [condor001] <b>vofrontend</b>
+nickname: [condor001] <b>vofrontend1</b>
 Is this a trusted Condor daemon?: (y/n) <b>y</b>
-DN: <i>enter</i>
-Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n] <b>n</b>
-What name would you like to use for this pool?: [My glideinWMS pool] <b>GlideinFactory</b>
-How many secondary schedds do you want?: [9] <b>9</b></pre>
+DN: <b>/DC=org/DC=doegrids/OU=Services/CN=frontend2.my.org</b>
+nickname: [condor002] <b>vofrontend2</b>
+Is this a trusted Condor daemon?: (y/n) <b>y</b>
+DN:
+What name would you like to use for this pool?: [My glideinWMS pool] <b>GlideinWMSPool</b>
+What port should the collector be running?: [9618] <b>9618</b>
+How many secondary schedds do you want?: [9] <b>9</b>
+[...]
+</pre>
 
 <p style="margin-right: 0.39in">The installer will also start the Condor
 daemons.<font face="Liberation Serif"><font size="3">To stop the Condor
@@ -421,7 +449,8 @@ again:</font></font></p>
 
 <blockquote>
   <font face="Liberation Serif"><font size="3">cd &lt;install dir&gt;;
-  ./start_condor.sh</font></font></blockquote>
+  ./start_condor.sh</font></font>
+</blockquote>
 
 <h2><a name="factory"><font face="Bitstream Vera Serif"><font size="4">6.
 Glidein Factory installation guide</font></font> </a></h2>
@@ -455,25 +484,7 @@ probably be needed.</font></font></p>
   size="3">./glideinWMS_install</font></font></blockquote>
 
 <p><font face="Liberation Serif"><font size="3">You will be presented with
-this screen:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [1] glideinWMS Collector<br>
-  [2] Glidein Factory<br>
-  [3] GCB<br>
-  [4] pool Collector<br>
-  [5] Schedd node<br>
-  [6] Condor for VO Frontend<br>
-  [7] VO Frontend<br>
-  [8] Components</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>2</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Now follow the instructions
+the service selection screen. Follow the instructions
 and install all the software components. Most of the questions should be
 fairly straightforward. The part that is not completely automatic is the list
 of GCBs and the configuration of the GSI security; you will need to provide
@@ -483,52 +494,104 @@ the DNs of all the submit nodes. It is strongly recommended to use CCB over GCB 
 answers is presented; your setup will probably be slightly
 different:</font></font></p>
 <pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
-Do you have already a javascriptRRD installation?: (y/n) y
-Where is javascriptRRD installed?: <b>/home/gfactory/javascriptrrd-0.4</b>
-To use the Glidein Factory you need a valid GSI proxy.
-Where is your proxy located?: [/home/gfactory/.globus/x509_service_proxy] <b>/home/gfactory/.globus/x509_service_proxy</b>
-Make sure this DN is in the condor gridmap files of the WMS, Pool collectors
-and all the User schedds.
+Welcome to the glideinWMS Installation Helper
 
-Where will you host your config and log files?: [/home/gfactory/glideinsubmit] <b>/home/gfactory/glideinsubmit</b>
+What do you want to install?
+(May select several options at one, using a , separated list)
+[1] glideinWMS Schedds and Collector
+[2] Glidein Factory
+[3] GCB
+[4] User Pool Collector
+[5] User Schedd
+[6] Condor for VO Frontend
+[7] VO Frontend
+[8] Components
+Please select: <b>2</b>
+
+The following profiles will be installed:
+[2] Glidein Factory
+
+
+Installing Glidein Factory
+
+Do you have already a javascriptRRD installation?: (y/n) <b>y</b>
+Where is javascriptRRD installed?: <b>/home/gfactory/javascriptrrd-0.5.0</b>
+The Glidein Factory can be configured to use a default GSI proxy for submission.
+
+However, this operation mode is not recommended.
+
+Do you want to use such a proxy?: (y/n) [n] <b>n</b>
+
+As you probably know, privilege separation
+is needed to securely support multiple frontends.
+If you are using privilege separation, the factory directories
+must be world readable (except for the proxies dirs)
+
+Hosting the config and log files in the factory home directory
+is thus not recommended anymore.
+
+Where will you host your config files?: [/var/gfactory/glideinsubmit] <b>/home/gfactory/glideinsubmit</b>
+Where will you host your log files?: [/var/gfactory/glideinlogs] <b>/var/gfactory/glideinlogs</b>
+Where will you host the client log files?: [/var/gfactory/clientlogs] <b>/var/gfactory/clientlogs</b>
+Where will you host the client proxies files?: [/var/gfactory/clientproxies]<b>/var/gfactory/clientproxies</b>
 Where will the web data be hosted?: [/var/www/html/glidefactory] <b>/var/www/html/glidefactory</b>
 Directory '/var/www/html/glidefactory' not empty.
 Should I use it anyhow?: (y/n) <b>y</b>
-What Web URL will you use?: [http://gfactory1.my.org/glidefactory/] <b>http://gfactory1.my.org/glidefactory/</b>
-Give a name to this Glidein Factory?: [gfactory1] <b>gfactory1</b>
+What Web URL will you use?: [http://gfactory1.my.org/glidefactory/] <b>http://gfactory1.my.org/glidefactory</b>
+Give a name to this Glidein Factory?: [mySites-gfactory1] <b>GlideinFactory-gfactory1</b>
 Give a name to this Glidein instance?: [v1_0] <b>v1_0</b>
-What is the Condor base directory?: [/home/gfactory/glidecondor] <b>/home/gfactory/glidecondor</b>
+What is the Condor base directory?: [/home/gfactory/glidecondor]<b>/home/gfactory/glidecondor</b>
 The following glidein schedds have been found:
  [1] schedd_glideins1@gfactory1.my.org
  [2] schedd_glideins2@gfactory1.my.org
  [3] schedd_glideins3@gfactory1.my.org
  [4] schedd_glideins4@gfactory1.my.org
  [5] schedd_glideins5@gfactory1.my.org
- [6] schedd_glideins6@gfactory1.my.org
- [7] schedd_glideins7@gfactory1.my.org
- [8] schedd_glideins8@gfactory1.my.org
- [9] schedd_glideins9@gfactory1.my.org
+ [5] schedd_glideins6@gfactory1.my.org
+ [5] schedd_glideins7@gfactory1.my.org
+ [5] schedd_glideins8@gfactory1.my.org
+ [5] schedd_glideins9@gfactory1.my.org
 Do you want to use all of them?: (y/n) <b>y</b>
 Using ['schedd_glideins1@gfactory1.my.org', 'schedd_glideins2@gfactory1.my.org', 'schedd_glideins3@gfactory1.my.org', 'schedd_glideins4@gfactory1.my.org', 'schedd_glideins5@gfactory1.my.org', 'schedd_glideins6@gfactory1.my.org', 'schedd_glideins7@gfactory1.my.org', 'schedd_glideins8@gfactory1.my.org', 'schedd_glideins9@gfactory1.my.org']
 
+Do you want to use CCB (requires Condor 7.3.0 or better)?: (y/n) <b>y</b>
 Do you want to use gLExec?: (y/n) <b>y</b>
 Do you want to fetch entries from RESS?: (y/n) [n] <b>y</b>
-
-Which RESS server should I use?: [osg-ress-1.fnal.gov]
-Select Condor RESS constraint: [StringlistMember("VO:you",GlueCEAccessControlBaseRule)] <b>StringlistMember("VO:you",GlueCEAccessControlBaseRule)</b>
-Define a python filter: [(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)&gt;(72*60))] <b>(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)&gt;(72*60))</b>
-Found 49 additional entries
+Which RESS server should I use?: [osg-ress-1.fnal.gov] <b>osg-ress-1.fnal.gov</b>
+Select Condor RESS constraint: [] <b>StringlistMember("VO:MyVO",GlueCEAccessControlBaseRule)</b>
+Define a python filter: [(int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)>(72*60))] <b>(int(GlueCEPolicyMaxCPUTime)>(1))</b>
+Found 28 additional entries
 Do you want to use them all?: (y/n) <b>y</b>
-Do you want to fetch entries from BDII?: (y/n) [n] <b>n</b>
+Do you want to fetch entries from BDII?: (y/n) [n]<b>n</b>
 Please list all additional glidein entry points,
-Entry name (leave empty when finished): <i>enter</i>
-Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n] <b>n</b>
-To create the glidein, you need to run
-/home/gfactory/glideinWMS/creation/create_glidein /home/gfactory/glideinsubmit/glidein_v1_0.cfg
 
+Entry name (leave empty when finished):
+Should glideins use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) [y] <b>y</b>
+
+For security reasons, we want to whitelist all the frontends that we will be serving.
+Each frontend should be segregated to its own (set of) username(s).
+If you do not want privilege separation, you can still just use the factory user.
+
+Please list the frontends you will be serving:
+
+Frontend security name (leave empty when finished): <b>vofrontend1</b>
+Frontend identity (like vo1@gfactory1.my.org): <b>frontenduser1@gfactory1.my.org</b>
+Frontend proxy security class: [frontend]
+Username: <b>frontenduser1</b>
+
+Frontend security name (leave empty when finished): <b>vofrontend2</b>
+Frontend identity (like vo1@gfactory1.my.org): <b>frontenduser2@gfactory1.my.org</b>
+Frontend proxy security class: [frontend]
+Username: <b>frontenduser2</b>
+
+Frontend security name (leave empty when finished):
+Do you want to create the glidein (as opposed to just the config file)?: (y/n) [n]<b>n</b>
+To create the glidein, you need to run
+/home/gfactory/glideinWMS/creation/create_glidein /home/gfactory/glideinsubmit/glidein_v1_0.cfg/glideinWMS.xml
 
 Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
-Remember to set X509_USER_PROXY before starting the daemon</pre>
+
+</pre>
 
 <p><font face="Liberation Serif"><font size="3">If you followed the example
 above, you ended up with a configuration file in </font></font><font

@@ -3,10 +3,6 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Installation of a scheduler node in the glideinWMS</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
-	<META NAME="CREATED" CONTENT="20071113;14435800">
-	<META NAME="CHANGED" CONTENT="20081031;13592700">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
@@ -107,64 +103,65 @@ will need to provide the DN of the pool collector and the
 DN of the glidein factory.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
 answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">Do you have already a VDT installation?: (y/n) <B>n</B>
-Do you want to install the full OSG VDT client?: (y/n) <B>n</B>
-Do you want to install a minimal Grid VDT client?: (y/n) <B>y</B>
-Where do you want the VDT installed?: [/opt/vdt] <B>/opt/vdt</B>
-Directory '/opt/vdt' does not exist, should I create it?: (y/n) <B>y</B>
-What pacman version should I use?: [pacman-3.26] <B>PACMAN-3.26</B>
+<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
+Welcome to the glideinWMS Installation Helper
 
-What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <B>http://vdt.cs.wisc.edu/vdt_1101_cache</B>
-VDT client installation tends to be very picky about the platforms it installs under
-Most of the time, one needs to pretent to be one of the tested platforms
-The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
-Which platform do you want to use (leave empty for autodetect): <I>enter</I>
+What do you want to install?
+(May select several options at one, using a , separated list)
+[1] glideinWMS Schedds and Collector
+[2] Glidein Factory
+[3] GCB
+[4] User Pool Collector
+[5] User Schedd
+[6] Condor for VO Frontend
+[7] VO Frontend
+[8] Components
+Please select: <b>5</b>
 
-Do you agree to the licenses? [y/n] <B>y</B>
+The following profiles will be installed:
+[5] User Schedd
 
-Do you want to update the CA certification revocation lists (CRLs) automatically? [y/n] <B>y</B>
-
-Would you like to setup daily rotation of VDT log files?
-
-Possible answers:
-    y: Yes, I want the service to run automatically (once enabled)
-    n: No, I do NOT want the service to run automatically
-
-<B>y</B>
-
-Where would you like to install CA files?
-
-Choices:
-        r (root)  - install into /etc/grid-security/certificates
-                   (existing CA files will be preserved)
-        l (local) - install into $VDT_LOCATION/globus/share/certificates
-        n (no)    - do not install
-<B>l</B>
-
-Do you want to automatically update your CA Certificates? [y/n] <B>y</B>
-
-Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <B>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</B>
-
-VDT client installed
+Installing user submit schedds
 
 Installing condor
 
-Which user should Condor run under?: [condor] <B>condor</B>
 
 You will now need the Condor tarball
 You can find it on http://www.cs.wisc.edu/condor/
-Versions v7.0.5 and 7.1.3 have been tested, but you
+Versions v7.2.2 and 7.3.1 have been tested, but you
 should always use the latest one
 
-Where do you have the Condor tarball? <B>/root/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</B>
+Where do you have the Condor tarball? <b>/root/condor-7.4.2-linux-x86_64-rhel5-dynamic.tar.gz</b>
+Checking...
+Seems condor version 7.4.2
 
-Where do you want to install it?: [/opt/glidecondor] <B>/opt/glidecondor</B>
-Directory '/opt/glidecondor' does not exist, should I create it?: (y/n) <B>y</B>
+Where do you want to install it?: [/opt/glidecondor] <b>/opt/glidecondor</b>
+Directory '/opt/glidecondor' does not exist, should I create it?: (y/n) <b>y</b>
 Installing condor in '/opt/glidecondor'
 
-If something goes wrong with Condor, who should get email about it?: <B>troubles@my.org</B>
+If something goes wrong with Condor, who should get email about it?: <b>admin@my.org</b>
+Extracting from tarball
+Running condor_configure
+Installing Condor from /opt/glidecondor/tar/condor-7.4.2 to /opt/glidecondor
 
-Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <B>y</B>
+Condor has been installed into:
+    /opt/glidecondor
+
+Configured condor using these configuration files:
+  global: /opt/glidecondor/etc/condor_config
+  local:  /opt/glidecondor/condor_local/condor_config.local
+You should look inside the installation log for some details about how
+Condor was installed.
+Created scripts which can be sourced by users to setup their
+Condor environment variables.  These are:
+   sh: /opt/glidecondor/condor.sh
+  csh: /opt/glidecondor/condor.csh
+
+Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
+
+The Condor config has been put in your login files
+Please remember to exit and reenter the terminal after the install
+
 Condor installed
 
 Configuring GSI security
@@ -195,10 +192,12 @@ Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n] <B>n</B>
 What node is the collector running (i.e. CONDOR_HOST)?: <B>collector1.my.org</B>
 Please list all the GCB servers you will be using
 Leave an empty line when finished
-GCB node: <B>gcb1.my.org</B>
 GCB node:<I>enter</I>
 How many secondary schedds do you want?: [9] <B>4</B>
-</PRE><P STYLE="margin-right: 0.39in">
+
+</PRE>
+
+<P STYLE="margin-right: 0.39in">
 The installer will also start the Condor daemons.
 </P>
 <P>The installer also created init.d scripts in
