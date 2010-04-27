@@ -1,20 +1,26 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Glidein Factory Configuration</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Parag Mhashilkar">
-	<META NAME="CHANGED" CONTENT="20100221;20052800">
+	<META NAME="CHANGED" CONTENT="20100427;13264000">
+	<STYLE TYPE="text/css">
+	<!--
+		H2.ctl { font-family: "Lohit Hindi" }
+		H3.ctl { font-family: "Lohit Hindi" }
+		H4.ctl { font-family: "Lohit Hindi" }
+	-->
+	</STYLE>
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Glidein Factory Configuration</H1>
-<H2>Description</H2>
+<H2 CLASS="western">Description</H2>
 <P>To configure the Glidein Factory you need to create a directory
 with a set of files. This is done by the command line tools described
 below. A set of configuration example is provided, too.</P>
-<H2>Index</H2>
+<H2 CLASS="western">Index</H2>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in"><A HREF="#name">Command line tools</A>
 		</P>
@@ -69,7 +75,7 @@ below. A set of configuration example is provided, too.</P>
 	<LI><P><A HREF="#ref">Reference</A> 
 	</P>
 </UL>
-<H2><A NAME="name"></A>Command line tools</H2>
+<H2 CLASS="western"><A NAME="name"></A>Command line tools</H2>
 <DL>
 	<DT>To create a new directory, use the command: 
 	</DT><DD>
@@ -91,7 +97,7 @@ below. A set of configuration example is provided, too.</P>
 	<FONT FACE="monospace">./create_glidein &lt;xml
 	file&gt;<BR>./reconfig_glidein &lt;xml file&gt;</FONT> 
 	</DD></DL>
-<H2>
+<H2 CLASS="western">
 <A NAME="args"></A>The configuration file</H2>
 <P>The configuration file is a XML document.<BR><BR>It is composed of
 two parts:</P>
@@ -110,7 +116,7 @@ two parts:</P>
 	</DT><DD STYLE="margin-bottom: 0.2in">
 	<FONT FACE="monospace">glideinWMS/creation/config_examples/</FONT> 
 	</DD></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="args_global"></A>Suggested global arguments</H3>
 <P>You definitely <B>need to set</B> the following arguments:</P>
 <UL>
@@ -129,19 +135,32 @@ two parts:</P>
 	Factory management section</A></P>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>condor_tarballs</B></FONT><FONT FACE="monospace">&gt;
 	&lt;</FONT><FONT FACE="monospace"><B>condor_tarball os=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>os</I></FONT><FONT FACE="monospace">&quot;
-	</FONT><FONT FACE="monospace"><B>arch=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>arch</I></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><B>base_dir=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>directory</I></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><BR>Where
+	</FONT><FONT FACE="monospace"><B>arch=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>arch</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>base_dir=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>directory</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>version</B></FONT><FONT FACE="monospace"><B>=</B></FONT><FONT FACE="monospace">&quot;</FONT><FONT FACE="monospace"><I>condor
+	version</I></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><BR>Where
 	to find the Condor binaries.<BR>You can list as many as you need,
-	but at least one is required.<BR><BR>It is recommended to have one
-	default entry with <FONT FACE="monospace"><B>os=&quot;default&quot;
-	arch=&quot;default&quot;</B></FONT>.</P>
+	but at least one is required. This lets you configure glideins for
+	different sites to use different version of condor binaries based on
+	architecture, os of the worker nodes that could be found on the
+	site.<BR><BR>It is recommended to have one default entry with
+	<FONT FACE="monospace"><B>os=&quot;default&quot; arch=&quot;default&quot;
+	version=&quot;default&quot;</B></FONT>.</P>
 </UL>
-<P>You <B>most probably want to set</B> the following arguments, too:</P>
+<P><BR>You <B>most probably want to set</B> the following arguments,
+too:</P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>submit
-	base_dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>directory</I></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><BR>Where
+	base_dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>directory</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>base_log_dir</B></FONT><FONT FACE="monospace">=&quot;log
+	</FONT><FONT FACE="monospace"><I>directory</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>base_client_log_dir</B></FONT><FONT FACE="monospace">=&quot;client
+	log </FONT><FONT FACE="monospace"><I>directory</I></FONT><FONT FACE="monospace">&quot;
+	 </FONT><FONT FACE="monospace"><B>base_client_proxies_dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>directory
+	where proxies will be stored</I></FONT><FONT FACE="monospace">&quot;/&gt;</FONT><BR>Where
 	to create the glidein submit directory. The default is the user home
-	directory. 
-	</P>
+	directory. Log directories can be configured independent of the base
+	directory using options mentioned above.</P>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>stage
 	base_dir</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>web
 	dir</I></FONT><FONT FACE="monospace">&quot;
@@ -173,7 +192,22 @@ two parts:</P>
 	(<EM>&quot;factory&quot;</EM>), or if both methods are supported
 	(<EM>&quot;frontend,factory&quot;</EM>).</P>
 </UL>
-<P>Some other arguments you <B>might want to set</B>, are:</P>
+<P><BR>In order to configure privilege separation and multiple
+frontends, you need following configuration parameters:</P>
+<UL>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;</FONT><FONT FACE="monospace"><B>&lt;security&gt;&lt;frontends&gt;</B></FONT><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>frontend</B></FONT><FONT FACE="monospace"><B>
+	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>FrontendName</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><I><B>identity</B></I></FONT><FONT FACE="monospace"><I><SPAN STYLE="font-weight: normal">=&quot;username_usedby_factory@factory_hostname&quot;</SPAN></I></FONT><FONT FACE="monospace"><I>/&gt;</I></FONT><BR>This
+	configures a frontend. Frontend on the frontend hosting machine
+	should have same name as mentioned in the 'name'. Identity tells the
+	factory the username under which the factory should map the given
+	frontend to.</P>
+	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace"><B>&lt;glidein&gt;</B></FONT><FONT FACE="monospace"><B>&lt;security&gt;&lt;frontends&gt;</B></FONT><FONT FACE="monospace"><B>&lt;</B></FONT><FONT FACE="monospace"><B>frontend&gt;&lt;security_classes&gt;</B></FONT><FONT FACE="monospace"><B>&lt;security_class
+	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><EM><FONT FACE="monospace"><I>frontend</I></FONT></EM><FONT FACE="monospace">&quot;</FONT>
+	<STRONG><FONT FACE="monospace"><B>username</B></FONT></STRONG><STRONG><FONT FACE="monospace">=&quot;</FONT></STRONG><STRONG><FONT FACE="monospace"><I><SPAN STYLE="font-weight: normal">username_usedby_factory</SPAN></I></FONT></STRONG><STRONG>&quot;</STRONG>/&gt;<BR>Tells
+	the class and user name for this frontend.</P>
+</UL>
+<P><BR>Some other arguments you <B>might want to set</B>, are:</P>
 <UL>
 	<LI><P STYLE="margin-bottom: 0in"><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein
 	schedd_name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>schedd
@@ -309,7 +343,7 @@ two parts:</P>
 	frontend matchmaking</A> and job matchmaking.<BR><BR>Example
 	attributes are:</P>
 	<PRE>&lt;attrs&gt;
- &lt;attr name=&quot;VOpilot&quot; value=&quot;CMS&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&rdquo;Just a test attribute&rdquo;/&gt;
+ &lt;attr name=&quot;VOpilot&quot; value=&quot;CMS&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”Just a test attribute”/&gt;
  &lt;attr name=&quot;CondorVersion&quot; value=&quot;v6.9.1&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
 &lt;/attrs&gt;</PRE>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attrs</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>attr
@@ -324,7 +358,8 @@ two parts:</P>
 </UL>
 <P><BR>The other arguments are for advanced admins only, and are
 explained in a <A HREF="#advanced">dedicated section</A>.</P>
-<H3><A NAME="args_entry"></A>Suggested entry point arguments</H3>
+<H3 CLASS="western"><A NAME="args_entry"></A>Suggested entry point
+arguments</H3>
 <P>Each entry point will have its own root tag:</P>
 <UL>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entries</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entry
@@ -410,11 +445,15 @@ following arguments:</P>
 	value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>arch</I></FONT><FONT FACE="monospace">&quot;
 	</FONT><FONT FACE="monospace"><B>type=&quot;string&quot;
 	const=&quot;True&quot; parameter=&quot;True&quot;
-	publish=&quot;False&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR>Select
-	a non-default condor binary.<BR>The entry will default to
-	<FONT FACE="monospace"><B>CONDOR_OS=&quot;default&quot;
-	CONDOR_ARCH=&quot;default&quot;</B></FONT>, if not otherwise
-	defined. 
+	publish=&quot;False&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT><BR><FONT FACE="monospace">&nbsp;
+	&lt;</FONT><FONT FACE="monospace"><B>attr name=&quot;CONDOR_VERSION&quot;
+	value</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>version</I></FONT><FONT FACE="monospace">&quot;
+	</FONT><FONT FACE="monospace"><B>type=&quot;string&quot;
+	const=&quot;True&quot; parameter=&quot;True&quot; publish=&quot;False&quot;</B></FONT><FONT FACE="monospace">/&gt;</FONT></P>
+	<P STYLE="margin-bottom: 0in">Select a non-default condor
+	binary.<BR>The entry will default to <FONT FACE="monospace"><B>CONDOR_OS=&quot;default&quot;
+	CONDOR_ARCH=&quot;default&quot; CONDOR_VERSION=&quot;default&quot;</B></FONT>,
+	if not otherwise defined. 
 	</P>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entries</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entry
 	name</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><I>entry
@@ -431,7 +470,7 @@ following arguments:</P>
  &lt;entries&gt;
  &lt;entry name=&quot;myentry&quot;&gt;
  &lt;attrs&gt;
- &lt;attr name=&quot;HasMySoftware&quot; value=&quot;True&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=&rdquo;My users cannot live without&rdquo;/&gt;
+ &lt;attr name=&quot;HasMySoftware&quot; value=&quot;True&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My users cannot live without”/&gt;
  &lt;attr name=&quot;OS&quot; value=&quot;Linux&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
  &lt;/attrs&gt;</PRE>
 	<LI><P><FONT FACE="monospace">&lt;</FONT><FONT FACE="monospace"><B>glidein</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entries</B></FONT><FONT FACE="monospace">&gt;&lt;</FONT><FONT FACE="monospace"><B>entry
@@ -459,28 +498,28 @@ following arguments:</P>
 	errors: 
 	</P>
 	<UL>
-		<LI><P STYLE="margin-bottom: 0in">std (default) &ndash; reasonable
+		<LI><P STYLE="margin-bottom: 0in">std (default) – reasonable
 		verbosity (including the condor log files) and 20min sleep in case
 		of error (to reduce the damage resulting from broken nodes) 
 		</P>
-		<LI><P STYLE="margin-bottom: 0in">fast &ndash; same verbosity as
-		std, but will only wait 2 mins before terminating in case of error
-		(good for debugging) 
+		<LI><P STYLE="margin-bottom: 0in">fast – same verbosity as std,
+		but will only wait 2 mins before terminating in case of error (good
+		for debugging) 
 		</P>
-		<LI><P>nodebug &ndash; very low verbosity, if you want to save on
-		disk space 
+		<LI><P>nodebug – very low verbosity, if you want to save on disk
+		space 
 		</P>
 	</UL>
 </UL>
 <P>The other arguments are for advanced admins only, and are
 explained below.</P>
-<H2><A NAME="advanced"></A>Advanced topics</H2>
+<H2 CLASS="western"><A NAME="advanced"></A>Advanced topics</H2>
 <P>While the above is enough for setting up a personal glidein pool
 on the local area network, you will need to do more fine tuning when
 deploying a larger one. In this section, the various advanced aspects
 of glidein pools will be presented. 
 </P>
-<H3><A NAME="glexec"></A>Integration with gLExec</H3>
+<H3 CLASS="western"><A NAME="glexec"></A>Integration with gLExec</H3>
 <P>As you may have noticed, all of the glideins are submitted with
 the same service proxy. While this has the advantage of simplifying
 the architecture and improve both efficiency and VO control, it does
@@ -570,7 +609,8 @@ much more secure.</P>
 Note that you still need to set <FONT FACE="monospace"><B>GLEXEC_BIN</B></FONT>,
 too.<BR><B>Warning</B>: Use it only if you use Condor 7.1.3 or later,
 as it will not work on any older Condor version!</P>
-<H4 STYLE="margin-left: 0.39in"><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
+<H4 CLASS="western" STYLE="margin-left: 0.39in"><A NAME="glexec_troubleshooting"></A>
+Troubleshooting</H4>
 <DL>
 	<DD STYLE="margin-bottom: 0.2in">gLExec installations on at least
 	one site had problems with delegated proxies. If in doubt, try to
@@ -603,7 +643,7 @@ as it will not work on any older Condor version!</P>
 	and <FONT FACE="monospace">OSG</FONT> should be fine, or you can
 	specify any other fixed, WN-local location. 
 	</DD></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="private_net"></A>Private networks and firewalls</H3>
 <P>Condor daemons need two way communication in order to work
 properly. This clashes with the network policies of most Grid sites,
@@ -618,7 +658,7 @@ firewall.
 	<LI><P><A HREF="#ccb">CCB</A> (since v7.3.0). 
 	</P>
 </UL>
-<H4><A NAME="gcb"></A>GCB - Generic Connection Broker</H4>
+<H4 CLASS="western"><A NAME="gcb"></A>GCB - Generic Connection Broker</H4>
 <DL>
 	<DT STYLE="margin-bottom: 0.2in">GCB was the first Condor
 	implementation that allowed it to work in restrictive network
@@ -712,7 +752,7 @@ where:</P>
 you still need to properly configure the Collector and the submit
 machines. 
 </P>
-<H4><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
+<H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
 <DL>
 	<DT STYLE="margin-bottom: 0.2in">CCB was introduced in Condor v7.3.0
 	to replace GCB in most circumstances. It is much more reliable than
@@ -732,7 +772,7 @@ machines.
 <P>
 and you are done. Just make sure you follow the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">suggested
 scalability guidelines described in the Condor manual</A>.</P>
-<H3><A NAME="security"></A>Security handles</H3>
+<H3 CLASS="western"><A NAME="security"></A>Security handles</H3>
 <P>As mentioned in the <A HREF="../index.html#pool_glidein">startup
 page</A>, the glidein pool must be properly configured to protect it
 from hackers and malicious users. The same page also describes what
@@ -775,7 +815,7 @@ should be used every time it is feasible.</P>
 	</DT><DT STYLE="margin-bottom: 0.2in">
 	Obviously, this will only work with Condor versions 7.1.3 and above.
 		</DT></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="tcp"></A>Using TCP to send updates to the Collector</H3>
 <DL>
 	<DT STYLE="margin-bottom: 0.2in">By default, Condor uses UDP packets
@@ -791,7 +831,7 @@ should be used every time it is feasible.</P>
 <BR>Please be aware that this will configure the glideins only; you
 still need to properly configure the Collector machine. See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor
 documentation</A> for more details.</P>
-<H3><A NAME="multicol"></A>Multiple Collectors</H3>
+<H3 CLASS="western"><A NAME="multicol"></A>Multiple Collectors</H3>
 <P>By default, Condor uses only one Collector for the <A HREF="../index.html#pool_glidein">glidein
 (user) pool</A>.However, if the load becomes too high, you can
 configure multiple collectors in a chain.<BR><BR>You will need a
@@ -826,7 +866,7 @@ export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
 	absfname</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>web_base/collector_setup.sh</B></FONT><FONT FACE="monospace">&quot;</FONT>
 	<FONT FACE="monospace"><B>executable</B></FONT><FONT FACE="monospace">=&quot;</FONT><FONT FACE="monospace"><B>True</B></FONT><FONT FACE="monospace">&quot;/&gt;<BR>&nbsp;&lt;</FONT><FONT FACE="monospace"><B>files</B></FONT><FONT FACE="monospace">/&gt;</FONT>
 		</DD></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
 <P>As with any Condor pool, you may need to set the startd <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
 and <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00454000000000000000">rank</A>
@@ -852,7 +892,7 @@ conditions. <BR>For a glidein, you can set this with the &lt;<B>attr</B>
 	<B>value</B>=&quot;<B>ImageSize</B>&quot; <B>publish</B>=&quot;<B>False</B>&quot;
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
 	</DD></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="time_limit"></A>Limiting time spent on a Grid resource</H3>
 <P>The whole concept of gliding into Grid resources is based on the
 idea that you are getting those resources on a <B>temporary basis</B>.
@@ -907,11 +947,11 @@ of time.<BR><BR>The glideins have two mechanisms to regulate this:</P>
 	<B>type</B>=&quot;<B>int</B>&quot; <B>publish</B>=&quot;<B>False</B>&quot;
 	<B>parameter</B>=&quot;<B>True</B>&quot;/&gt; </FONT>
 	</DD></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="multi-monitor"></A>Old-style pseudo-interactive monitoring</H3>
 <P>Since v1_4_1, the pseudo-interactive monitoring uses a dedicated
 startd in the glideins for monitoring purposes. This allows for
-monitoring even when the job starter enters the &ldquo;<I>Retiring&rdquo;</I>
+monitoring even when the job starter enters the “<I>Retiring”</I>
 activity.</P>
 <P>The side effect is that you do not have anymore the cross-VM
 statistics and the names of the slots is also different.</P>
@@ -923,7 +963,7 @@ statistics and the names of the slots is also different.</P>
 	parameter=&quot;True&quot; publish=&quot;False&quot; type=&quot;string&quot;
 	value=&quot;MULTI&quot;/&gt;</B></FONT> 
 	</DD></DL>
-<H3>
+<H3 CLASS="western">
 <A NAME="custom_code"></A>Adding custom code/files to the glideins</H3>
 <P>While provided code should cover most of the general purpose use
 cases, some administrators may have additional needs. For these
@@ -1004,40 +1044,38 @@ cases, the glidein creation command adds the following options:</P>
 downloaded before the scripts, and that the user provided scripts
 will be executed in the specified order, and before the Condor
 daemons are started up.</P>
-<H3>Grouping glidein Entries for monitoring purposes</H3>
+<H3 CLASS="western">Grouping glidein Entries for monitoring purposes</H3>
 <P>Certain monitoring graphs are useful when grouped together. You
-can use the &ldquo;monitorgroups&rdquo; tag as follows to group the
-entries together.</P>
+can use the “monitorgroups” tag as follows to group the entries
+together.</P>
 <DL>
 	<DT STYLE="margin-bottom: 0.2in">For example, below, entry1 and
 	entry2 will be grouped together and the group information can be
 	plotted against individual entry information.</DT><DD STYLE="margin-bottom: 0.2in">
 	<FONT FACE="monospace">&lt;<B>glidein</B>&gt;<BR>&nbsp;&lt;entries&gt;<BR>&nbsp;
-	&lt;entry name=&rdquo;entry1&rdquo; ...&gt;<BR>&nbsp;
-	&nbsp;&lt;<B>monitorgroups</B>&gt;<BR>&nbsp; &nbsp;  &nbsp;
-	&lt;monitorgroup<B> group_name</B>=&quot;<B>Group1</B>&quot;/&gt;<BR>&nbsp;
-	&nbsp;  &nbsp; &lt;monitorgroup<B> group_name</B>=&quot;<B>Group2</B>&quot;/&gt;<BR>&nbsp;
+	&lt;entry name=”entry1” ...&gt;<BR>&nbsp; &nbsp;&lt;<B>monitorgroups</B>&gt;<BR>&nbsp;
+	&nbsp; &nbsp; &lt;monitorgroup <B>group_name</B>=&quot;<B>Group1</B>&quot;/&gt;<BR>&nbsp;
+	&nbsp; &nbsp; &lt;monitorgroup <B>group_name</B>=&quot;<B>Group2</B>&quot;/&gt;<BR>&nbsp;
 	&nbsp;&lt;/<B>monitorgroups</B>&gt;<BR>&nbsp; &lt;/entry&gt;<BR>&nbsp;
-	&lt;entry name=&rdquo;entry2&rdquo; ...&gt;<BR>&nbsp;
-	&nbsp;&lt;<B>monitorgroups</B>&gt;<BR>&nbsp; &nbsp;  &nbsp;
-	&lt;monitorgroup<B> group_name</B>=&quot;<B>Group1</B>&quot;/&gt;<BR>&nbsp;
-	&nbsp;  &nbsp; &lt;monitorgroup<B> group_name</B>=&quot;<B>Group4</B>&quot;/&gt;<BR>&nbsp;
+	&lt;entry name=”entry2” ...&gt;<BR>&nbsp; &nbsp;&lt;<B>monitorgroups</B>&gt;<BR>&nbsp;
+	&nbsp; &nbsp; &lt;monitorgroup <B>group_name</B>=&quot;<B>Group1</B>&quot;/&gt;<BR>&nbsp;
+	&nbsp; &nbsp; &lt;monitorgroup <B>group_name</B>=&quot;<B>Group4</B>&quot;/&gt;<BR>&nbsp;
 	&nbsp;&lt;/<B>monitorgroups</B>&gt;<BR>&nbsp;
 	&lt;/entry&gt;<BR>&nbsp;&lt;/entries&gt;<BR>&lt;/glidein&gt;</FONT></DD></DL>
-<H3>
+<H3 CLASS="western">
 <BR><BR>
 </H3>
 <TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
 	<TR VALIGN=TOP>
 		<TD>
-			<H2 ALIGN=LEFT>Repository</H2>
-			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<H2 CLASS="western" ALIGN=LEFT>Repository</H2>
+			<H3 CLASS="western" ALIGN=LEFT>CVSROOT</H3>
 			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H2 ALIGN=LEFT>Package(s)</H2>
+			<H2 CLASS="western" ALIGN=LEFT>Package(s)</H2>
 			<P ALIGN=LEFT>glideinWMS/creation</P>
 		</TD>
 		<TD>
-			<H2 ALIGN=LEFT>Author(s)</H2>
+			<H2 CLASS="western" ALIGN=LEFT>Author(s)</H2>
 			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
 			Division)</P>
 		</TD>
