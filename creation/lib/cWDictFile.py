@@ -1167,7 +1167,7 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         raise RuntimeError, "Undefined"
     
     # Child must overwrite this
-    def reuse_nocheck(self):
+    def reuse_nocheck(self,other):
         raise RuntimeError, "Undefined"
 
 ################################################

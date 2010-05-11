@@ -9,6 +9,7 @@ import os,os.path,string,copy
 import cgWConsts,cWConsts
 import cWDictFile
 import pwd
+import shutil
 import condorPrivsep
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
@@ -487,7 +488,7 @@ class chmodClientDirSupport(clientDirSupport):
         if self.user==MY_USERNAME:
             # keep it simple, if possible
             try:
-                os.mkdir(self.dir,chmod)
+                os.mkdir(self.dir,self.chmod)
             except OSError,e:
                 raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
         else:
@@ -642,7 +643,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
     def get_sub_dicts(self):
         return get_entry_dicts(self.work_dir,self.stage_dir,self.sub_name)
     
-    def reuse_nocheck(self):
+    def reuse_nocheck(self,other):
         reuse_entry_dicts(self.dicts,other.dicts,self.sub_name)
         
 ################################################
