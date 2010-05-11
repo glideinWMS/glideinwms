@@ -1,18 +1,34 @@
-vNext	Add proxy security classes to the frontend
+v2_4	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
 	Add DNs for frontend proxy and all the daemons the frontend talks to;
 	  create own Condor config file and gldiein gridmap file out of them.
 	Frontend now dynalically creates GLIDEIN_Collector.
 	Frontend now requires Match authentication.
 	Add frontend autentication info to the factory config.
-	Add support for different frontend identities in different WMS collectors.
+	Add support for different frontend identities in different WMS
+	  collectors.
 	Put log files in a separate tree.
 	Put client logs and client proxies in separate trees.
 	Implement privilege separation in the factory.
 	Various minor refactoring of code to achieve the above.
 	Aggregate gatekeeper/sites for factory monitoring. 
-	Introduced monitoringgroups to group sites together 
-	  for monitoring purposes
+	Introduced monitoringgroups to group sites together for monitoring
+	  purposes in factory.
+	KNOWN ISSUES: Installer is not always able to get the correct 
+	  DN from the certificates/proxies. It does not correctly strip the
+	  CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+	  correct, make the required changes in the configurations and/or
+	  condor_mapfile.
+
+v2_3_2	Fixed a security bug in the way certificate/proxy DN(s) are handled. If
+	  you are upgrading the installation rather than full install, you
+	  should patch the condor_mapfile used by Condor daemons in your
+	  installation using the convert_condormap tool available from the
+	  glideinWMS download page. For additional security, users should
+	  add new DN to the condor_mapfile only by using the glidecondor_addDN 
+	  tool available in the glideinWMS/install directory.
+
+v2_3_1	Updated documentation. This is document change only release
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time
@@ -66,7 +82,36 @@ v2_0	Refactoring creation libs;
             javascriptRRD.
 	Support multiple proxies... frontend drives this via plugins.
 
-v1_6+	The XML file now supports comments.
+v1_6_3 Fixed a security bug in way certificate/proxy DN(s) are handled. If
+          you are upgrading the installation rather than full install, you
+          should patch the condor_mapfile used by Condor daemons in your
+          installation using the convert_condormap tool available from the
+          glideinWMS download page. For additional security, users should
+          add new DN to the condor_mapfile only by using the glidecondor_addDN
+          tool available in the glideinWMS/install directory.	
+
+v1_6_2	Fixed a bug where Frontend would crash during certain conditions.
+
+v1_6_1	Better randomization of GCBs and collectors
+	Collector list now supports ranges of ports
+	Fixed Condor-G log parsing
+	Better treatment of multiple-collectors in the installer
+	Add support for CCB and USE_MATCH_AUTH in the installer.
+	Add OSG:vo-client to the minimal VDT install
+	Better handling of Nordugrid sites.
+	Start factory in nice mode to give priority to Condor daemons 
+	In condor_config for glideins remove explicit STARTER_UPDATE_INTERVAL
+	Removing GLIDEIN_Use_TCP, now uses UPDATE_COLLECTOR_WITH_TCP instead
+	Force integrity on reads from WMS collector
+ 	Better layout of monitoring pages
+	Better error handling in Factory downtime management
+	Better formatting of error logs for factory and frontend
+	Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
+	  classds. This was preventing psuedo interactive monitoring to work
+	  in case of GLEXEC
+	Improved documentation
+
+v1_6	The XML file now supports comments.
 	Installer uses both .profile and .bashrc.
 	Frontend now requires integrity checks when talking to
 	  the WMS collector.
@@ -82,6 +127,8 @@ v1_6+	The XML file now supports comments.
           Groupes multiple attributes in the RRD files (lower overhead)
           Removed RRD locking
 	Fixed Condor-G log parsing.
+	Fixed startup bugs in various debug tools.
+	Improved monitoring scalability (fewer RRD files)
 
 v1_5_2	Fixed VDT installation
 	Factory now changes public key at each restart.

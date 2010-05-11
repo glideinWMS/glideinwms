@@ -384,6 +384,8 @@ Factory are described below.
 <H3><A NAME="monitoring_logs"></A>Log files</H3>
 <P>Both the Factory Daemon, the Entry Daemons, Condor-G and the Glideins write
 extensive log files. The logs are kept for a week and then deleted.</P>
+
+<b>Log file locations in glideinWMS v2.3.x and earlier.</b>
 <P>The Glidein Factory Daemon log files are located in</P>
 <DL>
 	<DD><FONT FACE="monospace">&lt;glidein
@@ -440,6 +442,14 @@ extensive log files. The logs are kept for a week and then deleted.</P>
 	name&gt;/log/completed_jobs_&lt;date&gt;.log</FONT>
 </DD></DL>
 
+<p>
+<b>Log file locations in glideinWMS v2.4 and later.</b>
+<p>
+With the introduction of privilage separation in glideinWMS, location for log files have changed, altough a link to log directory is still maintained from the  &lt;glidein directory&gt;. Location for the log files is controlled through configuration.
+
+glideinWMS uses condor_switchboard to control the access to the log directories. This makes the deployment more secure.
+</p>
+</p>
 <H3><A NAME="monitoring_classads"></A>Looking at ClassAds</H3>
 <P>As explained in the <A HREF="../index.html#classads">Data exchange
 overview</A>, the Entry Point Daemons expose a lot of monitoring
