@@ -7,7 +7,7 @@
 #
 ####################################
 
-import os,os.path
+import os,os.path,shutil
 import stat
 import string
 import traceback
@@ -58,9 +58,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
                  web_base,proxy_url,
-                 work_dir):
-        entry_submit_dir=cgWConsts.get_entry_submit_dir("",entry_name)
-        
+                 work_dir,client_log_base_dir):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
@@ -73,7 +71,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             else:
                raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
         self.add("Executable",exe_fname)
-
+        # Force the copy to spool to prevent caching at the CE side
+        self.add("copy_to_spool","True")
+        
         self.add("Arguments","-fail") # just a placeholder for now
         self.add('+GlideinFactory','"%s"'%factory_name)
         self.add('+GlideinName','"%s"'%glidein_name)
@@ -92,9 +92,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("WhenToTransferOutput ","ON_EXIT")
         self.add("Notification","Never")
         self.add("+Owner","undefined")
-        self.add("Log","%s/log/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%entry_submit_dir)
-        self.add("Output","%s/log/job.$(Cluster).$(Process).out"%entry_submit_dir)
-        self.add("Error","%s/log/job.$(Cluster).$(Process).err"%entry_submit_dir)
+        self.add("Log","%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/condor_activity_$ENV(GLIDEIN_LOGNR)_$ENV(GLIDEIN_CLIENT).log"%(client_log_base_dir,glidein_name,entry_name))
+        self.add("Output","%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).out"%(client_log_base_dir,glidein_name,entry_name))
+        self.add("Error","%s/user_$ENV(GLIDEIN_USER)/glidein_%s/entry_%s/job.$(Cluster).$(Process).err"%(client_log_base_dir,glidein_name,entry_name))
         self.add("stream_output","False")
         self.add("stream_error ","False")
         self.jobs_in_cluster="$ENV(GLIDEIN_COUNT)"
@@ -260,3 +260,18 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 
     return
 
+#####################
+# INTERNAL
+# Simply copy a file
+def copy_file(infile,outfile):
+    try:
+        shutil.copy2(infile,outfile)
+    except IOError, e:
+        raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
+        
+#####################################
+# Copy an executable between two dirs
+def copy_exe(filename,work_dir,org_dir):
+    copy_file(os.path.join(org_dir,filename),work_dir)
+    os.chmod(os.path.join(work_dir,filename),0555)
+    

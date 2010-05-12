@@ -10,6 +10,7 @@ import os,os.path,shutil,string
 import cWParams
 import cvWDictFile,cWDictFile
 import cvWConsts,cWConsts
+import cvWCreate
 
 ################################################
 #
@@ -19,7 +20,7 @@ import cvWConsts,cWConsts
 
 class frontendMainDicts(cvWDictFile.frontendMainDicts):
     def __init__(self,params,workdir_name):
-        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True)
+        cvWDictFile.frontendMainDicts.__init__(self,params.work_dir,params.stage_dir,workdir_name,simple_work_dir=False,assume_groups=True,log_dir=params.log_dir)
         self.monitor_dir=params.monitor_dir
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.monitor_jslibs_dir=os.path.join(self.monitor_dir,'jslibs')
@@ -28,6 +29,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         self.active_sub_list=[]
         self.monitor_jslibs=[]
         self.monitor_htmls=[]
+        self.client_security={}
 
     def populate(self,params=None):
         if params==None:
@@ -56,6 +58,10 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         for attr_name in params.attrs.keys():
             add_attr_unparsed(attr_name, params,self.dicts,"main")
 
+        # create GLIDEIN_Collector attribute
+        self.dicts['params'].add_extended('GLIDEIN_Collector',False,str(calc_glidein_collectors(params.collectors)))
+        populate_gridmap(params,self.dicts['gridmap'])
+
         if self.dicts['preentry_file_list'].is_placeholder(cWConsts.GRIDMAP_FILE): # gridmapfile is optional, so if not loaded, remove the placeholder
             self.dicts['preentry_file_list'].remove(cWConsts.GRIDMAP_FILE)
 
@@ -73,6 +79,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                       (javascriptrrd_dir,'rrdFilter.js'),
                       (javascriptrrd_dir,'binaryXHR.js'),
                       (params.monitor.flot_dir,'jquery.flot.js'),
+                      (params.monitor.flot_dir,'jquery.flot.selection.js'),
                       (params.monitor.flot_dir,'excanvas.js'),
                       (params.monitor.jquery_dir,'jquery.js')):
             mfdir,mfname=mfarr
@@ -88,6 +95,9 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             mfobj.load()
             self.monitor_htmls.append(mfobj)
 
+        # populate security data
+        populate_main_security(self.client_security,params)
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
@@ -98,6 +108,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
     def save(self,set_readonly=True):
         cvWDictFile.frontendMainDicts.save(self,set_readonly)
         self.save_monitor()
+        self.save_client_security()
 
 
     ########################################
@@ -111,6 +122,17 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
             fobj.save(dir=self.monitor_dir,save_only_if_changed=False)
         return
 
+    def save_client_security(self):
+        # create a dummy mapfile so we have a reasonable default
+        cvWCreate.create_client_mapfile(os.path.join(self.work_dir,cvWConsts.FRONTEND_MAP_FILE),
+                                        self.client_security['proxy_DN'],[],[],[])
+        # but the real mapfile will be (potentially) different for each
+        # group, so frontend daemons will need to point to the real one at runtime
+        cvWCreate.create_client_condor_config(os.path.join(self.work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE),
+                                              os.path.join(self.work_dir,cvWConsts.FRONTEND_MAP_FILE),
+                                              self.client_security['collector_nodes'])
+        return
+
 ################################################
 #
 # This Class contains the group dicts
@@ -120,10 +142,11 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
     def __init__(self,params,sub_name,
                  summary_signature,workdir_name):
-        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False)
+        cvWDictFile.frontendGroupDicts.__init__(self,params.work_dir,params.stage_dir,sub_name,summary_signature,workdir_name,simple_work_dir=False,base_log_dir=params.log_dir)
         self.monitor_dir=cvWConsts.get_group_monitor_dir(params.monitor_dir,sub_name)
         self.add_dir_obj(cWDictFile.monitorWLinkDirSupport(self.monitor_dir,self.work_dir))
         self.params=params
+        self.client_security={}
 
     def populate(self,params=None):
         if params==None:
@@ -158,12 +181,33 @@ class frontendGroupDicts(cvWDictFile.frontendGroupDicts):
                                 self.sub_name,sub_params)
         populate_common_descript(self.dicts['group_descript'],sub_params)
 
+        # populate security data
+        populate_main_security(self.client_security,params)
+        populate_group_security(self.client_security,params,sub_params)
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.monitor_dir!=other.monitor_dir:
             raise RuntimeError,"Cannot change group monitor base_dir! '%s'!='%s'"%(self.monitor_dir,other.monitor_dir)
         
         return cvWDictFile.frontendGroupDicts.reuse(self,other)
+
+    def save(self,set_readonly=True):
+        cvWDictFile.frontendGroupDicts.save(self,set_readonly)
+        self.save_client_security()
+
+    ########################################
+    # INTERNAL
+    ########################################
+    
+    def save_client_security(self):
+        # create the real mapfile
+        cvWCreate.create_client_mapfile(os.path.join(self.work_dir,cvWConsts.GROUP_MAP_FILE),
+                                        self.client_security['proxy_DN'],
+                                        self.client_security['factory_DNs'],
+                                        self.client_security['schedd_DNs'],
+                                        self.client_security['collector_DNs'])
+        return
 
         
 ################################################
@@ -180,7 +224,7 @@ class frontendDicts(cvWDictFile.frontendDicts):
             sub_list=params.groups.keys()
 
         self.params=params
-        cvWDictFile.frontendDicts(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False)
+        cvWDictFile.frontendDicts.__init__(self,params.work_dir,params.stage_dir,sub_list,simple_work_dir=False,log_dir=params.log_dir)
 
         self.monitor_dir=params.monitor_dir
         self.active_sub_list=[]
@@ -367,10 +411,6 @@ def populate_frontend_descript(work_dir,
             raise RuntimeError, "security.classad_proxy(%s) is not a file"%params.security.classad_proxy
         frontend_dict.add('ClassAdProxy',params.security.classad_proxy)
         
-        if params.security.classad_identity==None:
-            raise RuntimeError, "Missing security.classad_identity"
-        frontend_dict.add('ClassAdIdentity',params.security.classad_identity)
-        
         frontend_dict.add('SymKeyType',params.security.sym_key)
 
         active_sub_list[:] # erase all
@@ -382,6 +422,9 @@ def populate_frontend_descript(work_dir,
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
 
+        frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
+
+        frontend_dict.add('LogDir',params.log_dir)
         frontend_dict.add('DowntimesFile',down_fname)
         for tel in (("max_days",'MaxDays'),("min_days",'MinDays'),("max_mbytes",'MaxMBs')):
             param_tname,str_tname=tel
@@ -397,6 +440,9 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
         down_fname=os.path.join(work_dir,'group.downtimes')
 
     group_descript_dict.add('GroupName',sub_name)
+
+    group_descript_dict.add('MapFile',os.path.join(work_dir,cvWConsts.GROUP_MAP_FILE))
+
     group_descript_dict.add('DowntimesFile',down_fname)
     group_descript_dict.add('MaxRunningPerEntry',sub_params.config.running_glideins_per_entry.max)
     group_descript_dict.add('FracRunningPerEntry',sub_params.config.running_glideins_per_entry.relative_to_queue)
@@ -424,9 +470,16 @@ def populate_common_descript(descript_dict,        # will be modified
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
+    if params.security.security_name!=None:
+        descript_dict.add('SecurityName',params.security.security_name)
+
     collectors=[]
     for el in params.match.factory.collectors:
-        collectors.append((el['node'],el['classad_identity']))
+        if el['factory_identity'][-9:]=='@fake.org':
+            raise RuntimeError, "factory_identity for %s not set! (i.e. it is fake)"%el['node']
+        if el['my_identity'][-9:]=='@fake.org':
+            raise RuntimeError, "my_identity for %s not set! (i.e. it is fake)"%el['node']
+        collectors.append((el['node'],el['factory_identity'],el['my_identity']))
     descript_dict.add('FactoryCollectors',repr(collectors))
 
     schedds=[]
@@ -440,6 +493,7 @@ def populate_common_descript(descript_dict,        # will be modified
     if len(params.security.proxies)>0:
         proxies=[]
         proxy_refresh_scripts={}
+        proxy_security_classes={}
         for pel in params.security.proxies:
             if pel['absfname']==None:
                 raise RuntimeError,"All proxies need a absfname!"
@@ -448,6 +502,8 @@ def populate_common_descript(descript_dict,        # will be modified
                 proxies.append(pel['absfname'])
                 if pel['proxy_refresh_script']!=None:
                     proxy_refresh_scripts[pel['absfname']]=pel['proxy_refresh_script']
+                if pel['security_class']!=None:
+                    proxy_security_classes[pel['absfname']]=pel['security_class']
             else: #pool
                 pool_count=int(pel['pool_count'])
                 for i in range(pool_count):
@@ -455,15 +511,101 @@ def populate_common_descript(descript_dict,        # will be modified
                     proxies.append(absfname)
                     if pel['proxy_refresh_script']!=None:
                         proxy_refresh_scripts[absfname]=pel['proxy_refresh_script']
+                    if pel['security_class']!=None:
+                        proxy_security_classes[absfname]=pel['security_class']
 
         descript_dict.add('Proxies',repr(proxies))
         if len(proxy_refresh_scripts.keys())>0:
              descript_dict.add('ProxyRefreshScripts',repr(proxy_refresh_scripts))
+        if len(proxy_security_classes.keys())>0:
+             descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
 
     descript_dict.add('MatchExpr',params.match.match_expr)
 
 
+#####################################################
+# Returns a string usable for GLIDEIN_Collector
+def calc_glidein_collectors(collectors):
+    collector_nodes=[]
+    for el in collectors:
+        is_secondary=eval(el.secondary)
+        if not is_secondary:
+            continue # only consider secondary collectors here
+        collector_nodes.append(el.node)
+    if len(collector_nodes)!=0:
+        return string.join(collector_nodes,",")
 
+    # no secondard nodes, will have to use the primary ones
+    for el in collectors:
+        collector_nodes.append(el.node)
+    return string.join(collector_nodes,",")
 
+#####################################################
+# Populate gridmap to be used by the glideins
+def populate_gridmap(params,gridmap_dict):
+    collector_dns=[]
+    for el in params.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for pool collector %s"%el.node
+        if not (dn in collector_dns): #skip duplicates
+            collector_dns.append(dn)
+            gridmap_dict.add(dn,'collector%i'%len(collector_dns))
+
+    # Add also the frontend DN, so it is easier to debug
+    if params.security.proxy_DN!=None:
+        gridmap_dict.add(params.security.proxy_DN,'frontend')
+
+#####################################################
+# Populate security values
+def populate_main_security(client_security,params):
+    if params.security.proxy_DN==None:
+        raise RuntimeError,"DN not defined for classad_proxy"    
+    client_security['proxy_DN']=params.security.proxy_DN
+    
+    collector_dns=[]
+    collector_nodes=[]
+    for el in params.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for pool collector %s"%el.node
+        is_secondary=eval(el.secondary)
+        if is_secondary:
+            continue # only consider primary collectors for the main security config
+        collector_nodes.append(el.node)
+        collector_dns.append(dn)
+    if len(collector_nodes)==0:
+        raise RuntimeError,"Need at least one non-secondary pool collector"
+    client_security['collector_nodes']=collector_nodes
+    client_security['collector_DNs']=collector_dns
+
+def populate_group_security(client_security,params,sub_params):
+    factory_dns=[]
+    for el in params.match.factory.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for factory %s"%el.node
+        factory_dns.append(dn)
+    for el in sub_params.match.factory.collectors:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for factory %s"%el.node
+        # don't worry about conflict... there is nothing wrong if the DN is listed twice
+        factory_dns.append(dn)
+    client_security['factory_DNs']=factory_dns
+    
+    schedd_dns=[]
+    for el in params.match.job.schedds:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
+        schedd_dns.append(dn)
+    for el in sub_params.match.job.schedds:
+        dn=el.DN
+        if dn==None:
+            raise RuntimeError,"DN not defined for schedd %s"%el.fullname
+        # don't worry about conflict... there is nothing wrong if the DN is listed twice
+        schedd_dns.append(dn)
+    client_security['schedd_DNs']=schedd_dns
 
     

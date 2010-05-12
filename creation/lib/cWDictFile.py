@@ -763,6 +763,39 @@ class SimpleFile(DictFile):
         raise RuntimeError,"Not defined in SimpleFile"
 
 
+# This class holds the content of the whole file in the single val
+# with key 'content'
+# Any other key is invalid
+# When saving, it will make it executable
+class ExeFile(SimpleFile):
+    def save(self, dir=None, fname=None,        # if dir and/or fname are not specified, use the defaults specified in __init__
+             sort_keys=None,set_readonly=True,reset_changed=True,
+             save_only_if_changed=True,
+             want_comments=True): 
+        if save_only_if_changed and (not self.changed):
+            return # no change -> don't save
+
+        if dir==None:
+            dir=self.dir
+        if fname==None:
+            fname=self.fname
+        if sort_keys==None:
+            sort_keys=self.sort_keys
+
+
+        filepath=os.path.join(dir,fname)
+        try:
+            fd=open(filepath,"w")
+        except IOError,e:
+            raise RuntimeError, "Error creating %s: %s"%(filepath,e)
+        try:
+            self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
+        finally:
+            fd.close()
+        fd.chmod(filepath,0755)
+
+        return
+
 ########################################################################################################################
 
 # abstract class for a directory creation
@@ -802,12 +835,17 @@ class chmodDirSupport(simpleDirSupport):
         self.chmod=chmod
                 
     def create_dir(self,fail_if_exists=True):
-        res=simpleDirSupport.create_dir(self,fail_if_exists)
-        if res:
-            # only chdir if it was just created
-            os.chmod(self.dir,self.chmod)
-        return res
+        if os.path.isdir(self.dir):
+            if fail_if_exists:
+                raise RuntimeError,"Cannot create %s dir %s, already exists."%(self.dir_name,self.dir)
+            else:
+                return False # already exists, nothing to do
 
+        try:
+            os.mkdir(self.dir,self.chmod)
+        except OSError,e:
+            raise RuntimeError,"Failed to create %s dir: %s"%(self.dir_name,e)
+        return True
 
 class symlinkSupport(dirSupport):
     def __init__(self,target_dir,symlink,dir_name):
@@ -884,13 +922,21 @@ class multiSimpleDirSupport(dirSupport,dirsSupport):
 class workDirSupport(multiSimpleDirSupport):
     def __init__(self,work_dir,workdir_name):
         multiSimpleDirSupport.__init__(self,
-                                       (work_dir,os.path.join(work_dir,'log'),os.path.join(work_dir,'lock')),
+                                       (work_dir,os.path.join(work_dir,'lock')),
                                        workdir_name)
 
-# similar to workDirSupport but without log and lock subdirs
+# similar to workDirSupport but without lock subdir
 class simpleWorkDirSupport(simpleDirSupport):
     pass
 
+class logDirSupport(simpleDirSupport):
+    def __init__(self,log_dir,dir_name='log'):
+        simpleDirSupport.__init__(self,log_dir,dir_name)
+
+class logSymlinkSupport(symlinkSupport):
+    def __init__(self,log_dir,work_dir,symlink_subdir='log',dir_name='log'):
+        symlinkSupport.__init__(self,log_dir,os.path.join(work_dir,symlink_subdir),dir_name)
+        
 class stageDirSupport(simpleDirSupport):
     def __init__(self,stage_dir,dir_name='stage'):
         simpleDirSupport.__init__(self,stage_dir,dir_name)
@@ -955,7 +1001,8 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     def __init__(self,
                  work_dir,stage_dir,
                  workdir_name,
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False,     # if True, do not create the lib and lock work_dir subdirs
+                 log_dir=None):             # used only if simple_work_dir=False
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
@@ -965,9 +1012,18 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
 
         self.simple_work_dir=simple_work_dir
         if simple_work_dir:
+            self.log_dir=None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
         else:
+            self.log_dir=log_dir
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(logDirSupport(self.log_dir))
+            # make it easier to find; create a symlink in work
+            self.add_dir_obj(logSymlinkSupport(self.log_dir,self.work_dir))
+
+            # in order to keep things clean, put daemon process logs into a separate dir
+            self.add_dir_obj(logDirSupport(self.get_daemon_log_dir(log_dir)))
+
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
         self.erase()
@@ -1010,6 +1066,10 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     # Internal
     ####################
 
+    # Child should overwrite this
+    def get_daemon_log_dir(self,base_dir):
+        return os.path.join(base_dir,"main")
+
     # Child must overwrite this
     def get_main_dicts(self):
         raise RuntimeError, "Undefined"
@@ -1023,7 +1083,8 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
 class fileSubDicts(fileCommonDicts,dirsSupport):
     def __init__(self,base_work_dir,base_stage_dir,sub_name,
                  summary_signature,workdir_name,
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False,           # if True, do not create the lib and lock work_dir subdirs
+                 base_log_dir=None):              # used only if simple_work_dir=False
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
@@ -1038,9 +1099,13 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
 
         self.simple_work_dir=simple_work_dir
         if simple_work_dir:
+            self.log_dir=None
             self.add_dir_obj(simpleWorkDirSupport(self.work_dir,self.workdir_name))
         else:
+            self.log_dir=self.get_sub_log_dir(base_log_dir)
             self.add_dir_obj(workDirSupport(self.work_dir,self.workdir_name))
+            self.add_dir_obj(logDirSupport(self.log_dir))
+
         self.add_dir_obj(stageDirSupport(self.stage_dir))
 
         self.summary_signature=summary_signature
@@ -1090,6 +1155,10 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         return base_dir+"/sub_"+self.sub_name
 
     # Child should overwrite this
+    def get_sub_log_dir(self,base_dir):
+        return base_dir+"/sub_"+self.sub_name
+
+    # Child should overwrite this
     def get_sub_stage_dir(self,base_dir):
         return base_dir+"/sub_"+self.sub_name
 
@@ -1098,7 +1167,7 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
         raise RuntimeError, "Undefined"
     
     # Child must overwrite this
-    def reuse_nocheck(self):
+    def reuse_nocheck(self,other):
         raise RuntimeError, "Undefined"
 
 ################################################
@@ -1110,11 +1179,13 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
 
 class fileDicts:
     def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
-                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+                 simple_work_dir=False, # if True, do not create the lib and lock work_dir subdirs
+                 log_dir=None):         # used only if simple_work_dir=False
         self.work_dir=work_dir
         self.workdir_name=workdir_name
         self.stage_dir=stage_dir
         self.simple_work_dir=simple_work_dir
+        self.log_dir=log_dir
 
         self.main_dicts=self.new_MainDicts()
         self.sub_list=sub_list[:]
@@ -1226,15 +1297,68 @@ class fileDicts:
     # this should be redefined by the child
     # and return a child of fileMainDicts
     def new_MainDicts(self):
-        return fileMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir)
+        return fileMainDicts(self.work_dir,self.stage_dir,self.workdir_name,self.simple_work_dir,self.log_dir)
 
     # this should be redefined by the child
     # and return a child of fileSubDicts
     def new_SubDicts(self,sub_name):
-        return fileSubDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir)
+        return fileSubDicts(self.work_dir,self.stage_dir,sub_name,self.main_dicts.get_summary_signature(),self.workdir_name,self.simple_work_dir,self.log_dir)
 
     # this should be redefined by the child
     def get_sub_name_from_sub_stage_dir(self,sign_key):
         raise RuntimeError, "Undefined"
  
 
+class MonitorFileDicts:
+    def __init__(self,work_dir,stage_dir,sub_list=[],workdir_name="work",
+                 simple_work_dir=False): # if True, do not create the lib and lock work_dir subdirs
+        self.work_dir=work_dir
+        self.workdir_name=workdir_name
+        self.stage_dir=stage_dir
+        self.simple_work_dir=simple_work_dir
+
+        self.main_dicts=self.new_MainDicts()
+        self.sub_list=sub_list[:]
+        self.sub_dicts={}
+        for sub_name in sub_list:
+            self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+        return
+
+    def set_readonly(self,readonly=True):
+        self.main_dicts.set_readonly(readonly)
+        for el in self.sub_dicts.values():
+            el.set_readonly(readonly)
+
+    def erase(self,destroy_old_subs=True): # if false, the sub names will be preserved
+        self.main_dicts.erase()
+        if destroy_old_subs:
+            self.sub_list=[]
+            self.sub_dicts={}
+        else:
+            for sub_name in self.sub_list:
+                self.sub_dicts[sub_name].erase()
+        return
+
+    def load(self,destroy_old_subs=True): # if false, overwrite the subs you load, but leave the others as they are
+        
+        self.main_dicts.load()
+        if destroy_old_subs:
+            self.sub_list=[]
+            self.sub_dicts={}
+        # else just leave as it is, will rewrite just the loaded ones
+
+        for sign_key in self.main_dicts.get_summary_signature().keys:
+            if sign_key!='main': # main is special, not an sub
+                sub_name=self.get_sub_name_from_sub_stage_dir(sign_key)
+                if not(sub_name in self.sub_list):
+                    self.sub_list.append(sub_name)
+                self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
+                self.sub_dicts[sub_name].load()
+
+
+    def save(self,set_readonly=True):
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].save(set_readonly=set_readonly)
+        self.main_dicts.save(set_readonly=set_readonly)
+        for sub_name in self.sub_list:
+            self.sub_dicts[sub_name].save_final(set_readonly=set_readonly)

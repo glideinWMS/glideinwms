@@ -70,13 +70,16 @@ class VOFrontendParams(cWParams.CommonParams):
 
         collector_defaults=cWParams.commentedOrderedDict()
         collector_defaults["node"]=(None,"nodename","Factory collector node name (for example, fg2.my.org:9999)",None)
-        collector_defaults["classad_identity"]=("changeme@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+        collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=fg2.my.org)",None)
+        collector_defaults["factory_identity"]=("factory@fake.org","authenticated_identity","What is the AuthenticatedIdentity of the factory at the WMS collector",None)
+        collector_defaults["my_identity"]=("me@fake.org","authenticated_identity","What is the AuthenticatedIdentity of my proxy at the WMS collector",None)
 
         factory_match_defaults=copy.deepcopy(fj_match_defaults)
         factory_match_defaults["collectors"]=([],"List of factory collectors","Each collector contains",collector_defaults)
 
         schedd_defaults=cWParams.commentedOrderedDict()
         schedd_defaults["fullname"]=(None,"name","User schedd name (for example, schedd_3@sb1.my.org)",None)
+        schedd_defaults["DN"]=(None,"dn","User schedd distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=sb1.my.org)",None)
 
         job_match_defaults=copy.deepcopy(fj_match_defaults)
         job_match_defaults["schedds"]=([],"List of user schedds","Each schedd contains",schedd_defaults)
@@ -91,10 +94,12 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_count)",None)
         proxy_defaults["pool_count"]=(None,"count","If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count",None)
         proxy_defaults["proxy_refresh_script"]=(None,"fname","If not None, the script will be called every time before using a proxy",None)
+        proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
         security_defaults["proxies"]=([],'List of proxies',"Each proxy element contains",proxy_defaults)
+        security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
         
         self.group_defaults=cWParams.commentedOrderedDict()
         self.group_defaults["match"]=match_defaults
@@ -111,7 +116,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
 
         work_defaults=cWParams.commentedOrderedDict()
-        work_defaults["base_dir"]=(os.environ["HOME"],"base_dir","Frontend base dir",None)
+        work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
+        work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
         self.defaults["work"]=work_defaults
 
         log_retention_defaults=cWParams.commentedOrderedDict()
@@ -132,11 +138,18 @@ class VOFrontendParams(cWParams.CommonParams):
         self.monitor_defaults["base_dir"]=("/var/www/html/vofrontend/monitor","base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
         
+        pool_collector_defaults=cWParams.commentedOrderedDict()
+        pool_collector_defaults["node"]=(None,"nodename","Pool collector node name (for example, col1.my.org:9999)",None)
+        pool_collector_defaults["DN"]=(None,"dn","Factory collector distinguised name (subject) (for example, /DC=org/DC=myca/OU=Services/CN=col1.my.org)",None)
+        pool_collector_defaults["secondary"]=("False","Bool","Secondary nodes will be used by glideins, if present",None)
+
+        self.defaults["collectors"]=([],'List of pool collectors',"Each proxy collector contains",pool_collector_defaults)
+
         self.defaults["security"]=copy.deepcopy(security_defaults)
         self.defaults["security"]["classad_proxy"]=(None,"fname","File name of the proxy used for talking to the WMS collector",None)
-        self.defaults["security"]["classad_identity"]=(None,"authenticated_identity","What is the AuthenticatedIdentity of the proxy at the WMS collector",None)
+        self.defaults["security"]["proxy_DN"]=(None,"dn","Distinguised name (subject) of the proxy (for example, /DC=org/DC=myca/OU=Services/CN=fe1.my.org)",None)
         self.defaults["security"]["sym_key"]=("aes_256_cbc","sym_algo","Type of symetric key system used for secure message passing",None)
-        
+
         self.defaults["match"]=copy.deepcopy(match_defaults)
         # change default match value
         # by default we want to look only for vanilla universe jobs that are not monitoring jobs
@@ -168,10 +181,12 @@ class VOFrontendParams(cWParams.CommonParams):
         self.stage_dir=os.path.join(self.stage.base_dir,frontend_subdir)
         self.monitor_dir=os.path.join(self.monitor.base_dir,frontend_subdir)
         self.work_dir=os.path.join(self.work.base_dir,frontend_subdir)
+        self.log_dir=os.path.join(self.work.base_log_dir,frontend_subdir)
         self.web_url=os.path.join(self.stage.web_base_url,frontend_subdir)
 
         self.derive_match_attrs()
 
+        ####################
         has_collector=self.attrs.has_key('GLIDEIN_Collector')
         if not has_collector:
             # collector not defined at global level, must be defined in every group
@@ -179,8 +194,42 @@ class VOFrontendParams(cWParams.CommonParams):
             for  group_name in self.groups.keys():
                has_collector&=self.groups[group_name].attrs.has_key('GLIDEIN_Collector')
 
-        if not has_collector:
-            raise RuntimeError, "Attribute GLIDEIN_Collector not defined"
+        if has_collector:
+            raise RuntimeError, "Attribute GLIDEIN_Collector cannot be defined by the user"
+
+        ####################
+        if self.security.proxy_DN==None:
+            raise RuntimeError, "security.proxy_DN not defined"
+
+        if len(self.collectors)==0:
+            raise RuntimeError, "At least one pool collector is needed"
+
+        ####################
+        has_security_name=(self.security.security_name!=None)
+        if not has_security_name:
+            # security_name not defined at global level, look if defined in every group
+            has_security_name=True
+            for  group_name in self.groups.keys():
+               has_security_name&=(self.groups[group_name].security.security_name!=None)
+
+        if not has_security_name:
+            # explicity define one, so it will not change if config copied
+            # it also makes the frontend admins aware of the name
+            self.data['security']['security_name']=self.frontend_name
+
+        ####################
+        for i in range(len(self.security.proxies)):
+            pel=self.subparams.data['security']['proxies'][i]
+            if pel['security_class']==None:
+                # define an explicit security, so the admin is aware of it
+                pel['security_class']="frontend"
+        group_names=self.groups.keys()
+        for group_name in group_names:
+            for i in range(len(self.groups[group_name].security.proxies)):
+                pel=self.subparams.data['groups'][group_name]['security']['proxies'][i]
+                if pel['security_class']==None:
+                    # define an explicit security, so the admin is aware of it
+                    pel['security_class']="group_%s"%group_name
 
     # verify match data and create the attributes if needed
     def derive_match_attrs(self):
@@ -203,6 +252,7 @@ class VOFrontendParams(cWParams.CommonParams):
             match_expr="(%s) and (%s)"%(self.match.match_expr,self.groups[group_name].match.match_expr)
             self.validate_match('group %s'%group_name,match_expr,
                                 factory_attrs,job_attrs)
+
         return
 
     # return xml formatting

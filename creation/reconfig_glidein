@@ -7,7 +7,6 @@
 #
 
 import os
-import copy
 import sys
 
 STARTUP_DIR=sys.path[0]
