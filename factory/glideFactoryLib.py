@@ -8,12 +8,17 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os
+import os,sys
 import time
 import re
-import condorExe
+import traceback
+import pwd
+import binascii
+import condorExe,condorPrivsep
+import logSupport
 import condorMonitor
 
+MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
 ############################################################
 #
@@ -43,6 +48,8 @@ class FactoryConfig:
 
         self.count_env = 'GLIDEIN_COUNT'
 
+        self.submit_fname="job_submit.sh"
+
 
         # Stale value settings, in seconds
         self.stale_maxage={ 1:7*24*3600,      # 1 week for idle
@@ -60,14 +67,6 @@ class FactoryConfig:
         self.max_removes = 5
         self.max_releases = 20
 
-        # submit file name
-        self.submit_file = "job.condor"
-
-        # log files
-        # default is None, any other value must implement the write(str) method
-        self.activity_log = None
-        self.warning_log = None
-
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
@@ -75,6 +74,28 @@ class FactoryConfig:
         self.log_stats = None
 
         self.supported_signtypes=['sha1']
+
+        # who am I
+        self.factory_name=None
+        self.glidein_name=None
+        # do not add the entry_name, as we may decide someday to share
+        # the same process between multiple entries
+
+        # used directories
+        self.submit_dir=None
+        self.log_base_dir=None
+        self.client_log_base_dir=None
+        self.client_proxies_base_dir=None
+
+    def config_whoamI(self,factory_name,glidein_name):
+        self.factory_name=factory_name
+        self.glidein_name=glidein_name
+
+    def config_dirs(self,submit_dir,log_base_dir,client_log_base_dir,client_proxies_base_dir):
+        self.submit_dir=submit_dir
+        self.log_base_dir=log_base_dir
+        self.client_log_base_dir=client_log_base_dir
+        self.client_proxies_base_dir=client_proxies_base_dir
 
     def config_submit_freq(self,sleepBetweenSubmits,maxSubmitsXCycle):
         self.submit_sleep=sleepBetweenSubmits
@@ -84,33 +105,113 @@ class FactoryConfig:
         self.remove_sleep=sleepBetweenRemoves
         self.max_removes=maxRemovesXCycle
 
-    #
-    # The following are used by the module
-    #
+    def get_client_log_dir(self,entry_name,username):
+        log_dir=os.path.join(self.client_log_base_dir,"user_%s/glidein_%s/entry_%s"%(username,self.glidein_name,entry_name))
+        return log_dir
 
-    def logActivity(self,msg):
-        if self.activity_log!=None:
-            try:
-                self.activity_log.write(msg+"\n")
-            except:
-                # logging must never throw an exception!
-                self.logWarning("logActivity failed, was logging: %s"+msg,False)
-
-    def logWarning(self,msg, log_in_activity=True):
-        if self.warning_log!=None:
-            try:
-                self.warning_log.write(msg+"\n")
-            except:
-                # logging must throw an exception!
-                # silently ignore
-                pass
-        if log_in_activity:
-            self.logActivity("WARNING: %s" % msg)
+    def get_client_proxies_dir(self,entry_name,username):
+        proxy_dir=os.path.join(self.client_proxies_base_dir,"user_%s/glidein_%s/entry_%s"%(username,self.glidein_name,entry_name))
+        return proxy_dir
 
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
 
+############################################################
+#
+# Log files
+#
+# Consider moving them to a dedicated file
+# since it is the only part in common between main and entries
+#
+############################################################
+
+class PrivsepDirCleanupWSpace(logSupport.DirCleanupWSpace):
+    def __init__(self,
+                 username,         # if None, no privsep
+                 dirname,
+                 fname_expression, # regular expression, used with re.match
+                 maxlife,          # max lifetime after which it is deleted
+                 minlife,maxspace, # max space allowed for the sum of files, unless they are too young
+                 activity_log,warning_log): # if None, no logging
+        logSupport.DirCleanupWSpace.__init__(self,dirname,fname_expression,
+                                             maxlife,minlife,maxspace,
+                                             activity_log,warning_log)
+        self.username=username
+
+    def delete_file(self,fpath):
+        if (self.username!=None) and (self.username!=MY_USERNAME):
+            # use privsep
+            # do not use rmtree as we do not want root privileges
+            condorPrivsep.execute(self.username,os.path.dirname(fpath),'/bin/rm',['rm',fpath],stdout_fname=None)
+        else:
+            # use the native method, if possible
+            os.unlink(fpath)
+
+class LogFiles:
+    def __init__(self,log_dir,max_days,min_days,max_mbs):
+        self.log_dir=log_dir
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"info.log")
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"err.log")
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"debug.log")
+        # no need to use the privsep version
+        self.cleanupObjs=[logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
+                                                      int(max_days*24*3600),int(min_days*24*3600),
+                                                      long(max_mbs*(1024.0*1024.0)),
+                                                      self.activity_log,self.warning_log)]
+
+    def logActivity(self,str):
+        try:
+            self.activity_log.write(str)
+        except:
+            # logging must never throw an exception!
+            self.logWarning("logActivity failed, was logging: %s"%str,False)
+
+    def logWarning(self,str, log_in_activity=True):
+        try:
+            self.warning_log.write(str)
+        except:
+            # logging must throw an exception!
+            # silently ignore
+            pass
+        if log_in_activity:
+            self.logActivity("WARNING: %s" % msg)
+
+    def logDebug(self,str):
+        try:
+            self.debug_log.write(str)
+        except:
+            # logging must never throw an exception!
+            # silently ignore
+            pass
+
+    def cleanup(self):
+        for cleanupObj in self.cleanupObjs:
+            try:
+                cleanupObj.cleanup()
+            except:
+                # logging must never throw an exception!
+                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                                sys.exc_info()[2])
+                self.logWarning("%s cleanup failed."%cleanupObj.dirname)
+                self.logDebug("%s cleanup failed: Exception %s"%(cleanupObj.dirname,string.join(tb,'')))
+                
+    #
+    # Clients can add additional cleanup objects, if needed
+    #
+    def add_dir_to_cleanup(self,
+                           username,       # if None, no privsep
+                           dir_to_cleanup,fname_expression,
+                           max_days,min_days,max_mbs):
+        self.cleanupObjs.append(PrivsepDirCleanupWSpace(username,dir_to_cleanup,fname_expression,
+                                                        int(max_days*24*3600),int(min_days*24*3600),
+                                                        long(max_mbs*(1024.0*1024.0)),
+                                                        self.activity_log,self.warning_log))
+        
+
+# someone needs to initialize this
+# type LogFiles
+log_files=None
 
 ############################################################
 #
@@ -123,7 +224,7 @@ factoryConfig=FactoryConfig()
 # To be passed to the main functions
 #
 
-def getCondorQData(factory_name,glidein_name,entry_name,
+def getCondorQData(entry_name,
                    client_name,                    # if None, return all clients
                    schedd_name,
                    factory_schedd_attribute=None,  # if None, use the global one
@@ -159,10 +260,10 @@ def getCondorQData(factory_name,glidein_name,entry_name,
 
     x509id_str=factoryConfig.x509id_schedd_attribute
 
-    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,client_constraint,x509id_str)
+    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
     q=condorMonitor.CondorQ(schedd_name)
-    q.factory_name=factory_name
-    q.glidein_name=glidein_name
+    q.factory_name=factoryConfig.factory_name
+    q.glidein_name=factoryConfig.glidein_name
     q.entry_name=entry_name
     q.client_name=client_name
     q.load(q_glidein_constraint)
@@ -176,7 +277,7 @@ def getQStatusStale(condorq):
     qc_status=condorMonitor.Summarize(condorq,hash_statusStale).countStored()
     return qc_status
 
-def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_name=None,
+def getCondorStatusData(entry_name,client_name,pool_name=None,
                         factory_startd_attribute=None,  # if None, use the global one
                         glidein_startd_attribute=None,  # if None, use the global one
                         entry_startd_attribute=None,    # if None, use the global one
@@ -203,10 +304,10 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
     else:
         csa_str=client_startd_attribute
 
-    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factory_name,gsa_str,glidein_name,esa_str,entry_name,csa_str,client_name)
+    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,csa_str,client_name)
     status=condorMonitor.CondorStatus(pool_name=pool_name)
-    status.factory_name=factory_name
-    status.glidein_name=glidein_name
+    status.factory_name=factoryConfig.factory_name
+    status.glidein_name=factoryConfig.glidein_name
     status.entry_name=entry_name
     status.client_name=client_name
     status.load(status_glidein_constraint)
@@ -216,53 +317,73 @@ def getCondorStatusData(factory_name,glidein_name,entry_name,client_name,pool_na
 #
 # Create/update the proxy file
 # returns the proxy fname
-def update_x509_proxy_file(client_id, proxy_data):
-    fname=os.path.realpath('client_proxies/x509_%s.proxy'%escapeParam(client_id))
+def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
+    proxy_dir=factoryConfig.get_client_proxies_dir(entry_name,username)
+    fname_short='x509_%s.proxy'%escapeParam(client_id)
+    fname=os.path.join(proxy_dir,fname_short)
+    if username!=MY_USERNAME:
+        # use privsep
+        # all args go through the environment, so they are protected
+        update_proxy_env=['HEXDATA=%s'%binascii.b2a_hex(proxy_data),'FNAME=%s'%fname]
+        for var in ('PATH','LD_LIBRARY_PATH','PYTHON_PATH'):
+            if os.environ.has_key(var):
+                update_proxy_env.append('%s=%s'%(var,os.environ[var]))
 
-    if not os.path.isfile(fname):
-        # new file, create
-        fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
+        try:
+            condorPrivsep.execute(username,factoryConfig.submit_dir,os.path.join(factoryConfig.submit_dir,'update_proxy.py'),['update_proxy.py'],update_proxy_env)
+        except condorPrivsep.ExeError, e:
+            raise RuntimeError,"Failed to update proxy %s in %s (user %s): %s"%(client_id,proxy_dir,username,e)
+        except:
+            raise RuntimeError,"Failed to update proxy %s in %s (user %s): Unknown privsep error"%(client_id,proxy_dir,username)
+        return fname
+    else:
+        # do it natively when you can
+        if not os.path.isfile(fname):
+            # new file, create
+            fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
+            try:
+                os.write(fd,proxy_data)
+            finally:
+                os.close(fd)
+            return fpath
+
+        # old file exists, check if same content
+        fl=open(fname,'r')
+        try:
+            old_data=fl.read()
+        finally:
+            fl.close()
+        if proxy_data==old_data:
+            # nothing changed, done
+            return fpath
+
+        #
+        # proxy changed, neeed to update
+        #
+        
+        # remove any previous backup file
+        try:
+            os.remove(fname+".old")
+        except:
+            pass # just protect
+    
+        # create new file
+        fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
         try:
             os.write(fd,proxy_data)
         finally:
             os.close(fd)
+
+        # move the old file to a tmp and the new one into the official name
+        try:
+            os.rename(fname,fname+".old")
+        except:
+            pass # just protect
+        os.rename(fname+".new",fname)
         return fname
 
-    # old file exists, check if same content
-    fl=open(fname,'r')
-    try:
-        old_data=fl.read()
-    finally:
-        fl.close()
-    if proxy_data==old_data:
-        # nothing changed, done
-        return fname
-
-    #
-    # proxy changed, neeed to update
-    #
-
-    # remove any previous backup file
-    try:
-        os.remove(fname+".old")
-    except:
-        pass # just protect
-    
-    # create new file
-    fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
-    try:
-        os.write(fd,proxy_data)
-    finally:
-        os.close(fd)
-
-    # move the old file to a tmp and the new one into the official name
-    try:
-        os.rename(fname,fname+".old")
-    except:
-        pass # just protect
-    os.rename(fname+".new",fname)
-    return fname
-    
+    # end of update_x509_proxy_file
+    # should never reach this point
 #
 # Main function
 #   Will keep the required number of Idle glideins
@@ -280,7 +401,7 @@ class ClientWebNoGroup:
         return
 
     def get_glidein_args(self):
-        return "-clientweb %s -clientsign %s -clientsigntype %s -clientdescript %s"%(self.url,self.sign,self.signtype,self.descript)
+        return ["-clientweb",self.url,"-clientsign",self.sign,"-clientsigntype",self.signtype,"-clientdescript",self.descript]
 
 
 class ClientWeb(ClientWebNoGroup):
@@ -300,12 +421,12 @@ class ClientWeb(ClientWebNoGroup):
 
     def get_glidein_args(self):
         return (ClientWebNoGroup.get_glidein_args(self)+
-                " -clientgroup %s -clientwebgroup %s -clientsigngroup %s -clientdescriptgroup %s"%(self.group_name,self.group_url,self.group_sign,self.group_descript))
+                ["-clientgroup",self.group_name,"-clientwebgroup",self.group_url,"-clientsigngroup",self.group_sign,"-clientdescriptgroup",self.group_descript])
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,
-                     x509_proxy_identifier,x509_proxy_fname,
+                     x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
     global factoryConfig
@@ -349,8 +470,8 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
         stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
-        factoryConfig.logActivity("Need more glideins: %s"%stat_str)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,
+        log_files.logActivity("Need more glideins: %s"%stat_str)
+        submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
                        condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
@@ -371,7 +492,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
     if runstale_glideins>0:
         # remove the held glideins
         runstale_list=extractRunStale(condorq)
-        factoryConfig.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
         removeGlideins(condorq.schedd_name,runstale_list)
 
     return 0
@@ -387,19 +508,19 @@ def sanitizeGlideins(condorq,status):
     # Check if some glideins have been in idle state for too long
     stale_list=extractStale(condorq,status)
     if len(stale_list)>0:
-        factoryConfig.logWarning("Found %i stale glideins"%len(stale_list))
+        log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
 
     # Check if there are held glideins
     held_list=extractHeld(condorq,status)
     if len(held_list)>0:
-        factoryConfig.logWarning("Found %i held glideins"%len(held_list))
-        removeGlideins(condorq.schedd_name,held_list)
+        log_files.logWarning("Found %i held glideins"%len(held_list))
+        releaseGlideins(condorq.schedd_name,held_list)
 
     # Now look for VMs that have not been claimed for a long time
     staleunclaimed_list=extractStaleUnclaimed(condorq,status)
     if len(staleunclaimed_list)>0:
-        factoryConfig.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
+        log_files.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
         removeGlideins(condorq.schedd_name,staleunclaimed_list)
 
 
@@ -418,13 +539,13 @@ def sanitizeGlideinsSimple(condorq):
     # Check if some glideins have been in idle state for too long
     stale_list=extractStaleSimple(condorq)
     if len(stale_list)>0:
-        factoryConfig.logWarning("Found %i stale glideins"%len(stale_list))
+        log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
 
     # Check if there are held glideins
     held_list=extractHeldSimple(condorq)
     if len(held_list)>0:
-        factoryConfig.logWarning("Found %i held glideins"%len(held_list))
+        log_files.logWarning("Found %i held glideins"%len(held_list))
         releaseGlideins(condorq.schedd_name,held_list)
 
     return
@@ -443,7 +564,7 @@ def logStats(condorq,condorstatus,client_int_name):
     else:
         s_running="?" # temporary glitch
     
-    factoryConfig.logActivity("Client '%s', schedd status %s, collector running %s"%(client_int_name,qc_status,s_running))
+    log_files.logActivity("Client '%s', schedd status %s, collector running %s"%(client_int_name,qc_status,s_running))
     if factoryConfig.qc_stats!=None:
         factoryConfig.qc_stats.logSchedd(client_int_name,qc_status)
     
@@ -452,9 +573,9 @@ def logStats(condorq,condorstatus,client_int_name):
 def logWorkRequests(work):
     for work_key in work.keys():
         if work[work_key]['requests'].has_key('IdleGlideins'):
-            factoryConfig.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
-            factoryConfig.logActivity("  Params: %s"%work[work_key]['params'])
-            factoryConfig.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
+            log_files.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
+            log_files.logActivity("  Params: %s"%work[work_key]['params'])
+            log_files.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
             factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
             factoryConfig.qc_stats.logClientMonitor(work[work_key]['internals']["ClientName"],work[work_key]['monitor'],work[work_key]['internals'])
 
@@ -702,7 +823,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
+def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submit_attrs,
                    x509_proxy_identifier,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
@@ -724,9 +845,10 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
         params_arr.append(escapeParam(str(params[k])))
     params_str = ' '.join(params_arr)
 
-    client_web_str=""
+    client_web_arr=[]
     if client_web!=None:
-        client_web_str=client_web.get_glidein_args()
+        client_web_arr=client_web.get_glidein_args()
+    client_web_str=string.join(client_web_arr," ")
 
     try:
         nr_submitted=0
@@ -738,11 +860,36 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
 
-            try:
-                submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./job_submit.sh "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
-            except condorExe.ExeError,e:
-                factoryConfig.logWarning("condor_submit failed: %s" % e)
-                submit_out=[]
+            if username!=MY_USERNAME:
+                # use privsep
+                exe_env=['X509_USER_PROXY=%s'%x509_proxy_fname]
+                # need to push all the relevant env variables through
+                for var in os.environ.keys():
+                    if ((var in ('PATH','LD_LIBRARY_PATH','X509_CERT_DIR')) or
+                        (var[:8]=='_CONDOR_') or (var[:7]=='CONDOR_')):
+                        if os.environ.has_key(var):
+                            exe_env.append('%s=%s'%(var,os.environ[var]))
+                try:
+                    submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
+                                                     os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
+                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,]+
+                                                     client_web_arr+submit_attrs+
+                                                     ['--']+params_arr,
+                                                     exe_env)
+                except condorPrivsep.ExeError, e:
+                    log_files.logWarning("condor_submit failed (user %s): %s"%(username,e))
+                    submit_out=[]
+                except:
+                    log_files.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
+                    submit_out=[]
+            else:
+                # avoid using privsep, if possible
+                try:
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
+                except condorExe.ExeError,e:
+                    log_files.logWarning("condor_submit failed: %s"%e);
+                    submit_out=[]
+                
                 
             cluster,count=extractJobId(submit_out)
             for j in range(count):
@@ -750,10 +897,16 @@ def submitGlideins(entry_name,schedd_name,client_name,nr_glideins,submit_attrs,
             nr_submitted+=count
     finally:
         # write out no matter what
-        factoryConfig.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
+        log_files.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
 
 # remove the glideins in the list
 def removeGlideins(schedd_name,jid_list):
+    ####
+    # We are assuming the gfactory to be
+    # a condor superuser and thus does not need
+    # identity switching to remove jobs
+    ####
+
     global factoryConfig
 
     removed_jids=[]
@@ -768,14 +921,21 @@ def removeGlideins(schedd_name,jid_list):
             condorExe.exe_cmd("condor_rm","%s %li.%li"%(schedd_str,jid[0],jid[1]))
             removed_jids.append(jid)
         except condorExe.ExeError, e:
-            factoryConfig.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            log_files.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            pass # silently ignore errors, and try next one
 
         if len(removed_jids)>=factoryConfig.max_removes:
             break # limit reached, stop
-    factoryConfig.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
+    log_files.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
 
 # release the glideins in the list
 def releaseGlideins(schedd_name,jid_list):
+    ####
+    # We are assuming the gfactory to be
+    # a condor superuser and thus does not need
+    # identity switching to release jobs
+    ####
+
     global factoryConfig
 
     released_jids=[]
@@ -790,10 +950,9 @@ def releaseGlideins(schedd_name,jid_list):
             condorExe.exe_cmd("condor_release","%s %li.%li"%(schedd_str,jid[0],jid[1]))
             released_jids.append(jid)
         except condorExe.ExeError, e:
-            factoryConfig.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            log_files.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            pass # silently ignore errors, and try next one
 
         if len(released_jids)>=factoryConfig.max_releases:
             break # limit reached, stop
-    factoryConfig.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
-
-
+    log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
