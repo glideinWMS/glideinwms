@@ -3,14 +3,6 @@
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>Installation of the glidein pool Collector</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
-	<META NAME="CREATED" CONTENT="20071109;16562400">
-	<META NAME="CHANGED" CONTENT="20081110;10121500">
-	<META NAME="Info 1" CONTENT="">
-	<META NAME="Info 2" CONTENT="">
-	<META NAME="Info 3" CONTENT="">
-	<META NAME="Info 4" CONTENT="">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 </HEAD>
 <BODY LANG="en-US" DIR="LTR">
 <H1>Installation of
@@ -102,14 +94,7 @@ installer.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
 <BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>4</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
+with the service selection screen. Follow the
 instructions and install all the software components. Most of the
 questions should be fairly straightforward. The part that is not
 completely automatic is the configuration of the GSI security; you
@@ -117,65 +102,98 @@ will need to provide the DN(s) of the glideins, the DNs of all the
 submit machines and the DN of the VO frontend.</FONT></FONT></P>
 <P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
 answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in">Do you have already a VDT installation?: (y/n) <B>n</B>
-Do you want to install the full OSG VDT client?: (y/n) <B>n</B>
-Do you want to install a minimal Grid VDT client?: (y/n) <B>y</B>
-Where do you want the VDT installed?: [/opt/vdt] <B>/home/collector/vdt</B>
-Directory '/home/collector/vdt' does not exist, should I create it?: (y/n) <B>y</B>
-What pacman version should I use?: [pacman-3.26] <B>pacman-3.26</B>
+<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in">
+Welcome to the glideinWMS Installation Helper
 
-What VDT cache should I use?: [http://vdt.cs.wisc.edu/vdt_1101_cache] <B>http://vdt.cs.wisc.edu/vdt_1101_cache</B>
+What do you want to install?
+(May select several options at one, using a , separated list)
+[1] glideinWMS Schedds and Collector
+[2] Glidein Factory
+[3] GCB
+[4] User Pool Collector
+[5] User Schedd
+[6] Condor for VO Frontend
+[7] VO Frontend
+[8] Components
+Please select: <b>4</b>
 
-VDT client installation tends to be very picky about the platforms it installs under
-Most of the time, one needs to pretent to be one of the tested platforms
-The platforms known to work are: linux-rhel-3,SL-3,linux-rhel-4,SL-4,linux-fedora-4,linux-rhel-5,SL-5
-Which platform do you want to use (leave empty for autodetect): <I>enter</I>
+The following profiles will be installed:
+[4] User Pool Collector
 
-VDT 1.10.1 installs a variety of software, each with its own license.
-In order to continue, you must agree to the licenses.
-You can view the licenses online at:
+Installing pool collector
 
-     http://vdt.cs.wisc.edu/licenses/1.10.1
+Installing condor
 
-After the installation has completed, you will also be able to
-view the licenses in the &quot;licenses&quot; directory.
 
-Do you agree to the licenses? [y/n] <B>y</B>
+You will now need the Condor tarball
+You can find it on http://www.cs.wisc.edu/condor/
+Versions v7.2.2 and 7.3.1 have been tested, but you
+should always use the latest one
 
-Where would you like to install CA files?
+Where do you have the Condor tarball? <b>/home/collector/downloads/condor-7.4.2-linux-x86_64-rhel5-dynamic.tar.gz</b>
+Checking...
+Seems condor version 7.4.2
 
-Choices:
-        l (local) - install into $VDT_LOCATION/globus/share/certificates
-        n (no)    - do not install
-<B>l</B>
+Where do you want to install it?: [/home/collector/glidecondor] <b>/home/collector/glidecondor</b>
+Directory '/home/collector/glidecondor' does not exist, should I create it?: (y/n) <b>y</b>
+Installing condor in '/home/collector/glidecondor'
 
-Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version] <B>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</B>
+If something goes wrong with Condor, who should get email about it?: <b>admin@my.org</b>
+Extracting from tarball
+Running condor_configure
+Installing Condor from /home/collector/glidecondor/tar/condor-7.4.2 to /home/collector/glidecondor
 
-Where do you have the Condor tarball? <B>/home/collector/Downloads/condor-7.1.3-linux-x86-rhel3-dynamic.tar.gz</B>
+Condor has been installed into:
+    /home/collector/glidecondor
 
-Where do you want to install it?: [/opt/glidecondor] <B>/home/collector/condor</B>
-Directory '/home/collector/condor' does not exist, should I create it?: (y/n) <B>y</B>
-Installing condor in '/home/collector/condor'
+Configured condor using these configuration files:
+  global: /home/collector/glidecondor/etc/condor_config
+  local:  /home/collector/glidecondor/condor_local/condor_config.local
+You should look inside the installation log for some details about how
+Condor was installed.
+Created scripts which can be sourced by users to setup their
+Condor environment variables.  These are:
+   sh: /home/collector/glidecondor/condor.sh
+  csh: /home/collector/glidecondor/condor.csh
 
-If something goes wrong with Condor, who should get email about it?: <B>troubles@my.org</B>
+Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <b>y</b>
 
-Do you want to split the config files between condor_config and condor_config.local?: (y/n) [y] <B>y</B>
+The Condor config has been put in your login files
+Please remember to exit and reenter the terminal after the install
 
-To use the GSI security, you either need a valid GSI proxy or
-a valid x509 certificate and relative key
-The cert/proxy subject of Pool Collector will be added as the trusted daemon in
-GSI_DAEMON_NAME in the condor configuration.
-Will you be using a proxy or a cert? (proxy/cert) <B>cert</B>
-Where is your certificate located?: <B>/home/collector/grid-security/servicecert.pem</B>
-Where is your certificate key located?: <B>/home/collector/grid-security/servicekey.pem</B>
+Condor installed
+
+Configuring GSI security
+
+GSI security relies on a list of trusted CAs
+Where can I find the directory with the trusted CAs?
+
+Do you want to get it from VDT?: (y/n) <b>y</b>
+Do you have already a VDT installation?: (y/n) <b>y</b>
+Where is the VDT installed?: <b>/home/collector/vdt</b>
+Using VDT installation in /home/collector/vdt
+
+To use the GSI security for Pool Collector, you either need
+a valid GSI proxy or a valid x509 certificate and relative key.
+Its subject (i.e. DN) will be added as the trusted daemon
+in the condor configuration.
+
+Will you be using a proxy or a cert? (proxy/cert) <b>cert</b>
+Where is your certificate located?: <b>/home/collector/grid-security/servicecert.pem</b>
+Where is your certificate key located?: <b>/home/collector/grid-security/servicekey.pem</b>
 My DN = '/DC=org/DC=doegrids/OU=Services/CN=collector/master1.my.org'
 
-You will most probably need other DNs in the condor grid mapfile
-Please add all the DNs that can be used to connect to the
-Condor daemons running on this node
-The User Schedd and Glidein startd will connect to and act as client to the
-Pool Collector. Subjects for these services should be in the gridmap file of
-the Pool Collector
+
+You will most probably need other DNs in the condor grid mapfile.
+The User Schedd(s) and Glidein startds will connect to
+and act as daemons to the Pool Collector. Any other node or process
+that needs to talk securely with the Collector (like the
+VO Frontend) also needs to be authenticated, but not as
+a daemon. Finally, if you expect any processes on this node
+to use condor security toward other nodes (e.g. the VO Frontend
+talking to the WMS Collector), the remote services will also
+need to be authenticated. The subjects (i.e. DNs)
+for these services will thus most likely be needed.
 
 Please insert all such DNs, together with a user nickname.
 An empty DN entry means you are done.
@@ -190,7 +208,8 @@ nickname: [condor002] <B>frontend</B>
 Is this a trusted Condor daemon?: (y/n) <B>n</B>
 DN: <I>enter</I>
 What name would you like to use for this pool?: [My pool] <B>TestPool</B>
-How many slave collectors do you want?: [10] <B>10</B></PRE>
+How many slave collectors do you want?: [10] <B>10</B>
+</PRE>
 
 <H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. To Start/Stop Pool Collector</FONT></FONT></H2>
 Setup the environment

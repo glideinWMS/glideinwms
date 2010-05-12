@@ -1,0 +1,87 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=windows-1252">
+	<TITLE>The VO Frontend Daemon</TITLE>
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Win32)">
+	<META NAME="CREATED" CONTENT="0;0">
+	<META NAME="CHANGEDBY" CONTENT="Parag Mhashilkar">
+	<META NAME="CHANGED" CONTENT="20100228;17383500">
+</HEAD>
+<BODY LANG="en-US" DIR="LTR">
+<H1>The VO Frontend Daemon</H1>
+<H2>Description</H2>
+<P>This document describes the internals of a VO Frontend Daemon.</P>
+<H2>Index</H2>
+<UL>
+	<LI><P><A HREF="#overview">VO Frontend Overview</A></P>
+	<LI><P><A HREF="#flow">Program flow</A></P>
+	<LI><P><A HREF="#source">Source code distribution</A></P>
+	<LI><P><A HREF="#config">Configuration files</A></P>
+</UL>
+<H2>VO Frontend Overview</H2>
+<P>A VO Frontend is composed of a Frontend Daemon and several
+Frontend Element (Group) Daemons. Each Element Daemon is autonomous;
+it advertises itself and processes the incoming requests. The main
+Frontend Daemon just launches and monitors the individual Frontend
+Element Daemons.<BR>See the picture below for a logical
+overview.<BR><BR>All daemons of a VO Frontend share the same
+directory tree. The root of the tree contains the common startup and
+configuration files, while each element point has a few additional
+configuration files on its own.</P>
+<H2><A NAME="flow"></A>Program flow</H2>
+<P>The main tasks of the Frontend Daemon are the startup up the
+individual VO Frontend group daemons and the aggregation of
+statistics from the entries.<BR>See picture below for an overview.</P>
+<P><IMG SRC="flow_frontend_main.png" NAME="graphics2" ALIGN=BOTTOM WIDTH=477 HEIGHT=400 BORDER=0><BR>The
+only non trivial operation in the statistics aggregation. The
+Frontend Daemon reads the XML files produced by the Frontend Daemons,
+aggregates them, and writes out an aggregate XML file. It also
+updates the <A HREF="http://oss.oetiker.ch/rrdtool/">RRD</A> files
+used to keep the history and creates the rrdtool graphs and HTML
+pages for human consumption.<BR>See picture below for an overview.</P>
+<P><IMG SRC="flow_frontend_stats.png" NAME="graphics3" ALIGN=BOTTOM WIDTH=427 HEIGHT=324 BORDER=0><BR><BR><BR>
+</P>
+<H2><A NAME="source"></A>Source code distribution</H2>
+<P>The Frontend Daemon is implemented as a series of python scripts,
+and it does not need to be pre-compiled.</P>
+<P>The code is spread over several python modules, some specific to
+the frontend other shared between different parts of the glideinWMS.
+There are also an external dependency on the <A HREF="http://oss.oetiker.ch/rrdtool/">rrdtool</A>
+python libraries.<BR>The picture below shows the dependency tree.</P>
+<P><IMG SRC="modules_frontend.png" NAME="graphics4" ALIGN=BOTTOM WIDTH=454 HEIGHT=459 BORDER=0><BR>glideinFrontend.py
+is executable.</P>
+<P>The glideinWMS common libraries are in glideinWMS/lib directory.</P>
+<H2><A NAME="config"></A>Configuration files</H2>
+<P>The Frontend daemon reads a single configuration
+file:<BR><TT>frontend.descript</TT><BR>located in the root of the
+frontend configuration tree.</P>
+<P>Only two elements of this configuration file are used:</P>
+<UL>
+	<LI><P><TT>Groups</TT> - The list of groups, used to launch the
+	Elements/Groups Daemons.</P>
+	<LI><P><TT>LoopDelay</TT> - How long should it sleep between
+	iterations.</P>
+</UL>
+<P><B>Warning</B>: The configuration file should never be changed by
+hand. It is auto-generated and maintained by internal tools.</P>
+<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
+	<TR VALIGN=TOP>
+		<TD>
+			<H2 ALIGN=LEFT>Repository</H2>
+			<H3 ALIGN=LEFT>CVSROOT</H3>
+			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
+			<H2 ALIGN=LEFT>Package(s)</H2>
+			<P ALIGN=LEFT>glideinWMS/frontend</P>
+		</TD>
+		<TD>
+			<H2 ALIGN=LEFT>Author(s)</H2>
+			<P ALIGN=LEFT>GlideinWMS Team</P>
+			<P ALIGN=LEFT>glideinwms-support@fnal.gov</P>
+		</TD>
+	</TR>
+</TABLE>
+<P><BR><BR>
+</P>
+</BODY>
+</HTML>
