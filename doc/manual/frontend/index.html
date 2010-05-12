@@ -101,6 +101,47 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
 	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>GLIDEIN_Expose_Grid_Env</b>" &gt;</font><br>This determines if you want to expose the user to the grid environment.</p></li>
 	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>USE_MATCH_AUTH</b>" &gt;</font><br>This determines whether or not you want to use match authentication.  You specify the match expression in a group section of the config file.</p></li>
 	  </ul>
+Other attributes can be specified as well.  They are used by the VO frontend matchmaking and job matchmaking. The format is similar to the attributes on the Factory config file.  The table below describes the &lt;attrs ... &gt; tag in more detail. <br><br>
+    <table valign="top" style="border: 1px solid rgb(2, 2, 99); text-align: justify;" frame="box" width="100%" border="1px" cellpadding="2" cellspacing="0">
+      <tbody><tr style="border-width: 0pt; font-weight: bold;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">Attribute Name</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Attribute Description</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">name</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Name of the attribute</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">value</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Value of the attribute</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">const</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">If set to True, the attribute will be available in the constants file created in the staging area. Used only if parameter is True.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">parameter</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Set to True if the attribute should be passed as a parameter. Always set this to True unless you know what you are doing.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">glidein_publish</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">If set to True, the attribute will be available in the condor_startd's classad. Used only if parameter is True.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">job_publish</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">If set to True, the attribute will be available in the user job's environment. Used only if parameter is True.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">comment</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">You can specify description of the attribute here.</td>
+      </tr>
+      <tr style="border-width: 0pt;">
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="25%">type</td>
+        <td style="text-align: justify; border: 1px solid rgb(0, 0, 0); background-color: rgb(204, 204, 204);" width="75%">Type of the attribute. Supported types are 'int', 'string' and 'expr'. Type expr is equivalent to condor constant/expression in condor_vars.lst</td>
+      </tr>
+    </tbody></table>
+<br>
+An example attribute would be:</p><pre>&lt;attrs&gt;&lt;attr name="GLIDEIN_Collector" value="mymachine.mydomain" publish="True" parameter="True" const="True" glidein_publish="True" comment=”Just a test attribute”/&gt;</pre>
         </p></li>
         <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>files</b>&gt;&lt;<b>file absfname</b>="<i>filepath</i>" <b>relfname</b>="<i>filename</i>" <b>executable</b>="<i>boolean</i>" /&gt;</font><br>The file parameters are used to specify the location of additional files.  The grid mapfile location must be specified.
         </p></li>
