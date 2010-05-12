@@ -1,6 +1,7 @@
 #!/bin/env python
 
 import sys,os,os.path,string,time
+import pwd,grp
 import shutil
 import tarfile,readline,pwd
 import md5
@@ -52,11 +53,14 @@ QUILL_CONFIG_DONE=0
 SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED=0
 
 # Was a condor collector installed on this machine?
+PRIVSEP_INSTALLED=0
+# Was a condor collector installed on this machine?
 COLLECTOR_INSTALLED=0
 # Was a main schedd configured on this machine?
 MAIN_SCHEDD_INSTALLED=0
 # Condor user
 CONDOR_IDS = ""
+
 
 ##########################################
 #
@@ -98,7 +102,7 @@ def installer(install_options):
 
 #-------------------------------------------------------------------------------
 def main():
-    install_options={"1":{"title":"glideinWMS Collector",
+    install_options={"1":{"title":"glideinWMS Schedds and Collector",
                           "proc":wms_install,"order":13},
                      "2":{"title":"Glidein Factory",
                           "proc":gfactory_install,"order":16},
@@ -159,9 +163,9 @@ def collector_install():
 
     if not GSI_SECURITY_CONFIGURED:
         gsi_setup = { 'server': 'Pool Collector',
-                      'client': 'User Schedd, glidein startd',
-                      'server_comment': 'The cert/proxy subject of Pool Collector will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'The User Schedd and Glidein startd will connect to and act as client to the Pool Collector. Subjects for these services should be in the gridmap file of the Pool Collector'
+                      'client': 'User Schedd, Glidein Startd',
+                      'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
+                      'client_comment': 'The User Schedd(s) and Glidein startds will connect to \nand act as daemons to the Pool Collector. Any other node or process \nthat needs to talk securely with the Collector (like the \nVO Frontend) also needs to be authenticated, but not as \na daemon. Finally, if you expect any processes on this node \nto use condor security toward other nodes (e.g. the VO Frontend \ntalking to the WMS Collector), the remote services will also \nneed to be authenticated. The subjects (i.e. DNs) \nfor these services will thus most likely be needed.'
                     }
         configure_gsi_security(gsi_setup)
 
@@ -215,15 +219,21 @@ def schedd_node_install():
 
     if not GSI_SECURITY_CONFIGURED:
         gsi_setup = { 'server': 'User Schedd',
-                      'client': 'Glidein Startd, User Pool Collector, VO Frontend',
-                      'server_comment': 'The cert/proxy subject of User Schedd, Glidein Pool Collector and VO Frontend (used by glidein startd) will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'Glidein Pool Collector and VO Frontend and glidein startd will connect to and act as client to User Schedd. Subjects for these services should be in the gridmap file of the User Schedd.',
+                      'client': 'User Pool Collector, Glidein Startd, VO Frontend',
+                      'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
+                      'client_comment': 'The schedd will need to talk to the Pool Collector on a \ndaemon to daemon level. The Glidein startds will also need \nto be authenticated as daemons. Any other node or process \nthat needs to talk securely with the schedd (like the \nVO Frontend) also needs to be authenticated, but not as \na daemon. Finally, if you expect any processes on this node \nto use condor security toward other nodes (e.g. the VO Frontend \ntalking to the WMS Collector), the remote services will also \nneed to be authenticated. The subjects (i.e. DNs) \nfor these services will thus most likely be needed.',
                     }
         configure_gsi_security(gsi_setup)
 
     # USE_MATCH_AUTH
+    print
+    print "Condor supports a more efficient Match authentication that is also more secure."
+    print "Newer versions of the VO Frontend will not work if you don't enable it,"
+    print "but you may still be able to use this schedd for other purposes."
     while 1:
-        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) ")
+        match_yn=raw_input("Do you want to enable Match authentication?: (y/n) ")
+        if match_yn=="":
+            match_yn="y"
         if (match_yn!="y") and (match_yn!="n"):
             print "Please answer y or n"
             continue 
@@ -320,18 +330,38 @@ def wms_install():
     global COLLECTOR_INSTALLED
     global CONDOR_UPD_CONFIG_FILE
 
-    print "Installing WMS collector"
+    print "Installing WMS Schedds and Collector"
     print
+
+    if os.getuid()!=0:
+        print
+        print "The WMS schedds and collector should be installed as root to get"
+        print "the privilege separation need to securely support multiple frontends."
+        print "By installing as a non-privileged user, you loose this feature."
+        yn=raw_input("Do you want to continue?: (y/n) ")
+        if yn!='y':
+            print
+            print "Not installing  WMS Schedds and Collector."
+            print "Remember to install it as a root."
+            print
+            return
+
 
     condor_was_installed=(CONDOR_BASE_PATH!=None)
     if CONDOR_BASE_PATH==None:
         install_condor()
 
+    if os.getuid()==0:
+        if not PRIVSEP_INSTALLED:
+            setup_privsep()
+
+    needed_gsi_security_config=False
     if not GSI_SECURITY_CONFIGURED:
+        needed_gsi_security_config=True
         gsi_setup = { 'server': 'WMS Collector',
-                      'client': 'WMS Schedd, VO Frontend, Glidein Factory',
-                      'server_comment': 'The cert/proxy subject of WMS Collector will be added as the trusted daemon in GSI_DAEMON_NAME in the condor configuration.',
-                      'client_comment': 'The WMS Schedd, VO Frontend, Glidein Factory will connect to and act as client to the WMS Collector. Subjects for these services should be in the gridmap file of WMS Collector'
+                      'client': 'VO Frontend',
+                      'server_comment': 'Its subject (i.e. DN) will be added as the trusted daemon \nin the condor configuration.',
+                      'client_comment': 'The VO Frontend(s) will be contacting the WMS Collector \nand will interact as daemons. Their subjects (i.e. DNs) \nwill most likely be needed.'
                     }
         configure_gsi_security(gsi_setup)
 
@@ -346,6 +376,29 @@ def wms_install():
     
     if not MAIN_SCHEDD_INSTALLED:
         setup_main_schedd()
+
+    if needed_gsi_security_config:
+        ###########################
+        # Limit master and schedd
+        # to only local access
+         
+        # DISABLE: Igor
+        # Does not seem to work in v7.4.1
+        # Collector will pick up the MASTER variables!
+        pass 
+        #config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        #try:
+        #    config_fd.write("\n######################################################\n")
+        #    config_fd.write("## Limit master and schedd to only local access\n")
+        #    config_fd.write("######################################################\n\n")
+        #    for dm in ('MASTER','SCHEDD'):
+        #        config_fd.write("%s.network_interface=127.0.0.1\n"%dm)
+        #        config_fd.write("%s.bind_all_interfaces=False\n"%dm)
+        #        config_fd.write("%s.SEC_DEFAULT_AUTHENTICATION_METHODS=FS\n"%dm)
+        #finally:
+        #    config_fd.close()
+
+        
 
     ################################
     # Set optimized Condor-G values
@@ -425,22 +478,22 @@ def condor_frontend_install():
     if CONDOR_BASE_PATH==None:
         install_condor()
 
-        setup_main_schedd()
-        
-        if GSI_TRUSTED_CA_DIR==None:
-            query_ca_dir()
-        
+        if not GSI_SECURITY_CONFIGURED:
+            gsi_setup = { 'server': 'Condor',
+                          'client': 'VO Frontend',
+                          'server_comment': 'Its subject (i.e. DN) will be added in the condor configuration.',
+                          'client_comment': 'The VO Frontend will need to securely talk to \nthe WMS Collector, the Pool Collector and the user schedd(s).\nThe subjects (i.e. DNs) for these services will most likely be needed.',
+                          }
+            configure_gsi_security(gsi_setup)
+
+        if not MAIN_SCHEDD_INSTALLED:
+            setup_main_schedd()
+
         ####################################################
         # If used only for the VO frontend, disable daemons
         config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
         try:
             config_fd.write("\n######################################################\n")
-            config_fd.write("## The client needs GSI authentication\n")
-            config_fd.write("######################################################\n")
-            config_fd.write("SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI\n")
-            config_fd.write("# Grid Certificate directory\n")
-            config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
-            config_fd.write("######################################################\n")
             config_fd.write("## This machine should run no daemons\n")
             config_fd.write("######################################################\n")
             config_fd.write("DAEMON_LIST=MASTER\n")
@@ -667,7 +720,7 @@ def query_WebLocation(web_subdir):
 
         if web_url_type=="ftp":
             try:
-                fc=ftplist.FTP(web_base_url_host)
+                fc=ftplib.FTP(web_base_url_host)
                 rc=fc.login()
                 rc=fc.cwd(web_base_url_path+"stage/")
                 fc.close()
@@ -696,7 +749,7 @@ def query_WebLocation(web_subdir):
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:
-                    raise RuntimError,"http failed %i"%rc.status
+                    raise RuntimeError,"http failed %i"%rc.status
             except:
                 print "Failed connecting to: %s"%web_base_url
                 continue
@@ -716,7 +769,7 @@ def gfactory_install():
         print "You are trying to install the Glidein Factory as root"
         print "While this is possible, it is not recommended."
         print "For security reasons, it is better to install it as a non-priviledged user"
-        yn=raw_input("Do you want to continue?: (y/n) ")
+        yn=raw_input("Do you want to continue?: (y/n) [n] ")
         if yn!='y':
             print
             print "Not installing the Glidein Factory as root."
@@ -746,8 +799,11 @@ def gfactory_install():
     # Ask about the proxy
     proxy_fname=None
     print "The Glidein Factory can be configured to use a default GSI proxy for submission.\n"
+    print "However, this operation mode is not recommended.\n"
     while 1:
-        match_yn=raw_input("Do you want to use such a proxy?: (y/n) ")
+        match_yn=raw_input("Do you want to use such a proxy?: (y/n) [n] ")
+        if match_yn=="":
+            match_yn="n"
         if (match_yn!="y") and (match_yn!="n"):
             print "Please answer y or n"
             continue 
@@ -788,10 +844,43 @@ def gfactory_install():
     full_host_name=socket.getfqdn()
     fhn_arr=full_host_name.split(".")
 
-    # Submit base directory
-    def_submit_base_dir="%s/glideinsubmit"%os.environ['HOME']
+    print
+    print "As you probably know, privilege separation "
+    print "is needed to securely support multiple frontends."
+    print "If you are using privilege separation, the factory directories"
+    print "must be world readable (except for the proxies dirs)"
+    print
+    print "Hosting the config and log files in the factory home directory"
+    print "is thus not recommended anymore."
+    print
 
-    submit_base_dir=create_empty_dir("Where will you host your config and log files?: ",def_submit_base_dir,empty_required=False)
+    # Submit base directory
+    def_submit_base_dir="/var/gfactory/glideinsubmit"
+
+    submit_base_dir=create_empty_dir("Where will you host your config files?: ",def_submit_base_dir,empty_required=False)
+
+    def_log_base_dir="/var/gfactory/glideinlogs"
+    log_base_dir=create_empty_dir("Where will you host your log files?: ",def_log_base_dir,empty_required=False)
+
+    def_clientlog_base_dir="/var/gfactory/clientlogs"
+    while 1:
+        clientlog_base_dir=raw_input("Where will you host the client log files?: [%s] "%def_clientlog_base_dir)
+        if clientlog_base_dir=="":
+            clientlog_base_dir=def_clientlog_base_dir
+        if not os.path.isdir(clientlog_base_dir):
+            print "%s does not exist, please create it if needed"%clientlog_base_dir
+            continue
+        break
+
+    def_clientproxies_base_dir="/var/gfactory/clientproxies"
+    while 1:
+        clientproxies_base_dir=raw_input("Where will you host the client proxies files?: [%s]"%def_clientproxies_base_dir)
+        if clientproxies_base_dir=="":
+            clientproxies_base_dir=def_clientproxies_base_dir
+        if not os.path.isdir(clientproxies_base_dir):
+            print "%s does not exist, please create it if needed"%clientproxies_base_dir
+            continue
+        break
 
     (web_base_dir,web_base_url)=query_WebLocation('glidefactory');
     
@@ -949,6 +1038,7 @@ def gfactory_install():
     # entries
     entries_list={}
 
+    vo=None # VOMS extensions are not required
     yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
     if yn=='y':
         if proxy_fname!=None:
@@ -985,8 +1075,13 @@ def gfactory_install():
             print "You already insterted '%s'!"%entry_name
             continue
         gatekeeper_name=raw_input("Gatekeeper for '%s': "%entry_name)
+        if gatekeeper_name=="":
+            print "Gatekkeper cannot be empty!"
+            continue
         rsl_name=raw_input("RSL for '%s': "%entry_name)
-        work_dir=raw_input("Work dir for '%s': "%entry_name)
+        work_dir=raw_input("Work dir for '%s': [.] "%entry_name)
+        if work_dir=="":
+            work_dir="."
         site_name=raw_input("Site name for '%s': [%s] "%(entry_name,entry_name))
         if site_name=="":
             site_name=entry_name
@@ -1005,11 +1100,56 @@ def gfactory_install():
 
     # USE_MATCH_AUTH
     while 1:
-        match_yn=raw_input("Should glideins use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) ")
+        match_yn=raw_input("Should glideins use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) [y] ")
+        if match_yn=="":
+            match_yn="y"
         if (match_yn!="y") and (match_yn!="n"):
             print "Please answer y or n"
             continue 
         break
+
+    print
+    print "For security reasons, we want to whitelist all the frontends that we will be serving."
+    print "Each frontend should be segregated to its own (set of) username(s)."
+    print "If you do not want privilege separation, you can still just use the factory user."
+    print
+    print "Please list the frontends you will be serving:"
+    full_host_name=socket.getfqdn()
+    frontends={}
+    while 1:
+        print
+        frontend_name=raw_input("Frontend security name (leave empty when finished): ")
+        if frontend_name=="":
+            if len(frontends.keys())<1:
+                print "You must list at least one frontend"
+                continue
+            break
+
+        if frontend_name in frontends.keys():
+            print "You already insterted '%s'!"%frontend_name
+            continue
+
+        frontend_identity=raw_input("Frontend identity (like vo1@%s): "%full_host_name)
+        if frontend_identity=="":
+            print "Frontend identity cannot be empty!"
+            continue
+
+        # each frontend could have multiple proxy security classes
+        # ask for just one for simplicity
+        
+        frontend_secclass=raw_input("Frontend proxy security class: [frontend] ")
+        if frontend_secclass=="":
+            frontend_secclass="frontend"
+
+        frontend_uid=raw_input("Username: ")
+        try:
+            pwd.getpwnam(frontend_uid)
+        except:
+            print "User '%s' does not exist!"%frontend_uid
+            continue
+        
+        frontends[frontend_name]={'id':frontend_identity,'security_class':frontend_secclass,'user':frontend_uid}
+
 
     os.mkdir('%s/glidein_%s.cfg'%(submit_base_dir,glidein_name))
     
@@ -1022,7 +1162,7 @@ def gfactory_install():
             fd.write('<glidein factory_name="%s" glidein_name="%s"\n'%(factory_name,glidein_name))
             fd.write('         schedd_name="%s"\n'%string.join(schedds,','))
             fd.write('         loop_delay="60" advertise_delay="5" restart_attempts="3" restart_interval="1800">\n')
-            fd.write('   <submit base_dir="%s"/>\n'%submit_base_dir)
+            fd.write('   <submit base_dir="%s" base_log_dir="%s" base_client_log_dir="%s" base_client_proxies_dir="%s"/>\n'%(submit_base_dir,log_base_dir,clientlog_base_dir,clientproxies_base_dir))
             fd.write('   <stage web_base_url="%s/stage" use_symlink="True" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
             # Reminder to self(Igor)
@@ -1036,10 +1176,20 @@ def gfactory_install():
 
             if voproxy_yn=="y":
                 # disable factory proxy
-                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA"/>\n')
+                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA">\n')
             else:
                 # allow both factory proxy and VO proxy
-                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>\n')
+                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>n')
+            fd.write('    <frontends>\n')
+            for fe_name in frontends.keys():
+                fd.write('     <frontend name="%s" identity="%s">\n'%(fe_name,frontends[fe_name]['id']))
+                fd.write('       <security_classes>\n')
+                fd.write('         <security_class name="%s" username="%s"/>\n'%(frontends[fe_name]['security_class'],frontends[fe_name]['user']))
+                fd.write('       </security_classes>\n')
+                fd.write('     </frontend>\n')
+            fd.write('    </frontends>\n')
+            fd.write('   </security>\n')
+            
             fd.write('   <attrs>\n')
             if ccb_yn!="y":
                 fd.write('      <attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
@@ -1052,6 +1202,7 @@ def gfactory_install():
                 fd.write('      <attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>\n')
             fd.write('      <attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="True"/>\n')
             fd.write('      <attr name="USE_MATCH_AUTH" value="%s" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>\n'%(match_yn=='y'))
+            fd.write('      <attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <entries>\n')
             sorted_entry_names=entries_list.keys()
@@ -1112,7 +1263,8 @@ def gfactory_install():
 
     print
     print "Configuration files are located in %s/glidein_%s.cfg"%(submit_base_dir,glidein_name)
-    print "Remember to set X509_USER_PROXY before starting the daemon"
+    if proxy_fname!=None:
+        print "Remember to set X509_USER_PROXY before starting the daemon"
     print
 
     return
@@ -1187,41 +1339,6 @@ def vofrontend_install():
         query_flot()
 
 
-    ###################################
-    # Ask about the proxy
-    print "To use the VO Frontend you need a valid GSI proxy."
-    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
-    while 1:
-        if os.environ.has_key('X509_USER_PROXY'):
-            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
-            if proxy_fname=="":
-                proxy_fname=os.environ['X509_USER_PROXY']
-        else:
-            proxy_fname=raw_input("Where is your proxy located?: ")
-        proxy_fname=os.path.abspath(proxy_fname)
-
-        if not os.path.isfile(proxy_fname):
-            print "File not found: '%s'"%proxy_fname
-            continue
-
-        try:
-            my_dn=get_proxy_dn(proxy_fname)
-        except RuntimeError,e:
-            print e
-            continue
-            
-        break # proxy found
-
-    print
-    print "Using DN '%s'"%my_dn
-    print "Make sure this DN is in the WMS collector grid-mapfile"
-    print
-
-    print "For security reasons, we need to know what will the WMS collector map us to."
-    print "It will likely be something like joe@collector1.myorg.com"
-    proxy_identity = raw_input("What is the mapped name?: ")
-    print
-
     #################################
     # get config vals
     full_host_name=socket.getfqdn()
@@ -1229,9 +1346,13 @@ def vofrontend_install():
 
     # Submit base directory
     def_frontstage_base_dir="%s/frontstage"%os.environ['HOME']
-    frontstage_base_dir=create_empty_dir("Where will you host your config and log files?: ",def_frontstage_base_dir,empty_required=False)
+    frontstage_base_dir=create_empty_dir("Where will you host your config files?: ",def_frontstage_base_dir,empty_required=False)
 
     (web_base_dir,web_base_url)=query_WebLocation('vofrontend');
+
+    # log base directory
+    def_frontstage_log_dir="%s/frontlogs"%os.environ['HOME']
+    frontstage_log_dir=create_empty_dir("Where will you host your log files?: ",def_frontstage_log_dir,empty_required=False)
 
     # VO Frontend name
     def_frontend_name="myVO-%s"%fhn_arr[0]
@@ -1257,23 +1378,71 @@ def vofrontend_install():
         break
 
     # WMS collector node
+    print
     while 1:
-        pool_node=raw_input("What node is the WMS collector running?: ")
+        pool_node=raw_input("What node is the WMS collector (i.e. the gfactory) running?: ")
         try:
             socket.gethostbyname(pool_node.split(':')[0])
         except:
             print "'%s' not a valid host name!"%pool_node.split(':')[0]
             continue
         #have a valid pool_node
-
-        def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
-        pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
-        if pool_identity=="":
-            pool_identity=def_pool_identity
-        # have all I need, get out of the loop
         break
 
+    def_pool_identity="gfactory@%s"%pool_node.split(':')[0]
+    pool_identity=raw_input("What is the classad identity of the glidein factory?: [%s] "%def_pool_identity)
+    if pool_identity=="":
+        pool_identity=def_pool_identity
+
+    while 1:
+        pool_dn=raw_input("What is the WMS collector DN (i.e. subject)?: ")
+        if len(pool_dn)<5:
+            print "Too short... likely invalid"
+            continue
+        break
+
+    ###################################
+    # Ask about the proxy
+    print "\nTo use the VO Frontend you need a valid GSI proxy."
+    print "VO Frontend will use this proxy to talk to the WMS Collector and User Schedd"
+    while 1:
+        if os.environ.has_key('X509_USER_PROXY'):
+            proxy_fname=raw_input("Where is your proxy located?: [%s] "%os.environ['X509_USER_PROXY'])
+            if proxy_fname=="":
+                proxy_fname=os.environ['X509_USER_PROXY']
+        else:
+            proxy_fname=raw_input("Where is your proxy located?: ")
+        proxy_fname=os.path.abspath(proxy_fname)
+
+        if not os.path.isfile(proxy_fname):
+            print "File not found: '%s'"%proxy_fname
+            continue
+
+        try:
+            my_dn=get_proxy_dn(proxy_fname)
+        except RuntimeError,e:
+            print e
+            continue
+            
+        break # proxy found
+
+    print
+    print "Using DN '%s'"%my_dn
+    print "Make sure this DN is in the WMS collector condor_mapfile"
+    print
+
+    print "For security reasons, we need to know what will the WMS collector map us to."
+    print "It will likely be something like joe@%s"%pool_node.split(':')[0]
+    proxy_identity = raw_input("What is the mapped name?: ")
+    print
+
     # collector
+    
+    print
+    print "We are done with the WMS collector (i.e. gfactory) config"
+    print "Let's configure the access to the local (user) pool"
+    print
+    
     fd=os.popen("condor_config_val COLLECTOR_HOST")
     lines=fd.readlines()
     err=fd.close()
@@ -1282,18 +1451,39 @@ def vofrontend_install():
     else:
         default_local_collector=lines[0][:-1]
 
-    print
-    print "What node is the pool collector running on?"
-    print "If you have a hierarchy of collectors, list them all"
-    print "(for example master1.my.org:9620-9624"
-    print "          or master1.my.org:9619,master2.my.org:9620-9624,master3.my.org)"
+    main_local_collector=default_local_collector
+    print "Using pool collector %s"%main_local_collector
     while 1:
-        local_collector=raw_input("Collector name(s): [%s]"%default_local_collector)
-        if local_collector=="":
-            local_collector=default_local_collector
-        if local_collector!="":
+        main_local_dn=raw_input("What is the pool collector DN (i.e. subject)?: ")
+        if len(main_local_dn)<5:
+            print "Too short... likely invalid"
+            continue
+        break
+
+    print
+    print "List and secondary pool collectory the glideins should use"
+    print "instead of the main collector."
+    print "(leave empty if you want to use the main collector only)"
+    print "Valid syntaxes are:"
+    print " master1.my.org:9620-9624"
+    print " master1.my.org:9619"
+    print " master3.my.org"
+    print "Leave an empty collector name when finished."
+    secondary_local_collectors=[]
+    secondary_local_dns={}
+    while 1:
+        add_collector=raw_input("Collector name: ")
+        if add_collector=="":
             break
-        print "Empty string not a valid collector"
+
+        add_dn=raw_input("Collector DN (i.e. subject): ")
+        if len(add_dn)<5:
+            print "Too short... likely invalid.. retry collector %s"%add_collector
+            continue
+
+        secondary_local_collectors.append(add_collector)
+        secondary_local_dns[add_collector]=add_dn
+
 
     # schedds
     fd=os.popen("condor_status -schedd -format '%s\n' Name")
@@ -1355,6 +1545,15 @@ def vofrontend_install():
             break
     print "Using %s"%schedds
     print
+    schedd_dns={}
+    for schedd in schedds:
+        while 1:
+            schedd_dns[schedd]=raw_input("What is the DN (i.e. subject) for schedd %s?: "%schedd)
+            if len(schedd_dns[schedd])<5:
+                print "Too short... likely invalid"
+                continue
+            break
+        
 
     # job constraint
     default_job_constraint="(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)"
@@ -1459,56 +1658,13 @@ def vofrontend_install():
         glidein_proxies.append(a_fname)
         glidein_proxies_dns.append(a_dn)
 
-    #################################
-    # create grid-mapfile
-    # ask user for additional DNs
-    dns={}
-
-    if len(glidein_proxies_dns)==0:
-        print "My DN = '%s'"%my_dn
-        dns['condor']=my_dn
-    else:
-        print "My DNs = %s"%glidein_proxies_dns
-        for a_dn in glidein_proxies_dns:
-            a_uid="condor%03i"%len(dns.keys())
-            dns[a_uid]=a_dn
-
-    print
-    print "You will most probably need other DNs in the glidein grid mapfile"
-    print "Please add all the DNs that this glidein will connect to"
-    print "(usually the Pool Collector and the Submit nodes)"
-    print
-    print "Please insert all such DNs, together with a user nickname."
-    print "An empty DN entry means you are done."
-    while 1:
-        print
-        a_dn=raw_input("DN (leave empty when finished): ")
-        if a_dn=="":
-            break # done
-        default_uid="condor%03i"%len(dns.keys())
-        a_uid=raw_input("nickname: [%s] "%default_uid)
-        if a_uid=="":
-            a_uid=default_uid
-        if a_uid.find(" ")>=0:
-            print "WARNING: Nickname cannot contain spaces ('%s'), please reinsert the DN with a different nickname."%a_uid
-            continue
-        if a_uid in dns.keys():
-            print "WARNING: Cannot reuse '%s', please reinsert the DN with a different nickname."%a_uid
-            continue
-        dns[a_uid]=a_dn
-
-
     # USE_MATCH_AUTH
-    while 1:
-        match_yn=raw_input("Do you want to use the more efficient Match authentication (works for Condor v7.1.3 and later)?: (y/n) ")
-        if (match_yn!="y") and (match_yn!="n"):
-            print "Please answer y or n"
-            continue 
-        break
-    if match_yn=='y':
-        print
-        print "Make sure you use Match authentication in the schedds, too"
-        print
+    # This way the glidein does not need to have the DNs of all the schedds
+    match_yn="y"
+    print
+    print "Will use the more efficient Match authentication"
+    print "Make sure you use Match authentication in the schedds, too"
+    print
 
     # Expose Grid Env
     while 1:
@@ -1523,27 +1679,22 @@ def vofrontend_install():
     os.mkdir('%s/instance_%s.cfg'%(frontstage_base_dir,version_name))
     
     #####################################
-    # create grid mapfile
-    grid_mapfile='%s/instance_%s.cfg/grid-mapfile'%(frontstage_base_dir,version_name)
-    gridmap_fd=open(grid_mapfile,"w")
-    try:
-        for a_uid in dns.keys():
-            gridmap_fd.write('"%s" %s\n'%(dns[a_uid],a_uid))
-    finally:
-        gridmap_fd.close()
-
-    #####################################
     # create config files
     cfg_name="%s/instance_%s.cfg/frontend.xml"%(frontstage_base_dir,version_name)
     fd=open(cfg_name,"w")
     try:
         try:
             fd.write('<frontend frontend_name="%s-%s">\n'%(frontend_name,version_name))
-            fd.write('   <work base_dir="%s"/>\n'%frontstage_base_dir)
+            fd.write('   <work base_dir="%s" base_log_dir="%s"/>\n'%(frontstage_base_dir,frontstage_log_dir))
             fd.write('   <stage web_base_url="%s/stage" base_dir="%s/stage"/>\n'%(web_base_url,web_base_dir))
             fd.write('   <monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>\n'%(web_base_dir,JAVASCRIPTRRD_PATH,FLOT_PATH,FLOT_PATH))
 
-            fd.write('   <security proxy_selection_plugin="ProxyAll" classad_proxy=%s classad_identity=%s>\n'%(xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(proxy_identity)))
+            fd.write('   <collectors>\n')
+            fd.write('     <collector node=%s DN=%s secondary="False"/>\n'%(xmlFormat.xml_quoteattr(main_local_collector),xmlFormat.xml_quoteattr(main_local_dn)))
+            for c in secondary_local_collectors:
+                fd.write('     <collector node=%s DN=%s secondary="True"/>\n'%(xmlFormat.xml_quoteattr(c),xmlFormat.xml_quoteattr(secondary_local_dns[c])))
+            fd.write('   </collectors>\n')
+            fd.write('   <security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy=%s proxy_DN=%s>\n'%(frontend_name,xmlFormat.xml_quoteattr(proxy_fname),xmlFormat.xml_quoteattr(my_dn)))
             fd.write('      <proxies>\n')
             for a_fname in glidein_proxies:
                 fd.write('         <proxy absfname=%s/>\n'%xmlFormat.xml_quoteattr(a_fname))
@@ -1552,20 +1703,24 @@ def vofrontend_install():
             fd.write('   <match>\n')
             fd.write('      <factory>\n')
             fd.write('        <collectors>\n')
-            fd.write('          <collector node=%s classad_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_identity)))
+            fd.write('          <collector node=%s DN=%s factory_identity=%s my_identity=%s comment="Define factory collector globally for simplicity"/>\n'%(xmlFormat.xml_quoteattr(pool_node),xmlFormat.xml_quoteattr(pool_dn),xmlFormat.xml_quoteattr(pool_identity),xmlFormat.xml_quoteattr(proxy_identity)))
             fd.write('        </collectors>\n')
             fd.write('      </factory>\n')
             fd.write('      <job query_expr=%s comment="Define job constraint and schedds globally for simplicity">\n'%xmlFormat.xml_quoteattr(job_constraint))
             fd.write('        <schedds>\n')
             for schedd in schedds:
-                fd.write('         <schedd fullname=%s/>\n'%xmlFormat.xml_quoteattr(schedd))
+                fd.write('         <schedd fullname=%s DN=%s/>\n'%(xmlFormat.xml_quoteattr(schedd),xmlFormat.xml_quoteattr(schedd_dns[schedd])))
             fd.write('        </schedds>\n')
             fd.write('      </job>\n')
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
-            fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>\n'%(match_yn=='y'))
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
-            fd.write('      <attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value=%s/>\n'%xmlFormat.xml_quoteattr(local_collector))
+            # this is needed for the security to work
+            fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            # the following are just so admins know they exist
+            # we put in the default values
+            fd.write('      <attr name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            fd.write('      <attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
@@ -1594,7 +1749,6 @@ def vofrontend_install():
             fd.write('      </group>\n')
             fd.write('   </groups>\n')
             fd.write('   <files>\n')
-            fd.write('      <file executable="False" absfname=%s untar="False" const="True" relfname="grid-mapfile"/>\n'%xmlFormat.xml_quoteattr(grid_mapfile))
             fd.write('   </files>\n')
             fd.write('</frontend>\n')
         finally:
@@ -1622,8 +1776,7 @@ def vofrontend_install():
         print '%s/creation/create_frontend %s'%(glideinWMS_base_dir, cfg_name)
 
     print
-    print "Configuration files are located in %s/instance_%s.cfg"%(frontstage_base_dir,version_name)
-    print "Remember to set X509_USER_PROXY before starting the daemon"
+    print "Configuration file is located at %s"%cfg_name
     print
 
     return
@@ -2143,12 +2296,11 @@ def install_condor():
                 continue
             break # got and verified the user
         CONDOR_USER=condor_user
-        user = pwd.getpwnam(condor_user)      #JGW change 3.12.10
+        user = pwd.getpwnam(condor_user)
     else:
         CONDOR_USER=pwd.getpwuid(os.getuid())[0]
-        user = pwd.getpwuid(os.getuid())      #JGW change 3.12.10
-    CONDOR_IDS = "%s.%s" % (user[2],user[3])  #JGW change 3.12.10
-
+        user = pwd.getpwuid(os.getuid()) 
+    CONDOR_IDS = "%s.%s" % (user[2],user[3])
 
 
     ################################
@@ -2566,8 +2718,8 @@ def configure_gsi_security(gsi_setup=None):
     #################################
     # Ask if uses proxy or cert
     # and verify
-    print "To use the GSI security, you either need a valid GSI proxy or "
-    print "a valid x509 certificate and relative key"
+    print "To use the GSI security for %s, you either need "%server
+    print "a valid GSI proxy or a valid x509 certificate and relative key."
     print "%s\n" % server_comment
     while 1:
         pc=raw_input("Will you be using a proxy or a cert? (proxy/cert) ")
@@ -2615,9 +2767,7 @@ def configure_gsi_security(gsi_setup=None):
     # create condor_mapfile
     # ask user for additional DNs
     dns={"condor":[my_dn,True]}
-    print "You will most probably need other DNs in the condor grid mapfile"
-    print "Please add all the DNs that can be used to connect to the "
-    print "Condor daemons running on this node"
+    print "You will most probably need other DNs in the condor grid mapfile."
     print "%s\n" % client_comment
     print "Please insert all such DNs, together with a user nickname."
     print "An empty DN entry means you are done."
@@ -2649,19 +2799,11 @@ def configure_gsi_security(gsi_setup=None):
     gridmap_fd=open(condor_mapfile,"w")
     try:
         for a_uid in dns.keys():
-            gridmap_fd.write('GSI "%s" %s\n'%(dns[a_uid][0],a_uid))
+            gridmap_fd.write('GSI "^%s$" %s\n'%(re.escape(dns[a_uid][0]),a_uid))
         gridmap_fd.write('GSI (.*) anonymous\n')
         gridmap_fd.write('FS (.*) \\1\n')
     finally:
         gridmap_fd.close()
-
-    #format the daemon_list
-    daemon_dns=[]
-    for a_uid in dns.keys():
-        a_dn,is_daemon=dns[a_uid]
-        if is_daemon:
-            daemon_dns.append(a_dn)
-    daemon_dns_str=string.join(daemon_dns,',')
 
     #################################
     # do the config
@@ -2678,6 +2820,7 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("DENY_ADMINISTRATOR = anonymous@*\n")
         config_fd.write("DENY_DAEMON = anonymous@*\n")
         config_fd.write("DENY_NEGOTIATOR = anonymous@*\n\n")
+        config_fd.write("DENY_CLIENT = anonymous@*\n")
         config_fd.write("# Grid Certificate directory\n")
         config_fd.write("GSI_DAEMON_TRUSTED_CA_DIR=%s\n\n"%GSI_TRUSTED_CA_DIR)
         config_fd.write("############################\n")
@@ -2706,9 +2849,16 @@ def configure_gsi_security(gsi_setup=None):
         config_fd.write("#####################################\n")
         config_fd.write("# Add whitelist of condor daemon DNs\n")
         config_fd.write("#####################################\n")
-        config_fd.write("GSI_DAEMON_NAME=%s\n\n"%daemon_dns_str)
+        config_fd.write("# My DN\n")
+        config_fd.write("GSI_DAEMON_NAME=%s\n"%dns['condor'][0])
+        config_fd.write("# DNs of other trusted daemons provided at installation time\n")
+        for a_uid in dns.keys():
+            a_dn,is_daemon=dns[a_uid]
+            if (a_uid!='condor') and is_daemon:
+                config_fd.write("# The following DN will map to %s\n"%a_uid)
+                config_fd.write("GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s\n"%a_dn)
 
-        config_fd.write("#####################################\n")
+        config_fd.write("\n#####################################\n")
         config_fd.write("# Limit session caching to ~12h\n")
         config_fd.write("#####################################\n")
         config_fd.write("SEC_DAEMON_SESSION_DURATION = 50000\n")
@@ -2733,6 +2883,147 @@ def configure_gsi_security(gsi_setup=None):
     #GSI security configured
     GSI_SECURITY_CONFIGURED=1
     return
+
+# Configure Condor Privsep
+######################################
+def setup_privsep():
+    global CONDOR_BASE_PATH
+    global PRIVSEP_INSTALLED
+    global CONDOR_UPD_CONFIG_FILE
+
+    if os.getuid()!=0:
+        raise RuntimeError, "Privsep can only be installed as root! Not doing anything!"
+
+    print "Privilege separation is needed to securely support multiple frontends."
+    yn=raw_input("Do you want to install it?: (y/n) [y]")
+    if yn=='n':
+        # nothing to be done
+        return
+
+    switchboard_bin=os.path.join(CONDOR_BASE_PATH,'sbin/condor_root_switchboard')
+    if os.stat(switchboard_bin)[stat.ST_UID]!=0:
+        raise RuntimeError, "Privsep binary (%s) not owned by root! Not doing anything!"%switchboard_bin
+
+    if not os.path.exists('/etc/condor'):
+        # Condor may have been installed in a different way
+        # But provsep is hardwired to look in this dir
+        os.mkdir('/etc/condor')
+
+    create_config=True
+    if os.path.exists('/etc/condor/privsep_config'):
+        create_config=False
+        while 1:
+            overwrite_yn=raw_input("A privsep config (/etc/condor/privsep_config) is already in place. Do you want to recreate it?: (y/n) ")
+            if (overwrite_yn!="y") and (overwrite_yn!="n"):
+                print "Please answer y or n"
+                continue 
+            break
+        if overwrite_yn=='y':
+            create_config=True
+        else:
+            while 1:
+                reuse_yn=raw_input("Do you want to just use the content of the current privsep config?: (y/n) ")
+                if (reuse_yn!="y") and (reuse_yn!="n"):
+                    print "Please answer y or n"
+                    continue 
+                break
+            if reuse_yn=='n':
+                # you choose to not proceed futher
+                raise RuntimeError, "An old privsep config (/etc/condor/privsep_config) found! Not doing anything!"
+    
+
+    while 1:
+        factory_user=raw_input("What is the factory username: ")
+
+        try:
+            factory_group=grp.getgrgid(pwd.getpwnam(factory_user)[3])[0]
+            user_valid=True
+        except KeyError:
+            user_valid=False
+
+        if not user_valid:
+            print "User '%s' does not exist. If it is not a typo, please create it and retry."
+            continue
+        break
+
+    if create_config:
+        groups={}
+        users=[]
+        print
+        print "List the usernames the factroy will use"
+        print "to separate frontends from one another."
+        print "An empty username entry means you are done."
+        while 1:
+            user=raw_input("Username: ")
+            if user=='':
+                break #done
+
+            try:
+                group=grp.getgrgid(pwd.getpwnam(user)[3])[0]
+                user_valid=True
+            except KeyError:
+                user_valid=False
+
+            if not user_valid:
+                print "User '%s' does not exist. If it is not a typo, please create it and retry."
+                continue
+
+            if not groups.has_key(group):
+                groups[group]=[]
+
+            # we may have multiple users sharing the same group, so group them together
+            groups[group].append(user)
+            users.append(user)
+
+        print
+        print "Directories needed by the factory will be given special"
+        print "treatment to ease administration."
+        submit_base_dir=create_empty_dir('Where will the factory store its config files?','/var/gfactory/glideinsubmit',False)
+        os.chown(submit_base_dir,pwd.getpwnam(factory_user)[2],pwd.getpwnam(factory_user)[3])
+        
+        log_base_dir=create_empty_dir('Where will the factory store its log files?','/var/gfactory/glideinlogs',False)
+        os.chown(log_base_dir,pwd.getpwnam(factory_user)[2],pwd.getpwnam(factory_user)[3])
+        
+        userlog_dir=create_empty_dir('Where will the factory store the client log files?','/var/gfactory/clientlogs',False)
+        userproxy_dir=create_empty_dir('Where will the factory store the client proxies?','/var/gfactory/clientproxies',False)
+
+        fd=open('/etc/condor/privsep_config','w')
+        try:
+            fd.write('valid-caller-uids = %s\n'%factory_user)
+            fd.write('valid-caller-gids = %s\n'%factory_group)
+            fd.write('valid-target-uids = %s\n'%string.join(users,' : '))
+            fd.write('valid-target-gids = %s\n'%string.join(groups.keys(),' : '))
+            fd.write('valid-dirs = %s\n'%userlog_dir)
+            fd.write('valid-dirs = %s\n'%userproxy_dir)
+            fd.write('procd-executable = %s\n'%os.path.join(CONDOR_BASE_PATH,'sbin/condor_procd'))
+        finally:
+            fd.close()
+        
+
+    # finally set the setuid bit
+    os.chmod(switchboard_bin,04755)
+
+    ########################################
+    # Make factory user a condor superuser
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+    try:
+        config_fd.write("\n######################################################\n")
+        config_fd.write("## Make the factory user a condor superuser\n")
+        config_fd.write("## This is needed by the factory damemons in privsep mode\n")
+        config_fd.write("##  and it also makes the administration easier\n")
+        config_fd.write("######################################################\n\n")
+        config_fd.write("QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), %s\n"%factory_user)
+    finally:
+        config_fd.close()
+
+    print
+    print "Privilege separation setup completed"
+    print
+    
+    PRIVSEP_INSTALLED=True
+    
+    return
+        
 
 # Update condor config with
 # collector and negotiator settings
@@ -2764,9 +3055,9 @@ def setup_collector(default_poolname,nr_secondary_collectors,secondary_collector
             continue
         if collector_port<1024:
             if os.getuid()!=0:
-                print "Only root can use prots below 1024: %i"%collector_port
+                print "Only root can use ports below 1024: %i"%collector_port
                 continue
-            yn=raw_input("Do you really want to use the privileged oirt %i? (y/n)"%collector_port)
+            yn=raw_input("Do you really want to use the privileged port %i? (y/n)"%collector_port)
             if yn!='y':
                 continue
         # we have a valid port
@@ -2904,12 +3195,14 @@ def setup_main_schedd():
         config_fd.write("# but do limit downloads, as they are asyncronous\n")
         config_fd.write("MAX_CONCURRENT_DOWNLOADS = 100\n\n")
         config_fd.write("# Prevent checking on ImageSize\n")
-        config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)\n\n")
+        config_fd.write("APPEND_REQ_VANILLA = (Memory>=1)&&(Disk>=1)\n\n")
         config_fd.write("# Prevent preemption\n")
         config_fd.write("MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7\n\n")
         config_fd.write("#GCB optimization\n")
         config_fd.write("SCHEDD_SEND_VACATE_VIA_TCP = True\n")
         config_fd.write("STARTD_SENDS_ALIVES = True\n")
+        config_fd.write("#Reduce disk IO - paranoid fsyncs are usully not needed\n")
+        config_fd.write("ENABLE_USERLOG_FSYNC = False\n")
     finally:
         config_fd.close()
 
@@ -3435,7 +3728,7 @@ def configure_secondary_schedd(schedd_name):
     global CONDOR_BASE_PATH
     global CONDOR_IDS
 
-    err=os.system('export CONDOR_IDS=%s;%s/init_schedd.sh %s'%(CONDOR_IDS,CONDOR_BASE_PATH,schedd_name))
+    err=os.system('export CONDOR_IDS=%s; %s/init_schedd.sh %s'%(CONDOR_IDS,CONDOR_BASE_PATH,schedd_name))
     if err!=0:
         raise RuntimeError, "Failed to initialize schedd '%s'!"%schedd_name
 

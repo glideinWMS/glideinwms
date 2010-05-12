@@ -9,8 +9,10 @@
 #
 
 import condorExe
+import condorSecurity
 import os
 import string
+import copy
 import xml.parsers.expat
 
 #
@@ -56,31 +58,59 @@ class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
 #  "r" - real (float)
 #  "b" - bool
 #
+#
+# security_obj, if defined, should be a child of condorSecurity.ProtoRequest
 class QueryExe(StoredQuery): # first fully implemented one, execute commands 
-    def __init__(self, exe_name, resource_str, group_attribute, pool_name=None):
-        self.exe_name = exe_name
-        self.resource_str = resource_str
-        self.group_attribute = group_attribute
-        self.pool_name = pool_name
-        if pool_name == None:
-            self.pool_str = ""
+    def __init__(self,exe_name,resource_str,group_attribute,pool_name=None,security_obj=None):
+        self.exe_name=exe_name
+        self.resource_str=resource_str
+        self.group_attribute=group_attribute
+        self.pool_name=pool_name
+        if pool_name==None:
+            self.pool_str=""
         else:
             self.pool_str = "-pool %s" % pool_name
 
-        self.requested_sec = {'INTEGRITY':None, 'ENCRYPTION':None}
+        if security_obj!=None:
+            if security_obj.has_saved_state():
+                raise RuntimeError, "Cannot use a security object which has saved state."
+            self.security_obj=copy.deepcopy(security_obj)
+        else:
+            self.security_obj=condorSecurity.ProtoRequest()
 
-    def require_integrity(self, requested_integrity): # if none, dont change, else forse that one
-        self.requested_sec['INTEGRITY'] = requested_integrity
+    def require_integrity(self,requested_integrity): # if none, dont change, else forse that one
+        if requested_integrity==None:
+            condor_val=None
+        elif requested_integrity:
+            condor_val="REQUIRED"
+        else:
+            # if not required, still should not fail if the other side requires it
+            condor_val='OPTIONAL'
+
+        self.security_obj.set('CLIENT','INTEGRITY',condor_val)
 
     def get_requested_integrity(self):
-        return self.requested_sec['INTEGRITY']
+        condor_val = self.security_obj.get('CLIENT','INTEGRITY')
+        if condor_val==None:
+            return None
+        return (condor_val=='REQUIRED')
 
-    def require_encryption(self, requested_encryption): # if none, dont change, else forse that one
-        self.requested_sec['ENCRYPTION'] = requested_encryption
+    def require_encryption(self,requested_encryption): # if none, dont change, else forse that one
+        if requested_encryption==None:
+            condor_val=None
+        elif requested_encryption:
+            condor_val="REQUIRED"
+        else:
+            # if not required, still should not fail if the other side requires it
+            condor_val='OPTIONAL'
+
+        self.security_obj.set('CLIENT','ENCRYPTION',condor_val)
 
     def get_requested_encryption(self):
-        return self.requested_sec['ENCRYPTION']
-    
+        condor_val = self.security_obj.get('CLIENT','ENCRYPTION')
+        if condor_val==None:
+            return None
+        return (condor_val=='REQUIRED')
 
     def fetch(self, constraint=None, format_list=None):
         if constraint == None:
@@ -102,23 +132,9 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
             format_str = string.join(format_arr, " ")
 
-        # set environemnt for security settings
-        old_sec = {}
-        for s in self.requested_sec.keys():
-            # set env setting for the ones that the user required
-            if self.requested_sec[s] != None:
-                # preserve old value
-                if os.environ.has_key('_CONDOR_SEC_CLIENT_%s' % s):
-                    old_sec[s] = os.environ['_CONDOR_SEC_CLIENT_%s' % s]
-                else:
-                    old_sec[s] = None
-                # set new value
-                if self.requested_sec[s]:
-                    # required, so do it
-                    os.environ['_CONDOR_SEC_CLIENT_%s' % s] = 'REQUIRED'
-                else:
-                    # doesn't want it, but should not fail if the other side requires it
-                    os.environ['_CONDOR_SEC_CLIENT_%s' % s] = 'OPTIONAL'
+        # set environment for security settings
+        self.security_obj.save_state()
+        self.security_obj.enforce_requests()
 
         if full_xml:
             xml_data = condorExe.exe_cmd(self.exe_name, "%s -xml %s %s" % (self.resource_str, self.pool_str, constraint_str))
@@ -127,11 +143,7 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
             xml_data = ['<?xml version="1.0"?><classads>'] + xml_data + ["</classads>"]
 
         # restore old values
-        for s in self.requested_sec.keys():
-            if self.requested_sec[s] != None:
-                if old_sec[s] != None:
-                    os.environ['_CONDOR_SEC_CLIENT_%s' % s] = old_sec[s]
-                # else it was not set 
+        self.security_obj.restore_state()
 
         list_data = xml2list(xml_data)
         del xml_data
@@ -148,14 +160,14 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
 
 # condor_q 
 class CondorQ(QueryExe):
-    def __init__(self, schedd_name=None, pool_name=None):
-        self.schedd_name = schedd_name
-        if schedd_name == None:
-            schedd_str = ""
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
+        self.schedd_name=schedd_name
+        if schedd_name==None:
+            schedd_str=""
         else:
             schedd_str = "-name %s" % schedd_name
 
-        QueryExe.__init__(self, "condor_q", schedd_str, ["ClusterId", "ProcId"], pool_name)
+        QueryExe.__init__(self,"condor_q",schedd_str,["ClusterId","ProcId"],pool_name,security_obj)
 
     def fetch(self, constraint=None, format_list=None):
         if format_list != None:
@@ -166,14 +178,14 @@ class CondorQ(QueryExe):
 
 # condor_q, where we have only one ProcId x ClusterId
 class CondorQLite(QueryExe):
-    def __init__(self, schedd_name=None, pool_name=None):
-        self.schedd_name = schedd_name
-        if schedd_name == None:
-            schedd_str = ""
+    def __init__(self,schedd_name=None,pool_name=None,security_obj=None):
+        self.schedd_name=schedd_name
+        if schedd_name==None:
+            schedd_str=""
         else:
             schedd_str = "-name %s" % schedd_name
 
-        QueryExe.__init__(self, "condor_q", schedd_str, "ClusterId", pool_name)
+        QueryExe.__init__(self,"condor_q",schedd_str,"ClusterId",pool_name,security_obj)
 
     def fetch(self, constraint=None, format_list=None):
         if format_list != None:
@@ -183,13 +195,13 @@ class CondorQLite(QueryExe):
 
 # condor_status
 class CondorStatus(QueryExe):
-    def __init__(self, subsystem_name=None, pool_name=None):
-        if subsystem_name == None:
-            subsystem_str = ""
+    def __init__(self,subsystem_name=None,pool_name=None,security_obj=None):
+        if subsystem_name==None:
+            subsystem_str=""
         else:
             subsystem_str = "-%s" % subsystem_name
 
-        QueryExe.__init__(self, "condor_status", subsystem_str, "Name", pool_name)
+        QueryExe.__init__(self,"condor_status",subsystem_str,"Name",pool_name,security_obj)
 
     def fetch(self, constraint=None, format_list=None):
         if format_list != None:

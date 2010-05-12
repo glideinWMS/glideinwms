@@ -36,7 +36,7 @@ def set_path(new_condor_bin_path):
 #
 
 # can throw UnconfigError or ExeError
-def exe_cmd(condor_exe, args):
+def exe_cmd(condor_exe, args, stdin_data=None):
     global condor_bin_path
 
     if condor_bin_path == None:
@@ -45,7 +45,7 @@ def exe_cmd(condor_exe, args):
 
     cmd = "%s %s" % (condor_exe_path, args)
 
-    return iexe_cmd(cmd)
+    return iexe_cmd(cmd, stdin_data)
 
 ############################################################
 #
@@ -54,8 +54,10 @@ def exe_cmd(condor_exe, args):
 ############################################################
 
 # can throw ExeError
-def iexe_cmd(cmd):
+def iexe_cmd(cmd, stdin_data=None):
     child = popen2.Popen3(cmd, True)
+    if stdin_data!=None:
+        child.tochild.write(stdin_data)
     child.tochild.close()
     tempOut = child.fromchild.readlines()
     child.fromchild.close()

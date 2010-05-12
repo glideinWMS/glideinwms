@@ -29,9 +29,12 @@ class cachedLogClass:
     # also loadFromLog, merge and isActive need to be implemented
 
     # init method to be used by real constructors
-    def clInit(self, logname, cache_ext):
+    def clInit(self, logname, cache_dir, cache_ext):
         self.logname = logname
-        self.cachename = logname + cache_ext
+        if cache_dir == None:
+            self.cachename = logname + cache_ext
+        else:
+            self.cachename = os.path.join(cache_dir, os.path.basename(logname) + cache_ext)
 
     # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
@@ -91,8 +94,8 @@ class cachedLogClass:
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummary(cachedLogClass):
-    def __init__(self, logname):
-        self.clInit(logname, ".cstpk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".cstpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -170,8 +173,8 @@ class logSummary(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'completed_jobs':['123.002','555.001'],'counts':{'Idle': 1145, 'Completed': 2}}
 class logCompleted(cachedLogClass):
-    def __init__(self, logname):
-        self.clInit(logname, ".clspk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".clspk")
 
     def loadFromLog(self):
         tmpdata = {}
@@ -271,9 +274,8 @@ class logCompleted(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'Idle': 1145, 'Completed': 2}
 class logCounts(cachedLogClass):
-    def __init__(self, logname):
-        self.logname = logname
-        self.cachename = logname + ".clcpk"
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".clcpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -343,8 +345,8 @@ class logCounts(cachedLogClass):
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummaryTimings(cachedLogClass):
-    def __init__(self, logname):
-        self.clInit(logname, ".ctstpk")
+    def __init__(self, logname, cache_dir):
+        self.clInit(logname, cache_dir, ".ctstpk")
 
     def loadFromLog(self):
         jobs, self.startTime, self.endTime = parseSubmitLogFastRawTimings(self.logname)
@@ -443,19 +445,24 @@ class cacheDirClass:
     def __init__(self, logClass,
                  dirname, log_prefix, log_suffix=".log", cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logClass, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout)
+                 inactive_timeout = 24*3600,   # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):            # if None, use dirname
+        self.cdInit(logClass, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
 
     def cdInit(self, logClass,
                dirname, log_prefix, log_suffix=".log", cache_ext=".cifpk",
                inactive_files=None,         # if ==None, will be reloaded from cache
-               inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
+               inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+               cache_dir=None):             # if None, use dirname
         self.logClass = logClass # this is an actual class, not an object
         self.dirname = dirname
+        if cache_dir == None:
+            cache_dir = dirname
+        self.cache_dir = cache_dir
         self.log_prefix = log_prefix
         self.log_suffix = log_suffix
         self.inactive_timeout = inactive_timeout
-        self.inactive_files_cache = os.path.join(dirname, log_prefix+log_suffix+cache_ext)
+        self.inactive_files_cache = os.path.join(cache_dir, log_prefix+log_suffix+cache_ext)
         if inactive_files == None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files = loadCache(self.inactive_files_cache)
@@ -485,7 +492,7 @@ class cacheDirClass:
         ch = False
         fnames = self.getFileList(active_only=True)
         for fname in fnames:
-            obj = self.logClass(os.path.join(self.dirname, fname))
+            obj = self.logClass(os.path.join(self.dirname,fname), self.cache_dir)
             ch = (ch or obj.has_changed()) # it is enough that one changes
         return ch
 
@@ -504,7 +511,7 @@ class cacheDirClass:
             if os.path.getsize(absfname)<1:
                 continue # skip empty files
             last_mod = os.path.getmtime(absfname)
-            obj = self.logClass(absfname)
+            obj = self.logClass(absfname, self.cache_dir)
             obj.load()
             mydata = obj.merge(mydata)
             if ( ((now-last_mod) > self.inactive_timeout) and 
@@ -524,8 +531,8 @@ class cacheDirClass:
         return
 
     # diff self data with other info
-    def diff(self, other):
-        dummyobj = self.logClass(os.path.join(self.dirname, 'dummy.txt'))
+    def diff(self,other):
+        dummyobj = self.logClass(os.path.join(self.dirname,'dummy.txt'), self.cache_dir)
         dummyobj.data = self.data # a little rough but works
         return  dummyobj.diff(other) 
         
@@ -534,11 +541,11 @@ class cacheDirClass:
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class dirSummary(cacheDirClass):
-    def __init__(self, dirname, log_prefix, 
-                 log_suffix=".log", cache_ext=".cifpk",
-                 inactive_files=None,          # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logSummary, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout)
+    def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logSummary,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 
 # this class will keep track of:
@@ -550,8 +557,9 @@ class dirCompleted(cacheDirClass):
     def __init__(self, dirname, log_prefix,
                  log_suffix=".log", cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logCompleted, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout)
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logCompleted,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 
 # this class will keep track of
@@ -562,19 +570,20 @@ class dirCounts(cacheDirClass):
     def __init__(self, dirname, log_prefix,
                  log_suffix=".log", cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logCounts, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout)
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logCounts,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 # this class will keep track of:
 #  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
 # These data is available in self.data dictionary
 # for example self.data={'Idle':[('123.003','09/28 01:38:53', '09/28 01:42:23', '09/28 08:06:33'),('123.004','09/28 02:38:53', '09/28 02:42:23', '09/28 09:06:33')],'Running':[('123.001','09/28 01:32:53', '09/28 01:43:23', '09/28 08:07:33'),('123.002','09/28 02:38:53', '09/28 03:42:23', '09/28 06:06:33')]}
 class dirSummaryTimings(cacheDirClass):
-    def __init__(self, dirname, log_prefix,
-                 log_suffix=".log", cache_ext=".cifpk",
-                 inactive_files=None,          # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600):   # how much time must elapse before a file can be declared inactive
-        self.cdInit(logSummaryTimings, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout)
+    def __init__(self,dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
+                 inactive_files=None,         # if ==None, will be reloaded from cache
+                 inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
+                 cache_dir=None):             # if None, use dirname
+        self.cdInit(logSummaryTimings,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
 
 
@@ -618,6 +627,7 @@ class dirSummaryTimings(cacheDirClass):
 # 025 - Grid Resource Back Up
 # 026 - Detected Down Grid Resource
 # 027 - Job submitted to grid resource
+# 028 - Job ad information event triggered
 # 029 - The job's remote status is unknown
 # 030 - The job's remote status is known again
 
@@ -638,7 +648,7 @@ def get_new_status(old_status, new_status):
             if old_status[0] != "0": # may have already fixed it, out of order
                 status = str(int(old_status[0]) - 1) + old_status[1:]
             # else keep the old one
-    elif old_status in ('003', '006', '008'):
+    elif old_status in ('003','006','008','028'):
         pass # do nothing, that was just informational
     else:
         # a significant status found, use it
@@ -657,8 +667,8 @@ def parseSubmitLogFastRaw(fname):
         # nothing to read, if empty
         return jobs
     
-    fd = open(fname, "r")
-    buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -704,7 +714,7 @@ def parseSubmitLogFastRawTimings(fname):
     size = os.path.getsize(fname)
     if size==0:
         # nothing to read, if empty
-        return jobs,first_time,last_time
+        return jobs, first_time, last_time
     
     fd = open(fname, "r")
     buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
