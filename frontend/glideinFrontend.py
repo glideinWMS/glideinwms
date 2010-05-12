@@ -89,6 +89,9 @@ def spawn(sleep_time,advertize_rate,work_dir,
 
             glideinFrontendLib.log_files.logActivity("Aggregate monitoring data")
             aggregate_stats()
+            
+            # do it just before the sleep
+            glideinFrontendLib.log_files.cleanup()
 
             glideinFrontendLib.log_files.logActivity("Sleep")
             time.sleep(sleep_time)
@@ -102,16 +105,40 @@ def spawn(sleep_time,advertize_rate,work_dir,
         
         
 ############################################################
+def cleanup_environ():
+    for val in os.environ.keys():
+        val_low=val.lower()
+        if val_low[:8]=="_condor_":
+            # remove any CONDOR environment variables
+            # don't want any surprises
+            del os.environ[val]
+        elif val_low[:5]=="x509_":
+            # remove any X509 environment variables
+            # don't want any surprises
+            del os.environ[val]
+            
+
+############################################################
 def main(work_dir):
     startup_time=time.time()
 
-    # create log files in the glidein log directory
-    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(os.path.join(work_dir,"log"))
+    glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
+    frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
+
+    # the log dir is shared between the frontend main and the groups, so use a subdir
+    log_dir=os.path.join(frontendDescript.data['LogDir'],"frontend")
+
+    # Configure the process to use the proper LogDir as soon as you get the info
+    glideinFrontendLib.log_files=glideinFrontendLib.LogFiles(log_dir,
+                                                             float(frontendDescript.data['LogRetentionMaxDays']),
+                                                             float(frontendDescript.data['LogRetentionMinDays']),
+                                                             float(frontendDescript.data['LogRetentionMaxMBs']))
     
     try:
-        glideinFrontendConfig.frontendConfig.frontend_descript_file=os.path.join(work_dir,glideinFrontendConfig.frontendConfig.frontend_descript_file)
-        frontendDescript=glideinFrontendConfig.FrontendDescript(work_dir)
-
+        cleanup_environ()
+        # we use a dedicated config... ignore the system-wide
+        os.environ['CONDOR_CONFIG']=frontendDescript.data['CondorConfig']
+        
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
         
@@ -157,10 +184,6 @@ def termsignal(signr,frame):
 if __name__ == '__main__':
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
-
-    # check that the GSI environment is properly set
-    if not os.environ.has_key('X509_CERT_DIR'):
-        raise RuntimeError, "Need X509_CERT_DIR to work!"
 
     main(sys.argv[1])
  

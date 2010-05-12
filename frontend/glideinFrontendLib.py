@@ -14,25 +14,26 @@ import condorMonitor,condorExe
 import logSupport
 
 class LogFiles:
-    def __init__(self,log_dir):
+    def __init__(self,log_dir,max_days,min_days,max_mbs):
         self.log_dir=log_dir
-        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_info"))
-        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_err"))
-        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend_debug"))
-        self.cleanupObj=logSupport.DirCleanup(log_dir,"(frontend_info\..*)|(frontend_err\..*)|(frontend_debug\..*)",
-                                              7*24*3600,
-                                              self.activity_log,self.warning_log)
+        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend"),"info.log")
+        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend"),"err.log")
+        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"frontend"),"debug.log")
+        self.cleanupObj=logSupport.DirCleanupWSpace(log_dir,"(frontend\.[0-9]*\.info\.log)|(frontend\.[0-9]*\.err\.log)|(frontend\.[0-9]*\.debug\.log)",
+                                                    int(max_days*24*3600),int(min_days*24*3600),
+                                                    long(max_mbs*(1024.0*1024.0)),
+                                                    self.activity_log,self.warning_log)
 
     def logActivity(self,str):
         try:
-            self.activity_log.write(str+"\n")
+            self.activity_log.write(str)
         except:
             # logging must never throw an exception!
             self.logWarning("logActivity failed, was logging: %s"%str,False)
 
     def logWarning(self,str, log_in_activity=True):
         try:
-            self.warning_log.write(str+"\n")
+            self.warning_log.write(str)
         except:
             # logging must throw an exception!
             # silently ignore
@@ -42,11 +43,18 @@ class LogFiles:
 
     def logDebug(self,str):
         try:
-            self.debug_log.write(str+"\n")
+            self.debug_log.write(str)
         except:
             # logging must never throw an exception!
             # silently ignore
             pass
+
+    def cleanup(self):
+        try:
+            self.cleanupObj.cleanup()
+        except:
+            # logging must never throw an exception!
+            self.logWarning("log cleanup failed.")
 
 # someone needs to initialize this
 # type LogFiles

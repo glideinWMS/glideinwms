@@ -191,11 +191,11 @@ class ElementMergedDescript:
             self.merged_data[t]="(%s) and (%s)"%(self.frontend_data[t],self.element_data[t])
             self.merged_data[t+'CompiledObj']=compile(self.merged_data[t],"<string>","eval")
 
-        proxy_selection_plugin='ProxyAll'
-        for data in (self.frontend_data,self.element_data):
-            if data.has_key('ProxySelectionPlugin'):
-                proxy_selection_plugin=data['ProxySelectionPlugin']
-        self.merged_data['ProxySelectionPlugin']=proxy_selection_plugin
+        self.merged_data['ProxySelectionPlugin']='ProxyAll' #default
+        for t in ('ProxySelectionPlugin','SecurityName'):
+            for data in (self.frontend_data,self.element_data):
+                if data.has_key(t):
+                    self.merged_data[t]=data[t]
 
         proxies=[]
         for data in (self.frontend_data,self.element_data):
@@ -211,10 +211,20 @@ class ElementMergedDescript:
                     proxy_refresh_scripts[k]=dprs[k]
         self.merged_data['ProxyRefreshScripts']=proxy_refresh_scripts
 
+        proxy_security_classes={}
+        for data in (self.frontend_data,self.element_data):
+            if data.has_key('ProxySecurityClasses'):
+                dprs=eval(data['ProxySecurityClasses'])
+                for k in dprs.keys():
+                    proxy_security_classes[k]=dprs[k]
+        self.merged_data['ProxySecurityClasses']=proxy_security_classes
+
         return
 
     def split_list(self,val):
         if val=='None':
+            return []
+        elif val=='':
             return []
         else:
             return string.split(val,',')

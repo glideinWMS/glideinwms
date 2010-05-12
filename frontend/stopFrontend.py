@@ -32,7 +32,7 @@ def get_element_pids(work_dir,frontend_pid):
         if element_ppid!=frontend_pid:
             print "Group '%s' has an unexpected Parent PID: %s!=%s"%(group,element_ppid,frontend_pid)
             continue # report error and go to next group
-        element_pids[element]=element_pid
+        element_pids[group]=element_pid
 
     return element_pids
 
