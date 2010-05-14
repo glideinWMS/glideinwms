@@ -51,7 +51,16 @@ while (i<alen):
 # get data
 factory_constraints=None
 if factory_name!=None:
-    factory_constraints='FactoryName=?="%s"'%factory_name
+    farr=factory_name.split('@')
+    if len(farr)==1:
+        # just the generic factory name
+        factory_constraints='FactoryName=?="%s"'%factory_name
+    elif len(farr)==2:
+        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")'%(farr[1],farr[0])
+    elif len(farr)==3:
+        factory_constraints='(FactoryName=?="%s")&&(GlideinName=?="%s")&&(EntryName=?="%s")'%(farr[2],farr[1],farr[0])
+    else:
+        raise RuntimeError, "Invalid factory name; more than 2 @'s found"
 
 glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints,get_only_matching=False)
 
