@@ -25,6 +25,7 @@ import xmlFormat
 
 pool_name=None
 factory_name=None
+frontend_name=None
 remove_condor_stats=True
 remove_internals=True
 
@@ -41,6 +42,9 @@ while (i<alen):
     elif ael=='-factory':
         i=i+1
         factory_name=sys.argv[i]
+    elif ael=='-frontend':
+        i=i+1
+        frontend_name=sys.argv[i]
     elif ael=='-condor-stats':
         i=i+1
         remove_condor_stats=not int(sys.argv[i])
@@ -52,7 +56,7 @@ while (i<alen):
         key_obj=glideFactoryConfig.GlideinKey('RSA',sys.argv[i])
     elif ael=='-help':
         print "Usage:"
-        print "wmsXMLView.py [-pool <node>[:<port>]] [-factory <factory>] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
+        print "wmsXMLView.py [-pool <node>[:<port>]] [-factory <factory>] [-frontend <frontend>] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
         sys.exit(1)
     else:
         raise RuntimeError,"Unknown option '%s', try -help"%ael
@@ -109,9 +113,28 @@ for glidein in glideins:
         
     entry_name,glidein_name,factory_name=string.split(glidein,"@")
 
-    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,None,key_obj,get_only_matching=False)
+    frontend_constraints=None
+    if frontend_name!=None:
+        farr=frontend_name.split('.')
+        if len(farr)==1:
+            # just the generic frontend name
+            frontend_constraints='FrontendName=?="%s"'%frontend_name
+        elif len(farr)==2:
+            frontend_constraints='(FrontendName=?="%s")&&(GroupName=?="%s")'%(farr[0],farr[1])
+        else:
+            raise RuntimeError, "Invalid frontend name; more than one dot found"
+
+    clients_obj=glideFactoryInterface.findWork(factory_name,glidein_name,entry_name,None,key_obj,get_only_matching=False,additional_constraints=frontend_constraints)
     glidein_el['clients']=clients_obj
     clients=clients_obj.keys()
+
+    if (frontend_name!=None) and (len(clients)==0):
+        # if user requested to see only one frontend
+        # and this factory is not serving that frontend
+        # do not show the frontend at all
+        del glideins_obj[glidein]
+        continue
+
     for client in clients:
         if remove_internals:
             del clients_obj[client]['internals']
