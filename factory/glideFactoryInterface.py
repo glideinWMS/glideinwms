@@ -71,7 +71,8 @@ factoryConfig=FactoryConfig()
 def findWork(factory_name,glidein_name,entry_name,
              supported_signtypes,
              pub_key_obj=None,allowed_proxy_source=('factory','frontend'),
-             get_only_matching=True): # if this is false, return also glideins I cannot use):
+             get_only_matching=True,  # if this is false, return also glideins I cannot use)
+             additional_constraints=None):
     """
     Look for requests.
     Look for classAds that have my (factory, glidein name, entry name).
@@ -85,6 +86,7 @@ def findWork(factory_name,glidein_name,entry_name,
     global factoryConfig
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
+
     if supported_signtypes!=None:
         status_constraint+=' && stringListMember(%s%s,"%s")'%(factoryConfig.client_web_prefix,factoryConfig.client_web_signtype_suffix,string.join(supported_signtypes,","))
 
@@ -99,6 +101,10 @@ def findWork(factory_name,glidein_name,entry_name,
             if not ('frontend' in allowed_proxy_source):
                 # the proxy is not allowed, so ignore such requests 
                 status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
+
+    if additional_constraints!=None:
+        status_constraint="(%s)&&(%s)"%(status_constraint,additional_constraints)
+
     status=condorMonitor.CondorStatus("any")
     status.require_integrity(True) #important, this dictates what gets submitted
     status.glidein_name=glidein_name
