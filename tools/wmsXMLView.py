@@ -24,6 +24,7 @@ import glideinFrontendInterface
 import xmlFormat
 
 pool_name=None
+factory_name=None
 remove_condor_stats=True
 remove_internals=True
 
@@ -37,6 +38,9 @@ while (i<alen):
     if ael=='-pool':
         i=i+1
         pool_name=sys.argv[i]
+    elif ael=='-factory':
+        i=i+1
+        factory_name=sys.argv[i]
     elif ael=='-condor-stats':
         i=i+1
         remove_condor_stats=not int(sys.argv[i])
@@ -48,15 +52,24 @@ while (i<alen):
         key_obj=glideFactoryConfig.GlideinKey('RSA',sys.argv[i])
     elif ael=='-help':
         print "Usage:"
-        print "wmsXMLView.py [-pool <node>[:<port>]] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
+        print "wmsXMLView.py [-pool <node>[:<port>]] [-factory <factory>] [-condor-stats 0|1] [-internals 0|1] [-rsa_key <fname>] [-help]"
         sys.exit(1)
     else:
         raise RuntimeError,"Unknown option '%s', try -help"%ael
     i=i+1
 
 # get data
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,None,get_only_matching=False)
-clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name,None)
+factory_constraints=None
+if factory_name!=None:
+    factory_constraints='FactoryName=?="%s"'%factory_name
+
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints,get_only_matching=False)
+
+factoryclient_constraints=None
+if factory_name!=None:
+    factoryclient_constraints='ReqFactoryName=?="%s"'%factory_name
+
+clientsmon_obj=glideinFrontendInterface.findGlideinClientMonitoring(pool_name,None,factoryclient_constraints)
 
 # extract data
 glideins=glideins_obj.keys()

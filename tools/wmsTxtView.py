@@ -22,6 +22,7 @@ sys.path.append(os.path.join(sys.path[0],"../lib"))
 import glideinFrontendInterface
 
 pool_name=None
+factory_name=None
 remove_condor_stats=True
 remove_internals=True
 txt_type='Entries'
@@ -34,18 +35,25 @@ while (i<alen):
     if ael=='-pool':
         i=i+1
         pool_name=sys.argv[i]
+    elif ael=='-factory':
+        i=i+1
+        factory_name=sys.argv[i]
     elif ael in ('Entries','Sites','Gatekeepers'):
         txt_type=ael
     elif ael=='-help':
         print "Usage:"
-        print "wmsTxtView.py [-pool <node>[:<port>]] [Entries|Sites|Gatekeepers] [-help]"
+        print "wmsTxtView.py [-pool <node>[:<port>]] [-factory <factory>] [Entries|Sites|Gatekeepers] [-help]"
         sys.exit(1)
     else:
         raise RuntimeError,"Unknown option '%s', try -help"%ael
     i=i+1
 
 # get data
-glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,None,get_only_matching=False)
+factory_constraints=None
+if factory_name!=None:
+    factory_constraints='FactoryName=?="%s"'%factory_name
+
+glideins_obj=glideinFrontendInterface.findGlideins(pool_name,None,None,factory_constraints,get_only_matching=False)
 
 # Get a dictionary of
 #  RequestedIdle
