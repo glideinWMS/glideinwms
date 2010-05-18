@@ -127,7 +127,9 @@ def main_install_components():
     install_options={'a':{"title":"OSG VDT client",
                           "proc":query_vdt,"order":1},
                      'b':{"title":"Base Condor installation",
-                          "proc":install_condor,"order":2}}
+                          "proc":install_condor,"order":2},
+                     'h':{"title":"VOMS Certs",
+                          "proc":install_vomscerts,"order":8}}
 
     if os.getuid()==0:
         install_options['c']={"title":"Web server",
@@ -2199,6 +2201,14 @@ def install_vdt(minimal):
     print
     
     VDT_BASE_PATH=user_dir
+
+    # get VOMS CAs
+    print
+    print "Some non-OSG sites need VOMS certificates."
+    yn=raw_input("Do you want to install them?: (y/n) [n] ")
+    if yn=='y':
+        install_vomscerts()
+    
     return
 
 # returns a dictionary of "pacman_dir" and "cache_location"
@@ -2222,7 +2232,36 @@ def extract_vdt_data():
                 cache_location='http:'+line.split(':',3)[2]
     return {'pacman_dir':pacman_dir,'cache_location':cache_location}
     
+
+# install the VOMS certs
+def install_vomscerts():
+    global VDT_BASE_PATH
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
+    print
+    print "VOMS certs installation"
+    print
+
+    while 1:
+        default_url="http://eticssoft.web.cern.ch/eticssoft/repository/org.glite/lcg-vomscerts/5.9.0/noarch/lcg-vomscerts-5.9.0-1.tar.gz"
+        print "The default WLCG location is: %s"%default_url
+        url=raw_input("Where should I fetch the VOMS certs from?: [%s] "%default_url)
+        if url=="":
+            url=default_url
+
+        err=os.system("cd %s/glite&&rm -f vomscerts.tgz&&wget %s -O vomscerts.tgz &&tar --no-same-owner -xzvf vomscerts.tgz"%(VDT_BASE_PATH,url))
+        if err!=0:
+            print "Failed to install the VOMS certs!"
+            continue
+        break
     
+    print
+    print "VOMS certs installed"
+    print
+
+    return
 
 # Setup gridFTP
 ################################
