@@ -2950,7 +2950,7 @@ def setup_privsep():
         groups={}
         users=[]
         print
-        print "List the usernames the factroy will use"
+        print "List the usernames the factory will use"
         print "to separate frontends from one another."
         print "An empty username entry means you are done."
         while 1:
