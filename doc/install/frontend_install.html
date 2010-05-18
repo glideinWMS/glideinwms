@@ -258,10 +258,7 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 
     <p>
         Else you need to install a local copy. The suggested way is to install as the same non privileged  <b>VO Frontend</b>
-        user (see <a href="#frontend">below</a>). <br>
-        The whole process is managed by a install script described below. You will need to provide a valid 
-        <a href="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</a>, so you may as well download it before starting the 
-        installer.
+        user (see <a href="#frontend">below</a>).  The whole process is managed by a install script described below.
     </p>
 
     <p>Move into</p>
@@ -288,7 +285,7 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 
     <p>Now follow the instructions.  The installation is straightforward.</p>
 
-    <h2><a name="frontend">5. VO Frontend installation</a></h2>
+    <h2><a name="frontend">6. VO Frontend installation</a></h2>
     <p>
         The VO Frontend needs a x509 proxy to communicate with the glidein Factory. You need to create such proxy before starting a VO 
         Frontend and then keep it valid for the life of the frontend. If used for job submission (i.e. if it is passed to the glidein
@@ -475,7 +472,7 @@ Remember to set X509_USER_PROXY before starting the daemon
     <p>Edit this file to suit your needs and than create the frontend instance with:</p>
     <blockquote>/home/frontend/glideinWMS/creation/create_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
 
-    <h3>5.1. Starting the VO Frontend</h3>
+    <h3>6.1. Starting the VO Frontend</h3>
     <p>Use the startup script:</p>
     <blockquote>
         source $VDT_LOCATION/setup.sh<br>
@@ -486,7 +483,7 @@ Remember to set X509_USER_PROXY before starting the daemon
 
     <p>The same script can be used to stop, reconfig and restart the VO Frontend.</p>
 
-    <h3>5.1. Reconfiguring the VO Frontend</h3>
+    <h3>6.2. Reconfiguring the VO Frontend</h3>
     <p>
         If you make changes to the configuration file /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating
         glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
@@ -496,7 +493,7 @@ Remember to set X509_USER_PROXY before starting the daemon
     <p>If you make changes to the frontend.xml configuration file in the &lt;install dir&gt; use following command to propagate the changes</p>
     <blockquote> frontend_startup reconfig</blockquote>
 
-    <h2>6. VO Frontend monitoring</a></h2>
+    <h2>7. VO Frontend monitoring</a></h2>
     <p>There are several ways to monitor the Vo Frontend:</p>
     <ul>
         <li><a href="#monitoring_web">Using the Web monitoring</a></li>
@@ -505,7 +502,7 @@ Remember to set X509_USER_PROXY before starting the daemon
         <li><a href="#monitoring_condor">Checking the WMS collector ads</a></li>
     </ul>
 
-    <h3><a name="monitoring_web">6.1 VO frontend entry Web monitoring</a></h3>
+    <h3><a name="monitoring_web">7.1 VO frontend entry Web monitoring</a></h3>
     <p>
         You can either monitor the frontend as a whole, or just a single entry point.<br><br>
         The frontend monitoring is located at a URL like the one below
@@ -518,14 +515,14 @@ Remember to set X509_USER_PROXY before starting the daemon
     </p>
     <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/group_main/</blockquote>
 
-    <h3><a name="monitoring_tools">6.2 VO frontend monitoring via WMS tools</a></h3>
+    <h3><a name="monitoring_tools">7.2 VO frontend monitoring via WMS tools</a></h3>
     <p>You can get the equivalent of the Web page snaphot by using</p>
     <blockquote>
         cd glideinWMS/tools/<br>
         ./wmsXMLView.py -pool gfactory1.my.org
     </blockquote>
 
-    <h3><a name="monitoring_logs">6.3 VO frontend group log files</a></h3>
+    <h3><a name="monitoring_logs">7.3 VO frontend group log files</a></h3>
     <p>
         The vo frontend writes two log files per entry point <b>frontend_info.YYYYMMDD.log</b> and <b>frontend_err.YYYYMMDD.log</b>.<br><br>
         Assuming you have a main group, the log files are in
@@ -537,7 +534,7 @@ Remember to set X509_USER_PROXY before starting the daemon
         about what the VO frontend is doing.
     </p>
 
-    <h3><a name="monitoring_condor">6.4 VO frontend ClassAds in the WMS Collector</a></h3>
+    <h3><a name="monitoring_condor">7.4 VO frontend ClassAds in the WMS Collector</a></h3>
     <p>
         The VO frontned also advertises summary information in the WMS collector.<br><br>
         Use <b>condor_status</b>:
