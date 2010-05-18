@@ -423,6 +423,12 @@ def wms_install():
     yn=raw_input("Do you want to install it?: (y/n) [n]")
     if yn=='y':
         install_gridftp()
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        try:
+            config_fd.write("## GRIDFTP is used by CREAM\n")
+            config_fd.write("GRIDFTP_URL_BASE=gsiftp://$(FULL_HOSTNAME):2811\n")
+        finally:
+            config_fd.close()
 
     ##################################
     # configure secondary schedds
