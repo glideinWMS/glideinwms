@@ -2256,6 +2256,20 @@ def install_vomscerts():
             print "Failed to install the VOMS certs!"
             continue
         break
+
+    if os.getuid()==0:
+        # make also a symlink in /etc/grid-security
+        if os.path.exists('/etc/grid-security/vomsdir'):
+            # move it out of the way... for historical reasons
+            os.rename('/etc/grid-security/vomsdir','/etc/grid-security/vomsdir.%i.%i'%(time.time(),os.getpid()))
+        os.symlink(os.path.join(VDT_BASE_PATH,'glite/vomsdir'),'/etc/grid-security/vomsdir')
+    else:
+        print
+        print "Some tools (like Condor) will only look for"
+        print "VOMS certs in /etc/grid-security/vomsdir"
+        print "Please be aware of this."
+        print
+
     
     print
     print "VOMS certs installed"
