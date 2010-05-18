@@ -138,6 +138,8 @@ def main_install_components():
                               "proc":install_postgresql,"order":5}
         install_options['f']={"title":"Quill-specific PostgreSQL database",
                               "proc":query_quill_db,"order":6}
+        install_options['g']={"title":"gridFTP",
+                              "proc":install_gridftp,"order":7}
 
                      
     return installer(install_options)
@@ -414,8 +416,15 @@ def wms_install():
     finally:
         config_fd.close()
 
+    print
+    print "If you will be submitting to CREAM, you will also need gridFTP"
+    yn=raw_input("Do you want to install it?: (y/n) [n]")
+    if yn=='y':
+        install_gridftp()
+
     ##################################
     # configure secondary schedds
+    print
     if not SECONDARY_SCHEDD_SUPPORT_FILES_INSTALLED:
         create_secondary_schedd_support_files()
     
@@ -2192,6 +2201,104 @@ def install_vdt(minimal):
     VDT_BASE_PATH=user_dir
     return
 
+# returns a dictionary of "pacman_dir" and "cache_location"
+def extract_vdt_data():
+    global VDT_BASE_PATH
+
+    fd=open(os.path.join(VDT_BASE_PATH,"setup.sh"),"r")
+    try:
+        lines=fd.readlines()
+    finally:
+        fd.close()
+
+    pacman_dir=None
+    cache_location=None
+    for line in lines:
+        if line[:16]=='PACMAN_LOCATION=':
+            if pacman_dir==None:
+                pacman_dir=line.split('"',2)[1]
+        elif line[:11]=='#-- package':
+            if cache_location==None:
+                cache_location='http:'+line.split(':',3)[2]
+    return {'pacman_dir':pacman_dir,'cache_location':cache_location}
+    
+    
+
+# Setup gridFTP
+################################
+def install_gridftp():
+    global VDT_BASE_PATH
+
+    if os.getuid()!=0:
+        raise RuntimeError, "gridFTP can only be installed as root! Not doing anything!"
+
+    print "Installing gridFTP"
+    print
+
+    if VDT_BASE_PATH==None:
+        print "I can only install it from VDT"
+        print "so I need a base installation first"
+        print
+        query_vdt()
+
+    vdt_data=extract_vdt_data()
+
+    # install gridFTP code
+    err=os.system("cd %s;source setup.sh;cd %s&&pacman -trust-all-caches -get %s:Globus-Base-Data-Server"%(vdt_data['pacman_dir'],VDT_BASE_PATH,vdt_data['cache_location']))
+    if err!=0:
+        raise RuntimeError,"Failed to install gridFTP!"
+
+    print "gridFTP server installed"
+    print
+
+    print "You must now create a grid-mapfile for it"
+    print "It will likely contain the DNs of all the proxies"
+    print "the frontends will pass to you."
+    print "They should map to the appropriate frontend privsep account"
+    print
+    print "Please insert all such DNs, together with the user mappings."
+    print "An empty DN entry means you are done."
+    print 
+    
+    mappings=[]
+    while 1:
+        dn=raw_input("DN: ")
+        if dn=="":
+            break
+        user=raw_input("username: ")
+        if user=="":
+            print "username cannot be empty!"
+            print "Please retry."
+            continue
+        try:
+            group=grp.getgrgid(pwd.getpwnam(user)[3])[0]
+            user_valid=True
+        except KeyError:
+            user_valid=False
+
+        if not user_valid:
+            print "username '%s' not valid!"%user
+            print "Please retry."
+            continue
+
+        mappings.append((dn,user))
+
+    fd=open('/etc/grid-security/grid-mapfile','w')
+    for m in mappings:
+        dn,user=m
+        fd.write('"%s" %s'%(dn,user))
+    fd.close()
+
+    # enable gridFTP
+    err=os.system("cd %s&&source setup.sh&&vdt-control --enable gsiftp&&vdt-control --on"%VDT_BASE_PATH)
+    if err!=0:
+        raise RuntimeError,"Failed to enable gridFTP!"
+
+    print "gridFTP server enabled"
+    print
+
+    return
+
 # Create /etc/init.d/condor
 # startup script
 ################################
@@ -2950,7 +3057,7 @@ def setup_privsep():
         groups={}
         users=[]
         print
-        print "List the usernames the factroy will use"
+        print "List the usernames the factory will use"
         print "to separate frontends from one another."
         print "An empty username entry means you are done."
         while 1:
