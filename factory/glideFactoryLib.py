@@ -346,7 +346,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
                 os.write(fd,proxy_data)
             finally:
                 os.close(fd)
-            return fpath
+            return fname
 
         # old file exists, check if same content
         fl=open(fname,'r')
@@ -356,7 +356,7 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
             fl.close()
         if proxy_data==old_data:
             # nothing changed, done
-            return fpath
+            return fname
 
         #
         # proxy changed, neeed to update
