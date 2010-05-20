@@ -116,7 +116,8 @@ def perform_work(entry_name,
     # not reducing the held, as that is effectively per proxy, not per request
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
-        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
+        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+                                                       idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
     if nr_submitted>0:

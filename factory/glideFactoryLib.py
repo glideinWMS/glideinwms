@@ -426,7 +426,8 @@ class ClientWeb(ClientWebNoGroup):
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_attrs,
+def keepIdleGlideins(client_condorq,client_int_name,
+                     min_nr_idle,max_nr_running,max_held,submit_attrs,
                      x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
@@ -473,7 +474,7 @@ def keepIdleGlideins(client_condorq,min_nr_idle,max_nr_running,max_held,submit_a
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
         submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       condorq.client_name,min_nr_idle-idle_glideins,submit_attrs,
+                       client_int_name,min_nr_idle-idle_glideins,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
         return min_nr_idle-idle_glideins # exit, some submitted
