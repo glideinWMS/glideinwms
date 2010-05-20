@@ -346,7 +346,6 @@
       function setGroupEntriesValue(gname, val) {
           var ent_obj = document.getElementById("entries");
           var elist = (group_map[gname]).toString().split(",");
-          alert(elist.length);
           for(var i=0; i<elist.length; i++) {
               for(var j=0;(j<ent_obj.entry.length)&&(j<groups_starting_idx);j++) {
                   if ((ent_obj.entry[j].type == "checkbox") && 
