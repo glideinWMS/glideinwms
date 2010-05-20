@@ -1,4 +1,14 @@
-vNext	Installer can now install gtidFTP and VOMS certs needed by CREAM
+vNext	Installer can now install gridFTP and VOMS certs needed by CREAM
+	Add a new configuration option for PREEMPT_GRACE_TIME
+	Move configuration of GLIDEIN_Job_Max_Time from the factory to the frontend
+	In factory config added checks to make sure Factory configuration is
+	  consistent w.r.t CONDOR_ARCH, CONDOR_VERSION, CONDOR_OS 
+	Montioring enhancement to make selection/deselection of groups/entries
+	  easier
+        Improvements to documentaion
+	Bug Fix: Allow the use of the same DN for both the security and the 
+          collector 
+	Bug Fix: Returning invalid variable during proxy creation
 
 v2_4	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
