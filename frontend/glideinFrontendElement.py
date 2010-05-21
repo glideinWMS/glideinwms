@@ -127,7 +127,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     if x509_proxy_plugin!=None:
         status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
-    status_dict=glideinFrontendLib.getCondorStatus([None],1,status_format_list) # use the main collector... all adds must go there
+    status_dict=glideinFrontendLib.getCondorStatus([None],'True',status_format_list) # use the main collector... all adds must go there
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
