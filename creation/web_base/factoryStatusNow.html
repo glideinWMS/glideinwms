@@ -1,0 +1,681 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Glidein</title>
+<html>
+<head>
+
+<script type="text/javascript">
+
+
+//LOAD XML Object if it exits. 
+
+var numberRows = 0;
+var totalEntries; 
+var total;
+var sorted = 0;
+var previousSort;
+var currentSort; 
+var tableMade = 0; 
+var preNumberRows = 0; 
+
+function loadNormal()
+{
+	sorted = 0; 
+	loadXMLDoc(); 
+}
+function loadXMLDoc()
+{
+if (window.XMLHttpRequest)
+{// code for IE7+, Firefox, Chrome, Opera, Safari
+	xmlhttp=new XMLHttpRequest();
+}
+else
+{// code for IE6, IE5
+	xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+}
+  
+  
+//Wait for server to repply that it is ready.   
+xmlhttp.onreadystatechange=function()
+{
+	if (xmlhttp.readyState==4) //If 4 it it is ready. 
+    {
+		if(sorted == 0)
+		{
+			totalEntries =xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			total = xmlhttp.responseXML.documentElement.getElementsByTagName("total");
+		} 	
+		numberRows = totalEntries.length; 
+		
+		if(tableMade == 0)
+		{
+			prevNumberRows = numberRows;
+			makeTable();
+		}
+		
+		if(tableMade == 1 && numberRows != prevNumberRows)
+		{
+			window.location.reload();
+		}
+		
+		document.getElementById("total").innerHTML= "("+numberRows + " Total Entries)"; 
+		var table = document.getElementById("table"); //Access to the entire table
+	
+		//Fill in entries 
+		for( i = 1; i< numberRows+1; i++)
+		{
+			var y = totalEntries[i-1].attributes.getNamedItem("name").firstChild.data; 
+			table.rows[i].cells[0].innerHTML = y;
+		}
+		
+		//fill in the for non running entries. 
+		for(j = 1; j < 17 ; j++)
+		{
+			
+			for(i = 1; i< total.length; i++)
+			{
+				if((total[i-1].childElementCount) == 0)
+				{
+					//fill in everything excpet the first column with 0 if entry is not doing anything.
+					table.rows[i].cells[j].innerHTML = "0";
+				}	
+			}
+		}
+		/*
+		 * Fill in requested fields. 
+		 */
+		var attCount = 0; 
+		for(var counter = 1; counter <= 2; counter++)
+		{
+			for(var i = 1; i< total.length; i++)
+			{
+				if(total[i-1].childElementCount != 0)
+				{
+					var item = total[i-1].children[1].attributes[attCount].nodeValue;  	
+					table.rows[i].cells[counter].innerHTML = item; 
+				}
+			}
+			attCount++; 
+		}
+		/* 
+		 * Fill in status fields.  
+		 */
+		 attCount = 0;
+		 for(var counter = 3; counter<= 10; counter++)
+		 {
+			for(var i = 1; i< total.length; i++)
+			{
+				if(total[i-1].childElementCount != 0)
+				{
+					var item = total[i-1].lastElementChild.attributes[attCount].nodeValue;  	
+					table.rows[i].cells[counter].innerHTML = item; 			
+				}
+			}
+			attCount++; 
+		 }
+		/* 
+		 * Fill in client monitor fields 
+		 */
+		attCount = 0; 
+		for(var counter = 11; counter <= 16; counter++)
+		{
+			for(var i = 1; i< total.length; i++)
+			{
+				if(total[i-1].childElementCount != 0)
+				{
+					var item = total[i-1].firstElementChild.attributes[attCount].nodeValue; 	
+					table.rows[i].cells[counter].innerHTML = item; 
+				}
+			}
+			attCount++; 
+		}
+	}
+}
+  
+xmlhttp.open("GET", "schedd_status.xml",true);
+xmlhttp.send();
+}
+
+
+function makeTable() 
+{
+	
+var row=new Array();
+var cell=new Array();
+
+var row_num=numberRows+1; //edit this value to suit
+var cell_num=17; //edit this value to suit
+
+var table = document.createElement('table');
+var tBody=document.createElement('tbody');
+
+
+table.setAttribute('id','table');
+
+for(c = 0; c < row_num; c++)
+{
+	row[c] = document.createElement('tr');
+	if(c >= 0)
+	{
+		row[c].setAttribute('id', 'entries'); 
+		row[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
+		row[c].setAttribute('onmouseout', "this.bgColor='#EEE'"); 
+	}
+	
+
+	for(k = 0; k < cell_num; k++) 
+	{
+		cell[k] = document.createElement('td');
+
+		if( c == 0 && k == 0)
+		{
+			cont = document.createTextNode("Entry Name")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'entryName'); 
+		    cell[k].setAttribute("onClick", "loadNormal()"); 
+		}
+		if( c == 0 && k == 1)
+		{
+			cont = document.createTextNode("Requested: Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'requestIdle'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('requestIdle')"); 
+		}
+		if( c == 0 && k == 2)
+		{
+			cont = document.createTextNode("Requested: Max Run")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'requestMax'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('requestMax')"); 
+		}
+		if( c == 0 && k == 3)
+		{
+			cont = document.createTextNode("Status: Held")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusHeld'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusHeld')"); 
+		}
+		if( c == 0 && k == 4)
+		{
+			cont = document.createTextNode("Status: Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusIdle'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusIdle')"); 
+		}
+		if( c == 0 && k == 5)
+		{
+			cont = document.createTextNode("Status: Idle Other")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusOther'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusOther')"); 
+		}
+		if( c == 0 && k == 6)
+		{
+			cont = document.createTextNode("Status: Pending")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusPending'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusPending')"); 
+			
+		}
+		if( c == 0 && k == 7)
+		{
+			cont = document.createTextNode("Status: Running")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusRunning'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusRunning')"); 
+		}
+		if( c == 0 && k == 8)
+		{
+			cont = document.createTextNode("Status: StageIn")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusStageIn'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusStageIn')"); 
+		}
+		if( c == 0 && k == 9)
+		{
+			cont = document.createTextNode("Status: StageOut")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusStageOut'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusStageOut')"); 
+		}
+		if( c == 0 && k == 10)
+		{
+			cont = document.createTextNode("Status: Wait")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusWait'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('statusWait')"); 
+		}
+		if( c == 0 && k == 11)
+		{
+			cont = document.createTextNode("Client Monitor: Glidein Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinIdle'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('cmGlideinIdle')"); 
+		}
+		if( c == 0 && k == 12)
+		{
+			cont = document.createTextNode("Client Monitor: Glidein Running")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinRunning'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('cmGlideinRunning')"); 
+		}
+		if( c == 0 && k == 13)
+		{
+			cont = document.createTextNode("Client Monitor: Glidein Total")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinTotal'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('cmGlideinTotal')"); 
+		}
+		if( c == 0 && k == 14)
+		{
+			cont = document.createTextNode("Client Monitor: Info Age")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinInfoAge'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('cmGlideinInfoAge')"); 
+			
+		}
+		if( c == 0 && k == 15)
+		{
+			cont = document.createTextNode("Client Monitor : Jobs Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinJobsIdle'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('cmGlideinJobsIdle')"); 
+		}
+		if( c == 0 && k == 16)
+		{
+			cont = document.createTextNode("Client Monitor : Jobs Running")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinJobsRunning'); 
+		    cell[k].setAttribute("onClick", "sortTableDescending('cmGlideinJobsRunning')"); 
+		}
+
+		if( c > 0 )
+		{
+			cont = document.createTextNode(c+"")
+			cell[k].appendChild(cont);
+		}
+		row[c].appendChild(cell[k]);
+	}
+	tBody.appendChild(row[c]);
+	tableMade = 1;
+}
+
+table.appendChild(tBody);
+document.getElementById('tempTable').appendChild(table);
+
+} 
+function sortTableAscending(column)
+{
+
+var newTotal = new Array(); 
+var newEntries = new Array();
+var i = 0; 
+var counter = 0;
+var child; 
+var att; 
+
+if(column == "requestIdle")
+{
+	child = 1;
+	att = 0; 
+}
+if(column == "requestMax")
+{
+	child = 1; 
+	att = 1; 
+}
+if(column == "statusHeld")
+{
+	child = 2; 
+	att = 0; 
+}   
+if(column == "statusIdle")
+{
+	child = 2; 
+	att = 1; 
+}  
+if(column == "statusOther")
+{
+	child = 2; 
+	att = 2; 
+}
+if(column == "statusPending")
+{
+	child = 2; 
+	att = 3; 
+} 
+if(column == "statusRunning")
+{
+	child = 2; 
+	att = 4; 
+}
+if(column == "statusStageIn")
+{
+	child = 2; 
+	att = 5; 
+} 
+if(column == "statusStageOut")
+{
+	child = 2; 
+	att = 6; 
+}
+if(column == "statusWait")
+{
+	child = 2; 
+	att = 7; 
+} 
+if(column == "cmGlideinIdle")
+{
+	child = 0; 
+	att = 0; 
+} 
+if(column == "cmGlideinRunning")
+{
+	child = 0; 
+	att = 1; 
+} 
+if(column == "cmGlideinTotal")
+{
+	child = 0; 
+	att = 2; 
+} 
+if(column == "cmGlideinInfoAge")
+{
+	child = 0; 
+	att = 3; 
+} 
+if(column == "cmGlideinJobsIdle")
+{
+	child = 0; 
+	att = 4; 
+}
+if(column == "cmGlideinJobsRunning")
+{
+	child = 0; 
+	att = 5; 
+}
+
+
+/* Empty entries. */
+for(var i = totalEntries.length -1 ; i >= 0; i--)
+{
+	if(total[i].childElementCount == 0)
+	{		
+		newTotal.push(total[i]); 
+		newEntries.push(totalEntries[i]); 	
+	}
+}
+
+for(var i = totalEntries.length - 1; i >= 0; i--)
+{	
+	if(total[i].childElementCount != 0)
+	{
+		if(parseInt(total[i].children[child].attributes[att].nodeValue) == 0)
+		{
+			newTotal.push(total[i]); 
+			newEntries.push(totalEntries[i]); 
+		}
+	}
+}
+
+for(var i = 0; i< totalEntries.length; i++)
+{
+	if(total[i].childElementCount != 0)
+	{
+	   if(total[i].children[child].attributes[att].nodeValue > 0)
+	   {
+		   newTotal.push(total[i]); 
+		   newEntries.push(totalEntries[i]); 
+	   }	
+	}
+}	
+for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
+{
+    for(var j = i+1; j < newTotal.length; j++)   // rest of the elements
+    {
+		if(newTotal[i].childElementCount != 0)
+		{
+			if (parseInt(newTotal[i].children[child].attributes[att].nodeValue) > parseInt(newTotal[j].children[child].attributes[att].nodeValue))          // descending order
+        	{
+            	temp = newTotal[i];              // swap
+				newTotal[i] = newTotal[j];
+            	newTotal[j] = temp;
+				temp = newEntries[i];            // swap
+				newEntries[i] = newEntries[j];
+            	newEntries[j] = temp;
+        	}
+		}
+	}
+}
+
+currentSort = "ascending"; 
+newTotal.push(1);
+previousSort = column; 
+total = newTotal; 
+totalEntries = newEntries; 
+sorted = 1; 
+loadXMLDoc();
+
+}
+
+function sortTableDescending(column)
+{
+	
+if(previousSort != column)
+{
+	sorted = 0; 
+}
+if(sorted == 1 && currentSort != "ascending")
+{
+	sorted = 0; 
+ 	sortTableAscending(column); //replace sortTableDescending(column) 
+    return; 
+}
+
+var newTotal = new Array(); 
+var newEntries = new Array();
+var i = 0; 
+var counter = 0;
+var child; 
+var att; 
+
+if(column == "requestIdle")
+{
+	child = 1;
+	att = 0; 
+}
+if(column == "requestMax")
+{
+	child = 1; 
+	att = 1; 
+}
+if(column == "statusHeld")
+{
+	child = 2; 
+	att = 0; 
+}   
+if(column == "statusIdle")
+{
+	child = 2; 
+	att = 1; 
+}  
+if(column == "statusOther")
+{
+	child = 2; 
+	att = 2; 
+}
+if(column == "statusPending")
+{
+	child = 2; 
+	att = 3; 
+} 
+if(column == "statusRunning")
+{
+	child = 2; 
+	att = 4; 
+}
+if(column == "statusStageIn")
+{
+	child = 2; 
+	att = 5; 
+} 
+if(column == "statusStageOut")
+{
+	child = 2; 
+	att = 6; 
+}
+if(column == "statusWait")
+{
+	child = 2; 
+	att = 7; 
+} 
+if(column == "cmGlideinIdle")
+{
+	child = 0; 
+	att = 0; 
+} 
+if(column == "cmGlideinRunning")
+{
+	child = 0; 
+	att = 1; 
+} 
+if(column == "cmGlideinTotal")
+{
+	child = 0; 
+	att = 2; 
+} 
+if(column == "cmGlideinInfoAge")
+{
+	child = 0; 
+	att = 3; 
+} 
+if(column == "cmGlideinJobsIdle")
+{
+	child = 0; 
+	att = 4; 
+}
+if(column == "cmGlideinJobsRunning")
+{
+	child = 0; 
+	att = 5; 
+}
+
+for(var i = 0; i< totalEntries.length; i++)
+{
+	if(total[i].childElementCount != 0)
+	{
+	   if(total[i].children[child].attributes[att].nodeValue > 0)
+	   {
+		   newTotal.push(total[i]); 
+		   newEntries.push(totalEntries[i]); 
+	   }	
+	}
+}	
+for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
+{
+    for(var j = i+1; j < newTotal.length; j++)   // rest of the elements
+    {
+		if (parseInt(newTotal[i].children[child].attributes[att].nodeValue) < parseInt(newTotal[j].children[child].attributes[att].nodeValue))          // descending order
+        {
+            temp = newTotal[i];              // swap
+			newTotal[i] = newTotal[j];
+            newTotal[j] = temp;
+			temp = newEntries[i];            // swap
+			newEntries[i] = newEntries[j];
+            newEntries[j] = temp;
+        }
+	}
+}
+for(var i = totalEntries.length - 1; i >= 0; i--)
+{	
+	if(total[i].childElementCount != 0)
+	{
+		if(parseInt(total[i].children[child].attributes[att].nodeValue) == 0)
+		{
+			newTotal.push(total[i]); 
+			newEntries.push(totalEntries[i]); 
+		}
+	}
+}	
+/* Empty entries. */
+for(var i = totalEntries.length -1 ; i >= 0; i--)
+{
+	if(total[i].childElementCount == 0)
+	{		
+		newTotal.push(total[i]); 
+		newEntries.push(totalEntries[i]); 	
+	}
+}
+
+
+currentSort = "descending";
+newTotal.push(1);
+previousSort = column; 
+total = newTotal; 
+totalEntries = newEntries; 
+sorted = 1; 
+loadXMLDoc(); 
+
+}
+
+</script>
+<style = "text/css">
+
+td
+{
+	border: 2px solid #BBB; 
+	border-width: thin;
+	padding:5px;
+	font-size:12px;
+}
+#title
+{
+	color: #000; 	
+	font: bold 330%/100% "Times New Roman";
+	text-decoration:none;
+	text-align:absolute;
+	left:50%; 
+}
+#entries
+{
+	  font-weight: bold;  
+}
+#table
+{
+	background-color:#EEE
+}
+#total
+{
+	color:#D00;
+}
+input.groovybutton
+{
+   font-family:Lucida Console,monospace;   font-weight:bold;
+   text-decoration:underline;
+   color: #330000;
+   width: 110px;
+}
+
+</style>
+
+</style>
+
+</head>
+<body>
+<script type = "text/javascript"> loadXMLDoc() </script>
+<a id = "title"  style="font-size:40px" > Glidein Factory Status </a>
+<h5 id = "total">(Total Entries)</h5><br /> 
+<form name="groovyform" onclick="loadNormal()">
+<input
+   type="button"
+   name="groovybtn1"
+   class="groovybutton"
+   value="Update Table"
+   title="">
+</form>
+<div id="tempTable"></div> 
+
+</body>
+</html>
