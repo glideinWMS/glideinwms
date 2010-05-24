@@ -212,7 +212,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             for line in monitor_config_line:
                 monitor_config_fd.write(line + "\n")
           except IOError,e:
-            raise RuntimeError,"Error writing into file %s"%filepath
+            raise RuntimeError,"Error writing into file %s"%monitor_config_file
         finally:
             monitor_config_fd.close()
     
