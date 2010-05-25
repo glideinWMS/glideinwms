@@ -6,34 +6,40 @@
     <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
 <body LANG="en-US" DIR="LTR">
-    <h1>Installation of the glidein&nbsp;pool&nbsp;Collector</h1>
+    <h1><a href="index.html">Installation Guide</a></h1>
     
-    <hr>
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a class="selected" href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#description">Description</a></li>
+	<li><a href="#hardware">Hardware requirements</a></li>
+	<li><a href="#software">Needed software</a></li>
+	<li><a href="#before_install">Before you begin...</a></li>
+	<li><a href="#condor">Installation</a></li>
+    </ul>
+    <div class="content">
 
-    <table>
-    <tr align="center">
-        <td>[</td><td><a href="#description">Description</a></td>
-        <td>|</td><td><a href="#hardware">Hardware requirements</a></td>
-        <td>|</td><td><a href="#software">Needed software</a></td>
-        <td>|</td><td><a href="#before_install">Before you begin...</a></td>
-        <td>|</td><td><a href="#condor">Installation instructions</a></td>
-        <td>]</td>
-    </tr>
-   </table>
-
-    <hr>
-
-    <table cellpadding=2 cellspacing=2>
-    <tr>
-        <td valign=TOP>
+   <h2 class="header">Installation of the Glidein Pool Collector</h2>
+    
+    <div class="section">
             <h2><a name="description">1. Description</a></h2>
+            <p><img src="overview_collector.png" name="Collector Overview" align="right" border=0></p>
             <p>
                 The glidein pool Collector node will be the 
                 <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor Central Manager</A> for
                 the glidein pool, i.e. it will run the Condor Collector and Negotiator daemons. These daemons define the glidein pool; if this node
                 dies, the pool dies with it.
             </p>
+    </div>
 
+
+    <div class="section">
             <h2><a name="hardware">2. Hardware requirements</a></h2>
             <table class="requirements" style="width: 500px;">
             <tr class="head">
@@ -63,14 +69,12 @@
             <p>
                 The <b>disk</b> needed is just for Condor binaries and log files (<b>5GB</b> should be enough)
             </p>
-        </td>
-        <td>
-            <p><img src="overview_collector.png" name="Collector Overview" align=bottom border=0></p>
-        </td>
-    </tr>
-    </table>
 
 
+    </div>
+
+
+    <div class="section">
     <h2><a name="software">3. Needed software</a></h2>
     <table class="requirements">
     <tr class="head">
@@ -81,27 +85,27 @@
     <tr>
         <td>Linux OS</td>
         <td>A reasonably recent Linux OS (RH/SL4 nad RH/SL5 tested at press time).</td>
-        <td align="center"> X </td>
+        <td class="checked"> X </td>
     </tr>
     <tr>
         <td><a href="http://www.python.org/">Python</a> interpreter</td>
         <td>v2.3.4 or above</td>
-        <td align="center"> X </td>
+        <td class="checked"> X </td>
     </tr>
     <tr>
         <td>The <a href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG client software</a>.</td>
         <td>This can be installed prior to glideinWMS, but the installer can install it inline with the glideinWMS install</td>
-        <td align="center"> &nbsp; </td>
+        <td> &nbsp; </td>
     </tr>
     <tr>
         <td>The <a href="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</a> as a tarball.</td>
         <td>The installer will use the tarball to install and configure Condor inline</td>
-        <td align="center"> &nbsp; </td>
+        <td> &nbsp; </td>
     </tr>
     <tr>
         <td>The <a href="index.html">glideinWMS software</a>.</td>
         <td>&nbsp;</td>
-        <td align="center"> &nbsp; </td>
+        <td> &nbsp; </td>
     </tr>
     </table>
 
@@ -118,6 +122,10 @@
         </li>
     </ul>
 
+    </div>
+
+
+    <div class="section">
     <h2><a name="before_install">4. Before you begin...</a></h2>
     <p>
         The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
@@ -135,6 +143,10 @@
     </p>
     
     
+    </div>
+
+
+    <div class="section">
     <h2><a name="condor">5. Installation instructions</a></h2>
     <P>
         The pool Collector can be installed either as root or as a non privileged user. Either case, make sure that the user has access to the 
@@ -151,9 +163,63 @@
     <blockquote>./glideinWMS_install</blockquote>
     
     <p>
-        You will be presented with the service selection screen. Follow the instructions and install all the software components. Most of the
-        questions should be fairly straightforward. The part that is not completely automatic is the configuration of the GSI security; you
-        will need to provide the DN(s) of the glideins, the DNs of all the submit machines and the DN of the VO frontend.
+        You will be presented with the service selection screen. Choose [4] for the user pool collector, and f
+ollow the instructions and install all the software components. Further detail and a walk-through is presented below:
+
+    <table class="requirements">
+    <tr class="head">
+	<td>Field</td>
+	<td>Installation Text</td>
+	<td>Description</td>
+    </tr>
+    <tr>
+	<td>Condor</td>
+	<td><i>Where do you have the Condor tarball?<br/>
+		Where do you want to install it?</i></td>
+	<td>
+		The user pool collector is part of the Condor pool that will actually run the user's jobs.
+		This will be the server that you will submit jobs to.  This piece of the install will configure 
+		the collector to work with the submitted glideins.<br/>
+		For this, you will need a condor distribution and a location to install to.  It will also
+		prompt for a administrator email.
+	</td>
+    </tr>
+    <tr>
+	<td>GSI Security</td>
+	<td><i>Where can I find the directory with the trusted CAs? </i></td>
+	<td>
+		GSI security is based on x509 certificates.  
+		First, you will need a list of trusted certificates.  VDT comes with a list of certificates, so, if you install that now (or have installed it previously), you can install that now.  Note that you may have to update your certificates if you have an old VDT installation.<br/>
+		You will next need a certificate or proxy for the user pool collector.  See <a href="#before_install_certs">the previous section</a> for more information on required certificates and proxies.</a>
+
+	</td>
+    </tr>
+    <tr>
+	<td>
+		PrivSep
+	</td>
+	<td><i>Please insert all such DNs, together with a user nickname.</i></td>
+	<td>
+		You will need to provide the DN(s) of the glideins, the DNs of all the submit machines and the DN of the VO frontend.
+		<br/>
+		The installer will then configure the condor_mapfile (located in the certs directory for each condor install).<br/>
+		See <a href="gsi_authentication_model.html">GSI Reference</a> for more information.
+	</td>
+    </tr>
+    <tr>
+	<td>Condor configuration</td>
+	<td><i>What name would you like to use for this pool?<br/>
+		How many slave collectors do you want?</i>
+	</td>
+	<td>
+		You will need to provide a name for your pool, and determine how many slave collectors you will need.
+		<br/>
+		The number of slave collectors will vary based on the number of jobs and other factors and can 
+		later be tuned.
+	</td>
+    </tr>
+    </table>
+
     </p>
     
     <p>Here a possible set of answers is presented; your setup will probably be slightly different:</p>
@@ -266,6 +332,10 @@ What name would you like to use for this pool?: [My pool] <B>TestPool</B>
 How many slave collectors do you want?: [10] <B>10</B>
     </pre>
 
+    </div>
+
+
+    <div class="section">
     <h2>6. To Start/Stop Pool Collector</h2>
     <p>
         Setup the environment
@@ -284,8 +354,8 @@ How many slave collectors do you want?: [10] <B>10</B>
     <blockquote>/home/condor/sbin/condor_off -master</blockquote>
 
     <p><a href="index.html">Back to the index</a></p>
-    
-    <hr>
+    </div>    
+</div>
     <p><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
 </body>
 </html>

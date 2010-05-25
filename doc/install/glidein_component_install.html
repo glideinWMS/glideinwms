@@ -7,25 +7,130 @@
 </head>
 
 <body lang="en-US" dir="ltr">
-    <h1>Installation of the WMS Components with the Installer</h1>
-        
-    <hr>
+ <h1><a href="index.html">Installation Guide</a></h1>
     
-    <table>
-    <tbody>
-        <tr align="center">
-            <td>[</td><td><a href="#system_httpd">HTTPD Server</a></td>
-            <td>|</td><td><a href="#system_vdt">OSG VDT Client</a></td>
-            <td>|</td><td><a href="#system_rrdtool">RRDTool</a></td>
-            <td>|</td><td><a href="#system_m2crypto">M2Crypto</a></td>
-            <td>|</td><td><a href="#system_javascriptRRD">javascriptRRD</a></td>
-            <td>]</td>
-        </tr>
-    </tbody>
-    </table>
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#system_httpd">HTTPD Server</a></li>
+	<li><a href="#system_vdt">OSG VDT Client</a></li>
+	<li><a href="#system_rrdtool">RRDTool</a></li>
+	<li><a href="#system_m2crypto">M2Crypto</a></li>
+	<li><a href="#system_javascriptRRD">javascriptRRD</a></li>
+    </ul>
+<div class="content">
+    <h2 class="header">Installation of the WMS Components with the Installer</h2>
+	<p>        
+	Before you begin make sure the following software is either installed or available for installation.
+	</p>
+	<table class="requirements">
+		<tr class="head">
+			<td>Software</td>
+			<td>Version</td>
+			<td>WMS collector</td>
+			<td>Factory</td>
+			<td>User collector</td>
+			<td>Submit</td>
+			<td>VO Frontend</td>
+			<td>Comments</td>
+		</tr>
+		<tr>
+			<td> glideinWMS </td>
+			<td> v2.4 </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+		</tr>
+		<tr>
+			<td> Condor </td>
+			<td> v7.2.+ </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> SL3 x86 binaries should work everywhere. <br>For x86_64 OSG, you need to install 32 bit compatibility libraries. It is HIGHLY recommended that the SL3 x86 binaries be used. </td>
+		</tr>
 
-    <hr>
+		<tr>
+			<td> OSG client </td>
+			<td> current version </td>
+			<td class="checked"> y </td>
+			<td class="checked"> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> Needed to generate grid/voms proxies. </td>
+		</tr>
+		<tr>
+			<td> Python </td>
+			<td> v2.3.4+ </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+		</tr>
+		<tr>
+			<td> HTTP server </td>
+			<td> latest version </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> Apache, TUX or server of choice. </td>
+		</tr>
 
+		<tr>
+			<td> RRDTool </td>
+			<td> V1.1.18+ </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td > 
+					<a href="http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm</a> <br>http://dag.wieers.com/rpm/packages/rrdtool/perl-rrdtool-1.2.18-1.el4.rf.i386.rpm <br>http://dag.wieers.com/rpm/packages/rrdtool/python-rrdtool-1.2.18-1.el4.rf.i386.rpm 
+			</td>
+		</tr>
+		<tr>
+			<td> M2Crypto </td>
+			<td> v0.17+ </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td> y </td>
+			<td> This can be installed using yum, if available. Or via a tarball from <a href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a> </td>
+
+		</tr>
+		<tr>
+			<td> javascript RRD </td>
+			<td> v0.5.0 </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> <a href="http://sourceforge.net/projects/javascriptrrd/files/javascriptrrd/" target="_top">http://sourceforge.net/projects/javascriptrrd/files/javascriptrrd/</a> <br>There are some distributions of this with the flot, in which case you will not have to install flot separately. </td>
+
+		</tr>
+	</table>
+
+<div class="section">
     <h2><a name="system_httpd">1. HTTP server</a></h2>
   
     <p>To use the installer, move into</p>
@@ -67,7 +172,10 @@
 
     <p>Select <b>c</b>.</p>
     <p>Now follow the instructions.  Most of the questions should be fairly straightforward.</p>
+</div>
 
+
+<div class="section">
     <h2><a name="system_vdt">2. OSG VDT Client</a></h2>
     <p>
         At times the installer will give you the option to install the OSG VDT client.  Below is an example of an intall for reference.  It can also
@@ -155,6 +263,10 @@ Do you want OSG_VDT_BASE defined globally?: (y/n) <b>y</b>
 
 VDT client installed
     </pre>
+</div>
+
+
+<div class="section">
 
     <h3><a name="system_rrdtool">3. RRDTool</a></h3>
     <p>
@@ -179,6 +291,10 @@ VDT client installed
         Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs 
         (or similar). 
     </p>
+</div>
+
+
+<div class="section">
 
     <h3><a name="system_m2crypto">4. M2Crypto</a></h3>
 
@@ -207,6 +323,10 @@ VDT client installed
 
     <blockquote>export PYTHONPATH=$PYTHONPATH:<i>&lt;base dir&gt;</i>/usr/lib/python2.3/site-packages/</blockquote>
     <br>
+</div>
+
+
+<div class="section">
 
     <h3><a name="system_javascriptRRD">5. javascriptRRD</a></h3>
 
@@ -215,6 +335,7 @@ VDT client installed
         javascript libraries needed by the monitoring.  Just download the tarball (with flot), and untar it.  You will need to 
         point the installer to this directory.
     </p>
-
+</div>
+</div>
 </body>
 </html>
