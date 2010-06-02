@@ -9,6 +9,11 @@ vNext	Installer can now install gridFTP and VOMS certs needed by CREAM
 	Bug Fix: Allow the use of the same DN for both the security and the 
           collector 
 	Bug Fix: Returning invalid variable during proxy creation
+	Support GLIDEIN_Glexec_Use in frontend config attrs. Frontend can 
+	  mandate or make the use of GLEXEC optional. Used in conjunction with
+	  GLEXEC_BIN in factory config. If GLEXEC_BIN in set to NONE for an 
+	  entry in factory config, it is assumed that the entry doesn't have
+	  GLEXEC configured on site.
 
 v2_4	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
