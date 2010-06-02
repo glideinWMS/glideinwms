@@ -1623,7 +1623,7 @@ def vofrontend_install():
         factory_attributes=default_factory_attributes
 
     if factory_attributes=="":
-        factory_attr_list=""
+        factory_attr_list=[]
     else:
         factory_attr_list=string.split(factory_attributes,',')
 
@@ -1674,6 +1674,19 @@ def vofrontend_install():
 
         glidein_proxies.append(a_fname)
         glidein_proxies_dns.append(a_dn)
+
+    # Expose Grid Env
+    glexec_use = ""
+    default_glexec_use = "OPTIONAL"
+    while 1:
+        print "You can enforce the use of glexec if available and configured at site. If you do not want to use GLEXEC at all answer NEVER. If you want to enforce the use of glexec answer REQUIRED. If set to OPTIONAL, glexec will be used if configured at the site."
+        glexec_use=raw_input("How do you want to categorize the use of glexec if available at sites?: (NEVER/OPTIONAL/REQUIRED) [%s]" % default_glexec_use)
+        if glexec_use == "":
+            glexec_use = default_glexec_use
+        if glexec_use not in ("NEVER", "OPTIONAL", "REQUIRED"):
+            print "Please answer NEVER or OPTIONAL or REQUIRED"
+            continue 
+        break
 
     # USE_MATCH_AUTH
     # This way the glidein does not need to have the DNs of all the schedds
@@ -1731,6 +1744,7 @@ def vofrontend_install():
             fd.write('      </job>\n')
             fd.write('   </match>\n')
             fd.write('   <attrs>\n')
+            fd.write('      <attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(glexec_use))
             fd.write('      <attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>\n'%(gridenv_yn=='y'))
             # this is needed for the security to work
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
@@ -1742,6 +1756,8 @@ def vofrontend_install():
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
             fd.write('         <match match_expr=%s>\n'%xmlFormat.xml_quoteattr(match_str))
+
+
             if len(factory_attr_list)>0:
                 attr_query_arr=[]
                 for job_attr in factory_attr_list:
