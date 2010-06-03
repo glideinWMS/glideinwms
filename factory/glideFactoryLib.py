@@ -10,6 +10,7 @@
 
 import os,sys
 import time
+import string
 import re
 import traceback
 import pwd
