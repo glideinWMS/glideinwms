@@ -35,6 +35,7 @@ valid_options = [ "node",
 "condor_admin_email", 
 "split_condor_config", 
 "install_vdt_client", 
+"glexec_use",
 "match_string",
 "web_location",
 "web_url",
@@ -126,6 +127,9 @@ class VOFrontend(Condor):
   def expose_grid_env(self):
     return self.option_value(self.ini_section,"expose_grid_env")
   #--------------------------------
+  def glexec_use(self):
+    return string.upper(self.option_value(self.ini_section,"glexec_use"))
+  #--------------------------------
   def glidein_proxies(self):
     return   self.option_value(self.ini_section,"glidein_proxies")
   #--------------------------------
@@ -143,6 +147,7 @@ class VOFrontend(Condor):
     self.get_submit()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     ## JGW Need to figure out how to re-installa and leave condor alone
+    self.validate_install()
     self.glidein.validate_install()
     self.glidein.__install_vdt_client__()
     self.glidein.create_web_directories()
@@ -163,6 +168,13 @@ class VOFrontend(Condor):
     self.create_frontend()
     self.start()
     common.logit ("======== %s install complete ==========" % self.ini_section)
+
+  #---------------------------------
+  def validate_install(self):
+    #-- glexec use values ---
+    valid_glexec_use_values = [ "REQUIRED","OPTIONAL","NEVER" ]
+    if self.glexec_use() not in valid_glexec_use_values:
+      common.logerr("The glexec_use value specified (%s) in the ini file is invalid.\n      Valid values are: %s" % (self.glexec_use(),valid_glexec_use_values)) 
 
   #---------------------------------
   def get_config_data(self):
@@ -550,6 +562,8 @@ please verify and correct if needed.
   #------------------------------------------
   def config_attrs_data(self):
     data = """%s<attrs>""" % (common.indent(1))
+    data = data + """%s<attr name="GLIDEIN_Glexec_Use" value="%s" glidein_publish="True" job_publish="True" parameter="False" type="string"/>""" %\
+            (common.indent(2),self.glexec_use())
     data = data + """%s<attr name="GLIDEIN_Expose_Grid_Env" value="%s" glidein_publish="True" job_publish="True" parameter="False" type="string"/>""" %\
             (common.indent(2),self.expose_grid_env())
     data = data + """%s<attr name="USE_MATCH_AUTH" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/> """ %\
