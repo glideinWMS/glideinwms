@@ -45,13 +45,13 @@ class Glidein(Configuration):
     return self.option_value(self.ini_section,"instance_name")
   #---------------------
   def service_dir(self):
-    return "%s/%s_%s" % (self.install_location(),self.service_name(),self.instance_name())
+    return "%s/glidein_%s" % (self.install_location(),self.instance_name())
   #---------------------
   def config_dir(self):
-    return "%s.cfg" % (self.service_dir())
+    return "%s/glidein_%s.cfg" % (self.install_location(),self.instance_name())
   #---------------------
   def config_file(self):
-    return "%s/%s.xml" % (self.config_dir(),self.service_name())
+    return "%s/factory.xml" % (self.config_dir())
   #---------------------
   def node(self):
     return self.option_value(self.ini_section,"node")
@@ -137,20 +137,26 @@ class Glidein(Configuration):
     common.logit( "... validating")
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
+    common.validate_installer_user(self.unix_acct())
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     self.preinstallation_software_check()
+    self.validate_web_location()
     common.validate_install_location(self.install_location())
+    common.logit( "... validation complete\n")
+
+  #---------------------
+  def validate_web_location(self):
+    dir = self.web_location()
+    if not os.path.isdir(dir):
+      common.logerr("web location (%s) does not exist.\n       It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
+    if common.not_writeable(dir):
+      common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
+    common.logit("... web location valid")
 
   #---------------------
   def preinstallation_software_check(self):
     common.logit("Pre-installation monitoring software check started")
     errors = 0
-    #--- web location ---
-    if not os.path.isdir(self.web_location()):
-      common.logerr("... ERROR: web location does not exist: %s" % self.web_location())
-    else:
-      common.logit("... web location valid")
-
     ##-- rrdtool --
     module = "rrdtool"
     if common.module_exists(module):
@@ -176,7 +182,7 @@ class Glidein(Configuration):
       common.logit("... ERROR: %s not installed or not in PYTHONPATH: %s" % (module,self.m2crypto()))
 
     ##-- javascriptrrd --
-    filename = os.path.join(self.javascriptrrd(),"src/lib/rrdFile.js")
+    filename = os.path.join(self.javascriptrrd(),"src/lib/rrdMultiFile.js")
     if os.path.exists(filename):
       common.logit("... javascriptrrd available")
       common.logit(filename)
@@ -195,7 +201,7 @@ class Glidein(Configuration):
 
     if errors > 0:
       common.logerr("%i required software modules not available." % errors)
-    common.logit("Pre-installation monitoring software check completed")
+    common.logit("Pre-installation monitoring software check completed\n")
 
     return 
 
@@ -203,7 +209,7 @@ class Glidein(Configuration):
   def install_javascriptrrd(self):
     common.logit("... installing javascriptrrd")
     dir = (os.path.dirname(self.javascriptrrd()))
-    common.make_directory(dir)
+    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
     tarball = self.javascriptrrd_tarball()
     if not os.path.exists(tarball):
       common.logerr("javascriptrrd tarball does not exist: %s" % tarball)
@@ -216,7 +222,7 @@ class Glidein(Configuration):
   def install_flot(self):
     common.logit("... installing flot")
     dir = (os.path.dirname(self.flot()))
-    common.make_directory(dir)
+    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
     tarball = self.flot_tarball()
     if not os.path.exists(tarball):
       common.logerr("flot tarball does not exist: %s" % tarball)
@@ -229,7 +235,7 @@ class Glidein(Configuration):
   def install_m2crypto(self):
     common.logit("... installing M2Crypto")
     dir = (os.path.dirname(self.m2crypto()))
-    common.make_directory(dir)
+    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
     tarball = self.m2crypto_tarball()
     if not os.path.exists(tarball):
       common.logerr("M2Crypto tarball does not exist: %s" % tarball)
@@ -244,31 +250,11 @@ class Glidein(Configuration):
 
   #---------------------
   def create_web_directories(self):
-    common.logit("Creating monitoring web directories in %s" % self.web_location())
+    common.logit("\n-- Creating monitoring web directories in %s" % self.web_location())
     for sdir_name in ("stage","monitor"):
       sdir_fullpath=os.path.join(self.web_location(),sdir_name)
-      if not os.path.exists(sdir_fullpath):
-        try:
-          os.mkdir(sdir_fullpath)
-          common.logit("... %s created" % sdir_fullpath)
-        except:
-          common.logerr("Cannot create dir '%s'.\n.. %s must be writable by user %s." %s (dir_fullpath,self.web_location(),self.unix_acct()))
-      else:
-        common.logit("... %s already exists" % sdir_fullpath)
-        #-- verify writable if aleady exists ---
-        test_fname=os.path.join(sdir_fullpath,"test.txt")
-        try:
-          fd=open(test_fname,"w")
-          fd.close()
-          os.unlink(test_fname)
-        except:
-          common.logerr("web directory (%s) exists but not writable by user %s." %s (dir_fullpath,self.unix_acct()))
-        yn = common.ask_yn("The %s directory already exists and may constain data.\nThis may cause a failure when you try to create the factory or frontend.\nDo you want to delete it." % sdir_fullpath)
-        if yn == "y":
-          err = os.system("rm -rf %s/*" % sdir_fullpath)
-          if err != 0:
-            common.logerr("Problem deleting %s files" % sdir_fullpath)
-          common.logit("Files in %s  deleted\n" % sdir_fullpath)
+      common.make_directory(sdir_fullpath,self.unix_acct(),0755,empty_required=True)
+    common.logit("-- Monitoring web directories created.\n")
 
 #---------------------------
 def show_line():

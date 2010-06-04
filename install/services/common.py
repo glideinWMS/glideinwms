@@ -35,13 +35,69 @@ def write_file(mode,perm,filename,data):
   os.chmod(filename,perm) 
 
 #--------------------------
-def make_directory(dirname):
-  if not os.path.isdir(dirname):
-    os.makedirs(dirname)
-    os.chmod(dirname,0755)
-    logit( "... directory created: %s" % dirname)
+def make_directory(dirname,owner,perm,empty_required=True):
+  if os.path.isdir(dirname):
+    if not_writeable(dirname):
+      logerr("Directory (%s) exists but is not writable by user %s" % (dirname,owner))
+    if empty_required:
+      if len(os.listdir(dirname)) == 0:
+        return  # we done.. all is ok
+      if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
+        logerr("Terminating at your request")
+      if not_writeable(os.path.dirname(dirname)):
+        logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
+      remove_dir_contents(dirname)
+      return  # we done.. all is ok
+  #-- create it but see if parent exists first --
+  dirs = []
+  parent_dir = os.path.dirname(dirname)
+  if os.path.isdir(parent_dir):
+    dirs.append(dirname)
+    if not_writeable(parent_dir):
+      logerr("Cannot create %s because of permissions/ownership\n       of parent dir(%s)" % (dirname,parent_dir))
   else:
-    logit( "... directory already exists: %s" % dirname)
+    dirs = [ parent_dir,dirname,]
+  for dir in dirs:
+    try:
+      if not os.path.isdir(dir):
+        os.makedirs(dir)
+      os.chmod(dir,perm)
+      uid = pwd.getpwnam(owner)[2]
+      gid = pwd.getpwnam(owner)[3]
+      os.chown(dir,uid,gid)
+    except:
+      logerr("Failed to create or set permissions/ownership(%s) on directory: %s" % (owner,dir))
+    logit( "... directory created: %s" % dir)
+  return
+  
+#--------------------------
+def remove_dir_contents(dirname):
+  err = os.system("rm -rf %s/*" % dirname)
+  if err != 0:
+    logerr("Problem deleting files in %s" % dirname)
+  logit("Files in %s  deleted\n" % dirname)
+  
+#--------------------------
+def not_writeable(dirname):
+  test_fname=os.path.join(dirname,"test.txt")
+  try:
+    fd=open(test_fname,"w")
+    fd.close()
+    os.unlink(test_fname)
+  except:
+    return True
+  return False
+
+#--------------------------
+def has_permissions(dir,level,perms):
+  result = True
+  mode =  stat.S_IMODE(os.lstat(dir)[stat.ST_MODE])
+  for perm in perms:
+    if mode & getattr(stat,"S_I"+perm+level):
+      continue
+    result = False
+    break
+  return result
 
 #--------------------------
 def remove_dir_path(dirname):
@@ -108,17 +164,22 @@ def validate_email(email):
 
 #--------------------------------
 def validate_install_location(dir):
-  if os.path.isdir(dir):
-    logit("WARNING: Install location (%s) already exists." % (dir))
-    yn = ask_yn("Would you like to remove it and re-install")
-    if yn == "y":
-      yn = ask_yn("Are you really sure of this.")
-    if yn == "y":
-      logit("... removing %s" %dir)
-      os.system("rm -rf %s" % dir)
-    else:
-      logerr("Terminating at your request")
-
+  logit("... checking install location: %s" % dir)
+  if not os.path.isdir(dir):
+    return
+  if not_writeable(dir):
+    logerr("Install location must have write permissions for user(%s)" % self.unix_acct())
+  if len(os.listdir(dir)) == 0:
+    return  # it's empty that is good 
+  logit("WARNING: Install location (%s) exists and has content." % (dir))
+  yn = ask_yn("Would you like to remove it and re-install")
+  if yn == "y":
+    yn = ask_yn("Are you really sure of this.")
+  if yn == "y":
+    logit("... removing %s" %dir)
+    os.system("rm -rf %s" % dir)
+  else:
+    logerr("Terminating at your request")
 
 #--------------------------------
 def ask_yn(question):
@@ -138,9 +199,15 @@ def validate_node(node):
 #--------------------------------
 def validate_user(user):
   try:
-    pwd.getpwnam(user)
+    x = pwd.getpwnam(user)
   except:
     logerr("User account (%s) does not exist. Either create it or specify a different user." % (user))
+
+#--------------------------------
+def validate_installer_user(user):
+  install_user = pwd.getpwuid(os.getuid())[0]
+  if user <> install_user:
+    logerr("You are installing as user(%s).\n       The ini file says it should be user(%s)." % (install_user,user))
 
 #--------------------------------
 def validate_gsi(dn_to_validate,type,location):
@@ -154,8 +221,11 @@ def get_gsi_dn(type,filename):
       or proxy.  Using openssl, If it is a proxy, use the -issuer argument.
       If a certificate, use the -subject argument.
   """
+  install_user = pwd.getpwuid(os.getuid())[0]
   if type == "proxy":
     arg = "-issuer"
+    if not os.path.isfile(filename):
+      logerr("Proxy (%s)\nnot found or has wrong permissions/ownership.\nThe proxy has to be owned by %s and have 600 permissions" % (filename,install_user))
   elif type == "cert":
     arg = "-subject"
   else:
@@ -164,12 +234,15 @@ def get_gsi_dn(type,filename):
   if not os.path.isfile(filename):
     logerr("%s '%s' not found" % (type,filename))
 
+  if os.stat(filename).st_uid <> os.getuid():
+    logerr("The %s specified (%s)\nhas to be owned by %s user" % (type,filename,install_user))
+
   #-- read the cert/proxy --
-  dn_fd   = os.popen("openssl x509 %s -noout -in %s" % (arg,filename))
+  dn_fd   = os.popen("openssl x509 %s -noout -in %s 2>/dev/null" % (arg,filename))
   dn_blob = dn_fd.read()
   err = dn_fd.close()
   if err != None:
-    logerr("Failed to read %s '%s'." % (arg,filename))
+    logerr("Failed to read %s from %s" % (arg,filename))
   #-- parse out the DN --
   i = dn_blob.find("= ")
   if i < 0:

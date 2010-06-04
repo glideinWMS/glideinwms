@@ -32,7 +32,7 @@ class Condor(Configuration):
 
     self.condor_config       = "%s/etc/condor_config" % self.condor_location()
     self.condor_config_local = "%s/condor_config.local" % (self.condor_local())
-    self.initd_script        = "%s/condor_%s" % (self.condor_location(),self.service_name())
+    self.initd_script        = "%s/%s.sh" % (self.condor_location(),self.service_name())
 
     #--- secondary schedd files --
     self.schedd_setup_file   = "new_schedd_setup.sh"
@@ -77,11 +77,15 @@ class Condor(Configuration):
   def condor_mapfile(self):
     return "%s/certs/condor_mapfile" % self.condor_location()
   #---------------------
+  def privilege_separation(self):
+    if self.has_option(self.ini_section,"privilege_separation"):
+      return self.option_value(self.ini_section,"privilege_separation")
+    return "n"
+  #---------------------
   def match_authentication(self):
     if self.has_option(self.ini_section,"match_authentication"):
       return self.option_value(self.ini_section,"match_authentication")
     return "n"
-    return self.option_value(self.ini_section,option)
   #---------------------
   def number_of_schedds(self):
     option = "number_of_schedds"
@@ -164,6 +168,7 @@ class Condor(Configuration):
     self.__update_condor_config_collector__()
     if self.ini_section == "WMSCollector":
       self.__update_condor_config_condorg__()
+    self.update_condor_config_privsep()
     common.logit( "Condor_config update complete")
 
   #--------------------------------
@@ -194,13 +199,14 @@ class Condor(Configuration):
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
     common.validate_email(self.admin_email)
-    common.validate_install_location(self.condor_location())
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.gsi_location)
+##    self.__validate_privilege_separation__()
     self.__validate_schedds__(self.number_of_schedds())
     self.__validate_collector_port__(self.collector_port())
     self.__validate_secondary_collectors__(self.secondary_collectors())
     self.__validate_condor_config__(self.split_condor_config)
     self.__validate_tarball__(self.condor_tarball)
+    common.validate_install_location(self.condor_location())
 
   #--------------------------------
   def __setup_condor_env__(self):
@@ -225,28 +231,29 @@ setenv CONDOR_CONFIG %s
 
   #--------------------------------
   def __setup_root_condor_env__(self,sh_profile,csh_profile):
-    #JGW --- this could go away if no root installs ----
-    common.logit( "... setting up condor environment as root")
-    #--  Put link into /etc/condor/condor_config --
-    if not os.path.exists('/etc/condor'):
-        common.logit( "... creating /etc/condor/condor_config")
-        os.mkdir('/etc/condor')
-    if os.path.islink('/etc/condor/condor_config') or os.path.exists('/etc/condor/condor_config'):
-        common.logit("...  an old version exists... replace it")
-        os.unlink('/etc/condor/condor_config')
-    os.symlink(self.condor_config, '/etc/condor/condor_config')
+    common.logit("... creating an /etc/condor/condor_config link IS NOT BEING DONE")
+    ## #JGW --- this could go away if no root installs ----
+    ## common.logit( "... setting up condor environment as root")
+    ## #--  Put link into /etc/condor/condor_config --
+    ## if not os.path.exists('/etc/condor'):
+    ##     common.logit( "... creating /etc/condor/condor_config")
+    ##     os.mkdir('/etc/condor')
+    ## if os.path.islink('/etc/condor/condor_config') or os.path.exists('/etc/condor/condor_config'):
+    ##     common.logit("...  an old version exists... replace it")
+    ##     os.unlink('/etc/condor/condor_config')
+    ## os.symlink(self.condor_config, '/etc/condor/condor_config')
 
-    #--  put condor binaries in system wide path --
-    filename = "/etc/profile.d/condor.sh"
-    common.write_file("w",0644,filename,sh_profile) 
-    filename = "/etc/profile.d/condor.csh"
-    common.write_file("w",0644,filename,csh_profile) 
+    ## #--  put condor binaries in system wide path --
+    ## filename = "/etc/profile.d/condor.sh"
+    ## common.write_file("w",0644,filename,sh_profile) 
+    ## filename = "/etc/profile.d/condor.csh"
+    ## common.write_file("w",0644,filename,csh_profile) 
 
   #--------------------------------
   def __setup_user_condor_env__(self,sh_profile,csh_profile):
     common.logit( "... setting up condor environment as %s" % os.environ["LOGNAME"])
  
-    common.logit("...JGW THIS IS NOT BEING DONE")
+    common.logit("... appending to bashrc/cshrc scripts IS NOT BEING DONE")
     ##filename = "%s/.profile" % os.environ['HOME']
     ##common.write_file("a",0644,filename,sh_profile) 
 
@@ -256,8 +263,8 @@ setenv CONDOR_CONFIG %s
     ##filename = "%s/.cshrc" % os.environ['HOME']
     ##common.write_file("a",0644,filename,csh_profile) 
 
-    common.logit( "The Condor config has been put in your login files")
-    common.logit( "Please remember to exit and reenter the terminal after the install")
+    ##common.logit( "The Condor config has been put in your login files")
+    ##common.logit( "Please remember to exit and reenter the terminal after the install")
  
   #--------------------------------
   def __install_condor__(self):
@@ -386,23 +393,22 @@ setenv CONDOR_CONFIG %s
       fd.close()
 
   #--------------------------------
-  def __create_condor_mapfile__(self,gsi_entries):
-    """ Creates the condor mapfile for GSI authentication """
-    if self.client_only_install() == True:
-      common.logit( "... client only condor.  No gridmap file needed.")
+  def __create_condor_mapfile__(self,mapfile_entries=None):
+    """ Creates the condor mapfile for GSI authentication"""
+    common.logit("... creating Condor mapfile")
+    if mapfile_entries == None:
+      common.logit( "... No condor_mapfile file needed or entries specified.")
       return
-    common.logit("\nCreating Condor mapfile")
-    if gsi_entries == None:
-      common.logerr("System error: GSI authentication (DNs) not specified and condor daemons are required.")
     filename = self.condor_mapfile()
-    common.make_directory(os.path.dirname(filename))
+    common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0755,empty_required=False)
     entries = """%s
 GSI (.*) anonymous
 FS (.*) \\1
-""" % gsi_entries
+""" % mapfile_entries
     common.write_file("w",0644,filename,entries)
     common.logit("... condor mapfile entries:")
     common.logit(os.system("cat %s" % filename))
+    common.logit("... creating Condor mapfile complete.\n")
 
   #--------------------------------
   def __setup_condor_config__(self):
@@ -456,7 +462,17 @@ LOCAL_CONFIG_FILE =
   def __update_condor_config_schedd__(self):
     if self.daemon_list.find("SCHEDD") >= 0:
       data = self.__condor_config_schedd_data__()
+      #-- checking for zero swap space --
+      rtn = os.system("free | tail -1 |awk '{ if ( $2 == 0 ) {exit 0} else {exit 1} }'")
+      if rtn == 0:
+        data = data + """
+################
+# No swap space 
+################
+RESERVED_SWAP = 0
+"""
       self.__append_to_condor_config__(data,"SCHEDD")
+
 
   #--------------------------------
   def __update_condor_config_collector__(self):
@@ -475,6 +491,11 @@ CONDOR_HOST = %s
   def __update_condor_config_condorg__(self):
     data = self.__condor_config_condorg_data__()
     self.__append_to_condor_config__(data,"CONDOR-G")
+
+  #--------------------------------
+  def update_condor_config_privsep(self):
+    data = self.condor_config_privsep_data()
+    self.__append_to_condor_config__(data,"Privilege Separation")
 
   #--------------------------------
   def __append_to_condor_config__(self,data,type):
@@ -508,7 +529,9 @@ CONDOR_HOST = %s
     for i in range(schedds):
       schedd_name = "glideins%i" % (i+1)
       #-- run the init script --
-      common.run_script("%s/%s %s" % (self.condor_location(),self.schedd_init_file,schedd_name))
+      user = pwd.getpwnam(self.unix_acct())
+      condor_ids = "%s.%s" % (user[2],user[3])
+      common.run_script("export CONDOR_IDS=%s;%s/%s %s" % (condor_ids,self.condor_location(),self.schedd_init_file,schedd_name))
       #-- add the start script to the condor initd function --
       data = "  $CONDOR_LOCATION/%s %s" % (self.schedd_startup_file,schedd_name)
       self.schedd_initd_function = "%s\n%s" % (self.schedd_initd_function,data)
@@ -683,6 +706,11 @@ SEC_DEFAULT_AUTHENTICATION = REQUIRED
 SEC_DEFAULT_AUTHENTICATION_METHODS = FS
 SEC_READ_AUTHENTICATION = OPTIONAL
 SEC_CLIENT_AUTHENTICATION = OPTIONAL
+DENY_WRITE = anonymous@*
+DENY_ADMINISTRATOR = anonymous@*
+DENY_DAEMON = anonymous@*
+DENY_NEGOTIATOR = anonymous@*
+DENY_CLIENT = anonymous@*
 #
 ############################
 # Privacy settings
@@ -698,7 +726,8 @@ SEC_CLIENT_ENCRYPTION = OPTIONAL
 
   #-----------------------------
   def __condor_config_gsi_data__(self,gsi_dns):
-    data =  """
+    data = ""
+    data =  data + """
 ############################################################
 ## GSI Security config
 ############################################################
@@ -734,7 +763,8 @@ GSI_DAEMON_KEY  = %s
 #####################################################
 # With strong security, do not use IP based controls
 #####################################################
-ALLOW_WRITE = *
+HOSTALLOW_WRITE = *
+ALLOW_WRITE = $(HOSTALLOW_WRITE)
 """
     else:
       data = data + """
@@ -743,19 +773,8 @@ ALLOW_WRITE = *
 #####################################################
 HOSTALLOW_WRITE = *
 """
-    if self.client_only_install() == False: # daemons
-      data = data + self.__condor_config_gsi_daemon_data__(gsi_dns)
-    return data
 
-  #-----------------------------
-  def __condor_config_gsi_daemon_data__(self,gsi_dns):
-    #-- gsi for all daemons --
-    data = """
-DENY_WRITE = anonymous@*
-DENY_ADMINISTRATOR = anonymous@*
-DENY_DAEMON = anonymous@*
-DENY_NEGOTIATOR = anonymous@*
-
+    data = data + """
 ############################
 # Set daemon cert location
 ############################
@@ -765,39 +784,22 @@ GSI_DAEMON_DIRECTORY = %s
 # Where to find ID->uid mappings
 #################################
 CERTIFICATE_MAPFILE=%s
-
-#####################################
-# Limit session caching to ~12h
-#####################################
-SEC_DAEMON_SESSION_DURATION = 50000
-
-##########################################################
-# Prepare the Shadow for use with glexec-enabled glideins
-##########################################################
-SHADOW.GLEXEC_STARTER = True
-SHADOW.GLEXEC = /bin/false
 """ % ( os.path.dirname(self.condor_mapfile()),self.condor_mapfile())
 
-    data =  data + """
+    if len(gsi_dns) > 0:
+      data =  data + """
 #####################################
-# Add whitelist of condor daemon DNs 
+# Whitelist of condor daemon DNs
 #####################################
-GSI_DAEMON_NAME=%s
+%s
 """ % (gsi_dns)
 
-    if self.match_authentication() == "y":
-      data = data + """
-#####################################
-# Enable match authentication
-#####################################
-SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=TRUE
-
-""" 
     return data
 
   #-----------------------------
   def __condor_config_daemon_data__(self):
-    data =  """
+    data = ""
+    data =  data + """
 ######################################################
 ## daemons
 ######################################################
@@ -808,6 +810,26 @@ DAEMON_LIST   = %s """ % self.daemon_list
 #-- This machine should run no daemons
 DAEMON_SHUTDOWN = True
 """
+    else:
+      data = data + """
+#####################################
+# Limit session caching to ~12h
+#####################################
+SEC_DAEMON_SESSION_DURATION = 50000
+
+##########################################################
+# Prepare the Shadow for use with glexec-enabled glideins
+##########################################################
+SHADOW.GLEXEC_STARTER = True
+SHADOW.GLEXEC = /bin/false
+""" 
+      if self.match_authentication() == "y":
+        data = data + """
+#####################################
+# Enable match authentication
+#####################################
+SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=TRUE
+""" 
     return data
 
   #-----------------------------
@@ -818,9 +840,9 @@ DAEMON_SHUTDOWN = True
 ######################################################
 #--  Allow up to 6k concurrent running jobs
 MAX_JOBS_RUNNING        = 6000
-#--  Start 10 jobs every 2 seconds
+#--  Start max of 50 jobs every 2 seconds
 JOB_START_DELAY = 2
-JOB_START_COUNT = 10
+JOB_START_COUNT = 50
 #--  Stop 30 jobs every seconds
 #--  This is needed to prevent glexec overload, when used
 #--  Works for Condor v7.3.1 and up only, but harmless for older versions
@@ -834,12 +856,15 @@ MAX_CONCURRENT_UPLOADS = 0
 MAX_CONCURRENT_DOWNLOADS = 100
 
 #--  Prevent checking on ImageSize
-APPEND_REQ_VANILLA = (Memory>=1)
+APPEND_REQ_VANILLA = (Memory>=1) && (Disk>=1)
+
 #--  Prevent preemption
 MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
 #-- GCB optimization
 SCHEDD_SEND_VACATE_VIA_TCP = True
 STARTD_SENDS_ALIVES = True
+#-- Reduce disk IO - paranoid fsyncs are usully not needed
+ENABLE_USERLOG_FSYNC = False
 """
     return data
 
@@ -926,6 +951,13 @@ GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000
 GRIDMANAGER_MAX_PENDING_REQUESTS=500
 """
     return data
+
+  #------------------------------------------
+  #-- Must be populated in top level class --
+  #-- if Privilege Separation used         --
+  #------------------------------------------
+  def condor_config_privsep_data(self):
+    return ""
 
 #--- end of Condor class ---------
 ####################################

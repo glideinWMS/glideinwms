@@ -27,6 +27,7 @@ def run_command(service,user,node,command):
   common.logit("\n############################################################")
   common.logit("## %s " % hdr)
   cmd = "ssh -l %s %s '%s'" % (user,node,command)
+  common.logit("Commands: %s" % cmd)
   os.system(cmd)
   common.logit("## %s " % hdr)
   common.logit("############################################################\n")
@@ -38,6 +39,9 @@ def apache(action):
 #--------------------------------
 def wmscollector(service,action,inifile):
   obj = WMSCollector.WMSCollector(inifile)
+  user = obj.unix_acct()
+  if obj.privilege_separation() == "y":
+    user = 'root'
   cmd1 = "source %s/condor.sh" % obj.condor_location()
   cmd2 = ""
   cmd3 = ""
@@ -45,14 +49,14 @@ def wmscollector(service,action,inifile):
      obj.install()
      return
   if action == "start":
-    cmd2 = "%s/condor_wms %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "stop":
-    cmd2 = "%s/condor_wms %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "status":
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q -global" 
   cmds = "%s;%s;%s" % (cmd1,cmd2,cmd3)
-  run_command(service,obj.unix_acct(),obj.node(),cmds)
+  run_command(service,user,obj.node(),cmds)
 
 #--------------------------------
 def usercollector(service,action,inifile):
@@ -64,9 +68,9 @@ def usercollector(service,action,inifile):
      obj.install()
      return
   if action == "start":
-    cmd2 = "%s/condor_userpool %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "stop":
-    cmd2 = "%s/condor_userpool %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "status":
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q -global" 
@@ -83,9 +87,9 @@ def submit(service,action,inifile):
      obj.install()
      return
   if action == "start":
-    cmd2 = "%s/condor_submit %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "stop":
-    cmd2 = "%s/condor_submit %s" % (obj.condor_location(),action)
+    cmd2 = "%s %s" % (obj.initd_script,action)
   if action == "status":
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q " 
@@ -115,7 +119,7 @@ def vofrontend(service,action,inifile):
 #--------------------------------
 def factory(service,action,inifile):
   obj = Factory.Factory(inifile)
-  cmd1 = "cd %s;source factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir)
+  cmd1 = "cd %s;source factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
   cmd2 = ""
   if action == "install":
      obj.install()
@@ -208,6 +212,7 @@ def main(argv):
         if a in services:
           services = [a,]
           continue
+        usage(services)
         common.logerr("Invalid service: %s" % a)
       if not os.path.isfile(inifile):
         common.logerr("ini file does not exist: %s" % inifile)

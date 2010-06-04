@@ -3,6 +3,7 @@
 import traceback
 import sys,os,os.path,string,time
 import stat
+import re
 
 import common
 import optparse
@@ -20,6 +21,8 @@ valid_options = [ "node",
 "condor_location", 
 "collector_port", 
 "certificates",
+"privilege_separation",
+"frontend_users",
 "gsi_authentication", 
 "cert_proxy_location", 
 "gsi_dn", 
@@ -40,44 +43,93 @@ class WMSCollector(Condor):
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
     self.daemon_list = "MASTER, COLLECTOR, NEGOTIATOR, SCHEDD"
+    self.frontend = None     # VOFrontend object
+    self.factory  = None     # Factory object
+    self.privsep  = None     # Privilege Separation object
 
   #--------------------------------
+  def get_frontend(self):
+    if self.frontend == None:
+      self.frontend = VOFrontend.VOFrontend(self.inifile)
+  #--------------------------------
+  def get_factory(self):
+    if self.factory == None:
+      self.factory = Factory.Factory(self.inifile)
+  #--------------------------------
+  def get_privsep(self):
+    if self.privilege_separation() == "y":
+      import PrivilegeSeparation
+      self.privsep = PrivilegeSeparation.PrivilegeSeparation(self.condor_location(),self.factory,[self.frontend,],self.frontend_users())
+  #--------------------------------
+  def frontend_users(self):
+    #-- need to convert a string to a dictionary --
+    s = self.option_value(self.ini_section,"frontend_users")
+    t = s.replace(" ","").split(",")
+    mydict = {}
+    for a in t:
+      b = a.split(":")
+      if len(b) == 2:
+        mydict[b[0]] = b[1]
+    return mydict
+  #--------------------------------
   def install(self):
+    self.get_factory()
+    self.get_frontend()
+    self.get_privsep()
     common.logit("======== %s install starting ==========" % self.ini_section)
     self.install_condor()
+    if self.privsep <> None:
+      self.privsep.update()
     common.logit("======== %s install complete ==========" % self.ini_section)
     os.system("sleep 3")
     common.logit("")
     common.logit("You will need to have the WMS Collector running if you intend\nto install the other glideinWMS components.")
     yn = common.ask_yn("... would you like to start it now")
-    cmd ="manage-glideins  --start wmscollector --ini %s" % (self.inifile)
+    cmd ="./manage-glideins  --start wmscollector --ini %s" % (self.inifile)
     if yn == "y":
       common.run_script(cmd)
     else:
       common.logit("\nTo start the WMS Collector, you can run:\n %s" % cmd)
 
+  #-----------------------------
+  def condor_config_privsep_data(self):
+    data = ""
+    if self.privsep <> None:
+      data =  self.privsep.condor_config_data()
+    return data
 
   #--------------------------------
   def configure_gsi_security(self):
-    common.logit("")
-    common.logit("Configuring GSI security")
+    common.logit("\nConfiguring GSI security")
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.gsi_location)
-    #--- VOFrontend access ---
-    frontend      = VOFrontend.VOFrontend(self.inifile)
-    #--- Factory access ---
-    factory      = Factory.Factory(self.inifile)
     #--- create condor_mapfile entries ---
     condor_entries = """\
-GSI "%s" %s
-GSI "%s" %s""" % \
-       (self.gsi_dn(),self.service_name(),
-        frontend.gsi_dn(),frontend.service_name())
+GSI "^%s$" %s
+GSI "^%s$" %s""" % \
+       (re.escape(self.gsi_dn()),         self.unix_acct(),
+        re.escape(self.factory.gsi_dn()), self.factory.unix_acct())
+    #-- frontends ---
+    # These unix account are local to the wmscollector/factory node
+    condor_entries = condor_entries + """
+GSI "^%s$" %s""" % \
+        (re.escape(self.frontend.gsi_dn()),
+        self.frontend.service_name())
 
     self.__create_condor_mapfile__(condor_entries) 
 
     #-- update the condor config file entries ---
-    condor_config_entries = "%s" % self.gsi_dn()
-    self.__update_condor_config_gsi__(condor_config_entries) 
+     
+    gsi_daemon_entries = """\
+# --- WMS collector user: %s ---
+GSI_DAEMON_NAME=%s
+# --- Factory user: %s ---
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+# --- VOFrontend user: %s ---
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+""" % (self.unix_acct(),         self.gsi_dn(),
+       self.factory.unix_acct(), self.factory.gsi_dn(),
+       self.frontend.service_name(),self.frontend.gsi_dn())
+    self.__update_condor_config_gsi__(gsi_daemon_entries) 
 
 
 #---------------------------
@@ -93,7 +145,6 @@ def validate_args(args):
 This will install a WMS collector service for glideinWMS using the ini file
 specified.
 """
-    print usage
     parser = optparse.OptionParser(usage)
     parser.add_option("-i", "--ini", dest="inifile",
                       help="ini file defining your configuration")
@@ -108,6 +159,9 @@ specified.
 ##########################################
 def main(argv):
   try:
+    print """This will install a WMS collector service for glideinWMS using 
+the ini file specified.
+"""
     options = validate_args(argv)
     wms = WMSCollector(options.inifile)
     wms.install()

@@ -2,6 +2,7 @@
 
 import traceback
 import sys,os,os.path,string,time
+import re
 import stat
 import optparse
 import common
@@ -50,7 +51,7 @@ class Submit(Condor):
     common.logit("")
     common.logit("You will need to have the Submit node schedds running if you intend\nto install the other glideinWMS components.")
     yn = common.ask_yn("... would you like to start it now")
-    cmd ="manage-glideins  --start submit --ini %s" % (self.inifile)
+    cmd ="./manage-glideins  --start submit --ini %s" % (self.inifile)
     if yn == "y":
       common.run_script(cmd)
     else:
@@ -69,21 +70,30 @@ class Submit(Condor):
     frontend      = VOFrontend.VOFrontend(self.inifile)
     #--- create condor_mapfile entries ---
     condor_entries = """\
-GSI "%s" %s
-GSI "%s" %s
-GSI "%s" %s""" % \
-           (self.gsi_dn(),self.service_name(),
-        frontend.gsi_dn(),frontend.service_name(),
-        userpool.gsi_dn(),userpool.service_name())
+GSI "^%s$" %s
+GSI "^%s$" %s
+GSI "^%s$" %s""" % \
+           (re.escape(self.gsi_dn()),    self.service_name(),
+        re.escape(userpool.gsi_dn()),userpool.service_name(),
+        re.escape(frontend.gsi_dn()),frontend.service_name())
 
     self.__create_condor_mapfile__(condor_entries)
 
     #-- create the condor config file entries ---
-    condor_config_entries = "%s,%s,%s" % \
-       (self.gsi_dn(),frontend.gsi_dn(),userpool.gsi_dn())
+    gsi_daemon_entries = """\
+# --- Submit user: %s
+GSI_DAEMON_NAME=%s
+# --- Userpool user: %s
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+# --- Frontend user: %s
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+""" % \
+       (self.unix_acct(),     self.gsi_dn(),
+    userpool.unix_acct(), userpool.gsi_dn(),
+    frontend.unix_acct(), frontend.gsi_dn())
 
     #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(condor_config_entries)
+    self.__update_condor_config_gsi__(gsi_daemon_entries)
 
 
 #---------------------------

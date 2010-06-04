@@ -3,6 +3,7 @@
 import traceback
 import sys,os,os.path,string,time
 import stat
+import re
 import optparse
 #-------------------------
 import common
@@ -50,7 +51,7 @@ class UserCollector(Condor):
     common.logit("")
     common.logit("You will need to have the User Collector running if you intend\nto install the other glideinWMS components.")
     yn = common.ask_yn("... would you like to start it now")
-    cmd ="manage-glideins  --start usercollector --ini %s" % (self.inifile)
+    cmd ="./manage-glideins  --start usercollector --ini %s" % (self.inifile)
     if yn == "y":
       common.run_script(cmd)
     else:
@@ -69,29 +70,43 @@ class UserCollector(Condor):
     frontend = VOFrontend.VOFrontend(self.inifile)
     #--- create condor_mapfile entries ---
     condor_entries = """\
-GSI "%s" %s
-GSI "%s" %s
-GSI "%s" %s""" % (self.gsi_dn(),self.service_name(),
-                  submit.gsi_dn(),submit.service_name(),
-                  frontend.gsi_dn(),frontend.service_name())
+GSI "^%s$" %s
+GSI "^%s$" %s
+GSI "^%s$" %s""" % \
+      (re.escape(self.gsi_dn()),    self.service_name(),
+     re.escape(submit.gsi_dn()),  submit.service_name(),
+   re.escape(frontend.gsi_dn()),frontend.service_name())
     #--- add in frontend proxy dns --
     cnt = 0
     for dn in frontend.glidein_proxies_dns():
       cnt = cnt + 1
-      frontend_service_name = "%s_%d" % (frontend.service_name(),cnt)
-      condor_entries = """\
-%s
-GSI "%s" %s""" % (condor_entries,dn,frontend_service_name)
+      frontend_service_name = "%s_pilot_%d" % (frontend.service_name(),cnt)
+      condor_entries = condor_entries + """
+GSI "^%s$" %s""" % (re.escape(dn),frontend_service_name)
 
     self.__create_condor_mapfile__(condor_entries) 
 
     #-- create the condor config file entries ---
-    condor_config_entries = "%s,%s" %  (self.gsi_dn(),submit.gsi_dn())
+    gsi_daemon_entries = """\
+# --- User collector user: %s
+GSI_DAEMON_NAME=%s
+# --- Submit user: %s
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+# --- Frontend user: %s
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
+       (self.unix_acct(),    self.gsi_dn(),
+      submit.unix_acct(),  submit.gsi_dn(),
+    frontend.unix_acct(),frontend.gsi_dn())
+    #-- add in the frontend glidein puilot proxies --
+    cnt = 0
     for dn in frontend.glidein_proxies_dns():
-      condor_config_entries = "%s,%s" %  (condor_config_entries,dn)
+      cnt = cnt + 1
+      gsi_daemon_entries = gsi_daemon_entries + """
+# --- Frontend pilot proxy: %s --
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
 
     #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(condor_config_entries) 
+    self.__update_condor_config_gsi__(gsi_daemon_entries) 
 
 #---------------------------
 def show_line():

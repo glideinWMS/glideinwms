@@ -2,12 +2,13 @@
 
 import common
 import WMSCollector
+import VOFrontend
 from Glidein       import Glidein
 from Configuration import Configuration
 from Configuration import ConfigurationError
 
 import traceback
-import sys,os,os.path,string,time
+import sys,os,pwd,string,time
 import xml.sax.saxutils
 
 import optparse
@@ -20,6 +21,7 @@ valid_options = [ "node",
 "unix_acct", 
 "service_name", 
 "install_location", 
+"client_files", 
 "instance_name",
 "gsi_authentication", 
 "cert_proxy_location", 
@@ -46,6 +48,7 @@ valid_options = [ "node",
 "glidein_install_dir",
 ]
 
+
 class Factory(Configuration):
   def __init__(self,inifile):
     global valid_options
@@ -54,64 +57,118 @@ class Factory(Configuration):
     Configuration.__init__(self,inifile)
     self.validate_section(self.ini_section,valid_options)
     self.wms = WMSCollector.WMSCollector(self.inifile)
+    frontend1 = VOFrontend.VOFrontend(self.inifile) 
+    self.frontends = [ frontend1,]    # list of VOFrontends
 
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options)
 
     self.config_entries_list = {} # Config file entries elements
 
-    # the real directory is hardcoded in the createglidein script
-    self.glidein_dir = "%s/glidein_%s" % (self.glidein.install_location(),self.glidein.instance_name())
     self.env_script = "%s/factory.sh" % self.glidein.install_location()
 
   #---------------------
   def install_location(self):
     return self.glidein.install_location()
   #---------------------
+  def glidein_dir(self):
+    # this directory is hardcoded in the createglidein script
+    return "%s/glidein_%s" % (self.glidein.install_location(),self.glidein.instance_name())
+  #---------------------
   def unix_acct(self):
     return self.glidein.unix_acct()
   #---------------------
   def node(self):
     return self.glidein.node()
+  #---------------------
+  def gsi_dn(self):
+    return self.glidein.gsi_dn()
+  #---------------------
+  def service_name(self):
+    return self.glidein.service_name()
+  #---------------------
+#  def factory_files(self):
+#    return "%s" % (self.option_value(self.ini_section,"install_location"))
+  #---------------------
+  def factory_logs(self):
+    return "%s/logs" % (self.install_location())
+  #---------------------
+  def client_files(self):
+    return "%s/%s" % (self.option_value(self.ini_section,"client_files"),"clients")
+  #---------------------
+  def client_logs(self):
+    return "%s/logs" % self.client_files()
+  #---------------------
+  def client_proxies(self):
+    return "%s/proxies" % self.client_files()
 
   #---------------------
   def install(self):
     common.logit ("======== %s install starting ==========" % self.ini_section)
+    self.validate_install()
     self.glidein.validate_install()
-    self.glidein.create_web_directories()
     self.glidein.__install_vdt_client__()
+    self.glidein.create_web_directories()
+    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
+    if self.wms.privilege_separation() == "y":
+      self.create_factory_dirs(self.unix_acct(),0755)
+    else:
+      self.create_factory_dirs(self.unix_acct(),0755)
+      self.create_factory_client_dirs(self.unix_acct(),0755)
     self.get_config_entries_data()
-    common.make_directory(self.glidein.install_location())
     self.create_config()
     self.create_env_script()
     self.create_glideins()
     self.start()
     common.logit ("======== %s install complete ==========" % self.ini_section)
 
-#JGW  #-----------------------
+  #-----------------------
+  def validate_install(self):
+    if os.getuid() <> pwd.getpwnam(self.unix_acct())[2]:
+      common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.unix_acct())
+    # check to see if there will be a problem with client files during the
+    # create factory step.
+#JGW NOT COMPLETE HERE AS I CANNOT FIGURE OUT WHAT NEEDS TO BE DELETED
+    #if wms.privsep <> None:
+    #  if len(os.listdir(self.client_logs()) <> 0:
+    #  if len(os.listdir(self.client_proxies()) <> 0:
+      
+      
+
+  #--------------------------------
+  def create_factory_dirs(self,owner,perm):
+    common.make_directory(self.install_location(),owner,perm,empty_required=True)
+    common.make_directory(self.factory_logs(),owner,perm,empty_required=True)
+  #--------------------------------
+  def create_factory_client_dirs(self,owner,perm):
+    common.make_directory(self.client_files(),owner,perm,empty_required=False)
+    common.make_directory(self.client_logs(),owner,perm,empty_required=True)
+    common.make_directory(self.client_proxies(),owner,perm,empty_required=True)
+
+
+  #-----------------------
   def start(self):
     cmd1 = "source %s" % self.env_script
-    cmd2 = "cd %s;./factory_startup start" % (self.glidein_dir)
+    cmd2 = "cd %s;./factory_startup start" % (self.glidein_dir())
     common.logit("\nTo start the glideins you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
-    if os.path.isdir(self.glidein_dir): #indicates the glideins have been created
+    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
       yn=raw_input("Do you want to start the glideins now? (y/n) [n]: ")
       if yn=='y':
         common.run_script("%s;%s" % (cmd1,cmd2))
 
-#JGW  #-----------------------
+  #-----------------------
   def create_env_script(self):
     common.logit("Creating env script.")
     data = """#!/bin/bash
 source %s/setup.sh
 export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
-export X509_USER_PROXY=%s 
 source %s/condor.sh
-""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.glidein.gsi_location(),self.wms.condor_location())
+""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.wms.condor_location())
     common.write_file("w",0644,self.env_script,data)
 
 
-#JGW  #-----------------------
+  #-----------------------
   def create_glideins(self):
-    yn=raw_input("Do you want to create the glideins now? (y/n) [n]: ")
+    yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = "source %s" % self.env_script
     cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glidein_install_dir(),self.glidein.config_file())
     if yn=='y':
@@ -130,10 +187,9 @@ source %s/condor.sh
 
   #-------------------------
   def create_config(self):
-    common.logit("Collecting  configuration file data. It will be question/answer time.")
     config_xml = self.config_data()
     common.logit("Creating configuration file")
-    common.make_directory(self.glidein.config_dir())
+    common.make_directory(self.glidein.config_dir(),self.unix_acct(),0755,empty_required=True)
     common.write_file("w",0644,self.glidein.config_file(),config_xml)
 
   #-------------------------
@@ -141,8 +197,10 @@ source %s/condor.sh
     data = """\
 <glidein factory_name="%s" 
          glidein_name="%s"
-         loop_delay="60" advertise_delay="5"
-         restart_attempts="3" restart_interval="1800"
+         loop_delay="60" 
+         advertise_delay="5"
+         restart_attempts="3" 
+         restart_interval="1800"
          schedd_name="%s">
 """ % (self.glidein.service_name(), self.glidein.instance_name(), string.join(self.schedds(),','))
     data = data + """\
@@ -174,7 +232,12 @@ source %s/condor.sh
   #---------------
   def config_submit_data(self): 
     indent = common.indent(1)
-    return """%s<submit base_dir="%s"/>""" % (indent,self.glidein.install_location())
+    return """%s<submit base_dir="%s" base_log_dir="%s" base_client_log_dir="%s" base_client_proxies_dir="%s"/>\
+""" % (indent,
+       self.install_location(),
+       self.factory_logs(),
+       self.client_logs(),
+       self.client_proxies())
   #---------------
   def config_stage_data(self): 
     indent = common.indent(1)
@@ -185,39 +248,78 @@ source %s/condor.sh
     indent = common.indent(1)
     return """%s<monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>"""  % (indent,
        self.glidein.web_location(),  self.glidein.javascriptrrd(), self.glidein.flot(), self.glidein.flot())
+
   #---------------
   def config_security_data(self): 
     indent = common.indent(1)
     if self.glidein.use_vofrontend_proxy() == "y": # disable factory proxy
-      data = """%s<security allow_proxy="frontend" key_length="2048" pub_key="RSA"/>""" % (indent)
+      data = """%s<security allow_proxy="frontend" key_length="2048" pub_key="RSA" >""" % (indent)
     else: # allow both factory proxy and VO proxy
-      data = """%s<security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>""" % (indent)
+      data = """%s<security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA" >""" % (indent)
+    indent = common.indent(2)
+    data = data + """%s<frontends>""" % indent
+##JGW not sure what to do if Priv Sep not involved
+##    for frontend in self.frontends:
+    frontend_users_dict =  self.wms.frontend_users()
+    for frontend in frontend_users_dict.keys():
+      indent = common.indent(3)
+      data = data + """%s<frontend name="%s" identity="%s@%s">"""\
+        % (indent,frontend,frontend,self.node())
+      #--
+      indent = common.indent(4)
+      data = data + """%s<security_classes>""" % indent
+      #--
+      indent = common.indent(5)
+      data = data + """%s<security_class name="frontend" username="%s" />"""\
+        % (indent,frontend_users_dict[frontend])
+      #--
+      indent = common.indent(4)
+      data = data + """%s</security_classes>""" % indent
+      #--
+      indent = common.indent(3)
+      data = data + """%s</frontend>""" % indent
+    #--
+    indent = common.indent(2)
+    data = data + """%s</frontends>""" % indent
+    #--
+    indent = common.indent(1)
+    data = data + """%s</security>""" % indent
     return data
 
   #---------------
   def config_default_attr_data(self):
-    data = """%s<attrs>""" % (common.indent(1))
+    indent = common.indent(1)
+    data = """%s<attrs>""" % (indent)
     gcb_list = self.glidein.gcb_list()
     indent = common.indent(2)
     if self.glidein.use_ccb()  == "n":
       data = data + """%s<attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>"""  % (indent)
+
       if len(gcb_list) > 0:  #-- using gcb ---
         data = data + """%s<attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (indent,string.join(gcb_list,','))
       else:  #-- no gcb used ---
         data = data + """%s<attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
     else: # no GCB if CCB used
       data = data + """%s<attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
+
     # -- glexec --
     data = data + """%s<attr name="GLEXEC_JOB" value="True" const="True" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>"""  % (indent)
+
     # -- match authentication --
     data = data + """%s<attr name="USE_MATCH_AUTH" value="%s" const="False" type="string" glidein_publish="False" publish="True" job_publish="False" parameter="True"/>""" % (indent, self.glidein.match_authentication() == "y")
-    data = data + """%s</attrs>""" % (common.indent(1))
+
+    # -- condor version --
+    data = data + """%s<attr name="CONDOR_VERSION" value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (indent)
+
+    indent = common.indent(1)
+    data = data + """%s</attrs>""" % (indent)
     return data
 
 
   #---------------
   def config_entries_data(self):
-    data = """%s<entries>""" % (common.indent(1))
+    indent = common.indent(1)
+    data = """%s<entries>""" % (indent)
     sorted_entry_names =self.config_entries_list.keys()
     sorted_entry_names.sort()
     for entry_name in sorted_entry_names:
@@ -226,37 +328,46 @@ source %s/condor.sh
         rsl_str='rsl=%s' % xml.sax.saxutils.quoteattr(entry_el['rsl'])
       else:
         rsl_str=""
-      data = data + """%s<!-- %s -->""" % (common.indent(2),entry_name)
+      indent = common.indent(2)
+      data = data + """%s<!-- %s -->""" % (indent,entry_name)
       data = data + """%s<entry name="%s" gridtype="%s" gatekeeper="%s" %s work_dir="%s">""" % (common.indent(2),entry_name,entry_el['gridtype'],entry_el['gatekeeper'],rsl_str,entry_el['work_dir'])
 
       #--- infosys_refs --
-      data = data + "%s<infosys_refs>" % (common.indent(3))
+      indent = common.indent(3)
+      data = data + "%s<infosys_refs>" % (indent)
       for is_el in entry_el['is_ids']:
         data = data + """%s<infosys_ref type="%s" server="%s" ref="%s"/>""" % (common.indent(4),is_el['type'],is_el['server'],is_el['name'])
-      data = data + """%s</infosys_refs>""" % (common.indent(3))
+      data = data + """%s</infosys_refs>""" % (indent)
 
       #--- attrs ---
-      data = data + """%s<attrs>""" % (common.indent(3))
-      data = data + """%s<attr name="GLIDEIN_Site" value="%s"      const="True" type="string" glidein_publish="True"  publish="True"  job_publish="True"  parameter="True"/>""" % (common.indent(4),entry_el['site_name'])
-      data = data + """%s<attr name="CONDOR_OS"    value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (common.indent(4))
-      data = data + """%s<attr name="CONDOR_ARCH"  value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (common.indent(4))
-      data = data + """%s<attr name="GLEXEC_BIN"   value="%s"      const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>"""  % (common.indent(4),entry_el['glexec_path'])
+      indent = common.indent(4)
+      data = data + """%s<attrs>""" % (indent)
+      data = data + """%s<attr name="GLIDEIN_Site" value="%s"      const="True" type="string" glidein_publish="True"  publish="True"  job_publish="True"  parameter="True"/>""" % (indent,entry_el['site_name'])
+      data = data + """%s<attr name="CONDOR_OS"    value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (indent)
+      data = data + """%s<attr name="CONDOR_ARCH"  value="default" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (indent)
+      data = data + """%s<attr name="GLEXEC_BIN"   value="%s"      const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>"""  % (indent,entry_el['glexec_path'])
 
       if self.glidein.use_ccb() =="y":
         # Put USE_CCB in the entries so that it is easy to disable it selectively
-        data = data + """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(4))
+        data = data + """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
       else:
         # Put GCB_ORDER in the entries so that it is easy to disable it selectively
         if len(self.glidein.gcb_list()) > 0:
-          data = data + """%s<attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(4))
+          data = data + """%s<attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
 
-      data = data + """%s</attrs>""" % (common.indent(3))
-      data = data + """%s</entry>\n""" % (common.indent(2))
-      data = data + """%s</entries>""" % (common.indent(1))
+      indent = common.indent(3)
+      data = data + """%s</attrs>""" % (indent)
+      data = data + """%s<files>"""  % (indent)
+      data = data + """%s</files>""" % (indent)
+      indent = common.indent(2)
+      data = data + """%s</entry>\n""" % (indent)
+      indent = common.indent(1)
+    data = data + """%s</entries>""" % (indent)
     return data
 
   #----------------------------
   def get_config_entries_data(self):
+    common.logit("\nCollecting  configuration file data. It will be question/answer time.")
     os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
     os.environ["CONDOR_CONFIG"] = self.wms.condor_config
     print os.environ["CONDOR_CONFIG"] 
@@ -279,6 +390,7 @@ source %s/condor.sh
       if len(self.config_entries_list) > 0:
         break
       print "You have no entry points. You need at least 1... try again"
+    common.logit("Configuration file questioning complete.\n")
    
 
   #----------------------------
