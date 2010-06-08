@@ -268,6 +268,11 @@
         many of them in /var.  All the directories in /var have to be created as root.  Therefore, if you intend on using /var, you will have to create 
         the directories ahead of time.
     </p>
+   <p>
+	Due to new restrictions on the directory permissions, 
+	it is no longer recommended that you install glideinWMS into
+	the /home directory of the user.  
+   </p>
         
     <p>
         <strong>Note:</strong> The web data must be stored in a directory served by the HTTP Server. <br><br>
@@ -341,7 +346,10 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 	directory that will set environment variables.  <b>It is important to always source the correct
 	condor.sh before starting/stopping/querying condor.</b>  There are two different condor pools
 	in a glideinWMS installation, so it is very important to make sure your shell environment has
-	the correct variables and paths before issuing condor commands.
+	the correct variables and paths before issuing condor commands.<br/>
+	It is recommended to avoid putting this in a user home directory, as
+	permission requirements (especially with privilege separation) can 
+	cause problems.
 	</td>
     </tr>
     <tr>
@@ -370,6 +378,8 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 	</i></td>
 	<td>
 		The factory directories will be where you install the factory (in the next step).  The client log and proxy locations will be authorized by the PrivSep to be written to by condor daemons.  If using privilege separations, they need to be owned by root.
+	<br/>
+		As these directories need to be world-readable, and the client log and proxy location have permission requirements if using privilege separation, these should generally not be located in a user home directory.
 	</td>
     </tr>
     <tr>
@@ -609,7 +619,7 @@ How many secondary schedds do you want?: [9] <b>9</b>
 		Where will you host the client log files?<br/>
 		Where will you host the client proxies?<br/>
 		Where will the web data be hosted?<br/>
-		What Web URL will you use?<br/?
+		What Web URL will you use?<br/>
 	</i></td>
 	<td>
 		These directories will match the configuration specified in the previous WMS collector install.
@@ -619,7 +629,9 @@ How many secondary schedds do you want?: [9] <b>9</b>
 		Web data will be where the glidein Factory reports usage statistics.  This should be a 
 		directory served by the web server and owned by the factory user.  You will also be prompted
 		for a Web http URL to access these pages.  If the web server is not running on the default port (80),
-		please specify the port as well.
+		please specify the port as well.<br/>
+		Due to the permission requirements, it is not recommended that
+		these be stored in a user home directory.
 	</td>
     </tr>
 
