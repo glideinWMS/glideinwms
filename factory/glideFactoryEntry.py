@@ -58,7 +58,7 @@ def perform_work(entry_name,
     
     #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
     try:
-        condorQ=glideFactoryLib.getCondorQData(entry_name,client_name,schedd_name)
+        condorQ=glideFactoryLib.getCondorQData(entry_name,client_int_name,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
         glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
         glideFactoryLib.log_files.logWarning("getCondorQData failed: %s"%e)
