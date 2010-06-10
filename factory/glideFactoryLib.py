@@ -262,12 +262,14 @@ def getCondorQData(entry_name,
     x509id_str=factoryConfig.x509id_schedd_attribute
 
     q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
+    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s")]
+
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factoryConfig.factory_name
     q.glidein_name=factoryConfig.glidein_name
     q.entry_name=entry_name
     q.client_name=client_name
-    q.load(q_glidein_constraint)
+    q.load(q_glidein_constraint,q_glidein_format_list)
     return q
 
 def getQStatus(condorq):
