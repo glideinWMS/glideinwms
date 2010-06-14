@@ -124,6 +124,9 @@ def factory(service,action,inifile):
   if action == "install":
      obj.install()
      return
+  if action == "create-entries":
+     obj.get_new_config_entries()
+     return
   if action == "start":
     cmd2 = "./factory_startup %s"  % action
   if action == "stop":
@@ -167,18 +170,26 @@ def usage(services):
 Usage: %s --<action> <service>  --ini <ini_file>
 
   actions: install, start, stop, status
-  services: %s
+  services: %s all
 
 This process can be used to install, start, stop or check the status of 
 the glidein services based on the configuration in the specified ini file.
 
-All actions can be performed remotely, with execption of the --install, 
+All actions can be performed remotely, with exception of the --install, 
 providing the user has valid access to the other service's node via the 
 .k5login of that user.
 
 When starting and stopping a service, this process ssh's into the services 
 node thereby insuring a clean environment.
-""" % (gProgramName,valid_services)
+
+Additionally, it can be used to select new glidein entry points after the
+initial installation.  If will walk you through the same question and answer
+process querying ReSS and BDII for resources.  It will then create a file 
+containing the entry elements for those selected.  This can then be merged with
+the existing Factory configuration file.  The syntax to perform this is:
+
+  %s --create-entries --ini <ini_file>
+""" % (gProgramName,valid_services,gProgramName)
   common.logit(msg)
 
 ##########################################
@@ -188,21 +199,25 @@ def main(argv):
     global gAction
     gProgramName = argv[0]
     inifile = ""
-    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=" ]
+    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
     stop_order = ["submit","vofrontend","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
     if len(opts) == 0:
-      common.logit("ERROR: No command line arguments specified")
       usage(services)
-      return 1
+      common.logerr("No command line arguments specified")
+
     for o, a in opts:
       if o in ("--help"):
-        common.logit("For usage... pray I get to it")
+        usage(services)
         return 1
+
       if o in ("--ini"):
         inifile = a
+        if not os.path.isfile(inifile):
+          common.logerr("ini file does not exist: %s" % inifile)
         continue
+
       if o in ("--start","--stop","--status","--install"):
         gAction = o[2:]
         if a == "all":
@@ -214,9 +229,11 @@ def main(argv):
           continue
         usage(services)
         common.logerr("Invalid service: %s" % a)
-      if not os.path.isfile(inifile):
-        common.logerr("ini file does not exist: %s" % inifile)
 
+      if o in ("--create-entries",):
+        services = ["factory",]
+        gAction = "create-entries"
+    
     for service in services:        
       common.logit("----- %s ----" % (service))
       process_request(service,gAction,inifile)

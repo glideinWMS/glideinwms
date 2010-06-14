@@ -101,6 +101,18 @@ class Factory(Configuration):
   def client_proxies(self):
     return "%s/proxies" % self.client_files()
 
+  #----------------------------
+  def get_new_config_entries(self):
+    """This method is intended to retrieve new configuration file entry
+       element after the initial installation is complete.  It will 
+       create a file containing the selected entry points that can be
+       merged into the existing Factory configuration file.
+    """
+    self.get_config_entries_data()
+    filename = "%s/new_entries.%s" % (self.glidein.config_dir(),common.time_suffix())
+    common.write_file("w",0644,filename,self.config_entries_data())
+
+
   #---------------------
   def install(self):
     common.logit ("======== %s install starting ==========" % self.ini_section)
@@ -368,10 +380,9 @@ source %s/condor.sh
   #----------------------------
   def get_config_entries_data(self):
     common.logit("\nCollecting  configuration file data. It will be question/answer time.")
-    os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
-    os.environ["CONDOR_CONFIG"] = self.wms.condor_config
-    print os.environ["CONDOR_CONFIG"] 
- 
+    ##os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
+    ##os.environ["CONDOR_CONFIG"] = self.wms.condor_config
+    ##print os.environ["CONDOR_CONFIG"] 
     self.config_entries_list = {}  # config files entries elements
     while 1:
       yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
@@ -542,41 +553,51 @@ source %s/condor.sh
         continue # has not passed the filter
 
       work_dir="."
-      gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
-      rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
+      #-- some entries do not have all the attributes --
+      try:
+        gatekeeper="%s:%s/jobmanager-%s" %\
+           (el2['GlueCEHostingCluster'][0],
+            el2['GlueCEInfoGatekeeperPort'][0],
+            el2['GlueCEInfoJobManager'][0])
+        rsl="(queue=%s)(jobtype=single)" % el2['GlueCEName'][0]
+      except Exception, e:
+        common.logwarn("This entry point (%s/%s) is being skipped.  A required schema attribute missing: %s" % (el2['GlueCEName'][0],el2['GlueCEHostingCluster'][0],e))
 
-      site_name=el2['Mds-Vo-name'][0]
-      cluster_id="bdii_%s"%site_name
+      site_name  = el2['Mds-Vo-name'][0]
+      cluster_id  ="bdii_%s" % site_name
 
       bdii_id={'type':'BDII','server':self.glidein.bdii_host(),'name':ldap_id}
 
       count=1
       if cluster_count.has_key(cluster_id):
-        count=cluster_count[cluster_id]+1
-      cluster_count[cluster_id]=count
+        count = cluster_count[cluster_id] + 1
+      cluster_count[cluster_id] = count
 
-      if count==1:
-        key_name=cluster_id
+      if count == 1:
+        key_name = cluster_id
       else:
-        key_name="%s_%i"%(cluster_id,count)
+        key_name = "%s_%i" % (cluster_id,count)
 
-        if count==2: # rename id -> id_1
-          key_name_tmp="%s_1"%cluster_id
-          bdii_entries[key_name_tmp]=bdii_entries[cluster_id]
+        if count == 2: # rename id -> id_1
+          key_name_tmp               = "%s_1"%cluster_id
+          bdii_entries[key_name_tmp] = bdii_entries[cluster_id]
           del bdii_entries[cluster_id]
 
-      guess_glexec_bin=def_glexec_bin
-      if guess_glexec_bin!='NONE':
+      guess_glexec_bin = def_glexec_bin
+      if guess_glexec_bin != 'NONE':
         if el2['GlueCEHostingCluster'][0][-3:] in ('gov','edu'):
           # these should be OSG
-          guess_glexec_bin='OSG'
+          guess_glexec_bin = 'OSG'
         else:
           # I assume everybody else uses glite software
-          guess_glexec_bin='/opt/glite/sbin/glexec'
+          guess_glexec_bin = '/opt/glite/sbin/glexec'
 
-      bdii_entries[key_name]={'gatekeeper':gatekeeper,'rsl':rsl,'gridtype':'gt2',
-        'work_dir':work_dir,'site_name':site_name,
-        'glexec_path':guess_glexec_bin, 'is_ids':[bdii_id]}
+      bdii_entries[key_name] = {'gatekeeper':gatekeeper,
+                                'rsl':rsl,'gridtype':'gt2',
+                                'work_dir':work_dir, 
+                                'site_name':site_name,
+                                'glexec_path':guess_glexec_bin, 
+                                'is_ids':[bdii_id]}
     #-- end for loop --
 
     entries = self.discard_duplicate_entries(bdii_entries)
@@ -708,7 +729,9 @@ def main(argv):
   try:
     options = validate_args(argv)
     factory = Factory(options.inifile)
-    factory.install()
+    #factory.get_new_config_entries()
+    #factory.install()
+    #factory.install()
     #factory.create_glideins()
     #factory.create_env_script()
     #factory.start()

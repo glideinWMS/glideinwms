@@ -14,6 +14,9 @@ def logit(message):
 def logerr(message):
    logit("ERROR: %s" % message)
    raise WMSerror(Exception)
+#--------------------------
+def logwarn(message):
+   logit("Warning: %s" % message)
 
 #--------------------------
 def write_file(mode,perm,filename,data):
