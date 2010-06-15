@@ -2361,7 +2361,7 @@ def install_gridftp():
     fd=open('/etc/grid-security/grid-mapfile','w')
     for m in mappings:
         dn,user=m
-        fd.write('"%s" %s'%(dn,user))
+        fd.write('"%s" %s\n'%(dn,user))
     fd.close()
 
     # enable gridFTP
