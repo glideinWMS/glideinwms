@@ -242,6 +242,10 @@ def main(argv):
     common.logit("ERROR: Invalid command line argument: %s" % msg)
     usage(services)
     return 1
+  except KeyboardInterrupt, e:
+    print;print "Termminating at your request";return 1
+  except EOFError, e:
+    print;print "Termminating at your request";return 1
   except ConfigurationError, e:
     print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
   except common.WMSerror:
