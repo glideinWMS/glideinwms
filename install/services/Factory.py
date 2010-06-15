@@ -462,7 +462,7 @@ source %s/condor.sh
   #----------------------------
   def apply_filters_to_ress(self,condor_data):
     #-- set up the  python filter ---
-    python_filter_obj=compile(self.glidein.ress_filter(),"<string>","eval")
+    common.logit("Filters: %s" % self.glidein.ress_filter())
 
     #-- using glexec? ---
     if self.glidein.use_glexec() == "y":
@@ -472,10 +472,11 @@ source %s/condor.sh
 
     cluster_count={}
     ress_entries={}
+    python_filter_obj = self.get_python_filter(self.glidein.ress_filter())
     for condor_id in condor_data.keys():
       condor_el = condor_data[condor_id]
-    
-      if not eval(python_filter_obj,condor_el):
+
+      if not self.passed_python_filter(python_filter_obj,condor_el):
         continue # has not passed the filter
 
       cluster_name    = condor_el['GlueClusterName']
@@ -531,7 +532,7 @@ source %s/condor.sh
   #----------------------------
   def apply_filters_to_bdii(self,bdii_data):
     #-- set up the  python filter ---
-    python_filter_obj=compile(self.glidein.ress_filter(),"<string>","eval")
+    common.logit("Filters: %s" % self.glidein.ress_filter())
 
     #-- using glexec? ---
     if self.glidein.use_glexec() == "y":
@@ -541,6 +542,7 @@ source %s/condor.sh
 
     cluster_count={}
     bdii_entries={}
+    python_filter_obj = self.get_python_filter(self.glidein.ress_filter())
     for ldap_id in bdii_data.keys():
       el2=bdii_data[ldap_id]
 
@@ -549,7 +551,7 @@ source %s/condor.sh
       for k in el2.keys():
         scalar_el[k]=el2[k][0]
 
-      if not eval(python_filter_obj,scalar_el):
+      if not self.passed_python_filter(python_filter_obj,scalar_el):
         continue # has not passed the filter
 
       work_dir="."
@@ -602,6 +604,26 @@ source %s/condor.sh
 
     entries = self.discard_duplicate_entries(bdii_entries)
     return entries
+  #-------------------------------------------
+  def get_python_filter(self,filter):
+    obj = None
+    try: 
+      if len(filter) > 0:
+        obj=compile(filter,"<string>","eval")
+    except Exception, e:
+      common.logerr("Syntax error in filters")
+    return obj
+
+  #-------------------------------------------
+  def passed_python_filter(self,filter_obj,site):
+    if filter_obj is None:  # no filters
+      return True 
+    try:
+      if eval(filter_obj,site):
+        return True
+    except Exception, e:
+      common.logerr("Problem applying filters -  %s" % e)
+    return False
 
   #-------------------------------------------
   def discard_duplicate_entries(self,entries):
@@ -673,6 +695,7 @@ source %s/condor.sh
 
     #-- get gatekeeper data from ReSS --
     condor_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)' % self.glidein.ress_constraint()
+    common.logit("Constraints: %s" % condor_constraint)
     condor_obj=condorMonitor.CondorStatus(pool_name=self.glidein.ress_host())
     try:
       condor_obj.load(constraint=condor_constraint)
@@ -691,6 +714,7 @@ source %s/condor.sh
       common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
 
     #-- get gatekeeper data from BDII --
+    common.logit("Constraints: %s" % self.glidein.bdii_constraint())
     try:
       bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=self.glidein.bdii_constraint())
       bdii_obj.load()
