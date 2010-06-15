@@ -380,9 +380,9 @@ source %s/condor.sh
   #----------------------------
   def get_config_entries_data(self):
     common.logit("\nCollecting  configuration file data. It will be question/answer time.")
-    ##os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
-    ##os.environ["CONDOR_CONFIG"] = self.wms.condor_config
-    ##print os.environ["CONDOR_CONFIG"] 
+    os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
+    os.environ["CONDOR_CONFIG"] = self.wms.condor_config
+    common.logit("Using %s" % (os.environ["CONDOR_CONFIG"])) 
     self.config_entries_list = {}  # config files entries elements
     while 1:
       yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
@@ -666,6 +666,7 @@ source %s/condor.sh
   #----------------------------
   def get_ress_data(self):
     import condorMonitor
+    common.logit("ReSS host: %s" % self.glidein.ress_host())
     #-- validate host ---
     if not common.url_is_valid(self.glidein.ress_host()):
       common.logerr("ReSS server (%s) in ress_host option is not valid or inaccssible." % self.glidein.ress_host())
@@ -684,6 +685,7 @@ source %s/condor.sh
   #----------------------------
   def get_bdii_data(self):
     import ldapMonitor
+    common.logit("BDII host: %s" % self.glidein.bdii_host())
     #-- validate host ---
     if not common.url_is_valid(self.glidein.bdii_host()):
       common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
