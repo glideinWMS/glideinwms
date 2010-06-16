@@ -31,10 +31,9 @@ valid_options = [ "node",
 "use_ccb", 
 "gcb_list", 
 "ress_host",
-"ress_constraint",
 "bdii_host",
-"bdii_constraint",
-"ress_filter",
+"entry_vos",
+"entry_filters",
 "web_location",
 "web_url",
 "javascriptrrd",
@@ -400,7 +399,7 @@ source %s/condor.sh
         self.additional_entry_points()
       if len(self.config_entries_list) > 0:
         break
-      print "You have no entry points. You need at least 1... try again"
+      common.logerr("You have no entry points. You need at least 1.\...... check your ini file's entry_vos and entry_filters attributes..")
     common.logit("Configuration file questioning complete.\n")
    
 
@@ -410,6 +409,8 @@ source %s/condor.sh
     ress_keys.sort()
 
     print "Found %i additional entries" % len(ress_keys)
+    if len(ress_keys) == 0:
+      return
     yn = raw_input("Do you want to use them all?: (y/n) ")
     if yn=="y":
         # simply copy all of them
@@ -462,7 +463,7 @@ source %s/condor.sh
   #----------------------------
   def apply_filters_to_ress(self,condor_data):
     #-- set up the  python filter ---
-    common.logit("Filters: %s" % self.glidein.ress_filter())
+    common.logit("Filters: %s" % self.glidein.entry_filters())
 
     #-- using glexec? ---
     if self.glidein.use_glexec() == "y":
@@ -472,7 +473,7 @@ source %s/condor.sh
 
     cluster_count={}
     ress_entries={}
-    python_filter_obj = self.get_python_filter(self.glidein.ress_filter())
+    python_filter_obj = self.get_python_filter(self.glidein.entry_filters())
     for condor_id in condor_data.keys():
       condor_el = condor_data[condor_id]
 
@@ -532,7 +533,7 @@ source %s/condor.sh
   #----------------------------
   def apply_filters_to_bdii(self,bdii_data):
     #-- set up the  python filter ---
-    common.logit("Filters: %s" % self.glidein.ress_filter())
+    common.logit("Filters: %s" % self.glidein.entry_filters())
 
     #-- using glexec? ---
     if self.glidein.use_glexec() == "y":
@@ -542,7 +543,7 @@ source %s/condor.sh
 
     cluster_count={}
     bdii_entries={}
-    python_filter_obj = self.get_python_filter(self.glidein.ress_filter())
+    python_filter_obj = self.get_python_filter(self.glidein.entry_filters())
     for ldap_id in bdii_data.keys():
       el2=bdii_data[ldap_id]
 
@@ -694,7 +695,8 @@ source %s/condor.sh
       common.logerr("ReSS server (%s) in ress_host option is not valid or inaccssible." % self.glidein.ress_host())
 
     #-- get gatekeeper data from ReSS --
-    condor_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)' % self.glidein.ress_constraint()
+    common.logit("Supported VOs: %s" % self.glidein.entry_vos())
+    condor_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)' % self.glidein.ress_vo_constraint()
     common.logit("Constraints: %s" % condor_constraint)
     condor_obj=condorMonitor.CondorStatus(pool_name=self.glidein.ress_host())
     try:
@@ -714,9 +716,10 @@ source %s/condor.sh
       common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
 
     #-- get gatekeeper data from BDII --
-    common.logit("Constraints: %s" % self.glidein.bdii_constraint())
+    common.logit("Supported VOs: %s" % self.glidein.entry_vos())
+    common.logit("Constraints: %s" % self.glidein.bdii_vo_constraint())
     try:
-      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=self.glidein.bdii_constraint())
+      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=self.glidein.bdii_vo_constraint())
       bdii_obj.load()
       bdii_data=bdii_obj.fetchStored()
     except Exception,e: 

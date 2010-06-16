@@ -82,17 +82,29 @@ class Glidein(Configuration):
   def ress_host(self):
     return self.option_value(self.ini_section,"ress_host")
   #---------------------
-  def ress_constraint(self):
-    return self.option_value(self.ini_section,"ress_constraint")
-  #---------------------
   def bdii_host(self):
     return self.option_value(self.ini_section,"bdii_host")
   #---------------------
-  def bdii_constraint(self):
-    return self.option_value(self.ini_section,"bdii_constraint")
+  def entry_vos(self):
+    return self.option_value(self.ini_section,"entry_vos")
   #---------------------
-  def ress_filter(self):
-    return self.option_value(self.ini_section,"ress_filter")
+  def ress_vo_constraint(self):
+    vos = string.split(self.option_value(self.ini_section,"entry_vos"),",")
+    constraint = 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
+    for vo in vos[1:]:
+      constraint = constraint + '||StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vo.strip(' ')
+    return constraint
+  #---------------------
+  def bdii_vo_constraint(self):
+    vos = string.split(self.option_value(self.ini_section,"entry_vos"),",")
+    constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
+    for vo in vos[1:]:
+      constraint = constraint + '(GlueCEAccessControlBaseRule=VO:%s)' % vo.strip(' ')
+    constraint = constraint + ')'
+    return constraint
+  #---------------------
+  def entry_filters(self):
+    return self.option_value(self.ini_section,"entry_filters")
   #---------------------
   def web_location(self):
     return self.option_value(self.ini_section,"web_location")
