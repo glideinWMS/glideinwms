@@ -26,7 +26,7 @@ class VDT(Configuration):
 #    if self.vdt_exists():
 #      common.logerr("... VDT pacman installation already exists: %s" % self.vdt_location())
     self.__install_pacman__()
-    common.make_directory(self.vdt_location(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.vdt_location(),self.unix_acct(),0755,empty_required=False)
     #-- pacman get ---
     common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; source %s/setup.sh && cd %s && pacman -trust-all-caches -get %s" % (self.pacman_location(),self.vdt_location(),packages))
     #--- vdt-post-install --
