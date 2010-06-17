@@ -3,7 +3,7 @@
 import common
 from Configuration import Configuration
 #---------------------
-import sys,os,os.path,string,time,glob
+import sys,os,os.path,pwd,string,time,glob
 
 valid_options = [ "vdt_location",
 "pacman_version",
@@ -18,12 +18,15 @@ class VDT(Configuration):
     self.validate_section(self.vdt_section,valid_options)
     self.vdt_services = ["fetch-crl", "vdt-rotate-logs", "vdt-update-certs",]
 
+  def unix_acct(self):
+    return pwd.getpwuid(os.getuid())[0]
+
   #--------------------------
   def install_vdt_package(self,packages):
 #    if self.vdt_exists():
 #      common.logerr("... VDT pacman installation already exists: %s" % self.vdt_location())
     self.__install_pacman__()
-    common.make_directory(self.vdt_location(),self.unix_acct(),0755,empty_directory=True)
+    common.make_directory(self.vdt_location(),self.unix_acct(),0755,empty_required=True)
     #-- pacman get ---
     common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; source %s/setup.sh && cd %s && pacman -trust-all-caches -get %s" % (self.pacman_location(),self.vdt_location(),packages))
     #--- vdt-post-install --
@@ -63,7 +66,7 @@ class VDT(Configuration):
       common.logit("... %s already installed in %s" % (self.pacman_version(),self.pacman_location()))
     else: 
       common.logit("======== pacman install starting ==========")
-      common.make_directory(self.pacman_parent(),self.unix_acct(),0755,empty_directory=True)
+      common.make_directory(self.pacman_parent(),self.unix_acct(),0755,empty_required=True)
       common.logit("Installing pacman: %s" % (self.pacman_version()))
       common.run_script("cd %s && wget %s/%s.tar.gz && tar --no-same-owner -xzvf %s.tar.gz && rm -f  %s.tar.gz" %
         (self.pacman_parent(),self.pacman_url(),self.pacman_version(),self.pacman_version(),self.pacman_version()))
