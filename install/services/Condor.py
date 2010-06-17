@@ -136,9 +136,9 @@ class Condor(Configuration):
   #--------------------------------
   def install_condor(self):
     common.logit( "Condor install started")
-    self.__validate_condor_install__()
     self.__install_certificates__()
     self.__install_vdt_client__()
+    self.__validate_condor_install__()
     self.__install_condor__()
     self.__setup_condor_env__()
 
