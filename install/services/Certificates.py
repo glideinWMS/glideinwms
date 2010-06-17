@@ -85,9 +85,6 @@ class Certificates(VDT):
     files = glob.glob(os.path.join(self.certificate_dir(), '*.0'))
     if len(files) == 0:
       return False
-    files = glob.glob(os.path.join(self.certificate_dir(), '*.r0'))
-    if len(files) == 0:
-      return False
     return True
 
   #-------------------
