@@ -50,7 +50,7 @@ class MonitoringConfig:
                                                      "(completed_jobs_\..*\.log)",
                                                      max_days,min_days,max_mbs)
 
-    def logCompleted(self,entered_dict):
+    def logCompleted(self,client_name,entered_dict):
         now=time.time()
 
         job_ids=entered_dict.keys()
@@ -66,11 +66,12 @@ class MonitoringConfig:
                 el=entered_dict[job_id]
                 jobs_duration=el['jobs_duration']
                 waste_mill=el['wastemill']
-                fd.write(("<job %37s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                            ('id="%s"'%job_id),
-                                                            ('duration="%i"'%el['duration']),
-                                                            ('condor_started="%s"'%(el['condor_started']==True)),
-                                                            ('condor_duration="%i"'%el['condor_duration'])))+
+                fd.write(("<job %37s %44s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                                 ('client="%s"'%client_name),
+                                                                 ('id="%s"'%job_id),
+                                                                 ('duration="%i"'%el['duration']),
+                                                                 ('condor_started="%s"'%(el['condor_started']==True)),
+                                                                 ('condor_duration="%i"'%el['condor_duration'])))+
                          ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
                                                          ('duration="%i"'%jobs_duration['total']),
                                                          ('goodput="%i"'%jobs_duration['goodput']),
@@ -894,7 +895,7 @@ class condorLogSummary:
                         # this will make the debugging difficult
                         # Should move somewhere else where we do have this detail
                         # But not today (To be written)
-                        monitoringConfig.logCompleted(completed_stats)
+                        monitoringConfig.logCompleted(client_name,completed_stats)
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
                     # save simple vals
