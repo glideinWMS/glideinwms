@@ -57,7 +57,7 @@ def main():
        -y : check yesterday's logs only [00:00 - 23:59]
        -e [entry_CMS_T#_...]: check logs from this entry only
        -h, -help : this help message
-       -o [PATH relative to ~] : specify loc of outputted report (default ~)
+       -o [abspath] : specify loc of outputted report (default ~)
        -g [v#_#] : specify g_factory version (default v3_1)
        -d, -debug : print debug messages, no report generated (default off)
     """
@@ -107,8 +107,10 @@ def main():
             print usage
             sys.exit(2)
         elif o == "-o":
-            temp = a.strip("/")
-            report_location = temp
+            report_base = a
+            if os.path.exists(os.path.abspath(a))==0:
+                print "Path does not exist."
+                sys.exit() 
         elif o == "-l":
             temp = a.strip("/")
             gfactory_location = temp
@@ -411,12 +413,12 @@ def main():
        title_start_time = a[4:6]+"."+a[6:8]+"_"+a[8:10]+":"+a[10:12]+"-"
        title_end_time = b[4:6]+"."+b[6:8]+"_"+b[8:10]+":"+b[10:12]
     else:
-       title_start_time = a[4:6]+"."+a[6:8]
+       title_start_time = a[4:6]+"-"+a[6:8]+"-"+a[0:4]
        title_end_time = ''
        if yesterday == 0: title_end_time = "_" + time.strftime("%H:%M:%S")  
-    report_name = "logs_analysis:" + title_start_time + title_end_time + ent 
+    report_name = "log_" + title_start_time + title_end_time + ent 
 
-    os.chdir(report_base)
+    os.chdir(os.path.abspath(report_base))
     #if debug==0: 
     report = open(report_name, 'w')
     report.write("""
