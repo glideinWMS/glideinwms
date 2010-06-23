@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/local/bin/python
 
 ###########################################################
 # analyze_entries_v1.py
@@ -60,6 +60,8 @@ def main():
        -o [abspath] : specify loc of outputted report (default ~)
        -g [v#_#] : specify g_factory version (default v3_1)
        -d, -debug : print debug messages, no report generated (default off)
+       -u [username (UID)] (ex: fecms) : check logs from this user ID only
+       -f [frontend] (ex:hcc-glidein-v1_0.main) : check logs from this frontend only 
     """
        #-l [PATH relative to home] : specify loc of gfactory (default is ../..)
        #-v : only check condor activity logs for jobs being held (no report generated)
@@ -75,6 +77,8 @@ def main():
     gfactory_version  = "v3_1"
     gfactory_location = "../.."
     debug             = 0        # flag
+    uid               = "0"
+    frontend          = "0"
     #activity_logs     = 0
 
     try:
@@ -120,6 +124,10 @@ def main():
         elif o in ("-d", "-debug"):
             debug = 1
             print "\nDebug mode\n"
+        elif o == "-u":
+            uid = a
+        elif o == "-f":
+            frontend = a
         #elif o == "-v":
         #    activity_logs = 1
         else: 
@@ -262,48 +270,15 @@ def main():
 
     ###----- Start collecting data -----###
 
-    
-# MOVE TO OWN SCRIPT 
-# Condor activity logs only ---------------------
-
-#if activity_logs == 1:
-#    noholds = 1
-#    cond_log_loc = "/home/gfactory/glideinsubmit/glidein_Production_" 
-#                                         + gfactory_version + "/client_log"
-#    
-#    for i in users:
-#       os.chdir(cond_log_loc)
-#       if debug == 1: print "Checking " + i + " in " + os.getcwd() +  "..."
-#       os.chdir(i)
-#       for e in entries:
-#       
-#           if os.path.exists(e):
-#               os.chdir(e)
-#               dirlist = os.listdir(os.getcwd())
-#               loglist = re.findall("condor_activity_[^,]+",(",").join(dirlist))
-#               os.chdir("..")
-# 
-#               helds = []
-#
-#               #for k in loglist:
-#               #    f = open(k, 'r')
-#               #    helds = re.findall("held", f)
-#                   
-#               if len(helds) != 0:    
-#                   print e + ":", len(helds)
-#                   noholds = 0
-#
-#    if noholds == 1: print "\nNo held jobs found.\n"  
-#    sys.exit(0)
-#   
-    # ---------------------------------------------
- 
-    users = ["user_fecms", "user_feglow", "user_fehcc", "user_feicecube", "user_fenebio"] 
+    #May need to grab from client_log directory instead 
+    os.chdir("client_log")
+    users = os.listdir(os.getcwd())
     # need user_fesleep?
     
-    os.chdir("log")
+    os.chdir("../log")
 
     # total-so-far dictionaries (ones to be presented at end)
+    # ex: condor_start_d = {entry_1: bad-total; entry 2: 124-100; ...}
     condor_start_d = {}
     jobsnr_d = {}
     validation_d = {}
@@ -311,12 +286,14 @@ def main():
     duration_d = {} 
 
     total_glideins = 0
+    total_jobs = 0
 
     for e in entries:
 
         joblist = []
 
-        if debug == 1: print "Checking " + e +  "..."
+    # Turn this back on later
+    #    if debug == 1: print "Checking " + e +  "..."
 
         if os.path.exists(e):
             os.chdir(e)
@@ -360,34 +337,45 @@ def main():
         jobsnr_total = []
         validation_total = []
         badput_total = []
+        clients = []
+        usernames = []
 
-        # Lists of lists, dictionaries and their corresponding regexes
-        # Lists of all glideins (condor_start_total = ["False", "True",...])
-        list_list = [condor_start_total, jobsnr_total, 
-                     validation_total,   badput_total]
+        
+
         # Lists of attributes for all glideins (id = [52334, 14614, ...]]
         totals_list = [ids, term_times, durations,        condor_start_total, 
-                       jobsnr_total,    validation_total, badput_total]
+                       jobsnr_total,    validation_total, badput_total, clients, usernames]
         
         total_re_list = ['id=\"\d{5}.\d{3}\"', 'terminated=\"\S*\"', 'duration=\"\d*\"', 
                          'condor_started=\"(False|True)\"', 'jobsnr=\"\d*\"',
-                         'validation=\"\d*\"','badput=\"\d*\"']
+                         'validation=\"\d*\"','badput=\"\d*\"','client=\"\S*\"','username=\"\S*\"']
+
+
                
-        dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d]
-        problem_re_list = ["False", "0", "1000", "1000"]
+        # Lists of all glideins (condor_start_total = ["False", "True",...])
+        list_list = [condor_start_total, jobsnr_total, 
+                     validation_total,   badput_total]
+
+        dictionary_list = [condor_start_d, validation_d, jobsnr_d, badput_d]
+        problem_re_list = ["False", "1000", "0", "1000"]
  
-        ## fix - if no items (problems) found, user gets error
         for j in joblist:
             for i in range(len(totals_list)):
                temp = re.findall(total_re_list[i], j)
                if len(temp) > 0: 
                    totals_list[i].append(temp[0])
- 
-        count = 0
 
+        for i in jobsnr_total:
+            temp = re.findall("\d",i)
+            temp2 = ''.join(temp)
+            total_jobs = total_jobs + int(temp2)
+         
         # for each list, count the matched corresponding regexes, calculate
         #     the ratio (problematic:good), and add to total dictionary
         #     under this entry (ex. validation = {entry_1: "50/300", ...}
+        
+        count = 0
+        
         for j in range(len(list_list)):
             count = 0
             for i in list_list[j]:
@@ -399,12 +387,13 @@ def main():
 
         os.chdir("..")
 
+
     ### Now we have all lists with specified jobs; make report: ### 
     if check_only_one == 1: 
         ent = ":" + only_entry
         ent2 = ent
     else: 
-        ent = ''
+        ent = ""
         ent2 = "All Entries"
     a = start_time
     b = end_time
@@ -424,9 +413,10 @@ def main():
     report.write("""
 Glidein log analysis for %s, for %s%s 
 ----------------------------------------
-Total Glideins: %s 
+Total Glideins: %s
+Total Jobs: %s (Average jobs/glidein: %.2f) 
 Percentage (> %s%%) of glideins which had:\n    
-""" % (ent2,title_start_time,title_end_time,total_glideins,ratio ))
+""" % (ent2,title_start_time,title_end_time,total_glideins,total_jobs,(total_jobs/total_glideins),ratio ))
 
     # for each dictionary, print out the culprits who exceed ratio r.
     # (dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d])
@@ -441,8 +431,7 @@ Percentage (> %s%%) of glideins which had:\n
             r = (re.findall("\d+\-",b)[0]).strip("-")
             tot = (re.findall("\-\d+",b)[0]).strip("-")
             if int(r) >= int(ratio):
-               report.write("%-50s :%s%%/%s\n" % (a, r, tot))
-               #report.write( a + ":" + str(int(b*100)) +"%/" + tot + "\n")
+               report.write("%-50s :%s%% / %s\n" % (a, r, tot))
         report.write( "-----------------------------------\n" )
     print "\n" + report_name + " output to " + report_base + ".\n"
 
