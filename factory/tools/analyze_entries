@@ -1,388 +1,449 @@
-#!/usr/bin/python
+#!/usr/local/bin/python
+
+###########################################################
+# analyze_entries_v1.py
+# created 6/10/2010, author Alison McCrea amccrea@ucsd.edu
 #
-# analyze_entries_duration.py
-# Analyzes the completed_jobs logs of today and yesterday for
-# each entry point and averages the durations of glideins,
-#    and records the number (fraction) of jobs which had
-#    validation problems (validation=1000(s)) and for which
-#    condor failed to start.
-#        
-# Alison McCrea
-# Created 3.23.2010
+# This script monitors the general status of glideins via logs, 
+#    and reports the percentages of glideins 
+#    failing from the following:  
+# - validation problems (timeout @ 1000s),
+# - 0 jobs/glidein,
+# - condor startup failures, and
+# - badput timeouts (1000s).
+# (These are not mutually exclusive: validation problems
+#      imply badput timeouts and 0 jobs/glidein already;
+#      This will be addressed in later versions.)
+#
+# Planned future additions:
+#   - analysis of durations
+#   - total number of jobs per day
+#   - ratio of total jobs/total glideins
+#   - total CPU time wasted and total CPU time used
+#   - ratio of the wasted/used time
+#   - ratio of used/total time (efficiency)
+#   - % of total glideins making up each problem
+#        (example: 23% percent of glideins failed validation)
+#   - option to sort by clients
+#   - elimination of implied (repeated) problems as explained above,
+#      (perhaps by prioritizing problem categories).
+#   - move condor_activity logs analysis to it's own script
+#   - jobs being held with Globus errors
+#   - documentation
+#   - subjective analysis (a few, glancable lines at the 
+#         top giving an overall picture of gfactory status
+#   - default changes (numbers for today, yesterday,
+#         and average of last week).
+#   - wget failures
+#
+###########################################################
 
-import os, getopt, sys, time, re, fnmatch
-import calendar, datetime
-from time import localtime
 
-# finds average durations of all jobs in a completed_jobs log
-def avgDur(dur_times):
+from __future__ import division
+import os, sys, datetime, time, re, getopt
+import calendar
+from datetime import date
 
-   duration_sum = 0
+def main():
+
+    today = time.strftime("%Y%m%d")
+
+    usage = """
+    Usage:
+       -r [# without %] : minimum % of problematic jobs to be reported (default 50)
+       -i [mm.dd-mm.dd] : (ex: 05.28-06.05) specify an interval over which check
+               logs - no whitespace (current year assumed)
+       -t [hh]: [00-24] include logs that completed starting hh hours ago
+       -y : check yesterday's logs only [00:00 - 23:59]
+       -e [entry_CMS_T#_...]: check logs from this entry only
+       -h, -help : this help message
+       -o [PATH relative to ~] : specify loc of outputted report (default ~)
+       -g [v#_#] : specify g_factory version (default v3_1)
+       -d, -debug : print debug messages, no report generated (default off)
+    """
+       #-l [PATH relative to home] : specify loc of gfactory (default is ../..)
+       #-v : only check condor activity logs for jobs being held (no report generated)
+    
+    ### Defaults ###
+
+    interval          = 0        # flag
+    ratio             = "50"
+    hours_ago         = 0
+    yesterday         = 0        # flag
+    check_only_one    = 0        # flag
+    report_base       = os.path.expanduser("~")  
+    gfactory_version  = "v3_1"
+    gfactory_location = "../.."
+    debug             = 0        # flag
+    #activity_logs     = 0
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "r:i:t:ye:ho:l:g:d"); #v");
+    except getopt.GetoptError:
+        print("\n Option not recognized or missing parameters.")
+        print(" Use -h for usage.\n")
+        sys.exit(2)
+    for o, a in opts:
+        if o == "-r":
+            ratio = a
+        elif o == "-i":
+            interval = 1
+            temp = a.split("-")
+            temp0 = temp[0].split(".")
+            temp1 = temp[1].split(".")
+            # start/end date format ex: 0615
+            start_date = "".join(temp0)
+            end_date = "".join(temp1)
+            if len(start_date) == 3: start_date = "0" + start_date
+            if len(end_date) == 3: end_date = "0" + end_date
+        elif o == "-t":
+           hours_ago = a
+        elif o == "-y":
+            yesterday = 1
+        elif o == "-e":
+             check_only_one = 1
+             only_entry = a
+        elif o in ("-h", "-help"):
+            print usage
+            sys.exit(2)
+        elif o == "-o":
+            temp = a.strip("/")
+            report_location = temp
+        elif o == "-l":
+            temp = a.strip("/")
+            gfactory_location = temp
+        elif o == "-g":
+            temp = a.strip("/")
+            gfactory_version = temp
+        elif o in ("-d", "-debug"):
+            debug = 1
+            print "\nDebug mode\n"
+        #elif o == "-v":
+        #    activity_logs = 1
+        else: 
+            print("\n Option not recognized or missing parameters.")
+            print(" Use -h for usage.\n")
+
+    ###-------- Compile list of entry points to check --------###
+
+    entry_points_location = "/home/gfactory/glideinsubmit/glidein_Production_" + gfactory_version
+    os.chdir(entry_points_location)
    
-   for i in dur_times:
-      dur_time = re.sub("\D", "", i)   # extract duration time
-      duration_sum += int(dur_time)       # sum all durations for a log
-   average = duration_sum/num_jobs   # average for a log (entry)
-   durations[entry] = average 
-   
-# finds jobs for which condor failed to start
-def condorStartFalse(falses):
-   
-   fraction = "%d/%d" % (len(falses), num_jobs)
-   if len(falses) > 0:
-      false_starts[entry] = fraction
+    entries = []
 
-# finds all jobs with validation problems (validation=1000)
-def val(val_times):
-  
-   fraction = float(len(val_times))/float(num_jobs)
-   if fraction > ratio:
-      #if entry not in false_starts:
-      if len(val_times) == num_jobs:
-         fraction = 100
-      else:
-         fraction = fraction*100
-      val_timeouts[entry] = "%d/%d (%d%%)" % (len(val_times), num_jobs, fraction)
-   
+    if(check_only_one == 1):
+        entries.append(only_entry)
+    
+    else: 
+        dirlist = os.listdir(os.getcwd()) # everything in the production folder
+        delim = ","                         # deliminator
+        dir2 = delim.join(dirlist)          # convert list into string deliminated by commas
+
+        entries = re.findall("entry_[^ ,]*", dir2) # list of entry points
+
+        if debug == 1: 
+            print "Looking for entries in", os.getcwd(), "..."
+            print len(entries), " entries found.\n"    
+            #print "List of entries to check: ", entries          
+
+    ###-------- Set interval (in which jobs complete) to check --------###
+
+    # time variables: 
+    #       dates[] (ex [13] or [21, 22, 23, 24] (for intervals) 
+    #       start/end_time (ex 20100613055419), 
+    #       start/end_date (ex 20100613), 
+    #       job_start/end_time ('terminated="2010-06-13T05:54:19-7:00"')
+
+    now = time.strftime("%Y%m%d%H%M%S")
+
+    #if several hours back:
+    if int(hours_ago) != 0:
+       
+        # if hours_ago > hours that have occured today, go into yesterday
+        # (Only works up to 24 hours ago)
+        now_hour = time.strftime("%H")
+        if(int(hours_ago) > int(now_hour)): 
+           start_time = str(int(now) - ((76 + int(hours_ago))  * 10000))
+
+        else:
+           start_time = str(int(now) - (int(hours_ago) * 10000))
+
+        end_time = now
+
+    #if yesterday 
+    elif yesterday == 1:
+        start_time = (str(int(today)-1) + "000000")
+        end_time = str(int(today)-1) + "235959"
+         
+ 
+    #if interval
+    elif interval == 1:
+        start_time =  "2010" + start_date + "000000"
+        end_time = "2010" + end_date + "000000"
+
+    #if only today
+    else:
+        start_time = today+"000000"   #start time = midnight
+        end_time = now
+
+    start_date = start_time[0:8]
+    end_date = end_time[0:8]
+
+    if debug == 1: print "Start Date = ", start_date, "\nEnd Date =   ", end_date
+    if debug == 1: print "Start Time = ", start_time, "\nEnd Time =   ", end_time
+
+    # list of dates over which to check completed_jobs logs
+    dates = [start_date]
+
+    start_month = start_date[4:6]
+    end_month = end_date[4:6]
+    start_day = start_date[6:8]
+    end_day = end_date[6:8]
+
+    ## Month-spanning intervals ##
+
+    if interval == 1:
+        if start_date > end_date:
+            print "Staring date is greater than ending date!"
+            sys.exit()
+
+        if start_date > today or end_date > today:
+            print "Date out of Range."
+            sys.exit()
+
+        # if same month, append the dates between the start and end dates
+        days_in_month = calendar.monthrange(2010, int(start_month))[1]
+        if int(start_month) == int(end_month):
+            for i in range(days_in_month):
+                if i > int(start_day) and i <= int(end_day):
+                    if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                    else: dates.append("2010"+start_month+str(i))
+
+        else: # If different months, add last days of initial month
+            if int(start_month) != int(end_month):
+                for i in range(days_in_month):
+                    if i > int(start_day):
+                        if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                        else: dates.append("2010"+start_month+str(i)) 
+                if start_month < 9:
+                    start_month = "0" + str(int(start_month) + 1)
+                else: start_month = str(int(start_month) + 1)
+
+            # while there is still a month difference, add all the dates in that month
+            while(int(start_month) != int(end_month)):
+                days_in_month = calendar.monthrange(2010, int(start_month))[1]
+                for i in range(days_in_month):
+                    if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                    else: dates.append("2010"+start_month+str(i))
+                if int(start_month) < 9:
+                    start_month = "0" + str(int(start_month) + 1)
+                else: start_month = str(int(start_month) + 1)
+    
+            # when while loop exits, months should be the same, 
+            #      so the rest of the final month's dates can be added.   
+            days_in_month = calendar.monthrange(2010, int(start_month))[1]
+            for i in range(days_in_month):
+                if i <= int(end_day):
+                    if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                    else: dates.append("2010"+start_month+str(i))
+    if debug == 1: print "Dates: ", dates
 
 
-def printReport():
-   if one_entry == 0:
-      file.write("\nGlidein Factory Log Analysis for " + date + ":\n\n")
-      file.write( "Glidein factory name: %s\n" % gf)
-      file.write( "Glidein factory location: %s\n" % factory_loc)
+    # Format start and end times in job-time format ("YYYY-MM-DDThh:mm:ss-7:00")
+    a = start_time
+    b = end_time
+    job_start_time1 = a[0:4]+"-"+a[4:6]+"-"+a[6:8]+"T"+a[8:10]+":"+a[10:12]+":"+a[12:14]
+    job_start_time = "terminated=\"" + job_start_time1 + "-07:00\""
+    job_end_time1 = b[0:4]+"-"+b[4:6]+"-"+b[6:8]+"T"+b[8:10]+":"+b[10:12]+":"+b[12:14]
+    job_end_time = "terminated=\"" + job_end_time1 + "-07:00\""
+    if debug == 1: print "job_start: %s, job end %s.\n" % (job_start_time, job_end_time)
 
-      file.write( "Checking jobs which completed within the past %d hours.\n" % h)
+    ###----- Start collecting data -----###
 
-      file.write(  "-------------------------------------------------\n")
-      file.write( "Entries with average glidein durations less than 3600s (1 hour)\n\n")
-      for i in durations:
-         if durations[i] < 3600:
-            file.write( "Avg dur/%s:\t%d\n" % (i, durations[i]))
-      
-      file.write( "\n---------------------------------------------------\n")
-      file.write( "Entries with average glidein durations greater than 3600s (1 hour)\n\n")
-      for i in durations:
-         if durations[i] > 3600:
-            file.write( "Avg dur/%s:\t%d\n" % (i, durations[i]))
+    
+# MOVE TO OWN SCRIPT 
+# Condor activity logs only ---------------------
 
-      file.write("---------------------------------------------------\n")
-      file.write("\nAverage duration for all entry points: %d\n" % total_average)
-     
-      file.write( "\n---------------------------------------------------\n")
-      file.write( "Number of jobs where condor failed to start / total jobs:\n")
-      file.write( "(Note that all have 1000s validation times as well)\n\n" )
-      for i in false_starts:       
-         file.write( "%s: \t %s\n" % (i, false_starts[i]))
+#if activity_logs == 1:
+#    noholds = 1
+#    cond_log_loc = "/home/gfactory/glideinsubmit/glidein_Production_" 
+#                                         + gfactory_version + "/client_log"
+#    
+#    for i in users:
+#       os.chdir(cond_log_loc)
+#       if debug == 1: print "Checking " + i + " in " + os.getcwd() +  "..."
+#       os.chdir(i)
+#       for e in entries:
+#       
+#           if os.path.exists(e):
+#               os.chdir(e)
+#               dirlist = os.listdir(os.getcwd())
+#               loglist = re.findall("condor_activity_[^,]+",(",").join(dirlist))
+#               os.chdir("..")
+# 
+#               helds = []
+#
+#               #for k in loglist:
+#               #    f = open(k, 'r')
+#               #    helds = re.findall("held", f)
+#                   
+#               if len(helds) != 0:    
+#                   print e + ":", len(helds)
+#                   noholds = 0
+#
+#    if noholds == 1: print "\nNo held jobs found.\n"  
+#    sys.exit(0)
+#   
+    # ---------------------------------------------
+ 
+    users = ["user_fecms", "user_feglow", "user_fehcc", "user_feicecube", "user_fenebio"] 
+    # need user_fesleep?
+    
+    os.chdir("log")
 
-      file.write("\n---------------------------------------------------\n")
-      file.write("Jobs with max validation times (1000s) / total jobs > %2f%%:\n\n" % (ratio*100))
-      for i in val_timeouts:
-         file.write( "%s: \t %s\n" % (i, val_timeouts[i]) )
+    # total-so-far dictionaries (ones to be presented at end)
+    condor_start_d = {}
+    jobsnr_d = {}
+    validation_d = {}
+    badput_d = {}
+    duration_d = {} 
 
-      file.write( "\nDone.\n\n")
+    total_glideins = 0
 
-   elif one_entry == 1:
-      file.write( "\nGlidein Factory Log Analysis for " + entries[0] + ", " + date + ":\n\n")
-      file.write( "Glidein factory name: %s\n" % gf)
-      file.write( "Glidein factory location: %s\n" % factory_loc)
+    for e in entries:
 
-      file.write(  "-------------------------------------------------\n")
-      
-      file.write( "Avgerage duration of glideins:\t%d\n" % durations[entries[0]])
-      if len(false_starts) != 0:
-         file.write( "Jobs where condor failed to start/total:\t%s\n" % false_starts[entries[0]])
-      if len(val_timeouts) != 0:
-         file.write( "Jobs with max validation times (1000s)/total:\t%s\n" % val_timeouts[entries[0]])
+        joblist = []
 
-      file.write( "\nDone.\n\n")
-   
-   file.close()
-   print "\ngf_log outputted to %s.\n" % outdir
+        if debug == 1: print "Checking " + e +  "..."
 
-def condorActivityLogs():
+        if os.path.exists(e):
+            os.chdir(e)
+        else:
+            print "Entry does not exist."
+            sys.exit()
 
-     #Search condor_activity logs for "Job held." 
-     siteb = entry[5:len(entry)]
-     cond_act_address = entry + "/log/condor_activity_" + today + siteb + "\\@" + gf + "*.log"
-     if os.path.isfile(cond_act_address):
-        infile = (cond_act_address)
-        cond_act = infile.read()
-        held = re.findall("held", cond_act)
-        holds[entry] = len(held)
+        for d in dates:
+            c = "completed_jobs_" + d + ".log"
+            if os.path.isfile(c) == 0:
+               continue
+            f = open(c, 'r')
+            jobs = (f.read()).split("\n")
+ 
+            # have list of all jobs:
+            # for interval/hours_ago, remove jobs out of time range
+            # but need termination time first
 
-###############################################################################
+            # make list of termination times:
+            for j in jobs:
+                if len(j) != 0: 
+                    term_time = re.findall('terminated=\"\S*\"', j) 
+                    if ((interval == 1 or hours_ago != 0) and len(term_time) > 0):
+                        if ((term_time[0] > job_start_time) or (term_time[0] < job_end_time)):
+                            joblist.append(j)
+                    else: joblist.append(j)
+        total_glideins = total_glideins + len(joblist)           
+ 
+        #if debug == 1: print "job count = ", len(joblist)  
+        if len(joblist) == 0: 
+            os.chdir("..")
+            continue        
+         
+        # Have job list with specific jobs,
+        #    now search for problems.
+        
+        ids = []
+        term_times = []
+        durations = []
+        condor_start_total = []
+        jobsnr_total = []
+        validation_total = []
+        badput_total = []
+
+        # Lists of lists, dictionaries and their corresponding regexes
+        # Lists of all glideins (condor_start_total = ["False", "True",...])
+        list_list = [condor_start_total, jobsnr_total, 
+                     validation_total,   badput_total]
+        # Lists of attributes for all glideins (id = [52334, 14614, ...]]
+        totals_list = [ids, term_times, durations,        condor_start_total, 
+                       jobsnr_total,    validation_total, badput_total]
+        
+        total_re_list = ['id=\"\d{5}.\d{3}\"', 'terminated=\"\S*\"', 'duration=\"\d*\"', 
+                         'condor_started=\"(False|True)\"', 'jobsnr=\"\d*\"',
+                         'validation=\"\d*\"','badput=\"\d*\"']
+               
+        dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d]
+        problem_re_list = ["False", "0", "1000", "1000"]
+ 
+        ## fix - if no items (problems) found, user gets error
+        for j in joblist:
+            for i in range(len(totals_list)):
+               temp = re.findall(total_re_list[i], j)
+               if len(temp) > 0: 
+                   totals_list[i].append(temp[0])
+ 
+        count = 0
+
+        # for each list, count the matched corresponding regexes, calculate
+        #     the ratio (problematic:good), and add to total dictionary
+        #     under this entry (ex. validation = {entry_1: "50/300", ...}
+        for j in range(len(list_list)):
+            count = 0
+            for i in list_list[j]:
+                temp = re.findall(problem_re_list[j], i)
+                count = count + len(temp)
+                r = str(int(count/len(list_list[j])*100))
+                total = str(len(list_list[j]))
+            (dictionary_list[j])[e] = r + "-" + total  
+
+        os.chdir("..")
+
+    ### Now we have all lists with specified jobs; make report: ### 
+    if check_only_one == 1: 
+        ent = ":" + only_entry
+        ent2 = ent
+    else: 
+        ent = ''
+        ent2 = "All Entries"
+    a = start_time
+    b = end_time
+ 
+    if(interval == 1 or hours_ago != 0):
+       title_start_time = a[4:6]+"."+a[6:8]+"_"+a[8:10]+":"+a[10:12]+"-"
+       title_end_time = b[4:6]+"."+b[6:8]+"_"+b[8:10]+":"+b[10:12]
+    else:
+       title_start_time = a[4:6]+"."+a[6:8]
+       title_end_time = ''
+       if yesterday == 0: title_end_time = "_" + time.strftime("%H:%M:%S")  
+    report_name = "logs_analysis:" + title_start_time + title_end_time + ent 
+
+    os.chdir(report_base)
+    #if debug==0: 
+    report = open(report_name, 'w')
+    report.write("""
+Glidein log analysis for %s, for %s%s 
+----------------------------------------
+Total Glideins: %s 
+Percentage (> %s%%) of glideins which had:\n    
+""" % (ent2,title_start_time,title_end_time,total_glideins,ratio ))
+
+    # for each dictionary, print out the culprits who exceed ratio r.
+    # (dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d])
+    desc_list = ["Condor startup failure:\n","0 jobs per glidein:\n", "Validation problems:\n","No goodput:\n"]   
+ 
+    for j in range(len(dictionary_list)):
+
+        report.write("\n" + desc_list[j] + "\n")
+        tot = ''
+        for a,b in dictionary_list[j].iteritems():
+            
+            r = (re.findall("\d+\-",b)[0]).strip("-")
+            tot = (re.findall("\-\d+",b)[0]).strip("-")
+            if int(r) >= int(ratio):
+               report.write("%-50s :%s%%/%s\n" % (a, r, tot))
+               #report.write( a + ":" + str(int(b*100)) +"%/" + tot + "\n")
+        report.write( "-----------------------------------\n" )
+    print "\n" + report_name + " output to " + report_base + ".\n"
 
 if __name__ == "__main__":
-   
-   ratio = .5
-   debug = 0      # don't output a report
-   printall = 0   # print a special report for a single entry point
-   one_entry = 0  # only one entry point
-   condAct = 0
-
-   outdir = os.environ['HOME'] # directory of outputted report
-   gf = 'Production_v2_0'      # glidein factory name
-   gf_base = "/home/gfactory/glideinsubmit"   # glidein factory base directory
-
-   usage = '''
-Usage:  -h: this help message.
-    -r [int] : min % of failing jobs per site to be reported (default 50%)
-    -e [ENTRY POINT]: run on a single entry point (example: entry_T2_US_UCSD)
-    -d : debugging mode (do not generate a report)  
-    -p : print all data instead of creating a report
- 
-    -t [int]: Check logs that completed within the previous X hours (up to 24)
-    -y : check yesterday's logs
- 
-    Path Options (Exclude final / for all paths entered)
-    -f [FACTORY NAME]: glidein factory name (default Production_v2_0)
-    -s [FACTORY LOC]: base directory of glidein factory (default home/gfactory/glideinsubmit)
-    -o [PATH]: path to generated log (dir must exist beforehand - default is user's home)
-
-    -v : Analyze the condor_activity logs for jobs being held. No completed_jobs logs. 
-
-    This script parses the completed_jobs_<today> log of each entry point for
-       average duration of glideins, 
-       glideins for which condor failed to start, 
-       glideins with validation problems,
-       and held jobs (-v option).
-'''
-
-   
-   # todays date in form used in completed_jobs log
-   today = time.strftime("%Y%m%d")      #yyyymmdd
-   date = time.strftime("%m-%d-%Y_%H:%M:%S")
-   yesterday = int(today)-1
-   if debug == 1:
-      print "today is", today
-      print "date is", date
-      print "yesterday is", yesterday
-
-   h = 24   # jobs completed within the previous X hours reported
-
-   try:
-     opts, args = getopt.getopt( sys.argv[1:], 'hvdyr:e:o:f:s:t:')
-   except getopt.GetoptError, err:
-      print str(err)
-      print usage
-      sys.exit(2)
-   output = None
-   verbose = False
-
-   for opt, arg in opts:
-      if opt == "-r":
-          if arg > 1.0:
-             ratio = float(arg)/100.0
-             print "ratio is %f" % ratio
-          else: 
-             ratio = arg
-             print "ratio is %f" % ratio
-
-      elif opt in ("-h", "-help", "--help"):
-         print usage
-         sys.exit()
-
-      elif opt == "-e":
-         factory_loc = gf_base + "/glidein_" + gf
-         address = factory_loc+"/"+arg+"/log/completed_jobs_"+today+".log"
-         if not os.path.isfile(address):
-            print "\nMalformed entry point name.\n"
-            sys.exit()
-         else: 
-            one_entry = 1
-            sole_entry = [arg]
-            ratio = 0.0    
- 
-      elif opt == "-y":
-         today = int(today)-1
-
-      elif opt == "-t":
-         h = arg 
-
-      elif opt == "-d":
-         debug = 1
-
-      elif opt == "-o":
-         outdir = arg
-
-      elif opt == "-f":
-         gf = arg
-
-      elif opt == "-s":
-         gf_base = arg
-
-      elif opt == "-v":
-         condAct = 1
-
-      else: 
-         print "Invalid option. -h for help."
-         sys.exit()
-
-   # only create output file if not in debug mode
-   if debug == 0:
-      file_loc = outdir + "/gf_log_" + date
-      file = open(file_loc, "w")
-
-   #get time boundary - time after which glideins should be checked
-   x = time.localtime()
-   day = x[2]
-   if debug ==1:
-      print "h = ", h
-      print "x2 = ", x[2]
-      print "x3 = ", x[3]
-   h = x[3] - int(h)
-
-   check_yesterday = 0 
-   # if X hours ago goes into yesterday, check yesterday's log as well
-   if h < 0:
-      day = x[2]-1
-      h = 24 + h
-      check_yesterday = 1
-      if debug == 1:
-         print "going into yesterday."
-         print "day is", day
-         print "hour is", h
-   #   (year, mnth,  day,   hour,  min,  sec, ...)
-   y = (x[0], x[1], day, h, x[4], x[5], x[6], x[7], x[8])
-
-   if debug == 1:
-      print "Checking glideins after ", y
-
-   # Get list of entry points
-   factory_loc = gf_base + "/glidein_" + gf
-   os.chdir(factory_loc)
-   dirList = os.listdir(os.getcwd())
-   entries = []
-   if one_entry == 1:
-      entries = sole_entry
-   else: 
-      for dir in dirList:
-         if fnmatch.fnmatch(dir, 'entry_*'):
-            entries.append(dir)
-
-   #if debug == 1:
-      #for i in entries:
-         #print i 
- 
-   if condAct == 1:
-      holds = {}
-      if debug == 1:
-        print entries
-      for entry in entries:
-         condorActivityLogs()
-      print "Entries held: ", holds
-      sys.exit()
- 
-   durations = {}   # {'entry_name' : average glidein duration }
-   false_starts = {}      # {'entry_name' : %/jobs false starts } 
-   val_timeouts = {}      # {'entry_name' : %/jobs with validation=1000s } 
-
-   
-   total_average = 0   # average of all entries avg glidein duration
-   total_logs = 0      # entries which have a compl jobs log today
- 
-   #unixtime = timeConverter.extractISO8601_Local(term[0])
-   
-   for entry in entries:
-      address = os.getcwd()+"/"+entry+"/log/completed_jobs_"+today+".log"
-      if os.path.isfile(address):
-         total_logs += 1
-         infile = open(address, "r")
-         log = infile.read()
-
-         if debug == 1:
-            print "Checking ", entry, "..."
-
-         # list of jobs for this entry point
-         jobList = re.findall("<job.+", log)
-         if debug == 1:
-            print "jobList length for", entry, ":", len(jobList)
-            #for i in jobList:
-               #print i
-
-         # if need yesterday's log for this entry point, add those to job list
-         if check_yesterday == 1:
-            yest_address = os.getcwd()+"/"+entry+"/log/completed_jobs_%d.log" % yesterday
-            if os.path.isfile(yest_address):
-               # total_logs += 1
-               yest_infile = open(yest_address, "r")
-               yest_log = yest_infile.read()
-           
-               # add jobs that completed yesterday to job list 
-               # inserting at front of jobList keeps term times sequential
-               yestjobList = re.findall("<job.+", yest_log)
-               counter = 0
-               for i in yestjobList:
-                  jobList.insert(counter, i)
-                  counter += 1
-            else:
-               if debug == 1:
-                  print "yesterday's log does not exist for " + entry
- 
-         # will be filled with entries and corresponding data 
-         jobdurs = {}
-         start = {}
-         vals = {}
-
-         end_found = 0
-         for i in jobList: #for each job,
-
-         ## loop until jobs within time frame found ####################
-         ## check if previous day's log needs to be checked as well. ### 
-
-            if end_found == 0:
-               termination = re.findall('terminated=".+-\d\d:00"', i)
-               termination_time = re.findall("20.+-\d\d:00", termination[0])
-   
-               # next 5 lines taken from timeConversion.exportISO8601_Local()
-               str = termination_time[0]
-               timestr=str[:-6]
-               tzstr=str[-6:]
-               tzval=(long(tzstr[:3])*60+long(tzstr[4:]))*60
-               x = calendar.timegm(time.strptime(timestr,"%Y-%m-%dT%H:%M:%S"))-tzval
-
-               # check the termination time. If too long ago, skip this job. 
-               #if debug==1:
-                 # print "time of termination:", x
-                 # print "Want to check glideins after:", time.mktime(y)
-               if x < time.mktime(y):
-                  continue
-            
-               # if the log is wanted, we know that all other logs after it
-               # will also be wanted (chronological order)
-               else:
-                  end_found = 1
-                  if debug == 1:
-                     print "found surpassing time at", x
-
-            
-            dur_times = re.findall('duration="\d+"', i)
-            num_jobs = len(dur_times)
-
-            falses = re.findall('condor_started="False"', i)
-            bad_vals = re.findall('validation="1000"', i)
-            
-            avgDur(dur_times)
-            
-            condorStartFalse(falses)    # returns the percentage of jobs
-         
-            val(bad_vals)
-
-         total_average += durations[entry]
-
-
-      else:
-         if (one_entry == 1):
-            print "\nNo completed_log for today for this entry point.\n"
-         else: 
-            continue   
-  
-   total_average = total_average/total_logs 
-   
-   if debug == 0:
-      printReport()
-
-   
-###############################################################################
+    main()
 
