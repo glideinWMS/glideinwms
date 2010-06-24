@@ -120,10 +120,9 @@ class Factory(Configuration):
     self.glidein.__install_vdt_client__()
     self.glidein.create_web_directories()
     common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
-    if self.wms.privilege_separation() == "y":
-      self.create_factory_dirs(self.unix_acct(),0755)
-    else:
-      self.create_factory_dirs(self.unix_acct(),0755)
+    self.create_factory_dirs(self.unix_acct(),0755)
+    if self.wms.privilege_separation() <> "y":
+      #-- done in WMS collector install if privilege separation is used --
       self.create_factory_client_dirs(self.unix_acct(),0755)
     self.get_config_entries_data()
     self.create_config()

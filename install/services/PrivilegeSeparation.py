@@ -165,7 +165,8 @@ those in your frontend_users attribute of the WMSCollector ini file:
     #-- setuid on swtichboard ---
     os.chmod(self.switchboard_bin,04755)
     #-- create factory directories ---
-    self.factory.create_factory_dirs(self.factory.unix_acct(),0755)
+    #-- factory dirs done in Factory install --
+    # self.factory.create_factory_dirs(self.factory.unix_acct(),0755)
     self.factory.create_factory_client_dirs('root',0755)
     common.logit("--- End of updates for Privilege Separation.--- ")
 
