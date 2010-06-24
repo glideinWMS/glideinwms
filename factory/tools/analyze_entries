@@ -16,21 +16,18 @@
 #      This will be addressed in later versions.)
 #
 # Planned future additions:
-#   - total CPU time wasted and total CPU time used
-#   - ratio of the wasted/used time
-#   - ratio of used/total time (efficiency)
-#   - % of total glideins making up each problem
+#   - **stats for today, yesterday, and avg of last 7 days
+#   - **time used/wasted for each problem
+#   - **% of total glideins making up each problem
 #        (example: 23% percent of glideins failed validation)
-#   - option to sort by clients
+#   - **option to sort by clients
 #   - elimination of implied (repeated) problems as explained above,
 #      (perhaps by prioritizing problem categories).
 #   - wget failures
 #   - jobs being held with Globus errors
-#   - analysis of durations
+#   - **analysis of durations
 #   - subjective analysis (a few, glancable lines at the 
 #         top giving an overall picture of gfactory status
-#   - default changes (numbers for today, yesterday,
-#         and average of last week).
 #   - documentation
 #
 ###########################################################
@@ -56,7 +53,7 @@ def main():
        -h, -help : this help message
        -o [abspath] : specify loc of outputted report (default ~)
        -g [v#_#] : specify g_factory version (default v3_1)
-       -d, -debug : print debug messages, no report generated (default off)
+       -d, -debug : print debug messages (default off)
        -u [username (UID)] (ex: fecms) : check logs from this user ID only
        -f [frontend] (ex:hcc-glidein-v1_0.main) : check logs from this frontend only 
     """
@@ -425,7 +422,7 @@ def main():
     report_name = "log_" + title_start_time + title_end_time + ent 
 
     os.chdir(os.path.abspath(report_base))
-    #if debug==0: 
+    
     report = open(report_name, 'w')
     report.write("""
 Glidein log analysis for %s, for %s%s 
@@ -438,7 +435,7 @@ Total CPU time wasted: %s
 Time used/time wasted: %.2f
 CPU time efficiency: %.2f
 
-Percentage (> %s%%) of glideins which had:\n    
+Percentage (> %s%%) of glideins which have:    
 """ % (ent2,title_start_time,title_end_time,total_glideins,total_jobs,
       (total_jobs/total_glideins), time_used, time_wasted, 
       (time_used/time_wasted), time_used/(time_used+time_wasted),ratio ))
@@ -447,18 +444,29 @@ Percentage (> %s%%) of glideins which had:\n
     # (dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d])
     desc_list = ["Condor startup failure:\n","Validation problems:\n",
                  "0 jobs per glidein\n", "No goodput:\n"]   
- 
+      
     for j in range(len(dictionary_list)):
 
-        report.write("\n" + desc_list[j] + "\n")
+        to_be_printed = []
+        category_tot = 0
         tot = ''
         for a,b in dictionary_list[j].iteritems():
-            
             r = (re.findall("\d+\-",b)[0]).strip("-")
             tot = (re.findall("\-\d+",b)[0]).strip("-")
             if int(r) >= int(ratio):
-               report.write("%-50s :%s%% / %s\n" % (a, r, tot))
+                to_be_printed.append("%-50s :%s%% / %s\n" % (a, r, tot))
+                category_tot = category_tot + (int(r)/100)*int(tot)
+        
+        category_percentage = category_tot/total_glideins
+
+        report.write("\n%s(%s glideins - %.2f%% of total glideins)\n\n" 
+               % (desc_list[j], category_tot, category_percentage*100))
+
+        for i in to_be_printed:
+            report.write(i)
         report.write( "-----------------------------------\n" )
+
+
     print "\n" + report_name + " output to " + report_base + ".\n"
 
 if __name__ == "__main__":
