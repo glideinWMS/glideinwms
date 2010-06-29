@@ -89,18 +89,26 @@ class Glidein(Configuration):
     return self.option_value(self.ini_section,"entry_vos")
   #---------------------
   def ress_vo_constraint(self):
-    vos = string.split(self.option_value(self.ini_section,"entry_vos"),",")
-    constraint = 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
-    for vo in vos[1:]:
-      constraint = constraint + '||StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vo.strip(' ')
+    constraint = '(GlueCEInfoContactString=!=UNDEFINED)'
+    if len(self.entry_vos()) > 0:
+      vos = string.split(self.entry_vos(),",")
+      if len(vos) > 0:
+        constraint = constraint + '&&('
+        constraint = constraint + 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
+        for vo in vos[1:]:
+          constraint = constraint + '||StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vo.strip(' ')
+        constraint = constraint + ')'
     return constraint
   #---------------------
   def bdii_vo_constraint(self):
-    vos = string.split(self.option_value(self.ini_section,"entry_vos"),",")
-    constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
-    for vo in vos[1:]:
-      constraint = constraint + '(GlueCEAccessControlBaseRule=VO:%s)' % vo.strip(' ')
-    constraint = constraint + ')'
+    constraint = None 
+    if len(self.entry_vos()) > 0:
+      vos = string.split(self.entry_vos(),",")
+      constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
+      if len(vos) > 0:
+        for vo in vos[1:]:
+          constraint = constraint + '(GlueCEAccessControlBaseRule=VO:%s)' % vo.strip(' ')
+        constraint = constraint + ')'
     return constraint
   #---------------------
   def entry_filters(self):

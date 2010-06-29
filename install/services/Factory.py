@@ -695,11 +695,11 @@ source %s/condor.sh
 
     #-- get gatekeeper data from ReSS --
     common.logit("Supported VOs: %s" % self.glidein.entry_vos())
-    condor_constraint='(GlueCEInfoContactString=!=UNDEFINED)&&(%s)' % self.glidein.ress_vo_constraint()
-    common.logit("Constraints: %s" % condor_constraint)
+    constraint = self.glidein.ress_vo_constraint()
+    common.logit("Constraints: %s" % constraint)
     condor_obj=condorMonitor.CondorStatus(pool_name=self.glidein.ress_host())
     try:
-      condor_obj.load(constraint=condor_constraint)
+      condor_obj.load(constraint=constraint)
       condor_data=condor_obj.fetchStored()
     except Exception,e: 
       common.logerr(e)
@@ -715,10 +715,11 @@ source %s/condor.sh
       common.logerr("BDII server (%s) in bdii_host option is not valid or inaccssible." % self.glidein.bdii_host())
 
     #-- get gatekeeper data from BDII --
+    constraint = self.glidein.bdii_vo_constraint()
     common.logit("Supported VOs: %s" % self.glidein.entry_vos())
-    common.logit("Constraints: %s" % self.glidein.bdii_vo_constraint())
+    common.logit("Constraints: %s" % constraint)
     try:
-      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=self.glidein.bdii_vo_constraint())
+      bdii_obj=ldapMonitor.BDIICEQuery(self.glidein.bdii_host(),additional_filter_str=constraint)
       bdii_obj.load()
       bdii_data=bdii_obj.fetchStored()
     except Exception,e: 
