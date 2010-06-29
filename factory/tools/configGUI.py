@@ -33,6 +33,7 @@ currentSiteEntry = ""
 cfg = None
 rowToRemove = ""
 defaultSite = ""
+offline = 0
 
 class MyGrid(wx.grid.Grid):
 
@@ -408,17 +409,19 @@ class GlideFrame(wx.Frame):
                 
     def doTable(self):
         global cfg
+        global offline
         # clear all entries
         self.sites_list.DeleteAllItems()
         # get only entries
         for entry in cfg.data["entries"].keys():
             # put enabled servers on top
             if cfg.data["entries"][entry]["enabled"] == "True":
-                self.sites_list.InsertStringItem(0, entry)
-                self.sites_list.SetItemBackgroundColour(0, wx.Color(204, 255, 153))
+                self.sites_list.InsertStringItem(self.sites_list.GetItemCount() - offline, entry)
+                self.sites_list.SetItemBackgroundColour(self.sites_list.GetItemCount()-offline-1, wx.Color(204, 255, 153))
             else:
                 self.sites_list.InsertStringItem(self.sites_list.GetItemCount(), entry)
                 self.sites_list.SetItemBackgroundColour(self.sites_list.GetItemCount()-1, wx.Color(255, 204, 153))
+                offline +=1
         
         
         
@@ -511,7 +514,7 @@ class GlideFrame(wx.Frame):
         self.config_submit_sleep.SetValue(cfg.data["entries"][event.GetText()]["config"]["submit"]["sleep"])
         self.config_submit_sleep.Bind(wx.EVT_TEXT, self.onChange)
         
-        
+        self.SetTitle("GlideinWMS Configuration - " + event.GetText())
         #counter
         # parse attributes and load it
         # clear all existing entries first
