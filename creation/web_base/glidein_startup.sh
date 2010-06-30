@@ -1,5 +1,11 @@
 #!/bin/bash
 
+function on_die {
+        echo "Received kill signal... shutting down child processes"
+        ON_DIE=1
+        kill %1
+}
+
 function warn {
  echo `date` $@
 }
@@ -1028,9 +1034,16 @@ last_startup_time=`date +%s`
 let validation_time=$last_startup_time-$startup_time
 echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
 echo
+ON_DIE=0
+trap 'on_die' TERM
+trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
-"${gs_id_work_dir}/$last_script" glidein_config
+"${gs_id_work_dir}/$last_script" glidein_config &
+wait $!
 ret=$?
+if [ $ON_DIE -eq 1 ]; then
+        ret=0
+fi
 last_startup_end_time=`date +%s`
 let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="

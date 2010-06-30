@@ -3,6 +3,15 @@
 # This script starts the condor daemons
 # expects a config file as a parameter
 
+#function to handle passing signals to the child processes
+function on_die {
+echo "Condor startup received kill signal... shutting down condor processes"
+$CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master2.pid
+ON_DIE=1
+}
+
+
+
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
 for v in $condor_vars; do
@@ -69,6 +78,7 @@ glidein_variables=""
 
 # job_env = environment to pass to the job
 job_env=""
+
 
 #
 # Set a variable read from a file
@@ -366,10 +376,14 @@ fi
 
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
-
+ON_DIE=0
+trap 'on_die' TERM
+trap 'on_die' INT
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
-$CONDOR_DIR/sbin/condor_master -r $retmins -f 
+$CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/monitor/condor_master2.pid &
+wait `cat $PWD/monitor/condor_master2.pid`
 condor_ret=$?
+
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
@@ -415,6 +429,13 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 
     # clean back
     export CONDOR_CONFIG=$tmp_condor_config
+fi
+
+if [ "$ON_DIE" -eq 1 ]; then
+	
+	#If we are explicitly killed, do not wait required time
+	echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
+	exit 0;
 fi
 
 exit $condor_ret
