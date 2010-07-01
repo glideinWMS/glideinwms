@@ -137,15 +137,17 @@ def spawn(sleep_time,advertize_rate,startup_dir,
             # do it just before the sleep
             glideFactoryLib.log_files.cleanup()
 
-            glideFactoryLib.log_files.logActivity("Sleep")
+            glideFactoryLib.log_files.logActivity("Sleep %s secs" % sleep_time)
             time.sleep(sleep_time)
     finally:        
         # cleanup at exit
+        glideFactoryLib.log_files.logActivity("Received signal...exit")
         for entry_name in childs.keys():
             try:
                 os.kill(childs[entry_name].pid,signal.SIGTERM)
             except OSError:
                 pass # ignore failed kills of non-existent processes
+        glideFactoryLib.log_files.logActivity("All entries should be terminated")
         
         
 ############################################################
@@ -213,6 +215,8 @@ def main(startup_dir):
         try:
             spawn(sleep_time,advertize_rate,startup_dir,
                   glideinDescript,entries,restart_attempts,restart_interval)
+        except KeyboardInterrupt:
+            pass
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
