@@ -39,7 +39,7 @@ var index = 0;
 var columnArray = new Array("requestIdle", "requestMax", "statusHeld", "statusIdle", "statusOther", "statusPending", "statusRunning",  "statusStageIn",
                             "statusStageOut", "statusWait", "cmGlideinIdle", "cmGlideinRunning", "cmGlideinTotal", "cmGlideinInfoAge", "cmGlideinJobsIdle", 
 							 "cmGlideinJobsRunning");
-var columnArry = new Array("requestidle", "requestmax", "statusheld", "statusidle", "statusother", "statuspending", "statusrunning",  "statusstageIn",
+var columnArry = new Array("requestidle", "requestmax", "statusheld", "statusidle", "statusother", "statuspending", "statusrunning",  "statusstagein",
                             "statusstageout", "statuswait", "cmglideinidle", "cmglideinrunning", "cmglideinyotal", "cmglideininfoAge", "cmglideinjobsIdle", 
 							 "cmglideinjobsrunning");
 var columnSearch = new Array("requested_idle", "requested_max_run", "status_held", "status_idle", "status_idle_other", "status_pending", "status_running", 
@@ -85,7 +85,6 @@ function showPopUp(hoveritem)
 		cont2 = document.createTextNode(exactColumns[column - 1]);
 		cont3 = document.createTextNode("No Frontends Exist");
 
-
 		td1.appendChild(cont); 
 		td2.appendChild(cont2);
 		td3.appendChild(cont3); 
@@ -97,7 +96,6 @@ function showPopUp(hoveritem)
 		frontEndTable.appendChild(tr1);
 		frontEndTable.appendChild(tr2);
 		frontEndTable.appendChild(tr3);
-
 
 		hover.appendChild(frontEndTable); 
 
@@ -138,14 +136,20 @@ function showTime()
 function sortAlphabetical()
 {
 	sorted = 0;
+	currentSort; 
 	index = -2; 
-	sortSignal();  
+	sortSignal(); 
 	if(frontEnd == 0)
 	{
-		loadXMLDoc(); 
+		totalEntries = totalEntriesMaster;
+		total = totalMaster; 
+		numberRows = totalEntries.length;
+		makeTable(); 
+		fillIn();  
 		return; 
 	}
 	loadFrontEnd(nameLast); 
+
 }
 
 function makeList()
@@ -267,9 +271,31 @@ function loadFrontEnd(name)
 	if(name == "Total (Default)")
 	{
 		preFrontEndName = "Total"; 
-		tableMade = 0; 
-		loadXMLDoc();
+		totalEntries = totalEntriesMaster; 
+		total = totalMaster;
+		numberRows = totalEntries.length; 
+ 		makeTable(); 
+		frontEnd = 0; 
+		if(sorted == 1 && currentSort == "ascending")
+		{
+			tableMade = 0;
+			sorted = 0; 
+			sortTableDescending(col); 
+			sortTableAscending(col);
+			return;   	
+		}
+		else if(sorted == 1 && currentSort == "descending")
+		{
+			tableMade = 0;
+			sorted = 0;
+			sortTableDescending(col); 
+			sortSignal(); 
+			return; 
+		}
+		
+		fillIn(); 
 		return; 	
+		
 	} 
 	
    	nameLast = name; 
@@ -294,13 +320,33 @@ function loadFrontEnd(name)
 		}
 	}
 	frontEnd = 1;
-	sorted = 0;
 	totalEntries = feEntries; 
 	feTotal.push(1);
 	total = feTotal;
 	numberRows = totalEntries.length; 
 	count = 0;
-	fillIn();
+	if(sorted == 1 && currentSort == "ascending")
+	{
+		sorted = 0; 
+		currentSort;
+		makeTable();  
+		sortTableDescending(col); 
+		sortTableAscending(col);
+		return;   	
+	}
+	else if(sorted == 1 && currentSort == "descending")
+	{
+		sorted = 0; 
+		currentSort;
+		makeTable();  
+		sortTableDescending(col); 
+		sortSignal(); 
+		return; 
+	}
+	else
+	{
+		fillIn();
+	}
 }
 
 function updateTable()
