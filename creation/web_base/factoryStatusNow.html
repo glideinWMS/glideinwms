@@ -54,7 +54,7 @@ var preFrontEndName = "Total";
 
 function showPopUp(hoveritem)
 {
-	return; 
+	var i = hoveritem; 
 	if(preFrontEndName != "Total")
 	{
 		return; 
@@ -71,9 +71,10 @@ function showPopUp(hoveritem)
 	var entry = totalEntries[row -1]; 
 	hover = document.getElementById("hoverpopup");
 	head = document.getElementById("header");
+    scrollDiv = document.getElementById("scroll"); 
 
-	
-	if(entry.lastElementChild.childElementCount == 0)
+
+	if(entry.childNodes[1].childNodes.length == 0)
 	{
 		tr1 = document.createElement('tr'); 
 		tr2 = document.createElement('tr'); 
@@ -99,16 +100,107 @@ function showPopUp(hoveritem)
 
 		hover.appendChild(frontEndTable); 
 
-		hover.style.left = hoveritem.offsetLeft + "px";
-		hover.style.top = 180 + "px";
+		hover.style.top = head.offsetTop + hoveritem.offsetTop - 40 - scrollDiv.scrollTop + "px";
+
+	
+		if(column == 16)
+		{
+			hover.style.left = hoveritem.offsetLeft - 90 + "px";
+		}
+		else
+		{
+			hover.style.left = hoveritem.offsetLeft - 70 + "px";
+		}
 
 		hover.style.visibility = "Visible";
 		return; 
 	}
+	hover.appendChild(frontEndTable); 
+
+	tr1 = document.createElement('tr'); 
+	tr2 = document.createElement('tr'); 
+	td1 = document.createElement('td');
+	td2 = document.createElement('td');
+	td3 = document.createElement('td');
+	td4 = document.createElement('td');
+	cont = document.createTextNode(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data);
+	cont2 = document.createTextNode(exactColumns[column - 1]);
+	td1.appendChild(cont); 
+	td2.appendChild(cont2);
+	tr1.appendChild(td1);
+	tr2.appendChild(td2);
+	tr1.appendChild(td3);
+	tr2.appendChild(td4);
+	frontEndTable.appendChild(tr1);
+	frontEndTable.appendChild(tr2);
+
+	numFE = totalEntries[row -1].childNodes[3].childNodes.length; 
+	ends = totalEntries[row -1].childNodes[3];
+	if(numFE == 0)
+	{
+		tr3 = document.createElement('tr');
+		td3 = document.createElement('td'); 
+		cont3 = document.createTextNode("No Frontends Exist");
+		td3.appendChild(cont3);
+		tr3.appendChild(td3);
+		frontEndTable.appendChild(tr3);
+	}
+	else
+	{   i = 1;
+		x = 0; 
+		while(i < numFE)
+		{
+			tr = document.createElement('tr'); 
+			td = document.createElement('td'); 
+			txt = document.createTextNode(ends.childNodes[i].attributes[0].nodeValue + ":");
+			td2 = document.createElement('td');
+			if(column == 1 || column == 2)
+			{
+				txt2 = document.createTextNode(ends.childNodes[i].childNodes[3].attributes[column - 1].nodeValue);
+			} 
+			else if(column > 2 && column < 11)
+			{
+				txt2 = document.createTextNode(ends.childNodes[i].childNodes[5].attributes[column - 3].nodeValue);
+			}
+			else
+			{
+				txt2 = document.createTextNode(ends.childNodes[i].childNodes[1].attributes[column - 11].nodeValue);
+			}
+			td.appendChild(txt); 
+			tr.appendChild(td);
+			td2.appendChild(txt2);
+			td2.setAttribute('align', 'right');  
+			tr.appendChild(td2); 
+			frontEndTable.appendChild(tr); 
+			i = i+2;
+			if(i > 3)
+			{
+				x++; 
+			}
+		}	
+	}
 	
-	//hover.style.top = hoveritem.offsetTop + "px";
-	hover.style.left = hoveritem.offsetLeft + "px";
+	hover.appendChild(frontEndTable);
+
+	if(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data.length > 26 && column == 15)	
+	{
+		hover.style.left = hoveritem.offsetLeft - 150 + "px";
+	}
+	else if(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data.length > 31 && column == 16)	
+	{
+		hover.style.left = hoveritem.offsetLeft - 190 + "px";
+	}
+	else if(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data.length > 21 && column == 16)
+	{
+		hover.style.left = hoveritem.offsetLeft - 130 + "px";
+	}
+	else
+	{
+		hover.style.left = hoveritem.offsetLeft - 110 + "px";
+	}
+	hover.style.top = head.offsetTop + hoveritem.offsetTop - 40 - (25*x) - scrollDiv.scrollTop + "px";
 	hover.style.visibility = "Visible";
+	
 
 }
 
@@ -130,7 +222,7 @@ function showErr()
 }
 function showTime()
 {
-	updated = updated[0].firstElementChild.attributes[3].firstChild.nodeValue;	
+	updated = updated[0].childNodes[1].attributes[3].firstChild.nodeValue;	
 	document.getElementById("update").innerHTML= "XML last update:   " + updated; 	
 }
 function sortAlphabetical()
@@ -149,7 +241,6 @@ function sortAlphabetical()
 		return; 
 	}
 	loadFrontEnd(nameLast); 
-
 }
 
 function makeList()
@@ -307,9 +398,9 @@ function loadFrontEnd(name)
 	
 	for(i = 0; i< totalEntries.length; i++)
 	{
-		if(totalEntries[i].childNodes[3].childElementCount != 0)
+		if(totalEntries[i].childNodes[3].childNodes.length != 0)
 		{
-			for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length ; j+=2)
+			for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
 			{
 				if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
 				{
@@ -382,7 +473,7 @@ function fillIn()
 	{	
 		for(i = 0; i< total.length -1; i++)
 		{
-			if((total[i].childElementCount) == 0)
+			if(total[i].childNodes.length == 0)
 			{
 				//fill in everything excpet the first column with 0 if entry is not doing anything.
 				table.rows[i].cells[j].innerHTML = "0";					
@@ -398,7 +489,7 @@ function fillIn()
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
-			if(total[i].childElementCount != 0)
+			if(total[i].childNodes.length != 0)
 			{
 				var item = total[i].childNodes[3].attributes[attCount].nodeValue;  	
 				table.rows[i].cells[counter].innerHTML = item; 
@@ -415,9 +506,9 @@ function fillIn()
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
-			if(total[i].childElementCount != 0)
+			if(total[i].childNodes.length != 0)
 			{
-				var item = total[i].lastElementChild.attributes[attCount].nodeValue;  	
+				var item = total[i].childNodes[5].attributes[attCount].nodeValue;  	
 				table.rows[i].cells[counter].innerHTML = item; 			
 			}
 		}
@@ -432,9 +523,9 @@ function fillIn()
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{	
-			if(total[i].childElementCount != 0)
+			if(total[i].childNodes.length != 0)
 			{
-				var item = total[i].firstElementChild.attributes[attCount].nodeValue; 	
+				var item = total[i].childNodes[1].attributes[attCount].nodeValue; 	
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
@@ -560,6 +651,8 @@ if(table)
 {
 	document.getElementById('scroll').removeChild(table);
 	document.getElementById('header').removeChild(thead); 
+	document.getElementById('preHeader').removeChild(prethead); 
+
 }
 
 var row=new Array();
@@ -572,10 +665,13 @@ thead = document.createElement('table');
 thBody = document.createElement('tbody');
 thead.setAttribute('id', 'thead');
 
+prethead = document.createElement('table');
+prethBody = document.createElement('tbody');
+prethead.setAttribute('id', 'prethead');
+
 table = document.createElement('table');
 tBody=document.createElement('tbody');
 table.setAttribute('id','table');
-
 
 for(c = 0; c < row_num; c++)
 {
@@ -611,139 +707,158 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 0)
 		{
+			var curr = cell[k];
 			cont = document.createTextNode("Entry Name")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'entryName'); 
 	    	cell[k].setAttribute("onclick", "sortAlphabetical()");
 			cell[k].setAttribute('width', '25%'); 
+			cell[k].setAttribute('bgColor', '#DCDCDC'); 	 
 		}
 		if( c == 0 && k == 1)
 		{
-			cont = document.createTextNode("Requested: Idle")
+			cont = document.createTextNode("Idle")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'requestIdle');
 		    cell[k].setAttribute("onclick", "sortTableDescending('requestIdle') "); 
 			cell[k].setAttribute('width', '6%'); 
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 	 
+
 		}
 		if( c == 0 && k == 2)
 		{
-			cont = document.createTextNode("Requested: Max Run")
+			cont = document.createTextNode("Max Run")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'requestMax'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('requestMax') "); 
-			cell[k].setAttribute('width', '6%'); 
+			cell[k].setAttribute('width', '6%');
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 	 
 		}
 		if( c == 0 && k == 3)
 		{
-			cont = document.createTextNode("Status: Held")
+			cont = document.createTextNode("Held")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusHeld'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusHeld') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 	 
 		}
 		if( c == 0 && k == 4)
 		{
-			cont = document.createTextNode("Status: Idle")
+			cont = document.createTextNode("Idle")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusIdle'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusIdle') "); 
 			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('bgColor', '#FFDAB9');
 		}
 		if( c == 0 && k == 5)
 		{
-			cont = document.createTextNode("Status: Idle Other")
+			cont = document.createTextNode("Idle Other")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusOther'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusOther') "); 
 			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('bgColor', '#FFDAB9');
 		}
 		if( c == 0 && k == 6)
 		{
-			cont = document.createTextNode("Status: Pending")
+			cont = document.createTextNode("Pending")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusPending'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusPending') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 
 		}
 		if( c == 0 && k == 7)
 		{
-			cont = document.createTextNode("Status: Running")
+			cont = document.createTextNode("Running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusRunning') "); 
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 
 		}
 		if( c == 0 && k == 8)
 		{
-			cont = document.createTextNode("Status: StageIn")
+			cont = document.createTextNode("StageIn")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusStageIn'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageIn') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 
 		}
 		if( c == 0 && k == 9)
 		{
-			cont = document.createTextNode("Status: StageOut")
+			cont = document.createTextNode("StageOut")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusStageOut'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageOut') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 
 		}
 		if( c == 0 && k == 10)
 		{
-			cont = document.createTextNode("Status: Wait")
+			cont = document.createTextNode("Wait")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusWait'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusWait') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 
 		}
 		if( c == 0 && k == 11)
 		{
-			cont = document.createTextNode("Client Monitor: Glidein Idle")
+			cont = document.createTextNode("Glidein Idle")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinIdle'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinIdle') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
 		if( c == 0 && k == 12)
 		{
-			cont = document.createTextNode("Client Monitor: Glidein Running")
+			cont = document.createTextNode("Glidein Running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinRunning') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
 		if( c == 0 && k == 13)
 		{
-			cont = document.createTextNode("Client Monitor: Glidein Total")
+			cont = document.createTextNode("Glidein Total")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinTotal'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinTotal') "); 
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
 		if( c == 0 && k == 14)
 		{
-			cont = document.createTextNode("Client Monitor: Info Age")
+			cont = document.createTextNode("Info Age")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinInfoAge'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinInfoAge') ");
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
 		if( c == 0 && k == 15)
 		{
-			cont = document.createTextNode("Client Monitor: Jobs Idle")
+			cont = document.createTextNode("Jobs Idle")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinJobsIdle'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsIdle') ");
 			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('bgColor', '#CDAF95');
 		}
 		if( c == 0 && k == 16)
 		{
-			cont = document.createTextNode("Client Monitor: Jobs Running")
+			cont = document.createTextNode("Jobs Running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinJobsRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsRunning')"); 
-			cell[k].setAttribute('width', '4.5%'); 
+			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
 		
 		if( c > 0 )
@@ -766,11 +881,47 @@ for(c = 0; c < row_num; c++)
 	tableMade = 1;
 	
 }
+
 thead.appendChild(thBody); 
 table.appendChild(tBody); 
 document.getElementById('header').appendChild(thead); 
 document.getElementById('scroll').appendChild(table);
-document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 	
+document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 
+
+
+tr1 = document.createElement('tr'); 
+
+for(k = 0; k < 3; k++) 
+	{
+		cell[k] = document.createElement('td');
+		
+		if(k == 0)
+		{
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+			cell[k].setAttribute('id','requested');
+			td1Txt = document.createTextNode("Requested: ");
+			cell[k].appendChild(td1Txt);
+		}
+		if(k == 1)
+		{
+			cell[k].setAttribute('bgColor', '#FFDAB9');
+			cell[k].setAttribute('id','status');
+			td2Txt = document.createTextNode("Status: ");	
+			cell[k].appendChild(td2Txt); 
+		}
+		if(k == 2)
+		{
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
+			cell[k].setAttribute('id','client');
+			td3Txt = document.createTextNode("Client Monitor: "); 	
+			cell[k].appendChild(td3Txt);
+		}
+		tr1.appendChild(cell[k]);
+	}
+prethBody.appendChild(tr1);
+prethead.appendChild(prethBody);  
+document.getElementById("preHeader").appendChild(prethead);	
+
 } 
 
 function setHeight()
@@ -789,7 +940,22 @@ function sortSignal()
 				table.rows[j].cells[i].bgColor = "#F2F2F2";  
 			}
 		}
-		thead.rows[0].cells[i].bgColor =  "#E0E0E0"; 
+		if(i == 0)
+		{
+			thead.rows[0].cells[i].bgColor =  "#DCDCDC";
+		}
+		else if(i == 1 || i == 2)
+		{
+			thead.rows[0].cells[i].bgColor =  "#FAF0E6";
+		}
+		else if(i > 2 && i< 11)
+		{
+			thead.rows[0].cells[i].bgColor =  "#FFDAB9";
+		}
+		else
+		{
+			thead.rows[0].cells[i].bgColor =  "#CDAF95"; 
+		}
 	}
     if(index == -2)
 	{
@@ -797,12 +963,35 @@ function sortSignal()
 	}
 	for(i = 0; i< totalEntries.length; i++)
 	{
-		table.rows[i].cells[index + 1].bgColor = "#CCCCCC"; 	   
+		
+		if(index + 1 == 1 || index+ 1 == 2)
+		{
+			table.rows[i].cells[index + 1].bgColor =  "#FAF0E6";
+		}
+		else if(index+1 > 2 && index + 1< 11)
+		{
+			table.rows[i].cells[index + 1].bgColor =  "#FFDAB9";
+		}
+		else
+		{
+			table.rows[i].cells[index + 1].bgColor =  "#CDAF95"; 
+		}
 	}
-	thead.rows[0].cells[index + 1].bgColor = "#CCCCCC"; 
-	
-	
+	if(index + 1 == 1 || index+ 1 == 2)
+	{
+		thead.rows[0].cells[index + 1].bgColor =  "#FAF0E6";
+	}
+	else if(index+1 > 2 && index + 1< 11)
+	{
+		thead.rows[0].cells[index + 1].bgColor =  "#FFDAB9";
+	}
+	else
+	{
+		thead.rows[0].cells[index + 1].bgColor =  "#CDAF95"; 
+	}
 }
+
+
 function sortTableAscending(column)
 {
 
@@ -884,7 +1073,7 @@ function sortTableAscending(column)
 	/* Empty entries. */
 	for(var i = totalEntries.length - 1; i >= 0; i--)
 	{
-		if(total[i].childElementCount == 0)
+		if(total[i].childNodes.length == 0)
 		{		
 			newTotal.push(total[i]); 
 			newEntries.push(totalEntries[i]); 	
@@ -893,7 +1082,7 @@ function sortTableAscending(column)
 
 	for(var i = totalEntries.length - 1; i >= 0; i--)
 	{	
-		if(total[i].childElementCount != 0)
+		if(total[i].childNodes.length != 0)
 		{
 			if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
 			{
@@ -905,7 +1094,7 @@ function sortTableAscending(column)
 
 	for(var i = totalEntries.length - 1; i >= 0; i--)
 	{
-		if(total[i].childElementCount != 0)
+		if(total[i].childNodes.length != 0)
 		{
 		   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
 		   {
@@ -1017,7 +1206,7 @@ var att;
 /* Get everything that is not 0. */
 for(var i = 0; i< totalEntries.length; i++)
 {
-	if(total[i].childElementCount != 0)
+	if(total[i].childNodes.length != 0)
 	{
 	   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
 	   {
@@ -1044,7 +1233,7 @@ for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
 }
 for(var i = totalEntries.length - 1; i >= 0; i--)
 {	
-	if(total[i].childElementCount != 0)
+	if(total[i].childNodes.length != 0)
 	{
 		if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
 		{
@@ -1056,7 +1245,7 @@ for(var i = totalEntries.length - 1; i >= 0; i--)
 /* Empty entries. */
 for(var i = totalEntries.length -1; i >= 0; i--)
 {
-	if(total[i].childElementCount == 0)
+	if(total[i].childNodes.length == 0)
 	{		
 		newTotal.push(total[i]); 
 		newEntries.push(totalEntries[i]); 	
@@ -1099,8 +1288,6 @@ function goToLink()
 }
 
 
-
-
 </script>
 <style = "text/css">
 
@@ -1118,10 +1305,6 @@ td
 	text-decoration:none;
 	left:50%; 
 }
-#entries
-{
-	 font-weight: bold;  
-}
 #table
 {
 	table-layout: fixed; 
@@ -1132,11 +1315,21 @@ td
 {
 	color:#D00;
 }
+#entries
+{
+	font-weight: bold;
+}
 #thead
 {
 	table-layout: fixed;
  	width: 99%; 
-	background-color:#E0E0E0;
+	text-align:left;
+}
+#prethead
+{
+	table-layout: fixed;
+	text-align:center;
+	font-weight: bold;
 }
 #button
 {
@@ -1187,6 +1380,7 @@ td
 	float:right;
 }
 
+
 </style>
 
 </head>
@@ -1207,10 +1401,10 @@ td
 
 <br /><div id = "update"> XML Last update: </div> 
 
-<div id ="header"> </div>
-<div id ="scroll"></div> 
-<div id="hoverpopup"> </div>
-
+<div id = "preHeader"> </div>
+<div id = "header" > </div>
+<div id = "scroll"></div> 
+<div id = "hoverpopup"></div>
 
 </body>
 </html>
