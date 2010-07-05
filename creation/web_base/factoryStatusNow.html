@@ -36,18 +36,23 @@ var txt2 = new Array(1000);
 var count = 0; 
 var tableMade = 0;  
 var index = 0; 
-var columnArray = new Array("requestIdle", "requestMax", "statusHeld", "statusIdle", "statusOther", "statusPending", "statusRunning",  "statusStageIn",
-                            "statusStageOut", "statusWait", "cmGlideinIdle", "cmGlideinRunning", "cmGlideinTotal", "cmGlideinInfoAge", "cmGlideinJobsIdle", 
-							 "cmGlideinJobsRunning");
-var columnArry = new Array("requestidle", "requestmax", "statusheld", "statusidle", "statusother", "statuspending", "statusrunning",  "statusstagein",
-                            "statusstageout", "statuswait", "cmglideinidle", "cmglideinrunning", "cmglideinyotal", "cmglideininfoAge", "cmglideinjobsIdle", 
-							 "cmglideinjobsrunning");
-var columnSearch = new Array("requested_idle", "requested_max_run", "status_held", "status_idle", "status_idle_other", "status_pending", "status_running", 
-                             "status_stagein", "status_stageout", "status_wait", "client_monitor_glidein_idle", "client_monitor_glidein_running",
-							 "client_monitor_clidein_total", "client_monitor_info_age", "client_monitor_jobs_idle", "client_monitor_jobs_running");
-var exactColumns = new Array("Requested : Idle", "Requested: Max Run", "Status: Held", "Status: Idle", "Status: Idle Other", "Status: Pending", "Status: Running", 
-                             "Status: Stage In", "Status: Stage Out", "Status: Wait", "Client Monitor: Glidein Idle", "Client Monitor: Glidein Running",
-							 "Client Monitor: Glidein Total", "Client Monitor: Info Age", "Client Monitor: Jobs Idle", "Client Monitor: Jobs Running"); 
+
+var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
+							"requestMax", "requestIdle", 
+							"cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinIdle", "cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
+							
+var columnArry = new Array("statusrunning", "statusidle", "statuswait", "statuspending", "statusstagein", "statusstageout", "statusother", "statusheld",
+							"requestmax", "requestidle", 
+							"cmglideinrunning", "cmglideinjobsrunning", "cmglideinidle", "cmglideinjobsidle", "cmglideintotal", "cmglideininfoage");
+							
+var columnSearch = new Array("status_running", "status_idle", "status_wait", "status_pending", "status_stage_in", "status_stage_out", "status_other", "status_held",
+							"request_max", "request_idle", 
+							"cm_glidein_running", "cm_glidein_jobs_running", "cm_glidein_idle", "cm_glidein_jobs_idle", "cm_glidein_total", "cm_glidein_info_age");;
+			
+var exactColumns = new Array("Status: Running", "Status: Idle", "Status: Wait", "Status: Pending", "Status: Stage In", "Status: Stage Out", "Status: Idle Other",
+							 "Status: Held", "Requested: Max Run", "Requested : Idle", "Client Monitor: Glidein Running", "Client Monitor: Jobs Running",  
+							 "Client Monitor: Glidein Idle", "Client Monitor: Jobs Idle", "Client Monitor: Glidein Total", "Client Monitor: Info Age");  	 
+                 
 var preSortedEntriesArry = new Array();
 var preSortedTotalArry = new Array();
 var preFrontEndName = "Total"; 
@@ -99,10 +104,8 @@ function showPopUp(hoveritem)
 		frontEndTable.appendChild(tr3);
 
 		hover.appendChild(frontEndTable); 
+		hover.style.top = head.offsetTop + hoveritem.offsetTop - 15 - scrollDiv.scrollTop + "px";
 
-		hover.style.top = head.offsetTop + hoveritem.offsetTop - 40 - scrollDiv.scrollTop + "px";
-
-	
 		if(column == 16)
 		{
 			hover.style.left = hoveritem.offsetLeft - 90 + "px";
@@ -149,22 +152,25 @@ function showPopUp(hoveritem)
 	{   i = 1;
 		x = 0; 
 		while(i < numFE)
-		{
+		{ 
 			tr = document.createElement('tr'); 
 			td = document.createElement('td'); 
 			txt = document.createTextNode(ends.childNodes[i].attributes[0].nodeValue + ":");
 			td2 = document.createElement('td');
-			if(column == 1 || column == 2)
+			if(column > 0 && column < 9)
 			{
-				txt2 = document.createTextNode(ends.childNodes[i].childNodes[3].attributes[column - 1].nodeValue);
+				var attArry = new Array(4,1,7,3,5,6,2,0);
+				txt2 = document.createTextNode(ends.childNodes[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
 			} 
-			else if(column > 2 && column < 11)
+			else if(column == 9 || column == 10)
 			{
-				txt2 = document.createTextNode(ends.childNodes[i].childNodes[5].attributes[column - 3].nodeValue);
+				var attArry = new Array(1,0);
+				txt2 = document.createTextNode(ends.childNodes[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
 			}
 			else
 			{
-				txt2 = document.createTextNode(ends.childNodes[i].childNodes[1].attributes[column - 11].nodeValue);
+				var attArry = new Array(1,5,0,4,2,3);
+				txt2 = document.createTextNode(ends.childNodes[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
 			}
 			td.appendChild(txt); 
 			tr.appendChild(td);
@@ -198,9 +204,8 @@ function showPopUp(hoveritem)
 	{
 		hover.style.left = hoveritem.offsetLeft - 110 + "px";
 	}
-	hover.style.top = head.offsetTop + hoveritem.offsetTop - 40 - (25*x) - scrollDiv.scrollTop + "px";
-	hover.style.visibility = "Visible";
-	
+	hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";
+	hover.style.visibility = "Visible";	
 
 }
 
@@ -481,17 +486,37 @@ function fillIn()
 		}
 	}
 	
-	/*
-	 * Fill in requested fields. 
+	/* 
+	 * Fill in status fields.  
 	 */
-	var attCount = 0; 
-	for(var counter = 1; counter <= 2; counter++)
+	var attArry = new Array(4,1,7,3,5,6,2,0); 
+	attCount = 0;
+	for(var counter = 1; counter<= 8; counter++)
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
 			if(total[i].childNodes.length != 0)
 			{
-				var item = total[i].childNodes[3].attributes[attCount].nodeValue;  	
+				var item = total[i].childNodes[5].attributes[attArry[attCount]].nodeValue;  	
+				table.rows[i].cells[counter].innerHTML = item; 			
+			}
+		}
+		attCount++; 
+ 	}
+	
+	
+	/*
+	 * Fill in requested fields. 
+	 */
+	var attArry = new Array(1,0); 
+	var attCount = 0; 
+	for(var counter = 9; counter <= 10; counter++)
+	{
+		for(var i = 0; i< totalEntries.length; i++)
+		{
+			if(total[i].childNodes.length != 0)
+			{
+				var item = total[i].childNodes[3].attributes[attArry[attCount]].nodeValue;  	
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
@@ -499,25 +524,9 @@ function fillIn()
 	}
 	
 	/* 
-	 * Fill in status fields.  
-	 */
-	attCount = 0;
-	for(var counter = 3; counter<= 10; counter++)
-	{
-		for(var i = 0; i< totalEntries.length; i++)
-		{
-			if(total[i].childNodes.length != 0)
-			{
-				var item = total[i].childNodes[5].attributes[attCount].nodeValue;  	
-				table.rows[i].cells[counter].innerHTML = item; 			
-			}
-		}
-		attCount++; 
- 	}
-	
-	/* 
      * Fill in client monitor fields 
  	 */
+	var attArry = new Array(1,5,0,4,2,3); 
 	attCount = 0; 
 	for(var counter = 11; counter <= 16; counter++)
 	{
@@ -525,7 +534,7 @@ function fillIn()
 		{	
 			if(total[i].childNodes.length != 0)
 			{
-				var item = total[i].childNodes[1].attributes[attCount].nodeValue; 	
+				var item = total[i].childNodes[1].attributes[attArry[attCount]].nodeValue; 	
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
@@ -651,27 +660,67 @@ if(table)
 {
 	document.getElementById('scroll').removeChild(table);
 	document.getElementById('header').removeChild(thead); 
-	document.getElementById('preHeader').removeChild(prethead); 
-
 }
 
 var row=new Array();
 var cell=new Array();
+var cell2 = new Array();
+row2 = document.createElement('tr'); 
 
 var row_num=numberRows+1; //edit this value to suit
 var cell_num=17; //edit this value to suit
+var x = 0; 
 
 thead = document.createElement('table');
 thBody = document.createElement('tbody');
 thead.setAttribute('id', 'thead');
 
-prethead = document.createElement('table');
-prethBody = document.createElement('tbody');
-prethead.setAttribute('id', 'prethead');
-
 table = document.createElement('table');
 tBody=document.createElement('tbody');
 table.setAttribute('id','table');
+
+for(x = 0; x < 4; x++)
+{
+	if(x == 0)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute('bgColor', '#DCDCDC');
+		cell2[x].setAttribute('id', 'empty');
+		cell2[x].setAttribute("colspan", "1");
+		cell2[x].setAttribute("width", "25%");
+	}
+	if( x== 1)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute("colspan", "8"); 
+		cell2[x].setAttribute('bgColor', '#FAF0E6');
+		td1Txt = document.createTextNode("Status: ");
+		cell2[x].appendChild(td1Txt);
+		cell2[x].setAttribute('id', 'requested'); 
+	}
+	if(x == 2)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute("colspan", "2"); 
+		cell2[x].setAttribute('bgColor', '#FFDAB9');
+		td1Txt = document.createTextNode("Requested: ");
+		cell2[x].appendChild(td1Txt);
+		cell2[x].setAttribute('id', 'status'); 
+	}
+	if( x == 3)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute("colspan", "6");
+		cell2[x].setAttribute('bgColor', '#CDAF95'); 
+		td3Txt = document.createTextNode("Client Monitor: "); 	
+		cell2[x].appendChild(td3Txt);
+		cell2[x].setAttribute('id', 'client');
+	}
+
+	row2.appendChild(cell2[x]); 
+}
+thBody.appendChild(row2); 
+
 
 for(c = 0; c < row_num; c++)
 {
@@ -695,169 +744,144 @@ for(c = 0; c < row_num; c++)
 		}
 		if(c > 0 && k == 0)
 		{
-			cell[k].setAttribute('width', '25%'); 		
+			cell[k].setAttribute('width', '25%');  				
 		}
-		if(c > 0 && k> 0 && k <= 2)
+	
+		if(c == 0 && k == 0)
 		{
-			cell[k].setAttribute('width', '6%'); 	
-		}
-		if(c > 0 && k > 2)
-		{
-			cell[k].setAttribute('width', '4.5%'); 	
-		}
-		if( c == 0 && k == 0)
-		{
-			var curr = cell[k];
 			cont = document.createTextNode("Entry Name")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'entryName'); 
 	    	cell[k].setAttribute("onclick", "sortAlphabetical()");
-			cell[k].setAttribute('width', '25%'); 
-			cell[k].setAttribute('bgColor', '#DCDCDC'); 	 
+			cell[k].setAttribute('bgColor', '#DCDCDC');  	 
 		}
 		if( c == 0 && k == 1)
-		{
-			cont = document.createTextNode("Idle")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'requestIdle');
-		    cell[k].setAttribute("onclick", "sortTableDescending('requestIdle') "); 
-			cell[k].setAttribute('width', '6%'); 
-			cell[k].setAttribute('bgColor', '#FAF0E6'); 	 
-
-		}
-		if( c == 0 && k == 2)
-		{
-			cont = document.createTextNode("Max Run")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'requestMax'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('requestMax') "); 
-			cell[k].setAttribute('width', '6%');
-			cell[k].setAttribute('bgColor', '#FAF0E6'); 	 
-		}
-		if( c == 0 && k == 3)
-		{
-			cont = document.createTextNode("Held")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'statusHeld'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('statusHeld') ");
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#FFDAB9'); 	 
-		}
-		if( c == 0 && k == 4)
-		{
-			cont = document.createTextNode("Idle")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'statusIdle'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('statusIdle') "); 
-			cell[k].setAttribute('width', '4.5%'); 
-			cell[k].setAttribute('bgColor', '#FFDAB9');
-		}
-		if( c == 0 && k == 5)
-		{
-			cont = document.createTextNode("Idle Other")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'statusOther'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('statusOther') "); 
-			cell[k].setAttribute('width', '4.5%'); 
-			cell[k].setAttribute('bgColor', '#FFDAB9');
-		}
-		if( c == 0 && k == 6)
-		{
-			cont = document.createTextNode("Pending")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'statusPending'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('statusPending') ");
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#FFDAB9'); 
-		}
-		if( c == 0 && k == 7)
 		{
 			cont = document.createTextNode("Running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusRunning') "); 
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#FFDAB9'); 
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 	 
 		}
-		if( c == 0 && k == 8)
+		if( c == 0 && k == 2)
 		{
-			cont = document.createTextNode("StageIn")
+			cont = document.createTextNode("Idle")
 			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'statusStageIn'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageIn') ");
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#FFDAB9'); 
+			cell[k].setAttribute('id', 'statusIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusIdle') "); 
+			cell[k].setAttribute('bgColor', '#FAF0E6');
 		}
-		if( c == 0 && k == 9)
-		{
-			cont = document.createTextNode("StageOut")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'statusStageOut'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageOut') ");
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#FFDAB9'); 
-		}
-		if( c == 0 && k == 10)
+		if( c == 0 && k == 3)
 		{
 			cont = document.createTextNode("Wait")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusWait'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusWait') ");
-			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 4)
+		{
+			cont = document.createTextNode("Pending")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusPending'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusPending') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 
+		}
+		if( c == 0 && k == 5)
+		{
+			cont = document.createTextNode("StageIn")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusStageIn'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageIn') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 
+		}
+		if( c == 0 && k == 6)
+		{ 
+			cont = document.createTextNode("StageOut")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusStageOut'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageOut') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 7)
+		{ 
+			cont = document.createTextNode("Idle Other");
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusOther'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusOther') "); 
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 8)
+		{
+			cont = document.createTextNode("Held")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusHeld'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusHeld') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 
+			cont = document.createTextNode("Running");
+		}
+		if( c == 0 && k == 9)
+		{
+			cont = document.createTextNode("Max Run")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'requestIdle');
+		    cell[k].setAttribute("onclick", "sortTableDescending('requestMax') "); 
 			cell[k].setAttribute('bgColor', '#FFDAB9'); 
 		}
-		if( c == 0 && k == 11)
+		if( c == 0 && k == 10)
 		{
-			cont = document.createTextNode("Glidein Idle")
+			cont = document.createTextNode("Idle")
 			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'cmGlideinIdle'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinIdle') ");
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#CDAF95'); 
+			cell[k].setAttribute('id', 'requestMax'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('requestIdle') "); 
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 	 
 		}
-		if( c == 0 && k == 12)
+		if( c == 0 && k == 11)
 		{
 			cont = document.createTextNode("Glidein Running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinRunning') ");
-			cell[k].setAttribute('width', '4.5%');
 			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
-		if( c == 0 && k == 13)
-		{
-			cont = document.createTextNode("Glidein Total")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'cmGlideinTotal'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinTotal') "); 
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#CDAF95'); 
-		}
-		if( c == 0 && k == 14)
-		{
-			cont = document.createTextNode("Info Age")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'cmGlideinInfoAge'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinInfoAge') ");
-			cell[k].setAttribute('width', '4.5%');
-			cell[k].setAttribute('bgColor', '#CDAF95'); 
-		}
-		if( c == 0 && k == 15)
-		{
-			cont = document.createTextNode("Jobs Idle")
-			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'cmGlideinJobsIdle'); 
-		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsIdle') ");
-			cell[k].setAttribute('width', '4.5%'); 
-			cell[k].setAttribute('bgColor', '#CDAF95');
-		}
-		if( c == 0 && k == 16)
+		if( c == 0 && k == 12)
 		{
 			cont = document.createTextNode("Jobs Running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinJobsRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsRunning')"); 
-			cell[k].setAttribute('width', '4.5%');
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
+		}
+		if( c == 0 && k == 13)
+		{ 
+			cont = document.createTextNode("Glidein Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinIdle') ");
+			cell[k].setAttribute('bgColor', '#CDAF95');
+		}
+		if( c == 0 && k == 14)
+		{
+			cont = document.createTextNode("Jobs Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinJobsIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsIdle') ");
+			cell[k].setAttribute('bgColor', '#CDAF95');
+		}
+		if( c == 0 && k == 15)
+		{
+			cont = document.createTextNode("Glidein Total")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinTotal'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinTotal') "); 
+			cell[k].setAttribute('bgColor', '#CDAF95');
+		}
+		if( c == 0 && k == 16)
+		{
+			cont = document.createTextNode("Info Age")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinInfoAge'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinInfoAge') ");
 			cell[k].setAttribute('bgColor', '#CDAF95'); 
 		}
 		
@@ -868,7 +892,6 @@ for(c = 0; c < row_num; c++)
 		}
 		
 		row[c].appendChild(cell[k]);
-		
 	}
 	if(c == 0)
 	{
@@ -888,39 +911,6 @@ document.getElementById('header').appendChild(thead);
 document.getElementById('scroll').appendChild(table);
 document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 
 
-
-tr1 = document.createElement('tr'); 
-
-for(k = 0; k < 3; k++) 
-	{
-		cell[k] = document.createElement('td');
-		
-		if(k == 0)
-		{
-			cell[k].setAttribute('bgColor', '#FAF0E6');
-			cell[k].setAttribute('id','requested');
-			td1Txt = document.createTextNode("Requested: ");
-			cell[k].appendChild(td1Txt);
-		}
-		if(k == 1)
-		{
-			cell[k].setAttribute('bgColor', '#FFDAB9');
-			cell[k].setAttribute('id','status');
-			td2Txt = document.createTextNode("Status: ");	
-			cell[k].appendChild(td2Txt); 
-		}
-		if(k == 2)
-		{
-			cell[k].setAttribute('bgColor', '#CDAF95'); 
-			cell[k].setAttribute('id','client');
-			td3Txt = document.createTextNode("Client Monitor: "); 	
-			cell[k].appendChild(td3Txt);
-		}
-		tr1.appendChild(cell[k]);
-	}
-prethBody.appendChild(tr1);
-prethead.appendChild(prethBody);  
-document.getElementById("preHeader").appendChild(prethead);	
 
 } 
 
@@ -942,19 +932,19 @@ function sortSignal()
 		}
 		if(i == 0)
 		{
-			thead.rows[0].cells[i].bgColor =  "#DCDCDC";
+			thead.rows[1].cells[i].bgColor =  "#DCDCDC";
 		}
-		else if(i == 1 || i == 2)
+		else if(i > 0 && i < 9)
 		{
-			thead.rows[0].cells[i].bgColor =  "#FAF0E6";
+			thead.rows[1].cells[i].bgColor =  "#FAF0E6";
 		}
-		else if(i > 2 && i< 11)
+		else if(i == 9 || i == 10)
 		{
-			thead.rows[0].cells[i].bgColor =  "#FFDAB9";
+			thead.rows[1].cells[i].bgColor =  "#FFDAB9";
 		}
 		else
 		{
-			thead.rows[0].cells[i].bgColor =  "#CDAF95"; 
+			thead.rows[1].cells[i].bgColor =  "#CDAF95"; 
 		}
 	}
     if(index == -2)
@@ -964,11 +954,11 @@ function sortSignal()
 	for(i = 0; i< totalEntries.length; i++)
 	{
 		
-		if(index + 1 == 1 || index+ 1 == 2)
+		if(index + 1 >  0 && index + 1 < 9)
 		{
 			table.rows[i].cells[index + 1].bgColor =  "#FAF0E6";
 		}
-		else if(index+1 > 2 && index + 1< 11)
+		else if(index + 1 == 9 || index + 1 == 10)
 		{
 			table.rows[i].cells[index + 1].bgColor =  "#FFDAB9";
 		}
@@ -977,25 +967,23 @@ function sortSignal()
 			table.rows[i].cells[index + 1].bgColor =  "#CDAF95"; 
 		}
 	}
-	if(index + 1 == 1 || index+ 1 == 2)
+	if(index + 1 > 0 && index+ 1 < 9)
 	{
-		thead.rows[0].cells[index + 1].bgColor =  "#FAF0E6";
+		thead.rows[1].cells[index + 1].bgColor =  "#FAF0E6";
 	}
-	else if(index+1 > 2 && index + 1< 11)
+	else if(index + 1 == 9 || index + 1 == 10)
 	{
-		thead.rows[0].cells[index + 1].bgColor =  "#FFDAB9";
+		thead.rows[1].cells[index + 1].bgColor =  "#FFDAB9";
 	}
 	else
 	{
-		thead.rows[0].cells[index + 1].bgColor =  "#CDAF95"; 
+		thead.rows[1].cells[index + 1].bgColor =  "#CDAF95"; 
 	}
 }
 
 
 function sortTableAscending(column)
 {
-
-
 	col = column; 
 	var newTotal = new Array(); 
 	var newEntries = new Array();
@@ -1004,69 +992,85 @@ function sortTableAscending(column)
 	var child; 
 	var att; 
 
+	/* Running. */
 	if(column == columnArray[0])
 	{
-		child = 3; att = 0; index = 0; sortSignal(); 
+		child = 5; att = 4; index = 0; sortSignal(); 
 	}
+	/* Idle. */
 	if(column == columnArray[1])
 	{
-		child = 3; att = 1; index = 1; sortSignal(); 
+		child = 5; att = 1; index = 1; sortSignal(); 
 	}
+	/* Wait. */
 	if(column == columnArray[2])
 	{
-		child = 5; att = 0; index = 2; sortSignal(); 
-	}   
+		child = 5; att = 7; index = 2; sortSignal(); 
+	} 
+	/* Pending. */  
 	if(column == columnArray[3])
 	{
-		child = 5; att = 1; index = 3; sortSignal(); 
-	}  
+		child = 5; att = 3; index = 3; sortSignal(); 
+	} 
+	/* StageIn. */ 
 	if(column == columnArray[4])
 	{
-		child = 5; att = 2; index = 4; sortSignal();
+		child = 5; att = 5; index = 4; sortSignal();
 	}
+	/* StageOut. */
 	if(column == columnArray[5])
 	{
-		child = 5; att = 3; index = 5; sortSignal();
+		child = 5; att = 6; index = 5; sortSignal();
 	} 
+	/* Idle Other. */
 	if(column == columnArray[6])
 	{
-		child = 5; att = 4; index = 6; sortSignal();
+		child = 5; att = 2; index = 6; sortSignal();
 	}
+	/* Held. */
 	if(column == columnArray[7])
 	{
-		child = 5; att = 5; index = 7; sortSignal();
+		child = 5; att = 0; index = 7; sortSignal();
 	} 
+	/* Max Run. */
 	if(column == columnArray[8])
 	{
-		child = 5; att = 6; index = 8; sortSignal();
+		child = 3; att = 1; index = 8; sortSignal();
 	}
+	/* Idle. */
 	if(column == columnArray[9])
 	{
-		child = 5; att = 7; index = 9; sortSignal();
+		child = 3; att = 0; index = 9; sortSignal();
 	} 
+	/* Glidein Running. */
 	if(column == columnArray[10])
 	{
-		child = 1; att = 0; index = 10; sortSignal();
+		child = 1; att = 1; index = 10; sortSignal();
 	} 
+	/* Jobs Running. */
 	if(column == columnArray[11])
 	{
-		child = 1; att = 1; index = 11; sortSignal();
+		child = 1; att = 5; index = 11; sortSignal();
 	} 
+	/* Glidein Idle. */
 	if(column == columnArray[12])
 	{
-		child = 1; att = 2; index = 12; sortSignal();
+		child = 1; att = 0; index = 12; sortSignal();
 	} 
+	/* Jobs Idle. */
 	if(column == columnArray[13])
 	{
-		child = 1; att = 3; index = 13; sortSignal();
+		child = 1; att = 4; index = 13; sortSignal();
 	} 
+	/* Glidein Total. */
 	if(column == columnArray[14])
 	{
-		child = 1; att = 4; index = 14; sortSignal();
+		child = 1; att = 2; index = 14; sortSignal();
 	}
+	/* Info Age. */
 	if(column == columnArray[15])
 	{
-		child = 1; att = 5; index = 15; sortSignal();
+		child = 1; att = 3; index = 15; sortSignal();
 	}
 
 
@@ -1138,70 +1142,87 @@ var counter = 0;
 var child; 
 var att; 
 
+	/* Running. */
 	if(column == columnArray[0])
 	{
-		child = 3; att = 0; index = 0; sortSignal(); 
+		child = 5; att = 4; index = 0; sortSignal(); 
 	}
+	/* Idle. */
 	if(column == columnArray[1])
 	{
-		child = 3; att = 1; index = 1; sortSignal(); 
+		child = 5; att = 1; index = 1; sortSignal(); 
 	}
+	/* Wait. */
 	if(column == columnArray[2])
 	{
-		child = 5; att = 0; index = 2; sortSignal(); 
-	}   
+		child = 5; att = 7; index = 2; sortSignal(); 
+	} 
+	/* Pending. */  
 	if(column == columnArray[3])
 	{
-		child = 5; att = 1; index = 3; sortSignal(); 
-	}  
+		child = 5; att = 3; index = 3; sortSignal(); 
+	} 
+	/* StageIn. */ 
 	if(column == columnArray[4])
 	{
-		child = 5; att = 2; index = 4; sortSignal();
+		child = 5; att = 5; index = 4; sortSignal();
 	}
+	/* StageOut. */
 	if(column == columnArray[5])
 	{
-		child = 5; att = 3; index = 5; sortSignal();
+		child = 5; att = 6; index = 5; sortSignal();
 	} 
+	/* Idle Other. */
 	if(column == columnArray[6])
 	{
-		child = 5; att = 4; index = 6; sortSignal();
+		child = 5; att = 2; index = 6; sortSignal();
 	}
+	/* Held. */
 	if(column == columnArray[7])
 	{
-		child = 5; att = 5; index = 7; sortSignal();
+		child = 5; att = 0; index = 7; sortSignal();
 	} 
+	/* Max Run. */
 	if(column == columnArray[8])
 	{
-		child = 5; att = 6; index = 8; sortSignal();
+		child = 3; att = 1; index = 8; sortSignal();
 	}
+	/* Idle. */
 	if(column == columnArray[9])
 	{
-		child = 5; att = 7; index = 9; sortSignal();
+		child = 3; att = 0; index = 9; sortSignal();
 	} 
+	/* Glidein Running. */
 	if(column == columnArray[10])
 	{
-		child = 1; att = 0; index = 10; sortSignal();
+		child = 1; att = 1; index = 10; sortSignal();
 	} 
+	/* Jobs Running. */
 	if(column == columnArray[11])
 	{
-		child = 1; att = 1; index = 11; sortSignal();
+		child = 1; att = 5; index = 11; sortSignal();
 	} 
+	/* Glidein Idle. */
 	if(column == columnArray[12])
 	{
-		child = 1; att = 2; index = 12; sortSignal();
+		child = 1; att = 0; index = 12; sortSignal();
 	} 
+	/* Jobs Idle. */
 	if(column == columnArray[13])
 	{
-		child = 1; att = 3; index = 13; sortSignal();
+		child = 1; att = 4; index = 13; sortSignal();
 	} 
+	/* Glidein Total. */
 	if(column == columnArray[14])
 	{
-		child = 1; att = 4; index = 14; sortSignal();
+		child = 1; att = 2; index = 14; sortSignal();
 	}
+	/* Info Age. */
 	if(column == columnArray[15])
 	{
-		child = 1; att = 5; index = 15; sortSignal();
+		child = 1; att = 3; index = 15; sortSignal();
 	}
+	
 
 /* Get everything that is not 0. */
 for(var i = 0; i< totalEntries.length; i++)
@@ -1325,12 +1346,6 @@ td
  	width: 99%; 
 	text-align:left;
 }
-#prethead
-{
-	table-layout: fixed;
-	text-align:center;
-	font-weight: bold;
-}
 #button
 {
    font-family:Lucida Console,monospace;  
@@ -1378,6 +1393,21 @@ td
 	color: #330000;
     width: 70px;
 	float:right;
+}
+#client
+{
+	font-weight:bold;
+	text-align:center;
+}
+#status
+{
+	font-weight:bold;
+	text-align:center;
+}
+#requested
+{
+	font-weight:bold;
+	text-align:center;
 }
 
 
