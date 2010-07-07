@@ -9,6 +9,7 @@
 
 //LOAD XML Object if it exits. 
 
+var loading; 
 var frontEndTable; 
 var linkShown = 0; 
 var loading = 1; 
@@ -37,6 +38,7 @@ var count = 0;
 var tableMade = 0;  
 var index = 0; 
 
+
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
 							"cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinIdle", "cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
@@ -49,9 +51,9 @@ var columnSearch = new Array("status_running", "status_idle", "status_wait", "st
 							"request_max", "request_idle", 
 							"cm_glidein_running", "cm_glidein_jobs_running", "cm_glidein_idle", "cm_glidein_jobs_idle", "cm_glidein_total", "cm_glidein_info_age");;
 			
-var exactColumns = new Array("Status: Running", "Status: Idle", "Status: Wait", "Status: Pending", "Status: Stage In", "Status: Stage Out", "Status: Idle Other",
-							 "Status: Held", "Requested: Max Run", "Requested : Idle", "Client Monitor: Glidein Running", "Client Monitor: Jobs Running",  
-							 "Client Monitor: Glidein Idle", "Client Monitor: Jobs Idle", "Client Monitor: Glidein Total", "Client Monitor: Info Age");  	 
+var exactColumns = new Array("Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in", "Status: Stage out", "Status: Unknown",
+							 "Status: Held", "Requested: Max run", "Requested : Idle", "Client Monitor: Claimed", "Client Monitor: User Running",  
+							 "Client Monitor: Unmatched", "Client Monitor: User idle", "Client Monitor: Registered", "Client Monitor: Info age");  	 
                  
 var preSortedEntriesArry = new Array();
 var preSortedTotalArry = new Array();
@@ -470,7 +472,7 @@ function fillIn()
 	for( i = 0; i< numberRows; i++)
 	{
 		var y = totalEntries[i].attributes.getNamedItem("name").firstChild.data; 
-		table.rows[i].cells[0].innerHTML = (i+1) + ':&nbsp&nbsp&nbsp;' + y;
+		table.rows[i].cells[0].innerHTML = y;
 	}
 		
 	//fill in the for non running entries. 
@@ -548,8 +550,7 @@ function fillIn()
 	
 }
 function loadXMLDoc()
-{
-	 
+{	
 	if (window.XMLHttpRequest)
 	{// code for IE7+, Firefox, Chrome, Opera, Safari
 		xmlhttp=new XMLHttpRequest();
@@ -644,8 +645,6 @@ function loadXMLDoc()
 			listMade = 0; 
 			currentSort;
 			fillIn(); /* Fill in all the values. */
- 
-			
 		} 
 			 
 	}
@@ -687,7 +686,7 @@ for(x = 0; x < 4; x++)
 		cell2[x].setAttribute('bgColor', '#DCDCDC');
 		cell2[x].setAttribute('id', 'empty');
 		cell2[x].setAttribute("colspan", "1");
-		cell2[x].setAttribute("width", "25%");
+		cell2[x].setAttribute("width", "23%");
 	}
 	if( x== 1)
 	{
@@ -744,8 +743,9 @@ for(c = 0; c < row_num; c++)
 		}
 		if(c > 0 && k == 0)
 		{
-			cell[k].setAttribute('width', '25%');  				
+			cell[k].setAttribute('width', '23%');  				
 		}
+		
 	
 		if(c == 0 && k == 0)
 		{
@@ -773,7 +773,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 3)
 		{
-			cont = document.createTextNode("Wait")
+			cont = document.createTextNode("Waiting")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusWait'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusWait') ");
@@ -789,7 +789,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 5)
 		{
-			cont = document.createTextNode("StageIn")
+			cont = document.createTextNode("Staging in")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusStageIn'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageIn') ");
@@ -797,7 +797,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 6)
 		{ 
-			cont = document.createTextNode("StageOut")
+			cont = document.createTextNode("Staging out")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusStageOut'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageOut') ");
@@ -805,7 +805,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 7)
 		{ 
-			cont = document.createTextNode("Idle Other");
+			cont = document.createTextNode("Unknown");
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'statusOther'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusOther') "); 
@@ -818,11 +818,10 @@ for(c = 0; c < row_num; c++)
 			cell[k].setAttribute('id', 'statusHeld'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('statusHeld') ");
 			cell[k].setAttribute('bgColor', '#FAF0E6'); 
-			cont = document.createTextNode("Running");
 		}
 		if( c == 0 && k == 9)
 		{
-			cont = document.createTextNode("Max Run")
+			cont = document.createTextNode("Max run")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'requestIdle');
 		    cell[k].setAttribute("onclick", "sortTableDescending('requestMax') "); 
@@ -832,13 +831,13 @@ for(c = 0; c < row_num; c++)
 		{
 			cont = document.createTextNode("Idle")
 			cell[k].appendChild(cont);
-			cell[k].setAttribute('id', 'requestMax'); 
+			cell[k].setAttribute('id', 'requestIdle'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('requestIdle') "); 
 			cell[k].setAttribute('bgColor', '#FFDAB9'); 	 
 		}
 		if( c == 0 && k == 11)
 		{
-			cont = document.createTextNode("Glidein Running")
+			cont = document.createTextNode("Claimed")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinRunning') ");
@@ -846,7 +845,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 12)
 		{
-			cont = document.createTextNode("Jobs Running")
+			cont = document.createTextNode("User running")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinJobsRunning'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsRunning')"); 
@@ -854,7 +853,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 13)
 		{ 
-			cont = document.createTextNode("Glidein Idle")
+			cont = document.createTextNode("Unmatched")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinIdle'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinIdle') ");
@@ -862,7 +861,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 14)
 		{
-			cont = document.createTextNode("Jobs Idle")
+			cont = document.createTextNode("User idle")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinJobsIdle'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsIdle') ");
@@ -870,7 +869,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 15)
 		{
-			cont = document.createTextNode("Glidein Total")
+			cont = document.createTextNode("Registered")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinTotal'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinTotal') "); 
@@ -878,7 +877,7 @@ for(c = 0; c < row_num; c++)
 		}
 		if( c == 0 && k == 16)
 		{
-			cont = document.createTextNode("Info Age")
+			cont = document.createTextNode("Info age")
 			cell[k].appendChild(cont);
 			cell[k].setAttribute('id', 'cmGlideinInfoAge'); 
 		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinInfoAge') ");
@@ -921,6 +920,7 @@ function setHeight()
 
 function sortSignal()
 {
+	
 	for(i = 0; i < 17; i++)
 	{
 		for(j = 0; j< totalEntries.length; j++)
@@ -979,6 +979,8 @@ function sortSignal()
 	{
 		thead.rows[1].cells[index + 1].bgColor =  "#CDAF95"; 
 	}
+
+
 }
 
 
@@ -1410,7 +1412,6 @@ td
 	text-align:center;
 }
 
-
 </style>
 
 </head>
@@ -1429,8 +1430,7 @@ td
 <form  > <input id = "button" type="button" value="Update Table"  onclick="updateTable()"/> </form>
 <form  > <input id = "link" type="button" value="Link" onclick="goToLink()" /> </form>
 
-<br /><div id = "update"> XML Last update: </div> 
-
+<br /><div id = "update"> Loading...  </div>
 <div id = "preHeader"> </div>
 <div id = "header" > </div>
 <div id = "scroll"></div> 
