@@ -136,12 +136,12 @@ def factory(service,action,inifile):
 ./factory_startup %s;sleep 2;
 ps -ef |grep glideFactoryEntry.py |egrep -v grep;
 echo;echo ... Entries;
-~%s/glideinWMS/tools/wmsTxtView.py Entries;
+%s/tools/wmsTxtView.py Entries;
 echo;echo ... Sites;
-~%s/glideinWMS/tools/wmsTxtView.py Sites;
+%s/tools/wmsTxtView.py Sites;
 echo;echo ... Gatekeepers;
-~%s/glideinWMS/tools/wmsTxtView.py Gatekeepers;
-"""  % (action, obj.unix_acct(), obj.unix_acct(), obj.unix_acct())
+%s/tools/wmsTxtView.py Gatekeepers;
+"""  % (action, obj.glidein_install_dir(), obj.glidein_install_dir(), obj.glidein_install_dir())
 
   cmds = "%s;%s" % (cmd1,cmd2)
   run_command(service,obj.unix_acct(),obj.node(),cmds)

@@ -66,6 +66,9 @@ class Factory(Configuration):
     self.env_script = "%s/factory.sh" % self.glidein.install_location()
 
   #---------------------
+  def glidein_install_dir(self):
+    return self.glidein.glidein_install_dir()
+  #---------------------
   def install_location(self):
     return self.glidein.install_location()
   #---------------------
