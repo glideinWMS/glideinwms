@@ -80,7 +80,6 @@ function showPopUp(hoveritem)
 	head = document.getElementById("header");
     scrollDiv = document.getElementById("scroll"); 
 
-
 	if(entry.childNodes[1].childNodes.length == 0)
 	{
 		tr1 = document.createElement('tr'); 
@@ -106,6 +105,7 @@ function showPopUp(hoveritem)
 		frontEndTable.appendChild(tr3);
 
 		hover.appendChild(frontEndTable); 
+		
 		hover.style.top = head.offsetTop + hoveritem.offsetTop - 15 - scrollDiv.scrollTop + "px";
 
 		if(column == 16)
@@ -139,8 +139,27 @@ function showPopUp(hoveritem)
 	frontEndTable.appendChild(tr1);
 	frontEndTable.appendChild(tr2);
 
-	numFE = totalEntries[row -1].childNodes[3].childNodes.length; 
-	ends = totalEntries[row -1].childNodes[3];
+	numFE = totalEntries[row -1].childNodes[3].childNodes.length; /* How many front ends the specified entry has. */
+	ends = totalEntries[row -1].childNodes[3]; /* The front ends the specifed entry has. */
+	
+	var unsortedFE = new Array(); 
+	var sortedFE = new Array();
+	 
+	for(i = 1; i < numFE; i+=2)
+	{
+		unsortedFE.push(ends.childNodes[i]); 
+	}
+	for(i = 0; i< feArryMaster.length; i++)
+	{
+		for(j = 0; j < unsortedFE.length; j++)
+		{
+			if(feArryMaster[i].attributes[0].nodeValue == unsortedFE[j].attributes[0].nodeValue)
+			{
+				sortedFE.push(unsortedFE[j]); 	
+			}
+		}
+	}
+	
 	if(numFE == 0)
 	{
 		tr3 = document.createElement('tr');
@@ -151,28 +170,28 @@ function showPopUp(hoveritem)
 		frontEndTable.appendChild(tr3);
 	}
 	else
-	{   i = 1;
+	{   i = 0;
 		x = 0; 
-		while(i < numFE)
+		while(i < sortedFE.length)
 		{ 
 			tr = document.createElement('tr'); 
 			td = document.createElement('td'); 
-			txt = document.createTextNode(ends.childNodes[i].attributes[0].nodeValue + ":");
+			txt = document.createTextNode(sortedFE[i].attributes[0].nodeValue + ":");
 			td2 = document.createElement('td');
 			if(column > 0 && column < 9)
 			{
 				var attArry = new Array(4,1,7,3,5,6,2,0);
-				txt2 = document.createTextNode(ends.childNodes[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
+				txt2 = document.createTextNode(sortedFE[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
 			} 
 			else if(column == 9 || column == 10)
 			{
 				var attArry = new Array(1,0);
-				txt2 = document.createTextNode(ends.childNodes[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
+				txt2 = document.createTextNode(sortedFE[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
 			}
 			else
 			{
 				var attArry = new Array(1,5,0,4,2,3);
-				txt2 = document.createTextNode(ends.childNodes[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
+				txt2 = document.createTextNode(sortedFE[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
 			}
 			td.appendChild(txt); 
 			tr.appendChild(td);
@@ -180,8 +199,8 @@ function showPopUp(hoveritem)
 			td2.setAttribute('align', 'right');  
 			tr.appendChild(td2); 
 			frontEndTable.appendChild(tr); 
-			i = i+2;
-			if(i > 3)
+			i++; 
+			if(i > 1)
 			{
 				x++; 
 			}
