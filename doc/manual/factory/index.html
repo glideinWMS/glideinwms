@@ -7,47 +7,49 @@
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGED" CONTENT="20081006;13284300">
+	<link rel="stylesheet" type="text/css" href="../glideinWMS.css" media="screen, projection" />
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>Glidein Factory</H1>
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/index.html" class="main_link">GlideinWMS - Glidein-based WMS</a>
+        <a href="index.html">Glidein WMS  Manual</a>
+    </h1>
+
+    <ul class="components">
+        <li> <a href="../index.html"> Overview </a></li>
+        <li> <a class="selected" href="index.html"> Factory </a></li>
+        <li> <a href="../frontend/index.html"> VO Frontend </a></li>
+        <li> <a href="../monitoring.html" class="last">Monitoring</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="subcomponents">
+        <li> <a class="selected" href="index.html"> Factory </a></li>
+        <li> <a href="factory_internals.html"> Factory Internals </a></li>
+        <li> <a href="entry.html"> Entry </a></li>
+        <li> <a href="entry_internals.html"> Entry Internals </a></li>
+        <li> <a href="glidein_internals.html"> Glidein Internals </a></li>
+        <li> <a href="custom_scripts.html"> Custom Scripts </a></li>
+        <li> <a class="last" href="configuration_variables.html"> Configuration </a></li>
+    </ul>
+    <div class="clear" />
+
+
+    <ul class="topnav">
+	<LI><A HREF="#overview">Overview</A> 
+	<LI><A HREF="#philosophy">Factory Philosophy</A> 
+	<li><a href="#implementation">Implementation</a> </li>
+	<li><a href="#management">Factory Management</a> </li>
+	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
+    </ul>
+
+<div class="content">
+<h2 class="header">Glidein Factory</h2>
 <H2>Description</H2>
 <P>A&nbsp;Glidein Factory is the glidein producing infrastructure of
 a <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
-<H2>Index</H2>
-<UL>
-	<LI><A HREF="#overview">Overview</A> 
-	<LI><A HREF="#philosophy">The Glidein Factory philosophy</A> 
-	<LI><A HREF="#implementation">Implementation details</A> 
-	<UL>
-		<LI><A HREF="#glidein_daemons">The Glidein Factory Daemon</A>
-		(<A HREF="factory_internals.html">internals</A>) 
-		<LI><A HREF="#entry_daemons">The Factory Entry Daemons</A>
-		(<A HREF="entry_internals.html">internals</A>) 
-		<LI><A HREF="#glidein_startup">The glidein startup script</A>
-		(<A HREF="glidein_internals.html">internals</A>) 
-	</UL>
-	<LI><A HREF="#management">Glidein Factory management</A> 
-	<UL>
-		<LI><A HREF="#create_entry">Creating a new configuration directory
-		tree</A> 
-		<LI><A HREF="#run_daemon">Starting a Glidein Factory Daemon</A> 
-		<LI><A HREF="#downtimes">Downtime handling</A> 
-		<LI><A HREF="#factory_info">Getting configuration information</A> 
-		<LI><A HREF="#reconfig_entry">Updating a configuration directory
-		tree</A> 
-		<LI><A HREF="#localtest">Testing with a local glidein</A> 
-	        <LI><A HREF="#upgrade">Upgrading to a new version of glideinWMS</A>
-	</UL>
-	<LI><A HREF="#monitoring">Glidein Factory Monitoring</A> 
-	<UL>
-	        <LI><A HREF="#monitoring_logs">Log files</A>
-		<LI><A HREF="#monitoring_classads">Looking at ClassAds</A> 
-		<LI><A HREF="#monitoring_web">Web monitoring</A> 
-		<LI><A HREF="#monitoring_history">Historical Web Monitoring</A> 
-	</UL>
-	<LI><A HREF="#scalability">Scalability consideration</A> 
-	<LI><A HREF="#ref">Reference</A> 
-</UL>
+
+
+<div class="section">
 <H2><A NAME="overview"></A>Overview</H2>
 <P><A NAME="glidein_entry_point"></A>The main task of the Glidein
 Factory is to advertise itself, listen for requests from <A HREF="../frontend/index.html">frontend
@@ -60,6 +62,11 @@ different class-ad. <BR>Similarly, each request from a frontend
 client will affect a single entry point; a frontend will need to
 advertise several requests in order to have glideins submitted to all
 the desirable resources.</P>
+</div>
+
+
+
+<div class="section">
 <H2><A NAME="philosophy"></A>The Glidein Factory philosophy</H2>
 <P>The main idea behind a Glidein Factory is to make the life of a VO
 frontend as easy as possible. And to do that, the factory needs to
@@ -83,6 +90,10 @@ glideins. If the frontend ever runs out of user jobs, it will
 advertise the fact that it does not need those glideins anymore. In
 practical terms, this means asking the factory to keep exactly 0 idle
 glideins in the queue.</P>
+</div>
+
+
+<div class="section">
 <H2><A NAME="implementation"></A>Implementation details</H2>
 <H3><A NAME="glidein_daemons"></A>The Glidein Factory Daemon</H3>
 <P>The Glidein Factory is composed of several entry points. The
@@ -481,28 +492,12 @@ databases</A> and associated graphs for a period of up to one year.
 This way, one can easily monitor the evolution of the system. 
 </P>
 
-<H2><A NAME="scalability"></A>Scalability considerations</H2>
-<P>To be written. Will be expanded in future versions of the manual.</P>
-<P>For now, look at the <A HREF="../../install/index.html">installation instructions</A>.</P>
+</div></div>
+<p> <b>CVSROOT:</b> cvsuser@cdcvs.fnal.gov:/cvs/cd </p>
+<p> <b>Packages:</b> glideinWMS </p>
 
-<A NAME="ref"></A>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=0>
-	<COL WIDTH=90*>
-	<COL WIDTH=166*>
-	<TR>
-		<TD WIDTH=35%>
-			<H2 ALIGN=LEFT>Repository</H2>
-			<H3 ALIGN=LEFT>CVSROOT</H3>
-			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H2 ALIGN=LEFT>Package(s)</H2>
-			<P ALIGN=LEFT>glideinWMS/factory<BR>glideinWMS/creation</TD>
-		<TD WIDTH=65% VALIGN=TOP>
-			<H2 ALIGN=LEFT>Author(s)</H2>
-			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
-			Division)</TD>
-	</TR>
-</TABLE>
-<P><BR><BR>
-</P>
+<p> <b>glideinWMS Support:</b> glideinwms-support@fnal.gov</p>
+
+
 </BODY>
 </HTML>

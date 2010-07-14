@@ -6,75 +6,50 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGED" CONTENT="20100427;13264000">
-	<STYLE TYPE="text/css">
-	<!--
-		H2.ctl { font-family: "Lohit Hindi" }
-		H3.ctl { font-family: "Lohit Hindi" }
-		H4.ctl { font-family: "Lohit Hindi" }
-	-->
-	</STYLE>
+        <link rel="stylesheet" type="text/css" href="../glideinWMS.css" media="screen, projection" />
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>Glidein Factory Configuration</H1>
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/index.html" class="main_link">GlideinWMS - Glidein-based WMS</a>
+        <a href="index.html">Glidein WMS  Manual</a>
+    </h1>
+
+    <ul class="components">
+        <li> <a href="../index.html"> Overview </a></li>
+        <li> <a class="selected" href="index.html"> Factory </a></li>
+        <li> <a href="../frontend/index.html"> VO Frontend </a></li>
+        <li> <a href="../monitoring.html" class="last">Monitoring</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="subcomponents">
+        <li> <a href="index.html"> Factory </a></li>
+        <li> <a href="factory_internals.html"> Factory Internals </a></li>
+        <li> <a class="selected" href="entry.html"> Entry </a></li>
+        <li> <a href="entry_internals.html"> Entry Internals </a></li>
+        <li> <a href="glidein_internals.html"> Glidein Internals </a></li>
+        <li> <a href="custom_scripts.html"> Custom Scripts </a></li>
+        <li> <a class="last" href="configuration_variables.html"> Configuration </a></li>
+    </ul>
+    <div class="clear" />
+
+
+    <ul class="topnav">
+        <LI><A HREF="#name">Command Line</A>
+        <LI><A HREF="#args">Configuration File</A>
+        <li><a href="#glexec">glExec</a> </li>
+        <li><a href="#private_net">Private Networks</a> </li>
+        <li><a href="#security">Security</a> </li>
+        <li><a href="#tcp">TCP Updates</a> </li>
+        <li><a href="#multicol">Multiple Collectors</a> </li>
+        <li><a href="#start_rank">Other Topics</a> </li>
+    </ul>
+
+<div class="content">
+<h2 class="header">Glidein Factory Configuration</h2>
 <H2 CLASS="western">Description</H2>
 <P>To configure the Glidein Factory you need to create a directory
 with a set of files. This is done by the command line tools described
 below. A set of configuration example is provided, too.</P>
-<H2 CLASS="western">Index</H2>
-<UL>
-	<LI><P STYLE="margin-bottom: 0in"><A HREF="#name">Command line tools</A>
-		</P>
-	<LI><P STYLE="margin-bottom: 0in"><A HREF="#args">The configuration
-	file</A> 
-	</P>
-	<UL>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#args_global">Suggested
-		global arguments</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#args_entry">Suggested
-		entry point arguments</A> 
-		</P>
-	</UL>
-	<LI><P STYLE="margin-bottom: 0in"><A HREF="#advanced">Advanced
-	topics</A> 
-	</P>
-	<UL>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#glexec">Integration
-		with gLExec</A> 
-		</P>
-		<UL>
-			<LI><P STYLE="margin-bottom: 0in"><A HREF="glexec_troubleshooting">Troubleshooting</A>
-						</P>
-		</UL>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#private_net">Private
-		networks and firewalls</A> ( <A HREF="#gcb">GCB</A> , <A HREF="#ccb">CCB</A>
-		) 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#security">Security
-		handles</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#tcp">Using TCP to send
-		updates to the Collector</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#multicol">Multiple
-		collectors</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#start_rank">Setting the
-		glidein start and rank condition</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#time_limit">Limiting
-		time spent on a Grid resource</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#multi-monitor">Old-style
-		pseudo interactive monitoring</A> 
-		</P>
-		<LI><P STYLE="margin-bottom: 0in"><A HREF="#custom_code">Adding
-		custom code/files to the glideins</A> 
-		</P>
-	</UL>
-	<LI><P><A HREF="#ref">Reference</A> 
-	</P>
-</UL>
 <H2 CLASS="western"><A NAME="name"></A>Command line tools</H2>
 <DL>
 	<DT>To create a new directory, use the command: 
@@ -1065,23 +1040,10 @@ together.</P>
 <H3 CLASS="western">
 <BR><BR>
 </H3>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
-	<TR VALIGN=TOP>
-		<TD>
-			<H2 CLASS="western" ALIGN=LEFT>Repository</H2>
-			<H3 CLASS="western" ALIGN=LEFT>CVSROOT</H3>
-			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H2 CLASS="western" ALIGN=LEFT>Package(s)</H2>
-			<P ALIGN=LEFT>glideinWMS/creation</P>
-		</TD>
-		<TD>
-			<H2 CLASS="western" ALIGN=LEFT>Author(s)</H2>
-			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
-			Division)</P>
-		</TD>
-	</TR>
-</TABLE>
-<P><BR><BR><BR>
-</P>
+</div></div>
+<p> <b>CVSROOT:</b> cvsuser@cdcvs.fnal.gov:/cvs/cd </p>
+<p> <b>Packages:</b> glideinWMS </p>
+<p> <b>glideinWMS Support:</b> glideinwms-support@fnal.gov</p>
+
 </BODY>
 </HTML>

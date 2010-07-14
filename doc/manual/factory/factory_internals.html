@@ -9,19 +9,45 @@
 	<META NAME="CHANGED" CONTENT="20081007;13265400">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+        <link rel="stylesheet" type="text/css" href="../glideinWMS.css" media="screen, projection" />
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>The Glidein Factory Daemon</H1>
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/index.html" class="main_link">GlideinWMS - Glidein-based WMS</a>
+        <a href="index.html">Glidein WMS  Manual</a>
+    </h1>
+
+    <ul class="components">
+        <li> <a href="../index.html"> Overview </a></li>
+        <li> <a class="selected" href="index.html"> Factory </a></li>
+        <li> <a href="../frontend/index.html"> VO Frontend </a></li>
+        <li> <a href="../monitoring.html" class="last">Monitoring</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="subcomponents">
+        <li> <a href="index.html"> Factory </a></li>
+        <li> <a class="selected" href="factory_internals.html"> Factory Internals </a></li>
+        <li> <a href="entry.html"> Entry </a></li>
+        <li> <a href="entry_internals.html"> Entry Internals </a></li>
+        <li> <a href="glidein_internals.html"> Glidein Internals </a></li>
+        <li> <a href="custom_scripts.html"> Custom Scripts </a></li>
+        <li> <a class="last" href="configuration_variables.html"> Configuration </a></li>
+    </ul>
+    <div class="clear" />
+
+
+    <ul class="topnav">
+        <LI><A HREF="#overview">Overview</A></li>
+	<LI><A HREF="#flow">Program flow</A></li>
+	<LI><A HREF="#source">Source code distribution</A></li>
+	<LI><A HREF="#config">Configuration files</A></li>
+    </ul>
+
+<div class="content">
+<h2 class="header">Glidein Factory Internals</h2>
 <H2>Description</H2>
 <P>This document describes the internals of a glideinWMS Factory
 Daemon.</P>
-<H2>Index</H2>
-<UL>
-	<LI><P><A HREF="#overview">Glidein Factory Overview</A></P>
-	<LI><P><A HREF="#flow">Program flow</A></P>
-	<LI><P><A HREF="#source">Source code distribution</A></P>
-	<LI><P><A HREF="#config">Configuration files</A></P>
-</UL>
 <H2><A NAME="overview"></A>Glidein Factory Overview</H2>
 <P>A <A HREF="index.html">Glidein Factory</A> is composed of a
 Factory Daemon and several Factory Entry Daemons. Each Entry Daemon
@@ -68,22 +94,10 @@ located in the root of the factory configuration tree.</P>
 <P><B>Warning</B>: The configuration file should never be changed by
 hand. It is generated and maintained by <A HREF="index.html#create_entry">a
 	dedicated tool.</A></P>
-<P></P>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
-	<TR VALIGN=TOP>
-		<TD>
-			<H2 ALIGN=LEFT>Repository</H2>
-			<H3 ALIGN=LEFT>CVSROOT</H3>
-			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H2 ALIGN=LEFT>Package(s)</H2>
-			<P ALIGN=LEFT>glideinWMS/factory</TD>
-		<TD>
-			<H2 ALIGN=LEFT>Author(s)</H2>
-			<P ALIGN=LEFT>Since Aug. 14th 2006 - Igor Sfiligoi (Fermilab
-			Computing Division)</TD>
-	</TR>
-</TABLE>
-<P><BR><BR>
-</P>
+</div></div>
+<p> <b>CVSROOT:</b> cvsuser@cdcvs.fnal.gov:/cvs/cd </p>
+<p> <b>Packages:</b> glideinWMS </p>
+<p> <b>glideinWMS Support:</b> glideinwms-support@fnal.gov</p>
+
 </BODY>
 </HTML>
