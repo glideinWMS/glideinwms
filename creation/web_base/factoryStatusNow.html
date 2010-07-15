@@ -62,7 +62,7 @@ var preFrontEndName = "Total";
 function showPopUp(hoveritem)
 {
 	var i = hoveritem; 
-	if(preFrontEndName != "Total")
+	if(preFrontEndName != "Total" && preFrontEndName != "Any")
 	{
 		return; 
 	}
@@ -232,7 +232,7 @@ function showPopUp(hoveritem)
 
 function hidePopUp()
 {
-	if(preFrontEndName != "Total")
+	if(preFrontEndName != "Total" && preFrontEndName != "Any")
 	{
 		return; 
 	}
@@ -282,8 +282,12 @@ function makeList()
 	select.setAttribute("onchange", "loadFrontEnd(document.getElementById('choose').value)"); 
 	var def = document.createElement("option"); 
 	defTxt = document.createTextNode("Total (Default)");
+	var any = document.createElement("option"); 
+	anyTxt = document.createTextNode("Any");
 	def.appendChild(defTxt); 
 	select.appendChild(def); 
+	any.appendChild(anyTxt); 
+	select.appendChild(any); 
 	
 	for(i = 0; i< frontEnds.length; i++)
 	{
@@ -354,7 +358,12 @@ function checkUrl()
 					if(temp[j+1].search(/total/i) >= 0)
 					{
 						continue;   	
-					}  
+					} 
+					if(temp[j+1].search(/Any/i) >= 0)
+					{
+						loadFrontEnd("Any"); 
+						select.selectedIndex += 1   	
+					}
 					for(z = 0; z< feArryMaster.length; z++)
 					{
 						if(temp[j+1] == feArryMaster[z].attributes.getNamedItem("name").firstChild.data)	
@@ -422,20 +431,40 @@ function loadFrontEnd(name)
 	total = totalMaster; 
 	tableMade = 0;   
 	
-	for(i = 0; i< totalEntries.length; i++)
+	if(name == "Any")
 	{
-		if(totalEntries[i].childNodes[3].childNodes.length != 0)
+		for(i = 0; i< totalEntries.length; i++)
 		{
-			for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
+			if(totalEntries[i].childNodes[3].childNodes.length > 1)
 			{
-				if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
+				if(totalEntries[i].childNodes[3].childNodes[1].childNodes.length > 0)
 				{
 					feEntries.push(totalEntries[i]); 
-					feTotal.push(totalEntries[i].childNodes[3].childNodes[j]); 
+					feTotal.push(total[i]); 
 				}
 			}
-		}
+		}			
 	}
+	
+	
+	if(name != "Any")
+	{
+		for(i = 0; i< totalEntries.length; i++)
+		{
+			if(totalEntries[i].childNodes[3].childNodes.length != 0)
+			{
+				for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
+				{
+					if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
+					{
+						feEntries.push(totalEntries[i]); 
+						feTotal.push(totalEntries[i].childNodes[3].childNodes[j]); 
+					}
+				}
+			}
+		}			
+	}
+	
 	frontEnd = 1;
 	totalEntries = feEntries; 
 	feTotal.push(1);
@@ -1457,4 +1486,3 @@ td
 
 </body>
 </html>
-<html><body></body></html>
