@@ -554,7 +554,8 @@ def populate_gridmap(params,gridmap_dict):
 
     # Add also the frontend DN, so it is easier to debug
     if params.security.proxy_DN!=None:
-        gridmap_dict.add(params.security.proxy_DN,'frontend')
+        if not (params.security.proxy_DN in collector_dns):
+            gridmap_dict.add(params.security.proxy_DN,'frontend')
 
 #####################################################
 # Populate security values
