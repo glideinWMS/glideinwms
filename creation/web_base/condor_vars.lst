@@ -10,7 +10,6 @@ GLIDEIN_Rank		C	1		+				N	N	-
 GLIDEIN_Max_Idle 	I 	1200 		+				N	Y	-
 GLIDEIN_Retire_Time 	I 	21600		+				N	N	-
 GLIDEIN_Retire_Time_Spread 	I 	7200	+				N	N	-
-GLIDEIN_Job_Max_Time	I	360000		+				N	Y	-
 GLEXEC_JOB		C	True		+				N	Y	-
 GLIDEIN_Use_PGroups	C	False		USE_PROCESS_GROUPS		N	N	-
 UPDATE_COLLECTOR_WITH_TCP	C	False	+				N	N	-

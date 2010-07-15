@@ -43,7 +43,7 @@ IsOwner = (VirtualMachineID == 1) && (START =?= False)
 
 # Max time a job is guaranteed to run in the glidein
 # set it to several months... i.e. infinity
-MaxJobRetirementTime=10000000
+MaxJobRetirementTime=$(PREEMPT_GRACE_TIME)
 # How long does the job have after the startd enters retiring state
 SHUTDOWN_GRACEFUL_TIMEOUT=$(GLIDEIN_Job_Max_Time)
 
