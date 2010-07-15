@@ -211,7 +211,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             for line in monitor_config_line:
                 monitor_config_fd.write(line + "\n")
           except IOError,e:
-            raise RuntimeError,"Error writing into file %s"%filepath
+            raise RuntimeError,"Error writing into file %s"%monitor_config_file
         finally:
             monitor_config_fd.close()
     
@@ -341,6 +341,8 @@ class glideinDicts(cgWDictFile.glideinDicts):
         self.local_populate(params)
         for sub_name in self.sub_list:
             self.sub_dicts[sub_name].populate(params)
+
+        validate_condor_tarball_attrs(params)
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
@@ -622,4 +624,76 @@ def copy_file(infile,outfile):
         shutil.copy2(infile,outfile)
     except IOError, e:
         raise RuntimeError, "Error copying %s in %s: %s"%(infile,outfile,e)
-        
+ 
+
+###############################################
+# Validate CONDOR_OS CONDOR_ARCH CONDOR_VERSION
+
+def validate_condor_tarball_attrs(params):
+    valid_tarballs = get_valid_condor_tarballs(params)
+
+    common_version = "default"
+    common_os = "default"
+    common_arch = "default"
+    if (params.attrs.has_key('CONDOR_VERSION')):
+        common_version = params.attrs['CONDOR_VERSION']['value']
+    if (params.attrs.has_key('CONDOR_OS')):
+        common_os = params.attrs['CONDOR_OS']['value']
+    if (params.attrs.has_key('CONDOR_ARCH')):
+        common_arch = params.attrs['CONDOR_ARCH']['value']
+
+    # Check the configuration for every entry
+    for entry in params.entries.keys():
+        my_version = common_version
+        my_os = common_os
+        my_arch = common_arch
+        match_found = False        
+
+        if (params.entries[entry].attrs.has_key('CONDOR_VERSION')):
+            my_version = params.entries[entry].attrs['CONDOR_VERSION']['value']
+        if (params.entries[entry].attrs.has_key('CONDOR_OS')):
+            my_os = params.entries[entry].attrs['CONDOR_OS']['value']
+        if (params.entries[entry].attrs.has_key('CONDOR_ARCH')):
+            my_arch = params.entries[entry].attrs['CONDOR_ARCH']['value']
+
+        # If either os or arch is auto, handle is carefully
+        if ((my_os == "auto") and (my_arch == "auto")):
+            for tar in valid_tarballs:
+                if (tar['version'] == my_version):
+                    match_found = True
+                    break
+        elif (my_os == "auto"):
+            for tar in valid_tarballs:
+                if ((tar['version'] == my_version) and (tar['arch'] == my_arch)):
+                    match_found = True
+                    break
+        elif (my_arch == "auto"):
+            for tar in valid_tarballs:
+                if ((tar['version'] == my_version) and (tar['os'] == my_os)):
+                    match_found = True
+                    break
+        else:
+            tarball = { 'version': my_version, 
+                        'os'     : my_os, 
+                        'arch'   : my_arch
+                      }
+            if tarball in valid_tarballs:
+                match_found = True
+
+        if match_found == False:
+             raise RuntimeError, "Condor (version=%s, os=%s, arch=%s) for entry %s could not be resolved from <glidein><condor_tarballs>...</condor_tarballs></glidein> configuration." % (my_version, my_os, my_arch, entry)
+
+
+
+####################################################
+# Extract valid CONDOR_OS CONDOR_ARCH CONDOR_VERSION
+
+def get_valid_condor_tarballs(params):
+    valid_tarballs = []
+    for t in params.condor_tarballs:
+        tarball = { 'version': t['version'], 
+                    'os'     : t['os'], 
+                    'arch'   : t['arch']
+                  }
+        valid_tarballs.append(tarball)    
+    return valid_tarballs
