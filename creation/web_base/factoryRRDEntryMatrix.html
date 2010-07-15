@@ -40,10 +40,21 @@
     </table>
 
     <table border=0>
-     <tr>
-       <th>Entries/Groups</th>
-       <td><form id="entries">
-       </form></td>
+     <tr valign="top">
+       <th>Entries/Groups<br>
+         <form id="selector">
+           <input type="button" id="selectall" value="Select All" onclick="setCriteriaValue('all', true)"/> <br/>
+           <input type="button" id="unselectall" value="Unselect All" onclick="setCriteriaValue('all', false)"/> <hr/>
+           <input type="button" id="selectentries" value="Select Entries" onclick="setCriteriaValue('entries', true)"/> <br/>
+           <input type="button" id="unselectentries" value="Unselect Entries" onclick="setCriteriaValue('entries', false)"/> <hr/>
+           <input type="button" id="selectgroups" value="Select Groups" onclick="setCriteriaValue('groups', true)"/> <br/>
+           <input type="button" id="unselectgroups" value="Unselect Groups" onclick="setCriteriaValue('groups', false)"/> <hr/>
+         </form>
+       </th>
+       <td>
+         <form id="entries">
+         </form>
+       </td>
      </tr>
      <tr>
        <th>RRD</th>
@@ -70,7 +81,7 @@
    <hr>
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                 <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
  
     <script type="text/javascript">
 
@@ -123,8 +134,31 @@
           //html_el.appendChild(document.createTextNode(entries[entry]));
           html_el.appendChild(document.createTextNode(entry));
           char_count+=1+cb_el.value.length;
+
+          if (entries_processed > (groups_starting_idx-1)) {
+              //alert(entrylist2groupname(entries[entry]));
+              var but_el1 = document.createElement("input");
+              but_el1.type = "button";
+              but_el1.id = "select" + entrylist2groupname(entries[entry]);
+              but_el1.value = "Select " + entrylist2groupname(entries[entry]);
+              but_el1.setAttribute('onclick', 'setGroupEntriesValue("'+entrylist2groupname(entries[entry])+'", true)');
+
+              var but_el2 = document.createElement("input");
+              but_el2.type = "button";
+              but_el2.id = "unselect" + entrylist2groupname(entries[entry]);
+              but_el2.value = "Unselect " + entrylist2groupname(entries[entry]);
+              but_el2.setAttribute('onclick', 'setGroupEntriesValue("'+entrylist2groupname(entries[entry])+'", false)');
+
+              var form_el=document.getElementById("selector");
+              form_el.appendChild(but_el1);
+              form_el.appendChild(document.createElement("br"));
+              form_el.appendChild(but_el2);
+              form_el.appendChild(document.createElement("hr"));
+          }
+
           entries_processed++;
       }
+
 
       function entrylist2groupname(elist) {
           var gname = elist;
@@ -243,16 +277,19 @@
           var entry=entries_obj.entry[i];
           if (entry.checked==true) {
             if (i < groups_starting_idx) {
-                entry_names_groups_start_idx = entry_names.length;
+              entry_names_groups_start_idx = entry_names.length;
             }
-  	    entry_names.push(entry.value);
+            //if (entry.value != undefined) {
+  	      entry_names.push(entry.value);
+            //}
           }
         }
 
         var rrds_obj=document.getElementById("rrds")
         for (var i in rrds_obj.rrd) {
           var rrd=rrds_obj.rrd[i];
-          if (rrd.checked==true) {
+          //if ((rrd.checked==true) && (rrd.value != undefined)){
+          if (rrd.checked==true){
   	    rrd_name=rrd.value;
           }
         }
@@ -284,6 +321,39 @@
              alert("Failed loading "+fnames[i]+"\n"+err);
           }
 	}
+      }
+
+
+      function setCriteriaValue(criteria, val) {
+          var ent_obj = document.getElementById("entries");
+          if ((criteria == "all") || (criteria == "entries")) {
+              for (var i=0; (i<ent_obj.entry.length)&&(i<groups_starting_idx); i++) {
+                  if (ent_obj.entry[i].type == "checkbox") {
+                      ent_obj.entry[i].checked = val;
+                  }
+              }
+          }
+          if ((criteria == "all") || (criteria == "groups")) {
+              for (var i=groups_starting_idx; i<ent_obj.entry.length; i++) {
+                  if (ent_obj.entry[i].type == "checkbox") {
+                      ent_obj.entry[i].checked = val;
+                  }
+              }
+          }
+      }
+
+
+      function setGroupEntriesValue(gname, val) {
+          var ent_obj = document.getElementById("entries");
+          var elist = (group_map[gname]).toString().split(",");
+          for(var i=0; i<elist.length; i++) {
+              for(var j=0;(j<ent_obj.entry.length)&&(j<groups_starting_idx);j++) {
+                  if ((ent_obj.entry[j].type == "checkbox") && 
+                     (elist[i].toString() == ent_obj.entry[j].value.toString())) {
+                      ent_obj.entry[j].checked = val;
+                  }
+              }
+          }
       }
     </script>
   </body>
