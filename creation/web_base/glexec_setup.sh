@@ -6,6 +6,17 @@
 #
 ############################################################
 
+# Configuration in case GLEXEC should not be used
+function no_use_glexec_config {
+    echo "Not using glexec"
+    # still explicitly disable it in the config
+    add_config_line "GLEXEC_STARTER" "False"
+    add_config_line "GLEXEC_JOB" "False"
+    add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
+    add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
+    exit 0
+}
+
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
@@ -15,24 +26,53 @@ condor_vars_file=`grep -i "^CONDOR_VARS_FILE " $glidein_config | awk '{print $2}
 add_config_line_source=`grep '^ADD_CONFIG_LINE_SOURCE ' $glidein_config | awk '{print $2}'`
 source $add_config_line_source
 
+# Is site configured with glexec?
 glexec_bin=`grep '^GLEXEC_BIN ' $glidein_config | awk '{print $2}'`
 if [ -z "$glexec_bin" ]; then
     glexec_bin="NONE"
 fi
 
-if [ "$glexec_bin" == "NONE" ]; then
-    echo "Not using glexec"
-    # still explicitly disable it in the config
-    add_config_line "GLEXEC_STARTER" "False"
-    add_config_line "GLEXEC_JOB" "False"
-    add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
-    add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
-    exit 0
+# Does frontend wants to use glexec? 
+use_glexec=`grep '^GLIDEIN_Glexec_Use ' $glidein_config | awk '{print $2}'`
+if [ -z "$use_glexec" ]; then
+    # Default to optional usage
+    echo "`date` GLIDEIN_Glexec_Use not configured. Defaulting it to OPTIONAL"
+    use_glexec="OPTIONAL"
 fi
 
+echo "`date` VO's desire to use glexec: $use_glexec"
+echo "`date` Entry configured with glexec: $glexec_bin"
+
+case "$use_glexec" in
+    NEVER)
+        echo "`date` VO does not want to use glexec"
+        no_use_glexec_config
+        ;;
+    OPTIONAL)
+        if [ "$glexec_bin" == "NONE" ]; then
+            echo "`date` VO has set the use glexec to OPTIONAL but site is not configured with glexec"
+            no_use_glexec_config
+        fi
+        # Default to secure mode using glexec
+        break
+        ;;
+    REQUIRED)
+        if [ "$glexec_bin" == "NONE" ]; then
+            echo "`date` VO mandates the use of glexec but the site is not configured with glexec information."
+            exit 1
+        fi
+        break
+        ;;
+    *)
+        echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
+        exit 1
+        ;;
+esac 
+
+echo "`date` making configuration changes to use glexec"
 # --------------------------------------------------
 # create a local copy of the shell
-# gLExec does not like symlinks adn this way we are sure it is a file
+# gLExec does not like symlinks and this way we are sure it is a file
 cp -p /bin/sh ./sh
 if [ $? -ne 0 ]; then
     echo "Failed to copy /bin/sh to . ($PWD)" 1>&2
@@ -90,8 +130,6 @@ else
     add_condor_vars_line "GLEXEC_STARTER" "C" "True"  "+" "Y" "Y" "-"
     add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
 fi
-#add_condor_vars_line "GLEXEC_STARTER" "C" "-" "+" "Y" "N" "-"
-#add_condor_vars_line "GLEXEC_JOB"     "C" "-" "+" "Y" "N" "-"
 
 add_config_line "GLEXEC_BIN" "$glexec_bin"
 

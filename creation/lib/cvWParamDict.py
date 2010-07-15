@@ -458,16 +458,27 @@ MATCH_ATTR_CONV={'string':'s','int':'i','real':'r','bool':'b'}
 
 def populate_common_descript(descript_dict,        # will be modified
                              params):
+
     for tel in (("factory","Factory"),("job","Job")):
         param_tname,str_tname=tel
-        descript_dict.add('%sQueryExpr'%str_tname,params.match[param_tname]['query_expr'])
-        match_attrs=params.match[param_tname]['match_attrs']
         ma_arr=[]
+        qry_expr = params.match[param_tname]['query_expr']
+
+        if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
+             (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') and
+             (param_tname == 'factory') ):
+            ma_arr.append(('GLEXEC_BIN', 's'))
+            qry_expr = "(%s) && (GLEXEC_BIN=!=UNDEFINED)" % qry_expr
+
+        descript_dict.add('%sQueryExpr'%str_tname,qry_expr)
+
+        match_attrs=params.match[param_tname]['match_attrs']
         for attr_name in match_attrs.keys():
             attr_type=match_attrs[attr_name]['type']
             if not (attr_type in MATCH_ATTR_CONV.keys()):
                 raise RuntimeError, "match_attr type '%s' not one of %s"%(attr_type,MATCH_ATTR_CONV.keys())
             ma_arr.append((str(attr_name),MATCH_ATTR_CONV[attr_type]))
+
         descript_dict.add('%sMatchAttrs'%str_tname,repr(ma_arr))
 
     if params.security.security_name!=None:
@@ -520,7 +531,11 @@ def populate_common_descript(descript_dict,        # will be modified
         if len(proxy_security_classes.keys())>0:
              descript_dict.add('ProxySecurityClasses',repr(proxy_security_classes))
 
-    descript_dict.add('MatchExpr',params.match.match_expr)
+    match_expr = params.match.match_expr
+    if ( (params.attrs.has_key('GLIDEIN_Glexec_Use')) and 
+         (params.attrs['GLIDEIN_Glexec_Use']['value'] == 'REQUIRED') ):
+        match_expr = '(%s) and (glidein["attrs"]["GLEXEC_BIN"] != "NONE")' % match_expr
+    descript_dict.add('MatchExpr', match_expr)
 
 
 #####################################################
@@ -556,6 +571,7 @@ def populate_gridmap(params,gridmap_dict):
     if params.security.proxy_DN!=None:
         if not (params.security.proxy_DN in collector_dns):
             gridmap_dict.add(params.security.proxy_DN,'frontend')
+            
 
 #####################################################
 # Populate security values
