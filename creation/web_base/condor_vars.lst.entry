@@ -6,7 +6,7 @@
 
 # User modifiable variables
 GLIDEIN_Site		S	$GLIDEIN_Entry_Name	+			N	Y	@
-GLIDEIN_Entry_Start	C	1		+				N	N	-
+GLIDEIN_Entry_Start	C	True		+				N	N	-
 GLIDEIN_Entry_Rank	C	1		+				N	N	-
 PREEMPT			C	False		+				N	N	-
 WANT_VACATE		C	False		+				N	N	-
