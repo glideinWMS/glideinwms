@@ -58,7 +58,7 @@ def perform_work(entry_name,
     
     #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
     try:
-        condorQ=glideFactoryLib.getCondorQData(entry_name,client_name,schedd_name)
+        condorQ=glideFactoryLib.getCondorQData(entry_name,client_int_name,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
         glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
         glideFactoryLib.log_files.logWarning("getCondorQData failed: %s"%e)
@@ -116,7 +116,8 @@ def perform_work(entry_name,
     # not reducing the held, as that is effectively per proxy, not per request
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
-        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
+        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+                                                       idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
     if nr_submitted>0:
