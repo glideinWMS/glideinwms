@@ -1,65 +1,65 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+<head>
+	<meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
 	<TITLE>Glidein based WMS</TITLE>
-	<meta name="generator" content="Bluefish 1.0.7">
-	<META NAME="CREATED" CONTENT="0;0">
+	<meta name="CREATED" content="0;0">
 	<META NAME="CHANGED" CONTENT="20090513;15530100">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>Glidein based WMS</H1>
-<H2>Description</H2>
+	<link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">Glidein WMS  Manual</a>
+        <ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+
+    </h1>
+
+    <ul class="components">
+        <li> <a href="index.html"> Overview </a></li>
+        <li> <a href="factory/index.html"> Factory </a></li>
+        <li> <a href="frontend/index.html"> VO Frontend </a></li>
+        <li> <a href="monitoring.html" class="last">Monitoring</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#introduction">Introduction</a> </li>
+	<li><a href="#glideins">The Glidein Mechanism</a> </li>
+	<li><a href="#overview">WMS Overview</a> </li>
+	<li><a href="#classads">Data Exchange Overview</a> </li>
+	<li><a href="#implementation">Implementation Details</a> </li>
+	<li><a href="#condor">The Condor Pool</a> </li>
+    </ul>
+
+<div class="content">
+	<H2 class="header">Overview</H2>
+
 <P>The glideinWMS package holds the Condor glidein based Workload
 Management System (WMS).</P>
-<H2>Index</H2>
-<UL>
-	<LI><A HREF="#introduction">Introduction</A> 
-	<LI><A HREF="#glideins">The glidein mechanism</A> 
-	<LI><A HREF="#overview">WMS overview</A> 
-	<UL>
-		<LI><A HREF="factory/index.html">Glidein Factory</A> 
-		<LI><A HREF="frontend/index.html">VO Frontend</A> 
-	</UL>
-	<LI><A HREF="#classads">Data Exchange overview</A> 
-	<UL>
-		<LI><A HREF="#factory_classads">The Glidein Factory Class-Ad</A> 
-		<LI><A HREF="#frontend_classads">The VO Frontend Class-Ad</A> 
-	</UL>
-	<LI><A HREF="#implementation">Implementation details</A> 
-	<UL>
-		<LI><A HREF="factory/index.html#implementation">Glidein Factory</A>
-		
-		<UL>
-			<LI><A HREF="factory/index.html#create_entry">Configuration</A>
-	        </UL>
-	        <LI><A HREF="frontend/index.html#implementation">Frontend</A> 
-	</UL>
-	<LI><A HREF="#condor">The Condor Pool</A> 
-	<UL>
-		<LI><A HREF="#pool_WMS">The WMS pool</A> 
-		<LI><A HREF="#pool_glidein">The glidein (user) pool</A> 
-	</UL>
-	<LI><A HREF="#monitoring">Monitoring</A> 
-	<UL>
-		<LI><A HREF="#condormon">Standard condor monitoring</A> 
-		<LI><A HREF="#intmon">Pseudo interactive monitoring</A> 
-		<LI><A HREF="#gfwebmon">Glidein Factory Web monitoring</A> 
-	        <LI><A HREF="#vowebmon">VO Frontend Web monitoring</A> 
-		<LI><A HREF="#textmon">glideinWMS text monitoring</A> 
-	</UL>
-	<LI><P><A HREF="#ref">Reference</A> 
-	</P>
-</UL>
+
+
+<div class="section">
 <H2><A NAME="introduction"></A>Introduction</H2>
 <p>
-This document describes the glidein based WMS and it's architecture in details.
+This document describes the glidein based WMS and its architecture in details.
 Most of the components of glideinWMS described in this manual can be installed
 by the installation tool provided with the glideinWMS. Please refer to the 
 <a href="../install/index.html">installation guide for more details</a>.
 </p>
-<H2><A NAME="glideins"></A>The glidein mechanism</H2>
+</div>
+
+<div class="section">
+<H2><A NAME="glideins"></A>The Glidein Mechanism</H2>
 <P>As the title says, this WMS is based on glideins. But what are <I><B>the
 glideins</B></I>?<BR><BR>A glidein is, simply put, a properly
 configured <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
@@ -67,39 +67,37 @@ Startd</A> submitted as a Grid job. <BR>Once the glidein starts on a
 worker node, it will join the the specified Condor pool, making the
 obtained Grid-batch slot a slot in the Condor pool. At this point, a
 regular Condor job can start there as if was a dedicated resource.
-See the picture below for a schematic overview.<BR><IMG SRC="glideins.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0><BR>Condor
+See the picture below for a schematic overview.<BR><IMG SRC="images/glideins.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0><BR>Condor
 glideins are a convenient way to expand a Condor pool. Apart from the
 task of submitting new glideins as needed, everything else&nbsp;stays
 the same as in a dedicated pool.</P>
+</div>
+
+
+<div class="section">
 <H2><A NAME="overview"></A>WMS Overview</H2>
 <P>The glidein based WMS is made of two pieces:</P>
-<UL>
-	<LI>One or more glidein factories 
-	<LI><P>One or more VO frontends 
-	</P>
-</UL>
-<P>The two pieces perform each a part of the job:</P>
-<UL>
-	<LI>The glidein factories are the one that know about available Grid
-	sites and know how to submit glideins to them.&nbsp; 
-	<LI><P>The VO frontends are the ones that know about the VO job
-	specifics and know how many and what kind of glideins are needed. 
-	</P>
-</UL>
+<ul>
+	<li><b>One or more glidein factories:</b>
+	The glidein factories are the one that know about available Grid
+	sites and know how to submit glideins to them.</li>
+	<li><b>One or more VO frontends:</b>
+	The VO frontends are the ones that know about the VO job
+	specifics and know how many and what kind of glideins are needed.</li>
+</ul>
 <P>The two pieces communicate via a common Condor Collector; see the
-image below for a schematic view.<BR><IMG SRC="overview.png" NAME="graphics2" ALIGN=BOTTOM BORDER=0><BR>A
+image below for a schematic view.<BR><IMG SRC="images/overview.png" NAME="graphics2" ALIGN=BOTTOM BORDER=0><BR>A
 single WMS (identified by the Condor Collector) can serve multiple
 frontends via multiple factories. It is a truly many-to-many system.
 However, the current implementation does not support prioritization
 between different frontends, so it is best to have only one frontend;
 multiple factories will instead work as desired.<BR><BR>More details
-can be found</P>
-<UL>
-	<LI>on the <A HREF="factory/index.html">Glidein Factory page</A>,
-	and 
-	<LI><P>on the <A HREF="frontend/index.html">VO Frontend page</A>. 
-	</P>
-</UL>
+can be found on the <A HREF="factory/index.html">Glidein Factory page</A>,
+and on the <A HREF="frontend/index.html">VO Frontend page</A>. </p>
+</div>
+
+
+<div class="section">
 <H2><A NAME="classads"></A>Data exchange overview</H2>
 <P>In the previous section we described the general architecture of
 the WMS. Let now have a look at the type of information that the two
@@ -120,7 +118,7 @@ class-ad contains
 	<LI>Plus a list of monitoring values (like how many glideins are
 	already in the queues, etc.) 
 </UL>
-<P>Look at the picture below for a generic description.<BR><BR><IMG SRC="factory_publish.png" NAME="graphics3" ALIGN=BOTTOM BORDER=0><BR><BR>Please
+<P>Look at the picture below for a generic description.<BR><BR><IMG SRC="images/factory_publish.png" NAME="graphics3" ALIGN=BOTTOM BORDER=0><BR><BR>Please
 notice that the glidein attributes can be completely arbitrary; the
 only predefined attributes are the glidein and factory name, plus the
 convention that anything that starts with <FONT FACE="monospace"><B>GlideinParam</B></FONT>
@@ -129,7 +127,7 @@ is a monitoring attribute.<BR><BR>Once the&nbsp;factory starts
 serving frontends, it will publish also another ClassAd for every
 frontend served. This ClassAd contains only monitoring information,
 and is not used by the glideinWMS itself.<BR>Find below a graphical
-representation of these ClassAds.<BR><IMG SRC="factory_client_publish.png" NAME="graphics4" ALIGN=BOTTOM BORDER=0></P>
+representation of these ClassAds.<BR><IMG SRC="images/factory_client_publish.png" NAME="graphics4" ALIGN=BOTTOM BORDER=0></P>
 <H3><A NAME="frontend_classads"></A>The VO Frontend Class-Ad</H3>
 <P>A VO frontend will obtain the list all available glideins and
 select the ones that fit its needs, based on the published
@@ -153,7 +151,7 @@ published. Such a class-ad will contain
 </UL>
 <P>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the condor collector <b>(needs Condor version 7.3.1 or better)</b></P>
 
-<P>Have a look at the picture below for a generic description.<BR><IMG SRC="frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0></P>
+<P>Have a look at the picture below for a generic description.<BR><IMG SRC="images/frontend_publish.png" NAME="graphics5" ALIGN=BOTTOM BORDER=0></P>
 <P>The most important parameters that the VO fronted sends to the factory are:</P>
 <UL>
       <LI>The address of the <A HREF="#pool_glidein">VO pool collector(s)</A> - <B>GLIDEIN_Collector</B>.</LI>
@@ -169,7 +167,7 @@ published. Such a class-ad will contain
           If present, it is always encrypted.</LI> 
 </UL>
 <P>The picture below shows this in a graphics format.<BR>
-   <IMG SRC="frontend_publish_params.png" NAME="graphics5b" ALIGN=BOTTOM BORDER=0></P>
+   <IMG SRC="images/frontend_publish_params.png" NAME="graphics5b" ALIGN=BOTTOM BORDER=0></P>
 <P>In the current implementation, the only glidein rate setting parameters
 supported are <FONT FACE="monospace"><B>ReqIdleGlideins</B></FONT>,
 that tells the factory how many idle glideins to keep in the queue at
@@ -181,22 +179,20 @@ controls, like the maximum number of glideins to keep in the queue or
 the maximum rate at which the glideins should be submitted.</P>
 <H2><A NAME="implementation"></A>Implementation details</H2>
 <P>Due to the amount of material available, the documentation is
-being kept</P>
-<UL>
-	<LI>on the <A HREF="factory/index.html#implementation">Glidein
+being kept on the <A HREF="factory/index.html#implementation">Glidein
 	Factory page</A>, and 
-	<LI><P>on the <A HREF="frontend/index.html#implementation">VO
+on the <A HREF="frontend/index.html#implementation">VO
 	Frontend page</A>. 
-	</P>
-</UL>
+</div>
+
+<div class="section">
 <H2><A NAME="condor"></A>The Condor pool</H2>
 <P>To make a working Glidein-based WMS, you will need to install one
 or more Condor pools:</P>
 <UL>
-	<LI><A HREF="#pool_WMS">one for exchanging messages between the
+	<LI><A HREF="#pool_WMS">WMS pool for exchanging messages between the
 	factory and the frontends</A> 
-	<LI><P><A HREF="#pool_glidein">one for each VO frontend</A> 
-	</P>
+	<LI><A HREF="#pool_glidein">User pool for each VO frontend</A> 
 </UL>
 <P>If you want, you can merge several of them together, but at least
 logically, they are separate, and I would strongly suggest to keep
@@ -210,7 +206,7 @@ discussed.<BR><BR>Most configuration changes needed by the
 Glidein-based WMS regard security; you definitely don't want just
 anybody to mess with you pool!</P>
 <H3><A NAME="pool_WMS"></A>The WMS pool</H3>
-<P>The <A HREF="overview.png" TARGET="_blank">WMS pool</A> can use
+<P>The <A HREF="images/overview.png" TARGET="_blank">WMS pool</A> can use
 any authentication mechanism you prefer; GSI (i.e. x509), Kerberos,
 etc., all work fine for this purpose. There is also nothing to hide,
 so encryption can be turned off. However, you do want to make sure
@@ -243,7 +239,7 @@ Last, please notice that there is no need for a Negotiator in this
 pool. All the matching is done by the factory and frontend software
 itself. (An no need for Startds either.)</P>
 <H3><A NAME="pool_glidein"></A>The glidein (user) pool</H3>
-<P>The <A HREF="glideins.png" TARGET="_blank">glidein pool</A> relies
+<P>The <A HREF="images/glideins.png" TARGET="_blank">glidein pool</A> relies
 heavily on GSI, also known as x509, authentication. The reason for
 this is due to the nature of glideins; the Condor Startd is a Grid
 job. And thus have&nbsp;a x509 proxy available at startup.<BR>So the
@@ -330,111 +326,23 @@ condor_startd/condor_starter. This method uses the match ClaimId as a
 shared password for authentication between these daemons. Since using
 a shared secret is much cheaper that using GSI authentication, this
 should be used every time it is feasible.</P>
-<DL>
-	<DT>To enable it, add the following lines:</DL>
+<p>
+	To enable it, add the following lines:
+</p>
 <PRE>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = True</PRE>
-<DL>
-	<DT>
-	<BR>
-	<DT>Use this option for the schedd only; <B>do not</B> add this
-	option to either the negotiator or collector as it will not work.</DL>
+<p>
+	Use this option for the schedd only; <B>do not</B> add this
+	option to either the negotiator or collector as it will not work.
 <P>
-Obviously, this will only work with Condor versions 7.1.3 and above.<BR><BR><BR>
+Obviously, this will only work with Condor versions 7.1.3 and above.
 </P>
 <P>Please note that you do not need to worry about glidein security
-configuration at a global level; the <A HREF="factory/entry.html#security">glidein
-factory</A> will make sure the settings are correct in the glideins.<BR><BR><BR>
+configuration at a global level; the <A HREF="factory/entry.html#security">glidein factory</A> will make sure the settings are correct in the glideins.
 </P>
-<H2><A NAME="monitoring"></A>Monitoring</H2>
-<P>The glideinWMS comes with 4 types of monitoring facilities: 
-</P>
-<UL>
-	<LI><A HREF="#condormon">Standard condor monitoring</A> 
-	<LI><A HREF="#intmon">Pseudo interactive monitoring</A> 
-	<LI><A HREF="#gfwebmon">Glidein Factory Web monitoring</A> 
-	<LI><A HREF="#vowebmon">VO Frontend Web monitoring</A> 
-	<LI><A HREF="#textmon">glideinWMS text monitoring</A>
-</UL>
-<H3><A NAME="condormon"></A>Standard condor monitoring</H3>
-<P>The glideinWMS creates a standard condor pool, so users can
-monitor their jobs using the standard Condor tools, like <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">condor_q</A>
-and <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_status.html">condor_status</A>.
-</P>
-<P>The administrator can also install graphical tools like the <A HREF="http://www.cs.wisc.edu/condor/contrib/">Condor
-View</A>. 
-</P>
-<H3><A NAME="intmon"></A>Pseudo interactive monitoring</H3>
-<P>The glideinWMS also provides pseudo interactive monitoring
-functionalities; a user can run short lived commands alongide any
-already running job in the queue. 
-</P>
-<P>To run a pseudo interactive command, move into 
-</P>
-<PRE>glideinWMS/tools</PRE><P>
-and run 
-</P>
-<PRE>./glidein_interactive.py <I>jobid</I> <I>cmdline</I></PRE><P>
-There are also a set of useful often used commands that you may want
-to use: 
-</P>
-<UL>
-	<LI>glidein_ls.py <I>jobid</I> <I>[subdir]</I> 
-	<LI>glidein_cat.py <I>jobid</I> <I>fname</I> 
-	<LI>glidein_top.py <I>jobid</I> 
-	<LI>glidein_ps.py <I>jobid</I> <I>[opts]</I> 
-</UL>
-<H3><A NAME="gfwebmon"></A>Glidein Factory Web monitoring</H3>
-<P>The glidein factory also produces a large amount of web accessible
-information. 
-</P>
-<P>Look into 
-</P>
-<PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/</PRE><P>
-For most users, start at 
-</P>
-<PRE>http://<I>gfactory_node</I>:<I>http_port</I>/glidefactory/monitor/glidein_<I>factory_name</I>/factoryStatus.html</PRE><P>
-and go on from there. 
-</P>
-<H3><A NAME="vowebmon"></A>VO frontend Web monitoring</H3>
-<P>The Vo frontend also produces a moderate amount of web accessible
-information. 
-</P>
-<P>Look into 
-</P>
-<PRE>http://<I>frontend_node</I>:<I>http_port</I>/vofrontend//monitor/frontend_<I>frontend_name</I>/</PRE><P>
-For most begginner users, start at 
-</P>
-<PRE>http://<I>frontend_node</I>:<I>http_port</I>/vofrontend/monitor/frontend_<I>frontend_name</I>/frontendStatus.html</PRE><P>
-and go on from there. 
-</P>
-<H3><A NAME="textmon"></A>glideinWMS text monitoring</H3>
-<P>A system administrator can also monitor the glideinWMS status
-using text tools. 
-</P>
-<P>Move into 
-</P>
-<PRE>glideinWMS/tools</PRE><P>
-and run either 
-</P>
-<PRE>./wmsXMLView.py</PRE><P>
-or 
-</P>
-<PRE>./wmsTxtView.py [Entries|Sites|Gatekeepers]</PRE><P>
-<hr>
-<A NAME="ref"></A><BR>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
-	<TR VALIGN=TOP>
-		<TD>
-			<H2 ALIGN=LEFT>Repository</H2>
-			<H3 ALIGN=LEFT>CVSROOT</H3>
-			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H3 ALIGN=LEFT>Package(s)</H3>
-			<P ALIGN=LEFT>glideinWMS</TD>
-		<TD>
-			<H2 ALIGN=LEFT>Author(s)</H2>
-			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing Division)</TD>
-	</TR>
-</TABLE>
-<H2 ALIGN=LEFT>glideinWMS Support:</H2> glideinwms-support@fnal.gov
+</div></div>
+<p> <b>CVSROOT:</b> cvsuser@cdcvs.fnal.gov:/cvs/cd </p>
+<p> <b>Packages:</b> glideinWMS </p>
+<p> <b>glideinWMS Support:</b> glideinwms-support@fnal.gov</p>
+
 </BODY>
 </HTML>

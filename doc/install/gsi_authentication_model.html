@@ -11,24 +11,48 @@
 <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
 <meta http-equiv="content-style-type" content="text/css">
 <meta http-equiv="expires" content="0">
-
+    <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
-<body style='font-family: arial, sans-serif, helvetica ; text-align: justify; '>
-<h1>Quick Reference Guide to GSI Authentication Setup in glideinWMS</h1>
-<p align='justify'>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+
+    </h1>
+
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+<div class="content">
+
+<h2 class="header">Quick Reference Guide to GSI Authentication Setup</h2>
+
+<p>
 glideinWMS uses GSI for authentication/authorization of services and clients.
-Table below acts as a quick reference guide for configuring GSI in glideinWMS.
+The table below acts as a quick reference guide for configuring GSI in glideinWMS.
 </p>  
-<table cellpadding="2" cellspacing="2" width="80%" style='border-width: 2; border-color: #020263; border-style: solid; border-collapse: collapse; font-family: arial, sans-serif, helvetica ; font-size: 8; text-align: justify; ' frame='box'>
-  <thead>
-    <th align="center" valign="middle" bgcolor="#4D4D4D" width="20%">Service</th>
-    <th align="center" valign="middle" bgcolor="#4D4D4D">Comments</th>
-  </thead>
-  <tbody style='font-family: arial, sans-serif, helvetica ; font-size: 7; text-align: justify; '>
-     <tr style='font-family: arial, sans-serif, helvetica ; font-size: 7; text-align: justify; '>
-       <td style='font-family: arial, sans-serif, helvetica ; font-size: 1; text-align: justify;'> 
-           glideinWMS Collector
-       </td>
+<table class="requirements">
+  <tr class="head">
+	<td>Service</td>
+	<td>Comments</td>
+  </tr>
+  <tr>
+	<td>glideinWMS Collector</td>
        <td>
          <ul>
            <li>GSI_DAEMON_NAME in condor_config should contain DNs of glideinWMS Collector.
@@ -95,10 +119,10 @@ Table below acts as a quick reference guide for configuring GSI in glideinWMS.
          </ul>
        </td>
      </tr>
-   </tbody>
 </table> 
+</div>
 
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+<P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
 
 </body>
 </html>

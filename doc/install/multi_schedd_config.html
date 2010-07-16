@@ -1,205 +1,218 @@
-<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
 <head>
-
-<style>
-BODY, P, DIV, H1, H2, H3, H4, H5, H6, ADDRESS, OL, UL, TITLE, TD, OPTION, SELECT {
- font-family: Verdana;
- 
-}
-
-BODY, P, DIV, ADDRESS, OL, UL, LI, TITLE, TD, OPTION, SELECT {  
-  font-size: 10.0pt;
-  margin-top:0pt;  
-  margin-bottom:0pt;  
-} 
-
-BODY, P {
-  margin-left:0pt; 
-  margin-right:0pt;
-}
-
-BODY {
-  line-height: ;
-  background: white;
-  margin: 6px;
-  padding: 0px;
-}
-
-h6 { font-size: 10pt }
-h5 { font-size: 11pt }
-h4 { font-size: 12pt }
-h3 { font-size: 13pt }
-h2 { font-size: 14pt }
-h1 { font-size: 16pt }
-
-blockquote {padding: 10px; border: 1px #DDDDDD dashed }
-
-a img {border: 0}
-
-</style>
-
-
-
-
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>Configuring Multiple Schedds</title>   
+    <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
-
-
 <body revision="dmqrsvn_27dwtx4h:47">
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
 
-<h1>
-  Configuring multiple Schedds in Condor
-</h1>
-<h2>
-  1. Description
-</h2>
-This document describes how to configure multiple Schedds in Condor.<br>
+    </h1>
+    
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#description">Description</a></li>
+	<li><a href="#software">Required software</a></li>
+	<li><a href="#install">Installation</a></li>
+	<li><a href="#starting">Starting Up</a></li>
+	<li><a href="#submission">Submission</a></li>
+    </ul>
+    <div class="content">
+	<h2 class="header">Configuring multiple Schedds in Condor</h2>
+<div class="section">
+<h2><a name="description">1. Description</h2>
+<p>
+This document describes how to configure multiple Schedds in Condor.
 Using more than a single schedd on a given node can help you scale without
-adding new hardware.<br>
-<h2>
-  2. Required software
-</h2>
-A reasonably recent Linux OS (SL4 used at press time).<br>
-The
-<a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">Condor
-distribution</a>.<br>
-If you use Quill, also a
-<a href=http://www.postgresql.org/ title="PostgreSQL Hoe Page">PostgreSQL
-server</a>.<br>
-<h2>
-  3. Installation instructions
-</h2>
-The installation will assume you
-<a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">have
-installed Condor v7.0.5</a>.<br>
-The install directory is <span style=FONT-WEIGHT:bold>/opt/glidecondor</span>,
-the working directory is
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/condor_local</span> and the
-machine name is <span style=FONT-WEIGHT:bold>mymachine.fnal.gov</span>.<br>
-If you want to use a different setup, make the necessary changes.<br>
-<br>
-It also assumes you have
-<a href="quill_setup.html" title="configured Quill">configured
-Quill</a>; you can use multiple Schedds without using Quill, but this is not
-described here, although it should be obvious what you can skip in that case.<br>
-<br>
-Unless explicity mentioned, all operations are to be done as root.<br>
-<h3>
-  3.1 Create setup files
-</h3>
-In order to easily manage a secondary schedd, create
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/new_schedd_setup.sh</span>,
-containing:<br>
-<div style=MARGIN-LEFT:40px>
-  if [ $# -ne 1 ]<br>
-  then<br>
-  &nbsp;echo "Schedd name expected!"<br>
-  &nbsp;return 1<br>
-  fi<br>
-  <br>
-  LD=`condor_config_val LOCAL_DIR`<br>
-  QDB=`condor_config_val QUILL_DB_NAME`<br>
-  <br>
-  export _CONDOR_SCHEDD_NAME=schedd_$1<br>
-  export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}<br>
-  # SCHEDD and MASTER names MUST be the same (Condor requirement)<br>
-  export _CONDOR_QUILL_NAME=quill_$1@`uname -n`<br>
-  export _CONDOR_QUILL_DB_NAME=${QDB}_$1<br>
-  export _CONDOR_DAEMON_LIST="MASTER, SCHEDD,QUILL"<br>
-  export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br>
-  export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br>
-  <br>
-  unset LD<br>
-  unset QDB<br>
+adding new hardware.
+</p>
 </div>
-<br>
-The same file can be downloaded from
-<a href=example-config/multi_schedd/new_schedd_setup.sh title=example-config/multi_schedd/new_schedd_setup.sh>example-config/multi_schedd/new_schedd_setup.sh</a>.<br>
-<br>
-To create the necessary directories and files, create
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/init_schedd.sh</span>:<br>
-<div style=MARGIN-LEFT:40px>
-  #!/bin/sh<br>
-  source /opt/glidecondor/new_schedd_setup.sh $1<br>
-  # add whatever other config you need<br>
-  # create needed directories<br>
-  /opt/glidecondor/sbin/condor_init<br>
-  # copy Quill writer passwd<br>
+<div class="section">
+<h2><a name="software">2. Required software</a></h2>
+<ul>
+	<li>
+		A reasonably recent Linux OS (SL4 used at press time).
+	</li>
+	<li>
+		The
+		<a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">
+			Condor distribution
+		</a>.
+	</li>
+	<li>
+		If you use Quill, also a
+		<a href=http://www.postgresql.org/ title="PostgreSQL Hoe Page">PostgreSQL server</a>.
+	</li>
+</ul>
 </div>
-cp -p $_CONDOR_LOCAL_DIR/../spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/<br>
-This one you want to make executable:<br>
-<div style=MARGIN-LEFT:40px>
-  chmod a+x /opt/glidecondor/init_schedd.sh<br>
+<div class="section">
+	<h2><a name="install">3. Installation instructions</a></h2>
+	<p>
+	The installation will assume you
+	<a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">
+		have installed Condor v7.0.5
+	</a>.<br/>
+	The install directory is <b>/opt/glidecondor</b>, the working directory is
+	<b>/opt/glidecondor/condor_local</b> and the machine name is 
+	<b>mymachine.fnal.gov</b>.<br/>
+	If you want to use a different setup, make the necessary changes.
+	</p>
+	<p>
+	It also assumes you have <a href="quill_setup.html" title="configured Quill">configured
+	Quill</a>; you can use multiple Schedds without using Quill, but this is not
+	described here, although it should be obvious what you can skip in that case.
+	</p>
+	<p>
+	Unless explicity mentioned, all operations are to be done as root.
+	</p>
 </div>
-<br>
-The same file can be downloaded from
-<a href=example-config/multi_schedd/init_schedd.sh title=example-config/multi_schedd/init_schedd.sh>example-config/multi_schedd/init_schedd.sh</a>.<br>
-<br>
-Similarly, you will want to have a way to easily start a secondary schedd, so
-create
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/start_master_schedd.sh</span>:<br>
-<div style=MARGIN-LEFT:40px>
-  #!/bin/sh<br>
-  source /opt/glidecondor/new_schedd_setup.sh $1<br>
-  # add whatever other config you need<br>
-  /opt/glidecondor/sbin/condor_master<br>
+<div class="section">
+	<h3>3.1 Create setup files</h3>
+	<p>
+	In order to easily manage a secondary schedd, create
+	<b>/opt/glidecondor/new_schedd_setup.sh</b>,
+	containing:
+	</p>
+	<blockquote>
+	  if [ $# -ne 1 ]<br/>
+	  then<br/>
+	  &nbsp;echo "Schedd name expected!"<br/>
+	  &nbsp;return 1<br/>
+	  fi<br/>
+	  <br/>
+  	LD=`condor_config_val LOCAL_DIR`<br/>
+	  QDB=`condor_config_val QUILL_DB_NAME`<br/>
+	  <br/>
+	  export _CONDOR_SCHEDD_NAME=schedd_$1<br/>
+	  export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}<br/>
+	  # SCHEDD and MASTER names MUST be the same (Condor requirement)<br/>
+	  export _CONDOR_QUILL_NAME=quill_$1@`uname -n`<br/>
+	  export _CONDOR_QUILL_DB_NAME=${QDB}_$1<br/>
+	  export _CONDOR_DAEMON_LIST="MASTER, SCHEDD,QUILL"<br/>
+	  export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br/>
+	  export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br/>
+	  <br/>
+	  unset LD<br/>
+	  unset QDB<br/>
+	</blockquote>
+	<p>
+	The same file can be downloaded from
+	<a href=example-config/multi_schedd/new_schedd_setup.sh title=example-config/multi_schedd/new_schedd_setup.sh>
+		example-config/multi_schedd/new_schedd_setup.sh
+	</a>.
+	</p>
+	<p>
+	To create the necessary directories and files, create
+	<b>/opt/glidecondor/init_schedd.sh</b>:<br/>
+	<blockquote>
+	  #!/bin/sh<br>
+	  source /opt/glidecondor/new_schedd_setup.sh $1<br>
+	  # add whatever other config you need<br>
+	  # create needed directories<br>
+	  /opt/glidecondor/sbin/condor_init<br>
+	  # copy Quill writer passwd<br>
+	</blockquote>
+	Then:
+	<blockquote>
+		cp -p $_CONDOR_LOCAL_DIR/../spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/<br>
+	</blockquote>
+	This one you want to make executable:<br>
+	<blockquote>
+	  chmod a+x /opt/glidecondor/init_schedd.sh<br>
+	</blockquote>
+	The same file can be downloaded from
+	<a href=example-config/multi_schedd/init_schedd.sh title=example-config/multi_schedd/init_schedd.sh>
+		example-config/multi_schedd/init_schedd.sh
+	</a>.
+	</p>
+	<p>
+	Similarly, you will want to have a way to easily start a secondary schedd, so create
+	<b>/opt/glidecondor/start_master_schedd.sh</b>:<br/>
+	<blockquote>
+	  #!/bin/sh<br>
+	  source /opt/glidecondor/new_schedd_setup.sh $1<br>
+	  # add whatever other config you need<br>
+	  /opt/glidecondor/sbin/condor_master<br>
+	</blockquote>
+	This one you want to make executable:
+	<blockquote>
+	  chmod a+x /opt/glidecondor/start_master_schedd.sh<br>
+	</blockquote>
+	The same file can be downloaded from
+	<a href=example-config/multi_schedd/start_master_schedd.sh title=example-config/multi_schedd/start_master_schedd.sh>
+		example-config/multi_schedd/start_master_schedd.sh
+	</a>.
 </div>
-This one you want to make executable:<br>
-<div style=MARGIN-LEFT:40px>
-  chmod a+x /opt/glidecondor/start_master_schedd.sh<br>
+<div class="section">
+<h3>3.2 Initialize schedds</h3>
+	<p>
+	To initialize a secondary schedd, use
+	<b>/opt/glidecondor/init_schedd.sh</b> created above.
+	</p>
+	<p>
+	If you came here from another document, 
+	<b>make sure you configure the schedds specified there.</b>
+	</p>
+	<p>
+	For example, supposing you want to create schedds named schedd_jobs1, schedd_jobs2 and schedd_glideins1, you would run:
+	<blockquote>
+	  /opt/glidecondor/init_schedd.sh jobs1<br>
+	  /opt/glidecondor/init_schedd.sh jobs2<br>
+	  /opt/glidecondor/init_schedd.sh glideins1<br>
+	</blockquote>
 </div>
-<br>
-The same file can be downloaded from
-<a href=example-config/multi_schedd/start_master_schedd.sh title=example-config/multi_schedd/start_master_schedd.sh>example-config/multi_schedd/start_master_schedd.sh</a>.<br>
-<br>
-<h3>
-  3.2 Initialize schedds
-</h3>
-To initialize a secondary schedd, use
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/init_schedd.sh</span> created
-above.<br>
-If you came here from another document, <font color=#660000><b>make sure you
-configure the schedds specified there.</b></font><br>
-<br>
-For example, supposing you want to create schedds named schedd_jobs1,
-schedd_jobs2 and schedd_glideins1, you would run:<br>
-<div style=MARGIN-LEFT:40px>
-  /opt/glidecondor/init_schedd.sh jobs1<br>
-  /opt/glidecondor/init_schedd.sh jobs2<br>
-  /opt/glidecondor/init_schedd.sh glideins1<br>
+<div class="section">
+<h2><a name="starting">4. Starting up schedds</a></h2>
+	<p>
+	If you came to this document as part of another installation, go back and follow
+those instructions.
+	</p>
+	<p>
+	Else, when you are ready, you can start the schedd by running
+	<b>/opt/glidecondor/start_master_schedd.sh</b> created above.
+	</p>
+	<p>
+	For example, supposing you want to start schedds named schedd_jobs1, schedd_jobs2 and schedd_glideins1, you would run:
+	<blockquote>
+	  /opt/glidecondor/start_master_schedd.sh jobs1<br>
+	  /opt/glidecondor/start_master_schedd.sh jobs2<br>
+	  /opt/glidecondor/start_master_schedd.sh glideins1
+	</blockquote>
+	<b>Note:</b> Always start them after you have started the Collector.
 </div>
-<h2>
-  4. Starting up schedds
-</h2>
-If you came to this document as part of another installation, go back and follow
-those instructions.<br>
-<br>
-Else, when you are ready, you can start the schedd by running
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/start_master_schedd.sh</span>
-created above.<br>
-For example, supposing you want to start schedds named schedd_jobs1,
-schedd_jobs2 and schedd_glideins1, you would run:<br>
-<div style=MARGIN-LEFT:40px>
-  /opt/glidecondor/start_master_schedd.sh jobs1<br>
-  /opt/glidecondor/start_master_schedd.sh jobs2<br>
-  /opt/glidecondor/start_master_schedd.sh glideins1
+<div class="section">
+<h2><a name="submission">  5. Submission and monitoring</a></h2>
+	<p>
+	The secondary schedds can be seen by issuing
+	<blockquote>
+	  condor_status -schedd<br>
+	</blockquote>
+	To submit or query a secondary schedd, you need to use the <b>-name</b> options, like:
+	<blockquote>
+	  condor_submit -name schedd_jobs1@ job.jdl<br>
+	  condor_q -name scjedd_jobs1@<br>
+	</blockquote>
 </div>
-<br style=FONT-WEIGHT:bold>
-<span style=FONT-WEIGHT:bold>Note:</span> Always start them after you have
-started the Collector.<br>
-<h2>
-  5. Submission and monitoring
-</h2>
-The secondary schedds can be seen by issuing<br>
-<div style=MARGIN-LEFT:40px>
-  condor_status -schedd<br>
 </div>
-<br>
-To submit or query a secondary schedd, you need to use the
-<span style=FONT-WEIGHT:bold>-name</span> options, like:<br>
-<div style=MARGIN-LEFT:40px>
-  condor_submit -name schedd_jobs1@ job.jdl<br>
-  condor_q -name scjedd_jobs1@<br>
-</div>
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
-<br></body>
+<P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+</body>
 </html>

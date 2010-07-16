@@ -1,0 +1,236 @@
+/* Remove all default styles so we can apply the exact style we want */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, 
+blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, 
+img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var,b, u, i, 
+center, dl, dt, dd, ol, ul, li,fieldset, form, label, legend,table, caption, 
+tbody, tfoot, thead, tr, th, td 
+{
+    margin:    0;
+    padding:   0;
+    border:    0;
+    outline:   0;
+    font-size: 100%;
+}
+
+
+/* Now apply the styles we want */
+body 
+{
+    color:              #000; 
+    font-family:        "Liberation Serif","Times New Roman",serif;
+    font-size:          14px;
+    font-size-adjust:   none;
+    font-style:         normal;
+    font-variant:       normal;
+    font-weight:        normal;
+    line-height:        18px;
+    background-color:   #fff;
+    margin-top:         10px;
+    margin-right:       10px;
+    margin-bottom:      10px;
+    margin-left:        10px;
+}
+
+p 
+{ 
+    margin-top:     10px; 
+    margin-bottom:  15px; 
+    margin-left:    10px;
+    text-align:     justify; 
+}
+
+h2, h3, h4, h5, h6 
+{ 
+    margin-top: 0; 
+    margin-right: 0; 
+    margin-bottom: 15px; 
+    margin-left: 0; 
+    padding: 0; 
+    line-height: 1.1em; 
+}
+h1 { 
+    	line-height: 1.1em; 
+	font-size: 32px; text-align:center; 
+	padding: 20px 20px 20px 20px; 
+	border: 1px solid black; background-color: #cef; 
+	margin: 2px 0px 0px 0px; text-decoration:none;}
+h1 a { clear:both; text-decoration: none; color: #006;}
+h1 ul.main_links {display: block; width: 100%; }
+h1 ul.main_links li {
+	list-style: none; 
+	float:left; width:25%; 
+	text-align: center; }
+h1 a.main_link {
+	display: block; 
+	font-size: 16px;
+	text-align:left; 
+	color:#000066; }
+h2 { font-size: 24px; display: block;}
+h2.header { text-decoration: underline; text-align:center; padding-top:10px;}
+h3 { font-size: 20px; }
+h4 { font-size: 16px; }
+h5 { font-size: 12px; }
+h6 { font-size: 8px; }
+
+ul li { margin: 0; }
+ul { margin: 5px 0 15px 10px; padding-left: 20px; }
+ol { margin: 5px 0 15px 10px; padding-left: 20px; }
+
+blockquote
+{
+    background:    #aaa; 
+    padding:       10px 10px;
+    font-size:     100%;
+    border:        1px solid #ddd;
+    margin-left:    0.39in;
+    margin-right:   0.39in; 
+    margin-bottom:  0.2in;
+}
+
+pre
+{
+    border:        1px solid #ddd;
+    padding:       10px 10px;
+    font-size:     100%;
+    margin-left:    0.39in;
+    margin-right:   0.39in; 
+    margin-bottom:  0.2in;
+    background:    #aaa; 
+}
+
+div.content
+{
+	clear: both;
+	display:block;
+	padding: 5px;
+	border-bottom: 1px solid black;
+}
+
+div.section
+{
+	padding-top: 30px;
+}
+
+div.clear
+{
+	clear: both;
+	margin:0px; padding:0px;
+}
+
+
+table.requirements
+{
+    border-top:         1px solid #000;
+    border-bottom:      1px solid #000;
+    border-right:       1px solid #000;
+    border-left:        1px solid #000;
+    border-collapse:    collapse;
+    border-spacing:     0px;
+}
+
+table.requirements tr.head 
+{
+    font-weight:        bold;
+    color:              #000; 
+    background-color:   #aaa; 
+}
+table.requirements td
+{
+    border-top:     1px solid #000;
+    border-bottom:  1px solid #000;
+    border-right:   1px solid #000;
+    border-left:    1px solid #000;
+    padding:        1px 5px 1px 5px;
+}
+td.checked
+{
+	text-align:center;
+	background-color: #ccc;
+}
+
+ul.topnav, ul.components, ul.subcomponents
+{
+	list-style-type: none;
+	margin-left: auto;
+	margin-right: auto;
+	display:block;
+	width:100%;
+	margin:0px 0px 0px 0px;
+	padding:0px 0px 0px 0px;
+}
+ul.topnav li, ul.components li, ul.subcomponents li
+{
+	display:block;
+	float: left;
+}
+
+ul.topnav li {
+	width: 10%; height:47px; 
+	margin-top:5px;font-size:12px;}
+ul.components li { 
+	width: 20%; height:32px; 
+	margin: 0px 0px 2px 0px;font-size:16px;}
+ul.subcomponents li {
+	width: 14.28%; height:32px; 
+	margin: 0px 0px 2px 0px;font-size:14px;}
+
+ul.topnav li:last-child
+{
+	border-right: 1px solid black;
+}
+
+ul.topnav li a, ul.components li a, ul.subcomponents li a
+{
+	display:block;
+	text-decoration: none;
+	border-top: 1px solid black;
+	border-left: 1px solid black;
+	border-bottom: 1px solid black;
+	text-align: center;
+	padding: 5px 1px 5px 1px;
+}
+
+ul.components li a.last, ul.subcomponents li a.last {
+	border-right: 1px solid black;}
+
+ul.components li a
+{
+	color: #003;
+	background-color: #cceeff;
+	height:20px;
+}
+ul.subcomponents li a
+{
+	color: #003;
+	background-color: #aaddff;
+	height:20px;
+}
+
+ul.topnav li a
+{
+	color: #003;
+	background-color: #88bbee;
+	height:35px;
+}
+
+ul.components li a.selected, ul.subcomponents li a.selected
+{
+	background-color: #6699cc;
+	color: #fff;
+}
+
+ul.topnav li a:hover, ul.components li a:hover
+{
+	background-color: #6699cc;
+	color: #fff;
+}
+
+ol {
+margin-left: 40px;
+}
+
+div.xml {
+	font-family: monospace;
+	font-weight: bold;
+}
+div.xml i { font-weight: normal; }

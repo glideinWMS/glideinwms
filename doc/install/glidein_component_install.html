@@ -1,0 +1,354 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Installation of the WMS Components with the Installer</title>
+    <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+       <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+
+    </h1>
+ 
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#system_httpd">HTTPD Server</a></li>
+	<li><a href="#system_vdt">OSG VDT Client</a></li>
+	<li><a href="#system_rrdtool">RRDTool</a></li>
+	<li><a href="#system_m2crypto">M2Crypto</a></li>
+	<li><a href="#system_javascriptRRD">javascriptRRD</a></li>
+    </ul>
+<div class="content">
+    <h2 class="header">Installation of the WMS Components with the Installer</h2>
+	<p>        
+	Before you begin make sure the following software is either installed or available for installation.
+	</p>
+	<table class="requirements">
+		<tr class="head">
+			<td>Software</td>
+			<td>Version</td>
+			<td>WMS collector</td>
+			<td>Factory</td>
+			<td>User collector</td>
+			<td>Submit</td>
+			<td>VO Frontend</td>
+			<td>Comments</td>
+		</tr>
+		<tr>
+			<td> glideinWMS </td>
+			<td> v2.4 </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+		</tr>
+		<tr>
+			<td> Condor </td>
+			<td> v7.2.+ </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> SL3 x86 binaries should work everywhere. <br>For x86_64 OSG, you need to install 32 bit compatibility libraries. It is HIGHLY recommended that the SL3 x86 binaries be used. </td>
+		</tr>
+
+		<tr>
+			<td> OSG client </td>
+			<td> current version </td>
+			<td class="checked"> y </td>
+			<td class="checked"> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> Needed to generate grid/voms proxies. </td>
+		</tr>
+		<tr>
+			<td> Python </td>
+			<td> v2.3.4+ </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+		</tr>
+		<tr>
+			<td> HTTP server </td>
+			<td> latest version </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> Apache, TUX or server of choice. </td>
+		</tr>
+
+		<tr>
+			<td> RRDTool </td>
+			<td> V1.1.18+ </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td > 
+					<a href="http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm" target="_top">http://dag.wieers.com/rpm/packages/rrdtool/rrdtool-1.2.18-1.el4.rf.i386.rpm</a> <br>http://dag.wieers.com/rpm/packages/rrdtool/perl-rrdtool-1.2.18-1.el4.rf.i386.rpm <br>http://dag.wieers.com/rpm/packages/rrdtool/python-rrdtool-1.2.18-1.el4.rf.i386.rpm 
+			</td>
+		</tr>
+		<tr>
+			<td> M2Crypto </td>
+			<td> v0.17+ </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td> y </td>
+			<td> This can be installed using yum, if available. Or via a tarball from <a href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads" target="_top">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a> </td>
+
+		</tr>
+		<tr>
+			<td> javascript RRD </td>
+			<td> v0.5.0 </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> &nbsp; </td>
+			<td> &nbsp; </td>
+			<td class="checked"> y </td>
+			<td> <a href="http://sourceforge.net/projects/javascriptrrd/files/javascriptrrd/" target="_top">http://sourceforge.net/projects/javascriptrrd/files/javascriptrrd/</a> <br>There are some distributions of this with the flot, in which case you will not have to install flot separately. </td>
+
+		</tr>
+	</table>
+
+<div class="section">
+    <h2><a name="system_httpd">1. HTTP server</a></h2>
+  
+    <p>To use the installer, move into</p>
+
+    <blockquote>glideinWMS/install</blockquote>
+
+    <p>and execute (as root)</p>
+
+    <blockquote>./glideinWMS_install</blockquote>
+
+    <p>You will be presented with this screen:</p>
+
+    <blockquote>
+        What do you want to install?<br>
+        (May select several options at one, using a , separated list)<br>
+        [1] glideinWMS Collector<br>
+        [2] Glidein Factory<br>
+        [3] GCB<br>
+        [4] pool Collector<br>
+        [5] Schedd node<br>
+        [6] Condor for VO Frontend<br>
+        [7] VO Frontend<br>
+        [8] Components
+    </blockquote>
+
+    <p>Select <b>8</b>.</p>
+    <p>You will be given another menu:</p>
+
+    <blockquote>
+        What do you want to install?<br>
+        (May select several options at one, using a , separated list)<br>
+        [a] OSG VDT client<br>
+        [b] Base Condor installation<br>
+        [c] Web server<br>
+        [d] rrdtool graphics package<br>
+        [e] PostgreSQL database<br>
+        [f] Quill-specific PostgreSQL database
+    </blockquote>
+
+    <p>Select <b>c</b>.</p>
+    <p>Now follow the instructions.  Most of the questions should be fairly straightforward.</p>
+</div>
+
+
+<div class="section">
+    <h2><a name="system_vdt">2. OSG VDT Client</a></h2>
+    <p>
+        At times the installer will give you the option to install the OSG VDT client.  Below is an example of an intall for reference.  It can also
+        be installed using the installer.  <br><br>
+        <strong>Notes:</strong>
+        <ul>
+            <li>Unless you know of a need to use a different version, accept the default pacman version listed by the installer</li>
+            <li>Allow the installer to auto-detect your platform unless you want to force a specific platform</li>
+            <li>Use the default OSG location, unless you have good reason to change it</li>
+            <li>
+                Unless you want your users to have to find and define the OSG VDT Client location themselves, when asked, answer 'y'
+                to defining OSG_VDT_BASE globally</li>
+        </ul>
+    </p>
+    <pre>
+Do you want to install the full OSG VDT client?: (y/n) <b>y</b>
+Where do you want the VDT installed?: [/opt/vdt] <b>/opt/vdt</b>
+Directory '/opt/vdt' does not exist, should I create it?: (y/n) <b>y</b>
+What pacman version should I use?: [3.28] <b>3.28</b>
+
+--2010-05-06 13:34:52--  http://vdt.cs.wisc.edu/software/pacman/3.28/pacman-3.28.tar.gz
+Resolving vdt.cs.wisc.edu... 128.105.121.78
+Connecting to vdt.cs.wisc.edu|128.105.121.78|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 856103 (836K) [application/x-gzip]
+Saving to: `pacman-3.28.tar.gz'
+
+100%[=====================================================================================================================================================================>] 856,103     --.-K/s   in 0.09s   
+
+2010-05-06 13:34:52 (9.03 MB/s) - `pacman-3.28.tar.gz' saved [856103/856103]
+
+pacman-3.28/
+    </pre>
+
+    <p>
+        The contents of the tarball have been removed for space reasons.
+    </p>
+
+    <pre>
+pacman-3.28/bin/pacman
+
+VDT client installation tends to be very picky about the platforms it installs under
+Most of the time, one needs to pretent to be one of the tested platforms
+The platforms known to work are: linux-rhel-4,SL-4,linux-rhel-5,SL-5
+Which platform do you want to use (leave empty for autodetect): 
+
+The VDT installation will start in a moment.
+CA certificates are installed as part of this procedure; ignore the VDT warning message.
+Please do not enable Condor, as we will install it separatelly.
+
+Beginning VDT prerequisite checking script vdt-common/vdt-prereq-check...       
+
+All prerequisite checks are satisfied.
+
+
+
+========== IMPORTANT ==========
+Most of the software installed by the VDT *will not work* until you install
+certificates.  To complete your CA certificate installation, see the notes
+in the post-install/README file.
+
+
+
+
+The VDT version 2.0.0 has been installed.
+
+
+The OSG Client package OSG version 1.2.9 has been installed.
+VDT does not provide a default URL for CA fetching       
+You need to provide one
+The default OSG location is: http://software.grid.iu.edu/pacman/cadist/ca-certs-version
+Where should I fetch the CAs from?: [http://software.grid.iu.edu/pacman/cadist/ca-certs-version]<b>http://software.grid.iu.edu/pacman/cadist/ca-certs-version</b> 
+Setting CA Certificates for VDT installation at '/opt/vdt'
+
+Setup completed successfully.
+running 'vdt-register-service --name vdt-update-certs --enable'... ok
+running 'vdt-register-service --name fetch-crl --enable'... ok
+running 'vdt-register-service --name vdt-rotate-logs --enable'... ok
+enabling cron service fetch-crl... ok
+enabling cron service vdt-rotate-logs... ok
+enabling cron service vdt-update-certs... ok
+skipping init service 'condor' -- marked as disabled
+skipping init service 'globus-ws' -- marked as disabled
+Do you want OSG_VDT_BASE defined globally?: (y/n) <b>y</b>
+
+VDT client installed
+    </pre>
+</div>
+
+
+<div class="section">
+
+    <h3><a name="system_rrdtool">3. RRDTool</a></h3>
+    <p>
+        You will also need the python module for <a href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (v1.2.18 or later). Many 
+        systems come with packages for it; if possible use that.
+    </p>
+
+    <p>
+        RPMs for Redhat/Scientific Linux distributions can be found at 
+        <a href="http://dag.wieers.com/rpm/packages/rrdtool/">http://dag.wieers.com/rpm/packages/rrdtool/</a>
+    </p>
+
+    <p>Install python-rrdtool*.rpm and related dependencies.</p>
+
+    <p>
+        If installing as root is not an option, you can build from the sources, as the <b>glidein factory</b>
+        user, and put the python libraries into the PYTHON_PATH.<br>
+        The source code can be downloaded from: <a href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a>
+    </p>
+
+    <p>
+        Beware: The build process has several dependencies that make it complicated. Use this option only if you cannot install from RPMs 
+        (or similar). 
+    </p>
+</div>
+
+
+<div class="section">
+
+    <h3><a name="system_m2crypto">4. M2Crypto</a></h3>
+
+    <p>
+        You will need the <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. A few systems include it in the 
+        software distribution; if possible install the system one.
+    </p>
+
+    <p>
+        If your system does not come with m2crypto package, or you do not can/want install it as root, compile it from source as 
+        the <b>glidein factory</b> user.<br>  The source code can be downloaded from:  
+        <a href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a>
+    </p>
+
+    <p>The build process is very easy:</p>
+
+    <blockquote>
+        python setup.py build<br>
+        python setup.py install --root <i>&lt;base dir&gt;</i>
+    </blockquote>
+
+    <p>
+        Finally add M2Crypto site-packages into the PYTHONPATH, possibly in the .profile, .bashrc and/or in the .cshrc.<br>
+        The exact path is system specific. On a 32bit system with python 2.3.x it will look like this:
+    </p>
+
+    <blockquote>export PYTHONPATH=$PYTHONPATH:<i>&lt;base dir&gt;</i>/usr/lib/python2.3/site-packages/</blockquote>
+    <br>
+</div>
+
+
+<div class="section">
+
+    <h3><a name="system_javascriptRRD">5. javascriptRRD</a></h3>
+
+    <p>
+        You will need the <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>.  It contains the 
+        javascript libraries needed by the monitoring.  Just download the tarball (with flot), and untar it.  You will need to 
+        point the installer to this directory.
+    </p>
+</div>
+</div>
+</body>
+</html>

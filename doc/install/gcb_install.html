@@ -7,162 +7,164 @@
 	<META NAME="CREATED" CONTENT="20071114;13460300">
 	<META NAME="CHANGED" CONTENT="20090212;10502000">
 	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
+	<link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
-GCB node </FONT></FONT>
-</H1>
-<HR>
-<TABLE CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD>
-			<P ALIGN=CENTER>[</P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER><A HREF="#description">Description</A></P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER>|</P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER><A HREF="#hardware">Hardware requirements</A></P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER>|</P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER><A HREF="#software">Needed software</A></P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER>|</P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER><A HREF="#condor">Installation instructions</A></P>
-		</TD>
-		<TD>
-			<P ALIGN=CENTER>]</P>
-		</TD>
-	</TR>
-</TABLE>
-<HR>
-<TABLE CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD VALIGN=TOP>
-			<H2><A NAME="description"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1.
-			Description </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB. CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.<br><br>This node will serve
-			as a <A HREF="http://www.cs.wisc.edu/condor/gcb/">Generic
-			Connection Brokering (GCB)</A> node. If you are working over
-			firewalls or NATs, and are using an older version of condor (before v7.3.0) you will need one or more of these.<BR>If in use, GCB is
-			needed every time you have a firewall or a NAT; if this node dies,
-			all the glideins relying on it will die with it. If possible use <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> instead.</FONT></FONT></P>
-			<H2><A NAME="hardware"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2.
-			Hardware requirements </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>a
-			reasonably recent CPU</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			and a small amount of </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>memory</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			(</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>256MB</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			should be enough).<BR>It must have </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>reliable
-			network</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			connectivity and must be </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>on
-			the public internet,</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			with </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>no
-			firewalls</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>;
-			it will work as a router. It will </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>use
-			20k IP ports</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>,
-			so it should not be collocated with other network intensive
-			applications.<BR>The machine must be </FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>very
-			stable</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>;
-			if the GCB dies, all the glideins relying on it will die with it
-			(You can use multiple GCBs to minimize the damage, but you should
-			still try to choose the stablest machine you can afford.)<BR>The
-			</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>disk</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			needed is just for Condor binaries and log files (</FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3><B>5GB</B></FONT></FONT><FONT FACE="Liberation Serif"><FONT SIZE=3>
-			should be enough)<BR><BR>BTW: As low spec machine could be
-			difficult to find, please consider collocating it with a <A HREF="frontend_install.html">VO
-			Frontend</A>.</FONT></FONT></P>
-		</TD>
-		<TD>
-			<P><IMG SRC="overview_gcb.png" NAME="graphics1" ALIGN=BOTTOM WIDTH=359 HEIGHT=213 BORDER=0>
-						</P>
-		</TD>
-	</TR>
-</TABLE>
-<H2><A NAME="software"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3.
-Needed software </FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>A reasonably recent
-Linux OS (SL4 used at press time).<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-distribution</A>.</FONT></FONT></P>
-<H2><A NAME="condor"></A><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4.
-Installation instructions </FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The GCB should be
-installed as a non privileged user. <BR>The whole process is managed
-by a install script described below. You will need to provide a valid
-<A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</A>,
-so you may as well download it before starting the installer.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>3</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions. The installation is straightforward.</FONT></FONT></P>
-<P STYLE="margin-right: 0.39in">The installer will also start the
-Condor daemons. <FONT FACE="Liberation Serif"><FONT SIZE=3>To stop
-the Condor daemons, issue</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>killall
-condor_master</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>To start them again:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>cd &lt;install
-dir&gt;; ./start_condor.sh</FONT></FONT></BLOCKQUOTE>
-<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.1 Verify it is running </FONT></FONT>
-</H3>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You can check that the
-processes are running:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>ps -u `id -un`
-|grep gcb</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You should see one
-gcb_broker and at least one gcb_relay_server.<BR><BR>You can also
-check that tey are working well, by pinging it with gcb_broker_query:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>&lt;install
-dir&gt;/sbin/gcb_broker_query <I>your_ip</I> freesockets</FONT></FONT></BLOCKQUOTE>
-<H3><FONT FACE="Utopia, serif"><FONT SIZE=3>4.2 Fine tunning</FONT></FONT></H3>
-<H4><FONT FACE="Utopia, serif"><FONT SIZE=2>4.2.1 Increase the number of available ports</FONT></FONT></H4>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The default
-installation will set up GCB to handle up to 20k requests. Look in
-the &lt;install dir&gt;/etc/condor_config.local for</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>GCB_MAX_RELAY_SERVERS=200<BR>GCB_MAX_CLIENTS_PER_RELAY_SERVER=100</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This is enough for
-approx. 4k glideins (each glidein uses 5-6 ports).</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>If you want a single
-GCB to serve more glideins that that, you can increase those numbers.
-However, be aware that the OS also have its limits. On most Linux
-systems the limit is set in 
-</FONT></FONT>/proc/sys/net/ipv4/ip_local_port_range.<BR>In this
-example<FONT FACE="Liberation Serif"><FONT SIZE=3>:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>$ cat
-/proc/sys/net/ipv4/ip_local_port_range<BR>32768   61000 </FONT></FONT>
-</BLOCKQUOTE>
-system has only ~28k ports available. If you want to configure GCB/CCB to
-serve more than that, first change the system limit, then the GCB/CCB
-configuration.</FONT></FONT></FONT><FONT SIZE=3><BR></FONT></FONT>
-</P>
-<H4><FONT FACE="Utopia, serif"><FONT SIZE=2>4.2.1 Increase the number of available file descriptors</FONT></FONT></H4>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><FONT FACE="Liberation Serif"><FONT SIZE=3>Note that every port used by the GCB/CCB also consumes available file descriptors. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of ports GCB/CCB is allowed to open.
-</p>
-<P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
-to the index</FONT></FONT></A></P>
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+
+    </h1>
+    
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#description">Description</a></li>
+	<li><a href="#hardware">Hardware requirements</a></li>
+	<li><a href="#software">Needed software</a></li>
+	<li><a href="#condor">Installation</a></li>
+	<li><a href="#starting">Starting and Stopping</a></li>
+	<li><a href="#verify">Verification</a></li>
+	<li><a href="#tuning">Fine Tuning</a></li>
+    </ul>
+<div class="content">
+<h2 class="header">Installation of a GCB node</h2>
+<div class="section">
+<h2><A NAME="description">1.Description</a></h2>
+	<IMG SRC="overview_gcb.png" NAME="graphics1" ALIGN="right" WIDTH=359 HEIGHT=213 BORDER=0></P>
+	<p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
+	<p>This node will serveas a 
+	<a href="http://www.cs.wisc.edu/condor/gcb/">Generic Connection Brokering (GCB)</A> node. 
+	If you are working over firewalls or NATs, and are using an older version of condor (before v7.3.0) you will need one or more of these.  If in use, GCB is needed every time you have a firewall or a NAT.
+	If this node dies, all the glideins relying on it will die with it. If possible use <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</A> instead.
+	</p>
+</div>
+<div class="section">
+<h2><a name="hardware"></A>2. Hardware requirements </h2>
+	<p>This machine needs <b>a reasonably recent CPU</b> and a small amount of <b>memory</b>
+	(<b>256MB</b> should be enough).</p>
+	<p>It must have a <b>reliable network</b> connectivity and must be 
+	<b>on the public internet,</b> with <b>no firewalls</b>.  It will work as a router. 
+	It will <b>use 20k IP ports</b>, so it should not be collocated with other network intensive
+	applications.</p>
+	<p> The machine must be <b>very stable</b>.  If the GCB dies, 
+	all the glideins relying on it will die with it..
+	(Multiple GCBs can improve this by minimizing the damage of a downtime, 
+	but this machine should still be on the most stable machine affordable).</p>
+	<p>About <b>5GB of disk space</b> is needed for Condor binaries and log files.</p>
+	<p>As these specifications are not disk/memory intensive, you may consider collocating it with a 
+	<A HREF="frontend_install.html">VO Frontend</A>.</p>
+</div>
+<div class="section">
+<H2><a NAME="software">3. Needed software </a></H2>
+<p>You will need a reasonably recent Linux OS (SL4 used at press time), and 
+	the <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</A>.</P>
+</div>
+<div class="section">
+<H2><A NAME="condor">4. Installation instructions </A></H2>
+
+	<p>The GCB should be installed as a non privileged user. </p>
+	<p>The whole process is managed by a install script described below. You will need to provide a valid
+	<A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</A>,
+	so you should download it before starting the installer.</P>
+	<p>
+	Move into the "glideinWMS/install" directory and execute
+	<BLOCKQUOTE>
+		./glideinWMS_install
+	</BLOCKQUOTE>
+	You will be presented with this screen:
+	<BLOCKQUOTE>
+	What do you want to install?<BR/>
+	(May select several options at one, using a , separated list)<BR/>
+	[1] glideinWMS Collector<BR/>
+	[2] Glidein Factory<BR/>
+	[3] GCB<BR/>
+	[4] pool Collector<BR/>
+	[5] Schedd node<BR/>
+	[6] Condor for VO Frontend<BR/>
+	[7] VO Frontend<BR/>
+	[8] Components
+	</BLOCKQUOTE>
+	Select <B>3</B>.  Now follow the instructions. The installation is straightforward.</P>
+	The installer will also start the Condor daemons. 
+	</p>
+</div>
+<div class="section">	
+<h3><a name="starting">4.1 Starting and Stopping</a></h3>
+	<p>
+	To start the Condor daemons, issue:
+	<BLOCKQUOTE>
+	cd &lt;install dir&gt;<br/>
+	./start_condor.sh
+	</BLOCKQUOTE>
+
+	</p>
+	<p>
+	To stop the Condor daemons, issue:
+	<BLOCKQUOTE>
+		killall condor_master
+	</BLOCKQUOTE>
+	</p>
+</div>
+<div class="section">	
+<h3><a name="verify">4.2 Verify it is running</a></h3>
+
+	<P>You can check that the processes are running:
+	<BLOCKQUOTE>
+		ps -u `id -un`|grep gcb
+	</BLOCKQUOTE>
+	You should see one gcb_broker and at least one gcb_relay_server.
+	</p>
+	<p>
+	You can also check that they are working by pinging it with gcb_broker_query:
+	<BLOCKQUOTE>
+	&lt;install dir&gt;/sbin/gcb_broker_query &lt;your_ip&gt; freesockets
+	</BLOCKQUOTE>
+
+<H3><a name="tuning">4.3 Fine tuning</a></H3>
+<H4>4.3.1 Increase the number of available ports</H4>
+	<P>
+	The default installation will set up GCB to handle up to 20k requests. Look in
+the &lt;install dir&gt;/etc/condor_config.local for
+	<BLOCKQUOTE>
+	GCB_MAX_RELAY_SERVERS=200<BR/>
+	GCB_MAX_CLIENTS_PER_RELAY_SERVER=100
+	</BLOCKQUOTE>
+	This is enough for approximately 4000 glideins (each glidein uses 5-6 ports).
+	</P>
+	<P>
+	If you want a single GCB to serve more glideins that that, you can increase those numbers.
+However, be aware that the OS also has its limits. On most Linux systems, the limit is set in 
+<b>/proc/sys/net/ipv4/ip_local_port_range</b>.
+	<BLOCKQUOTE>
+	$ cat /proc/sys/net/ipv4/ip_local_port_range<BR/>
+	32768   61000
+	</BLOCKQUOTE>
+	For example, the typical port range listed above has only ~28k ports available. 
+	If you want to configure GCB/CCB to serve more than that, first change the system limit, 
+	then the GCB/CCB configuration.
+	</P>
+<H4>4.3.2 Increase the number of available file descriptors</H4>
+
+	<P>Note that every port used by the GCB/CCB also consumes available file descriptors. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of ports GCB/CCB is allowed to open.</p>
+	<p>This can be done by issuing a "ulimit -n" command as well as changing the values in the /etc/security/limits.conf file</p>
+</div>
+</div>
+<P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
 </BODY>
 </HTML>

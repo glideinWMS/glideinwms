@@ -11,11 +11,26 @@
 <meta http-equiv="content-type" content="application/xhtml+xml; charset=UTF-8">
 <meta http-equiv="content-style-type" content="text/css">
 <meta http-equiv="expires" content="0">
-
+    <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
-<body style='font-family: arial, sans-serif, helvetica ; text-align: justify; '>
-<h1>glideinWMS: Frequently Asked Questions</h1>
-<p align='justify'>
+
+<body lang="en-US" dir="ltr">
+       <h1>
+        <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/index.html" class="main_link">GlideinWMS - Glidein-based WMS</a>
+        <a href="index.html">Installation Guide</a>
+    </h1>
+    
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+<div class="content">
+<h2 class="header">glideinWMS: Frequently Asked Questions</h2>
+
 
 <ul>
   <li><b>How to setup GSI in glideinWMS</b><br/>
@@ -31,16 +46,21 @@
       In the Factory configuration in the &lt;entry&gt; tag, the rsl attribute
       should contain condor_submit=('+Coresize' 'Unlimited').<br/>
       Example (all on one line):<br>
-      rsl="(condor_submit=('+Coresize' 'Unlimited'))(queue=default)(jobtype=single)"<br/>
-      In the condor_submit file of the user job add: <br/>
-      +coresize = unlimited<br/>
-      NOTE: The coresize for the actual user job will be set to the available
+      <blockquote>
+	rsl="(condor_submit=('+Coresize' 'Unlimited'))(queue=default)(jobtype=single)"
+      </blockquote>
+      In the condor_submit file of the user job add:
+      <blockquote>
+      +coresize = unlimited
+      </blockquote>
+      <b>NOTE:</b> The coresize for the actual user job will be set to the available
             disk space, not unlimited. Also, you can make this change to global
             parameter or local parameter.
   </li>
 </ul>
 </p>
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+</div>
+<P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
 
 </body>
 </html>

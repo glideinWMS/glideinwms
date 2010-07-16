@@ -1,273 +1,286 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <head>
-
-<style>
-BODY, P, DIV, H1, H2, H3, H4, H5, H6, ADDRESS, OL, UL, TITLE, TD, OPTION, SELECT {
- font-family: Verdana;
- 
-}
-
-BODY, P, DIV, ADDRESS, OL, UL, LI, TITLE, TD, OPTION, SELECT {  
-  font-size: 10.0pt;
-  margin-top:0pt;  
-  margin-bottom:0pt;  
-} 
-
-BODY, P {
-  margin-left:0pt; 
-  margin-right:0pt;
-}
-
-BODY {
-  line-height: ;
-  background: white;
-  margin: 6px;
-  padding: 0px;
-}
-
-h6 { font-size: 10pt }
-h5 { font-size: 11pt }
-h4 { font-size: 12pt }
-h3 { font-size: 13pt }
-h2 { font-size: 14pt }
-h1 { font-size: 16pt }
-
-blockquote {padding: 10px; border: 1px #DDDDDD dashed }
-
-a img {border: 0}
-
-</style>
-
-
-
-
+  <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
-
-
 <body revision="dmqrsvn_25dn7p9p:81">
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
 
-<h1>
-  Configuring GSI security in Condor
-</h1>
-<h2>
-  1. Description
-</h2>
-This document describes how to configure GSI security in Condor.<br>
-<h2>
-  2. Required software
-</h2>
-Any
-<a href=http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html title="Available architectures">Condor-supported
-OS</a>.<br>
-The
-<a href=https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome title="OSG User Web page">OSG
-client software</a>.<br>
-The
-<a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">Condor
-distribution</a>.<br>
-<h2>
-  3. Installation instructions
-</h2>
-The installation will assume you
-<a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">have
-installed Condor v7.0.5</a>.<br>
-The install directory is <span style=FONT-WEIGHT:bold>/opt/glidecondor</span>.<br>
-If you want to use a different setup, make the necessary changes.<br>
-<br>
-Unless explicity mentioned, all operations are to be done as root.<br>
-<h3>
-  3.1 Install OSG client<br>
-</h3>
-If you have not installed the OSG client in
-<span style=FONT-WEIGHT:bold>/opt/vdt</span> already, do it now.<br>
-<i>(Note: An EGEE/gLite Grid User Interface will work as well, but you need to
-replace /opt/vdt with whatever is appropriate for that installation)</i><br>
-<br>
-To install OSG 0.6.0 client, as of the time of writing, you would execute the following as <b>root</b><br>
-(please be aware that you will need gcc, g++ and python-devel installed, and that you may need <b>-pretend-platform</b> packman option on some systems):<br>
-<blockquote>mkdir /opt/vdt<br>
-cd /opt/vdt<br>
-wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.19.tar.gz<br>
-tar --no-same-owner -xzvf pacman-3.19.tar.gz<br>
-cd pacman-3.19<br>
-source setup.sh<br>
-cd ..<br>
-pacman -trust-all-caches -get OSG:client<br>
-#Do you agree to the licenses? [y/n] y<br>
-#Would you like to enable the Condor batch system to run automatically? n<br>
-#Would you like to setup daily rotation of VDT log files? y<br>
-#Do you want to update the CA certification revocation lists (CRLs)
-automatically? [y/n] y<br>
-#Where would you like to install CA files? r<br>
-pacman -remove Condor<br>
-# ignore error messages<br>
-source setup.sh<br>
-vdt-control --on<br>
-</blockquote><br>
-PS: The most up-to-date instructions can be found on
-<a href=https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide title="OSG client installation guide">https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide</a>.<br>
-<span style=FONT-STYLE:italic>(Please notice that those installation
-instructions tell you to install in ~/client_directory, please use /opt/vdt
-instead)</span><br>
-<h3>
-  3.2 Prepare the security directories and files
-</h3>
-Create <span style=FONT-WEIGHT:bold>/opt/glidecondor/certs</span><br>
-<div style=MARGIN-LEFT:40px>
-  mkdir /opt/glidecondor/certs<br>
-  chmod a+rx /opt/glidecondor/certs<br>
+    </h1>
+
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#description">Description</a></li>
+	<li><a href="#software">Required software</a></li>
+	<li><a href="#install">Installation</a></li>
+    </ul>
+<div class="content">
+<h2 class="header">Configuring GSI security in Condor</h2>
+
+<div class="section">
+<h2><a name="description"> 1. Description</a></h2>
+	This document describes how to configure GSI security in Condor.
 </div>
-This directory will host the grid-mapfile and eventual service proxy (see
-below).<br>
-<br>
-Now you need to select what proxy or certificate you will be used for
-authentication.<br>
-You have essentially three options:<br>
-<ol>
-  <li>
-    You use the host certificates located in
-    <span style=FONT-WEIGHT:bold>/etc/grid-security</span>
-  </li>
-  <li>
-    You request a service certificate for use with Condor, and put it in
-    <span style=FONT-WEIGHT:bold>/opt/glidecondor/certs</span>
-  </li>
-  <li>
-    You create and maintain a valid proxy, obtained from a personal or service
-    certificate, in <span style=FONT-WEIGHT:bold>/opt/glidecondor/certs</span>.
-    How you keep this proxy valid (via
-    <a href=http://grid.ncsa.uiuc.edu/myproxy/ title="MyProxy home page">MyProxy</a>,
-    <a href=http://www.kx509.org/ title="kx509 Mode Page">kx509</a>,
-    voms-proxy-init from a local certificate, scp from other nodes, or other
-    methods), is beyond the scope of this document.
-  </li>
-</ol>
-<br>
-Most of my test installations used option(3), but you may be better served with
-(1) or (2) for a large production pool.<br>
-Anyhow, most of the examples in this collection will assume you use (3), with
-the proxy being named
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/certs/x509_service_proxy</span>.<br>
-<br>
-<span style=FONT-WEIGHT:bold>Note:</span> The proxy and/or the certificate key
-must bereadable by the owner only! <span style=FONT-WEIGHT:bold>If it is either
-group or world readable</span> (and/or writable),
-<span style=FONT-WEIGHT:bold>Condor will refuse to use it</span> (since it could
-have been stolen and/or compromised by now).<br>
-<br>
-Once you have the proxy or the certificate, you need to create
-<span style=FONT-WEIGHT:bold>/opt/glidecondor/certs/grid-mapfile</span> and
-insert the DN of the proxy/cert followed by a symbolic name.<br>
-Assuming the DN of the proxy/cert to be
-"/DC=org/DC=doegrids/OU=Service/CN=mycondor345", you would insert:<br>
-<div style=MARGIN-LEFT:40px>
-  "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+
+<div class="section">
+<h2><a name="software">2. Required software</a></h2>
+	<ul>
+	<li>
+	Any
+	<a href=http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html title="Available architectures">
+		Condor-supported OS
+	</a>.
+	</li>
+	<li>
+	The
+	<a href=https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome title="OSG User Web page">
+		OSG client software</a>.
+	</li>
+	<li>
+	The
+	<a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">
+		Condor distribution</a>.
+	</li>
+	</ul>
 </div>
-The symbolic name is not really important, it has no meaning in Unix space. It
-is just a nickname you will use in configuration and log files.<br>
-<br>
-In addition to its own DN, the grid-mapfile must contain also the DNs of all the
-clients and servers that will ever talk to this Condor installation:<br>
-<ul>
-  <li>
-    The DNs of other Condor nodes, i.e. the
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
-    Central Manager</a>,&nbsp; the
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
-    Submit nodes</a> and the
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
-    Execute nodes</a>.
-  </li>
-  <li>
-    If this is a
-    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Submit
-    node</a>
-    or&nbsp;<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Execute
-    node</a> and your users use GSI authentication, you also need to list all
-    the users' DNs.
-  </li>
-</ul>
-Again, you will need to add nicknames to those DNs. In the case of a
-<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Submit
-node</a>
-or&nbsp;<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Execute
-node</a> running as root, the user nicknames must represent actual Unix account.<br>
-In all other cases, the nicknames have no special meanin, and are there just for
-use in configuration and log files.<br>
-<br>
-For example, assuming this is the Central Manager, and it has two Submit nodes,
-with DNs "/DC=org/DC=doegrids/OU=Service/CN=schedd34" and
-"/DC=org/DC=doegrids/OU=Service/CN=schedd98", while all the Execute nodes are
-glideins, and thus share the same DN "/DC=org/DC=doegrids/OU=Service/CN=work12",
-the <span style=FONT-WEIGHT:bold>/opt/glidecondor/certs/grid-mapfile
-</span>could be:<br>
-<div style=MARGIN-LEFT:40px>
-  "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
-  "/DC=org/DC=doegrids/OU=Service/CN=schedd34" scondor1<br>
-  "/DC=org/DC=doegrids/OU=Service/CN=schedd98" scondor2<br>
-  "/DC=org/DC=doegrids/OU=Service/CN=work12" gcondor<br>
+
+<div class="section">
+<h2><a name="install">  3. Installation instructions</a></h2>
+	<p>
+	The installation will assume you
+	<a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">
+		have installed Condor v7.0.5</a>.
+	The install directory is <b>/opt/glidecondor</b>.
+	If you want to use a different setup, make the necessary changes.
+	</p>
+	<p>
+	Unless explicity mentioned, all operations are to be done as root.
+	</p>
 </div>
-<h3>
-  3.3 Configure Condor security
-</h3>
-Force GSI authentication in
-<span style=FONT-WEIGHT:bold>/etc/condor/condor_config</span>, by adding:<br>
-<div style=MARGIN-LEFT:40px>
-  ############################################################<br>
-  ## Security config<br>
-  ############################################################<br>
-  <br>
-  ############################<br>
-  # Authentication settings<br>
-  ############################<br>
-  SEC_DEFAULT_AUTHENTICATION = REQUIRED<br>
-  SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI<br>
-  SEC_READ_AUTHENTICATION = OPTIONAL<br>
-  SEC_CLIENT_AUTHENTICATION = OPTIONAL<br>
-  <br>
-  # Grid Certificate directory<br>
-  GSI_DAEMON_TRUSTED_CA_DIR=/opt/vdt/globus/TRUSTED_CA<br>
-  <br>
-  ############################<br>
-  # Privacy settings<br>
-  ############################<br>
-  SEC_DEFAULT_ENCRYPTION = OPTIONAL<br>
-  SEC_DEFAULT_INTEGRITY = REQUIRED<br>
-  SEC_READ_INTEGRITY = OPTIONAL<br>
-  SEC_CLIENT_INTEGRITY = OPTIONAL<br>
-  SEC_READ_ENCRYPTION = OPTIONAL<br>
-  SEC_CLIENT_ENCRYPTION = OPTIONAL<br>
-  <br>
-  ############################<br>
-  # Set daemon cert location<br>
-  ############################<br>
-  GSI_DAEMON_DIRECTORY = /opt/glidecondor/certs<br>
-  <br>
-  # Keep this if you use a proxy<br>
-  GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br>
-  <br>
-  # If you use a Certificate, uncomment below, pointing it to the right place,
-  and comment the proxy line<br>
-  #GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem<br>
-  #GSI_DAEMON_KEY&nbsp; = /etc/grid-security/hostkey.pem<br>
-  <br>
-  ############################<br>
-  # Where to find DN-&gt;uid mappings<br>
-  ############################<br>
-  GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br>
+
+<div class="section">
+<h3>  3.1 Install OSG client</h3>
+	<p>
+	If you have not installed the OSG client in <b>/opt/vdt</b> already, do it now.<br/>
+	<i>(Note: An EGEE/gLite Grid User Interface will work as well, but you need to
+replace /opt/vdt with whatever is appropriate for that installation)</i>
+	</p>
+	<p>
+	To install OSG 0.6.0 client, as of the time of writing, you would execute the following as <b>root</b><br/>
+(please be aware that you will need gcc, g++ and python-devel installed, and that you may need <b>-pretend-platform</b> packman option on some systems):
+	<blockquote>
+		mkdir /opt/vdt<br/>
+		cd /opt/vdt<br/>
+		wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.19.tar.gz<br/>
+		tar --no-same-owner -xzvf pacman-3.19.tar.gz<br/>
+		cd pacman-3.19<br/>
+		source setup.sh<br/>
+		cd ..<br/>
+		pacman -trust-all-caches -get OSG:client<br/>
+		#Do you agree to the licenses? [y/n] y<br/>
+		#Would you like to enable the Condor batch system to run automatically? n<br/>
+		#Would you like to setup daily rotation of VDT log files? y<br/>
+		#Do you want to update the CA certification revocation lists (CRLs)
+		automatically? [y/n] y<br/>
+		#Where would you like to install CA files? r<br/>
+		pacman -remove Condor<br/>
+		# ignore error messages<br/>
+		source setup.sh<br/>
+		vdt-control --on<br/>
+	</blockquote>
+	PS: The most up-to-date instructions can be found on
+	<a href=https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide title="OSG client installation guide">
+		https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide</a>.
+	</p>
+	<p>
+	<i>(Please notice that those installation instructions tell you to install in ~/client_directory, 
+	please use /opt/vdt instead)</i>
+	</p>
 </div>
-<font size=3><span style=FONT-WEIGHT:bold></span></font><br>
-Since all the security is now GSI based, we don't rely on IP checks anymore.
-Change <span style=FONT-WEIGHT:bold>HOSTALLOW_WRITE</span> in
-<span style=FONT-WEIGHT:bold>/etc/condor/condor_config</span>, to<br>
-<div style=MARGIN-LEFT:40px>
-  # do not use IP based controls<br>
-  HOSTALLOW_WRITE = *<br>
+<div class="section">
+<h3>  3.2 Prepare the security directories and files</h3>
+	<p>
+	Create <b>/opt/glidecondor/certs</b>
+	<blockquote>
+	  mkdir /opt/glidecondor/certs<br/>
+	  chmod a+rx /opt/glidecondor/certs
+	</blockquote>
+	This directory will host the grid-mapfile and eventual service proxy (see below).
+	</p>
+	<p>
+	Now you need to select what proxy or certificate you will be used for authentication. 
+	You have essentially three options:
+	<ol>
+	  <li>
+	    You use the host certificates located in
+	    <b>/etc/grid-security</b>
+	  </li>
+	  <li>
+	    You request a service certificate for use with Condor, and put it in
+	    <b>/opt/glidecondor/certs</b>
+	  </li>
+	  <li>
+	    You create and maintain a valid proxy, obtained from a personal or service
+	    certificate, in <b>/opt/glidecondor/certs</b>.
+	    How you keep this proxy valid (via
+	    <a href=http://grid.ncsa.uiuc.edu/myproxy/ title="MyProxy home page">MyProxy</a>,
+	    <a href=http://www.kx509.org/ title="kx509 Mode Page">kx509</a>,
+	    voms-proxy-init from a local certificate, scp from other nodes, or other
+	    methods), is beyond the scope of this document.
+	  </li>
+	</ol>
+	Most of my test installations used option(3), but you may be better served with
+	(1) or (2) for a large production pool.
+	</p>
+	<p>
+	Anyhow, most of the examples in this collection will assume you use (3), with
+	the proxy being named
+	<b>/opt/glidecondor/certs/x509_service_proxy</b>.
+	<p>
+	<b>Note:</b> The proxy and/or the certificate key must bereadable by the owner only! 
+	<b>If it is either group or world readable</b> (and/or writable),
+	<b>Condor will refuse to use it</b> 
+	(since it could have been stolen and/or compromised by now).
+	</p>
+	<p>
+	Once you have the proxy or the certificate, you need to create
+	<b>/opt/glidecondor/certs/grid-mapfile</b> and insert the DN of the proxy/cert 
+	followed by a symbolic name.
+	</p>
+	<p>
+	Assuming the DN of the proxy/cert to be "/DC=org/DC=doegrids/OU=Service/CN=mycondor345", 
+	you would insert:
+	<blockquote>
+	  "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+	</blockquote>
+	The symbolic name is not really important, it has no meaning in Unix space. It
+	is just a nickname you will use in configuration and log files.
+	</p>
+	<p>
+	In addition to its own DN, the grid-mapfile must contain also the DNs of all the
+	clients and servers that will ever talk to this Condor installation:
+	<ul>
+	  <li>
+    	The DNs of other Condor nodes, i.e. the
+	    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+	    Central Manager</a>,&nbsp; the
+	    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+	    Submit nodes</a> and the
+    	<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+	    Execute nodes</a>.
+	  </li>
+	  <li>
+    	If this is a
+	    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Submit
+	    node</a>
+	    or&nbsp;<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Execute
+	    node</a> and your users use GSI authentication, you also need to list all the users' DNs.
+	  </li>
+	</ul>
+	Again, you will need to add nicknames to those DNs. In the case of a
+	<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
+		Submit node
+	</a>
+	or 
+	<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
+		Execute node
+	</a> 
+	running as root, the user nicknames must represent actual Unix account.
+	</p>
+	<p>
+	In all other cases, the nicknames have no special meanin, and are there just for 
+	use in configuration and log files.
+	</p>
+	<p>
+	For example, assuming this is the Central Manager, and it has two Submit nodes,
+	with DNs "/DC=org/DC=doegrids/OU=Service/CN=schedd34" and
+	"/DC=org/DC=doegrids/OU=Service/CN=schedd98", while all the Execute nodes are
+	glideins, and thus share the same DN "/DC=org/DC=doegrids/OU=Service/CN=work12",
+	the <b>/opt/glidecondor/certs/grid-mapfile</b>could be:
+	<blockquote>
+	  "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+	  "/DC=org/DC=doegrids/OU=Service/CN=schedd34" scondor1<br>
+	  "/DC=org/DC=doegrids/OU=Service/CN=schedd98" scondor2<br>
+	  "/DC=org/DC=doegrids/OU=Service/CN=work12" gcondor<br>
+	</blockquote>
 </div>
-<br>
-<br>
+<div class="section">
+<h3>  3.3 Configure Condor security</h3>
+	<p>Force GSI authentication in
+	<b>/etc/condor/condor_config</b>, by adding:
+	<blockquote>
+	  ############################################################<br/>
+	  ## Security config<br/>
+	  ############################################################<br/>
+	  <br/>
+	  ############################<br/>
+	  # Authentication settings<br/>
+	  ############################<br/>
+	  SEC_DEFAULT_AUTHENTICATION = REQUIRED<br/>
+	  SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI<br/>
+	  SEC_READ_AUTHENTICATION = OPTIONAL<br/>
+	  SEC_CLIENT_AUTHENTICATION = OPTIONAL<br/>
+	  <br/>
+	  # Grid Certificate directory<br/>
+	  GSI_DAEMON_TRUSTED_CA_DIR=/opt/vdt/globus/TRUSTED_CA<br/>
+	  <br/>
+	  ############################<br/>
+	  # Privacy settings<br/>
+	  ############################<br/>
+	  SEC_DEFAULT_ENCRYPTION = OPTIONAL<br/>
+	  SEC_DEFAULT_INTEGRITY = REQUIRED<br/>
+	  SEC_READ_INTEGRITY = OPTIONAL<br/>
+	  SEC_CLIENT_INTEGRITY = OPTIONAL<br/>
+	  SEC_READ_ENCRYPTION = OPTIONAL<br/>
+	  SEC_CLIENT_ENCRYPTION = OPTIONAL<br/>
+	  <br/>
+	  ############################<br/>
+	  # Set daemon cert location<br/>
+	  ############################<br/>
+	  GSI_DAEMON_DIRECTORY = /opt/glidecondor/certs<br/>
+	  <br/>
+	  # Keep this if you use a proxy<br/>
+	  GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br/>
+	  <br/>
+	  # If you use a Certificate, uncomment below, pointing it to the right place,
+	  and comment the proxy line<br/>
+	  #GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem<br/>
+	  #GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem<br/>
+	  <br/>
+	  ############################<br/>
+	  # Where to find DN-&gt;uid mappings<br/>
+	  ############################<br/>
+	  GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br/>
+	</blockquote>
+	Since all the security is now GSI based, we don't rely on IP checks anymore.
+	Change <b>HOSTALLOW_WRITE</b> in <b>/etc/condor/condor_config</b>, to:
+	<blockquote>
+	  # do not use IP based controls<br/>
+	  HOSTALLOW_WRITE = *<br/>
+	</blockquote>
+</div>
+</div>
 <a href="index.html" title="Back to the index">Back
-to the index</a><br>
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
-<br></body>
+to the index</a><br/>
+<P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+</body>
 </html>

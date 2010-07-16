@@ -1,109 +1,276 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
-	<TITLE>Installation of a scheduler node in the glideinWMS</TITLE>
-</HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>Installation of a
-scheduler node in the glideinWMS </FONT></FONT>
-</H1>
-<hr>
-<table>
-<tr valign="center" align="center">
-<td>[</td><td><a href="#description">Description</a></td>
-<td>|</td><td><a href="#hardware">Hardware requirements</a></td>
-<td>|</td><td><a href="#software">Needed software</a></td>
-<td>|</td><td><a href="#condor">Installation instructions</a></td>
-<td>|</td><td><a href="#submit">Submitting user jobs</a></td>
-<td>]</td>
-</tr>
-</table>
-<hr>
-<TABLE CELLPADDING=2 CELLSPACING=2>
-	<TR>
-		<TD VALIGN=TOP>
-                        <A NAME="description">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>1. Description </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This node will be a
-			<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor
-			Submit node</A> for the user jobs.<BR>You can install many such
-			nodes to improve scalability of your system.</FONT></FONT></P>
-                        <A NAME="hardware">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>2. Hardware
-			requirements </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>This machine needs <B>a
-			reasonably recent CPUs</B> and <B>a large amount of memory</B>
-			(min <B>2GB</B>, recommended <B>16GB</B>, <B>~1.5MB per running
-			job</B>).<BR>The amount of <B>disk</B> needed <B>depends on the
-			user jobs</B>; Condor itself uses very little (5 GB should be
-			enough for Condor alone)</FONT></FONT></P>
-                        <A NAME="software">
-			<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>3. Needed
-			software </FONT></FONT>
-			</H2>
-			<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Any <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
-			OS</A>.<BR>The <A HREF="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
-			client software</A>.<BR>The <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-			distribution</A>.</FONT></FONT></P>
-		</TD>
-		<TD>
-			<P><IMG SRC="overview_schedd.png" NAME="graphics1" ALIGN=BOTTOM BORDER=0>
-						</P>
-		</TD>
-	</TR>
-</TABLE>
+<html>
+<head>
+    <meta HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
+    <title>Installation of a scheduler node in the glideinWMS</title>
+    <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
+</head>
+<body LANG="en-US" DIR="LTR">
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+    </h1>
+    
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a class="selected" href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#description">Description</a></li>
+	<li><a href="#hardware">Hardware requirements</a></li>
+	<li><a href="#software">Needed software</a></li>
+	<li><a href="#before_install">Before you begin...</a></li>
+	<li><a href="#condor">Installation</a></li>
+	<li><a href="#submit">Submitting User Jobs</a></li>
+	<li><a href="#fine_tune">Large Scale Fine Tuning</a></li>
+    </ul>
+    <div class="content">
 
-<p><font face="Liberation Serif"><font size="3"><strong>NOTE:</strong>
-<ul>
-  <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
-  <li>If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by condor daemons other than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
-  USE_VOMS_ATTRIBUTES = False <br>
-  or for individual condor daemons like collector<br>
-  COLLECTOR.USE_VOMS_ATTRIBUTES = False <br>
-  </li>
-</ul>
+    <h2 class="header">Installation of a User Pool Scheduler Node</h2>
+
+    <div class="section">
+            <h2><a name="description">1. Description</a></h2>
+            <p><img src="overview_schedd.png" name="Schedd Overview" align="right" border=0></p>
+            <p>
+                This node will be a 
+                <a href="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000">Condor Submit node</a>
+                for the user jobs.  You can install many such nodes to improve scalability of your system.
+            </p>
+    </div>
+
+
+    <div class="section">
+                        
+            <h2><a name="hardware">2. Hardware requirements</h2>
+            <table class="requirements" style="width: 500px;">
+            <tr class="head">
+                <td>CPUs</td>
+                <td>Memory</td>
+                <td>Disk</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>min 2GB (16GB recommended)</td>
+                <td>~5GB</td>
+            </tr>
+            </table>
+            
+            <p>
+                This machine needs <b>a reasonably recent CPUs</b> and <b>a large amount of memory</b> (min <b>2GB</b>, recommended <b>16GB</b>, 
+                <b>~1.5MB per running job</b>).  The amount of <b>disk</b> needed <b>depends on the user jobs</b>; Condor itself uses very little 
+                (5 GB should be enough for Condor alone)
+            </p>
+                        
+    </div>
+
+
+    <div class="section">
+
+    <h2><a name="software">3. Needed software</a></h2>
+    <table class="requirements">
+    <tr class="head">
+        <td>Software</td>
+        <td>Notes</td>
+        <td>Install Before glideinWMS</td>
+    </tr>
+    <tr>
+        <td>Linux OS</td>
+        <td>A reasonably recent Linux OS (RH/SL4 nad RH/SL5 tested at press time).</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The <a href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG client software</a>.</td>
+        <td>This can be installed prior to glideinWMS, but the installer can install it inline with the glideinWMS install</td>
+        <td> &nbsp; </td>
+    </tr>
+    <tr>
+        <td>The <a href="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</a> as a tarball.</td>
+        <td>The installer will use the tarball to install and configure Condor inline</td>
+        <td> &nbsp; </td>
+    </tr>
+    <tr>
+        <td>The <a href="index.html">glideinWMS software</a>.</td>
+        <td>&nbsp;</td>
+        <td> &nbsp; </td>
+    </tr>
+    </table>
+    
+    <br>
+    <h4>NOTE:</h4>
+    <ul>
+        <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+        <li>
+            If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
+            than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
+            <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
+            or for individual condor daemons like collector<br>
+            <blockquote>COLLECTOR.USE_VOMS_ATTRIBUTES = False </blockquote> 
+        </li>
+    </ul>
+                   
+    </div>
+
+
+    <div class="section">
+
+
+    <h2><a name="before_install">4. Before you begin...</a></h2>
+    <h3><a name="before_install_certs">4.1 Required Certificates/Proxies</a></h3>
+    <p>
+        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
+        created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
+        <ul>
+            <li>Glidein Submitter cert/proxy DN</li>
+            <li>Pool Collector cert/proxy DN</li>
+            <li>Glidein Factory cert/proxy DN</li>
+        </ul>
+        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  For the most part the name given doesn't 
+        really matter.  There is one case where is does matter.  If you are using privilege separation, then, on the WMS Collector, the nickname for 
+        each VO Frontend must be the username that you created for the frontend. 
+    </p>
+    
+    <h3><a name="before_install_misc">4.2 Miscellaneous Notes</a></h3>
+    <p>When asked if you want to enable Match authentication, if you are using Condor 7.1.3 or later, answer 'y' unless you have a reason not to.</p>
+                       
+    </div>
+
+
+    <div class="section">
+
+    <h2><a name="condor">5. Installation instructions</a></h2>
+    <p>
+        The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
+        security implications; see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#sec:Non-Root">Condor manual</A> for details.
+        The whole process is managed by a install script described below.
+    </p>
+
+    <p>Move into</p>
+    <blockquote>glideinWMS/install</blockquote>
+    
+    <p>and execute</p>
+    <blockquote>./glideinWMS_install</blockquote>
+    
+    <p>You will be presented with this screen:</p>
+    <pre>
+Welcome to the glideinWMS Installation Helper
+
+What do you want to install?
+(May select several options at one, using a , separated list)
+[1] glideinWMS Schedds and Collector
+[2] Glidein Factory
+[3] GCB
+[4] User Pool Collector
+[5] User Schedd
+[6] Condor for VO Frontend
+[7] VO Frontend
+[8] Components
+    </pre>
+    
+    <p>Select <b>5</b>.</p>
+    <p>
+        Now follow the instructions and install all the software components. Further detail and a walk-through is presented below:
 </p>
 
+    <table class="requirements">
+    <tr class="head">
+	<td>Field</td>
+	<td>Installation Text</td>
+	<td>Description</td>
+    </tr>
+    <tr>
+	<td>Condor</td>
+	<td><i>Where do you have the Condor tarball?<br/>
+		Where do you want to install it?<br/>
+		If something goes wrong with Condor, who should get email about it?</i></td>
+	<td>
+		The user Schedd is part of the Condor pool that will actually run the user's jobs.
+		This will be the server that will schedule jobs from the users to the glidein pilots that 
+		will be running in the grid.  This piece of the install will configure 
+		the collector to work with the submitted glideins.<br/>
+		For this, you will need a condor distribution and a location to install to.  It will also
+		prompt for a administrator email.<br/>
+		Installing this into a user home directory is not recommended.
+	</td>
+    </tr>
+    <tr>
+	<td>GSI Security</td>
+	<td><i>Where can I find the directory with the trusted CAs? </i></td>
+	<td>
+		GSI security is based on x509 certificates.  
+		You will next need a certificate or proxy for the WMS collector.  See <a href="#before_install_certs">the previous section</a> for more information on required certificates and proxies.</a>
 
-<A NAME="condor">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>4. Installation
-instructions </FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>The scheduler node
-software should be installed as root. While it is possible to run the schedds as a non-privileged user,
-it has some serious security implications; see the
-<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#sec:Non-Root">Condor manual</A> for details.
-<BR>
-The whole process is managed by
-a install script described below. You will need to provide
-a valid <A HREF="http://www.cs.wisc.edu/condor/downloads/">Condor
-tarball</A>, so you may as well download it before starting the
-installer.</FONT></FONT>
-</P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Move into</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>glideinWMS/install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>and execute</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>./glideinWMS_install</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>You will be presented
-with this screen:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>What do you
-want to install?<BR>(May select several options at one, using a ,
-separated list)<BR>[1] glideinWMS Collector<BR>[2] Glidein
-Factory<BR>[3] GCB<BR>[4] pool Collector<BR>[5] Schedd node<BR>[6]
-Condor for VO Frontend<BR>[7] VO Frontend<BR>[8] Components</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Select <B>5</B>.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Now follow the
-instructions and install all the software components. Most of the
-questions should be fairly straightforward. The part that is not
-completely automatic is the configuration of the GSI security; you
-will need to provide the DN of the pool collector and the
-DN of the glidein factory.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Here a possible set of
-answers is presented; your setup will probably be slightly different:</FONT></FONT></P>
-<PRE STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
+	</td>
+    </tr>
+    <tr>
+	<td>PrivSep</td>
+	<td><i>Please insert all such DNs, together with a user nickname.</i></td>
+	<td>
+		You will need to provide the DN of the pool collector and the DN of the glidein factory.
+		This will populate the condor_mapfile with the dns and nicknames.  This must be mapped
+		to local users for privilege separation to work.  
+		See <a href="gsi_authentication_model.html">GSI Reference</a> for more information.
+	</td>
+    </tr>
+    <tr>
+	<td>Quill</td>
+	<td><i>Do you want to Use Quill (works for 6.8.X only)?</i></td>
+	<td>
+		***
+	</td>
+    </tr>
+    <tr>
+	<td>Collector</td>
+	<td><i>What node is the collector running (i.e. CONDOR_HOST)?</i></td>
+	<td>
+		Here you will have to provide the host (and port if not default) of the
+		<a href="collector_install.html">User pool collector</a>.
+		
+	</td>
+    </tr>
+    <tr>
+	<td>GCB</td>
+	<td><i>Please list all the GCB servers you will be using</i></td>
+	<td>
+		If you are using GCB instead of CCB (now included with Condor), you will need to 
+		put the hostnames of the <a href="gcb_install.html">GCB nodes</a> here.
+		Note that GCB is not recommended unless you have network restrictions that prevent
+		you from using CCB.		
+	</td>
+    </tr>
+    <tr>
+	<td>Tuning</td>
+	<td><i>How many secondary schedds do you want?</i></td>
+	<td>
+		The proper value of this value depends on many factors, including the memory and CPU of the
+		server running it as well as the number of jobs submitted and the number of entry points.
+		This should be increased enough so that each schedd will not have to handle multiple 
+		glidein requests to different entry points from factories simultaneously.  
+		The default install of 10 schedds should be enough to handle a site with around 10000 jobs.
+		If you are only running hundreds of jobs, you may want to tune this down.  
+		Conversely, with higher amounts of jobs, this may need to be increased.
+		This value depends on your installation and can later be tuned 
+		based on load and average number of jobs.
+	</td>
+    </tr>
+    </table>
+
+    
+    <p>Here a possible set of answers is presented; your setup will probably be slightly different:</p>
+
+    <pre STYLE="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
 Welcome to the glideinWMS Installation Helper
 
 What do you want to install?
@@ -195,53 +362,63 @@ Leave an empty line when finished
 GCB node:<I>enter</I>
 How many secondary schedds do you want?: [9] <B>4</B>
 
-</PRE>
+    </pre>
 
-<P STYLE="margin-right: 0.39in">
-The installer will also start the Condor daemons.
-</P>
-<P>The installer also created init.d scripts in
-<BLOCKQUOTE><FONT FACE="Liberation Serif">
-<FONT SIZE=3>/etc/init.d/condor</FONT></FONT></BLOCKQUOTE>
-<P>Use it to stop and restart the schedd(s)</P>
-<P>NOTE: Since Schedd node is installed as root, condor installer will
-create condor.sh and condor.csh files in /etc/profile.d so that you have correct
-environment setup. If this machine hosts another condor installation or you 
-prefer not to have user PATH and CONDOR_CONFIG point to this condor setup
-automatically, you need to manually move these files out from the /etc/profile.d
-<A NAME="submit">
-<H2><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>5. Submitting user
-jobs </FONT></FONT>
-</H2>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>From the user point of
-view, this is just a regular Condor pool.<BR><BR>However, since the
-resources potentially come from all over the world, users need to
-create more complex <B>Requirements</B>, in order to prevent the jobs
-from landing on sites that cannot run their jobs.<BR>Users will need
-to know which attributes the glideins publish and use them
-accordingly.</FONT></FONT></P>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><BR>One useful
-attribute that all glideins publish is GLIDEIN_Site. If a user wants
-to restrict its job to a list of sites, he can do it be using:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>+DESIRED_Sites
-= &quot;Site1,Site4,Site7,Site22&quot;<BR>Requirements =
-stringListMember(GLIDEIN_Site,DESIRED_Sites)</FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>Some glideins may also
-need to properly identify the final user, using GSI authentication. A
-user should thus add the following line:</FONT></FONT></P>
-<BLOCKQUOTE><FONT FACE="Liberation Serif"><FONT SIZE=3>x509userproxy
-= <I>&lt;path to X509 proxy&gt;</I></FONT></FONT></BLOCKQUOTE>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3>to their Condor
-submission file.</FONT></FONT></P>
+    <p>The installer will also start the Condor daemons.</p>
+    <p>The installer also created init.d scripts in:</p> 
+    <blockquote>/etc/init.d/condor</blockquote>
+        
+    <p>Use it to stop and restart the schedd(s)</p>
+    <p>
+        NOTE: Since Schedd node is installed as root, condor installer will create condor.sh and condor.csh files in /etc/profile.d so that you 
+        have correct environment setup. If this machine hosts another condor installation or you prefer not to have user PATH and CONDOR_CONFIG 
+        point to this condor setup automatically, you need to manually move these files out from the /etc/profile.d 
+    </p>
+                        
+    </div>
 
-<H3><FONT FACE="Bitstream Vera Serif"><FONT SIZE=4>6. Fine Tunning for Large Scale Installations</FONT></FONT></H3>
-<H4><FONT FACE="Utopia, serif"><FONT SIZE=3>6.1 Increase the number of available file descriptors</FONT></FONT></H4>
-<P><FONT FACE="Liberation Serif"><FONT SIZE=3><FONT FACE="Liberation Serif"><FONT SIZE=3>Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in the queue at any given time. This is particularly required for large scale installations. 
-<br><br>
-In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor This is a good place to set higher file descriptor limit for the schedd process.
-</p>
-<P><A HREF="index.html"><FONT FACE="Liberation Serif"><FONT SIZE=3>Back
-to the index</FONT></FONT></A></P>
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
-</BODY>
-</HTML>
+
+    <div class="section">
+   
+    <h2><a name="submit">6. Submitting user jobs</a></h2>
+    <p>
+        From the user point of view, this is just a regular Condor pool.<br><br>
+        However, since the resources potentially come from all over the world, users need to create more complex <b>Requirements</b>, 
+        in order to prevent the jobs from landing on sites that cannot run their jobs.<br><br>
+        Users will need to know which attributes the glideins publish and use them accordingly.
+    </p>
+    <p>One useful attribute that all glideins publish is GLIDEIN_Site. If a user wants to restrict its job to a list of sites, he can do it by using:</p>
+    <blockquote>
+        +DESIRED_Sites = &quot;Site1,Site4,Site7,Site22&quot;<br>
+        Requirements = stringListMember(GLIDEIN_Site,DESIRED_Sites)
+    </blockquote>
+    
+    <p>Some glideins may also need to properly identify the final user, using GSI authentication. A user should thus add the following line:</p>
+    <blockquote>x509userproxy = <I>&lt;path to X509 proxy&gt;</I></blockquote>
+    
+    <p>to their Condor submission file.</p>
+                   
+    </div>
+
+
+    <div class="section">
+
+    <h2><a name="fine_tune">7. Fine Tunning for Large Scale Installations</a></h2>
+    <h3>7.1 Increase the number of available file descriptors</H3>
+
+    <p>
+        Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
+        of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in 
+        the queue at any given time. This is particularly required for large scale installations. 
+        <br><br>
+        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor This
+        is a good place to set higher file descriptor limit for the schedd process.
+    </p>
+
+    </div>
+    <p><a href="index.html">Back to the index</a></p>
+
+</div>
+    <p><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+</body>
+</html>

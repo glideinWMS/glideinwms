@@ -4,27 +4,45 @@
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>glideinWMS Installation Guide</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20081031;14115200">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
 
 <body lang="en-US" dir="ltr">
-<h1>glideinWMS Installation Guide </h1>
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
 
-<p><br>
-</p>
-
-<table width="100%" border="0" cellpadding="2" cellspacing="0">
-  <col width="175*">
-  <col width="81*">
-  <tbody>
-    <tr valign="top">
-      <td width="68%"><p style="margin-bottom: 0.2in">If you looked at the <a
-        href="../manual/index.html#overview">description of the
-        glideinWMS</a>, you probably guessed that installing a glideinWMS is
-        a multi-step process.<br>
-        <br>
-        You will need to install several independent pieces:</p>
-        <ul>
+    </h1>
+    
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+<div class="content">
+    <h2 class="header">Introduction</h2>
+<div class="section">
+<h3>Installation Process</h3>
+	<img src="overview.png" name="graphics1" align="right" border="0">
+	<p>Installation of glideinWMS is
+        a multi-step process:</p>
+        <ol>
+	  <li><a href="glidein_component_install.html">Components and Pre-requisites</a>: 
+		Includes a consolidated table of requirements for each server.
+	</li>
           <li><a href="factory_install.html">The glidein WMS Collector and
             collocated glidein Factory node</a> </li>
           <li><a href="collector_install.html">The glidein pool Collector
@@ -32,29 +50,48 @@
           <li><a href="schedd_install.html">One or more scheduler nodes for
             user submission</a> </li>
           <li><a href="frontend_install.html">The VO Frontend</a> </li>
-          <li><a href="gcb_install.html">One or more GCB nodes</a> (only if
+        </ol>
+The above process should suffice for typical installs.  More information can be found below.
+</div>
+<div class="section">
+<h3>Additional Documents:</h3>
+<ul>
+  <li><a href="glidein_component_install.html">Component Installation</a>: Installation tips for components needed by glideinWMS, such as HTTP, VDT, JavascriptRRD, etc.</li>
+  <li><a href="gcb_install.html">Installation of a GCB node</a>:  (only if
             you are gliding into Grid sites with restrictive network policies
-            and cannot use CCB) </li>
-        </ul>
-
+            and cannot use CCB) <br/>
+	<b>NOTE:</b> It is strongly recommended to use CCB over GCB if possible.
+  </li>
+  <li>
+	<a href="gsi_authentication_model.html">Quick Reference Guide to GSI Authentication Setup in glideinWMS</a>:
+	for information on how to configure the GSI security.
+  </li>
+  <li>
+	<a href="gsi_config.html">GSI Additional Configuration</a> instructions.
+  </li>
+  <li>
+	<a href="multi_schedd_config.html">Multiple Schedds</a> for increased scalability.
+  </li>
+  <li>
+	<a href="quill_setup.html">Quill setup</a> for older condor installs.
+  </li>
+  <li>
+	<a href="troubleshooting.html">Troubleshooting</a> installation problems.
+  </li>
+  <li>
+	<a href="faq.html">Frequently Asked Questions</a> for advanced configuration tips.
+  </li>
+</ul>
+</div>
+<div class="section">
+	<h3>Possible Configurations</h3>
         <p>While the documents presented here assume you will install each
         component on a different machine, there is nothing preventing you
         from installing all of them on fewer machines, or even on one machine
-        only (excluding GCB, but you should not use it anyhow).</p>
-      </td>
-      <td width="32%"><p><img src="overview.png" name="graphics1"
-        align="bottom" border="0"> </p>
-      </td>
-    </tr>
-  </tbody>
-</table>
-
-<p style="margin-bottom: 0.2in">However, it is recommended that <a
-href="factory_install.html">the glidein WMS Collector and collocated glidein
-Factory node</a> stay on their own node.</p>
-
-<p style="margin-bottom: 0.2in">The minimum recommended configuration would
-thus be composed of 2 nodes:</p>
+        only (excluding GCB, but you should not use it anyhow).  
+	Several possible configurations are below.</p>
+	
+	<p><b>Two Server configuration</b> (recommended minimum):
 <ul>
   <li><a href="factory_install.html">The glidein WMS Collector and collocated
     glidein Factory node</a> </li>
@@ -63,11 +100,9 @@ thus be composed of 2 nodes:</p>
     with the <a href="schedd_install.html">scheduler for user submissions</a>
   </li>
 </ul>
+</p>
 
-<p style="margin-bottom: 0.2in">If you want to scale above a few 1000
-glideins, it is recommended that you keep the <a
-href="schedd_install.html">scheduler for user submissions</a> on a dedicated
-node:</p>
+<p><b>Three Server configuration</b> (recommended for 1000+ glideins)
 <ul>
   <li><a href="factory_install.html">The glidein WMS Collector and collocated
     glidein Factory node</a> </li>
@@ -77,27 +112,23 @@ node:</p>
   <li>A node containing the <a href="schedd_install.html">scheduler for user
     submissions</a> </li>
 </ul>
-<p style="margin-bottom: 0.2in">To configure the GSI security for the services,
-you can refer to the <a href="gsi_authentication_model.html">Quick Reference Guide to
-GSI Authentication Setup in glideinWMS</a>
-</p>
-<p style="margin-bottom: 0.2in">For advance configuration tips refer to the <a href="faq.html">Frequently Asked Questions</a>
-</p>
 
-<h2>The available documents are:</h2>
+<p><b>One Server configuration</b> (Use only for test installs)
 <ul>
-  <li><a href="factory_install.html">Installation of the WMS Collector and
-    collocated glidein Factory</a> </li>
-  <li><a href="gcb_install.html">Installation of a GCB node</a><br>NOTE: It is strongly recommended to use CCB over GCB if possible.</li>
-  <li><a href="collector_install.html">Installation of the glidein pool
-    Collector</a> </li>
-  <li><a href="schedd_install.html">Installation of the scheduler node in the
-    glideinWMS</a> </li>
-  <li><a href="frontend_install.html">Installation of a VO Frontend node</a>
-  </li>
+  <li><a href="factory_install.html">The glidein WMS Collector and collocated
+    glidein Factory node</a>, with the collector running on 8618.
+	<a href="frontend_install.html">VO Frontend</a>,
+    the <a href="collector_install.html">glidein pool Collector</a> 
+	(running on 9618) together with the <a href="schedd_install.html">scheduler for user submissions</a>.
+	With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
+	when running commands.
+   </li>
 </ul>
+</p>
 
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+</div>
+</div>
+<P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
 
 </body>
 </html>

@@ -6,57 +6,89 @@
 	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.0  (Linux)">
 	<META NAME="CREATED" CONTENT="0;0">
 	<META NAME="CHANGED" CONTENT="20081014;15252700">
-	<META NAME="Info 1" CONTENT="">
-	<META NAME="Info 2" CONTENT="">
-	<META NAME="Info 3" CONTENT="">
-	<META NAME="Info 4" CONTENT="">
+        <link rel="stylesheet" type="text/css" href="../glideinWMS.css" media="screen, projection" />
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>Glidein Internals</H1>
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">Glidein WMS  Manual</a>
+        <ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+
+    </h1>
+
+    <ul class="components">
+        <li> <a href="../index.html"> Overview </a></li>
+        <li> <a class="selected" href="index.html"> Factory </a></li>
+        <li> <a href="../frontend/index.html"> VO Frontend </a></li>
+        <li> <a href="../monitoring.html" class="last">Monitoring</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="subcomponents">
+        <li> <a href="index.html"> Factory </a></li>
+        <li> <a href="factory_internals.html"> Factory Internals </a></li>
+        <li> <a href="entry.html"> Entry </a></li>
+        <li> <a href="entry_internals.html"> Entry Internals </a></li>
+        <li> <a class="selected" href="glidein_internals.html"> Glidein Internals </a></li>
+        <li> <a href="custom_scripts.html"> Custom Scripts </a></li>
+        <li> <a class="last" href="configuration_variables.html"> Configuration </a></li>
+    </ul>
+    <div class="clear" />
+
+
+    <ul class="topnav">
+        <LI><A HREF="#overview">Overview</A></li>
+	<LI><A HREF="#flow">Program flow</A></li>
+	<LI><A HREF="#source">Source code distribution</A></li>
+	<LI><A HREF="#config">Configuration files</A></li>
+    </ul>
+
+<div class="content">
+<h2 class="header">Glidein Internals</h2>
 <P>This document describes the internals of a glidein.</P>
-<H2>Index</H2>
-<UL>
-	<LI><P><A HREF="#overview">Overview of the glidein mechanism</A></P>
-	<LI><P><A HREF="#flow">Program flow</A></P>
-	<UL>
-		<LI><P><A HREF="#flow_sign">Get signatures and file info</A></P>
-		<LI><P><A HREF="#flow_file">Download and process a file</A></P>
-		<LI><P><A HREF="#flow_condor">Configure and start Condor</A></P>
-	</UL>
-	<LI><P><A HREF="#source">Source code distribution</A></P>
-	<LI><P><A HREF="#config">Configuration files</A></P>
-</UL>
+
+
+<div class="section">
 <H2><A NAME="overview"></A>Overview of the glidein mechanism</H2>
 <P>A glidein is, simply put, a properly configured <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
 Startd</A> submitted as a Grid job. Once a glidein starts on a worker
 node, it will join a specified Condor pool, making the obtained
 Grid-batch slot a slot in the Condor pool. At this point, a regular
-Condor job can start there as if was a dedicated resource. <BR>See
-the picture below for a schematic overview.<BR><IMG SRC="../glideins.png">
-<BR>Condor
+Condor job can start there as if was a dedicated resource. See
+the picture below for a schematic overview.</p>
+<IMG SRC="../images/glideins.png">
+<p>Condor
 glideins are a convenient way to expand a Condor pool. Apart from the
 task of submitting new glideins as needed, everything else stays the
 same as in a dedicated pool.</P>
 <P>In glideinWMS, the <A HREF="index.html">Glidein Factory</A> is the
 one that submits the glideins to the Grid resources, as shown in the
 picture below.</P>
-<P><IMG SRC="overview.png"><BR>This
+<P><IMG SRC="overview.png"></p>
+<p>This
 document describes how a glidein configures and starts the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
 Startd</A>.</P>
 <P>The glidein a factory sends is thus just a wrapper. However, it
 must perform several tasks, including:</P>
 <UL>
-	<LI><P>check that the working environment on the worker node is
+	<LI>Check that the working environment on the worker node is
 	reasonable (else user jobs will fail) 
-	</P>
-	<LI><P>obtain the Condor binaries 
-	</P>
-	<LI><P>configure Condor 
-	</P>
-	<LI><P>prepare the environment for Condor and the user jobs 
-	</P>
-	<LI><P>start Condor 
-	</P>
+	</li>
+	<LI>Obtain the Condor binaries 
+	</li>
+	<LI>Configure Condor 
+	</li>
+	<LI>Prepare the environment for Condor and the user jobs 
+	</li>
+	<LI>Start Condor 
+	</li>
 </UL>
 <P>Given the complexity of the task, and for the sake of flexibility,
 it makes sense to split the script in several pieces. So the glidein
@@ -69,11 +101,13 @@ the system as general as possible, the glideins rely on HTTP for data
 distribution. However, since the HTTP protocol is not a secure one,
 the glidein implements its own security on top of it. 
 </P>
-<P>The picture below for an overview.<BR><IMG SRC="glidein_script.png"><BR><BR>The
-security is implemented using SHA1 signatures. The signature checking
-is implemented in two steps:</P>
+<P>The picture below for an overview.</p>
+<IMG SRC="glidein_script.png">
+<p>
+	The security is implemented using SHA1 signatures. 
+The signature checking is implemented in two steps:</P>
 <OL>
-	<LI><P STYLE="margin-bottom: 0in">The signatures of all the files to
+	<LI><P>The signatures of all the files to
 	be transfered are saved in a signature file and stored on the Web
 	server. The signature of the signature file is then passed as one of
 	the parameters of the glidein job. 
@@ -100,6 +134,9 @@ the files are tamper evident.</P>
 customize the glidein logic at will.<BR>However, if not all files
 need to be executable; plain files, like configuration files, and
 tarballs are also supported.</P>
+</div>
+
+<div class="section">
 <H2><A NAME="flow"></A>Program flow</H2>
 <P>The glidein startup script is tasked to setup the working
 environment, configure Condor and launch the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
@@ -109,22 +146,23 @@ private working directory is used to minimize interference with other
 processes running on the same node.</P>
 <P>At the high level, three types of files are handled:</P>
 <UL>
-	<LI><P>Signature files</P>
-	<LI><P>Files containing lists of other files</P>
-	<LI><P>Helper files; these can be either simple files, tarballs or
-	executables.</P>
+	<LI>Signature files</li>
+	<LI>Files containing lists of other files</li>
+	<LI>Helper files; these can be either simple files, tarballs or
+	executables.</li>
 </UL>
 <P>The files are also split between general, or factory wide, and
 entry-specific ones. Since order can be important, especially when
 executables are involved, the glidein allows for global helper files
 to be loaded (and executed) before and/or after the entry-specific
-ones.<BR>One executable is special; this is the helper script that
-starts the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
-Startd</A>. This one must be the last to be run, so it is handled in
+ones.  One executable is special; this is the helper script that
+starts the 
+<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor Startd</A>. 
+This one must be the last to be run, so it is handled in
 a special way.</P>
 <P>See the picture below for an overview.</P>
-<P><IMG SRC="flow_glidein_main.png"><BR>You
-may have noticed that after the initial setup, all further
+<P><IMG SRC="flow_glidein_main.png"></p>
+<p> You may have noticed that after the initial setup, all further
 communication between stages is carried out by a locally created
 config file. The reason for this is due to the fact that environment
 changes can only propagate in one direction, from parent to child.
@@ -133,10 +171,13 @@ unacceptable, so the config file was introduced</P>
 <P>Some of the stages are pretty self explanatory, but most need
 further details. In particular:</P>
 <UL>
-	<LI><P><A HREF="#flow_sign">Get signatures and file info</A></P>
-	<LI><P><A HREF="#flow_file">Download and process a file</A></P>
-	<LI><P><A HREF="#flow_condor">Configure and start Condor</A></P>
+	<LI><A HREF="#flow_sign">Get signatures and file info</A></li>
+	<LI><A HREF="#flow_file">Download and process a file</A></li>
+	<LI><A HREF="#flow_condor">Configure and start Condor</A></li>
 </UL>
+</div>
+
+<div class="section">
 <H3><A NAME="flow_sign"></A>Get signatures and file info</H3>
 <P>The retrieval of the signature files is a multi step process. The
 main reason being that the startup script does not know the name of
@@ -150,13 +191,16 @@ the signature file.</P>
 <P>Once the signature files are fetched, the content of the
 description files is loaded into memory for further processing.</P>
 <P>See the figure below of an overview.</P>
-<P><IMG SRC="flow_glidein_sign.png"><BR>You
-have probably noticed that the name of the signature file is
+<P><IMG SRC="flow_glidein_sign.png"></p>
+<p>You have probably noticed that the name of the signature file is
 extracted before validating the integrity of the description file.
 This can result in a compromised signature being fetched.</P>
 <P>However, this is <B>not</B> a security vulnerability. If the wrong
 signature file is indeed downloaded, the signature of the signature
 will not match and the glidein will terminate with a failure.</P>
+</div>
+
+<div class="section">
 <H3><A NAME="flow_file"></A>Download and process a file</H3>
 <P>The glidein startup script will download and process several
 files. This stage will download one of these files.</P>
@@ -176,6 +220,9 @@ output variable name.
 </P>
 <P>See figure below for an overview.</P>
 <P><IMG SRC="flow_glidein_file.png"></P>
+</div>
+
+<div class="section">
 <H3><A NAME="flow_condor"></A>Configure and start Condor</H3>
 <P>As mentioned before, most of the work in a glidein is carried on
 by the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00412000000000000000">Condor
@@ -195,61 +242,53 @@ log files parsed for job statistics that will be printed in standard
 output. For debugging purposes, the whole log files are then
 compressed and streamed to the standard error.</P>
 <P>See figure below for an overview.</P>
-<P><IMG SRC="flow_glidein_condor.png"><BR><BR><BR>
-</P>
+<P><IMG SRC="flow_glidein_condor.png"></P>
+</div>
+
+<div class="section">
 <H2><A NAME="source"></A>Source code distribution</H2>
 <P>The glidein code is composed of a set of shell code scripts,
 mostly using <A HREF="http://tldp.org/LDP/abs/html/">bash</A>,
 although <A HREF="http://www.gnu.org/software/grep/doc/grep_13.html#SEC13">grep</A>
 and <A HREF="http://www.vectorsite.net/tsawk.html">awk</A> are used
 extensively, too.</P>
-<P>The files are located in <BR><TT>glideinWMS/creation/web_base</TT></P>
+<P>The files are located in <TT>glideinWMS/creation/web_base</TT></P>
 <P>but are copied to the factory configuration directory during the
 <A HREF="index.html#create_entry">factory configuration</A>.</P>
 <P>The picture below shows the dependency tree of the most used
 scripts. The optional scripts are grayed out.</P>
 <P><IMG SRC="scripts_glidein.png"></P>
+</div>
+
+
+<div class="section">
 <H2><A NAME="config"></A>Configuration files</H2>
 <P>The glidein gets the configuration parameters from two sources;
 from configuration files and from command line arguments.</P>
 <P>Two configuration file (classes) are copied
-from<BR><TT>glideinWMS/creation/web_base</TT></P>
+from <TT>glideinWMS/creation/web_base</TT></P>
 <UL>
-	<LI><P><TT>condor_config(*)</TT> - contains the base condor configuration. It
-	will be extended at runtime by the glidein scripts.</P>
-	<LI><P><TT>condor_vars(*)</TT> - contains the description and the defaults
+	<LI><TT>condor_config(*)</TT> - contains the base condor configuration. 
+		It will be extended at runtime by the glidein scripts.</li>
+	<LI><TT>condor_vars(*)</TT> - 
+	contains the description and the defaults
 	for the variables used by the glidein. Any meaningful parameter
-	should be documented here.</P>
+	should be documented here.</li>
 </UL>
-<P>Another set of configuration files is generated during the <A HREF="index.html#create_entry">factory
-configuration</A>:</P>
+<P>Another set of configuration files is generated during the 
+<A HREF="index.html#create_entry">factory configuration</A>:</P>
 <UL>
-	<LI><P><TT>constants</TT> – contains the values for a set of variables</P>
-	<LI><P><TT>grid-mapfile</TT> – contains the DNs of the trusted services</P>
-	<LI><P><TT>file-list.lst</TT> – contains the list of files to download</P>
-	<LI><P><TT>description.cfg</TT> – contains the logical to actual name
-	mapping</P>
-	<LI><P><TT>signature.sha1</TT>	– contains the signatures of the files</P>
+	<LI><TT>constants</TT> – contains the values for a set of variables</li>
+	<LI><TT>grid-mapfile</TT> – contains the DNs of the trusted services</li>
+	<LI><TT>file-list.lst</TT> – contains the list of files to download</li>
+	<LI><TT>description.cfg</TT> – contains the logical to actual name
+	mapping</li>
+	<LI><TT>signature.sha1</TT> – contains the signatures of the files</li>
 </UL>
-<P><BR><BR>
-</P>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
-	<TR VALIGN=TOP>
-		<TD>
-			<H2 ALIGN=LEFT>Repository</H2>
-			<H3 ALIGN=LEFT>CVSROOT</H3>
-			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H2 ALIGN=LEFT>Package(s)</H2>
-			<P ALIGN=LEFT>glideinWMS/creation</P>
-		</TD>
-		<TD>
-			<H2 ALIGN=LEFT>Author(s)</H2>
-			<P ALIGN=LEFT>Since Aug. 14th 2006 - Igor Sfiligoi (Fermilab
-			Computing Division)</P>
-		</TD>
-	</TR>
-</TABLE>
-<P><BR><BR>
-</P>
+</div></div>
+<p> <b>CVSROOT:</b> cvsuser@cdcvs.fnal.gov:/cvs/cd </p>
+<p> <b>Packages:</b> glideinWMS </p>
+<p> <b>glideinWMS Support:</b> glideinwms-support@fnal.gov</p>
+
 </BODY>
 </HTML>

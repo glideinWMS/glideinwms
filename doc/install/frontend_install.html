@@ -1,454 +1,532 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
 <html>
 <head>
-  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>Installation of a VO Frontend</title>
-  <meta name="CREATED" content="20071113;16540800">
-  <meta name="CHANGEDBY" content="Igor Sfiligoi">
-  <meta name="CHANGED" content="20080806;12593100">
+    <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+    <title>Installation of a VO Frontend</title>
+    <link rel="stylesheet" type="text/css" href="glideinWMS.css" media="screen, projection" />
 </head>
 
 <body lang="en-US" dir="ltr">
-<h1><font face="Bitstream Vera Serif"><font size="4">Installation of a VO
-Frontend </font></font> </h1>
-<hr>
+    <h1>
+        <a href="index.html">Installation Guide</a>
+	<ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
 
-<table>
-  <tbody>
-    <tr align="center">
-      <td>[</td>
-      <td><a href="#description">Description</a></td>
-      <td>|</td>
-      <td><a href="#hardware">Hardware requirements</a></td>
-      <td>|</td>
-      <td><a href="#software">Needed software</a></td>
-      <td>|</td>
-      <td><a href="#system">Base tools installation</a></td>
-      <td>|</td>
-      <td><a href="#frontend">VO Frontend installation</a></td>
-      <td>|</td>
-      <td><a href="#monitoring">VO Frontend monitoring</a></td>
-      <td>]</td>
+    </h1>
+    
+    <ul class="components">
+	<li> <a href="factory_install.html">WMS Collector / Factory </a></li>
+	<li> <a href="collector_install.html">Pool Collector </a></li>
+	<li> <a href="schedd_install.html">Pool Schedd </a></li>
+	<li> <a class="selected" href="frontend_install.html" >VO Frontend </a></li>
+	<li> <a href="troubleshooting.html" class="last">Troubleshooting</a></li>
+    </ul>
+    <div class="clear" />
+    <ul class="topnav">
+	<li><a href="#description">Description</a></li>
+	<li><a href="#hardware">Hardware requirements</a></li>
+	<li><a href="#software">Needed software</a></li>
+	<li><a href="#before_install">Before you begin...</a></li>
+	<li><a href="#system">Condor installation</a></li>
+	<li><a href="#frontend">Frontend installation</a></li>
+	<li><a href="#monitoring">VO Frontend monitoring</a></li>
+    </ul>
+    <div class="content">
+    <h2 class="header">Installation of a VO Frontend</h2>
+    
+    <div class="section">
+
+            <h2><a name="description">1. Description</a></h2>
+		<p><img src="overview_frontend.png" name="graphics1" align="right" border="0"></p>
+            <p>The VO Frontend will match user jobs with glidein factory ads. It is responsible for the submission of new glideins.</p>
+
+            <p>
+                The VO frontend also keeps part of the configuration of a glidein, and can also provide the 
+                <a href="factory_install.html">glidein Factory</a> with the pilot proxies.
+            </p>
+    </div>
+
+
+
+
+    <div class="section">
+
+            <h2><a name="hardware">2. Hardware requirements</a></h2>
+            <table class="requirements" style="width: 500px;">
+            <tr class="head">
+                <td>CPUs</td>
+                <td>Memory</td>
+                <td>Disk</td>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>1GB</td>
+                <td>~20GB</td>
+            </tr>
+            </table>
+            
+            <p>
+                This machine needs <b>a fast CPU</b> and a moderate amount of <b>memory</b> (<b>1GB </b>should be enough).<br>
+                The <b>disk</b> needed is just for binaries, config files and log files (<b>20GB</b> should be enough)
+            </p>
+    </div>
+
+
+
+
+    <div class="section">
+
+    <h2><a name="software">3. Needed software</a></h2>
+    <table class="requirements">
+    <tr class="head">
+        <td>Software</td>
+        <td>Notes</td>
+        <td>Install Before glideinWMS</td>
     </tr>
-  </tbody>
-</table>
-<hr>
-
-<table cellpadding="2" cellspacing="2">
-  <tbody>
     <tr>
-      <td valign="top"><h2><a name="description"><font
-        face="Bitstream Vera Serif"><font size="4">1. Description
-        </font></font> </a></h2>
-
-        <p><font face="Liberation Serif"><font size="3">The VO Frontend will
-        match user jobs with glidein factory ads. It is responsible for the
-        submission of new glideins.</font></font></p>
-
-        <p><font face="Liberation Serif"><font size="3">The VO frontend also keeps part of the configuration of a glidein,
-        and can also provide the <a href="factory_install.html">glidein
-        Factory</a> with the pilot proxies.</font></font></p>
-
-        <h2><a name="hardware"><font face="Bitstream Vera Serif"><font
-        size="4">2. Hardware requirements </font></font> </a></h2>
-
-        <p><font face="Liberation Serif"><font size="3">This machine needs
-        <b>a fast CPU</b> and a moderate amount of <b>memory</b> (<b>1GB
-        </b>should be enough).<br>
-        The <b>disk</b> needed is just for binaries, config files and log
-        files (<b>20GB</b> should be enough)</font></font></p>
-
-        <h2><a name="software"><font face="Bitstream Vera Serif"><font
-        size="4">3. Needed software </font></font> </a></h2>
-
-        <p><font face="Liberation Serif"><font size="3">Any <a
-        href="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported
-        OS</a>.<br>
-        The <a
-        href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG
-        client software</a>.<br>
-        The <a href="http://www.cs.wisc.edu/condor/downloads/">Condor
-        distribution</a>.<br>
-        A HTTP server, like <a href="http://www.apache.org/">Apache</a> or <a
-        href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.<br>
-        The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a>
-        (v1.2.18 or later)<br>
-        The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python
-        library</a> (v0.17 or later)<br>
-        The <a
-        href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a>
-        package (0.5 or later)<br>
-        The perl-Time-HiRes rpm.<br>
-        The <a
-        href="index.html">glideinWMS
-        software</a>. </font></font></p>
-      </td>
-      <td><p><img src="overview_frontend.png" name="graphics1" align="bottom"
-        border="0"> </p>
-      </td>
+        <td>Linux OS</td>
+        <td>
+            A reasonably recent <a href="http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html">Condor-supported OS</a>
+            Linux OS (RH/SL4 and RH/SL5 tested at press time).
+        </td>
+        <td class="checked"> X </td>
     </tr>
-  </tbody>
-</table>
-
-<p><font face="Liberation Serif"><font size="3"><strong>NOTE:</strong>
-<ul>
-  <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
-  <li>If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by condor daemons other than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
-  USE_VOMS_ATTRIBUTES = False <br>
-  or for individual condor daemons like collector<br>
-  COLLECTOR.USE_VOMS_ATTRIBUTES = False <br>
-  </li>
-</ul>
-</p>
-
-
-<h2><a name="system"><font face="Bitstream Vera Serif"><font size="4">4. Base
-tools installation instructions</font></font></a></h2>
-
-<h3><font face="Liberation Serif"><font size="3">4.1 Condor</font>
-</font></h3>
-
-<p><font face="Liberation Serif"><font size="3">The VO Frontend will need the
-the Condor binaries. You can reuse an existing installation,
-if available, like if you host the VO Frontend on the <a
-href="schedd_install.html">a submitter node</a>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Else you need to install a
-local copy. The suggested way is to install as the same non privileged <font
-face="Liberation Serif"><font size="3"><b>VO Frontend</b></font></font> user
-(see <a href="#frontend">below</a>). <br>
-The whole process is managed by a install script described below. You will
-need to provide a valid <a
-href="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</a>, so you
-may as well download it before starting the installer.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">glideinWMS/install</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">./glideinWMS_install</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">You will be presented with
-this screen:</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [1] glideinWMS Collector<br>
-  [2] Glidein Factory<br>
-  [3] GCB<br>
-  [4] pool Collector<br>
-  [5] Schedd node<br>
-  [6] Condor for VO Frontend<br>
-  [7] VO Frontend<br>
-  [8] Components</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>6</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
-The installation is straightforward.</font></font></p>
-
-<h3><font face="Liberation Serif"><font size="3">4.2 OSG VDT Client
-</font></font></h3>
-
-<p><font face="Liberation Serif"><font size="3">The VO Frontend will need the
-OSG client provided by VDT. You can reuse an existing installation,
-if available, like if you host the VO Frontend on the <a
-href="schedd_install.html">a submitter node</a>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Else you need to install a
-local copy. The suggested way is to install as the same non privileged <font
-face="Liberation Serif"><font size="3"><b>VO Frontend</b></font></font> user
-(see <a href="#frontend">below</a>). <br>
-The whole process is managed by a install script described below.
-</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">glideinWMS/install</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">./glideinWMS_install</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">You will be presented with
-this screen:</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [1] glideinWMS Collector<br>
-  [2] Glidein Factory<br>
-  [3] GCB<br>
-  [4] pool Collector<br>
-  [5] Schedd node<br>
-  [6] Condor for VO Frontend<br>
-  [7] VO Frontend<br>
-  [8] Components</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>8</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">You will be given another
-menu:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [a] OSG VDT client<br>
-  [b] Base Condor installation<br>
-  [c] Web server<br>
-  [d] rrdtool graphics package<br>
-  [e] PostgreSQL database<br>
-  [f] Quill-specific PostgreSQL database</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>a</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
-The installation is straightforward.</font></font></p>
-
-<h3><a name="system_httpd"><font face="Liberation Serif"><font size="3">4.3
-HTTP server</font></font></a></h3>
-
-<p><font face="Liberation Serif"><font size="3">The VO frontend needs a HTTP
-server, like <a href="http://www.apache.org/">Apache</a> or <a
-href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.
-The server should be installed on the same node, but a different node can be
-used as long as the web area is writable from this one.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Servers often come
-pre-installed with HTTP server software, so if you have one running, just
-reuse it.<br>
-Else, the installer can help you install one (as root).</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">To use the installer, move
-into</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font
-  size="3">glideinWMS/install</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font
-  size="3">./glideinWMS_install</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">You will be presented with
-this screen:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [1] glideinWMS Collector<br>
-  [2] Glidein Factory<br>
-  [3] GCB<br>
-  [4] pool Collector<br>
-  [5] Schedd node<br>
-  [6] Condor for VO Frontend<br>
-  [7] VO Frontend<br>
-  [8] Components</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>8</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">You will be given another
-menu:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">What do you want to
-  install?<br>
-  (May select several options at one, using a , separated list)<br>
-  [a] OSG VDT client<br>
-  [b] Base Condor installation<br>
-  [c] Web server<br>
-  [d] rrdtool graphics package<br>
-  [e] PostgreSQL database<br>
-  [f] Quill-specific PostgreSQL database</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Select
-<b>c</b>.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Now follow the instructions.
-Most of the questions should be fairly straightforward.</font></font></p>
-
-<h3><a name="system_rrdtool"><font face="Liberation Serif"><font size="3">4.4
-RRDTool</font></font></a></h3>
-
-<p><font face="Liberation Serif"><font size="3">You will also need the python
-module for <a href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (v1.2.18 or
-later). Many systems come with packages for it; if possible use
-that.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">RPMs for Redhat/Scientific
-Linux distributions can be found at</font></font></p>
-
-<p><a href="http://dag.wieers.com/rpm/packages/rrdtool/"><font
-face="Liberation Serif"><font
-size="3">http://dag.wieers.com/rpm/packages/rrdtool/</font></font></a></p>
-
-<p><font face="Liberation Serif"><font size="3">Install python-rrdtool*.rpm
-and related dependencies.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">If installing as root is not
-an option, you can build from the sources, as the </font></font><font
-face="Liberation Serif"><font size="3"><b>vo frontend</b></font></font> <font
-face="Liberation Serif"><font size="3">user (see <a
-href="#frontend">below</a>), and put the python libraries into the
-PYTHON_PATH.<br>
-The source code can be downloaded from:<br>
-<a
-href="http://oss.oetiker.ch/rrdtool/pub/">http://oss.oetiker.ch/rrdtool/pub/</a></font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Beware: The build process has
-several dependencies that make it complicated. Use this option only if you
-cannot install from RPMs (or similar). </font></font> </p>
-
-<h3><font face="Liberation Serif"><font size="3">4.5
-M2Crypto</font><font></font></font></h3>
-
-<p><font face="Liberation Serif"><font size="3">If you are passing the proxy
-from the VO Frontend to the glidein Factory, you will need the <a
-href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. A
-few systems include it in the software distribution; if possible install the
-system one.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">If your system does not come
-with m2crypto package, or you do not can/want install it as root, compile it
-from source as the </font></font><font face="Liberation Serif"><font
-size="3"><b>VO frontend</b></font></font> <font face="Liberation Serif"><font
-size="3">user (see <a href="#frontend">below</a>).<br>
-The source code can be downloaded from:<br>
-<a
-href="http://chandlerproject.org/Projects/MeTooCrypto#Downloads">http://chandlerproject.org/Projects/MeTooCrypto#Downloads</a></font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">The build process is very
-easy:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">python setup.py build<br>
-  python setup.py install --root <i>&lt;base
-dir&gt;</i></font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Finally add M2Crypto into the
-PYTHONPATH, possibly in the .profile, .bashrc, and/or in the
-.cshrc:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">export
-  PYTHONPATH=$PYTHONPATH:<i>&lt;base
-  dir&gt;</i>/usr/lib/python2.3/site-packages/</font></font></blockquote>
-
-<h3><a name="system_javascriptRRD"><font face="Liberation Serif"><font
-size="3">4.6 javascriptRRD</font></font></a></h3>
-
-<p><font face="Liberation Serif"><font size="3">You will need the <a
-href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD
-package</a>. It contains the javascript libraries needed by the
-monitoring.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Just download the tarball,
-and untar it. You will need to point the installer to this
-directory.</font></font></p>
-
-<h2><a name="frontend"><font face="Bitstream Vera Serif"><font size="4">5. VO
-Frontend installation </font></font> </a></h2>
-
-<p><font face="Liberation Serif"><font size="3">The VO Frontend needs a x509
-proxy to communicate with the glidein Factory. You need to create such proxy
-before starting a VO Frontend and then keep it valid for the life of the
-frontend. If used for job submission (i.e. if it is passed to the glidein
-Factory), this proxy must at any point in time have a validity of at least
-the longest expected job being run by the glideinWMS (and not less than 12
-hours).<br>
-How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a
-local certificate, scp from other nodes, or other methods), is beyond the
-scope of this document. </font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">The VO frontend can also host the x509 proxies used for glidein
-submission. If you do use this (recommended) method, you need to keep these
-proxies valid at all time, as you do for the main frontend proxy.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">The VO Frontend should be
-installed as a non privileged user. The provided installer can be used to
-create the configuration file, although some manual tunning will probably be
-needed.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Before starting the installation
-of the VO Frontend make sure that the WMS Collector is started and running.
-</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">Assuming VDT is installed in $VDT_LOCATION, source VDT's setup as follows</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">source $VDT_LOCATION/setup.sh</font></font></p>
-</blockquote>
-<p><font face="Liberation Serif"><font size="3">Move into</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">glideinWMS/install</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">and execute</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font
-  size="3">./glideinWMS_install</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">You will be presented with
-the service selection screen. Follow the instructions.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3">You will need to specify the
-selection and matching criteria for the user jobs. The suggested
-values</font></font> </p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">jobs_constraint =
-  (JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<br>
-  match_string = glidein["attrs"]["GLIDEIN_Site"] in
-  job["DESIRED_Sites"].split(",")</font></font></p>
-</blockquote>
-
-<p><font face="Liberation Serif"><font size="3">should be fine for some basic
-matchmatching, providing that your user jobs add</font></font></p>
-
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">+DESIRED_Sites =
-  “site1,site2,...siteN”<br>
-  requirements=stringListMember(GLIDEIN_Site, DESIRED_Sites)</font></font></p>
-</blockquote>
-<font face="Liberation Serif"><font size="3">(Look at the <a
-href="../manual/frontend/index.html#management">glideinWMS manual</a> for
-more details.)</font></font>
-<p><font face="Liberation Serif"><font size="3">Here a possible set of
-answers is presented; your setup will probably be slightly
-different:</font></font></p>
-<pre style="margin-left: 0.39in; margin-right: 0.39in; margin-bottom: 0.2in">
+    <tr>
+        <td><a href="http://www.python.org/">Python</a> interpreter</td>
+        <td>v2.3.4 or above</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The perl-Time-HiRes rpm.</td>
+        <td>This rpm may already be included in perl, depending on the perl version</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The <a href="https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome">OSG client software</a>.</td>
+        <td>This can be installed prior to glideinWMS, but the installer can install it inline with the glideinWMS install</td>
+        <td> &nbsp; </td>
+    </tr>
+    <tr>
+        <td>
+            A HTTP server, like <a href="http://www.apache.org/">Apache</a> or
+            <a href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.
+        </td>
+        <td>This should be installed prior to glideinWMS (see <a href="#software_httpd">below</a>)</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The <a href="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</a> as a tarball.</td>
+        <td>The installer will use the tarball to install and configure Condor inline</td>
+        <td> &nbsp; </td>
+    </tr>
+    <tr>
+        <td>The <a href="http://oss.oetiker.ch/rrdtool/">RRDTool package</a></td>
+        <td>v1.2.18 or later (see <a href="#software_rrdtool">additional install notes</a>)</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a></td>
+        <td>v0.17 or later (see <a href="#software_m2crypto">additional install notes</a>)</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD</a> package</td>
+        <td>v0.5 or later with flot (see <a href="#software_javascriptRRD">additional install notes</a>)</td>
+        <td class="checked"> X </td>
+    </tr>
+    <tr>
+        <td>The <a href="index.html">glideinWMS software</a>.</td>
+        <td>&nbsp;</td>
+        <td> &nbsp; </td>
+    </tr>
+    </table>
+
+    <br>
+    <h4>NOTE:</h4>
+    <ul>
+        <li>Condor version v7.3.1 has a known issue with incorrect return/exit codes of condor_status and condor_q</li>
+        <li>
+            If you are using Condor version v7.3.2 disable VOMS checking in condor_config file used by Condor daemons other 
+            than that used by user schedd. VOMS checking adds unrequired overhead. To do so, set <br>
+            <blockquote>USE_VOMS_ATTRIBUTES = False </blockquote> 
+            or for individual condor daemons like collector<br>
+            <blockquote>COLLECTOR.USE_VOMS_ATTRIBUTES = False </blockquote> 
+        </li>
+    </ul>
+    
+    <h3><a name="software_httpd">3.2 HTTP Server</a></h3>
+    <p>
+        The glidein Frontend needs a HTTP server, like <a href="http://www.apache.org/">Apache</a> or 
+        <a href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.  The server should be installed on 
+        the same node, but a different node can be used as long as the web area is writable from this one. Servers often come 
+        pre-installed with HTTP server software, so if you have one running, just reuse it.  Otherwise, the installer can help 
+        you install one (as root).  (See <a href="glidein_component_install.html#system_httpd">GlideinWMS Component Install</a>) 
+    </p>
+    
+    <h3><a name="software_rrdtool">3.3 RRDTool</a></h3>
+    <p>
+        You will also need the python module for <a href="http://oss.oetiker.ch/rrdtool/">RRDTool</a> (v1.2.18 or later). Many 
+        systems come with packages for it; if possible use that.  Otherwise see 
+        <a href="glidein_component_install.html#system_rrdtool">additional install notes</a> for alternative installs.
+    </p>
+
+    <h3><a name="software_m2crypto">3.4 M2Crypto</a></h3>
+    <p>
+        You will need the <a href="http://freshmeat.net/projects/m2crypto">M2Crypto python library</a>. A few systems include it in the 
+        software distribution; if possible install the system one.  Otherwise see 
+        <a href="glidein_component_install.html#system_m2crypto">additional install notes</a> for alternative installs.
+    </p>
+
+    <h3><a name="software_javascriptRRD">3.5 javascriptRRD</a></h3>
+    <p>
+        You will need the <a href="http://sourceforge.net/projects/javascriptrrd/">javascriptRRD package</a>.  It contains the 
+        javascript libraries needed by the monitoring.  Just download the tarball (with flot), and untar it.  You will need to 
+        point the installer to this directory.
+    </p>
+    </div>
+
+
+
+
+    <div class="section">
+
+    <h2><a name="before_install">4. Before you begin...</a></h2>
+    <h3><a name="before_install_users">4.1 Required Users</a></h3>
+    <p>
+        The installer will ask you for several non-privileged users during the install process.  These should be created prior to running the
+        glideinWMS installer.  
+    </p>
+    
+    <table class="requirements">
+    <tr class="head">
+        <td>User</td>
+        <td>Notes</td>
+    </tr>
+    <tr>
+        <td>Vo Frontend User</td>
+        <td>
+            The VO Frontend should be installed as a non-privilged user.  <strong>Note:</strong> It is recommended that you install
+            Condor as this user as well.
+        </td>
+    </tr>
+    </table>
+    <br>
+    
+   <h3><a name="before_install_certs">4.2 Required Certificates/Proxies</a></h3>
+    <p>
+        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
+        created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
+        <ul>
+            <li>WMS Collector cert/proxy DN</li>
+            <li>User Pool Collector cert/proxy DN</li>
+            <li>User Submitter cert/proxy DN</li>
+            <li>VO Frontend Condor cert/proxy DN (cannot use a cert here)</li>
+        </ul>
+        <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  For the most part the name given doesn't 
+        really matter.  There is one case where is does matter.  If you are using privilege separation, then, on the WMS Collector, the nickname for 
+        each VO Frontend must be the username that you created for the frontend.<br> 
+        <strong>Note 2:</strong> The installer will ask if these are trusted Condor Daemons.  Answer 'y'. 
+    </p>
+    
+    <h3><a name="before_install_dirs">4.3 Required Directories</a></h3>
+    <p>
+        When installing the VO Frontend you will be presented with a question asking for the directory location for various items.  The example below puts
+        many of them in /var.  All the directories in /var have to be created as root.  Therefore, if you intend on using /var, you will have to create 
+        the directories ahead of time.
+    </p>
+        
+    <p>
+        <strong>Note:</strong> The web data must be stored in a directory served by the HTTP Server. <br><br>
+        <strong>Example:</strong>
+    </p>
+<pre>
+Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/glidefactory
+</pre>
+
+    <h3><a name="before_install_misc">4.4 Miscellaneous Notes</a></h3>
+    <p>
+        At some point the installer will prompt you for the OSG VDT Client location or if you want to install it.  The installer will install the client
+        for you.  (See <a href="glidein_component_install.html">GlideinWMS Component Install</a>)
+    </p>
+    <p>
+        When asked if you want OSG_VDT_BASE defined globally? Answer 'y' unless you want to force your users to find and hard code the location.
+    </p>
+    <p>When asked if you want to enable Match authentication, if you are using Condor 7.1.3 or later, answer 'y' unless you have a reason not to.</p>
+    </div>
+
+
+
+
+    <div class="section">
+    
+    <h2><a name="system">5. Condor installation instructions</a></h2>
+    <p>
+        The VO Frontend will need the the Condor binaries. You can reuse an existing installation, if available, like if you host
+        the VO Frontend on the <a href="schedd_install.html">a submitter node</a>.
+    </p>
+
+    <p>
+        Else you need to install a local copy. The suggested way is to install as the same non privileged  <b>VO Frontend</b>
+        user (see <a href="#frontend">below</a>).  The whole process is managed by a install script described below.
+    </p>
+
+    <p>Move into</p>
+    <blockquote>glideinWMS/install</blockquote>
+
+    <p>and execute</p>
+    <blockquote>./glideinWMS_install</blockquote>
+
+    <p>You will be presented with this screen:</p>
+    <blockquote>
+        What do you want to install?<br>
+        (May select several options at one, using a , separated list)<br>
+        [1] glideinWMS Collector<br>
+        [2] Glidein Factory<br>
+        [3] GCB<br>
+        [4] pool Collector<br>
+        [5] Schedd node<br>
+        [6] Condor for VO Frontend<br>
+        [7] VO Frontend<br>
+        [8] Components
+    </blockquote>
+
+    <p>Select <b>6</b>.</p>
+
+    <p>Now follow the instructions.  Additional description is below:</p>
+    <table class="requirements">
+    <tr class="head">
+	<td>Field</td>
+	<td>Installation Text</td>
+	<td>Description</td>
+    </tr>
+    <tr>
+	<td>Condor</td>
+	<td><i>
+	</i>Where do you have the Condor tarball?<br/>
+	Where do you want to install it?</td>
+	<td>
+		Though the frontend does not actually start any Condor processes, it needs 
+		
+		The user pool collector is part of the Condor pool that will actually run the user's jobs.
+		This will be the server that you will submit jobs to.  This piece of the install will configure 
+		the collector to work with the submitted glideins.<br/>
+		For this, you will need a condor distribution and a location to install to.  It will also
+		prompt for a administrator email.
+	</td>
+    </tr>
+    <tr>
+	<td>GSI Security</td>
+	<td><i>Where can I find the directory with the trusted CAs? </i></td>
+	<td>
+		GSI security is based on x509 certificates.  
+		First, you will need a list of trusted certificates.  VDT comes with a list of certificates, so, if you install that now (or have installed it previously), you can install that now.  Note that you may have to update your certificates if you have an old VDT installation.<br/>
+		You will next need a certificate or proxy for the VO frontend.  See <a href="#before_install_certs">the previous section</a> for more information on required certificates and proxies.</a>
+	</td>
+    </tr>
+    <tr>
+	<td>Collector</td>
+	<td><i>What node is the collector running (i.e. CONDOR_HOST)? </i></td>
+	<td>
+        The installer will ask, "What node is the collector running (i.e. CONDOR_HOST)?".  The collector referred to by this question is the user pool collector.  Answer with the fqdn of the user pool collector.
+	</td>
+    </tr>
+
+
+
+    </table>
+    </div>
+
+
+
+
+    <div class="section">
+
+    <h2><a name="frontend">6. VO Frontend installation</a></h2>
+    <p>
+        The VO Frontend needs a x509 proxy to communicate with the glidein Factory. You need to create such proxy before starting a VO 
+        Frontend and then keep it valid for the life of the frontend. If used for job submission (i.e. if it is passed to the glidein
+        Factory), this proxy must at any point in time have a validity of at least the longest expected job being run by the glideinWMS
+        (and not less than 12 hours).<br><br>
+        How you keep this proxy valid (via MyProxy, kx509, voms-proxy-init from a local certificate, scp from other nodes, or other methods), 
+        is beyond the scope of this document.
+    </p>
+
+    <p>
+        The VO frontend can also host the x509 proxies used for glidein submission. If you do use this (recommended) method, you need to
+        keep these proxies valid at all time, as you do for the main frontend proxy.
+    </p>
+
+    <p>
+        The VO Frontend should be installed as a non privileged user. The provided installer can be used to create the configuration file,
+        although some manual tunning will probably be needed.
+    </p>
+
+    <p>Before starting the installation of the VO Frontend make sure that the WMS Collector is started and running.</p>
+
+    <p>Assuming VDT is installed in $VDT_LOCATION, source VDT's setup as follows</p>
+    <blockquote>source $VDT_LOCATION/setup.sh</blockquote>
+
+    <p>Move into</p>
+    <blockquote>glideinWMS/install</blockquote>
+
+    <p>and execute</p>
+    <blockquote>./glideinWMS_install</blockquote>
+
+
+    <p>
+        You will be presented with the service selection screen. Follow the instructions.  Further detail and a walk-through is presented below:
+
+    <table class="requirements">
+    <tr class="head">
+	<td>Field</td>
+	<td>Installation Text</td>
+	<td>Description</td>
+    </tr>
+    <tr>
+	<td>javascriptRRD</td>
+	<td><i>Do you have already a javascriptRRD installation?<br/>
+	Where is javascriptRRD installed?</i></td>
+	<td>
+		The javascriptRRD library is required to display statistics for the web-based display.
+		It must be installed before the installation can continue.
+	</td>
+    </tr>
+    <tr>
+	<td>Directories</td>
+	<td><i>
+		Where will you host your config files?<br/>
+		Where will the web data be hosted?<br/>
+		What Web URL will you use?<br/>
+		Where will you host your log files?
+	</i></td>
+	<td>
+		You will have to give the directories where the frontend will store its files.
+		By default, some of these directories are in /var, and, if you want to keep them there,
+		you will need to create them first as root.  The web data should be stored in a directory
+		served by your web server.
+		<br/>
+		You may want to consider putting them in a directory other than a user home directory.
+	</td>
+    </tr>
+    <tr>
+	<td>VO Configuration</td>
+	<td><i>Give a name to this VO Frontend<br/>
+		Give a name to this VO Frontend instance?</i></td>
+	<td>
+		<strong>IMPORTANT:</strong> When the installer asks, "Give a name to this VO Frontend?", you must provide the name that you gave to the installer for the Factory when it asked, "Frontend security name".  Otherwise, the factory will reject requests from the frontend.
+	</td>
+    </tr>
+    <tr>
+	<td>WMS Collector</td>
+	<td><i>What node is the WMS collector (i.e. the gfactory) running?<br/>
+		What is the classad identity of the glidein factory?<br/>
+		What is the WMS collector DN (i.e. subject)?<br/>
+	</i></td>
+	<td>
+		At this point, the location (fqdn) as well as the DN for the WMS collector is needed.
+		The installer will ask you for the classad identity of the glidein factory.  This should be the be the username the factory was installed as.  It should be in this format:  &lt;username&gt;@&lt;factoryfqdn&gt;
+	</td>
+    </tr>
+    <tr>
+	<td>GSI Configuration</td>
+	<td><i>Where is your proxy located?<br/>
+		What is the mapped name?</i></td>
+	<td>
+
+	To use the VO Frontend you need a valid GSI proxy.
+	VO Frontend will use this proxy to talk to the WMS Collector and User Schedd
+	Make sure this DN is in the WMS collector condor_mapfile.
+
+        The installer will ask, "What is the mapped name?".  If you are using privilege separation, answer with the username of the user you created for the VO frontend on the Factory.  The answer should have the following format:  &lt;username&gt;@&lt;factory fqdn&gt;
+	</td>
+    </tr>
+    <tr>
+	<td>Pool Collector</td>
+	<td><i>What is the pool collector DN (i.e. subject)?<br/>
+		List and secondary pool collector the glideins should use.</i></td>
+	<td>
+		This will be used to contact the pool collector to query jobs.  You will need to match the DN used 
+		in the condor mapfile.
+	</td>
+    </tr>
+    <tr>
+	<td>Job monitoring</td>
+	<td><i>What kind of jobs do you want to monitor?<br/>
+		Give a name to the main group:</i></td>
+	<td>
+		This is a condor expression for which jobs you'd like reported in the web-based tool.
+		The default is:
+		<blockquote>
+			(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+		</blockquote>
+		This tranlates to all vanilla universe jobs that are not monitoring processes.  This 
+		should be fine unless a more restrictive set is desired.
+	</td>
+    </tr>
+    <tr>
+	<td>Job Matching</td>
+	<td><i>What expression do you want to use to match glideins to jobs?</i></td>
+	<td>
+	    You will need to specify the selection and matching criteria for the user jobs. The suggested values:
+	    <blockquote>
+	        jobs_constraint = (JobUniverse==5)&amp;&amp;(DESIRED_Sites=!=UNDEFINED)<br>
+	        match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")</p>
+	    </blockquote>
+		should be fine for some basic matchmatching, providing that your user jobs add</p>
+	    <blockquote>
+        	+DESIRED_Sites = "site1,site2,...siteN"<br>
+	        requirements = stringListMember(GLIDEIN_Site, DESIRED_Sites)
+	    </blockquote>
+	</td>
+    </tr>
+    <tr>
+	<td>Proxy Configuration</td>
+	<td><i>VO frontend proxy = 'XXXX'<br/>
+		Do you want to use is to submit glideins?<br/>
+		Please add all the proxies that this glidein will use</i></td>
+	<td>
+		A proxy is required to submit jobs to the glideins.  
+		Find more on this in the <a href="#before_install_certs">previous section</a>.
+	</td>
+    </tr>
+    <tr>
+	<td>Other DNs</td>
+	<td><i>Please add all the DNs that this glidein will connect to</i></td>
+	<td>
+		These DNs will be put in the condor mapfile so that they are authorized to talk to the frontend.
+		This is for security purposes.
+	</td>
+    </tr>
+    <tr>
+	<td>Final Config</td>
+	<td><i>Do you want to use the more efficient Match authentication?<br/>
+		Do you want to expose the Grid env. to the user jobs?<br/>
+		Do you want to create the VO Frontend instance?</i></td>
+	<td>
+		Match authentication is more efficient and used in newer versions of Condor.  
+		This is recommended unless using an older version of Condor.<br/>
+		Exposing the grid environment to user jobs will export shell variables to the user job
+		running on the glidein.  Saying 'n' will keep the environment cleaner.  Most configurations
+		use 'y' so the user jobs can use those variables if needed.<br/>
+		Creating the instance will generate scripts and configurations for the VO frontend.
+		Otherwise, you will need to manually run a creation command post-install.
+	</td>
+    </tr>
+    </table>
+
+    (Look at the <a href="../manual/frontend/index.html#management">glideinWMS manual</a> for more details.)
+    
+    <p>Here a possible set of answers is presented; your setup will probably be slightly different:</p>
+
+    <pre>
 Welcome to the glideinWMS Installation Helper
 
 What do you want to install?
@@ -579,142 +657,99 @@ To create the VO Frontend instance, you need to run
 
 Configuration files are located in /home/frontend/frontstage/instance_v1.cfg
 Remember to set X509_USER_PROXY before starting the daemon
-</pre>
-<p><font face="Liberation Serif"><font size="3">If you followed the example
-above, you ended up with a configuration file in </font></font><font
-face="Liberation Serif"><font
-size="3"><b>/home/frontend/frontstage/instance_v1.cfg/frontend.xml</b></font></font><font
-face="Liberation Serif"><font size="3">. Edit this file to suit your needs
-and than create the frontend instance with:</font></font></p>
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">
-  /home/frontend/glideinWMS/creation/create_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml
-  </font></font></p>
-</blockquote>
+    </pre>
+
+    <p>If you followed the example above, you ended up with a configuration file in</p>
+    <blockquote>/home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
+    
+    <p>Edit this file to suit your needs and than create the frontend instance with:</p>
+    <blockquote>/home/frontend/glideinWMS/creation/create_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
+
+    <h3>6.1. Starting the VO Frontend</h3>
+    <p>Use the startup script:</p>
+    <blockquote>
+        source $VDT_LOCATION/setup.sh<br>
+        export X509_USER_PROXY=&lt;Proxy that this frontend instance should use&gt;<br>
+        cd &lt;install dir&gt;<br>
+        ./frontend_startup start
+    </blockquote>
+
+    <p>The same script can be used to stop, reconfig and restart the VO Frontend.</p>
+
+    <h3>6.2. Reconfiguring the VO Frontend</h3>
+    <p>
+        If you make changes to the configuration file /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating
+        glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
+    </p>
+    <blockquote>glideinWMS/creation/reconfig_frontend -writeback yes /home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
+
+    <p>If you make changes to the frontend.xml configuration file in the &lt;install dir&gt; use following command to propagate the changes</p>
+    <blockquote> frontend_startup reconfig</blockquote>
+    </div>
 
 
-<h3><font face="Utopia, serif"><font size="3">5.1. Starting the VO Frontend
-</font></font> </h3>
 
-<p><font face="Liberation Serif"><font size="3">Use the startup
-script:</font></font></p>
 
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">
-  source $VDT_LOCATION/setup.sh<br>
-  export X509_USER_PROXY=&lt;Proxy that this frontend instance should use&gt;<br>
-  cd &lt;install dir&gt;<br>
-  ./frontend_startup start</font></font></p>
-</blockquote>
+    <div class="section">
 
-<p><font face="Liberation Serif"><font size="3">The same script can be used
-to stop, reconfig and restart the VO Frontend.</font></font> </p>
+<<<<<<< frontend_install.html
+    <h2><a name="monitoring">7. VO Frontend monitoring</a></h2>
+=======
+    <h2>7. VO Frontend monitoring</a></h2>
+>>>>>>> 1.24.2.5
+    <p>There are several ways to monitor the Vo Frontend:</p>
+    <ul>
+        <li><a href="#monitoring_web">Using the Web monitoring</a></li>
+        <li><a href="#monitoring_tools">Using the WMS tools</a></li>
+        <li><a href="#monitoring_logs">Looking at the VO frontend log files</a></li>
+        <li><a href="#monitoring_condor">Checking the WMS collector ads</a></li>
+    </ul>
 
-<h3><font face="Utopia, serif"><font size="3">5.1. Reconfiguring the VO Frontend
-</font></font> </h3>
+    <h3><a name="monitoring_web">7.1 VO frontend entry Web monitoring</a></h3>
+    <p>
+        You can either monitor the frontend as a whole, or just a single entry point.<br><br>
+        The frontend monitoring is located at a URL like the one below
+    </p>
+    <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/</blockquote>
 
-<p><font face="Liberation Serif"><font size="3">If you make changes to the configuration file /home/frontend/glideinWMS/creation/create_frontend /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
-script:</font></font></p>
+    <p>
+        Moreover, each frontend group has its own history on the Web.<br><br>
+        Assuming you have a main group, it can be monitored at
+    </p>
+    <blockquote>http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/group_main/</blockquote>
 
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">
-    glideinWMS/creation/reconfig_frontend -writeback yes /home/frontend/frontstage/instance_v1.cfg/frontend.xml
-  </font></font></p>
-</blockquote>
+    <h3><a name="monitoring_tools">7.2 VO frontend monitoring via WMS tools</a></h3>
+    <p>You can get the equivalent of the Web page snaphot by using</p>
+    <blockquote>
+        cd glideinWMS/tools/<br>
+        ./wmsXMLView.py -pool gfactory1.my.org
+    </blockquote>
 
-<p><font face="Liberation Serif"><font size="3">If you make changes to the frontend.xml configuration file in the &lt;install dir&gt; use following command to propagate the changes<br>
-<blockquote>
-  <p><font face="Liberation Serif"><font size="3">
-frontend_startup reconfig
-</font></font></p>
-</blockquote>
-<h2><a name="monitoring"><font face="Bitstream Vera Serif"><font size="4">6.
-VO Frontend monitoring </font></font> </a></h2>
+    <h3><a name="monitoring_logs">7.3 VO frontend group log files</a></h3>
+    <p>
+        The vo frontend writes two log files per entry point <b>frontend_info.YYYYMMDD.log</b> and <b>frontend_err.YYYYMMDD.log</b>.<br><br>
+        Assuming you have a main group, the log files are in
+    </p>
+    <blockquote>/home/frontend/frontstage/frontend_myVO1_v1/group_main/log</blockquote>
 
-<p><font face="Liberation Serif"><font size="3">There are several ways to
-monitor the Vo Frontend:</font></font></p>
-<ul>
-  <li><p><font face="Liberation Serif"><font size="3"><a
-    href="#monitoring_web">Using the Web monitoring</a></font></font></p>
-  </li>
-  <li><p><font face="Liberation Serif"><font size="3"><a
-    href="#monitoring_tools">Using the WMS tools</a></font></font></p>
-  </li>
-  <li><p><font face="Liberation Serif"><font size="3"><a
-    href="#monitoring_logs">Looking at the VO frontend log
-    files</a></font></font> </p>
-  </li>
-  <li><p><font face="Liberation Serif"><font size="3"><a
-    href="#monitoring_condor">Checking the WMS collector
-    ads</a></font></font></p>
-  </li>
-</ul>
+    <p>
+        All errors are reported in the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log</b> contains entries 
+        about what the VO frontend is doing.
+    </p>
 
-<h3><a name="monitoring_web"><font face="Verdana"><font size="3">6.1 VO frontend entry Web monitoring</font></font></a></h3>
+    <h3><a name="monitoring_condor">7.4 VO frontend ClassAds in the WMS Collector</a></h3>
+    <p>
+        The VO frontned also advertises summary information in the WMS collector.<br><br>
+        Use <b>condor_status</b>:
+    </p>
+    <blockquote>condor_status -pool gfrontend1.my.org -any</blockquote>
 
-<p><font face="Liberation Serif"><font size="3">You can either monitor the
-frontend as a whole, or just a single entry point.<br>
-<br>
-The frontend monitoring is located at a URL like the one
-below</font></font></p>
+    <p>and look for <b>glideclient</b> ads.</p>
 
-<blockquote>
-  <font face="Liberation Serif"><font
-  size="3">http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">Moreover, each frontend group
-has its own history on the Web.<br>
-<br>
-Assuming you have a main group, it can be monitored at</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font
-  size="3">http://frontend1.my.org/vofrontend/monitor/frontend_myVO1_v1/group_main/</font></font></blockquote>
-
-<h3><a name="monitoring_tools"><font face="Verdana"><font size="3">6.2
-VO frontend monitoring via WMS tools</font></font></a></h3>
-
-<p><font face="Liberation Serif"><font size="3">You can get the equivalent of
-the Web page snaphot by using </font></font> </p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">cd glideinWMS/tools/<br>
-  ./wmsXMLView.py -pool gfactory1.my.org</font></font></blockquote>
-
-<h3><a name="monitoring_logs"><font face="Verdana"><font size="3">6.3 VO
-frontend group log files </font></font> </a></h3>
-
-<p><font face="Liberation Serif"><font size="3">The vo frontend writes
-two log files per entry point <b>frontend_info.YYYYMMDD.log</b> and
-<b>frontend_err.YYYYMMDD.log</b>.<br>
-<br>
-Assuming you have a main group, the log files are in</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font
-  size="3">/home/frontend/frontstage/frontend_myVO1_v1/group_main/log</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">All errors are reported in
-the <b>frontend_err.YYYYMMDD.log</b>. file, while <b>frontend_info.YYYYMMDD.log
-</b>contains entries about what the VO frontend is doing.</font></font></p>
-
-<h3><a name="monitoring_condor"><font face="Verdana"><font size="3">6.4
-VO frontend ClassAds in the WMS Collector </font></font> </a></h3>
-
-<p><font face="Liberation Serif"><font size="3">The VO frontned also
-advertises summary information in the WMS collector.<br>
-<br>
-Use <b>condor_status</b>:</font></font></p>
-
-<blockquote>
-  <font face="Liberation Serif"><font size="3">condor_status -pool gfrontend1.my.org
-  -any</font></font></blockquote>
-
-<p><font face="Liberation Serif"><font size="3">and look for
-<b>glideclient</b> ads.</font></font></p>
-
-<p><font face="Liberation Serif"><font size="3"><a href="index.html">Back to
-the index</a></font></font></p>
-<hr><P ALIGN=LEFT><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+    <p><a href="index.html">Back to the index</a></p>
+    <hr>
+    <p align=left><b>glideinWMS support:</b> glideinwms-support@fnal.gov</p>
+    </div>
+  </div>
 </body>
 </html>

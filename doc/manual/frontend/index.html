@@ -1,27 +1,52 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <HTML>
 <HEAD>
 	<META HTTP-EQUIV="CONTENT-TYPE" CONTENT="text/html; charset=utf-8">
 	<TITLE>The VO Frontend</TITLE>
-	<META NAME="GENERATOR" CONTENT="OpenOffice.org 2.4  (Linux)">
+	<META NAME="GENERATOR" CONTENT="OpenOffice.org 3.1  (Unix)">
 	<META NAME="CREATED" CONTENT="0;0">
-	<META NAME="CHANGEDBY" CONTENT="Igor Sfiligoi">
-	<META NAME="CHANGED" CONTENT="20080909;13502500">
+	<META NAME="CHANGED" CONTENT="20100602;13191700">
+        <link rel="stylesheet" type="text/css" href="../glideinWMS.css" media="screen, projection" />
 </HEAD>
-<BODY LANG="en-US" DIR="LTR">
-<H1>The VO Frontend</H1>
-<H2>Description</H2>
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">Glidein WMS  Manual</a>
+        <ul class="main_links">
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+index.html" class="main_link">Home</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/install/" class="main_link">Installation</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+doc.prd/manual/" class="main_link">Manual</a></li>
+        <li><a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/
+download.html" class="main_link">Download</a></li>
+        </ul>
+
+    </h1>
+
+    <ul class="components">
+        <li> <a href="../index.html"> Overview </a></li>
+        <li> <a href="../factory/index.html"> Factory </a></li>
+        <li> <a class="selected" href="../frontend/index.html"> VO Frontend </a></li>
+        <li> <a href="../monitoring.html" class="last">Monitoring</a></li>
+    </ul>
+    <div class="clear" />
+
+    <ul class="topnav">
+        <LI><A HREF="#overview">Overview</A></li>
+        <li><a href="#implementation">Implementation</a> </li>
+        <li><a href="#management">Frontend Management</a> </li>
+        <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
+    </ul>
+
+<div class="content">
+<h2 class="header">VO Frontend</h2>
+
+<div class="section">
+<H2 CLASS="western">Description</H2>
 <P>The VO Frontend is, as the name suggests, the user interface of a
 <A HREF="../index.html">glidein&nbsp;based WMS</A>.</P>
-<H2>Index</H2>
-<UL>
-	<LI><A HREF="#overview">Overview</A> 
-	<LI><A HREF="#implementation">Implementation</A> 
-	<LI><A HREF="#management">The VO Frontend management</A> 
-	<LI><A HREF="#run_daemon">Starting a VO Frontend Daemons</A> 
-	<LI><A HREF="#ref">Reference</A> 
-</UL>
-<H2><A NAME="overview"></A>Overview</H2>
+<H2 CLASS="western"><A NAME="overview"></A>Overview</H2>
 <P>The main task of the VO frontend is to look for user jobs and ask
 the <A HREF="../factory/index.html">Glidein Factories</A> to provide
 <A HREF="../index.html#glideins">glideins</A>, if needed. See the
@@ -31,18 +56,19 @@ information in has are the attributes that the various Glidein
 Factories publish. This makes the life of the&nbsp;frontend much
 easier, as it only has to worry about matching user job requirements
 to the factory attributes.</P>
-<H2><A NAME="implementation"></A>Implementation</H2>
+</div>
+
+<div class="section">
+<H2 CLASS="western"><A NAME="implementation"></A>Implementation</H2>
 <P>The current implementation of the VO frontend is <A HREF="http://www.python.org/">Python</A>
-based. It uses a tree of process like the factory does.<BR><BR>
-The sub-process (group) code is composed of 4 logical
-pieces:</P>
+based. It uses a tree of process like the factory does.<BR><BR>The
+sub-process (group) code is composed of 4 logical pieces:</P>
 <UL>
-	<LI>an element that holds the Glidein Factory Ads, 
-	<LI>an element that holds the user jobs Ads, 
-	<LI>a matchmaking procedure,
-	<LI>a procedure that advertises the requests, and 
-	<LI><P>the glue that links the above together. 
-	</P>
+	<LI>An element that holds the Glidein Factory Ads</li> 
+	<LI>An element that holds the user jobs Ads </li>
+	<LI>A matchmaking procedure</li>
+	<LI>A procedure that advertises the requests</li>
+	<LI>... and the glue that links the above together. </li>
 </UL>
 <P><A NAME="match_expr"></A>The top two elements simply contact the
 appropriate Condor Collector and store the data in memory.<BR><BR>The
@@ -53,113 +79,330 @@ matching expression is a <A HREF="http://www.python.org/doc/">Python
 expression</A>, having as inputs 
 </P>
 <UL>
-	<LI>an object holding the job attributes, named <FONT FACE="monospace"><B>job</B></FONT>,
-	and&nbsp; 
+	<LI><P STYLE="margin-bottom: 0in">an object holding the job
+	attributes, named <FONT FACE="monospace"><B>job</B></FONT>, and&nbsp;
+		</P>
 	<LI><P>an object holding the entry point attributes, named <FONT FACE="monospace"><B>glidein</B></FONT>.
 		</P>
 </UL>
 <P>Both objects are dictionaries, with keys being attribute names,
 and values being attribute values.<BR><BR>A few examples:</P>
-<DL>
-	<DD><PRE>job[&quot;CDFMaxHours&quot;]&lt;glidein[&quot;attrs&quot;][&quot;WMSMaxHours&quot;]
+<PRE STYLE="margin-left: 0.39in">job[&quot;CDFMaxHours&quot;]&lt;glidein[&quot;attrs&quot;][&quot;WMSMaxHours&quot;]
 job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot;SitesWithRequiredData&quot;]))
-(job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE></DD></DL><P>
-<P>Finally, the advertise procedure loops over the counts and
-	converts them into appropriate <A HREF="../index.html#frontend_classads">Condor
-	Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
-	input parameters, loading the configuration values and loop over the
-	above steps.</P>
+(job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE><P>
+Finally, the advertise procedure loops over the counts and converts
+them into appropriate <A HREF="../index.html#frontend_classads">Condor
+Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
+input parameters, loading the configuration values and loop over the
+above steps.</P>
+<P>The frontend also can handle multiple proxies. The proxy selection
+is handled by a plugin mechanism.</P>
+</div>
 
-<P>The frontend also can handle multiple proxies. The proxy selection is handled by a plugin mechanism.</P>
-<H2>
-<A NAME="management"></A>The VO Frontend management</H2>
-<P>The VO Frontend configuration involves creating the configuration directory and files and then creating the daemons.  As in the Glidein Factory set up, an XML file is converted into a configuration tree by a configuration tool.</P>
-<P>For the installer to create the VO Frontend instance from the configuration directory and grid mapfile, the following objects can be defined:</P>
-
+<div class="section">
+<H2 CLASS="western"><A NAME="management"></A>The VO Frontend
+management</H2>
+<P>The VO Frontend configuration involves creating the configuration
+directory and files and then creating the daemons. As in the Glidein
+Factory set up, an XML file is converted into a configuration tree by
+a configuration tool.</P>
+<P>For the installer to create the VO Frontend instance from the
+configuration directory and grid mapfile, the following objects can
+be defined:</P>
 <UL>
-        <li><p><font face="monospace">&lt;<b>frontend frontend_name</b>="<i>your name</i>" <b>advertise_delay</b>="<i>seconds</i>" <b>loop_delay</b>="<i>nr</i>" &gt;</font><br>The frontend_name is a combination of the frontend and instance names specified during installation.  It is used to create VO Frontend instance directory and files. The delay parameters define how active the VO Frontend should be.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>factory</b>&gt;&lt;<b>collectors</b>&gt;&lt;<b>collector my_identity</b>="<i>joe@collector1.myorg.com</i>" <b>node</b>="<i>collector1.myorg.com</i>" <b>factory_identity</b>="<i>gfactory@gfactory1.my.org</i>" <b>DN</b>="<i>/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org</i>"/&gt;</font><br>This shows what WMS Collector the VO Frontend will map to.  It is the mapped name for the identity of the classad. It alos tells what should be the idetnity used by the frontend itself and the expected identity of the factory
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job query_expr</b>="<i>expression</i>" &gt;</font><br>A <a href="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">Condor constraint</a> to be used with condor_q when looking for user jobs. (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs).  If you want to consider all user jobs, this can be set to TRUE.  
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job</b>&gt;&lt;<b>schedds</b>&gt;&lt;<b>schedd fullname</b>="<i>schedd name</i>" /&gt;</font><br>When you provide the user pool collector to the installer, it will find all the available schedds.  You can specify which schedds to monitor here for user jobs.  The schedd fullname is the name under which schedd is registered with the user pool collector. 
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>monitor base_dir</b>="<i>web_dir</i>" <b>flot_dir</b>="<i>web_dir</i>" <b>javascriptRRD_dir</b>="<i>web_dir</i>" <b>jquery_dir</b>="<i>web_dir</i>" /&gt;</font><br>The <strong>base_dir</strong> defines where the web monitoring is.  The other entries point to where javascriptRRD, Flot and JQuery libraries are located.        
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>security proxy_DN</b>="<i>/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org</i>" <b>classad_proxy</b>="<i>proxy_dir</i>" <b>proxy_selection_plugin</b>="<i>ProxyAll</i>" <b>security_name</b>="<i>vofrontend1</i>"&gt;</font><br>Grid proxy to use is located in the classad_proxy directory and you must specify the full path to the proxy. security_name signifies the name under which the frontend is registered with the factory.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>security</b>&gt;&lt;<b>proxies</b>&gt;&lt;<b>proxy absfname</b>="<i>proxy</i>" <b>security_class</b>="<i>frontend</i>"/&gt;</font><br>The location of the proxy the VO Frontend forwards to the factory for use in submitting glideins.  You can have multiple proxy entries listed here.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>stage base_dir</b>="<i>web_dir</i>" <b>web_base_url</b>="<i>URL</i>"  /&gt;</font><br>The location of the web server directories.  It is the staging area where the files needed to run you job are located (i.e. condor).  You may need to change this according to your requirements.        
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>work base_dir</b>="<i>directory</i>" /&gt;</font><br>This defines the path to the VO Frontend directory.  
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>attrs</b>&gt;&lt;<b>attr name</b>="<i>attr_name</i>" <b>value</b>="<i>value</i>" <b>parameter</b>="<b>True</b>" <b>type</b>="<b>string</b>" <b>glidein_publish</b>="<i>boolean</i>" <b>job_publish</b>="<i>boolean</i>" &gt;</font><br>The following three attributes are required to be set in the frontend requests and/or published for jobs.  Others can be specified as well.
-	  <ul>
-	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>GLIDEIN_Collector</b>" &gt;</font><br>The contains the name of the pool collector, i.e. mymachine.mydomain.</p></li>
-	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>GLIDEIN_Expose_Grid_Env</b>" &gt;</font><br>This determines if you want to expose the user to the grid environment.</p></li>
-	    <li><p><font face="monospace">&lt;<b>attr name</b>="<b>USE_MATCH_AUTH</b>" &gt;</font><br>This determines whether or not you want to use match authentication.  You specify the match expression in a group section of the config file.</p></li>
-	  </ul>
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>files</b>&gt;&lt;<b>file absfname</b>="<i>filepath</i>" <b>relfname</b>="<i>filename</i>" <b>executable</b>="<i>boolean</i>" /&gt;</font><br>The file parameters are used to specify the location of additional files.  The grid mapfile location must be specified.
-        </p></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend frontend_name=&quot;<I>your name</I>&quot;
+		advertise_delay=&quot;<I>seconds</I>&quot;
+		loop_delay=&quot;<I>nr</I>&quot; &gt;
+		</div>
+	The frontend_name is a combination of the frontend
+	and instance names specified during installation. It is used to
+	create VO Frontend instance directory and files. The delay
+	parameters define how active the VO Frontend should be. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;match&gt;&lt;factory&gt;&lt;collectors&gt;&lt;collector
+		my_identity=&quot;<I>joe@collector1.myorg.com</I>&quot; 
+		node=&quot;<i>collector1.myorg.com</I>&quot;
+		factory_identity=&quot;<I>gfactory@gfactory1.my.org</I>&quot;
+		DN=&quot;<I>/DC=org/DC=doegrids/OU=Services/CN=collector/collectory1.my.org</I>&quot;/&gt;
+		</div>
+	This shows what WMS Collector the VO Frontend will map to. It is the
+	mapped name for the identity of the classad. It alos tells what
+	should be the idetnity used by the frontend itself and the expected
+	identity of the factory 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;match&gt;&lt;job 
+		query_expr=&quot;<I>expression</I>&quot; &gt;
+		</div>
+	A <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_q.html">
+	Condor constraint</A> to be used with condor_q when looking for user 
+	jobs.  (like 'JobUniverse=?=5', i.e. consider only Vanilla jobs). If you
+	want to consider all user jobs, this can be set to TRUE. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;match&gt;&lt;job&gt;&lt;schedds&gt;&lt;schedd fullname=&quot;<I>schedd name</I>&quot; /&gt;
+		</div>
+	When you provide the user pool collector to the installer, it will find
+	all the available schedds. You can specify which schedds to monitor
+	here for user jobs. The schedd fullname is the name under which
+	schedd is registered with the user pool collector.&nbsp; 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;monitor 
+		base_dir=&quot;<I>web_dir</I>&quot;
+		flot_dir=&quot;<I>web_dir</I>&quot;
+		javascriptRRD_dir=&quot;<I>web_dir</I>&quot;
+		jquery_dir=&quot;<I>web_dir</I>&quot; /&gt;
+		</div>
+	The <STRONG>base_dir</STRONG> defines where the web
+	monitoring is. The other entries point to where javascriptRRD, Flot
+	and JQuery libraries are located. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;security 
+		proxy_DN=&quot;<I>/DC=org/DC=doegrids/OU=Service/CN=frontend/frontend1.my.org</I>&quot;
+		classad_proxy=&quot;<I>proxy_dir</I>&quot;
+		proxy_selection_plugin=&quot;<I>ProxyAll</I>&quot;
+		security_name=&quot;<I>vofrontend1</I>&quot;&gt;
+		</div>
+	Grid proxy to use is located in the classad_proxy directory and you must
+	specify the full path to the proxy. security_name signifies the name
+	under which the frontend is registered with the factory. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;security&gt;&lt;proxies&gt;&lt;proxy
+		absfname=&quot;<I>proxy</I>&quot;
+		security_class=&quot;<I>frontend</I>&quot;/&gt;
+		</div>
+	The location of the proxy the VO Frontend forwards to the factory for
+	use in submitting glideins. You can have multiple proxy entries
+	listed here. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;stage
+		base_dir=&quot;<I>web_dir</I>&quot;
+		web_base_url=&quot;<I>URL</I>&quot; /&gt;
+		</div>
+	The location of the web server directories. It is
+	the staging area where the files needed to run you job are located
+	(i.e. condor). You may need to change this according to your
+	requirements. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;work
+		base_dir=&quot;<I>directory</I>&quot; /&gt;
+		</div>
+		This defines the path to the VO Frontend directory. 
+	</P></li>
+        <LI><P>
+                <div class="xml">
+                &lt;frontend&gt;&lt;files&gt;&lt;file
+                absfname=&quot;<I>filepath</I>&quot;
+                relfname=&quot;<I>filename</I>&quot;
+                executable=&quot;<I>boolean</I>&quot; /&gt;
+                </div>
+        The file parameters are used to specify the location
+        of additional files. The grid mapfile location must be specified.
+        </P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;attrs&gt;&lt;attr
+		name=&quot;<I>attr_name</I>&quot;
+		value=&quot;<I>value</I>&quot;
+		parameter=&quot;True&quot;
+		type=&quot;string&quot;
+		glidein_publish=&quot;<I>boolean</I>&quot;
+		job_publish=&quot;<I>boolean</I>&quot; &gt;
+		</div>
+	The following three attributes are required to be set
+	in the frontend requests and/or published for jobs. Others can be
+	specified as well. 
+	</P>
+	<UL>
+		<LI><P>
+			<div class="xml">
+			&lt;attr name=&quot;GLIDEIN_Collector&quot; &gt;
+			</div>
+		The contains the name of the pool collector, i.e.
+		mymachine.mydomain.</P></li>
+		<LI><P>
+			<div class="xml">
+			&lt;attr name=&quot;GLIDEIN_Expose_Grid_Env&quot; &gt;
+			</div>
+		This determines if you want to expose the user to
+		the grid environment.</P></li>
+		<LI><P>
+			<div class="xml">
+			&lt;attr name=&quot;USE_MATCH_AUTH&quot; &gt;
+			</div>
+		This determines whether or not you want to use match
+		authentication. You specify the match expression in a 
+		group section of the config file.</P></li>
+		<LI><P>
+			<div class="xml">
+			&lt;attr name=&quot;GLIDEIN_Glexec_Use&quot; &gt;
+			</div>
+		This determines whether or not you want to mandate
+		the use of GLEXEC. Possible values are 
+			NONE (do not use GLEXEC) or
+			OPTIONAL (use GLEXEC if the site is configured with it) 
+			or REQUIRED (Always use GLEXEC). 
+		Mandating the use of GLEXEC also enforces the
+		factory to submit jobs to sites that have GLEXEC configured.
+		</P></li>
+	</UL>
 </UL>
-
-<P>The following group parameters are used to configure multiple frontends.  If only one group is specified, they apply to all frontends.  The objects specified are used for creating and monitoring glideins.</P>
+	<P>Other attributes can be specified as well. They are used by the
+	VO frontend matchmaking and job matchmaking. The format is similar
+	to the attributes on the Factory config file. The table below
+	describes the &lt;attrs ... &gt; tag in more detail. 
+	</P>
+	<table class="requirements">
+		<TR class="head">
+			<TD> <P><B>Attribute Name</B></P> </TD>
+			<TD> <P><B>Attribute Description</B></P> </TD>
+		</TR>
+		<TR>
+			<TD> <P><b>name</b></P> </TD>
+			<TD> <P>Name of the attribute</P> </TD>
+		</TR>
+		<TR>
+			<TD> <P><b>value</b></P> </TD>
+			<TD> <P>Value of the attribute</P> </TD>
+		</TR>
+		<TR>
+			<TD> <P><b>const</b></P> </TD>
+			<TD>
+				<P>
+				If set to True, the attribute will be 
+				available in the constants file created in 
+				the staging area. Used only if
+				parameter is True.</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD> <P><b>parameter</b></P> </TD>
+			<TD> <P>Set to True if the attribute should 
+				be passed as a parameter.  Always set this 
+				to True unless you know what you are doing.</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD> <P><b>glidein_publish</b></P> </TD>
+			<TD> <P>If set to True, the attribute will be available in the condor_startd's classad. Used only if parameter is True.</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD> <P><b>job_publish</b></P> </TD>
+			<TD> <P>If set to True, the attribute will be available in the user job's environment. Used only if parameter is True.</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD> <P><b>comment</b></P> </TD>
+			<TD> <P>You can specify description of the attribute here.</P>
+			</TD>
+		</TR>
+		<TR>
+			<TD> <P><b>type</b></P> </TD>
+			<TD> <P>Type of the attribute. Supported types are 'int', 'string' and 'expr'. Type expr is equivalent to condor constant/expression in condor_vars.lst</P>
+			</TD>
+		</TR>
+	</TABLE>
+	<P>An example attribute would be:</P>
+		<div class="xml" style="padding-left:30px;">
+		&lt;attrs&gt;&lt;attr name=&quot;GLIDEIN_Collector&quot; value=&quot;mymachine.mydomain&quot; publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”Just a test attribute”/&gt;
+		</div>
+<P>The following group parameters are used to configure multiple
+frontends. If only one group is specified, they apply to all
+frontends. The objects specified are used for creating and monitoring
+glideins.</P>
 <UL>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>group name</b>="<i>name</i>" <b>enabled</b>="<i>boolean</i>" &gt;</font><br>This specifies the name of the group and whether it is enabled.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>config</b>&gt;</font><br>The parameters listed here define how many glideins to create and maintain, such as <font face="monospace">idle_glideins_per_entry</font> and <font face="monospace">running_glideins_per_entry</font>.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>match match_expr</b>="<i>expr</i>" &gt;</font><br>A Python boolean expression is used to match glideins to jobs.  The glidein and job dictionaries are used in the expression, i.e. glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",").  If you want to match all, just specify True.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>group</b>&gt;&lt;<b>match</b>&gt;&lt;<b>factory query_expr</b>="<i>expr</i>" &gt;</font><br>A Python expression that specifies a factory constraint.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>group</b>&gt;&lt;<b>match</b>&gt;&lt;<b>factory</b>&gt;&lt;<b>match attrs</b>&gt;&lt;<b>match attr name</b>="<i>name</i>" &gt;</font><br>A list of glidein factory attributes used in the factory match expression.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>group</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job query_expr</b>="<i>expr</i>" &gt;</font><br>A Python expression that specifies a job constraint.
-        </p></li>
-        <li><p><font face="monospace">&lt;<b>frontend</b>&gt;&lt;<b>groups</b>&gt;&lt;<b>group</b>&gt;&lt;<b>match</b>&gt;&lt;<b>job</b>&gt;&lt;<b>match attrs</b>&gt;&lt;<b>match attr name</b>="<i>name</i>" &gt;</font><br>A list of job attributes used in the factory match expression.
-        </p></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;group
+		name=&quot;<I>name</I>&quot;
+		enabled=&quot;<I>boolean</I>&quot; &gt;
+		</div>
+	This specifies the name of the group and whether it is enabled. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;config&gt;
+		</div>
+	The parameters listed here define how many glideins to create and
+	maintain, such as idle_glideins_per_entry 
+	and running_glideins_per_entry. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;match
+		match_expr=&quot;<I>expr</I>&quot; &gt;i
+		</div>
+	A Python boolean expression is used to match glideins
+	to jobs. The glidein and job dictionaries are used in the
+	expression, i.e. glidein[&quot;attrs&quot;][&quot;GLIDEIN_Site&quot;]
+	in job[&quot;DESIRED_Sites&quot;].split(&quot;,&quot;). If you want
+	to match all, just specify True. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory query_expr=&quot;<I>expr</I>&quot; &gt;
+		</div>
+		A Python expression that specifies a factory constraint. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;factory&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
+		</div>
+	A list of glidein factory attributes used in the
+	factory match expression. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job
+		query_expr=&quot;<I>expr</I>&quot; &gt;
+		</div>
+		A Python expression that specifies a job constraint. 
+	</P></li>
+	<LI><P>
+		<div class="xml">
+		&lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;match&gt;&lt;job&gt;&lt;match attrs&gt;&lt;match attr name=&quot;<I>name</I>&quot; &gt;
+		</div>
+		A list of job attributes used in the factory match expression. 
+	</P></li>
 </UL>
+</div>
 
-
-
-<H2><A NAME="run_daemon"></A>Starting a VO Frontent Daemons</H2>
+<div class="section">
+<H2 CLASS="western"><A NAME="run_daemon"></A>Starting a VO Frontend
+Daemon</H2>
 <P>Once you have the desired configuration file, move to the VO
 frontend directory&nbsp; and launch the command:</P>
-<DL>
-	<DD><PRE>./frontend_startup start</PRE><DD>
-	<BR>
-	</DD>
-</DL>
-All the activity messages will go into
-<blockquote>
-	<FONT FACE="monospace">group_*/log/frontend_info.&lt;date&gt;.log</FONT>
-</blockquote>
-while the warnings go into
-<blockquote>
-	<FONT FACE="monospace">group_*/log/frontend_err.&lt;date&gt;.log</FONT><
-</blockquote>
+	<blockquote>./frontend_startup start</blockquote>
 <P>
-<A NAME="ref"></A>The frontend logs are deleted after a week.<BR><BR><BR><BR>
+All the activity messages will go into 
 </P>
-<TABLE WIDTH=100% BORDER=0 CELLPADDING=2 CELLSPACING=2>
-	<TR VALIGN=TOP>
-		<TD>
-			<H2 ALIGN=LEFT>Repository</H2>
-			<H3 ALIGN=LEFT>CVSROOT</H3>
-			<P ALIGN=LEFT>cvsuser@cdcvs.fnal.gov:/cvs/cd</P>
-			<H2 ALIGN=LEFT>Package(s)</H2>
-			<P ALIGN=LEFT>glideinWMS/frontend</TD>
-		<TD>
-			<H2 ALIGN=LEFT>Author(s)</H2>
-			<P ALIGN=LEFT>Since Aug. 14th - Igor Sfiligoi (Fermilab Computing
-			Division)</TD>
-	</TR>
-</TABLE>
-<P><BR><BR>
+	<BLOCKQUOTE>group_*/log/frontend_info.&lt;date&gt;.log</BLOCKQUOTE>
+<P>while the warnings go into </P>
+	<BLOCKQUOTE>group_*/log/frontend_err.&lt;date&gt;.log</BLOCKQUOTE>
+<P><A NAME="ref"></A>
+	The frontend logs are deleted after a week.
 </P>
+</div></div>
+<p> <b>CVSROOT:</b> cvsuser@cdcvs.fnal.gov:/cvs/cd </p>
+<p> <b>Packages:</b> glideinWMS </p>
+<p> <b>glideinWMS Support:</b> glideinwms-support@fnal.gov</p>
+
 </BODY>
 </HTML>
