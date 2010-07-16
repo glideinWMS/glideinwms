@@ -50,7 +50,7 @@ class MonitoringConfig:
                                                      "(completed_jobs_\..*\.log)",
                                                      max_days,min_days,max_mbs)
 
-    def logCompleted(self,entered_dict):
+    def logCompleted(self,client_name,entered_dict):
         now=time.time()
 
         job_ids=entered_dict.keys()
@@ -64,13 +64,16 @@ class MonitoringConfig:
         try:
             for job_id in job_ids:
                 el=entered_dict[job_id]
+                username=el['username']
                 jobs_duration=el['jobs_duration']
                 waste_mill=el['wastemill']
-                fd.write(("<job %37s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
-                                                            ('id="%s"'%job_id),
-                                                            ('duration="%i"'%el['duration']),
-                                                            ('condor_started="%s"'%(el['condor_started']==True)),
-                                                            ('condor_duration="%i"'%el['condor_duration'])))+
+                fd.write(("<job %37s %34s %22s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
+                                                                 ('client="%s"'%client_name),
+                                                                 ('username="%s"'%username),
+                                                                 ('id="%s"'%job_id),
+                                                                 ('duration="%i"'%el['duration']),
+                                                                 ('condor_started="%s"'%(el['condor_started']==True)),
+                                                                 ('condor_duration="%i"'%el['condor_duration'])))+
                          ("<user %14s %17s %16s %19s/>"%(('jobsnr="%i"'%el['jobsnr']),
                                                          ('duration="%i"'%jobs_duration['total']),
                                                          ('goodput="%i"'%jobs_duration['goodput']),
@@ -538,6 +541,7 @@ class condorLogSummary:
 
             # get stats
             enle_stats=enle[4]
+            username='unknown'
             enle_condor_started=0
             enle_condor_duration=0 # default is 0, in case it never started
             enle_glidein_duration=enle_difftime # best guess
@@ -545,6 +549,8 @@ class condorLogSummary:
                 enle_condor_started=enle_stats['condor_started']
                 if enle_stats.has_key('glidein_duration'):
                     enle_glidein_duration=enle_stats['glidein_duration']
+                if enle_stats.has_key('username'):
+                    username=enle_stats['username']
             if not enle_condor_started:
                 # 100% waste_mill
                 enle_nr_jobs=0
@@ -596,7 +602,8 @@ class condorLogSummary:
                         enle_terminated_duration=enle_jobs_duration # cannot be more
                     enle_waste_mill['badput']=1000.0*(enle_glidein_duration-enle_terminated_duration)/enle_glidein_duration
 
-            out_list[enle_job_id]={'duration':enle_glidein_duration,'condor_started':enle_condor_started,'condor_duration':enle_condor_duration,
+            out_list[enle_job_id]={'username':username,
+                                   'duration':enle_glidein_duration,'condor_started':enle_condor_started,'condor_duration':enle_condor_duration,
                                    'jobsnr':enle_nr_jobs,'jobs_duration':{'total':enle_jobs_duration,'goodput':enle_goodput,'terminated':enle_terminated_duration},
                                    'wastemill':enle_waste_mill}
         
@@ -770,11 +777,17 @@ class condorLogSummary:
             for k in client_el.keys():
                 client_el[k]={'Entered':[],'Exited':[]}
                 tdata=client_el[k]
+                #flatten all usernames into one
                 for username in self.stats_diff[client_name].keys():
                     sdiff=self.stats_diff[client_name][username]
                     if ((sdiff!=None) and (k in sdiff.keys())):
                         for e in tdata.keys():
-                            tdata[e]=tdata[e]+sdiff[k][e]
+                            for sdel in sdiff[k][e]:
+                                # for completed jobs, add the username
+                                # not for the others since there is no adequate place in the object
+                                if k=='Completed':
+                                    sdel[4]['username']=username
+                                tdata[e].append(sdel)
             out_data[client_name]=client_el
         return out_data
 
@@ -890,11 +903,7 @@ class condorLogSummary:
                 elif s=='Completed':
                     completed_stats=self.get_completed_stats(entered_list)
                     if client_name!=None: # do not repeat for total
-                        # Here we lost the detail of which username was used
-                        # this will make the debugging difficult
-                        # Should move somewhere else where we do have this detail
-                        # But not today (To be written)
-                        monitoringConfig.logCompleted(completed_stats)
+                        monitoringConfig.logCompleted(client_name,completed_stats)
                     completed_counts=self.summarize_completed_stats(completed_stats)
 
                     # save simple vals
