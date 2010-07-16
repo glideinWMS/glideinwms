@@ -381,7 +381,14 @@ trap 'on_die' TERM
 trap 'on_die' INT
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
 $CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/monitor/condor_master2.pid &
-wait `cat $PWD/monitor/condor_master2.pid`
+
+# Wait for a few seconds to make sure the pid file is created, 
+# then wait on it for completion
+sleep 5
+if [-e "$PWD/monitor/condor_master2.pid"]
+	echo "=== Condor started in background, now waiting on process `cat $PWD/monitor/condor_master2.pid` ==="
+	wait `cat $PWD/monitor/condor_master2.pid`
+fi
 condor_ret=$?
 
 
