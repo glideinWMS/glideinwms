@@ -385,7 +385,7 @@ $CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/monitor/condor_maste
 # Wait for a few seconds to make sure the pid file is created, 
 # then wait on it for completion
 sleep 5
-if [-e "$PWD/monitor/condor_master2.pid"]
+if [ -e "$PWD/monitor/condor_master2.pid" ]; then
 	echo "=== Condor started in background, now waiting on process `cat $PWD/monitor/condor_master2.pid` ==="
 	wait `cat $PWD/monitor/condor_master2.pid`
 fi
