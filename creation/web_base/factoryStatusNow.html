@@ -21,7 +21,9 @@ var thead;
 var updated; 
 var numberRows = 0;
 var totalEntriesMaster;
-var totalEntries; 
+var totalEntries;
+var totalEntriesMast; 
+var totalMas;  
 var totalMaster; 
 var total;
 var sorted = 0;
@@ -37,6 +39,7 @@ var txt2 = new Array(1000);
 var count = 0; 
 var tableMade = 0;  
 var index = 0; 
+var active = 0; 
 
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
@@ -262,11 +265,21 @@ function sortAlphabetical()
 		totalEntries = totalEntriesMaster;
 		total = totalMaster; 
 		numberRows = totalEntries.length;
+		if(active)
+		{
+			active = 0; 
+			selectActive();	
+		}
 		makeTable(); 
 		fillIn();  
 		return; 
 	}
 	loadFrontEnd(nameLast); 
+	if(active)
+	{
+		active = 0; 
+		selectActive();	
+	}
 }
 
 function makeList()
@@ -357,19 +370,44 @@ function checkUrl()
 				{
 					if(temp[j+1].search(/total/i) >= 0)
 					{
-						continue;   	
+						if(temp[j+1].search(/active/i) >= 0)
+						{
+							active = 0; 
+							selectActive(); 
+							document.getElementById("active").checked = true; 
+						}
+						else
+						{
+							continue;
+						}
 					} 
-					if(temp[j+1].search(/Any/i) >= 0)
+					if(temp[j+1] == "Any")
 					{
 						loadFrontEnd("Any"); 
 						select.selectedIndex += 1   	
 					}
-					for(z = 0; z< feArryMaster.length; z++)
+					if(temp[j+1] == "Any+active" || temp[j+1] == "Any+Active")
+					{
+						loadFrontEnd("Any"); 
+						select.selectedIndex += 1
+						active = 0; 
+						selectActive(); 
+						document.getElementById("active").checked = true;    	
+					}	
+					for(z = 0; z < feArryMaster.length; z++)
 					{
 						if(temp[j+1] == feArryMaster[z].attributes.getNamedItem("name").firstChild.data)	
 						{
 							loadFrontEnd(temp[j+1]);
-							select.selectedIndex = z + 1;  
+							select.selectedIndex = z + 2;
+						}
+						else if(temp[j+1] == (feArryMaster[z].attributes.getNamedItem("name").firstChild.data + "+active"))
+						{	
+							loadFrontEnd(feArryMaster[z].attributes.getNamedItem("name").firstChild.data);
+							select.selectedIndex = z + 2;
+							active = 0; 
+							selectActive(); 
+							document.getElementById("active").checked = true;  
 						}
 					}
 					break; 			
@@ -406,22 +444,39 @@ function loadFrontEnd(name)
 		{
 			tableMade = 0;
 			sorted = 0; 
+			if(active)
+			{
+				active = 0;
+				selectActive(); 	
+			}
 			sortTableDescending(col); 
 			sortTableAscending(col);
 			return;   	
 		}
 		else if(sorted == 1 && currentSort == "descending")
 		{
+			if(active)
+			{
+				active = 0;
+				selectActive(); 	
+			}
 			tableMade = 0;
 			sorted = 0;
 			sortTableDescending(col); 
 			sortSignal(); 
 			return; 
 		}
-		
-		fillIn(); 
-		return; 	
-		
+		else
+		{
+			if(active)
+			{
+				active = 0;
+				selectActive(); 
+				return; 	
+			}
+			fillIn(); 
+			return; 
+		}
 	} 
 	
    	nameLast = name; 
@@ -470,12 +525,19 @@ function loadFrontEnd(name)
 	feTotal.push(1);
 	total = feTotal;
 	numberRows = totalEntries.length; 
+	totalEntriesMast = totalEntries; 
+	totalMast = total; 
 	count = 0;
 	if(sorted == 1 && currentSort == "ascending")
 	{
 		sorted = 0; 
 		currentSort;
 		makeTable();  
+		if(active)
+		{
+			active = 0;
+			selectActive(); 	
+		}
 		sortTableDescending(col); 
 		sortTableAscending(col);
 		return;   	
@@ -484,13 +546,24 @@ function loadFrontEnd(name)
 	{
 		sorted = 0; 
 		currentSort;
-		makeTable();  
+		makeTable(); 
+		if(active)
+		{
+			active = 0;
+			selectActive(); 	
+		} 
 		sortTableDescending(col); 
 		sortSignal(); 
 		return; 
 	}
 	else
 	{
+		if(active)
+		{
+			active = 0; 
+			selectActive(); 
+			return; 	
+		}
 		fillIn();
 	}
 }
@@ -610,7 +683,13 @@ function loadXMLDoc()
 	  
 	//Wait for server to reply that it is ready.   
 	xmlhttp.onreadystatechange=function()
-	{
+	{	
+	
+		if(!active)
+		{
+			document.getElementById("active").checked = false; /* Reset active check box. */
+		}
+		
 		if (xmlhttp.readyState==4) //If 4 it it is ready. 
     	{
 			updated = xmlhttp.responseXML.documentElement.getElementsByTagName("updated"); 
@@ -630,8 +709,16 @@ function loadXMLDoc()
 				{
 					currentSort;
 					sorted = 0;
-					updating = 0; 
-					makeTable();
+					updating = 0;
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
+					else
+					{
+						makeTable();
+					}
 					tableMade = 0;  
 					sortTableDescending(col); 
 					sortSignal();
@@ -643,7 +730,15 @@ function loadXMLDoc()
 					currentSort;
 					sorted = 0;
 					updating = 0; 
-					makeTable();
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
+					else
+					{
+						makeTable();
+					}
 					tableMade = 0;  
 					sortTableDescending(col);
 					sortTableAscending(col);
@@ -657,6 +752,11 @@ function loadXMLDoc()
 					updating = 0;
 					makeTable();
 					loadFrontEnd(preFrontEndName);
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
 					return; 
 				}
 				/**/
@@ -666,7 +766,12 @@ function loadXMLDoc()
 					sorted = 0; 
 					frontEnd = 0; 
 					updating = 0;
-					loadFrontEnd(preFrontEndName); 
+					loadFrontEnd(preFrontEndName);
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					} 
 					tableMade = 0; 
 					sortTableDescending(col); 
 					sortTableAscending(col);
@@ -679,11 +784,22 @@ function loadXMLDoc()
 					frontEnd = 0;
 					updating = 0; 
 					loadFrontEnd(preFrontEndName); 
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
 					tableMade = 0; 
 					sortTableDescending(col);
 					sortSignal();
+					
 					return; 
 				}
+			}
+			if(active)
+			{	
+				active = 0; 
+				selectActive(); 	
 			}
 			updating = 0; 
 			preFrontEndName = "Total"; 
@@ -1340,22 +1456,199 @@ function goToLink()
 	
 	if(frontEnd != 0 && sorted != 0)
 	{
-		constructed = holder[0] + "?view=" + preFrontEndName + "&sort=" + col;
+		if(active)
+		{
+			constructed = holder[0] + "?view=" + preFrontEndName + "+active" + "&sort=" + col;
+		}
+		else
+		{
+			constructed = holder[0] + "?view=" + preFrontEndName + "&sort=" + col;
+		}
 	}
 	else if(frontEnd != 0 && sorted == 0)
 	{
-		constructed = holder[0]+ "?view="  + preFrontEndName;
+		if(active)
+		{
+			constructed = holder[0]+ "?view=" + preFrontEndName + "+active";
+		}
+		else
+		{
+			constructed = holder[0]+ "?view=" + preFrontEndName;
+		}
 	}
 	else if(frontEnd == 0 && sorted != 0)
 	{
-		constructed = holder[0] + "?sort=" + col;
+		if(active)
+		{
+			constructed = holder[0] + "?view=" + "active" + "?sort=" + col;
+		}
+		else
+		{
+			constructed = holder[0] + "?sort=" + col;
+		}
 	}
 	else
 	{
-		constructed = holder[0];
+		if(active)
+		{
+			constructed = holder[0] + "?view=total+" + "active";
+		}
+		else
+		{
+			constructed = holder[0];
+		}
 	}
 	document.location.href = constructed;
 			
+}
+
+function selectActive()
+{
+	var found; 
+	var activeEntries = new Array();
+	var activeTotal = new Array(); 
+	
+	if(active)
+	{
+		if(frontEnd)
+		{
+			totalEntries = totalEntriesMast;
+			total = totalMast;
+			tableMade = 0; 
+			numberRows = totalEntries.length;		
+			fillIn(); 
+			active = 0; 
+			if(sorted != 0 && currentSort == 'descending')
+			{
+				currentSort;
+				sorted = 0; 
+				tableMade = 0; 
+				sortTableDescending(col);
+				sortSignal();			
+				return; 
+			}
+			if(sorted != 0 && currentSort == 'ascending')
+			{
+				currentSort;
+				sorted = 0;
+				tableMade = 0;  
+				sortTableDescending(col);
+				sortTableAscending(col);
+				return; 
+			}
+			return;	
+		}
+		else
+		{
+			totalEntries = totalEntriesMaster;
+			total = totalMaster;
+			tableMade = 0; 
+			numberRows = totalEntries.length;		
+			fillIn(); 
+			active = 0;
+			if(sorted != 0 && currentSort == 'descending')
+			{
+				currentSort;
+				sorted = 0; 
+				tableMade = 0; 
+				sortTableDescending(col);
+				sortSignal();			
+				return; 
+			}
+			if(sorted != 0 && currentSort == 'ascending')
+			{
+				currentSort;
+				sorted = 0;
+				tableMade = 0;  
+				sortTableDescending(col);
+				sortTableAscending(col);
+				return; 
+			} 
+			return;
+		}
+	}
+	
+	for(i = 0; i < totalEntries.length; i++)
+	{
+		found = 0; 
+		if(total[i].childNodes.length != 0)
+		{
+			for(j = 0; j < total[i].childNodes[1].attributes.length; j++)
+			{
+				if(j == 3)
+				{
+					continue; 	
+				}
+				if(parseInt(total[i].childNodes[1].attributes[j].value) != 0)
+				{
+					activeEntries.push(totalEntries[i]);
+					activeTotal.push(total[i]);
+					found = 1; 
+					break;
+				}
+			}	
+			if(found)
+			{
+				continue; 	
+			}
+			for(k = 0; k < total[i].childNodes[3].attributes.length; k++)
+			{
+				if(k == 1)
+				{
+					continue; 	
+				}
+				if(parseInt(total[i].childNodes[3].attributes[k].value) != 0)
+				{
+					activeEntries.push(totalEntries[i]);
+					activeTotal.push(total[i]);
+					found = 1; 
+					break;
+				}
+			}
+			if(found)
+			{
+				continue; 	
+			}
+			for(l = 0; l < total[i].childNodes[5].attributes.length; l++)
+			{
+				if(parseInt(total[i].childNodes[5].attributes[l].value) != 0)
+				{
+					activeEntries.push(totalEntries[i]);
+					activeTotal.push(total[i]);
+					break;
+				}
+			}
+		}
+	} 
+	
+	active = 1;
+	activeTotal.push(1);
+	total = activeTotal; 
+	totalEntries = activeEntries;
+	numberRows = totalEntries.length;		
+	tableMade = 0; 
+	fillIn(); 
+	
+	if(sorted != 0 && currentSort == 'descending')
+	{
+		currentSort;
+		sorted = 0; 
+		tableMade = 0; 
+		sortTableDescending(col);
+		sortSignal();			
+		return; 
+	}
+	if(sorted != 0 && currentSort == 'ascending')
+	{
+		currentSort;
+		sorted = 0;
+		tableMade = 0;  
+		sortTableDescending(col);
+		sortTableAscending(col);
+		return; 
+	}
+
+	return; 
 }
 
 
@@ -1411,7 +1704,7 @@ td
 	padding: 0;
 	width: 170px;
 }
-#current
+#select
 {
 	color:#300;
 	font-size:12px;
@@ -1469,7 +1762,7 @@ td
 
 <h5 id = "total">(Total Entries)</h5>
 
-<div id = "current">Select a view: </div>
+<div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" o>Active only<br></div> 
 
 <div id = "tempList"></div>
 
@@ -1483,6 +1776,7 @@ td
 <div id = "header" > </div>
 <div id = "scroll"></div> 
 <div id = "hoverpopup"></div>
+
 
 </body>
 </html>
