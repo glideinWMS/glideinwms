@@ -10,9 +10,11 @@ var updated;
 var jobs; 
 var idle;
 var table;
-var thead;  
-var shortColumns = new Array("jobsIdle", "jobsOldIdle", "jobsRunning", "jobsTotal", "slotsIdle", "slotsRunning", "slotsTotal"); 
-var tableColumns = new Array("Idle", "Old Idle", "Running", "Total", "Idle", "Running", "Total"); 
+var thead; 
+var accessColumnsJobs = new Array(2,0,1,3);  
+var accessColumnsSlots = new Array(1,0,2);  
+var shortColumns = new Array("jobsRunning", "jobsIdle", "jobsOldIdle", "jobsTotal","slotsRunning",  "slotsIdle", "slotsTotal"); 
+var tableColumns = new Array("Running", "Idle", "Old Idle", "Total", "Claimed", "Unclaimed", "Total"); 
 var groups; 
 
 function showTime()
@@ -141,19 +143,27 @@ function fillIn()
 {
 	var i = 0; 
 	table = document.getElementById('table');
-	table.rows[0].childNodes[0].innerHTML = "main";
+	
+	/* Fill in the group names. */
+	for(i = 0; i < groups.length; i++)
+	{
+		table.rows[0].childNodes[0].innerHTML = groups[i].childNodes[1].attributes.getNamedItem('name').value;
+	}
+	
+	/* Fill in all the values. */
 	for(i = 0; i< jobs[0].attributes.length; i++)
 	{
-		var y = jobs[0].attributes[i].value; 
+		var y = jobs[0].attributes[accessColumnsJobs[i]].value; 
 		table.rows[0].childNodes[i + 1].innerHTML = y;
 	} 
 	k = 0; 
 	for(; i< jobs[0].attributes.length + slots[0].attributes.length; i++)
 	{
-		var y = slots[0].attributes[k].value; 
+		var y = slots[0].attributes[accessColumnsSlots[k]].value; 
 		table.rows[0].childNodes[i + 1].innerHTML = y;
 		k++; 	
 	}	
+	
 }
 </script>
 <style = "text/css">
@@ -223,4 +233,3 @@ td
 
 </body>
 </html>
-<html><body></body></html>
