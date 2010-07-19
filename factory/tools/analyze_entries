@@ -1,7 +1,7 @@
-#!/usr/local/bin/python
+#!/bin/env/python
 
 ###########################################################
-# analyze_entries_v1.py
+# analyze_entries.py - v2.0
 # created 6/10/2010, author Alison McCrea amccrea@ucsd.edu
 #
 # This script monitors the general status of glideins via logs, 
@@ -14,6 +14,9 @@
 # (These are not mutually exclusive: validation problems
 #      imply badput timeouts and 0 jobs/glidein already;
 #      This will be addressed in later versions.)
+#
+# It also monitors the used and wasted walltime, and has
+#     added sorting options (sort by client and by user).
 #
 # Planned future additions:
 #   - **stats for today, yesterday, and avg of last 7 days
@@ -44,39 +47,58 @@ def main():
 
     usage = """
     Usage:
+       
        -r [# without %] : minimum % of problematic jobs to be reported (default 50)
+
+       [SORTING with USER/FRONTEND]
+       -u : sort by users (ex: user_fecms)
+       -f : sort by clients/frontends (ex: UCSD-v5_0.main) 
+
+       [SINGLE ENTRY/USER/FRONTEND]
+       -e [entry_CMS_T#_...]: check logs from this entry only
+        
+       [TIME INTERVALS]
        -i [mm.dd-mm.dd] : (ex: 05.28-06.05) specify an interval over which check
                logs - no whitespace (current year assumed)
        -t [hh]: [00-24] include logs that completed starting hh hours ago
        -y : check yesterday's logs only [00:00 - 23:59]
-       -e [entry_CMS_T#_...]: check logs from this entry only
-       -h, -help : this help message
-       -o [abspath] : specify loc of outputted report (default ~)
+
+       [LOCATIONS]
+       -o [abspath] : specify loc of outputted report (default ~ (user's home))
        -g [v#_#] : specify g_factory version (default v3_1)
+ 
+       [HELP]      
        -d, -debug : print debug messages (default off)
-       -u [username (UID)] (ex: fecms) : check logs from this user ID only
-       -f [frontend] (ex:hcc-glidein-v1_0.main) : check logs from this frontend only 
+       -h, -help : this help message
     """
+       #*-ul : list users
+       #*-fl : list frontends
+       #*-n [-u or -f] : sort by entry (and secondarily by user or frontend)
+       #*-s [username] (ex: fecms) : check logs from this user ID only
+       #*-c [client] (ex:hcc-glidein-v1_0.main) : check logs from this client only
        #-l [PATH relative to home] : specify loc of gfactory (default is ../..)
        #-v : only check condor activity logs for jobs being held (no report generated)
     
     ### Defaults ###
 
-    interval          = 0        # flag
-    ratio             = "50"
-    hours_ago         = 0
-    yesterday         = 0        # flag
-    check_only_one    = 0        # flag
-    report_base       = os.path.expanduser("~")  
+    interval          = 0        # flag - if checking over an interval of days
+    ratio             = "50"     
+    hours_ago         = 0        # flag - how many hours ago to check (flag off if 0)
+    yesterday         = 0        # flag - check only yesterday's logs
+    check_only_one    = 0        # flag - check only one entry
+    report_base       = os.path.expanduser("~")  # where report is outputted
     gfactory_version  = "v3_1"
     gfactory_location = "../.."
-    debug             = 0        # flag
-    uid               = "0"
-    frontend          = "0"
-    #activity_logs     = 0
+    debug             = 0        # flag - print debug messages
+    uid               = 0        # check logs from this user id only
+    frontend          = 0        # check logs from this frontend only
+    sort_user         = 0
+    sort_client       = 0
+    sort_entry        = 0
+
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:], "r:i:t:ye:ho:l:g:d"); #v");
+        opts, args = getopt.getopt(sys.argv[1:], "r:i:t:ye:ho:l:g:dufc:s:"); #v");
     except getopt.GetoptError:
         print("\n Option not recognized or missing parameters.")
         print(" Use -h for usage.\n")
@@ -119,14 +141,22 @@ def main():
             debug = 1
             print "\nDebug mode\n"
         elif o == "-u":
-            uid = a
+            sort_user = 1 
         elif o == "-f":
+            sort_client = 1
+        elif o == "-n":
+            sort_entry = 1
+        elif o == "-s":
+            uid = a
+        elif o == "-c":
             frontend = a
         #elif o == "-v":
         #    activity_logs = 1
         else: 
             print("\n Option not recognized or missing parameters.")
             print(" Use -h for usage.\n")
+
+
 
     ###-------- Compile list of entry points to check --------###
 
@@ -139,16 +169,16 @@ def main():
         entries.append(only_entry)
     
     else: 
-        dirlist = os.listdir(os.getcwd()) # everything in the production folder
-        delim = ","                         # deliminator
-        dir2 = delim.join(dirlist)          # convert list into string deliminated by commas
+        dir_list = os.listdir(os.getcwd()) # everything in the production folder
+        dir_list_string = ','.join(dir_list)          # convert list into string deliminated by commas
 
-        entries = re.findall("entry_[^ ,]*", dir2) # list of entry points
+        entries = re.findall("entry_[^ ,]*", dir_list_string) # list of entry points
 
         if debug == 1: 
             print "Looking for entries in", os.getcwd(), "..."
             print len(entries), " entries found.\n"    
-            #print "List of entries to check: ", entries          
+
+
 
     ###-------- Set interval (in which jobs complete) to check --------###
 
@@ -262,11 +292,14 @@ def main():
     job_end_time = "terminated=\"" + job_end_time1 + "-07:00\""
     if debug == 1: print "job_start: %s, job end %s.\n" % (job_start_time, job_end_time)
 
+
+
     ###----- Start collecting data -----###
 
     #May need to grab from client_log directory instead 
     os.chdir("client_log")
     users = os.listdir(os.getcwd())
+    if debug == 1: print users
     # need user_fesleep?
     
     os.chdir("../log")
@@ -274,22 +307,32 @@ def main():
     # total-so-far dictionaries (ones to be presented at end)
     # ex: condor_start_d = {entry_1: bad-total; entry 2: 124-100; ...}
     condor_start_d = {}
-    jobsnr_d = {}
     validation_d = {}
+    jobsnr_d = {}
     badput_d = {}
-    duration_d = {} 
+    duration_d = {}
+    client_d = {}
+    username_d = {} 
 
+    user_jobs = {}
+    client_jobs = {}
+    #for i in users:
+    #    i = [condor_start_d, validation_d, jobsnr_d, badput_d]
+    #    user_list.append(i)
+    
     total_glideins = 0
     total_jobs = 0
     time_used = 0 
     time_wasted = 0
 
-    for e in entries:
+    client_glidein_total = {}
+    user_glidein_total = {}
 
+    for e in entries:
+        
         joblist = []
 
-    # Turn this back on later
-    #    if debug == 1: print "Checking " + e +  "..."
+        if debug == 1: print "Checking " + e +  "...",
 
         if os.path.exists(e):
             os.chdir(e)
@@ -315,33 +358,38 @@ def main():
                     if ((interval == 1 or hours_ago != 0) and len(term_time) > 0):
                         if ((term_time[0] > job_start_time) or (term_time[0] < job_end_time)):
                             joblist.append(j)
-                    else: joblist.append(j)
+                    else: 
+                        joblist.append(j)
+
         total_glideins = total_glideins + len(joblist)           
  
         #if debug == 1: print "job count = ", len(joblist)  
         if len(joblist) == 0: 
             os.chdir("..")
+            if debug == 1: print "No jobs."
             continue        
          
         # Have job list with specific jobs,
         #    now search for problems.
         
+        # these lists have specific params we need to keep track of.
         ids = []
         term_times = []
         durations = []
-        condor_start_total = []
-        jobsnr_total = []
-        validation_total = []
-        goodput_total = []
-        badput_total = []
         clients = []
         usernames = []
-
+        goodput = []
         
+        # these lists contain only the problematic sites; 
+        #    for example only the sites where badput = 1000 or jobs = 0.
+        condor_start_total = []   # badput = 1000
+        jobsnr_total = []         # jobs_nr = 0
+        validation_total = []     # validation = 1000
+        badput_total = []         # badput = 1000
 
         # Lists of attributes for all glideins (id = [52334, 14614, ...]]
         totals_list = [ids, term_times, durations, condor_start_total, 
-                           jobsnr_total, validation_total, goodput_total, 
+                           jobsnr_total, validation_total, goodput, 
                                               badput_total, clients, usernames]
         
         total_re_list = ['id=\"\d{5}.\d{3}\"', 'terminated=\"\S*\"', 'duration=\"\d*\"', 
@@ -349,60 +397,95 @@ def main():
                          'validation=\"\d*\"','goodput=\"\d*\"','badput=\"\d*\"',
                          'client=\"\S*\"','username=\"\S*\"']
 
-
-               
         # Lists of all glideins (condor_start_total = ["False", "True",...])
         list_list = [condor_start_total, validation_total, 
                      jobsnr_total,   badput_total]
 
         dictionary_list = [condor_start_d, validation_d, jobsnr_d, badput_d]
         problem_re_list = ["False", "1000", "0", "1000"]
- 
+        #print "\n\n\njoblist count for", e, "=", len(joblist)
+        temp5 = 0
         for j in joblist:
             for i in range(len(totals_list)):
                temp = re.findall(total_re_list[i], j)
                if len(temp) > 0: 
                    totals_list[i].append(temp[0])
 
+            if sort_client == 1:
+                job_client = ''.join(re.findall('client=\"\S*\"',j))
+                job_client = (job_client.lstrip("client=\"")).rstrip("\"")
+                # ex. j_client/user = user_fecms; the client/user of this single job
+                # add this job to it's user/client's dictionary
+                
+                # job client checked and correct
+                if job_client not in client_jobs:
+                    client_jobs[job_client]= {}
+                if e not in client_jobs[job_client]:
+                    client_jobs[job_client][e] = []
+                client_jobs[job_client][e].append(j)
+
+                # add 1 to this job's client's glidein count
+                if job_client not in client_glidein_total:
+                    client_glidein_total[job_client] = 0
+                client_glidein_total[job_client] += 1
+    
+
+            if sort_user == 1:
+                job_user = ''.join(re.findall('username=\"\S*\"',j))
+                job_user = (job_user.lstrip("username=\"")).rstrip("\"")
+                # ex. j_client/user = user_fecms; the client/user of this single job
+                # add this job to it's user/client's dictionary
+                
+                # job client checked and correct
+                if job_user not in user_jobs:
+                    user_jobs[job_user]= {}
+                if e not in user_jobs[job_user]:
+                    user_jobs[job_user][e] = []
+                user_jobs[job_user][e].append(j)
+
+                # add 1 to this job's user's glidein count
+                if job_user not in user_glidein_total:
+                    user_glidein_total[job_user] = 0
+                user_glidein_total[job_user] += 1
+
         # total number of jobs
         for i in jobsnr_total:
             temp = re.findall("\d*",i)
             temp2 = ''.join(temp)
             total_jobs = total_jobs + int(temp2)
-
         # total cpu time utilized
-        for i in goodput_total:
+        for i in goodput:
             temp = re.findall("\d*",i)
             temp2 = ''.join(temp)
             time_used = time_used + int(temp2)
-
         # total cpu time wasted
         for i in badput_total:
             temp = re.findall("\d*",i)
             temp2 = ''.join(temp)
             time_wasted = time_wasted + int(temp2)
         
-        #print time_used, time_wasted
- 
         # for each list, count the matched corresponding regexes, calculate
         #     the ratio (problematic:good), and add to total dictionary
         #     under this entry (ex. validation = {entry_1: "50/300", ...}
-        
         count = 0
-        
         for j in range(len(list_list)):
             count = 0
             for i in list_list[j]:
                 temp = re.findall(problem_re_list[j], i)
+             #   if e == "entry_CMS_T2_ES_CIEMAT_lcg02":
+              #      print i, "\n\n"
+               #     print temp, "\n\n"
                 count = count + len(temp)
                 r = str(int(count/len(list_list[j])*100))
                 total = str(len(list_list[j]))
+            # ratio - total, ex: "56-200" = 56% of 200
             (dictionary_list[j])[e] = r + "-" + total  
+
 
         os.chdir("..")
 
-
-    ### Now we have all lists with specified jobs; make report: ### 
+    ###------------------- Make Report -------------------###
+   
     if check_only_one == 1: 
         ent = ":" + only_entry
         ent2 = ent
@@ -430,44 +513,153 @@ Glidein log analysis for %s, for %s%s
 Total Glideins: %s
 Total Jobs: %s (Average jobs/glidein: %.2f) 
 
-Total CPU time used: %s
-Total CPU time wasted: %s
+Total CPU time used: %s s (%.1f hours)
+Total CPU time wasted: %s s (%.1f hours)
 Time used/time wasted: %.2f
 CPU time efficiency: %.2f
-
-Percentage (> %s%%) of glideins which have:    
+-----------------------------------------
 """ % (ent2,title_start_time,title_end_time,total_glideins,total_jobs,
-      (total_jobs/total_glideins), time_used, time_wasted, 
-      (time_used/time_wasted), time_used/(time_used+time_wasted),ratio ))
+      (total_jobs/total_glideins), time_used, (time_used/3600), time_wasted, 
+      time_wasted/3600,time_used/time_wasted,time_used/(time_used+time_wasted)))
+
+
+    ## ---- Main Report Format --------------------- ##
 
     # for each dictionary, print out the culprits who exceed ratio r.
     # (dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d])
     desc_list = ["Condor startup failure:\n","Validation problems:\n",
                  "0 jobs per glidein\n", "No goodput:\n"]   
-      
-    for j in range(len(dictionary_list)):
+    
+    if sort_client == 0 and sort_user == 0:
 
-        to_be_printed = []
-        category_tot = 0
-        tot = ''
-        for a,b in dictionary_list[j].iteritems():
-            r = (re.findall("\d+\-",b)[0]).strip("-")
-            tot = (re.findall("\-\d+",b)[0]).strip("-")
-            if int(r) >= int(ratio):
-                to_be_printed.append("%-50s :%s%% / %s\n" % (a, r, tot))
-                category_tot = category_tot + (int(r)/100)*int(tot)
+        report.write("Percentage (> %s%%) of glideins which have:\n" % ratio)    
+
+        # dictionary list of entries = {entry 1: list_of_all_params; ...}  
+        for j in range(len(dictionary_list)): # for each entry
+
+            to_be_printed = []
+            category_tot = 0
+            tot = ''
+            # for each piece of the dictionary
+            #         (entry1, val) or (entry1, badput)
+            for a,b in dictionary_list[j].iteritems():
+                r = (re.findall("\d+\-",b)[0]).strip("-")
+                tot = (re.findall("\-\d+",b)[0]).strip("-")
+                if int(r) >= int(ratio):
+                    to_be_printed.append("%-50s %s%% / %s\n" % (a, r, tot))
+                    category_tot = category_tot + (int(r)/100)*int(tot)
         
-        category_percentage = category_tot/total_glideins
+            category_percentage = category_tot/total_glideins
 
-        report.write("\n%s(%s glideins - %.2f%% of total glideins)\n\n" 
-               % (desc_list[j], category_tot, category_percentage*100))
+            report.write("\n%s(%s glideins - %.2f%% of total)\n\n" 
+                   % (desc_list[j], category_tot, category_percentage*100))
 
-        for i in to_be_printed:
-            report.write(i)
-        report.write( "-----------------------------------\n" )
+            for i in to_be_printed:
+                report.write(i)
+            report.write( "-----------------------------------\n" )
 
+
+    ## ---- User/Client-Sort Report Format --------------------- ##
+
+    else:
+
+        #change users list based on -u or -f options
+        if sort_user or sort_client == 1:
+
+            if sort_user == 1:
+                report.write( "\nSorting by user.\n\n")
+            if sort_client == 1:
+                report.write( "\nSorting by client.\n\n")
+
+            final_dictionary = {}
+
+            if sort_user == 1:
+                final_dictionary = user_jobs
+                sort_glidein_total = user_glidein_total
+
+            elif sort_client == 1:
+                final_dictionary = client_jobs
+                sort_glidein_total = client_glidein_total
+
+
+            for clientuser, entry_dict in final_dictionary.iteritems():
+
+                report.write( "%-39s %4s %4s %5s %5s %6s %6s %9s\n" % 
+                     (clientuser,"start","val","0job","badp","waste","time","total"))
+
+                report.write( "%.2f glideins - %.2f%% of total\n\n" 
+                     % (sort_glidein_total[clientuser], sort_glidein_total[clientuser]/total_glideins*100))
+
+                for entry, job_list in entry_dict.iteritems():
+
+                     
+                    report.write( "%-39s" % entry ),
+           
+                    total = len(job_list)
+                    bad_start_count = 0
+                    bad_val_count = 0
+                    bad_0jobs_count = 0
+                    bad_badput_count = 0
+                    entry_time_wasted = 0
+                    entry_time_total = 0
+                        
+                    for job in job_list:
+                        start_list = re.findall('False',job)
+                        if len(start_list) != 0:
+                            bad_start_count += 1
+
+                        val_list = re.findall('validation="\d+"',job)
+                        val = re.findall("\d+", ",".join(val_list))
+                        if val[0] == "1000":
+                            bad_val_count += 1
+
+                        jobsnr_list = re.findall('jobsnr="\d+"',job)
+                        jobsnr = re.findall("\d+", ",".join(jobsnr_list))
+                        if jobsnr[0] == "0":
+                            bad_0jobs_count += 1
+
+                        badput_list = re.findall('badput="\d+"',job)
+                        badput = re.findall("\d+", ",".join(badput_list))
+                        if badput[0] == "1000":
+                            bad_badput_count += 1
+
+                        wasted_list = re.findall('badput="\d+"',job)
+                        badput = re.findall("\d+", ",".join(wasted_list))
+                        entry_time_total = entry_time_total + int(badput[0])
+                        entry_time_wasted = entry_time_wasted + int(badput[0])
+
+                        used_list = re.findall('goodput="\d+"',job)
+                        goodput = re.findall("\d+", ",".join(used_list))
+                        entry_time_total = entry_time_total + int(goodput[0])
+
+                    report.write( "%4s  %4s  %4s  %4s  %6.1f  %6.1f  %1s  %3s\n" % (
+                                str(int((bad_start_count/len(job_list)*100)))+"%",
+                    		str(int((bad_val_count/len(job_list)*100)))+"%",
+                    		str(int((bad_0jobs_count/len(job_list)*100)))+"%",
+                    		str(int((bad_badput_count/len(job_list)*100)))+"%",
+                    	        entry_time_wasted/3600,	
+                    		entry_time_total/3600,
+                                "|",
+                                len(job_list)))
+
+                report.write( "--------------------------------------\n")       
+
+        report.write("""
+KEY:
+
+start = condor failed to start
+val = failed to validate (hit 1000s limit)
+0jobs = 0 jobs/glidein
+badput = badput timeout (1000s)
+wasted = wallclock time wasted (hours)
+time = total wallclock time (hours)
+total = total number of glideins
+-------------------------------------
+        \n""")
 
     print "\n" + report_name + " output to " + report_base + ".\n"
+    
+
 
 if __name__ == "__main__":
     main()
