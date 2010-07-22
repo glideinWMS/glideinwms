@@ -592,6 +592,33 @@ following arguments:</P>
 		if you want to save on disk space 
 		</P>
 	</UL>
+	</li>
+	<li>
+		<div class="xml">
+		&lt;glidein&gt;&lt;entries&gt;&lt;entry
+		name=&quot;<I>entry name</I>&quot;&gt;
+		&lt;allow_frontends&gt;
+		&lt;allow_frontend name="vofrontend_name" 
+		security_class="security_class_name"&gt;
+		</div>
+		<p>
+		This argument allows you to create a whitelist of 
+		vo frontends that can access this entry point.
+		If this tag is blank or missing, it is assumed that
+		all vo frontends can submit glideins to this entry point.
+		However, if any allow_frontend tags exist, the entry point
+		will <b>only</b> allow those frontends to submit glideins.
+		The name of the frontend must match the name given in 
+		the security class above in the configuration.
+		</p>
+		<p>
+		For each frontend, you must tell it which security classes
+		(e.g. proxies) can use the frontend.  The factory will
+		only submit glideins on behalf of these security classes.
+		If you want all security classes to be allowed, you can put
+		"All" in this field.  Otherwise, it must match the security
+		class configuration higher up in the xml.
+		</p>
 </UL>
 <P>The other arguments are for advanced admins only, and are
 explained below.</P>

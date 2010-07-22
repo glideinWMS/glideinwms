@@ -250,7 +250,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def populate(self,params=None):
         if params==None:
             params=self.params
-
         sub_params=params.entries[self.sub_name]
 
         # put default files in place first
@@ -583,6 +582,17 @@ def populate_job_descript(work_dir,job_descript_dict,        # will be modified
     job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
+
+    #  If the configuration has a non-empty frontend_allowlist
+    #  then create a white list and add all the frontends:security_classes
+    #  to it.
+    white_mode="Off";
+    allowed_vos="";
+    for X in sub_params.allow_frontends.keys():
+        white_mode="On";
+        allowed_vos=allowed_vos+X+":"+sub_params.allow_frontends[X].security_class+",";
+    job_descript_dict.add("WhitelistMode",white_mode);
+    job_descript_dict.add("AllowedVOs",allowed_vos[:-1]);
 
 ###################################
 # Create the frontend descript file
