@@ -41,11 +41,10 @@ var tableMade = 0;
 var index = 0; 
 var active = 0; 
 
-
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
 							"cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinIdle", "cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
-							
+						
 var columnArry = new Array("statusrunning", "statusidle", "statuswait", "statuspending", "statusstagein", "statusstageout", "statusother", "statusheld",
 							"requestmax", "requestidle", 
 							"cmglideinrunning", "cmglideinjobsrunning", "cmglideinidle", "cmglideinjobsidle", "cmglideintotal", "cmglideininfoage");
@@ -183,18 +182,39 @@ function showPopUp(hoveritem)
 			td2 = document.createElement('td');
 			if(column > 0 && column < 9)
 			{
-				var attArry = new Array(4,1,7,3,5,6,2,0);
-				txt2 = document.createTextNode(sortedFE[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
+				if(sortedFE[i].childNodes.length >= 7)
+				{
+					var attArry = new Array(4,1,7,3,5,6,2,0);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
+				}
+				else
+				{
+					txt2 = document.createTextNode(0);
+				}
 			} 
 			else if(column == 9 || column == 10)
 			{
-				var attArry = new Array(1,0);
-				txt2 = document.createTextNode(sortedFE[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
+				if(sortedFE[i].childNodes.length >= 5)
+				{
+					var attArry = new Array(1,0);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
+				}
+				else
+				{
+					txt2 = document.createTextNode(0);
+				}
 			}
 			else
 			{
-				var attArry = new Array(1,5,0,4,2,3);
-				txt2 = document.createTextNode(sortedFE[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
+				if(sortedFE[i].childNodes.length >= 3)
+				{
+					var attArry = new Array(1,5,0,4,2,3);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
+				}
+				else
+				{
+					txt2 = document.createTextNode(0);
+				}
 			}
 			td.appendChild(txt); 
 			tr.appendChild(td);
@@ -575,7 +595,8 @@ function updateTable()
 }
 function fillIn()
 {
-	
+	problem = 0; 
+
 	if(tableMade == 0)
 	{
 		makeTable();
@@ -618,12 +639,12 @@ function fillIn()
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
-			if(total[i].childNodes.length != 0)
+			if(total[i].childNodes.length >= 7 && total[i].childNodes.length != 0)
 			{
 				var item = total[i].childNodes[5].attributes[attArry[attCount]].nodeValue;  	
 				table.rows[i].cells[counter].innerHTML = item; 			
 			}
-		}
+		}	
 		attCount++; 
  	}
 	
@@ -637,7 +658,7 @@ function fillIn()
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
-			if(total[i].childNodes.length != 0)
+			if(total[i].childNodes.length >= 5 && total[i].childNodes.length != 0)
 			{
 				var item = total[i].childNodes[3].attributes[attArry[attCount]].nodeValue;  	
 				table.rows[i].cells[counter].innerHTML = item; 
@@ -655,7 +676,7 @@ function fillIn()
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{	
-			if(total[i].childNodes.length != 0)
+			if(total[i].childNodes.length >= 3 && total[i].childNodes.length != 0)
 			{
 				var item = total[i].childNodes[1].attributes[attArry[attCount]].nodeValue; 	
 				table.rows[i].cells[counter].innerHTML = item; 
@@ -1050,7 +1071,7 @@ for(c = 0; c < row_num; c++)
 		
 		if( c > 0 )
 		{
-			cont = document.createTextNode(c+"")
+			cont = document.createTextNode(0+"")
 			cell[k].appendChild(cont);
 		}
 		
@@ -1395,7 +1416,11 @@ for(var i = 0; i< totalEntries.length; i++)
 {
 	if(total[i].childNodes.length != 0)
 	{
-	   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
+	   if((child == 5 && !(total[i].childNodes.length >= 7)) || (child == 3 && !(total[i].childNodes.length >= 5)) || (child == 1 && !(total[i].childNodes.length >= 3)))
+	   {
+		   return;    
+	   }
+	   else if(total[i].childNodes[child].attributes[att].nodeValue > 0)
 	   {
 		   newTotal.push(total[i]); 
 		   newEntries.push(totalEntries[i]); 
@@ -1407,7 +1432,7 @@ for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
 {
     for(var j = i+1; j < newTotal.length; j++)   // rest of the elements
     {
-		if (parseInt(newTotal[i].childNodes[child].attributes[att].nodeValue) <= parseInt(newTotal[j].childNodes[child].attributes[att].nodeValue))          
+		if(parseInt(newTotal[i].childNodes[child].attributes[att].nodeValue) <= parseInt(newTotal[j].childNodes[child].attributes[att].nodeValue))          
         {
             temp = newTotal[i];              // swap
 			newTotal[i] = newTotal[j];
@@ -1438,6 +1463,23 @@ for(var i = totalEntries.length -1; i >= 0; i--)
 		newEntries.push(totalEntries[i]); 	
 	}
 }
+
+
+for(i = 0 ; i < newTotal.length; i++)
+{
+	if(newTotal[i].childNodes.length != 0)
+	{ 
+	    if(newTotal[i].childNodes[child].attributes[att].nodeValue != 0)
+		{
+			break;
+		}
+	}
+	if(i == newTotal.length - 1)
+	{
+		return; 	
+	}
+}
+
 
 currentSort = "descending";
 newTotal.push(1);
@@ -1650,6 +1692,11 @@ function selectActive()
 
 	return; 
 }
+function hi()
+{
+	
+	alert("hi"); 
+	}
 
 
 </script>
