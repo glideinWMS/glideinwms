@@ -4441,7 +4441,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
         cluster_name=condor_el['GlueClusterName']
         gatekeeper_name=condor_el['GlueCEInfoContactString']
-        rsl='(queue=%s)(jobtype=single)'%condor_el['GlueCEName']
+        rsl='(queue=%s)'%condor_el['GlueCEName']
         site_name=condor_el['GlueSiteName']
 
         work_dir="OSG"
@@ -4616,7 +4616,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         
         work_dir="."
         gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
+        rsl="(queue=%s)"%el2['GlueCEName'][0]
 
         site_name=el2['Mds-Vo-name'][0]
         cluster_id="bdii_%s"%site_name
