@@ -92,7 +92,7 @@ below. A set of configuration example is provided, too.</P>
 two parts:</P>
 <UL>
 	<LI><A HREF="#args_global">The global arguments</A> </li>
-	<LI><P><A HREF="#args_entry">Entry point arguments</A> </li>
+	<LI><A HREF="#args_entry">Entry point arguments</A> </li>
 </UL>
 <p>
 	The global arguments are common to
@@ -103,6 +103,16 @@ two parts:</P>
 <p>
 	For some complete examples, look into 
 	<blockquote>glideinWMS/creation/config_examples/</blockquote> 
+</p>
+<h3>Internal Configuration</h3>
+<p>
+The configuration is parsed during the reconfiguration of the factory, and split into a number of files:
+<ul>
+<li>job.descript = is read by the daemon do decide how to work </li>
+<li>attributes.cfg = are fixed values, these are published in the factory classad</li>
+<li>params.cfg = are for values the frontend will change, also published in the factory classad</li>
+</ul>
+For more information, see the <a href="entry_internals.html#config">Entry Internals</a> page.
 </div>
 
 <div class="section">
@@ -947,14 +957,17 @@ still need to properly configure the Collector machine. See
 <H3 CLASS="western"><A NAME="multicol"></A>Multiple Collectors</H3>
 <P>By default, Condor uses only one Collector for the 
 <A HREF="../index.html#pool_glidein">glidein (user) pool</A>.
-However, if the load becomes too high, you can
-configure multiple collectors in a chain.
+However, if the load becomes too high on the collector, you can
+configure multiple collectors in a chain.  
 </p><p>
 	You will need a master and a set of slave collectors. 
-	The slave collectors forward the startd adds to the master collector.
-</p><p>
+	Each slave collector will service a portion of the pool 
+	and will forward communication between the startd daemons 
+	to the master collector.  Machine classads from these startd's
+	will be sent to the master collector.
 	The negotiator and the schedds will talk to the master collector, 
-	while the startds will talk to one of the slave ones. 
+	and the startds will talk to one of the slave ones.  This will
+	reduce load on the central manager.
 </p><p>
 	To set up slave collector in the 
 	<A HREF="../index.html#pool_glidein">glidein (user) pool</A>, 
@@ -978,17 +991,11 @@ export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
 	will have to point the factory to a 
 	<A HREF="../frontend/index.html#management">list of collectors</A>. 
 </p><p>
-	However, by default the glideins expect a
-	specific collector, so you need to add an additional script to
-	handle this: 
-	<div class="xml">
-	&lt;glidein&gt;<BR/>
-	&nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
-	&nbsp;&lt;files&gt;<BR/>
-	&nbsp;&nbsp;&lt;file absfname=&quot;web_base/collector_setup.sh&quot;>
-	executable=&quot;True&quot;/&gt;<BR/>
-	&nbsp;&lt;/files&gt;
-	</div>
+	The configuration internally will add a line in the factory 
+	configuration file that will set up the glideins to handle
+	the multiple collectors.  (You should now see a line like:
+	<i>"&lt;file absfname=&quot;web_base/collector_setup.sh&quot;
+	executable=&quot;True&quot;/&gt;"</i> after reconfiguring).
 </p>
 </div>
 
