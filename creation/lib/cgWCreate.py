@@ -33,7 +33,6 @@ def create_condor_tar_fd(condor_base_dir):
         for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper',
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
                   'libexec/condor_glexec_run','libexec/condor_glexec_setup',
-                  'sbin/condor_fetchlog',
                   'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
@@ -63,6 +62,12 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
+            # KEL++  this additional rsl string will be put into the env of the condor job submit
+            # eventually will be completely dynamic with some part coming from the frontend (esp Corral)
+            # this may also no longer be an if statement with rsl defined in the factory config, will only be determined on the fly
+            # and always contain at least count, jobtype, and queue (at least for gt2, others not used for now, may have diff
+            # requirements 
+            rsl+='$ENV(GLIDEIN_RSL)'
             if gridtype=='gt2':
                self.add("globus_rsl",rsl)
             elif gridtype=='gt4':
@@ -86,6 +91,9 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add('+GlideinProxyURL','"%s"'%proxy_url)
         self.add('+GlideinLogNr','"$ENV(GLIDEIN_LOGNR)"')
         self.add('+GlideinWorkDir','"%s"'%work_dir)
+        
+        # KEL++ Add new classad param to the glidein for monitoring purposes         
+        self.add('+GlideinChunkSize','"%s"'%"1")
         
         self.add("Transfer_Executable","True")
         self.add("transfer_Input_files","")
