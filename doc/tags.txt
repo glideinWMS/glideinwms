@@ -9,11 +9,11 @@ v2_4_1	Add a new configuration option for PREEMPT_GRACE_TIME
 	  GLEXEC_BIN in factory config. If GLEXEC_BIN in set to NONE for an
 	  entry in factory config, it is assumed that the entry doesn't have
 	  GLEXEC configured on site.
-	Improvements to documentaion
+	Improvements to documentation
 	BUG FIX: Allow the use of the same DN for both the security and the
 	  collector
 	BUG FIX: Returning invalid variable during proxy creation
-	KNOWN ISSUES: Running glideinWMS 2.4.1 with Condor 7.5.3 has not been
+	KNOWN ISSUES: Running glideinWMS v2_4_1 with Condor 7.5.3 has not been
 	  tested. Altough, most of the things may work, security changes in
 	  Condor may affect your installation.
 
