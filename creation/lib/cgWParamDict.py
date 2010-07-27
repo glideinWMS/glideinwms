@@ -47,14 +47,12 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
 
         #load system files
-        for file_name in ('parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", 
-"condor_config.check.include", "condor_config.monitor.include" ):
+        for file_name in ('parse_starterlog.awk', "condor_config", "condor_config.multi_schedd.include", "condor_config.dedicated_starter.include", "condor_config.monitor.include" ):
             self.dicts['file_list'].add_from_file(file_name,(cWConsts.insert_timestr(file_name),"regular","TRUE",'FALSE'),os.path.join(params.src_dir,file_name))
         self.dicts['description'].add("condor_config","condor_config")
         self.dicts['description'].add("condor_config.multi_schedd.include","condor_config_multi_include")
         self.dicts['description'].add("condor_config.dedicated_starter.include","condor_config_main_include")
         self.dicts['description'].add("condor_config.monitor.include","condor_config_monitor_include")
-	self.dicts['description'].add("condor_config.check.include","condor_config_check_include")
         self.dicts['vars'].load(params.src_dir,'condor_vars.lst',change_self=False,set_not_changed=False)
 
         # put user files in stage
@@ -252,6 +250,7 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def populate(self,params=None):
         if params==None:
             params=self.params
+
         sub_params=params.entries[self.sub_name]
 
         # put default files in place first
@@ -286,7 +285,10 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
-
+            # KEL++ add chunk size
+            self.dicts[dtype].add("GLIDEIN_Min_Chunk_Size",sub_params.config.chunk_size.min,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_Max_Chunk_Size",sub_params.config.chunk_size.max,allow_overwrite=True)
+            
         # populate infosys
         for infosys_ref in sub_params.infosys_refs:
             self.dicts['infosys'].add_extended(infosys_ref['type'],infosys_ref['server'],infosys_ref['ref'],allow_overwrite=True)
@@ -584,17 +586,10 @@ def populate_job_descript(work_dir,job_descript_dict,        # will be modified
     job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
     job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
     job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
-
-    #  If the configuration has a non-empty frontend_allowlist
-    #  then create a white list and add all the frontends:security_classes
-    #  to it.
-    white_mode="Off";
-    allowed_vos="";
-    for X in sub_params.allow_frontends.keys():
-        white_mode="On";
-        allowed_vos=allowed_vos+X+":"+sub_params.allow_frontends[X].security_class+",";
-    job_descript_dict.add("WhitelistMode",white_mode);
-    job_descript_dict.add("AllowedVOs",allowed_vos[:-1]);
+    
+    # KEL++ added chunk size params    
+    job_descript_dict.add('MaxChunkSize',sub_params.config.chunk_size.max)
+    job_descript_dict.add('MinChunkSize',sub_params.config.chunk_size.min)
 
 ###################################
 # Create the frontend descript file
