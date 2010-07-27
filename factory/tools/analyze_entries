@@ -1,4 +1,4 @@
-#!/usr/bin/evn python
+#!/usr/bin/env python
 
 ###########################################################
 # analyze_entries.py - v2.0
@@ -23,7 +23,6 @@
 #   - **time used/wasted for each problem
 #   - **% of total glideins making up each problem
 #        (example: 23% percent of glideins failed validation)
-#   - **option to sort by clients
 #   - elimination of implied (repeated) problems as explained above,
 #      (perhaps by prioritizing problem categories).
 #   - wget failures
@@ -39,295 +38,86 @@
 from __future__ import division
 import os, sys, datetime, time, re, getopt
 import calendar
-from datetime import date
-
-def main():
-
-    today = time.strftime("%Y%m%d")
-
-    usage = """
-    Usage:
-       
-       -r [# without %] : minimum % of problematic jobs to be reported (default 50)
-
-       [SORTING with USER/FRONTEND]
-       -u : sort by users (ex: user_fecms)
-       -f : sort by clients/frontends (ex: UCSD-v5_0.main) 
-
-       [SINGLE ENTRY/USER/FRONTEND]
-       -e [entry_CMS_T#_...]: check logs from this entry only
-        
-       [TIME INTERVALS]
-       -i [mm.dd-mm.dd] : (ex: 05.28-06.05) specify an interval over which check
-               logs - no whitespace (current year assumed)
-       -t [hh]: [00-24] include logs that completed starting hh hours ago
-       -y : check yesterday's logs only [00:00 - 23:59]
-
-       [LOCATIONS]
-       -o [abspath] : specify loc of outputted report (default ~ (user's home))
-       -g [v#_#] : specify g_factory version (default v3_1)
- 
-       [HELP]      
-       -d, -debug : print debug messages (default off)
-       -h, -help : this help message
-    """
-       #*-ul : list users
-       #*-fl : list frontends
-       #*-n [-u or -f] : sort by entry (and secondarily by user or frontend)
-       #*-s [username] (ex: fecms) : check logs from this user ID only
-       #*-c [client] (ex:hcc-glidein-v1_0.main) : check logs from this client only
-       #-l [PATH relative to home] : specify loc of gfactory (default is ../..)
-       #-v : only check condor activity logs for jobs being held (no report generated)
-    
-    ### Defaults ###
-
-    interval          = 0        # flag - if checking over an interval of days
-    ratio             = "50"     
-    hours_ago         = 0        # flag - how many hours ago to check (flag off if 0)
-    yesterday         = 0        # flag - check only yesterday's logs
-    check_only_one    = 0        # flag - check only one entry
-    report_base       = os.path.expanduser("~")  # where report is outputted
-    gfactory_version  = "v3_1"
-    gfactory_location = "../.."
-    debug             = 0        # flag - print debug messages
-    uid               = 0        # check logs from this user id only
-    frontend          = 0        # check logs from this frontend only
-    sort_user         = 0
-    sort_client       = 0
-    sort_entry        = 0
-
-
-    try:
-        opts, args = getopt.getopt(sys.argv[1:], "r:i:t:ye:ho:l:g:dufc:s:"); #v");
-    except getopt.GetoptError:
-        print("\n Option not recognized or missing parameters.")
-        print(" Use -h for usage.\n")
-        sys.exit(2)
-    for o, a in opts:
-        if o == "-r":
-            ratio = a
-        elif o == "-i":
-            interval = 1
-            temp = a.split("-")
-            temp0 = temp[0].split(".")
-            temp1 = temp[1].split(".")
-            # start/end date format ex: 0615
-            start_date = "".join(temp0)
-            end_date = "".join(temp1)
-            if len(start_date) == 3: start_date = "0" + start_date
-            if len(end_date) == 3: end_date = "0" + end_date
-        elif o == "-t":
-           hours_ago = a
-        elif o == "-y":
-            yesterday = 1
-        elif o == "-e":
-             check_only_one = 1
-             only_entry = a
-        elif o in ("-h", "-help"):
-            print usage
-            sys.exit(2)
-        elif o == "-o":
-            report_base = a
-            if os.path.exists(os.path.abspath(a))==0:
-                print "Path does not exist."
-                sys.exit() 
-        elif o == "-l":
-            temp = a.strip("/")
-            gfactory_location = temp
-        elif o == "-g":
-            temp = a.strip("/")
-            gfactory_version = temp
-        elif o in ("-d", "-debug"):
-            debug = 1
-            print "\nDebug mode\n"
-        elif o == "-u":
-            sort_user = 1 
-        elif o == "-f":
-            sort_client = 1
-        elif o == "-n":
-            sort_entry = 1
-        elif o == "-s":
-            uid = a
-        elif o == "-c":
-            frontend = a
-        #elif o == "-v":
-        #    activity_logs = 1
-        else: 
-            print("\n Option not recognized or missing parameters.")
-            print(" Use -h for usage.\n")
+from datetime import datetime
+from datetime import timedelta
 
 
 
-    ###-------- Compile list of entry points to check --------###
-
-    entry_points_location = "/home/gfactory/glideinsubmit/glidein_Production_" + gfactory_version
-    os.chdir(entry_points_location)
-   
-    entries = []
-
-    if(check_only_one == 1):
-        entries.append(only_entry)
-    
-    else: 
-        dir_list = os.listdir(os.getcwd()) # everything in the production folder
-        dir_list_string = ','.join(dir_list)          # convert list into string deliminated by commas
-
-        entries = re.findall("entry_[^ ,]*", dir_list_string) # list of entry points
-
-        if debug == 1: 
-            print "Looking for entries in", os.getcwd(), "..."
-            print len(entries), " entries found.\n"    
+#### Method Definitions ############################################
 
 
-
-    ###-------- Set interval (in which jobs complete) to check --------###
-
-    # time variables: 
-    #       dates[] (ex [13] or [21, 22, 23, 24] (for intervals) 
-    #       start/end_time (ex 20100613055419), 
-    #       start/end_date (ex 20100613), 
-    #       job_start/end_time ('terminated="2010-06-13T05:54:19-7:00"')
-
-    now = time.strftime("%Y%m%d%H%M%S")
-
-    #if several hours back:
-    if int(hours_ago) != 0:
-       
-        # if hours_ago > hours that have occured today, go into yesterday
-        # (Only works up to 24 hours ago)
-        now_hour = time.strftime("%H")
-        if(int(hours_ago) > int(now_hour)): 
-           start_time = str(int(now) - ((76 + int(hours_ago))  * 10000))
-
-        else:
-           start_time = str(int(now) - (int(hours_ago) * 10000))
-
-        end_time = now
-
-    #if yesterday 
-    elif yesterday == 1:
-        start_time = (str(int(today)-1) + "000000")
-        end_time = str(int(today)-1) + "235959"
-         
- 
-    #if interval
-    elif interval == 1:
-        start_time =  "2010" + start_date + "000000"
-        end_time = "2010" + end_date + "000000"
-
-    #if only today
-    else:
-        start_time = today+"000000"   #start time = midnight
-        end_time = now
-
-    start_date = start_time[0:8]
-    end_date = end_time[0:8]
-
-    if debug == 1: print "Start Date = ", start_date, "\nEnd Date =   ", end_date
-    if debug == 1: print "Start Time = ", start_time, "\nEnd Time =   ", end_time
-
-    # list of dates over which to check completed_jobs logs
-    dates = [start_date]
+def get_interval(start_date, end_date, today, dates): 
 
     start_month = start_date[4:6]
     end_month = end_date[4:6]
     start_day = start_date[6:8]
     end_day = end_date[6:8]
 
-    ## Month-spanning intervals ##
+    if start_date > end_date:
+        print "Staring date is greater than ending date!"
+        sys.exit()
 
-    if interval == 1:
-        if start_date > end_date:
-            print "Staring date is greater than ending date!"
-            sys.exit()
+    if start_date > today or end_date > today:
+        print "Date out of Range."
+        sys.exit()
 
-        if start_date > today or end_date > today:
-            print "Date out of Range."
-            sys.exit()
 
-        # if same month, append the dates between the start and end dates
-        days_in_month = calendar.monthrange(2010, int(start_month))[1]
-        if int(start_month) == int(end_month):
+    # if same month, append the dates between the start and end dates
+    days_in_month = calendar.monthrange(2010, int(start_month))[1]
+    if int(start_month) == int(end_month):
+        for i in range(days_in_month):
+            if i > int(start_day) and i <= int(end_day):
+                if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                else: dates.append("2010"+start_month+str(i))
+
+    else: # If different months, add last days of initial month
+        if int(start_month) != int(end_month):
             for i in range(days_in_month):
-                if i > int(start_day) and i <= int(end_day):
+                if i > int(start_day):
                     if i < 10: dates.append("2010"+start_month+"0"+str(i))
-                    else: dates.append("2010"+start_month+str(i))
+                    else: dates.append("2010"+start_month+str(i)) 
+            if start_month < 9:
+                start_month = "0" + str(int(start_month) + 1)
+            else: start_month = str(int(start_month) + 1)
 
-        else: # If different months, add last days of initial month
-            if int(start_month) != int(end_month):
-                for i in range(days_in_month):
-                    if i > int(start_day):
-                        if i < 10: dates.append("2010"+start_month+"0"+str(i))
-                        else: dates.append("2010"+start_month+str(i)) 
-                if start_month < 9:
-                    start_month = "0" + str(int(start_month) + 1)
-                else: start_month = str(int(start_month) + 1)
-
-            # while there is still a month difference, add all the dates in that month
-            while(int(start_month) != int(end_month)):
-                days_in_month = calendar.monthrange(2010, int(start_month))[1]
-                for i in range(days_in_month):
-                    if i < 10: dates.append("2010"+start_month+"0"+str(i))
-                    else: dates.append("2010"+start_month+str(i))
-                if int(start_month) < 9:
-                    start_month = "0" + str(int(start_month) + 1)
-                else: start_month = str(int(start_month) + 1)
-    
-            # when while loop exits, months should be the same, 
-            #      so the rest of the final month's dates can be added.   
+        # while there is still a month difference, add all the dates in that month
+        while(int(start_month) != int(end_month)):
             days_in_month = calendar.monthrange(2010, int(start_month))[1]
             for i in range(days_in_month):
-                if i <= int(end_day):
-                    if i < 10: dates.append("2010"+start_month+"0"+str(i))
-                    else: dates.append("2010"+start_month+str(i))
-    if debug == 1: print "Dates: ", dates
-
-
-    # Format start and end times in job-time format ("YYYY-MM-DDThh:mm:ss-7:00")
-    a = start_time
-    b = end_time
-    job_start_time1 = a[0:4]+"-"+a[4:6]+"-"+a[6:8]+"T"+a[8:10]+":"+a[10:12]+":"+a[12:14]
-    job_start_time = "terminated=\"" + job_start_time1 + "-07:00\""
-    job_end_time1 = b[0:4]+"-"+b[4:6]+"-"+b[6:8]+"T"+b[8:10]+":"+b[10:12]+":"+b[12:14]
-    job_end_time = "terminated=\"" + job_end_time1 + "-07:00\""
-    if debug == 1: print "job_start: %s, job end %s.\n" % (job_start_time, job_end_time)
-
-
-
-    ###----- Start collecting data -----###
-
-    #May need to grab from client_log directory instead 
-    os.chdir("client_log")
-    users = os.listdir(os.getcwd())
-    if debug == 1: print users
-    # need user_fesleep?
+                if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                else: dates.append("2010"+start_month+str(i))
+            if int(start_month) < 9:
+                start_month = "0" + str(int(start_month) + 1)
+            else: start_month = str(int(start_month) + 1)
     
-    os.chdir("../log")
+        # when while loop exits, months should be the same, 
+        #      so the rest of the final month's dates can be added.   
+        days_in_month = calendar.monthrange(2010, int(start_month))[1]
+        for i in range(days_in_month):
+            if i <= int(end_day):
+                if i < 10: dates.append("2010"+start_month+"0"+str(i))
+                else: dates.append("2010"+start_month+str(i))
 
-    # total-so-far dictionaries (ones to be presented at end)
+
+####################################################################
+
+def getdictionary(entries, debug, dates, start_time, end_time, 
+         interval, hours_ago, sort_client, sort_user,
+         list,
+         user_jobs, client_jobs, 
+         client_glidein_total, user_glidein_total):
+
+    # list = [total_glideins, total_jobs, time_used, time_wasted] 
     # ex: condor_start_d = {entry_1: bad-total; entry 2: 124-100; ...}
+   
     condor_start_d = {}
     validation_d = {}
     jobsnr_d = {}
     badput_d = {}
     duration_d = {}
     client_d = {}
-    username_d = {} 
-
-    user_jobs = {}
-    client_jobs = {}
-    #for i in users:
-    #    i = [condor_start_d, validation_d, jobsnr_d, badput_d]
-    #    user_list.append(i)
-    
-    total_glideins = 0
-    total_jobs = 0
-    time_used = 0 
-    time_wasted = 0
-
-    client_glidein_total = {}
-    user_glidein_total = {}
-
+    username_d = {}
+ 
     for e in entries:
         
         joblist = []
@@ -361,7 +151,7 @@ def main():
                     else: 
                         joblist.append(j)
 
-        total_glideins = total_glideins + len(joblist)           
+        list[0] += len(joblist) #total_glideins += len(joblist)
  
         #if debug == 1: print "job count = ", len(joblist)  
         if len(joblist) == 0: 
@@ -417,7 +207,6 @@ def main():
                 # ex. j_client/user = user_fecms; the client/user of this single job
                 # add this job to it's user/client's dictionary
                 
-                # job client checked and correct
                 if job_client not in client_jobs:
                     client_jobs[job_client]= {}
                 if e not in client_jobs[job_client]:
@@ -428,7 +217,8 @@ def main():
                 if job_client not in client_glidein_total:
                     client_glidein_total[job_client] = 0
                 client_glidein_total[job_client] += 1
-    
+             
+ 
 
             if sort_user == 1:
                 job_user = ''.join(re.findall('username=\"\S*\"',j))
@@ -436,7 +226,6 @@ def main():
                 # ex. j_client/user = user_fecms; the client/user of this single job
                 # add this job to it's user/client's dictionary
                 
-                # job client checked and correct
                 if job_user not in user_jobs:
                     user_jobs[job_user]= {}
                 if e not in user_jobs[job_user]:
@@ -452,17 +241,17 @@ def main():
         for i in jobsnr_total:
             temp = re.findall("\d*",i)
             temp2 = ''.join(temp)
-            total_jobs = total_jobs + int(temp2)
+            list[1] += int(temp2) #total_jobs = total_jobs + int(temp2)
         # total cpu time utilized
         for i in goodput:
             temp = re.findall("\d*",i)
             temp2 = ''.join(temp)
-            time_used = time_used + int(temp2)
+            list[2] += int(temp2) #time_used = time_used + int(temp2)
         # total cpu time wasted
         for i in badput_total:
             temp = re.findall("\d*",i)
             temp2 = ''.join(temp)
-            time_wasted = time_wasted + int(temp2)
+            list[3] += int(temp2)#time_wasted = time_wasted + int(temp2)
         
         # for each list, count the matched corresponding regexes, calculate
         #     the ratio (problematic:good), and add to total dictionary
@@ -481,35 +270,356 @@ def main():
             # ratio - total, ex: "56-200" = 56% of 200
             (dictionary_list[j])[e] = r + "-" + total  
 
-
         os.chdir("..")
 
-    ###------------------- Make Report -------------------###
+    if sort_user == 1:
+        return user_jobs
+    elif sort_client == 1:
+        return client_jobs
+    else:
+        return dictionary_list
+
+####################################################################
+
+def main():
+
+    usage = """
+    Usage:
+       
+       -r [# without %] : minimum % of problematic jobs to be reported (default 50)
+
+       [SORTING with USER/FRONTEND]
+       -u : sort by users (ex: user_fecms)
+       -f : sort by clients/frontends (ex: UCSD-v5_0.main) 
+       -n [-u, -f] : sort by entry (and secondarily by user or client/frontend respectively)
+
+       [SINGLE ENTRY/USER/FRONTEND]
+       -e [entry_CMS_T#_...]: check logs from this entry only
+        
+       [TIME INTERVALS]
+       -i [mm.dd-mm.dd] : (ex: 05.28-06.05) specify an interval over which check
+               logs - no whitespace (current year assumed)
+       -t [hh]: [00-24] include logs that completed starting hh hours ago
+       -y : check yesterday's logs only [00:00 - 23:59]
+
+       [LOCATIONS]
+       -o [abspath] : specify loc of outputted report (default ~ (user's home))
+       -g [v#_#] : specify g_factory version (default v3_1)
+ 
+       [HELP]      
+       -d, -debug : print debug messages (default off)
+       -h, -help : this help message
+    """
+       #*-ul : list users
+       #*-fl : list frontends
+       #*-s [username] (ex: fecms) : check logs from this user ID only
+       #*-c [client] (ex:hcc-glidein-v1_0.main) : check logs from this client only
+       #-l [PATH relative to home] : specify loc of gfactory (default is ../..)
+       #-v : only check condor activity logs for jobs being held (no report generated)
+    
+    ### Defaults ###
+
+    interval          = 0        # flag - if checking over an interval of days
+    ratio             = "50"     
+    hours_ago         = 0        # flag - how many hours ago to check (flag off if 0)
+    yesterday         = 0        # flag - check only yesterday's logs
+    check_only_one    = 0        # flag - check only one entry
+    report_base       = os.path.expanduser("~")  # where report is outputted
+    gfactory_version  = "v3_1"
+    gfactory_location = "../.."
+    debug             = 0        # flag - print debug messages
+    uid               = 0        # check logs from this user id only
+    frontend          = 0        # check logs from this frontend only
+    sort_user         = 0
+    sort_client       = 0
+    sort_entry        = 0
+
+
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "r:i:t:ye:ho:l:g:dufc:s:n"); #v");
+    except getopt.GetoptError:
+        print("\n Option not recognized or missing parameters.")
+        print(" Use -h for usage.\n")
+        sys.exit(2)
+    for o, a in opts:
+        if o == "-r":
+            ratio = a
+        elif o == "-i":
+            interval = 1
+            temp = a.split("-")
+            temp0 = temp[0].split(".")
+            temp1 = temp[1].split(".")
+            # start/end date format ex: 0615
+            start_date = "".join(temp0)
+            end_date = "".join(temp1)
+            if len(start_date) == 3: start_date = "0" + start_date
+            if len(end_date) == 3: end_date = "0" + end_date
+        elif o == "-t":
+           hours_ago = a
+        elif o == "-y":
+            yesterday = 1
+        elif o == "-e":
+             check_only_one = 1
+             only_entry = a
+        elif o in ("-h", "-help"):
+            print usage
+            sys.exit(2)
+        elif o == "-o":
+            report_base = a
+            if os.path.exists(os.path.abspath(a))==0:
+                print "Path does not exist."
+                sys.exit() 
+        elif o == "-l":
+            temp = a.strip("/")
+            gfactory_location = temp
+        elif o == "-g":
+            temp = a.strip("/")
+            gfactory_version = temp
+        elif o in ("-d", "-debug"):
+            debug = 1
+            print "\nDebug mode\n"
+        elif o == "-u":
+            sort_user = 1 
+        elif o == "-f":
+            sort_client = 1
+        elif o == "-n":
+            sort_entry = 1
+        elif o == "-s":
+            uid = a
+        elif o == "-c":
+            frontend = a
+        elif o == "-n":
+            sort_entry = 1
+     
+        else: 
+            print("\n Option not recognized or missing parameters.")
+            print(" Use -h for usage.\n")
+
+
+
+    ###### LIST OF ENTRIES ###################################################
+
+
+    entry_points_location = "/home/gfactory/glideinsubmit/glidein_Production_" + gfactory_version
+    os.chdir(entry_points_location)
    
+    entries = []
+
+    if(check_only_one == 1):
+        entries.append(only_entry)
+    
+    else: 
+        dir_list = os.listdir(os.getcwd()) # everything in the production folder
+        dir_list_string = ','.join(dir_list)          # convert list into string deliminated by commas
+
+        entries = re.findall("entry_[^ ,]*", dir_list_string) # list of entry points
+
+        if debug == 1: 
+            print "Looking for entries in", os.getcwd(), "..."
+            print len(entries), " entries found.\n"    
+
+
+
+    ###### CREATE TIME INTERVAL ##############################################
+
+    # time variables: 
+    #       dates[] (ex [5-21, 5-22, 5-23, 5-24] (for intervals) 
+    #       start/end_time (ex 20100613055419), 
+    #       start/end_date (ex 20100613), 
+    #       job_start/end_time ('terminated="2010-06-13T05:54:19-7:00"')
+
+
+    now = datetime.today()
+
+    #if several hours back:
+    if int(hours_ago) != 0:
+        nstart_time = (now - timedelta(0,60*hours_ago)).strftime("%Y%m%d%H%M%S")
+        nend_time = now.strftime("%Y%m%d%H%M%S")
+
+ 
+    #if interval
+    elif interval == 1:
+        nstart_time = now.year + start_date + "000000"
+        nend_time = now.year + end_date + "000000"
+
+
+    #if only today
+    else:
+        nstart_time = now.strftime("%Y%m%d")+"000000"   #start time = midnight
+        nend_time = now.strftime("%Y%m%d%H%M%S")
+
+    nstart_date = nstart_time[0:8]
+    nend_date = nend_time[0:8]
+
+    ystart_time = (now - timedelta(1)).strftime("%Y%m%d")+"000000"
+    yend_time = (now - timedelta(1)).strftime("%Y%m%d")+"235959"
+    ystart_date = ystart_time[0:8] 
+    yend_date = yend_time[0:8]
+
+    istart_time = now.strftime("%Y%m%d%H%M%S")
+    iend_time = (now - timedelta(7)).strftime("%Y%m%d%H%M%S")
+    istart_date = istart_time[0:8]
+    iend_date = iend_time[0:8]
+ 
+
+    if debug == 1: print "Start Date = ", nstart_date, "\nEnd Date =   ", nend_date
+    if debug == 1: print "Start Time = ", nstart_time, "\nEnd Time =   ", nend_time
+
+    # list of dates over which to check completed_jobs logs
+    ndates = [nstart_date]
+    ydates = [ystart_date]
+    idates = []
+
+    start_month = nstart_date[4:6]
+    end_month = nend_date[4:6]
+    start_day = nstart_date[6:8]
+    end_day = nend_date[6:8]
+
+    ## Month-spanning intervals ##
+
+    #if interval == 1:
+    #    getinterval(start_time, end_time, today, dates)
+ 
+    # past 7 days
+    for i in range(7):
+        idates.append((now-timedelta(i)).strftime("%Y%m%d"))
+
+    if debug == 1: 
+        print "dates = ", ndates
+        print "idates =", idates
+        print "ydates = ", ydates
+
+    # Format start and end times in job-time format ("YYYY-MM-DDThh:mm:ss-7:00")
+    a = nstart_time
+    b = nend_time
+    job_start_time1 = a[0:4]+"-"+a[4:6]+"-"+a[6:8]+"T"+a[8:10]+":"+a[10:12]+":"+a[12:14]
+    job_start_time = "terminated=\"" + job_start_time1 + "-07:00\""
+    job_end_time1 = b[0:4]+"-"+b[4:6]+"-"+b[6:8]+"T"+b[8:10]+":"+b[10:12]+":"+b[12:14]
+    job_end_time = "terminated=\"" + job_end_time1 + "-07:00\""
+    if debug == 1: print "job_start: %s, job end %s.\n" % (job_start_time, job_end_time)
+
+
+    ###### DATA COLLECTION ###################################################
+
+
+    os.chdir("log")
+
+
+    user_jobs, yuser_jobs, iuser_jobs = {},{},{}
+    client_jobs, yclient_jobs, iclient_jobs = {},{},{}
+    client_glidein_total, yclient_glidein_total, iclient_glidein_total = {},{},{}
+    user_glidein_total, yuser_glidein_total, iuser_glidein_total = {},{},{}
+
+
+    nlist = [total_glideins, total_jobs, time_used, time_wasted] = [0,0,0,0]
+    ylist = [ytotal_glideins, ytotal_jobs, ytime_used, ytime_wasted] = [0,0,0,0]
+    ilist = [itotal_glideins, itotal_jobs, itime_used, itime_wasted] = [0,0,0,0]
+
+
+    dictionary_list = getdictionary(entries, debug, ndates, nstart_time, nend_time, 
+         interval, hours_ago, sort_client, sort_user,
+         nlist, 
+         user_jobs, client_jobs, client_glidein_total, user_glidein_total)
+
+
+    y_dictionary_list = getdictionary(entries, debug, ydates, ystart_time, yend_time, 
+         0, 0, sort_client, sort_user,
+         ylist,
+         yuser_jobs, yclient_jobs, yclient_glidein_total, yuser_glidein_total)
+
+    i_dictionary_list = getdictionary(entries, debug, idates, istart_time, iend_time, 
+         0, 0, sort_client, sort_user,
+         ilist,
+         iuser_jobs, iclient_jobs, iclient_glidein_total, iuser_glidein_total)
+
+    total_glideins = nlist[0]
+    total_jobs = nlist[1]
+    time_used = nlist[2]
+    time_wasted = nlist[3]
+
+    ytotal_glideins = ylist[0]
+    ytotal_jobs = ylist[1]
+    ytime_used = ylist[2]
+    ytime_wasted = ylist[3]
+    
+    if yesterday == 1:
+        dictionary_list = y_dictionary_list
+        user_jobs = yuser_jobs
+        client_jobs = yclient_jobs
+        client_glidein_total = yclient_glidein_total
+        user_glidein_total = yuser_glidein_total
+        total_glideins = ytotal_glideins
+        total_jobs = ytotal_jobs
+        time_used = ytime_used
+        time_wasted = ytime_wasted
+
+
+    itotal_glideins = ilist[0]
+    itotal_jobs = ilist[1]
+    itime_used = ilist[2]
+    itime_wasted = ilist[3]
+
+
+    ###### INITIALIZE REPORT #################################################
+
     if check_only_one == 1: 
         ent = ":" + only_entry
         ent2 = ent
     else: 
         ent = ""
         ent2 = "All Entries"
-    a = start_time
-    b = end_time
+    a = nstart_time
+    b = nend_time
  
     if(interval == 1 or hours_ago != 0):
        title_start_time = a[4:6]+"."+a[6:8]+"_"+a[8:10]+":"+a[10:12]+"-"
        title_end_time = b[4:6]+"."+b[6:8]+"_"+b[8:10]+":"+b[10:12]
+
+    elif yesterday == 1:
+       a = ystart_time
+       title_start_time = a[4:6]+"-"+a[6:8]+"-"+a[0:4]
+       title_end_time = ''
+
     else:
        title_start_time = a[4:6]+"-"+a[6:8]+"-"+a[0:4]
        title_end_time = ''
-       if yesterday == 0: title_end_time = "_" + time.strftime("%H:%M:%S")  
+       title_end_time = "_" + time.strftime("%H:%M:%S")  
+
     report_name = "log_" + title_start_time + title_end_time + ent 
 
     os.chdir(os.path.abspath(report_base))
     
     report = open(report_name, 'w')
-    report.write("""
-Glidein log analysis for %s, for %s%s 
+    if yesterday == 1:
+    
+        report.write("""
+Glidein log analysis for %s, for %s%s
+
 ----------------------------------------
+
+Total Glideins: %s
+Total Jobs: %s (Average jobs/glidein: %.2f)
+
+Total CPU time used: %s s (%.1f hours)
+Total CPU time wasted: %s s (%.1f hours)
+Time used/time wasted: %.2f
+CPU time efficiency: %.2f
+
+-----------------------------------------
+
+""" % (ent2,title_start_time,title_end_time, 
+      ytotal_glideins,ytotal_jobs,
+      (ytotal_jobs/ytotal_glideins), ytime_used, (ytime_used/3600), ytime_wasted,
+      ytime_wasted/3600,ytime_used/ytime_wasted,ytime_used/(ytime_used+ytime_wasted)))
+
+
+    else:
+        report.write("""
+Glidein log analysis for %s, for %s%s 
+
+----------------------------------------
+TODAY so far:
+
 Total Glideins: %s
 Total Jobs: %s (Average jobs/glidein: %.2f) 
 
@@ -517,13 +627,53 @@ Total CPU time used: %s s (%.1f hours)
 Total CPU time wasted: %s s (%.1f hours)
 Time used/time wasted: %.2f
 CPU time efficiency: %.2f
+
 -----------------------------------------
-""" % (ent2,title_start_time,title_end_time,total_glideins,total_jobs,
+YESTERDAY:
+
+Total Glideins: %s
+Total Jobs: %s (Average jobs/glidein: %.2f) 
+
+Total CPU time used: %s s (%.1f hours)
+Total CPU time wasted: %s s (%.1f hours)
+Time used/time wasted: %.2f
+CPU time efficiency: %.2f
+
+-----------------------------------------
+PAST 7 DAYS:
+
+Total Glideins: %s
+Total Jobs: %s (Average jobs/glidein: %.2f) 
+
+Total CPU time used: %s s (%.1f hours)
+Total CPU time wasted: %s s (%.1f hours)
+Time used/time wasted: %.2f
+CPU time efficiency: %.2f
+
+-----------------------------------------
+-----------------------------------------
+
+
+Verbose Stats for Today:
+
+""" % # Today
+      (ent2,title_start_time,title_end_time,
+      total_glideins,total_jobs,
       (total_jobs/total_glideins), time_used, (time_used/3600), time_wasted, 
-      time_wasted/3600,time_used/time_wasted,time_used/(time_used+time_wasted)))
+      time_wasted/3600,time_used/time_wasted,time_used/(time_used+time_wasted),
+
+      # Yesterday
+      ytotal_glideins,ytotal_jobs,
+      (ytotal_jobs/ytotal_glideins), ytime_used, (ytime_used/3600), ytime_wasted, 
+      ytime_wasted/3600,ytime_used/ytime_wasted,ytime_used/(ytime_used+ytime_wasted),
+
+      # Week average
+      itotal_glideins,itotal_jobs,
+      (itotal_jobs/itotal_glideins), itime_used, (itime_used/3600), itime_wasted, 
+      itime_wasted/3600,itime_used/itime_wasted,itime_used/(itime_used+itime_wasted)))
 
 
-    ## ---- Main Report Format --------------------- ##
+    ##### UNSORTED REPORT FORMAT ############################################
 
     # for each dictionary, print out the culprits who exceed ratio r.
     # (dictionary_list = [condor_start_d, jobsnr_d, validation_d, badput_d])
@@ -542,16 +692,16 @@ CPU time efficiency: %.2f
             tot = ''
             # for each piece of the dictionary
             #         (entry1, val) or (entry1, badput)
-            for a,b in dictionary_list[j].iteritems():
+            for a, b in dictionary_list[j].iteritems():
                 r = (re.findall("\d+\-",b)[0]).strip("-")
                 tot = (re.findall("\-\d+",b)[0]).strip("-")
                 if int(r) >= int(ratio):
-                    to_be_printed.append("%-50s %s%% / %s\n" % (a, r, tot))
+                    to_be_printed.append("%-50s %s%% / %s\n" % (a.lstrip("entry_"), r, tot))
                     category_tot = category_tot + (int(r)/100)*int(tot)
         
             category_percentage = category_tot/total_glideins
 
-            report.write("\n%s(%s glideins - %.2f%% of total)\n\n" 
+            report.write("\n%s(%s glideins - %.2f%% of total)\n" 
                    % (desc_list[j], category_tot, category_percentage*100))
 
             for i in to_be_printed:
@@ -559,19 +709,23 @@ CPU time efficiency: %.2f
             report.write( "-----------------------------------\n" )
 
 
-    ## ---- User/Client-Sort Report Format --------------------- ##
-
     else:
 
         #change users list based on -u or -f options
         if sort_user or sort_client == 1:
 
-            if sort_user == 1:
-                report.write( "\nSorting by user.\n\n")
-            if sort_client == 1:
-                report.write( "\nSorting by client.\n\n")
+            
+            if sort_user == 1 and sort_entry == 0:
+                report.write( "Sorting by user.\n")
+            if sort_client == 1 and sort_entry == 0:
+                report.write( "Sorting by client.\n")
+            if sort_entry == 1 and sort_user == 1:
+                report.write( "Sorting by entry, user.\nn")
+            if sort_entry == 1 and sort_client == 1:
+                report.write( "Sorting by entry, client.\n\n")
 
             final_dictionary = {}
+            to_be_printed = []
 
             if sort_user == 1:
                 final_dictionary = user_jobs
@@ -582,67 +736,201 @@ CPU time efficiency: %.2f
                 sort_glidein_total = client_glidein_total
 
 
-            for clientuser, entry_dict in final_dictionary.iteritems():
+    ##### ENTRY SORT REPORT FORMAT ###########################################
 
-                report.write( "%-39s %4s %4s %5s %5s %6s %6s %9s\n" % 
-                     (clientuser,"start","val","0job","badp","waste","time","total"))
+            if sort_entry == 1:
 
-                report.write( "%.2f glideins - %.2f%% of total\n\n" 
-                     % (sort_glidein_total[clientuser], sort_glidein_total[clientuser]/total_glideins*100))
+                report.write( "%-34s %4s %4s %5s %5s %6s %6s %9s\n" % 
+                ("entry","start","val","0job","badp","waste","time","total"))
 
-                for entry, job_list in entry_dict.iteritems():
+                for e in entries:
+                   
+                    already = 0
 
+                    for clientuser, entry_dict in final_dictionary.iteritems():
+
+                        for entry, job_list in entry_dict.iteritems():
                      
-                    report.write( "%-39s" % entry ),
-           
-                    total = len(job_list)
-                    bad_start_count = 0
-                    bad_val_count = 0
-                    bad_0jobs_count = 0
-                    bad_badput_count = 0
-                    entry_time_wasted = 0
-                    entry_time_total = 0
+                            total = len(job_list)
+                            bad_start_count = 0
+                            bad_val_count = 0
+                            bad_0jobs_count = 0
+                            bad_badput_count = 0
+                            entry_time_wasted = 0
+                            entry_time_total = 0
+
+                            if entry == e:
+                            
+                                re_problem = ['False', 'validation="1000"', 'jobsnr="0"', 'badput="1000"']
+
+                                problem_count = [bad_start_count, bad_val_count, 
+                                                 bad_0jobs_count,  bad_badput_count]
+
+                                for job in job_list:
+
+                                    print len(re_problem)
+                                    for i in range(len(re_problem)):
+
+                                        list = re.findall(re_problem[i], job)
+                                        if len(list) != 0:
+                                            problem_count[i] += 1
+
+                                    #start_list = re.findall('False',job)
+                                    #if len(start_list) != 0:
+                                    #    bad_start_count += 1
+
+                                    #val_list = re.findall('validation="\d+"',job)
+                                    #val = re.findall("\d+", ",".join(val_list))
+                                    #if val[0] == "1000":
+                                    #    bad_val_count += 1
+
+                                    #jobsnr_list = re.findall('jobsnr="\d+"',job)
+                                    #jobsnr = re.findall("\d+", ",".join(jobsnr_list))
+                                    #if jobsnr[0] == "0":
+                                    #    bad_0jobs_count += 1
+
+                                    #badput_list = re.findall('badput="\d+"',job)
+                                    #badput = re.findall("\d+", ",".join(badput_list))
+                                    #if badput[0] == "1000":
+                                    #    bad_badput_count += 1
+  
+                                    wasted_list = re.findall('badput="\d+"',job)
+                                    badput = re.findall("\d+", ",".join(wasted_list))
+                                    entry_time_total = entry_time_total + int(badput[0])
+                                    entry_time_wasted = entry_time_wasted + int(badput[0])
+ 
+                                    used_list = re.findall('goodput="\d+"',job)
+                                    goodput = re.findall("\d+", ",".join(used_list))
+                                    entry_time_total = entry_time_total + int(goodput[0])
+  
+                                #print entry only once 
+                                if already != 1:
+                                    to_be_printed.append( "%-34s\n" % entry.lstrip("entry_") )
+                                    already = 1
+                                
+                                to_be_printed.append( "     %-30s" % clientuser)
+
+                                to_be_printed.append( "%4s  %4s  %4s  %4s  %6.1f  %6.1f  %1s  %3s\n" % (
+                                    str(int((bad_start_count/len(job_list)*100)))+"%",
+                                    str(int((bad_val_count/len(job_list)*100)))+"%",
+                                    str(int((bad_0jobs_count/len(job_list)*100)))+"%",
+                                    str(int((bad_badput_count/len(job_list)*100)))+"%",
+                                    entry_time_wasted/3600,    
+                                    entry_time_total/3600,
+                                    "|",
+                                    len(job_list)))
+
+                    if already == 1: to_be_printed.append( "\n")       
+
+            for i in to_be_printed:
+
+                report.write(i)
+
+
+    ##### CLIENT/USER SORT REPORT FORMAT #####################################
+
+            else:
+
+                report.write("Stats per user/client/frontend:\n")
+                report.write("-------------------------------------\n\n")
+
+                for clientuser, entry_dict in final_dictionary.iteritems():
+
+                    sort_total_jobs = 0
+                    sort_total_time = 0
+                    sort_total_wasted = 0 
+
+                    to_be_printed.append( "\n%-40s %4s %4s %5s %5s %6s %6s %9s\n\n" % 
+                         (clientuser,"start","val","0job","badp","waste","time","total"))
+
+                    for entry, job_list in entry_dict.iteritems():
                         
-                    for job in job_list:
-                        start_list = re.findall('False',job)
-                        if len(start_list) != 0:
-                            bad_start_count += 1
+                        to_be_printed.append("%-40s" % entry.lstrip("entry_"))
+           
+                        total = len(job_list)
+                        bad_start_count = 0
+                        bad_val_count = 0
+                        bad_0jobs_count = 0
+                        bad_badput_count = 0
+                        entry_time_wasted = 0
+                        entry_time_total = 0
+                       
+                        for job in job_list:
+                            start_list = re.findall('False',job)
+                            if len(start_list) != 0:
+                                bad_start_count += 1
 
-                        val_list = re.findall('validation="\d+"',job)
-                        val = re.findall("\d+", ",".join(val_list))
-                        if val[0] == "1000":
-                            bad_val_count += 1
+                            val_list = re.findall('validation="\d+"',job)
+                            val = re.findall("\d+", ",".join(val_list))
+                            if val[0] == "1000":
+                                bad_val_count += 1
+    
+                            jobsnr_list = re.findall('jobsnr="\d+"',job)
+                            jobsnr = re.findall("\d+", ",".join(jobsnr_list))
+                            if jobsnr[0] == "0":
+                                bad_0jobs_count += 1
+        
+                            badput_list = re.findall('badput="\d+"',job)
+                            badput = re.findall("\d+", ",".join(badput_list))
+                            if badput[0] == "1000":
+                                bad_badput_count += 1
+    
+                            wasted_list = re.findall('badput="\d+"',job)
+                            badput = re.findall("\d+", ",".join(wasted_list))
+                            entry_time_total = entry_time_total + int(badput[0])
+                            entry_time_wasted = entry_time_wasted + int(badput[0])
+    
+                            used_list = re.findall('goodput="\d+"',job)
+                            goodput = re.findall("\d+", ",".join(used_list))
+                            entry_time_total = entry_time_total + int(goodput[0])
 
-                        jobsnr_list = re.findall('jobsnr="\d+"',job)
-                        jobsnr = re.findall("\d+", ",".join(jobsnr_list))
-                        if jobsnr[0] == "0":
-                            bad_0jobs_count += 1
+                            sort_total_jobs += int(jobsnr[0])
 
-                        badput_list = re.findall('badput="\d+"',job)
-                        badput = re.findall("\d+", ",".join(badput_list))
-                        if badput[0] == "1000":
-                            bad_badput_count += 1
+                        sort_total_time += entry_time_total
+                        sort_total_wasted += entry_time_wasted
+                        sort_time_used = sort_total_time - sort_total_wasted
+                            
 
-                        wasted_list = re.findall('badput="\d+"',job)
-                        badput = re.findall("\d+", ",".join(wasted_list))
-                        entry_time_total = entry_time_total + int(badput[0])
-                        entry_time_wasted = entry_time_wasted + int(badput[0])
-
-                        used_list = re.findall('goodput="\d+"',job)
-                        goodput = re.findall("\d+", ",".join(used_list))
-                        entry_time_total = entry_time_total + int(goodput[0])
-
-                    report.write( "%4s  %4s  %4s  %4s  %6.1f  %6.1f  %1s  %3s\n" % (
+                        to_be_printed.append( "%4s  %4s  %4s  %4s  %6.1f  %6.1f  %1s  %3s\n" % (
                                 str(int((bad_start_count/len(job_list)*100)))+"%",
-                    		str(int((bad_val_count/len(job_list)*100)))+"%",
-                    		str(int((bad_0jobs_count/len(job_list)*100)))+"%",
-                    		str(int((bad_badput_count/len(job_list)*100)))+"%",
-                    	        entry_time_wasted/3600,	
-                    		entry_time_total/3600,
+                                str(int((bad_val_count/len(job_list)*100)))+"%",
+                                str(int((bad_0jobs_count/len(job_list)*100)))+"%",
+                                str(int((bad_badput_count/len(job_list)*100)))+"%",
+                                entry_time_wasted/3600,    
+                                entry_time_total/3600,
                                 "|",
                                 len(job_list)))
 
-                report.write( "--------------------------------------\n")       
+                    to_be_printed.append( "--------------------------------------\n")       
+
+                    to_be_printed.insert(0,"""
+%s
+Glideins: %s - %.2f%% of total
+Jobs: %s (Average jobs/glidein: %.2f)
+
+Total CPU time used: %s s (%.1f hours)
+Total CPU time wasted: %s s (%.1f hours)
+Time used/time wasted: %.2f
+CPU time efficiency: %.2f
+-----------------------------------------
+
+
+""" % (clientuser,
+       sort_glidein_total[clientuser], sort_glidein_total[clientuser]/total_glideins*100,
+       sort_total_jobs, (sort_total_jobs/sort_glidein_total[clientuser]), 
+
+       (sort_total_time - sort_total_wasted), ((sort_total_time-sort_total_wasted)/3600), 
+       sort_total_wasted, sort_total_wasted/3600,
+       (sort_total_time - sort_total_wasted)/sort_total_wasted,
+       (sort_total_time - sort_total_wasted)/((sort_total_time - sort_total_wasted)+sort_total_wasted)))
+
+                    to_be_printed.append( "--------------------------------------\n")       
+
+            for i in to_be_printed:
+
+                report.write(i)
+
+
 
         report.write("""
 KEY:
