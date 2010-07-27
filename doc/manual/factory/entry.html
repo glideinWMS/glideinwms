@@ -92,7 +92,7 @@ below. A set of configuration example is provided, too.</P>
 two parts:</P>
 <UL>
 	<LI><A HREF="#args_global">The global arguments</A> </li>
-	<LI><P><A HREF="#args_entry">Entry point arguments</A> </li>
+	<LI><A HREF="#args_entry">Entry point arguments</A> </li>
 </UL>
 <p>
 	The global arguments are common to
@@ -103,6 +103,16 @@ two parts:</P>
 <p>
 	For some complete examples, look into 
 	<blockquote>glideinWMS/creation/config_examples/</blockquote> 
+</p>
+<h3>Internal Configuration</h3>
+<p>
+The configuration is parsed during the reconfiguration of the factory, and split into a number of files:
+<ul>
+<li>job.descript = is read by the daemon do decide how to work </li>
+<li>attributes.cfg = are fixed values, these are published in the factory classad</li>
+<li>params.cfg = are for values the frontend will change, also published in the factory classad</li>
+</ul>
+For more information, see the <a href="entry_internals.html#config">Entry Internals</a> page.
 </div>
 
 <div class="section">

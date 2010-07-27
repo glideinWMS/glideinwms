@@ -214,7 +214,7 @@ tree are shared between all the Factory Entry Daemons.</P>
 		between iterations, and the minimum collector update frequency.</li>
 	</UL>
 	<LI><P><TT>params.cfg</TT> – This file contains the factory global
-	default parameters.</P>
+	default parameters.  These are for values the frontend will change, also published in the factory classad</P>
 </UL>
 </div>
 
@@ -226,7 +226,9 @@ used by only one Entry Daemon.</P>
 <P>The following files are used:</P>
 <UL>
 	<LI><P><TT>job.descript</TT> – This file contains the entry
-	description.<BR>All the elements are used. Follows the description
+	description.  It is used by the factory entry daemon in order to 
+	decide how to do work.
+	<BR>All the elements are used. Follows the description
 	of the most important ones:</P>
 	<UL>
 		<LI>EntryName – The entry name used when advertising the Entry
@@ -249,7 +251,8 @@ used by only one Entry Daemon.</P>
 	<LI><P><TT>job.condor</TT> – A condor description file that is
 	used for submitting the jobs using <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/condor_submit.html">condor_submit</A>.</P>
 	<LI><P><TT>params.cfg</TT> – This file contains the entry-specific
-	default parameters.</P>
+	default parameters. These are for values the frontend will change, also published in the factory classad</P>
+	<li><p><tt>attributes.cfg</tt> - This file contains fixed values; these are published in the factory classad
 	<LI><P><TT>infosys.descript</TT> – This file contains the
 	reference to the information system that contains the information of
 	this entry point.</P>
