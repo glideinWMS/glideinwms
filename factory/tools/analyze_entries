@@ -151,7 +151,8 @@ def getdictionary(entries, debug, dates, start_time, end_time,
                     else: 
                         joblist.append(j)
 
-        list[0] += len(joblist) #total_glideins += len(joblist)
+        if len(list) != 0:
+            list[0] += len(joblist) #total_glideins += len(joblist)
  
         #if debug == 1: print "job count = ", len(joblist)  
         if len(joblist) == 0: 
@@ -693,8 +694,12 @@ Verbose Stats for Today:
             # for each piece of the dictionary
             #         (entry1, val) or (entry1, badput)
             for a, b in dictionary_list[j].iteritems():
-                r = (re.findall("\d+\-",b)[0]).strip("-")
-                tot = (re.findall("\-\d+",b)[0]).strip("-")
+                temp = re.findall("\d+\-",b)
+                if len(temp) != 0:
+                    r = temp[0].strip("-")
+                temp2 = re.findall("\-\d+",b)
+                if len(temp2) != 0:
+                    tot = temp2[0].strip("-")
                 if int(r) >= int(ratio):
                     to_be_printed.append("%-50s %s%% / %s\n" % (a.lstrip("entry_"), r, tot))
                     category_tot = category_tot + (int(r)/100)*int(tot)
@@ -796,12 +801,14 @@ Verbose Stats for Today:
   
                                     wasted_list = re.findall('badput="\d+"',job)
                                     badput = re.findall("\d+", ",".join(wasted_list))
-                                    entry_time_total = entry_time_total + int(badput[0])
-                                    entry_time_wasted = entry_time_wasted + int(badput[0])
+                                    if len(badput) != 0:
+                                        entry_time_total = entry_time_total + int(badput[0])
+                                        entry_time_wasted = entry_time_wasted + int(badput[0])
  
                                     used_list = re.findall('goodput="\d+"',job)
                                     goodput = re.findall("\d+", ",".join(used_list))
-                                    entry_time_total = entry_time_total + int(goodput[0])
+                                    if len(goodput) != 0:
+                                        entry_time_total = entry_time_total + int(goodput[0])
   
                                 #print entry only once 
                                 if already != 1:
@@ -856,35 +863,41 @@ Verbose Stats for Today:
                         entry_time_total = 0
                        
                         for job in job_list:
+                            
                             start_list = re.findall('False',job)
                             if len(start_list) != 0:
                                 bad_start_count += 1
 
                             val_list = re.findall('validation="\d+"',job)
                             val = re.findall("\d+", ",".join(val_list))
-                            if val[0] == "1000":
-                                bad_val_count += 1
+                            if len(val) != 0:
+                                if val[0] == "1000":
+                                    bad_val_count += 1
     
                             jobsnr_list = re.findall('jobsnr="\d+"',job)
                             jobsnr = re.findall("\d+", ",".join(jobsnr_list))
-                            if jobsnr[0] == "0":
-                                bad_0jobs_count += 1
+                            if len(jobsnr) != 0:
+                                if jobsnr[0] == "0":
+                                    bad_0jobs_count += 1
+                                sort_total_jobs += int(jobsnr[0])
+
         
                             badput_list = re.findall('badput="\d+"',job)
                             badput = re.findall("\d+", ",".join(badput_list))
-                            if badput[0] == "1000":
-                                bad_badput_count += 1
+                            if len(badput) != 0:
+                                if badput[0] == "1000":
+                                    bad_badput_count += 1
     
                             wasted_list = re.findall('badput="\d+"',job)
                             badput = re.findall("\d+", ",".join(wasted_list))
-                            entry_time_total = entry_time_total + int(badput[0])
-                            entry_time_wasted = entry_time_wasted + int(badput[0])
-    
+                            if len(badput) != 0:
+                                entry_time_total = entry_time_total + int(badput[0])
+                                entry_time_wasted = entry_time_wasted + int(badput[0])
+                                
                             used_list = re.findall('goodput="\d+"',job)
                             goodput = re.findall("\d+", ",".join(used_list))
-                            entry_time_total = entry_time_total + int(goodput[0])
-
-                            sort_total_jobs += int(jobsnr[0])
+                            if len(goodput) != 0:
+                                entry_time_total = entry_time_total + int(goodput[0])
 
                         sort_total_time += entry_time_total
                         sort_total_wasted += entry_time_wasted
