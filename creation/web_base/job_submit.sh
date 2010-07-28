@@ -2,8 +2,8 @@
 
 export GLIDEIN_USER=`id -u -n`
 
-if [ $# -lt 5 ]; then
- echo "At least 5 args expected!" 1>&2
+if [ $# -lt 6 ]; then
+ echo "At least 6 args expected!" 1>&2
  echo "Usage: job_submit.sh entry_name client x509_id count [attrs]* -- [params]*"
  1>&2
  exit 1
@@ -17,6 +17,8 @@ shift
 export GLIDEIN_COUNT=$1
 shift
 export GLIDEIN_RSL=$1
+shift
+export GLIDEIN_CHUNK_SIZE=$1
 shift
 GLIDEIN_PARAMS=""
 while [ "$1" != "--" ]; do
