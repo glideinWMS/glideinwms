@@ -190,8 +190,6 @@ def extractLogData(fname):
     condor_duration=None
     validation_duration=None
     slot_stats={}
-    for count_name in KNOWN_SLOT_STATS:
-        slot_stats[count_name]={'jobsnr':0,'secs':0}
 
     size = os.path.getsize(fname)
     if size<10:
@@ -244,10 +242,7 @@ def extractLogData(fname):
                                     
                                 if jobsnr!=None: #check I had no errors in integer conversion
                                     if not slot_stats.has_key(count_name):
-                                        slot_stats[count_name]={'jobsnr':0,'secs':0}
-
-                                    slot_stats[count_name]['jobsnr']+=jobsnr
-                                    slot_stats[count_name]['secs']+=secs
+                                        slot_stats[count_name]={'jobsnr':jobsnr,'secs':secs}
 
                                 count_re=ELD_RC_CONDOR_SLOT_CONTENT_COUNT.search(slot_buf,count_re.end()+1)
                                 #end while count_re
