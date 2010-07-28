@@ -113,11 +113,32 @@ def perform_work(entry_name,
     idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
     max_running_pproxy=math.ceil(max_running*proxy_fraction)
 
+    # KEL++ determine chunk size 
+    entry_min = int(jobDescript.data['MinChunkSize'])
+    entry_max = int(jobDescript.data['MaxChunkSize'])
+    job_chunk_size = entry_min
+    if params.has_key("GLIDEIN_ReqIdleChunkSize"):
+        try:
+            job_chunk_size = int(params["GLIDEIN_ReqIdleChunkSize"])
+        except:
+            glideFactoryLib.log_files.logActivity("Client '%s', has requested an invalid chunk size %s, skipping"%(client_int_name,params["GLIDEIN_ReqIdleChunkSize"]))
+            glideFactoryLib.log_files.logWarning("Glideins not started because chunk size %s requested by the frontend is not an integer " %params["GLIDEIN_ReqIdleChunkSize"])
+            return 0 # work done
+    
+        if not (entry_min <= job_chunk_size <= entry_max):
+            #requested chunk size not available in this entry
+            glideFactoryLib.log_files.logActivity("Client '%s', has requested an invalid chunk size %s, skipping"%(client_int_name,params["GLIDEIN_ReqIdleChunkSize"]))
+            glideFactoryLib.log_files.logWarning("Glideins not started because chunk size %s requested by the frontend is not between %s and %s " \
+                                                 %(params["GLIDEIN_ReqIdleChunkSize"], jobDescript.data['MinChunkSize'], jobDescript.data['MaxChunkSize']))
+            return 0 # work done
+
+        
     # not reducing the held, as that is effectively per proxy, not per request
     nr_submitted=0
+    # KEL++ added new param, chunk size to be passed in
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
-                                                       idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
+                                                       idle_glideins_pproxy,max_running_pproxy,max_held,job_chunk_size,submit_attrs,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
     if nr_submitted>0:
