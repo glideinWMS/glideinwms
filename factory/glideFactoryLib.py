@@ -47,6 +47,7 @@ class FactoryConfig:
         self.clusterid_startd_attribute = "GLIDEIN_ClusterId"
         self.procid_startd_attribute = "GLIDEIN_ProcId"
 
+        # KEL** do i need to add additional_rsl ENV variable to be added here as well?
         self.count_env = 'GLIDEIN_COUNT'
 
         self.submit_fname="job_submit.sh"
@@ -67,6 +68,10 @@ class FactoryConfig:
         self.max_cluster_size=10
         self.max_removes = 5
         self.max_releases = 20
+
+        # KEL ++ added chunk size
+        self.min_chunk_size = 1
+        self.max_chunk_size = 1
 
         # monitoring objects
         # create them for the logging to occur
@@ -429,7 +434,7 @@ class ClientWeb(ClientWebNoGroup):
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,client_int_name,
-                     min_nr_idle,max_nr_running,max_held,submit_attrs,
+                     min_nr_idle,max_nr_running,max_held,job_chunk_size,submit_attrs,
                      x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
@@ -467,7 +472,7 @@ def keepIdleGlideins(client_condorq,client_int_name,
         running_glideins=qc_status[2]
     else:
         running_glideins=0
-
+        
     if ((idle_glideins<min_nr_idle) and
         ((max_nr_running==None) or  #no max
          ((running_glideins+idle_glideins)<max_nr_running))):
@@ -475,8 +480,9 @@ def keepIdleGlideins(client_condorq,client_int_name,
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
+        # KEL** Need to add calculated chunk size here 
         submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       client_int_name,min_nr_idle-idle_glideins,submit_attrs,
+                       client_int_name,min_nr_idle-idle_glideins,job_chunk_size,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
         return min_nr_idle-idle_glideins # exit, some submitted
@@ -827,7 +833,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submit_attrs,
+def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,job_chunk_size,submit_attrs,
                    x509_proxy_identifier,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
@@ -853,9 +859,12 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
     if client_web!=None:
         client_web_arr=client_web.get_glidein_args()
     client_web_str=string.join(client_web_arr," ")
-
+     
     try:
+        # KEL** will need to figure out number submitted and actual chunk size 
+        # chunk size will be actual chunk (remainder ignored, i.e. integer division), will need to default to one to support glideinwms
         nr_submitted=0
+        
         while (nr_submitted<nr_glideins):
             if nr_submitted!=0:
                 time.sleep(factoryConfig.submit_sleep)
@@ -863,7 +872,14 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             nr_to_submit=(nr_glideins-nr_submitted)
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
-
+            
+            additional_rsl="(count=1)(jobtype=single)" # default value
+            if job_chunk_size>1:
+                additional_rsl = "(count=%i)(jobtype=multiple)"%job_chunk_size
+                
+            if params.has_key('GLIDEIN_Proj_Num'):
+                additional_rsl+="(project=%s)"%params['GLIDEIN_Proj_Num']
+    
             if username!=MY_USERNAME:
                 # use privsep
                 exe_env=['X509_USER_PROXY=%s'%x509_proxy_fname]
@@ -876,7 +892,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                 try:
                     submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
                                                      os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,]+
+                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,additional_rsl,job_chunk_size,]+
                                                      client_web_arr+submit_attrs+
                                                      ['--']+params_arr,
                                                      exe_env)
@@ -889,7 +905,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,additional_rsl,job_chunk_size,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
                     log_files.logWarning("condor_submit failed: %s"%e);
                     submit_out=[]
