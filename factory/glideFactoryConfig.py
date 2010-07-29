@@ -94,10 +94,7 @@ class GlideinKey:
         if self.pub_key_type=='RSA':
             import pubCrypto,symCrypto,md5
             if key_fname==None:
-                  if os.path.isfile(sys.argv[1] + '/rsa.key'):
-                     key_fname=sys.argv[1] + '/rsa.key'
-                  else:
-                     key_fname='rsa.key'
+                key_fname='rsa.key'
 
             self.rsa_key=pubCrypto.RSAKey(key_fname=key_fname)
 
