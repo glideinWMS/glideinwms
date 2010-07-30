@@ -226,10 +226,10 @@ frontends, you need following configuration parameters:</P>
 		identity=&quot;username_usedby_factory@factory_hostname&quot;
 		/&gt;</div>
 	<p>This
-	configures a frontend. Frontend on the frontend hosting machine
-	should have same name as mentioned in the 'name'. Identity tells the
+	configures a frontend. <b>Frontend on the frontend hosting machine
+	should have same name as mentioned in the 'name'. </b>Identity tells the
 	factory the username under which the factory should map the given
-	frontend to.</P>
+	frontend to. <b>If this does not match the frontend configuration, the factory will drop all requested glideins.</b></P>
 	<LI>
 		<div class="xml">
 		&lt;glidein&gt;&lt;security&gt;&lt;frontends&gt;&lt;frontend&gt;&lt;security_classes&gt;&lt;security_class
