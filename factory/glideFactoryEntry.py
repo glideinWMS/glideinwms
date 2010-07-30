@@ -106,13 +106,6 @@ def perform_work(entry_name,
 
     submit_attrs=[]
 
-    # use the extended params for submission
-    proxy_fraction=1.0/len(x509_proxy_keys)
-
-    # I will shuffle proxies around, so I may as well round up all of them
-    idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
-    max_running_pproxy=math.ceil(max_running*proxy_fraction)
-
     # KEL++ determine chunk size 
     entry_min = int(jobDescript.data['MinChunkSize'])
     entry_max = int(jobDescript.data['MaxChunkSize'])
@@ -132,15 +125,66 @@ def perform_work(entry_name,
                                                  %(params["GLIDEIN_ReqIdleChunkSize"], jobDescript.data['MinChunkSize'], jobDescript.data['MaxChunkSize']))
             return 0 # work done
 
-        
+    # KEL++ if the chunk size is one or there is only one proxy, the old code works fine
+    # other cases so split apart, may be able to come up with something better
+    # use the extended params for submission
+#    proxy_fraction=1.0/len(x509_proxy_keys)
+
+    # I will shuffle proxies around, so I may as well round up all of them
+#    idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
+#    max_running_pproxy=math.ceil(max_running*proxy_fraction)
+
     # not reducing the held, as that is effectively per proxy, not per request
-    nr_submitted=0
+#    nr_submitted=0
     # KEL++ added new param, chunk size to be passed in
-    for x509_proxy_id in x509_proxy_keys:
-        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
-                                                       idle_glideins_pproxy,max_running_pproxy,max_held,job_chunk_size,submit_attrs,
-                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
-                                                       client_web,params)
+#    for x509_proxy_id in x509_proxy_keys:
+#        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+#                                                       idle_glideins_pproxy,max_running_pproxy,max_held,job_chunk_size,submit_attrs,
+#                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
+#                                                       client_web,params)
+
+
+    # not reducing the held, as that is effectively per proxy, not per request 
+    nr_submitted=0
+
+    # KEL++ split glidein requests to the different conditions (this is the old code)
+    if len(x509_proxy_keys)==1 or job_chunk_size==1:       
+        # use the extended params for submission
+        proxy_fraction=1.0/len(x509_proxy_keys)
+
+        # I will shuffle proxies around, so I may as well round up all of them
+        idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
+        max_running_pproxy=math.ceil(max_running*proxy_fraction)
+
+        # KEL++ added new param, chunk size to be passed in
+        for x509_proxy_id in x509_proxy_keys:
+            nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+                                                           idle_glideins_pproxy,max_running_pproxy,max_held,job_chunk_size,submit_attrs,
+                                                           x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
+                                                           client_web,params)
+    else:  # the chunks need to be split between proxies (new code)
+        num_chunks = idle_glideins/job_chunk_size  # we can only submit by chunk size so disregard any remainder            
+
+        # spread chunks of glideins across all possible proxies
+        glideins_pproxy = [0]*len(x509_proxy_keys)
+        chunk_count=0
+        pproxy_index=0
+        while chunk_count <= num_chunks:
+            if pproxy_index >= len(glideins_pproxy):
+                pproxy_index=0
+            glideins_pproxy[pproxy_index]+=job_chunk_size
+            pproxy_index+=1
+            chunk_count+=1
+
+        # also need to keep track of index of glidein counts per proxy
+        pproxy_index=0
+        for x509_proxy_id in x509_proxy_keys:
+            nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+                                                            glideins_pproxy[pproxy_index],max_running_pproxy,max_held,job_chunk_size,submit_attrs,
+                                                            x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
+                                                            client_web,params)
+            pproxy_index+=1
+
     if nr_submitted>0:
         #glideFactoryLib.log_files.logActivity("Submitted")
         return 1 # we submitted something, return immediately
