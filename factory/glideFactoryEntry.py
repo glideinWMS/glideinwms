@@ -96,7 +96,7 @@ def perform_work(entry_name,
     for username in usernames.keys():
         log_stats[username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,username),
                                                                        glideFactoryLib.log_files.log_dir,
-                                                                       client_name,username)
+                                                                       client_int_name,username)
         # should not need privsep for reading logs
         log_stats[username].load()
 
