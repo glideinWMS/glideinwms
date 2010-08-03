@@ -1,3 +1,5 @@
+v2_4_2	Fixed the incompatibility introduced in v2_4_1 in monitoring components.
+
 v2_4_1	Add a new configuration option for PREEMPT_GRACE_TIME
 	Move configuration of GLIDEIN_Job_Max_Time from the factory to the frontend
 	In factory config added checks to make sure Factory configuration is
