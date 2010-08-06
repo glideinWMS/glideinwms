@@ -285,7 +285,7 @@ class Summarize:
     # Same output as list
     def listStored(self,constraint_func=None,hash_func=None):
         data=self.query.fetchStored(constraint_func)
-        return fetch2count(data,self.getHash(hash_func))
+        return fetch2list(data,self.getHash(hash_func))
 
     ### Internal
     def getHash(self,hash_func):
