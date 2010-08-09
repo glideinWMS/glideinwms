@@ -2643,6 +2643,50 @@ def get_proxy_dn(proxy_fname):
     return get_cert_dn(proxy_fname,type_text='proxy')
 
 def get_cert_dn(cert_fname,type_text='certificate'):
+    my_dn = get_cert_field(cert_fname, field='subject', type_text=type_text)
+    my_issuer = get_cert_field(cert_fname, field='issuer', type_text=type_text)
+
+    i = my_dn.find(my_issuer, 0, len(my_issuer))
+    dn = my_issuer
+    if i != 0:
+        # This is a certificate.
+        # Issuer is always CA and subject is always DN
+        dn = my_dn
+
+    # Clean up CN=proxy bit left behind as well
+    while dn[-9:]=='/CN=proxy':
+        dn = dn[:-9]
+
+    return dn
+
+
+def get_cert_field(cert_fname, field='subject', type_text='certificate'):
+    if not os.path.isfile(cert_fname):
+        raise RuntimeError,"File '%s' not found"%cert_fname
+
+    #extract field
+    field_fd = os.popen("openssl x509 -%s -in %s -out /dev/null" % (field,cert_fname))
+    field_blob = field_fd.read()
+    err = field_fd.close()
+    if err != None:
+        raise RuntimeError,"Failed to extract %s from certificate '%s'!" % (field,cert_fname)
+
+    i = field_blob.find("%s= " % field)
+    if i<0:
+        raise RuntimeError,"Failed to extract %s from certificate '%s'!" % (field,cert_fname)
+
+    field_blob = field_blob[i+len("%s= " % field):] # remove part before subject
+    return field_blob[:field_blob.find('\n')] # keep only the part until the newline
+
+
+############################################
+# FOLLOWING TWO ARE OLD WAYS OF GETTING DN #
+############################################
+
+def get_proxy_dn_old(proxy_fname):
+    return get_cert_dn_old(proxy_fname,type_text='proxy')
+
+def get_cert_dn_old(cert_fname,type_text='certificate'):
     if not os.path.isfile(cert_fname):
         raise RuntimeError,"File '%s' not found"%cert_fname
 
