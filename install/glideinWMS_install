@@ -2640,7 +2640,13 @@ def restart_condor():
 # Extact x509 info
 ################################
 def get_proxy_dn(proxy_fname):
-    return get_cert_dn(proxy_fname,type_text='proxy')
+    subject = ''
+    subject = get_cert_dn_using_voms(proxy_fname, type_text='proxy')
+    
+    if (subject == None) or (subject == ''):
+        subject = get_cert_dn(proxy_fname, type_text='proxy')
+
+    return subject
 
 def get_cert_dn(cert_fname,type_text='certificate'):
     my_dn = get_cert_field(cert_fname, field='subject', type_text=type_text)
@@ -2677,6 +2683,44 @@ def get_cert_field(cert_fname, field='subject', type_text='certificate'):
 
     field_blob = field_blob[i+len("%s= " % field):] # remove part before subject
     return field_blob[:field_blob.find('\n')] # keep only the part until the newline
+
+
+def get_cert_dn_using_voms(cert_fname,type_text='certificate'):
+    global VOMS_PROXY_INFO_BIN
+    nr_subjects = 0
+    subjects = []
+    subject = ""
+
+    if not os.path.isfile(cert_fname):
+        raise RuntimeError,"Proxy/Cert '%s' not found"%cert_fname
+
+    if VOMS_PROXY_INFO_BIN==None:
+        query_voms_proxy_info()
+
+    if VOMS_PROXY_INFO_BIN==False:
+        # User said he does not have voms-proxy-info
+        return None
+
+    #extract Proxy Chain
+    chain_fd = os.popen("%s -chain -file %s 2>/dev/null" % (VOMS_PROXY_INFO_BIN,cert_fname))
+    chain_blob = chain_fd.readlines()
+    err = chain_fd.close()
+
+    for line in chain_blob:
+        if line.find('subject', 0) == 0:
+            subjects.append((line.split(':')[1]).strip())
+
+    nr_subjects = len(subjects)
+    i = nr_subjects-1
+    for i in range(nr_subjects-1, 1, -1):
+        if (subjects[i].find(subjects[i-1]) < 0):
+            subject = subjects[i]
+            break
+
+    if (nr_subjects == 1) or ((subject == '') and (i > 0)):
+        subject = subjects[0]
+
+    return subject
 
 
 ############################################
