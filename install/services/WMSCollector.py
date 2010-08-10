@@ -117,19 +117,21 @@ GSI "^%s$" %s""" % \
 
     self.__create_condor_mapfile__(condor_entries) 
 
-    #-- update the condor config file entries ---
-     
-    gsi_daemon_entries = """\
-# --- WMS collector user: %s ---
-GSI_DAEMON_NAME=%s
-# --- Factory user: %s ---
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- VOFrontend user: %s ---
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % (self.unix_acct(),         self.gsi_dn(),
-       self.factory.unix_acct(), self.factory.gsi_dn(),
-       self.frontend.service_name(),self.frontend.gsi_dn())
-    self.__update_condor_config_gsi__(gsi_daemon_entries) 
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ----------------------------------------------
+#    #-- update the condor config file entries ---
+#    gsi_daemon_entries = """\
+## --- WMS collector user: %s ---
+#GSI_DAEMON_NAME=%s
+## --- Factory user: %s ---
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- VOFrontend user: %s ---
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+#""" % (self.unix_acct(),         self.gsi_dn(),
+#       self.factory.unix_acct(), self.factory.gsi_dn(),
+#       self.frontend.service_name(),self.frontend.gsi_dn())
+#    self.__update_condor_config_gsi__(gsi_daemon_entries) 
 
 
 #---------------------------

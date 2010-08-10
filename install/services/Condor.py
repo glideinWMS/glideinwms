@@ -163,6 +163,7 @@ class Condor(Configuration):
     self.__update_condor_config_wms__()
     self.__update_condor_config_daemon__()
     self.configure_gsi_security()
+    self.__update_condor_config_gsi__()
     self.__update_condor_config_schedd__()
     self.__update_condor_config_negotiator__()
     self.__update_condor_config_collector__()
@@ -443,8 +444,8 @@ LOCAL_CONFIG_FILE =
     self.__append_to_condor_config__(data,"glideinWMS data")
 
   #--------------------------------
-  def __update_condor_config_gsi__(self,gsi_dns):
-    data = self.__condor_config_gsi_data__(gsi_dns)
+  def __update_condor_config_gsi__(self):
+    data = self.__condor_config_gsi_data__()
     self.__append_to_condor_config__(data,"GSI")
 
   #--------------------------------
@@ -725,7 +726,7 @@ SEC_CLIENT_ENCRYPTION = OPTIONAL
 
 
   #-----------------------------
-  def __condor_config_gsi_data__(self,gsi_dns):
+  def __condor_config_gsi_data__(self):
     data = ""
     data =  data + """
 ############################################################
@@ -786,14 +787,17 @@ GSI_DAEMON_DIRECTORY = %s
 CERTIFICATE_MAPFILE=%s
 """ % ( os.path.dirname(self.condor_mapfile()),self.condor_mapfile())
 
-    if len(gsi_dns) > 0:
-      data =  data + """
-#####################################
-# Whitelist of condor daemon DNs
-#####################################
-%s
-""" % (gsi_dns)
-
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ---------------------------------------------
+#    if len(gsi_dns) > 0:
+#      data =  data + """
+######################################
+## Whitelist of condor daemon DNs
+######################################
+#%s
+#""" % (gsi_dns)
+#
     return data
 
   #-----------------------------

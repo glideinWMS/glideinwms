@@ -86,27 +86,30 @@ GSI "^%s$" %s""" % (re.escape(dn),frontend_service_name)
 
     self.__create_condor_mapfile__(condor_entries) 
 
-    #-- create the condor config file entries ---
-    gsi_daemon_entries = """\
-# --- User collector user: %s
-GSI_DAEMON_NAME=%s
-# --- Submit user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Frontend user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
-       (self.unix_acct(),    self.gsi_dn(),
-      submit.unix_acct(),  submit.gsi_dn(),
-    frontend.unix_acct(),frontend.gsi_dn())
-    #-- add in the frontend glidein puilot proxies --
-    cnt = 0
-    for dn in frontend.glidein_proxies_dns():
-      cnt = cnt + 1
-      gsi_daemon_entries = gsi_daemon_entries + """
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ----------------------------------------------
+#    #-- create the condor config file entries ---
+#    gsi_daemon_entries = """\
+## --- User collector user: %s
+#GSI_DAEMON_NAME=%s
+## --- Submit user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Frontend user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
+#       (self.unix_acct(),    self.gsi_dn(),
+#      submit.unix_acct(),  submit.gsi_dn(),
+#    frontend.unix_acct(),frontend.gsi_dn())
+#    #-- add in the frontend glidein puilot proxies --
+#    cnt = 0
+#    for dn in frontend.glidein_proxies_dns():
+#      cnt = cnt + 1
+#      gsi_daemon_entries = gsi_daemon_entries + """
 # --- Frontend pilot proxy: %s --
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
-
-    #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(gsi_daemon_entries) 
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
+#
+#    #-- update the condor config file entries ---
+#    self.__update_condor_config_gsi__(gsi_daemon_entries) 
 
 #---------------------------
 def show_line():

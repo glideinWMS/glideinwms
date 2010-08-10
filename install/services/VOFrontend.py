@@ -634,24 +634,27 @@ GSI "^%s$" %s""" % \
 
     self.__create_condor_mapfile__(condor_mapfile)
 
-    #-- create the condor config file entries ---
-    gsi_daemon_entries = """\
-# --- Submit user: %s
-GSI_DAEMON_NAME=%s
-# --- WMS collector user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Submit user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Userpool user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % \
-          (self.gsi_dn(),         self.service_name(),
-       self.wms.gsi_dn(),     self.wms.service_name(),
-    self.submit.gsi_dn(),  self.submit.service_name(),
-  self.userpool.gsi_dn(),self.userpool.service_name())
-
-    #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(gsi_daemon_entries)
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ----------------------------------------------
+#    #-- create the condor config file entries ---
+#    gsi_daemon_entries = """\
+## --- Submit user: %s
+#GSI_DAEMON_NAME=%s
+## --- WMS collector user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Submit user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Userpool user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+#""" % \
+#          (self.gsi_dn(),         self.service_name(),
+#       self.wms.gsi_dn(),     self.wms.service_name(),
+#    self.submit.gsi_dn(),  self.submit.service_name(),
+#  self.userpool.gsi_dn(),self.userpool.service_name())
+#
+#    #-- update the condor config file entries ---
+#    self.__update_condor_config_gsi__(gsi_daemon_entries)
 
 #---------------------------
 def show_line():
