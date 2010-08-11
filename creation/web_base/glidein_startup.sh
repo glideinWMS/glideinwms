@@ -20,7 +20,7 @@ function usage {
     echo "  -clientgroup <name>         : group name of the requesting client"
     echo "  -web <baseURL>              : base URL from where to fetch"
     echo "  -proxy <proxyURL>           : URL of the local proxy"
-    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR)"
+    echo "  -dir <dirID>                : directory ID (supports ., Condor, CONDOR, OSG, TMPDIR, TERAGRID)"
     echo "  -sign <sign>                : signature of the signature file"
     echo "  -signtype <id>              : type of signature (only sha1 supported for now)"
     echo "  -signentry <sign>           : signature of the entry signature file"
@@ -500,6 +500,8 @@ elif [ "$work_dir" == "OSG" ]; then
     work_dir="$OSG_WN_TMP"
 elif [ "$work_dir" == "TMPDIR" ]; then
     work_dir="$TMPDIR"
+elif [ "$work_dir" == "TERAGRID" ]; then
+    work_dir="$TG_NODE_SCRATCH"
 elif [ "$work_dir" == "." ]; then
     work_dir=`pwd`
 elif [ -z "$work_dir" ]; then
