@@ -93,7 +93,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinWorkDir','"%s"'%work_dir)
         
         # KEL++ Add new classad param to the glidein for monitoring purposes         
-        self.add('+GlideinChunkSize','"$ENV(GLIDEIN_CHUNK_SIZE)"')
+        self.add('+GlideinChunkSize','$ENV(GLIDEIN_CHUNK_SIZE)')
         
         self.add("Transfer_Executable","True")
         self.add("transfer_Input_files","")
