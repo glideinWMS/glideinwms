@@ -40,6 +40,7 @@ class Submit(Condor):
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
+    self.schedd_name_suffix = "jobs"
     self.daemon_list = "MASTER, SCHEDD"
  
   #--------------------------------

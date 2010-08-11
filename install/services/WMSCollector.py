@@ -42,6 +42,7 @@ class WMSCollector(Condor):
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
+    self.schedd_name_suffix = "glideins"
     self.daemon_list = "MASTER, COLLECTOR, NEGOTIATOR, SCHEDD"
     self.frontend = None     # VOFrontend object
     self.factory  = None     # Factory object

@@ -528,7 +528,7 @@ CONDOR_HOST = %s
     self.schedd_initd_function = ""
     schedds = int(self.number_of_schedds())
     for i in range(schedds):
-      schedd_name = "glideins%i" % (i+1)
+      schedd_name = "%s%i" % (self.schedd_name_suffix,i+1)
       #-- run the init script --
       user = pwd.getpwnam(self.unix_acct())
       condor_ids = "%s.%s" % (user[2],user[3])
