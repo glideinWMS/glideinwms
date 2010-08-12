@@ -479,6 +479,7 @@ RESERVED_SWAP = 0
   def __update_condor_config_collector__(self):
     if self.daemon_list.find("COLLECTOR") >= 0:
       data = self.__condor_config_collector_data__()
+      data = data + self.__condor_config_secondary_collector_data__()
     else: # no collector, identifies one to use
       data = """
 ####################################
@@ -911,11 +912,14 @@ COLLECTOR_HOST = $(CONDOR_HOST):%s
 #-- disable VOMS checking
 COLLECTOR.USE_VOMS_ATTRIBUTES = False
 """ % (self.service_name(),self.collector_port())
-    #-- secondary collectors
+    return data
+
+  #-----------------------------
+  def __condor_config_secondary_collector_data__(self):
     if self.secondary_collectors() == 0:
-      return ""
+      return ""  # none
     port_diff = 2  # ports will be set this from the primary collector port
-    data = data + """
+    data = """
 #################################################
 # Secondary collectors
 #################################################"""
