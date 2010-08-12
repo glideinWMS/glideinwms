@@ -35,36 +35,36 @@ class PrivilegeSeparation:
 
   #--------------------------------
   def validate_before_condor_install(self):
-    common.logit(".. privilege separation validation prior to condor install")
+    common.logit("Privilege separation validation starting")
     if os.getuid() != 0:
       common.logerr("You must install as root user to use privilege separation.")
     self.validate_frontends()       
     self.validate_users()       
-    if self.validate_client_files() == False:
-      common.logerr("Privilege separation requires root-only write permissions (drwxr-xr-x) for full path to client files: %s" % os.path.dirname(self.factory.client_files()))
-    common.logit(".. privilege separation validation prior to condor install complete")
+    self.validate_client_files()
+    common.logit("Privilege separation validation complete\n")
 
   #--------------------------------
   def validate_client_files(self):
-    dir = os.path.dirname(self.factory.client_files())
-    if not os.path.exists(dir):
-      return False
+    common.logit("... privilege separation requires root-only write permissions (drwxr-xr-x) for full path to client files: %s" % os.path.dirname(self.factory.client_files()))
+    dir = self.factory.client_files()
     while dir <> "/":
+      common.logit("... validating %s" % dir)
+      if not os.path.exists(dir):
+        dir = os.path.dirname(dir)
+        continue
       if not os.path.isdir(dir):
-        return False
+        common.logerr("This is not a directory: %s" % dir)
       if os.stat(dir)[4] <> 0:
-        return False
+        common.logerr("Group is not root: %s" % dir)
       if os.stat(dir)[5] <> 0:
-        return False
+        common.logerr("Owner is not root: %s" % dir)
       if not common.has_permissions(dir,"USR",["R","W","X",]):
-        return False
+        common.logerr("Incorrect 'owner' permissions: %s" % dir)
       if not common.has_permissions(dir,"GRP",["R","X",]) or common.has_permissions(dir,"GRP",["W",]):
-        return False
+        common.logerr("Incorrect 'group' permissions: %s" % dir)
       if not common.has_permissions(dir,"OTH",["R","X",]) or common.has_permissions(dir,"OTH",["W",]):
-        return False
+        common.logerr("Incorrect 'other' permissions: %s" % dir)
       dir = os.path.dirname(dir)
-    return True
-
 
   #--------------------------------
   def config_data(self):
@@ -99,6 +99,7 @@ QUEUE_SUPER_USERS = $(QUEUE_SUPER_USERS), %s
 
   #--------------------------------
   def validate_frontends(self):
+    common.logit("... validating frontend data")
     #--- frontend check to insure they are in ini file(s) ---
     frontend_inis = []
     service_names = self.frontend_users_dict.keys()
@@ -115,6 +116,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
 
   #--------------------------------
   def validate_users(self):
+    common.logit("... validating frontend user data")
     #--- factory ---
     user_valid = True
     try:
@@ -159,10 +161,12 @@ those in your frontend_users attribute of the WMSCollector ini file:
     if os.stat(self.switchboard_bin)[stat.ST_UID] != 0:
       common.logerr("Privilege separation binary (%s) must be owned by root!" % self.switchboard_bin)
     #-- create the config file ---
+    common.logit("... creating condor config file: %s" % (self.config_file))
     if not os.path.isdir(os.path.dirname(self.config_file)):
       os.mkdir(os.path.dirname(self.config_file))
     common.write_file("w",0644,self.config_file,self.config_data())
     #-- setuid on swtichboard ---
+    common.logit("... changing permissions on %s to %s" % (self.switchboard_bin,"04755"))
     os.chmod(self.switchboard_bin,04755)
     #-- create factory directories ---
     #-- factory dirs done in Factory install --

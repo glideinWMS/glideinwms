@@ -42,33 +42,40 @@ def make_directory(dirname,owner,perm,empty_required=True):
   if os.path.isdir(dirname):
     if not_writeable(dirname):
       logerr("Directory (%s) exists but is not writable by user %s" % (dirname,owner))
-    if empty_required:
-      if len(os.listdir(dirname)) == 0:
-        return  # we done.. all is ok
-      if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
-        logerr("Terminating at your request")
-      if not_writeable(os.path.dirname(dirname)):
-        logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
-      remove_dir_contents(dirname)
-      return  # we done.. all is ok
-  #-- create it but see if parent exists first --
-  dirs = []
-  parent_dir = os.path.dirname(dirname)
-  if os.path.isdir(parent_dir):
-    dirs.append(dirname)
+    if not empty_required:
+      return # we done.. does not have to be empty
+
+    if len(os.listdir(dirname)) == 0:
+      return  # we done.. its empty
+
+    if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
+      logerr("Terminating at your request")
+    if not_writeable(os.path.dirname(dirname)):
+      logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
+    remove_dir_contents(dirname)
+    return  # we done.. all is ok
+
+  #-- create it but check entire path ---
+  dirs = [dirname,]  # directories we need to create
+  dir = dirname
+  while dir <> "/":
+    parent_dir = os.path.dirname(dir)
+    if os.path.isdir(parent_dir):
+      break
+    dirs.append(parent_dir)
+    dir = parent_dir
+  dirs.reverse()
+  for dir in dirs:
     if not_writeable(parent_dir):
       logerr("Cannot create %s because of permissions/ownership\n       of parent dir(%s)" % (dirname,parent_dir))
-  else:
-    dirs = [ parent_dir,dirname,]
-  for dir in dirs:
     try:
-      if not os.path.isdir(dir):
-        os.makedirs(dir)
+      os.makedirs(dir)
       os.chmod(dir,perm)
       uid = pwd.getpwnam(owner)[2]
       gid = pwd.getpwnam(owner)[3]
       os.chown(dir,uid,gid)
     except:
+      logit("... trying to create directory: %s" % dirname)
       logerr("Failed to create or set permissions/ownership(%s) on directory: %s" % (owner,dir))
     logit( "... directory created: %s" % dir)
   return
@@ -168,21 +175,9 @@ def validate_email(email):
 #--------------------------------
 def validate_install_location(dir):
   logit("... checking install location: %s" % dir)
-  if not os.path.isdir(dir):
-    return
-  if not_writeable(dir):
-    logerr("Install location must have write permissions for user(%s)" % self.unix_acct())
-  if len(os.listdir(dir)) == 0:
-    return  # it's empty that is good 
-  logit("WARNING: Install location (%s) exists and has content." % (dir))
-  yn = ask_yn("Would you like to remove it and re-install")
-  if yn == "y":
-    yn = ask_yn("Are you really sure of this.")
-  if yn == "y":
-    logit("... removing %s" %dir)
-    os.system("rm -rf %s" % dir)
-  else:
-    logerr("Terminating at your request")
+  install_user = pwd.getpwuid(os.getuid())[0]
+  make_directory(dir,install_user,0755,empty_required=True)
+
 
 #--------------------------------
 def ask_yn(question):
@@ -275,15 +270,19 @@ def indent(level):
 if __name__ == '__main__':
   print "Starting some tests"
   try:
-    print "... testing make_directory"
-    testdir = "testdir/testdir1"
-    make_directory(testdir)
+    print "Testing make_directory"
+    owner = pwd.getpwuid(os.getuid())[0]
+    perm = 0755
+    testdir = "/opt/testdir/testdir1/testdir2/testdir3"
+    print "... %s" % testdir
+    make_directory(testdir,owner,perm,empty_required=True)
+    if not os.path.isdir(testdir):
+      print "FAILED"
+    print "PASSED"
     os.rmdir(testdir)
-    os.rmdir(os.path.dirname(testdir))
-    print "... PASSED"
 
-    print "... testing make_backup"
-    make_directory(testdir)
+    print "Testing make_backup"
+    make_directory(testdir,owner,perm,empty_required=True)
     filename = "%s/%s" % (testdir,__file__)
     shutil.copy(__file__,filename)
     make_backup(filename)
@@ -293,7 +292,8 @@ if __name__ == '__main__':
     print "... PASSED"
 
   except Exception,e:
-    print "FAILED test:",e
+    print "FAILED test"
+    print e
     sys.exit(1)
   print "PASSED all tests"
   sys.exit(0)
