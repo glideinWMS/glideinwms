@@ -191,17 +191,17 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             client_int_name="DummyName"
             client_int_req="DummyReq"
 
-	# Check whether the frontend is on the whitelist for the 
-	# Entry point.
-	if decrypted_params.has_key('SecurityName'):
+        # Check whether the frontend is on the whitelist for the 
+        # Entry point.
+        if decrypted_params.has_key('SecurityName'):
                 client_security_name=decrypted_params['SecurityName']
-	else:
+        else:
                 # backwards compatibility
                 client_security_name=client_int_name
 
-	# Check if this entry point has a whitelist
-	# If it does, then make sure that this frontend is in it.
-	if (frontend_whitelist == "On")and(not security_list.has_key(client_security_name)):
+        # Check if this entry point has a whitelist
+        # If it does, then make sure that this frontend is in it.
+        if (frontend_whitelist == "On")and(not security_list.has_key(client_security_name)):
                 glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping request %s "%(client_int_name,client_security_name))
                 continue #skip request
 
@@ -278,8 +278,8 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 else:
                     x509_proxy_security_class=x509_proxy_identifier
 
-		# Deny Frontend from entering glideins if the whitelist
-		# does not have its security class (or "All" for everyone)
+                # Deny Frontend from entering glideins if the whitelist
+                # does not have its security class (or "All" for everyone)
                 if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
                     glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_authenticated_identity,x509_proxy_security_class))
                     continue # skip request
