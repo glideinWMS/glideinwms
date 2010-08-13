@@ -150,10 +150,9 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 	for entry in frontend_allow_list:
 		entry_part=entry.split(":");
 		if (security_list.has_key(entry_part[0])):
-			security_list[entry_part[0]].append(entry_part[1]);
-		else:
-			security_list[entry_part[0]]=[entry_part[1]];
-    		#glideFactoryLib.log_files.logWarning("Factory in Whitelist mode, allowing: %s"%(entry))
+                        security_list[entry_part[0]].append(entry_part[1]);
+                else:
+                        security_list[entry_part[0]]=[entry_part[1]];
    
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
