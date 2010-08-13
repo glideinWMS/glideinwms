@@ -452,7 +452,7 @@ source %s/condor.sh
         if site_name != "":
           ress_entries[idx]['site_name'] = site_name
 
-      if config_glexec:
+      if self.glidein.use_glexec() == "y":
         glexec_path = raw_input("gLExec path for '%s': [%s] "%(idx,ress_entries[idx]['glexec_path']))
         if glexec_path != "":
           ress_entries[idx]['glexec_path'] = glexec_path
