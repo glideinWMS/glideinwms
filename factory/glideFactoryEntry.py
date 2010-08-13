@@ -145,14 +145,14 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     frontend_whitelist=jobDescript.data['WhitelistMode']
     security_list={};
     if (frontend_whitelist == "On"):
-    	frontend_allowed=jobDescript.data['AllowedVOs']
-	frontend_allow_list=frontend_allowed.split(',');
-	for entry in frontend_allow_list:
-		entry_part=entry.split(":");
-		if (security_list.has_key(entry_part[0])):
-                        security_list[entry_part[0]].append(entry_part[1]);
-                else:
-                        security_list[entry_part[0]]=[entry_part[1]];
+        frontend_allowed=jobDescript.data['AllowedVOs']
+        frontend_allow_list=frontend_allowed.split(',');
+    for entry in frontend_allow_list:
+        entry_part=entry.split(":");
+    if (security_list.has_key(entry_part[0])):
+        security_list[entry_part[0]].append(entry_part[1]);
+    else:
+        security_list[entry_part[0]]=[entry_part[1]];
    
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 

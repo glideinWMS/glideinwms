@@ -32,8 +32,8 @@ class GlideinParams(cWParams.CommonParams):
 	# Defaults for allowing frontends in a whitelist
 	# in the factory config (per entry point)
         self.allow_defaults=cWParams.commentedOrderedDict()
-	self.allow_defaults["name"]=(None,"string","frontend name",None)
-	self.allow_defaults["security_class"]=("All","string","security class",None)
+        self.allow_defaults["name"]=(None,"string","frontend name",None)
+        self.allow_defaults["security_class"]=("All","string","security class",None)
 
         # publishing specific to factory
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
