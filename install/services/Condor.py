@@ -104,6 +104,15 @@ class Condor(Configuration):
     if not self.has_option(self.ini_section,option):
       return int(0)
     return self.option_value(self.ini_section,option)
+  #---------------------
+  def secondary_collector_ports(self):
+    ports = []
+    if self.secondary_collectors() == 0:
+      return ports  # none
+    collectors = int(self.secondary_collectors())
+    for nbr in range(collectors):
+      ports.append(int(self.collector_port()) + nbr + 1)
+    return ports
   #--------------------------------
   def stop_condor(self):
     if self.client_only_install() == True:
@@ -496,8 +505,8 @@ RESERVED_SWAP = 0
 ####################################
 # Collector for user submitted jobs
 ####################################
-CONDOR_HOST = %s
-""" % self.option_value("UserCollector","node")
+CONDOR_HOST = %s:%s
+""" % (self.option_value("UserCollector","node"),self.option_value("UserCollector","collector_port"))
     self.__append_to_condor_config__(data,"COLLECTOR")
 
   #--------------------------------
@@ -929,26 +938,23 @@ COLLECTOR.USE_VOMS_ATTRIBUTES = False
   def __condor_config_secondary_collector_data__(self):
     if self.secondary_collectors() == 0:
       return ""  # none
-    port_diff = 1  # ports will be set this from the primary collector port
     data = """
 #################################################
 # Secondary collectors
 #################################################"""
 #-- define sub-collectors, ports and log files
-    base_port = int(self.collector_port()) + 2
-    collectors = int(self.secondary_collectors())
-    for nbr in range(collectors):
+    for nbr in range(int(self.secondary_collectors())):
       data = data + """
 COLLECTOR%i = $(COLLECTOR)
-COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog" 
+COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog"
 COLLECTOR%i_ARGS = -f -p %i
-""" % (nbr,nbr,nbr,nbr,base_port+nbr)
+""" % (nbr,nbr,nbr,nbr,self.secondary_collector_ports()[nbr])
 
     data = data + """
 #-- Add subcollectors to the list of daemons  to start
 DAEMON_LIST = $(DAEMON_LIST) \\
 """
-    for nbr in range(collectors):
+    for nbr in range(int(self.secondary_collectors())):
       data = data + "COLLECTOR%i \\\n" % nbr
 
     data = data + """
