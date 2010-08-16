@@ -9,6 +9,7 @@ import optparse
 import common
 from Certificates  import Certificates  
 from Condor        import Condor  
+import WMSCollector
 import VOFrontend
 import Submit
 from Configuration import ConfigurationError
@@ -40,10 +41,17 @@ class UserCollector(Condor):
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
+    self.wmscollector = None  # User collector object
     self.daemon_list = "MASTER, COLLECTOR, NEGOTIATOR"
 
   #--------------------------------
+  def get_wmscollector(self):
+    if self.wmscollector == None:
+      self.wmscollector = WMSCollector.WMSCollector(self.inifile)
+
+  #--------------------------------
   def install(self):
+    self.verify_no_conflicts()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     self.install_condor()
     common.logit ("======== %s install complete ==========" % self.ini_section)
@@ -110,6 +118,17 @@ GSI "^%s$" %s""" % (re.escape(dn),frontend_service_name)
 #
 #    #-- update the condor config file entries ---
 #    self.__update_condor_config_gsi__(gsi_daemon_entries) 
+
+  #--------------------------------
+  def verify_no_conflicts(self):
+    self.get_wmscollector()
+    if self.node() <> self.wmscollector.node():
+      return  # -- no problem, on separate nodes --
+    if self.collector_port() == self.wmscollector.collector_port():
+      common.logerr("The WMS collector and User collector are being installed \non the same node. They both are trying to use the same port: %s." % self.collector_port())
+    if int(self.wmscollector.collector_port()) in self.secondary_collector_ports():
+      common.logerr("The WMS collector and User collector are being installed \non the same node. The WMS collector port (%s) conflicts with one of the\nsecondary User collector ports that will be assigned: %s." % (self.wmscollector.collector_port(),self.secondary_collector_ports()))
+
 
 #---------------------------
 def show_line():
