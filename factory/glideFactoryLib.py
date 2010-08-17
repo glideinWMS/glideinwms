@@ -47,7 +47,6 @@ class FactoryConfig:
         self.clusterid_startd_attribute = "GLIDEIN_ClusterId"
         self.procid_startd_attribute = "GLIDEIN_ProcId"
 
-        # KEL** do i need to add additional_rsl ENV variable to be added here as well?
         self.count_env = 'GLIDEIN_COUNT'
 
         self.submit_fname="job_submit.sh"
@@ -266,8 +265,9 @@ def getCondorQData(entry_name,
 
     x509id_str=factoryConfig.x509id_schedd_attribute
 
+    # KEL++ need to add another value to format from the glidein classad?
     q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
-    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s")]
+    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s"),("GlideinChunkSize","i")]
 
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factoryConfig.factory_name
@@ -431,7 +431,7 @@ class ClientWeb(ClientWebNoGroup):
         return (ClientWebNoGroup.get_glidein_args(self)+
                 ["-clientgroup",self.group_name,"-clientwebgroup",self.group_url,"-clientsigngroup",self.group_sign,"-clientdescriptgroup",self.group_descript])
 
-# Returns number of newely submitted glideins
+# Returns number of newly submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,client_int_name,
                      min_nr_idle,max_nr_running,max_held,job_chunk_size,submit_attrs,
@@ -453,39 +453,56 @@ def keepIdleGlideins(client_condorq,client_int_name,
     #
     # First check if we have enough glideins in the queue
     #
-
+    # KEL++ need to check classad for number of actual running glideins, redo all these calculations and 
+    #       the following if statement for submitting new glideins
+    
     # Count glideins by status
-    qc_status=getQStatus(condorq)
+#    qc_status=getQStatus(condorq)
 
     #   Held==JobStatus(5)
-    if qc_status.has_key(5):
-        held_glideins=qc_status[5]
-        if held_glideins>max_held:
-            return 0 # too many held glideins, stop submitting new jobs
+#    if qc_status.has_key(5):
+#        held_glideins=qc_status[5]
+#        if held_glideins>max_held:
+#            return 0 # too many held glideins, stop submitting new jobs
 
     #   Idle==Jobstatus(1)
-    sum_idle_count(qc_status)
-    idle_glideins=qc_status[1]
+#    sum_idle_count(qc_status)
+#    idle_glideins=qc_status[1]
 
     #   Running==Jobstatus(2)
-    if qc_status.has_key(2):
-        running_glideins=qc_status[2]
-    else:
-        running_glideins=0
-        
+#    if qc_status.has_key(2):
+#        running_glideins=qc_status[2]
+#    else:
+#        running_glideins=0
+
+    
+    # KEL++ do counting of actual glideins (not condor-g jobs) according to the glidein classad
+    held_glideins=countGlideinsByStatus(condorq.fetchStored(), 5)
+    log_files.logActivity("KEL held glideins : %i"%held_glideins)
+    idle_glideins=countGlideinsByStatus(condorq.fetchStored(), 1)
+    log_files.logActivity("KEL idle glideins : %i"%idle_glideins)
+    running_glideins=countGlideinsByStatus(condorq.fetchStored(), 2)
+    log_files.logActivity("KEL running glideins : %i"%running_glideins)
+       
+    # KEL++ add check to see that requesting at least the calculated chunk size   
     if ((idle_glideins<min_nr_idle) and
-        ((max_nr_running==None) or  #no max
-         ((running_glideins+idle_glideins)<max_nr_running))):
+         ((max_nr_running==None) or  #no max
+         ((running_glideins+idle_glideins)<max_nr_running)) and 
+         ((min_nr_idle-idle_glideins-running_glideins)>=job_chunk_size)):
         stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
-        # KEL** Need to add calculated chunk size here 
+        # KEL** added calculated # of glidens using req idle and chunk size.  the num submitted here is the actual number of pilots
+        # in the wms queue and not the number of glideins at the site 
+        nr_glideins =  (min_nr_idle-idle_glideins)/job_chunk_size
         submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       client_int_name,min_nr_idle-idle_glideins,job_chunk_size,submit_attrs,
+                       client_int_name,nr_glideins,job_chunk_size,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
-        return min_nr_idle-idle_glideins # exit, some submitted
+        #return min_nr_idle-idle_glideins # exit, some submitted
+        # KEL++ have to return actual number submitted
+        return nr_glideins*job_chunk_size
 
     # We have enough glideins in the queue
     # Now check we don't have problems
@@ -643,6 +660,16 @@ def hash_status(el):
     else:
         # others just pass over
         return job_status
+
+# KEL++ Return actual number of glidens, not what is in the local queue
+def countGlideinsByStatus(condorq, job_status):
+    count = 0
+    for key in condorq.keys():
+        el=condorq[key]
+        if el["JobStatus"]==job_status:
+            count += el["GlideinChunkSize"]
+    return count
+
 
 # helper function that sums up the idle states
 def sum_idle_count(qc_status):
@@ -840,10 +867,10 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,job_c
     global factoryConfig
 
     submitted_jids=[]
-
+       
     if nr_glideins>factoryConfig.max_submits:
         nr_glideins=factoryConfig.max_submits
-
+        
     submit_attrs_arr=[]
     for e in submit_attrs:
         submit_attrs_arr.append("'"+e+"'")
@@ -890,6 +917,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,job_c
                         if os.environ.has_key(var):
                             exe_env.append('%s=%s'%(var,os.environ[var]))
                 try:
+                    log_files.logActivity("KEL Submitting %i glideins with chunk size %i: "%(nr_to_submit,job_chunk_size))
                     submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
                                                      os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
                                                      [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,"%i"%nr_to_submit,additional_rsl,job_chunk_size,]+
@@ -905,6 +933,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,job_c
             else:
                 # avoid using privsep, if possible
                 try:
+                    log_files.logActivity("KEL Submitting %i glideins with chunk size %i: "%(nr_to_submit,job_chunk_size))
                     submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,additional_rsl,job_chunk_size,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
                     log_files.logWarning("condor_submit failed: %s"%e);
