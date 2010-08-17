@@ -451,7 +451,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # never fail for stats reasons!
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))                
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -461,7 +461,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
                 
         glideFactoryLib.log_files.cleanup()
 
@@ -564,7 +564,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
                 raise
         finally:
             try:
@@ -583,7 +583,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
                                                                                                        glideinDescript.data['GlideinName'],
                                                                                                        jobDescript.data['EntryName']))
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
     finally:
         pid_obj.relinquish()
 
