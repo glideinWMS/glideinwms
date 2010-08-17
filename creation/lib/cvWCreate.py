@@ -255,6 +255,12 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("DAEMON_LIST=MASTER\n")
         fd.write("DAEMON_SHUTDOWN=True\n")
 
+
+        fd.write("\n######################################################\n")
+        fd.write("## If condor is allowed to use VOMS attributes, it will\n")
+        fd.write("## map COLLECTOR DN to anonymous. Just disable it.\n")
+        fd.write("######################################################\n")
+        fd.write("USE_VOMS_ATTRIBUTES = False\n")
     finally:
         fd.close()
         
