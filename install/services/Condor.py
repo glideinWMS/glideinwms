@@ -187,6 +187,7 @@ class Condor(Configuration):
     """ Certificates are required for Condor GSI authentication. """
     certs = Certificates(self.inifile,self.ini_section)
     certs.install()
+    self.certificates = certs.certificate_dir()
 
   #--------------------------------
   def __install_vdt_client__(self):
