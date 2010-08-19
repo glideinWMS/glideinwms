@@ -667,7 +667,16 @@ def countGlideinsByStatus(condorq, job_status):
     for key in condorq.keys():
         el=condorq[key]
         if el["JobStatus"]==job_status:
-            count += el["GlideinChunkSize"]
+            if job_status==2:
+                grid_status=el["GridJobStatus"]
+                if grid_status in ("ACTIVE","INLRMS: R"):
+                    count += el["GlideinChunkSize"]
+                elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING"):
+                    pass
+                else:
+                    pass
+            else:
+                count += el["GlideinChunkSize"]
     return count
 
 
@@ -867,10 +876,10 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,job_c
     global factoryConfig
 
     submitted_jids=[]
-       
+
     if nr_glideins>factoryConfig.max_submits:
         nr_glideins=factoryConfig.max_submits
-        
+
     submit_attrs_arr=[]
     for e in submit_attrs:
         submit_attrs_arr.append("'"+e+"'")
@@ -886,12 +895,11 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,job_c
     if client_web!=None:
         client_web_arr=client_web.get_glidein_args()
     client_web_str=string.join(client_web_arr," ")
-     
+
     try:
         # KEL** will need to figure out number submitted and actual chunk size 
         # chunk size will be actual chunk (remainder ignored, i.e. integer division), will need to default to one to support glideinwms
         nr_submitted=0
-        
         while (nr_submitted<nr_glideins):
             if nr_submitted!=0:
                 time.sleep(factoryConfig.submit_sleep)

@@ -2281,7 +2281,7 @@ def install_vomscerts():
 
     if os.getuid()==0:
         # make also a symlink in /etc/grid-security
-        if os.path.exists('/etc/grid-security/vomsdir'):
+        if os.path.lexists('/etc/grid-security/vomsdir'):
             # move it out of the way... for historical reasons
             os.rename('/etc/grid-security/vomsdir','/etc/grid-security/vomsdir.%i.%i'%(time.time(),os.getpid()))
         os.symlink(os.path.join(VDT_BASE_PATH,'glite/vomsdir'),'/etc/grid-security/vomsdir')
@@ -2808,9 +2808,98 @@ def restart_condor():
 # Extact x509 info
 ################################
 def get_proxy_dn(proxy_fname):
-    return get_cert_dn(proxy_fname,type_text='proxy')
+    subject = ''
+    subject = get_cert_dn_using_voms(proxy_fname, type_text='proxy')
+    
+    if (subject == None) or (subject == ''):
+        subject = get_cert_dn(proxy_fname, type_text='proxy')
+
+    return subject
 
 def get_cert_dn(cert_fname,type_text='certificate'):
+    my_dn = get_cert_field(cert_fname, field='subject', type_text=type_text)
+    my_issuer = get_cert_field(cert_fname, field='issuer', type_text=type_text)
+
+    i = my_dn.find(my_issuer, 0, len(my_issuer))
+    dn = my_issuer
+    if i != 0:
+        # This is a certificate.
+        # Issuer is always CA and subject is always DN
+        dn = my_dn
+
+    # Clean up CN=proxy bit left behind as well
+    while dn[-9:]=='/CN=proxy':
+        dn = dn[:-9]
+
+    return dn
+
+
+def get_cert_field(cert_fname, field='subject', type_text='certificate'):
+    if not os.path.isfile(cert_fname):
+        raise RuntimeError,"File '%s' not found"%cert_fname
+
+    #extract field
+    field_fd = os.popen("openssl x509 -%s -in %s -out /dev/null" % (field,cert_fname))
+    field_blob = field_fd.read()
+    err = field_fd.close()
+    if err != None:
+        raise RuntimeError,"Failed to extract %s from certificate '%s'!" % (field,cert_fname)
+
+    i = field_blob.find("%s= " % field)
+    if i<0:
+        raise RuntimeError,"Failed to extract %s from certificate '%s'!" % (field,cert_fname)
+
+    field_blob = field_blob[i+len("%s= " % field):] # remove part before subject
+    return field_blob[:field_blob.find('\n')] # keep only the part until the newline
+
+
+def get_cert_dn_using_voms(cert_fname,type_text='certificate'):
+    global VOMS_PROXY_INFO_BIN
+    nr_subjects = 0
+    subjects = []
+    subject = ""
+
+    if not os.path.isfile(cert_fname):
+        raise RuntimeError,"Proxy/Cert '%s' not found"%cert_fname
+
+    if VOMS_PROXY_INFO_BIN==None:
+        query_voms_proxy_info()
+
+    if VOMS_PROXY_INFO_BIN==False:
+        # User said he does not have voms-proxy-info
+        return None
+
+    #extract Proxy Chain
+    chain_fd = os.popen("%s -chain -file %s 2>/dev/null" % (VOMS_PROXY_INFO_BIN,cert_fname))
+    chain_blob = chain_fd.readlines()
+    err = chain_fd.close()
+
+    for line in chain_blob:
+        if line.find('subject', 0) == 0:
+            subjects.append((line.split(':')[1]).strip())
+
+    nr_subjects = len(subjects)
+    i = nr_subjects-1
+    for i in range(nr_subjects-1, 1, -1):
+        if (subjects[i].find(subjects[i-1]) < 0):
+            subject = subjects[i]
+            break
+
+    if (nr_subjects == 1) or ((subject == '') and (i > 0)):
+        subject = subjects[0]
+
+    return subject
+
+
+############################################
+# FOLLOWING TWO ARE OLD WAYS OF GETTING DN #
+############################################
+
+def get_proxy_dn_old(proxy_fname):
+    return get_cert_dn_old(proxy_fname,type_text='proxy')
+
+def get_cert_dn_old(cert_fname,type_text='certificate'):
+
     if not os.path.isfile(cert_fname):
         raise RuntimeError,"File '%s' not found"%cert_fname
 
@@ -4441,7 +4530,7 @@ def get_ress_glidein_entries(vo,             #vo can be None
 
         cluster_name=condor_el['GlueClusterName']
         gatekeeper_name=condor_el['GlueCEInfoContactString']
-        rsl='(queue=%s)'%condor_el['GlueCEName']
+        rsl='(queue=%s)(jobtype=single)'%condor_el['GlueCEName']
         site_name=condor_el['GlueSiteName']
 
         work_dir="OSG"
@@ -4616,7 +4705,7 @@ def get_bdii_glidein_entries(vo,             #vo can be None
         
         work_dir="."
         gatekeeper="%s:%s/jobmanager-%s"%(el2['GlueCEHostingCluster'][0],el2['GlueCEInfoGatekeeperPort'][0],el2['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)"%el2['GlueCEName'][0]
+        rsl="(queue=%s)(jobtype=single)"%el2['GlueCEName'][0]
 
         site_name=el2['Mds-Vo-name'][0]
         cluster_id="bdii_%s"%site_name

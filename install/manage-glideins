@@ -198,10 +198,11 @@ def main(argv):
     global gProgramName
     global gAction
     gProgramName = argv[0]
+    gAction = None
     inifile = ""
     arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
-    stop_order = ["submit","vofrontend","factory","usercollector","wmscollector"]
+    stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
     if len(opts) == 0:
       usage(services)
@@ -234,9 +235,22 @@ def main(argv):
         services = ["factory",]
         gAction = "create-entries"
     
+    if gAction == None and len(inifile) == 0:
+      usage(services)
+      common.logerr("Missing all command line  arguments")
+
+    if len(inifile) == 0:
+      usage(services)
+      common.logerr("--ini argument is required")
+
+    if gAction == None:
+      usage(services)
+      common.logerr("Missing the 'action' argument")
+
     for service in services:        
       common.logit("----- %s ----" % (service))
       process_request(service,gAction,inifile)
+
   except getopt.error, e:
     msg = e.__str__()
     common.logit("ERROR: Invalid command line argument: %s" % msg)

@@ -104,6 +104,15 @@ class Condor(Configuration):
     if not self.has_option(self.ini_section,option):
       return int(0)
     return self.option_value(self.ini_section,option)
+  #---------------------
+  def secondary_collector_ports(self):
+    ports = []
+    if self.secondary_collectors() == 0:
+      return ports  # none
+    collectors = int(self.secondary_collectors())
+    for nbr in range(collectors):
+      ports.append(int(self.collector_port()) + nbr + 1)
+    return ports
   #--------------------------------
   def stop_condor(self):
     if self.client_only_install() == True:
@@ -135,10 +144,11 @@ class Condor(Configuration):
 
   #--------------------------------
   def install_condor(self):
-    common.logit( "Condor install started")
+    common.logit( "\nDependency and validation checking starting")
     self.__install_certificates__()
     self.__install_vdt_client__()
     self.__validate_condor_install__()
+    common.logit( "Dependency and validation checking complete\n")
     self.__install_condor__()
     self.__setup_condor_env__()
 
@@ -163,6 +173,7 @@ class Condor(Configuration):
     self.__update_condor_config_wms__()
     self.__update_condor_config_daemon__()
     self.configure_gsi_security()
+    self.__update_condor_config_gsi__()
     self.__update_condor_config_schedd__()
     self.__update_condor_config_negotiator__()
     self.__update_condor_config_collector__()
@@ -195,7 +206,7 @@ class Condor(Configuration):
 
   #--------------------------------
   def __validate_condor_install__(self):
-    common.logit( "... validating")
+    common.logit( "... validating Condor data")
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
     common.validate_email(self.admin_email)
@@ -268,7 +279,8 @@ setenv CONDOR_CONFIG %s
  
   #--------------------------------
   def __install_condor__(self):
-    common.logit( "... installing condor in %s" % (self.condor_location()))
+    common.logit("Condor install starting")
+    common.logit("... install location: %s" % (self.condor_location()))
     try:
       tar_dir="%s/tar" % (self.condor_location())
       if not os.path.isdir(tar_dir):
@@ -277,7 +289,7 @@ setenv CONDOR_CONFIG %s
       common.logerr("Condor installation failed. Cannot make %s directory: %s" % (tar_dir,e))
     
     try:
-        common.logit( "Extracting from tarball")
+        common.logit( "... extracting from tarball")
         fd = tarfile.open(self.condor_tarball,"r:gz")
         #-- first create the regular files --
         for f in fd.getmembers():
@@ -289,7 +301,7 @@ setenv CONDOR_CONFIG %s
                 os.link(os.path.join(tar_dir,f.linkname),os.path.join(tar_dir,f.name))
         fd.close()
 
-        common.logit( "Running condor_configure")
+        common.logit( "... running condor_configure")
         install_str="%s/condor-%s/release.tar" % (tar_dir,self.condor_version)
         if not os.path.isfile(install_str):
             # Condor v7 changed the packaging
@@ -306,11 +318,14 @@ setenv CONDOR_CONFIG %s
     
     #--  installation files not needed anymore --
     shutil.rmtree(tar_dir)
+    common.logit( "Condor install complete\n")
 
   #--------------------------------
   def __validate_schedds__(self,value):
     if self.daemon_list.find("SCHEDD") < 0:
+      common.logit("...... no schedds")
       return # no schedd daemon
+    common.logit("...... validating schedds: %s" % value)
     min = 0
     max = 99
     try:
@@ -325,7 +340,9 @@ setenv CONDOR_CONFIG %s
   #--------------------------------
   def __validate_secondary_collectors__(self,value):
     if self.daemon_list.find("COLLECTOR") < 0:
+      common.logit("...... no secondary collectors")
       return # no collector daemon
+    common.logit("...... validating secondary collectors: %s" % value)
     min = 0
     max = 399
     try:
@@ -338,38 +355,42 @@ setenv CONDOR_CONFIG %s
       common.logerr("nbr of secondary collectors exceeds maximum allowed value: %s" % (value))
  
   #--------------------------------
-  def __validate_collector_port__(self,value):
+  def __validate_collector_port__(self,port):
     if self.daemon_list.find("COLLECTOR") < 0:
+      common.logit("...... no collector")
       return # no collector daemon
+    common.logit("...... validating collector port: %s" % port)
     collector_port = 0
     min = 1
     max = 65535
     root_port = 1024
     try:
-      nbr = int(value)
+      nbr = int(port)
     except:
-      common.logerr("collector port option is not a number: %s" % (value))
+      common.logerr("collector port option is not a number: %s" % (port))
     if nbr < min:
-      common.logerr("collector port option is negative: %s" % (value))
+      common.logerr("collector port option is negative: %s" % (port))
     if nbr > max:
-      common.logerr("collector port option exceeds maximum allowed value: %s" % (value))
+      common.logerr("collector port option exceeds maximum allowed value: %s" % (port))
     if nbr < root_port:
       if os.getuid() == 0:  #-- root user --
         common.logit("Ports less that %i are generally reserved." % (root_port))
-        common.logit("You have specified port %s for the collector." % (value))
-        yn = raw_input("Do you really want to use privileged port %s? (y/n): "% value)
+        common.logit("You have specified port %s for the collector." % (port))
+        yn = raw_input("Do you really want to use privileged port %s? (y/n): "% port)
         if yn != 'y':
           common.logerr("... exiting at your request")
       else: #-- non-root user --
-        common.logerr("Collector port (%s) less than %i can only be used by root." % (value,root_port))
+        common.logerr("Collector port (%s) less than %i can only be used by root." % (port,root_port))
  
   #--------------------------------
-  def __validate_condor_config__(self,condor_config):
-    if not condor_config in ["y","n"]:
-      common.logerr("Invalid split_condor_config value (%s)" % (condor_config))
+  def __validate_condor_config__(self,value):
+    common.logit("...... validating split_condor_config: %s" % value)
+    if not value in ["y","n"]:
+      common.logerr("Invalid split_condor_config value (%s)" % (value))
 
   #--------------------------------
   def __validate_tarball__(self,tarball):
+    common.logit("...... validating condor tarball: %s" % tarball)
     if not os.path.isfile(tarball):
       common.logerr("File (%s) not found" % (tarball))
     try:
@@ -382,7 +403,7 @@ setenv CONDOR_CONFIG %s
             if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
               common.logerr("File (%s) is not a condor tarball! (found (%s), expected 'condor-*/'" %(tarball,first_dir))
             self.condor_version=first_dir[7:-1]
-            common.logit( "Seems condor version %s" % (self.condor_version))
+            common.logit( "...... condor version %s" % (self.condor_version))
             try:
                 fd.getmember(first_dir+"condor_configure")
             except:
@@ -443,8 +464,8 @@ LOCAL_CONFIG_FILE =
     self.__append_to_condor_config__(data,"glideinWMS data")
 
   #--------------------------------
-  def __update_condor_config_gsi__(self,gsi_dns):
-    data = self.__condor_config_gsi_data__(gsi_dns)
+  def __update_condor_config_gsi__(self):
+    data = self.__condor_config_gsi_data__()
     self.__append_to_condor_config__(data,"GSI")
 
   #--------------------------------
@@ -478,13 +499,14 @@ RESERVED_SWAP = 0
   def __update_condor_config_collector__(self):
     if self.daemon_list.find("COLLECTOR") >= 0:
       data = self.__condor_config_collector_data__()
+      data = data + self.__condor_config_secondary_collector_data__()
     else: # no collector, identifies one to use
       data = """
 ####################################
 # Collector for user submitted jobs
 ####################################
-CONDOR_HOST = %s
-""" % self.option_value("UserCollector","node")
+CONDOR_HOST = %s:%s
+""" % (self.option_value("UserCollector","node"),self.option_value("UserCollector","collector_port"))
     self.__append_to_condor_config__(data,"COLLECTOR")
 
   #--------------------------------
@@ -527,7 +549,7 @@ CONDOR_HOST = %s
     self.schedd_initd_function = ""
     schedds = int(self.number_of_schedds())
     for i in range(schedds):
-      schedd_name = "glideins%i" % (i+1)
+      schedd_name = "%s%i" % (self.schedd_name_suffix,i+1)
       #-- run the init script --
       user = pwd.getpwnam(self.unix_acct())
       condor_ids = "%s.%s" % (user[2],user[3])
@@ -725,7 +747,7 @@ SEC_CLIENT_ENCRYPTION = OPTIONAL
 
 
   #-----------------------------
-  def __condor_config_gsi_data__(self,gsi_dns):
+  def __condor_config_gsi_data__(self):
     data = ""
     data =  data + """
 ############################################################
@@ -786,14 +808,17 @@ GSI_DAEMON_DIRECTORY = %s
 CERTIFICATE_MAPFILE=%s
 """ % ( os.path.dirname(self.condor_mapfile()),self.condor_mapfile())
 
-    if len(gsi_dns) > 0:
-      data =  data + """
-#####################################
-# Whitelist of condor daemon DNs
-#####################################
-%s
-""" % (gsi_dns)
-
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ---------------------------------------------
+#    if len(gsi_dns) > 0:
+#      data =  data + """
+######################################
+## Whitelist of condor daemon DNs
+######################################
+#%s
+#""" % (gsi_dns)
+#
     return data
 
   #-----------------------------
@@ -907,29 +932,29 @@ COLLECTOR_HOST = $(CONDOR_HOST):%s
 #-- disable VOMS checking
 COLLECTOR.USE_VOMS_ATTRIBUTES = False
 """ % (self.service_name(),self.collector_port())
-    #-- secondary collectors
+    return data
+
+  #-----------------------------
+  def __condor_config_secondary_collector_data__(self):
     if self.secondary_collectors() == 0:
-      return ""
-    port_diff = 2  # ports will be set this from the primary collector port
-    data = data + """
+      return ""  # none
+    data = """
 #################################################
 # Secondary collectors
 #################################################"""
 #-- define sub-collectors, ports and log files
-    base_port = int(self.collector_port()) + 2
-    collectors = int(self.secondary_collectors())
-    for nbr in range(collectors):
+    for nbr in range(int(self.secondary_collectors())):
       data = data + """
 COLLECTOR%i = $(COLLECTOR)
-COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog" 
+COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog"
 COLLECTOR%i_ARGS = -f -p %i
-""" % (nbr,nbr,nbr,nbr,base_port+nbr)
+""" % (nbr,nbr,nbr,nbr,self.secondary_collector_ports()[nbr])
 
     data = data + """
 #-- Add subcollectors to the list of daemons  to start
 DAEMON_LIST = $(DAEMON_LIST) \\
 """
-    for nbr in range(collectors):
+    for nbr in range(int(self.secondary_collectors())):
       data = data + "COLLECTOR%i \\\n" % nbr
 
     data = data + """

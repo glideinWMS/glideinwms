@@ -308,7 +308,28 @@ Once the factory has submitted the required glideins, you can see them by queeri
 		<li>Check if the entry point is enabled in the factory, configuration file, GLIDEINWMS_GFACTORY_HOME/glideinWMS.xml</li>
 		<li>Check for error messages in logs located in GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log</li>
 		<li>Look for possible error messages in the glideins queue (condor_schedd). Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by “condor_config_val local_dir”</li>
-		<li>  Check security settings.  The WMS factory will drop requests from the VO frontends if settings do not match correctly. There will usually be lines in the vofrontend that useful factories exist, but the factory logs will have warnings/errors related to security settings.</li>
+		<li>  Check security settings.  The WMS factory will drop requests from the VO frontends if settings do not match correctly. There will usually be lines in the vofrontend that useful factories exist, but the factory logs will have warnings/errors related to security settings.
+		<blockquote>
+		[2010-07-30T11:37:04-05:00 9786] Client myVO-somename-v1_0.main (secid: somename) not in white list. Skipping request
+		</blockquote>
+		In this case, you will need to change the frontend name in 
+		the factory configuration 
+		(<i>&lt;frontends&gt;&lt;frontend name="<b>somename</b>"...</i>)
+		to match the "secid" field.
+		<br/><br/>
+		If instead you are getting:
+		<blockquote>
+		[2010-07-30T12:53:48-05:00 25826] Failed to update x509_proxy_0 using usename samgrid for client myVO-samgfwd07-v1_0.main, skipping request<br/>
+		[2010-07-30T12:53:48-05:00 25826] No good proxies for myVO-somename-v1_0.main, skipping request
+		</blockquote>
+		Check: 
+		<ol>
+		<li>Do you have a UNIX user named for the user account?</li>
+		<li>Is this user and group listed in /etc/condor/privsep_config</li>
+		<li>Is $CONDORDIR/sbin/condor_root_switchboard set to be a privileged executable?</li>
+		<li>Are you running v2.4.0?  This may be a bug.  Upgrade to v2.4.1</li>
+		</ol>
+	</li>
 		<li>The first line in frontend.xml must match the name in security-frontends-frontend in the factory's glideinWMS:
 		<blockquote>
 		&lt;frontend advertise_delay="5" frontend_name="exampleVO-cms-xen25-v1_0" loop_delay="60"&gt;

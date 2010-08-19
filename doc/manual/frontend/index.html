@@ -36,6 +36,7 @@ download.html" class="main_link">Download</a></li>
         <LI><A HREF="#overview">Overview</A></li>
         <li><a href="#implementation">Implementation</a> </li>
         <li><a href="#management">Frontend Management</a> </li>
+        <li><a href="#custom_code">Custom Code</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
     </ul>
 
@@ -214,6 +215,10 @@ be defined:</P>
                 </div>
         The file parameters are used to specify the location
         of additional files. The grid mapfile location must be specified.
+	This can be used to add custom scripts to the vo frontend.  
+	See <a href="#custom_code">below</a> or  the page dedicated to 
+	<a href="../factory/custom_scripts.html">writing custom scripts</a> for more
+	information.
         </P></li>
 	<LI><P>
 		<div class="xml">
@@ -383,7 +388,33 @@ glideins.</P>
 	</P></li>
 </UL>
 </div>
+<div class="section">
+<h3><A NAME="custom_code"></A>Adding Custom Code/Scripts to VO Frontend Glideins</H3>
+	You can add custom scripts to glideins created for this VO Frontend by adding scripts and files to the configuration in the files section: 
+		<div class="xml">
+		&lt;glidein&gt;<br>
+		&nbsp;[&lt;groups&gt;&lt;group&gt;]<br>
+		&nbsp;&lt;files&gt;<br>
+		&nbsp;&nbsp;&lt;file absfname="<i>script name</i>" 
+		executable="True"
+		comment="<i>comment</i>"/&gt;
 
+		</div>
+	<p>The script will be copied to the
+	Web-accessible area and added to the glidein's file_list, 
+	and when a glidein starts, the&nbsp;glidein
+	startup script will pull it and execute it. If any parameters are
+	needed, they can be specified using <b>&lt;attr /&gt;</b>.
+	</p>
+	<p>For more detailed information,
+	see the page dedicated to 
+	<a href="../factory/custom_scripts.html">writing custom scripts</a>.</p>
+<p>
+	You can also create wrapper scripts or tar-balls of files, see
+	<a href="../factory/entry.html#custom_code">the factory entry page</a> for
+	syntax.  (Use groups/group tags instead of the factory's entry tag).
+</p>
+</div>
 <div class="section">
 <H2 CLASS="western"><A NAME="run_daemon"></A>Starting a VO Frontend
 Daemon</H2>

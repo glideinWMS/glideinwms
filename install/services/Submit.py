@@ -40,6 +40,7 @@ class Submit(Condor):
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
+    self.schedd_name_suffix = "jobs"
     self.daemon_list = "MASTER, SCHEDD"
  
   #--------------------------------
@@ -79,21 +80,24 @@ GSI "^%s$" %s""" % \
 
     self.__create_condor_mapfile__(condor_entries)
 
-    #-- create the condor config file entries ---
-    gsi_daemon_entries = """\
-# --- Submit user: %s
-GSI_DAEMON_NAME=%s
-# --- Userpool user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Frontend user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % \
-       (self.unix_acct(),     self.gsi_dn(),
-    userpool.unix_acct(), userpool.gsi_dn(),
-    frontend.unix_acct(), frontend.gsi_dn())
-
-    #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(gsi_daemon_entries)
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ----------------------------------------------
+#    #-- create the condor config file entries ---
+#    gsi_daemon_entries = """\
+## --- Submit user: %s
+#GSI_DAEMON_NAME=%s
+## --- Userpool user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Frontend user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+#""" % \
+#       (self.unix_acct(),     self.gsi_dn(),
+#    userpool.unix_acct(), userpool.gsi_dn(),
+#    frontend.unix_acct(), frontend.gsi_dn())
+#
+#    #-- update the condor config file entries ---
+#    self.__update_condor_config_gsi__(gsi_daemon_entries)
 
 
 #---------------------------

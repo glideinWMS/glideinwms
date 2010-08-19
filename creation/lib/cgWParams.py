@@ -28,6 +28,12 @@ class GlideinParams(cWParams.CommonParams):
     def init_defaults(self):
      
         self.init_support_defaults()
+      
+	# Defaults for allowing frontends in a whitelist
+	# in the factory config (per entry point)
+        self.allow_defaults=cWParams.commentedOrderedDict()
+        self.allow_defaults["name"]=(None,"string","frontend name",None)
+        self.allow_defaults["security_class"]=("All","string","security class",None)
 
         # publishing specific to factory
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
@@ -89,6 +95,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=self.downtimes_defaults
         self.entry_defaults["monitorgroups"]=copy.deepcopy(sub_defaults['monitorgroups'])
+        self.entry_defaults["allow_frontends"]=(xmlParse.OrderedDict(),'Dictionary of frontends',"Each frontend entry contains",self.allow_defaults);
 
         ###############################
         # Start defining the defaults
@@ -159,7 +166,6 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["condor_tarballs"]=([],'List of condor tarballs',"Each entry contains",condor_defaults)
 
         self.defaults["downtimes"]=self.downtimes_defaults
-
         self.defaults["attrs"]=sub_defaults['attrs']
         self.defaults["files"]=copy.deepcopy(sub_defaults['files'])
         # ordering is specific to global section of factory
@@ -218,10 +224,11 @@ class GlideinParams(cWParams.CommonParams):
     def get_xml_format(self):
         return {'lists_params':{'condor_tarballs':{'el_name':'condor_tarball','subtypes_params':{'class':{}}},
                                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
-                                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
+                                'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
+                                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}}}}
 
 

@@ -452,7 +452,7 @@ source %s/condor.sh
         if site_name != "":
           ress_entries[idx]['site_name'] = site_name
 
-      if config_glexec:
+      if self.glidein.use_glexec() == "y":
         glexec_path = raw_input("gLExec path for '%s': [%s] "%(idx,ress_entries[idx]['glexec_path']))
         if glexec_path != "":
           ress_entries[idx]['glexec_path'] = glexec_path
@@ -481,11 +481,10 @@ source %s/condor.sh
 
       if not self.passed_python_filter(python_filter_obj,condor_el):
         continue # has not passed the filter
-      
-      # KEL++ removed the default jobtype=single
+
       cluster_name    = condor_el['GlueClusterName']
       gatekeeper_name = condor_el['GlueCEInfoContactString']
-      rsl = '(queue=%s)'%condor_el['GlueCEName']
+      rsl = '(queue=%s)(jobtype=single)'%condor_el['GlueCEName']
       site_name=condor_el['GlueSiteName']
 
       work_dir = "OSG"
@@ -560,13 +559,12 @@ source %s/condor.sh
 
       work_dir="."
       #-- some entries do not have all the attributes --
-      # KEL++ removed the default jobtype=single
       try:
         gatekeeper="%s:%s/jobmanager-%s" %\
            (el2['GlueCEHostingCluster'][0],
             el2['GlueCEInfoGatekeeperPort'][0],
             el2['GlueCEInfoJobManager'][0])
-        rsl="(queue=%s)" % el2['GlueCEName'][0]
+        rsl="(queue=%s)(jobtype=single)" % el2['GlueCEName'][0]
       except Exception, e:
         common.logwarn("This entry point (%s/%s) is being skipped.  A required schema attribute missing: %s" % (el2['GlueCEName'][0],el2['GlueCEHostingCluster'][0],e))
 

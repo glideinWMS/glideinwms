@@ -33,6 +33,7 @@ def create_condor_tar_fd(condor_base_dir):
         for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper',
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
                   'libexec/condor_glexec_run','libexec/condor_glexec_setup',
+                  'sbin/condor_fetchlog',
                   'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
@@ -150,11 +151,16 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("\n")
         
         fd.write("start() {\n")
+        fd.write("        cwd=`pwd`\n")
+        fd.write("        cd $factory_dir\n")
         fd.write('        echo -n "Starting glideinWMS factory $id_str: "\n')
         fd.write('        nice -2 "$glideinWMS_dir/factory/glideFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null &\n')
         fd.write('        sleep 5\n')
         fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir"  2>/dev/null 1>&2 </dev/null && success || failure\n')
         fd.write("        RETVAL=$?\n")
+        fd.write('        if [ -n "$cwd" ]; then\n')
+        fd.write("           cd $cwd\n")
+        fd.write('        fi\n')
         fd.write("        echo\n")
         fd.write("}\n\n")
         
@@ -164,7 +170,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
         fd.write("}\n\n")
-        
+                
         fd.write("restart() {\n")
         fd.write("        stop\n")
         fd.write("        start\n")

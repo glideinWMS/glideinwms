@@ -222,8 +222,8 @@ class condorQStats:
 
     def logRequest(self,client_name,requests,params):
         """
-        requests is a dictinary of requests
-        params is a dictinary of parameters
+        requests is a dictionary of requests
+        params is a dictionary of parameters
 
         At the moment, it looks only for
           'IdleGlideins'
@@ -249,8 +249,8 @@ class condorQStats:
 
     def logClientMonitor(self,client_name,client_monitor,client_internals):
         """
-        client_monitor is a dictinary of monitoring info
-        client_internals is a dictinary of internals
+        client_monitor is a dictionary of monitoring info
+        client_internals is a dictionary of internals
 
         At the moment, it looks only for
           'Idle'

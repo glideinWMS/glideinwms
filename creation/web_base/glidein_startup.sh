@@ -36,7 +36,7 @@ function usage {
     echo "  -clientsigngroup <sign>     : signature of the client group signature file"
     echo "  -clientdescript <fname>     : client description file name"
     echo "  -clientdescriptgroup <fname>: client description file name for group"
-    echo "  -v <id>                     : verbosity level (std, nodebug and fast supported)"
+    echo "  -v <id>                     : operation mode (std, nodebug, fast, check supported)"
     echo "  -param_* <arg>              : user specified parameters"
     exit 1
 }
@@ -71,7 +71,7 @@ do case "$1" in
     -clientsigngroup)       client_sign_group_id="$2";;
     -clientdescript)        client_descript_file="$2";;
     -clientdescriptgroup)   client_descript_group_file="$2";;
-    -v)          debug_mode="$2";;
+    -v)          operation_mode="$2";;
     -param_*)    params="$params `echo $1 | awk '{print substr($0,8)}'` $2";;
     *)  (warn "Unknown option $1"; usage) 1>&2; exit 1
 esac
@@ -283,12 +283,16 @@ function params2file {
 # Parse arguments
 set_debug=1
 sleep_time=1200
-if [ "$debug_mode" == "nodebug" ]; then
+if [ "$operation_mode" == "nodebug" ]; then
  set_debug=0
-elif [ "$debug_mode" == "fast" ]; then
+elif [ "$operation_mode" == "fast" ]; then
  sleep_time=150
+ set_debug=1
+elif [ "$operation_mode" == "check" ]; then
+ sleep_time=150
+ set_debug=2
 fi
-
+ 
 if [ -z "$descript_file" ]; then
     warn "Missing descript fname." 1>&2
     usage
@@ -394,7 +398,7 @@ fi
 
 startup_time=`date +%s`
 echo "Starting glidein_startup.sh at `date` ($startup_time)"
-echo "debug_mode        = '$debug_mode'"
+echo "debug_mode        = '$operation_mode'"
 echo "condorg_cluster   = '$condorg_cluster'"
 echo "condorg_subcluster= '$condorg_subcluster'"
 echo "condorg_schedd    = '$condorg_schedd'"
@@ -437,7 +441,7 @@ echo "As: `id`"
 echo "PID: $$"
 echo
 
-if [ $set_debug -eq 1 ]; then
+if [ $set_debug -eq 1 ] || [ $set_debug -eq 2 ]; then
   echo "------- Initial environment ---------------"  1>&2
   env 1>&2
   echo "------- =================== ---------------" 1>&2
@@ -494,8 +498,8 @@ elif [ "$work_dir" == "CONDOR" ]; then
     work_dir="$_CONDOR_SCRATCH_DIR"
 elif [ "$work_dir" == "OSG" ]; then
     work_dir="$OSG_WN_TMP"
-elif [ "$work_dir" == "OSG" ]; then
-    work_dir="$OSG_WN_TMP"
+elif [ "$work_dir" == "TMPDIR" ]; then
+    work_dir="$TMPDIR"
 elif [ "$work_dir" == "TERAGRID" ]; then
     work_dir="$TG_NODE_SCRATCH"
 elif [ "$work_dir" == "." ]; then

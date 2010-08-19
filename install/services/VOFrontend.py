@@ -523,9 +523,20 @@ please verify and correct if needed.
   #---------------------------
   def config_collectors_data(self):
     data = """%s<collectors>""" % common.indent(1)
-    data = data + """%s<collector node="%s" DN="%s" secondary="False"/>""" %\
+    data = data + """%s<collector node="%s:%s" DN="%s" secondary="False"/>""" %\
           (common.indent(2),
            self.userpool.node(),
+           self.userpool.collector_port(),
+           self.userpool.gsi_dn())
+    #--- secondary collectors -- 
+    if self.userpool.secondary_collectors() <> 0:
+      first_port = self.userpool.secondary_collector_ports()[0] 
+      last_port  = self.userpool.secondary_collector_ports()[int(self.userpool.secondary_collectors()) - 1]
+      port_range = "%s-%s" % (first_port,last_port)
+      data = data + """%s<collector node="%s:%s" DN="%s" secondary="True"/>""" %\
+          (common.indent(2),
+           self.userpool.node(),
+           port_range,
            self.userpool.gsi_dn())
     data = data + """%s</collectors>""" % common.indent(1)
     return data
@@ -634,24 +645,27 @@ GSI "^%s$" %s""" % \
 
     self.__create_condor_mapfile__(condor_mapfile)
 
-    #-- create the condor config file entries ---
-    gsi_daemon_entries = """\
-# --- Submit user: %s
-GSI_DAEMON_NAME=%s
-# --- WMS collector user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Submit user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Userpool user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % \
-          (self.gsi_dn(),         self.service_name(),
-       self.wms.gsi_dn(),     self.wms.service_name(),
-    self.submit.gsi_dn(),  self.submit.service_name(),
-  self.userpool.gsi_dn(),self.userpool.service_name())
-
-    #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(gsi_daemon_entries)
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ----------------------------------------------
+#    #-- create the condor config file entries ---
+#    gsi_daemon_entries = """\
+## --- Submit user: %s
+#GSI_DAEMON_NAME=%s
+## --- WMS collector user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Submit user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Userpool user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+#""" % \
+#          (self.gsi_dn(),         self.service_name(),
+#       self.wms.gsi_dn(),     self.wms.service_name(),
+#    self.submit.gsi_dn(),  self.submit.service_name(),
+#  self.userpool.gsi_dn(),self.userpool.service_name())
+#
+#    #-- update the condor config file entries ---
+#    self.__update_condor_config_gsi__(gsi_daemon_entries)
 
 #---------------------------
 def show_line():
@@ -683,7 +697,9 @@ def main(argv):
   try:
     options = validate_args(argv)
     vo = VOFrontend(options.inifile)
-    vo.install()
+    #vo.install()
+    vo.get_userpool()
+    print vo.config_collectors_data()
     #vo.configure_gsi_security()
   except KeyboardInterrupt, e:
     common.logit("\n... looks like you aborted this script... bye.")
