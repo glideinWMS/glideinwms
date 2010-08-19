@@ -30,6 +30,10 @@ class MonitorAggregatorConfig:
         # name of the status files
         self.status_relname="schedd_status.xml"
         self.logsummary_relname="log_summary.xml"
+		
+        # name of the rrd files
+        self.rrdstats_relname_fmt = 'rrd_%s_stats.xml'
+        self.rrdstats_relname = ['Status_Attributes', 'Log_Completed', 'Log_Completed_Stats', 'Log_Completed_WasteTime', 'Log_Counts']
 
     def config_factory(self,monitor_dir,entries):
         self.monitor_dir=monitor_dir
@@ -39,6 +43,9 @@ class MonitorAggregatorConfig:
 
 # global configuration of the module
 monitorAggregatorConfig=MonitorAggregatorConfig()
+
+def rrd_site(name):
+    return monitorAggregatorConfig.rrdstats_relname_fmt %name
 
 ###########################################################
 #
@@ -373,6 +380,57 @@ def aggregateLogSummary():
     
     return status
 
+def aggregateRRDStats():
+    global monitorAggregatorConfig
+
+    for rrd in monitorAggregatorConfig.rrdstats_relname:
+	
+        # assigns the data from every site to 'stats'
+        stats = {}
+        for entry in monitorAggregatorConfig.entries:
+            try:
+                rrd_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry), rrd_site(rrd))
+                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'element':{}})
+            except IOError:
+                pass
+
+        # an entry is need to access to the data sets, I used the first one
+        if monitorAggregatorConfig.entries: 
+            example_entry = monitorAggregatorConfig.entries[0]
+            # create a dictionary that will hold the aggregate data
+            resolution = stats[example_entry]['resolutions'].keys()
+            aggregate_output = {}
+            for res in resolution:
+                aggregate_output[res] = {}
+                data_sets = stats[example_entry]['resolutions'][res]
+                for data_set in data_sets:
+                    aggregate_output[res][data_set] = 0
+
+        # assign the aggregate data to 'aggregate_output'
+        for res in aggregate_output:
+            for data_set in aggregate_output[res]:
+                for entry in monitorAggregatorConfig.entries:
+                    aggregate_output[res][data_set] += float(stats[entry]['resolutions'][res][data_set]['val'])
+
+        # write xml file
+        updated = time.time()
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<glideFactoryRRDStats>\n' +
+                   get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" +
+                   xmlFormat.DEFAULT_TAB +
+                   '<resolutions>\n')
+        for res in resolution:
+            xml_data_str = xmlFormat.dict2string(aggregate_output[res], dict_name = 'resolution', el_name = 'element', params = {'name':res}, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = "      ") + "\n"
+            xml_str += xml_data_str
+        xml_str += xmlFormat.DEFAULT_TAB + '</resolutions>\n</glideFactoryRRDStats>'
+        try:
+            glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
+        except IOError:
+            pass
+
+    return
+
+    
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):

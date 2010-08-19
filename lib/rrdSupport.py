@@ -475,3 +475,50 @@ class rrdtool_exe:
         if (errcode!=0):
             raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
         return tempOut
+
+
+#
+#
+# Chris's hacked support for fetching
+#
+#
+import rrdtool, time
+
+now = time.time()
+#Defaults for rrdtool fetch
+resDefault = 300
+endDefault = int(now / resDefault) * resDefault
+startDefault = endDefault - 86400
+	
+def fetchData(site, res = resDefault, start = startDefault, end = endDefault, base_dir = '/var/www/html/cmurphy/glidefactory/monitor/glidein_v1_0/entry_', file = 'Status_Attributes.rrd'):
+	"""Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
+
+	rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
+	[0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
+	[1] returns the names of the datasets.  These names are listed in the key.
+	[2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
+
+	#use rrdtool to fetch data
+	fetched = rrdtool.fetch(base_dir + site + '/total/' + file, 'AVERAGE', '-r', str(res), '-s', str(start), '-e', str(end))		
+	
+        #converts fetched from tuples to lists
+	fetched_names = list(fetched[1])
+	fetched_data = []
+	for data in fetched[2][:-2]: #rrdtool always returns 2 extra tuples that don't contain data
+		fetched_data.append(list(data))
+	
+	#creates a dictionary to be filled with lists of data
+	data_sets = {}
+	for name in fetched_names:
+		data_sets[name] = []	
+
+	#check to make sure the data exists
+	for data_set in data_sets:
+		index = fetched_names.index(data_set)	
+		for data in fetched_data:
+			if data[index]:
+				int(round(data[index]))
+				data_sets[data_set].append(data[index])
+	
+	return data_sets
+

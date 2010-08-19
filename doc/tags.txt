@@ -1,8 +1,4 @@
-vNext	Bug Fix: Correctly interpret DN from a voms proxy generated from a 
-	  service certificate.
-	Bug Fix: Generate frontend's condor_config without empty values for
-	  certain configuration options. Empty values is not the right way to
-	  reset the configuration options.
+vNext	RRD XML handling
 
 v2_4_2	Fixed the incompatibility introduced in v2_4_1 in monitoring components.
 

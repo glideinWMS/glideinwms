@@ -37,7 +37,7 @@ def aggregate_stats():
     
     status=glideFactoryMonitorAggregator.aggregateStatus()
     status=glideFactoryMonitorAggregator.aggregateLogSummary()
-
+    status=glideFactoryMonitorAggregator.aggregateRRDStats()
     return
 
 ############################################################
@@ -150,7 +150,6 @@ def spawn(sleep_time,advertize_rate,startup_dir,
         
 ############################################################
 def main(startup_dir):
-    
     startup_time=time.time()
 
     # force integrity checks on all the operations
@@ -172,15 +171,6 @@ def main(startup_dir):
                                                        float(glideinDescript.data['LogRetentionMinDays']),
                                                        float(glideinDescript.data['LogRetentionMaxMBs']))
     
-
-    try:
-        os.chdir(startup_dir)
-    except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        glideFactoryLib.log_files.logWarning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
-        raise
-
     try:
         glideinDescript.load_pub_key(recreate=True)
 
@@ -210,7 +200,8 @@ def main(startup_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+        glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+        print tb
         raise
 
     # create lock file
@@ -222,12 +213,11 @@ def main(startup_dir):
         try:
             spawn(sleep_time,advertize_rate,startup_dir,
                   glideinDescript,entries,restart_attempts,restart_interval)
-        except KeyboardInterrupt,e:
-            raise e
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+            glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+            print tb
     finally:
         pid_obj.relinquish()
     

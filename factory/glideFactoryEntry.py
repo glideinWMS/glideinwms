@@ -30,6 +30,10 @@ import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
+import rrdSupport #added by C.W. Murphy on 08/10/10
+
+# list of rrd files that each site has
+rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
 
 ############################################################
 def check_parent(parent_pid):
@@ -352,7 +356,9 @@ def write_stats():
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
-
+    glideFactoryLib.factoryConfig.sa_stats.writeFile()
+    glideFactoryLib.log_files.logActivity("sa_stats written")
+    
     return
 
 ############################################################
@@ -425,6 +431,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
+    glideFactoryLib.factoryConfig.sa_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
@@ -438,6 +445,10 @@ def iterate(parent_pid,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             glideFactoryLib.factoryConfig.client_internals = {}
+            for rrd in rrd_list:
+                rrd_name = rrd.split(".")[0]
+                site_name = jobDescript.data['EntryName']
+                glideFactoryLib.factoryConfig.sa_stats.data[rrd_name] = rrdSupport.fetchData(site = site_name, file = rrd)
 
             done_something=iterate_one(count==0,in_downtime,
                                        glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
@@ -451,7 +462,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # never fail for stats reasons!
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)                
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -461,7 +472,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
         glideFactoryLib.log_files.cleanup()
 
@@ -564,7 +575,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 raise
         finally:
             try:
@@ -583,7 +594,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
                                                                                                        glideinDescript.data['GlideinName'],
                                                                                                        jobDescript.data['EntryName']))
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
     finally:
         pid_obj.relinquish()
 

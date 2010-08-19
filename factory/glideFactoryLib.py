@@ -73,6 +73,7 @@ class FactoryConfig:
         self.client_internals = None
         self.qc_stats = None
         self.log_stats = None
+        self.sa_stats = None
 
         self.supported_signtypes=['sha1']
 

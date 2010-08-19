@@ -10,10 +10,13 @@
 import os,os.path
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
-import rrdSupport
+import rrdSupport, statusMonitoringFetch
 
 import logSupport
 import glideFactoryLib
+
+# list of rrd files that each site has
+rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
 
 ############################################################
 #
@@ -954,6 +957,79 @@ class condorLogSummary:
 
         self.files_updated=self.updated
         return
+
+    
+###############################################################################
+#
+# factoryStatusData
+# added by C.W. Murphy starting on 08/09/10
+# this class handles the data obtained from the rrd files
+#
+###############################################################################
+
+class FactoryStatusData:
+    """documentation"""
+    def __init__(self):
+	self.data = {}
+	self.updated = time.time()
+	self.file_updated = None
+
+    def getData(self):
+	self.updated = time.time()
+	return self.data
+
+    def getUpdated(self):
+	return self.updated
+
+    def getXMLUpdated(self, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = ""):
+	"""returns the time of last update"""
+	local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
+	gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
+	xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
+
+	return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = indent_tab, leading_tab = leading_tab)
+
+    def getXMLData(self, rrd_name, res = 300):
+	"""returns the data fetched by rrdtool in a xml readable format"""
+	fetch_data = self.getData()[rrd_name]
+	num_dp = int(res / 300)
+
+	#convert fetch_data to a format that is useable by xmlFormat
+	data = {}
+	for data_set in fetch_data:
+	    """There is a bug in the version of rrdtool install on glidein-1 that prevents it from properly averaging.
+	    The list is sliced because the bug returns (len(list) - 2) datapoints."""
+	    if len(fetch_data[data_set]) > 0:
+		data[data_set] = sum(fetch_data[data_set][-num_dp:]) / len(fetch_data[data_set][-num_dp:])
+	    else:
+		data[data_set] = 0
+
+        return data
+
+    def writeXML(self, rrd_name, resolution = (300, 900, 1800, 3600, 7200), indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = ""):
+	"writes an xml file for the data fetched from a given site."
+	xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+		'<glideFactoryEntryRRDStats>\n' +
+		self.getXMLUpdated(indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" +
+		xmlFormat.DEFAULT_TAB + '<resolutions>\n')
+
+	for res in resolution:
+            xml_data_str = xmlFormat.dict2string(self.getXMLData(res = res, rrd_name = rrd_name), dict_name = 'resolution', el_name = 'element', params = {'name':str(res)}, indent_tab = indent_tab, leading_tab = "      ") + "\n"
+	    xml_str += xml_data_str
+        xml_str += xmlFormat.DEFAULT_TAB + '</resolutions>\n</glideFactoryEntryRRDStats>'
+        return xml_str
+    
+    def writeFile(self):
+        for rrd in rrd_list:
+            rrd_name = rrd.split(".")[0]
+            file_name = 'rrd_' + rrd_name + '_stats.xml'
+            xml_output = self.writeXML(rrd_name = rrd_name)
+            try:
+                monitoringConfig.write_file(file_name, xml_output)
+            except IOError:
+                pass
+        self.file_updated = time.time()
+	return
 
     
 ############### P R I V A T E ################
