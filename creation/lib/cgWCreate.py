@@ -33,6 +33,7 @@ def create_condor_tar_fd(condor_base_dir):
         for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper',
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
                   'libexec/condor_glexec_run','libexec/condor_glexec_setup',
+                  'sbin/condor_fetchlog',
                   'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
@@ -172,6 +173,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        else\n")
         fd.write("           has_arg=0\n")
         fd.write('           echo $"Usage: factory_startup reconfig <fname>"\n')
+        fd.write('           echo "ERROR: configuration file does not exist: $1"\n')
         fd.write("           exit 1\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null\n')
@@ -180,13 +182,21 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("          stop\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
-        fd.write('	  RETVAL=$?\n')
         fd.write("        reconfig_failed=$?\n")
         fd.write('        echo -n "Reconfiguring the factory"\n')
         fd.write("        test $reconfig_failed -eq 0 && success || failure\n")
+        fd.write('        RETVAL=$?\n')
         fd.write("        echo\n")
         fd.write("        if [ $notrun -eq 0 ]; then\n")
+        fd.write('          if [ $reconfig_failed -ne 0 ];then\n')
+        fd.write('            echo ".. starting factory with old configuration file"\n')
+        fd.write('          fi\n')
         fd.write("          start\n")
+        fd.write('          if [ $RETVAL -eq 0 ] && [ $reconfig_failed -eq 0 ]; then\n')
+        fd.write('            RETVAL=0\n')
+        fd.write('          else\n')
+        fd.write('            RETVAL=1\n')
+        fd.write('          fi\n')
         fd.write("        fi\n")
         fd.write("}\n\n")
 

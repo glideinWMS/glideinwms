@@ -27,6 +27,7 @@ def run_command(service,user,node,command):
   common.logit("\n############################################################")
   common.logit("## %s " % hdr)
   cmd = "ssh -l %s %s '%s'" % (user,node,command)
+  common.logit("Commands: %s" % cmd)
   os.system(cmd)
   common.logit("## %s " % hdr)
   common.logit("############################################################\n")
@@ -38,6 +39,9 @@ def apache(action):
 #--------------------------------
 def wmscollector(service,action,inifile):
   obj = WMSCollector.WMSCollector(inifile)
+  user = obj.unix_acct()
+  if obj.privilege_separation() == "y":
+    user = 'root'
   cmd1 = "source %s/condor.sh" % obj.condor_location()
   cmd2 = ""
   cmd3 = ""
@@ -52,7 +56,7 @@ def wmscollector(service,action,inifile):
     cmd2 = "condor_status -any;sleep 2" 
     cmd3 = "condor_q -global" 
   cmds = "%s;%s;%s" % (cmd1,cmd2,cmd3)
-  run_command(service,obj.unix_acct(),obj.node(),cmds)
+  run_command(service,user,obj.node(),cmds)
 
 #--------------------------------
 def usercollector(service,action,inifile):
@@ -115,10 +119,13 @@ def vofrontend(service,action,inifile):
 #--------------------------------
 def factory(service,action,inifile):
   obj = Factory.Factory(inifile)
-  cmd1 = "cd %s;source factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir)
+  cmd1 = "cd %s;source factory.sh;cd %s" % (obj.install_location(),obj.glidein_dir())
   cmd2 = ""
   if action == "install":
      obj.install()
+     return
+  if action == "create-entries":
+     obj.get_new_config_entries()
      return
   if action == "start":
     cmd2 = "./factory_startup %s"  % action
@@ -129,12 +136,12 @@ def factory(service,action,inifile):
 ./factory_startup %s;sleep 2;
 ps -ef |grep glideFactoryEntry.py |egrep -v grep;
 echo;echo ... Entries;
-~%s/glideinWMS/tools/wmsTxtView.py Entries;
+%s/tools/wmsTxtView.py Entries;
 echo;echo ... Sites;
-~%s/glideinWMS/tools/wmsTxtView.py Sites;
+%s/tools/wmsTxtView.py Sites;
 echo;echo ... Gatekeepers;
-~%s/glideinWMS/tools/wmsTxtView.py Gatekeepers;
-"""  % (action, obj.unix_acct(), obj.unix_acct(), obj.unix_acct())
+%s/tools/wmsTxtView.py Gatekeepers;
+"""  % (action, obj.glidein_install_dir(), obj.glidein_install_dir(), obj.glidein_install_dir())
 
   cmds = "%s;%s" % (cmd1,cmd2)
   run_command(service,obj.unix_acct(),obj.node(),cmds)
@@ -163,18 +170,26 @@ def usage(services):
 Usage: %s --<action> <service>  --ini <ini_file>
 
   actions: install, start, stop, status
-  services: %s
+  services: %s all
 
 This process can be used to install, start, stop or check the status of 
 the glidein services based on the configuration in the specified ini file.
 
-All actions can be performed remotely, with execption of the --install, 
+All actions can be performed remotely, with exception of the --install, 
 providing the user has valid access to the other service's node via the 
 .k5login of that user.
 
 When starting and stopping a service, this process ssh's into the services 
 node thereby insuring a clean environment.
-""" % (gProgramName,valid_services)
+
+Additionally, it can be used to select new glidein entry points after the
+initial installation.  If will walk you through the same question and answer
+process querying ReSS and BDII for resources.  It will then create a file 
+containing the entry elements for those selected.  This can then be merged with
+the existing Factory configuration file.  The syntax to perform this is:
+
+  %s --create-entries --ini <ini_file>
+""" % (gProgramName,valid_services,gProgramName)
   common.logit(msg)
 
 ##########################################
@@ -183,22 +198,27 @@ def main(argv):
     global gProgramName
     global gAction
     gProgramName = argv[0]
+    gAction = None
     inifile = ""
-    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=" ]
+    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
-    stop_order = ["submit","vofrontend","factory","usercollector","wmscollector"]
+    stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
     if len(opts) == 0:
-      common.logit("ERROR: No command line arguments specified")
       usage(services)
-      return 1
+      common.logerr("No command line arguments specified")
+
     for o, a in opts:
       if o in ("--help"):
-        common.logit("For usage... pray I get to it")
+        usage(services)
         return 1
+
       if o in ("--ini"):
         inifile = a
+        if not os.path.isfile(inifile):
+          common.logerr("ini file does not exist: %s" % inifile)
         continue
+
       if o in ("--start","--stop","--status","--install"):
         gAction = o[2:]
         if a == "all":
@@ -208,18 +228,38 @@ def main(argv):
         if a in services:
           services = [a,]
           continue
+        usage(services)
         common.logerr("Invalid service: %s" % a)
-      if not os.path.isfile(inifile):
-        common.logerr("ini file does not exist: %s" % inifile)
+
+      if o in ("--create-entries",):
+        services = ["factory",]
+        gAction = "create-entries"
+    
+    if gAction == None and len(inifile) == 0:
+      usage(services)
+      common.logerr("Missing all command line  arguments")
+
+    if len(inifile) == 0:
+      usage(services)
+      common.logerr("--ini argument is required")
+
+    if gAction == None:
+      usage(services)
+      common.logerr("Missing the 'action' argument")
 
     for service in services:        
       common.logit("----- %s ----" % (service))
       process_request(service,gAction,inifile)
+
   except getopt.error, e:
     msg = e.__str__()
     common.logit("ERROR: Invalid command line argument: %s" % msg)
     usage(services)
     return 1
+  except KeyboardInterrupt, e:
+    print;print "Termminating at your request";return 1
+  except EOFError, e:
+    print;print "Termminating at your request";return 1
   except ConfigurationError, e:
     print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
   except common.WMSerror:

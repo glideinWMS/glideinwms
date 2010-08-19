@@ -841,13 +841,13 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
     submit_attrs_arr=[]
     for e in submit_attrs:
         submit_attrs_arr.append("'"+e+"'")
-    submit_attrs_str = ' '.join(submit_attrs_arr)
+    submit_attrs_str = string.join(submit_attrs_arr," ")
 
     params_arr=[]
     for k in params.keys():
         params_arr.append(k)
         params_arr.append(escapeParam(str(params[k])))
-    params_str = ' '.join(params_arr)
+    params_str = string.join(params_arr," ")
 
     client_web_arr=[]
     if client_web!=None:

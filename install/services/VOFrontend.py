@@ -8,6 +8,10 @@ import xmlFormat
 import optparse
 #-------------------------
 import common
+import WMSCollector
+import Factory
+import Submit
+import UserCollector
 from Certificates  import Certificates
 from Condor        import Condor
 from Glidein       import Glidein
@@ -20,6 +24,7 @@ valid_options = [ "node",
 "service_name", 
 "condor_location", 
 "install_location", 
+"logs_location", 
 "instance_name", 
 "gsi_authentication", 
 "cert_proxy_location", 
@@ -30,6 +35,7 @@ valid_options = [ "node",
 "condor_admin_email", 
 "split_condor_config", 
 "install_vdt_client", 
+"glexec_use",
 "match_string",
 "web_location",
 "web_url",
@@ -42,6 +48,8 @@ valid_options = [ "node",
 "match_authentication",
 "expose_grid_env",
 "glidein_install_dir",
+"vdt_location",
+"pacman_location",
 ]
 
 class VOFrontend(Condor):
@@ -62,7 +70,25 @@ class VOFrontend(Condor):
 
     self.frontend_dir = "%s/frontend_%s-%s" % (self.glidein.install_location(),self.glidein.service_name(),self.glidein.instance_name())
     self.env_script   = "%s/frontend.sh"  % (self.glidein.install_location())
+    #-- instances of other services ---
+    self.wms      = None
+    self.factory  = None
+    self.userpool = None
+    self.submit   = None
 
+  #-- get service instances --------
+  def get_wms(self):
+    if self.wms == None:
+      self.wms = WMSCollector.WMSCollector(self.inifile)
+  def get_factory(self):
+    if self.factory == None:
+      self.factory = Factory.Factory(self.inifile)
+  def get_userpool(self):
+    if self.userpool == None:
+      self.userpool = UserCollector.UserCollector(self.inifile)
+  def get_submit(self):
+    if self.submit == None:
+      self.submit = Submit.Submit(self.inifile)
   #--------------------------------
   def WMSCollector(self):
     return self.option_value("WMSCollector","node")
@@ -85,8 +111,14 @@ class VOFrontend(Condor):
   def UserCollector_service_name(self):
     return self.option_value("UserCollector","service_name")
   #--------------------------------
+  def logs_location(self):
+    return self.option_value(self.ini_section,"logs_location")
+  #--------------------------------
   def match_string(self):
     return self.option_value(self.ini_section,"match_string")
+  #--------------------------------
+  def cert_proxy_location(self):
+    return self.option_value(self.ini_section,"cert_proxy_location")
   #--------------------------------
   def gsi_dn(self):
     return self.option_value(self.ini_section,"gsi_dn")
@@ -96,6 +128,9 @@ class VOFrontend(Condor):
   #--------------------------------
   def expose_grid_env(self):
     return self.option_value(self.ini_section,"expose_grid_env")
+  #--------------------------------
+  def glexec_use(self):
+    return string.upper(self.option_value(self.ini_section,"glexec_use"))
   #--------------------------------
   def glidein_proxies(self):
     return   self.option_value(self.ini_section,"glidein_proxies")
@@ -108,12 +143,19 @@ class VOFrontend(Condor):
 
   #--------------------------------
   def install(self):
+    self.get_wms()
+    self.get_factory()
+    self.get_userpool()
+    self.get_submit()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     ## JGW Need to figure out how to re-installa and leave condor alone
+    self.validate_install()
     self.glidein.validate_install()
-    self.glidein.create_web_directories()
-    self.install_condor()
     self.glidein.__install_vdt_client__()
+    self.glidein.create_web_directories()
+    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.logs_location(),self.unix_acct(),0755,empty_required=True)
+    self.install_condor()
     ## JGW need some check of gsi dn's in condor mapfile and condor_config
     ## for some co-located (or maybe just from ini file) services.
     ## Not quite sure how yet
@@ -121,12 +163,20 @@ class VOFrontend(Condor):
     ## see Factory.check_wmspool_gsi method
     
     config_data  = self.get_config_data()
-    gridmap_data = self.get_gridmap_data()
-    self.create_config(config_data,gridmap_data)
+    #gridmap_data = self.get_gridmap_data()
+    #self.create_config(config_data,gridmap_data)
+    self.create_config(config_data)
     self.create_env_script()
     self.create_frontend()
     self.start()
     common.logit ("======== %s install complete ==========" % self.ini_section)
+
+  #---------------------------------
+  def validate_install(self):
+    #-- glexec use values ---
+    valid_glexec_use_values = [ "REQUIRED","OPTIONAL","NEVER" ]
+    if self.glexec_use() not in valid_glexec_use_values:
+      common.logerr("The glexec_use value specified (%s) in the ini file is invalid.\n      Valid values are: %s" % (self.glexec_use(),valid_glexec_use_values)) 
 
   #---------------------------------
   def get_config_data(self):
@@ -187,18 +237,18 @@ The following DNs are in your grid_mapfile:"""
     return dns
       
   #---------------------------
-  def create_config(self,config_xml,gridmap_data):
-    common.make_directory(self.glidein.install_location())
+  ## def create_config(self,config_xml,gridmap_data):
+  def create_config(self,config_xml):
     common.logit("\nCreating configuration files")
-    common.make_directory(self.config_dir)
+    common.make_directory(self.config_dir,self.unix_acct(),0755,empty_required=True)
     common.write_file("w",0644,self.config_file,config_xml)
-    common.logit("Creating: %s" % self.grid_mapfile)
-    gridmap_fd = open(self.grid_mapfile,"w")
-    try:
-      for a_uid in gridmap_data.keys():
-        gridmap_fd.write('"%s" %s\n' % (gridmap_data[a_uid],a_uid))
-    finally:
-      gridmap_fd.close()
+    #common.logit("Creating: %s" % self.grid_mapfile)
+    #gridmap_fd = open(self.grid_mapfile,"w")
+    #try:
+    #  for a_uid in gridmap_data.keys():
+    #    gridmap_fd.write('"%s" %s\n' % (gridmap_data[a_uid],a_uid))
+    #finally:
+    #  gridmap_fd.close()
     common.logit("Configuration files complete")
 
   #-----------------------
@@ -220,9 +270,8 @@ The following DNs are in your grid_mapfile:"""
     data = """#!/bin/bash
 source %s/setup.sh
 export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
-export X509_USER_PROXY=%s
 source %s/condor.sh
-""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.glidein.gsi_location(),self.condor_location())
+""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.condor_location())
     common.write_file("w",0644,self.env_script,data)
     common.logit("VO frontend env script created: %s" % self.env_script )
 
@@ -374,12 +423,12 @@ please verify and correct if needed.
       job_attributes = string.split(job_attributes,',')
 
     #--- create xml ----
-    data  = """%s<group name="%s" enabled="True">""" % (common.indent(1),group_name)
-    data = data + """%s<match match_expr=%s>""" % (common.indent(2),xmlFormat.xml_quoteattr(match_str))
-    data = data + """%s%s""" % (common.indent(3),self.factory_data(factory_attributes))
-    data = data + """%s%s""" % (common.indent(3),self.factory_data(job_attributes))
-    data = data + """%s</match>""" % (common.indent(2))
-    data = data + """%s</group>""" % (common.indent(1))
+    data  = """%s<group name="%s" enabled="True">""" % (common.indent(2),group_name)
+    data = data + """%s<match match_expr=%s>""" % (common.indent(3),xmlFormat.xml_quoteattr(match_str))
+    data = data + """%s%s""" % (common.indent(4),self.factory_data(factory_attributes))
+    data = data + """%s%s""" % (common.indent(4),self.factory_data(job_attributes))
+    data = data + """%s</match>""" % (common.indent(3))
+    data = data + """%s</group>""" % (common.indent(2))
     return data 
 
   #-----------------------
@@ -443,10 +492,12 @@ please verify and correct if needed.
 %s
 %s
 %s
+%s
 </frontend>
 """ % (self.config_work_data(),
        self.config_stage_data(),
        self.config_monitor_data(),
+       self.config_collectors_data(),
        self.config_security_data(),
        self.config_match_data(schedds,job_constraints),
        self.config_attrs_data(), 
@@ -455,7 +506,7 @@ please verify and correct if needed.
     return data
   #---------------------------
   def config_work_data(self):
-    return """%s<work base_dir="%s"/>""" % (common.indent(1),self.glidein.install_location())
+    return """%s<work base_dir="%s" base_log_dir="%s"/>""" % (common.indent(1),self.glidein.install_location(),self.logs_location())
   #---------------------------
   def config_stage_data(self):
     return """%s<stage web_base_url="%s/%s/stage" base_dir="%s/stage"/>""" %\
@@ -471,10 +522,30 @@ please verify and correct if needed.
             self.glidein.javascriptrrd(),
             self.glidein.flot(),
             self.glidein.flot())
+  #---------------------------
+  def config_collectors_data(self):
+    data = """%s<collectors>""" % common.indent(1)
+    data = data + """%s<collector node="%s:%s" DN="%s" secondary="False"/>""" %\
+          (common.indent(2),
+           self.userpool.node(),
+           self.userpool.collector_port(),
+           self.userpool.gsi_dn())
+    #--- secondary collectors -- 
+    if self.userpool.secondary_collectors() <> 0:
+      first_port = self.userpool.secondary_collector_ports()[0] 
+      last_port  = self.userpool.secondary_collector_ports()[int(self.userpool.secondary_collectors()) - 1]
+      port_range = "%s-%s" % (first_port,last_port)
+      data = data + """%s<collector node="%s:%s" DN="%s" secondary="True"/>""" %\
+          (common.indent(2),
+           self.userpool.node(),
+           port_range,
+           self.userpool.gsi_dn())
+    data = data + """%s</collectors>""" % common.indent(1)
+    return data
   #--------------------------
   def config_security_data(self):
-    data = """%s<security proxy_selection_plugin="ProxyAll" classad_proxy="%s" classad_identity="%s@%s">""" %\
-             (common.indent(1),self.gsi_location,self.service_name(),self.WMSCollector())
+    data = """%s<security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy="%s" proxy_DN="%s">""" %\
+             (common.indent(1), self.service_name(), self.cert_proxy_location(), self.gsi_dn())
     data = data + """%s<proxies>"""   % (common.indent(2))
     proxies = self.glidein_proxies()
     for proxy in proxies.split(" "):
@@ -487,28 +558,33 @@ please verify and correct if needed.
     data = """%s<match>"""             % (common.indent(1))
     data = data + """%s<factory>"""    % (common.indent(2))
     data = data + """%s<collectors>""" % (common.indent(3))
-    data = data + """%s<collector node="%s" classad_identity="%s@%s" comment="Define factory collectors globally for simplicity"/>""" %\
-           (common.indent(4), self.WMSCollector(),self.WMSCollector_unix_acct(),self.WMSCollector())
+    data = data + """%s<collector node="%s" DN="%s" factory_identity="%s@%s" my_identity="%s@%s" comment="Define factory collectors globally for simplicity"/>""" %\
+           (common.indent(4), self.wms.node(),self.wms.gsi_dn(),self.factory.unix_acct(),self.factory.node(),self.service_name(),self.factory.node())
     data = data + """%s</collectors>""" % (common.indent(3))
     data = data + """%s</factory>"""    % (common.indent(2))
     data = data + """%s<job query_expr=%s  comment="Define job constraint and schedds globally for simplicity">""" %\
            (common.indent(2),xmlFormat.xml_quoteattr(job_constraints))
     data = data + """%s<schedds>"""    % (common.indent(3))
     for schedd in schedds:
-      data = data + """%s<schedd fullname="%s"/>""" % (common.indent(4),schedd)
+      data = data + """%s<schedd fullname="%s" DN="%s"/>""" % (common.indent(4),schedd,self.submit.gsi_dn())
     data = data + """%s</schedds>"""    % (common.indent(3))
+
     data = data + """%s</job>"""        % (common.indent(2))
     data = data + """%s</match>"""      % (common.indent(1))
     return data
   #------------------------------------------
   def config_attrs_data(self):
     data = """%s<attrs>""" % (common.indent(1))
-    data = data + """%s<attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/> """ %\
-           (common.indent(2),self.glidein.match_authentication() == "y")
-    data = data + """%s<attr name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="%s"/>""" %\
+    data = data + """%s<attr name="GLIDEIN_Glexec_Use" value="%s" glidein_publish="True" job_publish="True" parameter="False" type="string"/>""" %\
+            (common.indent(2),self.glexec_use())
+    data = data + """%s<attr name="GLIDEIN_Expose_Grid_Env" value="%s" glidein_publish="True" job_publish="True" parameter="False" type="string"/>""" %\
             (common.indent(2),self.expose_grid_env())
-    data = data + """%s<attr name="GLIDEIN_Collector" glidein_publish="False" job_publish="False" parameter="True" type="string" value="%s"/>""" %\
-            (common.indent(2),self.UserCollector())
+    data = data + """%s<attr name="USE_MATCH_AUTH" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/> """ %\
+           (common.indent(2),self.glidein.match_authentication() == "y")
+    data = data + """%s<attr name="GLIDEIN_Entry_Start" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/>""" %\
+            (common.indent(2),"True")
+    data = data + """%s<attr name="GLIDEIN_Entry_Rank" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/>""" %\
+            (common.indent(2),"1")
     data = data + """%s</attrs>""" % (common.indent(1))
     return data
   #------------------------------------------
@@ -520,7 +596,6 @@ please verify and correct if needed.
   #------------------------------------------
   def config_files_data(self):
     data = """%s<files>""" % (common.indent(1)) 
-    data = data + """%s<file executable="False" absfname="%s" untar="False" const="True" relfname="grid-mapfile"/>""" % (common.indent(2),self.grid_mapfile)
     data = data +"""%s</files>""" % (common.indent(1)) 
     return data
 
@@ -558,16 +633,41 @@ please verify and correct if needed.
   def configure_gsi_security(self):
     common.logit("")
     common.logit("Configuring GSI security")
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.gsi_location)
+    common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.cert_proxy_location())
     #--- create condor_mapfile entries ---
-    condor_entries = None
-    self.__create_condor_mapfile__(condor_entries)
+    condor_mapfile = """\
+GSI "^%s$" %s
+GSI "^%s$" %s
+GSI "^%s$" %s
+GSI "^%s$" %s""" % \
+          (re.escape(self.gsi_dn()),         self.service_name(),
+       re.escape(self.wms.gsi_dn()),     self.wms.service_name(),
+    re.escape(self.submit.gsi_dn()),  self.submit.service_name(),
+  re.escape(self.userpool.gsi_dn()),self.userpool.service_name())
 
-    #-- create the condor config file entries ---
-    condor_config_entries = None
+    self.__create_condor_mapfile__(condor_mapfile)
 
-    #-- update the condor config file entries ---
-    self.__update_condor_config_gsi__(condor_config_entries)
+#### ----------------------------------------------
+#### No longer required effective with 7.5.1
+#### ----------------------------------------------
+#    #-- create the condor config file entries ---
+#    gsi_daemon_entries = """\
+## --- Submit user: %s
+#GSI_DAEMON_NAME=%s
+## --- WMS collector user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Submit user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+## --- Userpool user: %s
+#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+#""" % \
+#          (self.gsi_dn(),         self.service_name(),
+#       self.wms.gsi_dn(),     self.wms.service_name(),
+#    self.submit.gsi_dn(),  self.submit.service_name(),
+#  self.userpool.gsi_dn(),self.userpool.service_name())
+#
+#    #-- update the condor config file entries ---
+#    self.__update_condor_config_gsi__(gsi_daemon_entries)
 
 #---------------------------
 def show_line():
@@ -599,7 +699,9 @@ def main(argv):
   try:
     options = validate_args(argv)
     vo = VOFrontend(options.inifile)
-    vo.install()
+    #vo.install()
+    vo.get_userpool()
+    print vo.config_collectors_data()
     #vo.configure_gsi_security()
   except KeyboardInterrupt, e:
     common.logit("\n... looks like you aborted this script... bye.")

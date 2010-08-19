@@ -1675,7 +1675,7 @@ def vofrontend_install():
         glidein_proxies.append(a_fname)
         glidein_proxies_dns.append(a_dn)
 
-    # Expose Grid Env
+    # Default the use of glexec to be optional
     glexec_use = ""
     default_glexec_use = "OPTIONAL"
     while 1:
@@ -1685,7 +1685,7 @@ def vofrontend_install():
             glexec_use = default_glexec_use
         if glexec_use not in ("NEVER", "OPTIONAL", "REQUIRED"):
             print "Please answer NEVER or OPTIONAL or REQUIRED"
-            continue 
+            continue
         break
 
     # USE_MATCH_AUTH
@@ -1756,8 +1756,6 @@ def vofrontend_install():
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
             fd.write('         <match match_expr=%s>\n'%xmlFormat.xml_quoteattr(match_str))
-
-
             if len(factory_attr_list)>0:
                 attr_query_arr=[]
                 for job_attr in factory_attr_list:
@@ -2899,7 +2897,6 @@ def get_proxy_dn_old(proxy_fname):
     return get_cert_dn_old(proxy_fname,type_text='proxy')
 
 def get_cert_dn_old(cert_fname,type_text='certificate'):
-
     if not os.path.isfile(cert_fname):
         raise RuntimeError,"File '%s' not found"%cert_fname
 

@@ -28,6 +28,12 @@ class GlideinParams(cWParams.CommonParams):
     def init_defaults(self):
      
         self.init_support_defaults()
+      
+	# Defaults for allowing frontends in a whitelist
+	# in the factory config (per entry point)
+        self.allow_defaults=cWParams.commentedOrderedDict()
+        self.allow_defaults["name"]=(None,"string","frontend name",None)
+        self.allow_defaults["security_class"]=("All","string","security class",None)
 
         # publishing specific to factory
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
@@ -49,7 +55,7 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
         entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
-        
+
         entry_config_queue_defaults=cWParams.commentedOrderedDict()
         entry_config_queue_defaults["max_per_cycle"]=['100',"nr","Maximum number of jobs affected per cycle.",None]
         entry_config_queue_defaults["sleep"]=['0.2',"seconds","Sleep between interactions with the schedd.",None]
@@ -83,6 +89,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["infosys_refs"]=sub_defaults['infosys_refs']
         self.entry_defaults["downtimes"]=self.downtimes_defaults
         self.entry_defaults["monitorgroups"]=copy.deepcopy(sub_defaults['monitorgroups'])
+        self.entry_defaults["allow_frontends"]=(xmlParse.OrderedDict(),'Dictionary of frontends',"Each frontend entry contains",self.allow_defaults);
 
         ###############################
         # Start defining the defaults
@@ -216,6 +223,7 @@ class GlideinParams(cWParams.CommonParams):
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
+                                'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
                                 'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}}}}
 
 

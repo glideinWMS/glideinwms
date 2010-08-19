@@ -96,7 +96,7 @@ def perform_work(entry_name,
     for username in usernames.keys():
         log_stats[username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,username),
                                                                        glideFactoryLib.log_files.log_dir,
-                                                                       client_name,username)
+                                                                       client_int_name,username)
         # should not need privsep for reading logs
         log_stats[username].load()
 
@@ -138,6 +138,22 @@ def perform_work(entry_name,
 def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
+
+    # Get information about which VOs to allow for this entry point.
+    # This will be a comma-delimited list of pairs
+    # vofrontendname:security_class,vofrontend:sec_class, ...
+    frontend_whitelist=jobDescript.data['WhitelistMode']
+    security_list={};
+    if (frontend_whitelist == "On"):
+        frontend_allowed=jobDescript.data['AllowedVOs']
+        frontend_allow_list=frontend_allowed.split(',');
+        for entry in frontend_allow_list:
+            entry_part=entry.split(":");
+            if (security_list.has_key(entry_part[0])):
+                security_list[entry_part[0]].append(entry_part[1]);
+            else:
+                security_list[entry_part[0]]=[entry_part[1]];
+   
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
 
     #glideFactoryLib.log_files.logActivity("Find work")
@@ -174,30 +190,40 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             client_int_name="DummyName"
             client_int_req="DummyReq"
 
+        # Check whether the frontend is on the whitelist for the 
+        # Entry point.
         if decrypted_params.has_key('SecurityName'):
-            client_security_name=decrypted_params['SecurityName']
+                client_security_name=decrypted_params['SecurityName']
         else:
-            # backwards compatibility
-            client_security_name=client_int_name
+                # backwards compatibility
+                client_security_name=client_int_name
 
-        client_expected_identity=frontendDescript.get_identity(client_security_name)
-        if client_expected_identity==None:
-            glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
-            continue #skip request
-        
-        client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
+        # Check if this entry point has a whitelist
+        # If it does, then make sure that this frontend is in it.
+        if (frontend_whitelist == "On")and(not security_list.has_key(client_security_name)):
+                glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping request %s "%(client_int_name,client_security_name))
+                continue #skip request
 
-        if client_authenticated_identity!=client_expected_identity:
-            # silently drop... like if we never read it in the first place
-            # this is compatible with what the frontend does
-            glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
-            continue #skip request
 
         # Check if proxy passing is compatible with allowed_proxy_source
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
             if not ('frontend' in allowed_proxy_source):
                 glideFactoryLib.log_files.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
+
+            client_expected_identity=frontendDescript.get_identity(client_security_name)
+            if client_expected_identity==None:
+                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) not in white list. Skipping request"%(client_int_name,client_security_name))
+                continue #skip request
+            
+            client_authenticated_identity=work[work_key]['internals']["AuthenticatedIdentity"]
+	
+            if client_authenticated_identity!=client_expected_identity:
+                # silently drop... like if we never read it in the first place
+                # this is compatible with what the frontend does
+                glideFactoryLib.log_files.logWarning("Client %s (secid: %s) is not coming from a trusted source; AuthenticatedIdentity %s!=%s. Skipping for security reasons."%(client_int_name,client_security_name,client_authenticated_identity,client_expected_identity))
+                continue #skip request
+
         else:
             if not ('factory' in allowed_proxy_source):
                 glideFactoryLib.log_files.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
@@ -250,6 +276,14 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
                 else:
                     x509_proxy_security_class=x509_proxy_identifier
+
+                # Deny Frontend from entering glideins if the whitelist
+                # does not have its security class (or "All" for everyone)
+                if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
+                    glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_authenticated_identity,x509_proxy_security_class))
+                    continue # skip request
+#                else:
+#                    glideFactoryLib.log_files.logWarning("Security test passed for : %s %s "%(client_authenticated_identity,x509_proxy_security_class))
 
                 x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
                 if x509_proxy_username==None:
@@ -411,7 +445,6 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
 def iterate_one(do_advertize,in_downtime,
                 glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams)
-
     if do_advertize or done_something:
         glideFactoryLib.log_files.logActivity("Advertize")
         advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams)
@@ -451,7 +484,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # never fail for stats reasons!
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))                
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -461,7 +494,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)                
                 
         glideFactoryLib.log_files.cleanup()
 
@@ -564,7 +597,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
                 raise
         finally:
             try:
@@ -583,7 +616,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
                                                                                                        glideinDescript.data['GlideinName'],
                                                                                                        jobDescript.data['EntryName']))
-                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
+                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
     finally:
         pid_obj.relinquish()
 

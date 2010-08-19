@@ -20,7 +20,7 @@ class Glidein(Configuration):
     Configuration.__init__(self,inifile)
     self.validate_section(ini_section,ini_options)
 
-    self.vdt = VDTClient.VDTClient(self.inifile)
+    self.vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
 
   #---------------------
   def vdt_location(self):
@@ -45,13 +45,13 @@ class Glidein(Configuration):
     return self.option_value(self.ini_section,"instance_name")
   #---------------------
   def service_dir(self):
-    return "%s/%s_%s" % (self.install_location(),self.service_name(),self.instance_name())
+    return "%s/glidein_%s" % (self.install_location(),self.instance_name())
   #---------------------
   def config_dir(self):
-    return "%s.cfg" % (self.service_dir())
+    return "%s/glidein_%s.cfg" % (self.install_location(),self.instance_name())
   #---------------------
   def config_file(self):
-    return "%s/%s.xml" % (self.config_dir(),self.service_name())
+    return "%s/factory.xml" % (self.config_dir())
   #---------------------
   def node(self):
     return self.option_value(self.ini_section,"node")
@@ -82,17 +82,37 @@ class Glidein(Configuration):
   def ress_host(self):
     return self.option_value(self.ini_section,"ress_host")
   #---------------------
-  def ress_constraint(self):
-    return self.option_value(self.ini_section,"ress_constraint")
-  #---------------------
   def bdii_host(self):
     return self.option_value(self.ini_section,"bdii_host")
   #---------------------
-  def bdii_constraint(self):
-    return self.option_value(self.ini_section,"bdii_constraint")
+  def entry_vos(self):
+    return self.option_value(self.ini_section,"entry_vos")
   #---------------------
-  def ress_filter(self):
-    return self.option_value(self.ini_section,"ress_filter")
+  def ress_vo_constraint(self):
+    constraint = '(GlueCEInfoContactString=!=UNDEFINED)'
+    if len(self.entry_vos()) > 0:
+      vos = string.split(self.entry_vos(),",")
+      if len(vos) > 0:
+        constraint = constraint + '&&('
+        constraint = constraint + 'StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vos[0].strip(' ')
+        for vo in vos[1:]:
+          constraint = constraint + '||StringlistMember("VO:%s",GlueCEAccessControlBaseRule)' % vo.strip(' ')
+        constraint = constraint + ')'
+    return constraint
+  #---------------------
+  def bdii_vo_constraint(self):
+    constraint = None 
+    if len(self.entry_vos()) > 0:
+      vos = string.split(self.entry_vos(),",")
+      constraint = '(|(GlueCEAccessControlBaseRule=VO:%s)' % vos[0]
+      if len(vos) > 0:
+        for vo in vos[1:]:
+          constraint = constraint + '(GlueCEAccessControlBaseRule=VO:%s)' % vo.strip(' ')
+        constraint = constraint + ')'
+    return constraint
+  #---------------------
+  def entry_filters(self):
+    return self.option_value(self.ini_section,"entry_filters")
   #---------------------
   def web_location(self):
     return self.option_value(self.ini_section,"web_location")
@@ -124,78 +144,81 @@ class Glidein(Configuration):
   #--------------------------------
   def __install_vdt_client__(self):
     if self.install_vdt_client() == "y":
-      if self.vdt.client_exists():
-        common.logit("... VDT client already exists: %s" % self.vdt.vdt_location())
-      else:
-        common.logit("... VDT client is not installed")
-        self.vdt.install()
+      self.vdt.install()
     else:
       common.logit("... VDT client install not requested.")
 
   #---------------------
   def validate_install(self):
-    common.logit( "... validating")
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
+    common.validate_installer_user(self.unix_acct())
+    self.validate_web_location()
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     self.preinstallation_software_check()
     common.validate_install_location(self.install_location())
 
   #---------------------
-  def preinstallation_software_check(self):
-    common.logit("Pre-installation monitoring software check started")
-    errors = 0
-    #--- web location ---
-    if not os.path.isdir(self.web_location()):
-      common.logerr("... ERROR: web location does not exist: %s" % self.web_location())
-    else:
-      common.logit("... web location valid")
+  def validate_web_location(self):
+    dir = self.web_location()
+    common.logit("... validating web_location: %s" % dir)
+    if not os.path.isdir(dir):
+      common.logerr("web location (%s) does not exist.\n       It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
+    if common.not_writeable(dir):
+      common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
 
+  #---------------------
+  def preinstallation_software_check(self):
+    errors = 0
     ##-- rrdtool --
+    msg = ""
     module = "rrdtool"
     if common.module_exists(module):
       script = "rrdtool"
       err = os.system("which %s >/dev/null 2>&1" % script)
       if err == 0:
-        common.logit("... %s available: " % (module))
-        os.system("which %s " % script)
+        msg = "available"
       else:
         errors = errors + 1
-        common.logit("... ERROR: %s script needs to be available in PATH" % script)
+        msg = "ERROR: %s script needs to be available in PATH" % script
     else:
       errors = errors + 1
-      common.logit("... ERROR: %s not installed or not in PYTHONPATH" % module)
+      msg = "ERROR: %s not installed or not in PYTHONPATH" % module
+    common.logit("... validating rrdtool: %s" % msg)
 
     ##-- M2Crypto --
+    msg = ""
     os.environ["PYTHONPATH"] = "%s:%s/%s" % (os.environ["PYTHONPATH"],self.m2crypto(),"usr/lib/python2.3/site-packages/")
     module = "M2Crypto"
     if common.module_exists(module):
-      common.logit("... %s available" % module)
+      msg = "available"
     else:
       errors = errors + 1
-      common.logit("... ERROR: %s not installed or not in PYTHONPATH: %s" % (module,self.m2crypto()))
+      msg = "ERROR: %s not installed or not in PYTHONPATH: %s" % (module,self.m2crypto())
+    common.logit("... validating M2Crypto: %s" % msg)
 
     ##-- javascriptrrd --
-    filename = os.path.join(self.javascriptrrd(),"src/lib/rrdFile.js")
+    msg = ""
+    filename = os.path.join(self.javascriptrrd(),"src/lib/rrdMultiFile.js")
     if os.path.exists(filename):
-      common.logit("... javascriptrrd available")
-      common.logit(filename)
+      msg = "available in %s" % filename
     else:
       errors = errors + 1
-      common.logit("... ERROR: javascriptrrd not installed: %s not found" % filename)
+      msg = "ERROR: not installed: %s not found" % filename
+    common.logit("... validating javascriptrrd: %s" % msg)
 
     ##-- flot --
+    msg = ""
     filename =  os.path.join(self.flot(),"jquery.flot.js")
     if os.path.exists(filename):
-      common.logit("... flot available")
-      common.logit(filename)
+      msg = "available in %s" % filename
     else:
       errors = errors + 1
-      common.logit("... ERROR: flot not installed: %s not found" % filename)
+      msg = "ERROR: not installed: %s not found" % filename
+    common.logit("... validating flot: %s" % msg)
 
     if errors > 0:
       common.logerr("%i required software modules not available." % errors)
-    common.logit("Pre-installation monitoring software check completed")
 
     return 
 
@@ -203,7 +226,7 @@ class Glidein(Configuration):
   def install_javascriptrrd(self):
     common.logit("... installing javascriptrrd")
     dir = (os.path.dirname(self.javascriptrrd()))
-    common.make_directory(dir)
+    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
     tarball = self.javascriptrrd_tarball()
     if not os.path.exists(tarball):
       common.logerr("javascriptrrd tarball does not exist: %s" % tarball)
@@ -216,7 +239,7 @@ class Glidein(Configuration):
   def install_flot(self):
     common.logit("... installing flot")
     dir = (os.path.dirname(self.flot()))
-    common.make_directory(dir)
+    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
     tarball = self.flot_tarball()
     if not os.path.exists(tarball):
       common.logerr("flot tarball does not exist: %s" % tarball)
@@ -229,7 +252,7 @@ class Glidein(Configuration):
   def install_m2crypto(self):
     common.logit("... installing M2Crypto")
     dir = (os.path.dirname(self.m2crypto()))
-    common.make_directory(dir)
+    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
     tarball = self.m2crypto_tarball()
     if not os.path.exists(tarball):
       common.logerr("M2Crypto tarball does not exist: %s" % tarball)
@@ -244,31 +267,11 @@ class Glidein(Configuration):
 
   #---------------------
   def create_web_directories(self):
-    common.logit("Creating monitoring web directories in %s" % self.web_location())
+    common.logit("\nCreating monitoring web directories in %s" % self.web_location())
     for sdir_name in ("stage","monitor"):
       sdir_fullpath=os.path.join(self.web_location(),sdir_name)
-      if not os.path.exists(sdir_fullpath):
-        try:
-          os.mkdir(sdir_fullpath)
-          common.logit("... %s created" % sdir_fullpath)
-        except:
-          common.logerr("Cannot create dir '%s'.\n.. %s must be writable by user %s." %s (dir_fullpath,self.web_location(),self.unix_acct()))
-      else:
-        common.logit("... %s already exists" % sdir_fullpath)
-        #-- verify writable if aleady exists ---
-        test_fname=os.path.join(sdir_fullpath,"test.txt")
-        try:
-          fd=open(test_fname,"w")
-          fd.close()
-          os.unlink(test_fname)
-        except:
-          common.logerr("web directory (%s) exists but not writable by user %s." %s (dir_fullpath,self.unix_acct()))
-        yn = common.ask_yn("The %s directory already exists and may constain data.\nThis may cause a failure when you try to create the factory or frontend.\nDo you want to delete it." % sdir_fullpath)
-        if yn == "y":
-          err = os.system("rm -rf %s/*" % sdir_fullpath)
-          if err != 0:
-            common.logerr("Problem deleting %s files" % sdir_fullpath)
-          common.logit("Files in %s  deleted\n" % sdir_fullpath)
+      common.make_directory(sdir_fullpath,self.unix_acct(),0755,empty_required=True)
+    common.logit("\nCreating monitoring web directories completed %s\n" % self.web_location())
 
 #---------------------------
 def show_line():

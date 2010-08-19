@@ -14,6 +14,9 @@ def logit(message):
 def logerr(message):
    logit("ERROR: %s" % message)
    raise WMSerror(Exception)
+#--------------------------
+def logwarn(message):
+   logit("Warning: %s" % message)
 
 #--------------------------
 def write_file(mode,perm,filename,data):
@@ -35,13 +38,76 @@ def write_file(mode,perm,filename,data):
   os.chmod(filename,perm) 
 
 #--------------------------
-def make_directory(dirname):
-  if not os.path.isdir(dirname):
-    os.makedirs(dirname)
-    os.chmod(dirname,0755)
-    logit( "... directory created: %s" % dirname)
-  else:
-    logit( "... directory already exists: %s" % dirname)
+def make_directory(dirname,owner,perm,empty_required=True):
+  if os.path.isdir(dirname):
+    if not_writeable(dirname):
+      logerr("Directory (%s) exists but is not writable by user %s" % (dirname,owner))
+    if not empty_required:
+      return # we done.. does not have to be empty
+
+    if len(os.listdir(dirname)) == 0:
+      return  # we done.. its empty
+
+    if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
+      logerr("Terminating at your request")
+    if not_writeable(os.path.dirname(dirname)):
+      logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
+    remove_dir_contents(dirname)
+    return  # we done.. all is ok
+
+  #-- create it but check entire path ---
+  dirs = [dirname,]  # directories we need to create
+  dir = dirname
+  while dir <> "/":
+    parent_dir = os.path.dirname(dir)
+    if os.path.isdir(parent_dir):
+      break
+    dirs.append(parent_dir)
+    dir = parent_dir
+  dirs.reverse()
+  for dir in dirs:
+    if not_writeable(parent_dir):
+      logerr("Cannot create %s because of permissions/ownership\n       of parent dir(%s)" % (dirname,parent_dir))
+    try:
+      os.makedirs(dir)
+      os.chmod(dir,perm)
+      uid = pwd.getpwnam(owner)[2]
+      gid = pwd.getpwnam(owner)[3]
+      os.chown(dir,uid,gid)
+    except:
+      logit("... trying to create directory: %s" % dirname)
+      logerr("Failed to create or set permissions/ownership(%s) on directory: %s" % (owner,dir))
+    logit( "... directory created: %s" % dir)
+  return
+  
+#--------------------------
+def remove_dir_contents(dirname):
+  err = os.system("rm -rf %s/*" % dirname)
+  if err != 0:
+    logerr("Problem deleting files in %s" % dirname)
+  logit("Files in %s  deleted\n" % dirname)
+  
+#--------------------------
+def not_writeable(dirname):
+  test_fname=os.path.join(dirname,"test.txt")
+  try:
+    fd=open(test_fname,"w")
+    fd.close()
+    os.unlink(test_fname)
+  except:
+    return True
+  return False
+
+#--------------------------
+def has_permissions(dir,level,perms):
+  result = True
+  mode =  stat.S_IMODE(os.lstat(dir)[stat.ST_MODE])
+  for perm in perms:
+    if mode & getattr(stat,"S_I"+perm+level):
+      continue
+    result = False
+    break
+  return result
 
 #--------------------------
 def remove_dir_path(dirname):
@@ -103,22 +169,15 @@ def module_exists(module_name):
 
 #--------------------------------
 def validate_email(email):
+  logit("... validating condor_email_address: %s" % email)
   if email.find('@')<0:
     logerr("Invalid email address (%s)" % (email))
 
 #--------------------------------
 def validate_install_location(dir):
-  if os.path.isdir(dir):
-    logit("WARNING: Install location (%s) already exists." % (dir))
-    yn = ask_yn("Would you like to remove it and re-install")
-    if yn == "y":
-      yn = ask_yn("Are you really sure of this.")
-    if yn == "y":
-      logit("... removing %s" %dir)
-      os.system("rm -rf %s" % dir)
-    else:
-      logerr("Terminating at your request")
-
+  logit("... validating install_location: %s" % dir)
+  install_user = pwd.getpwuid(os.getuid())[0]
+  make_directory(dir,install_user,0755,empty_required=True)
 
 #--------------------------------
 def ask_yn(question):
@@ -131,19 +190,42 @@ def ask_yn(question):
   return yn
 
 #--------------------------------
+def ask_continue(question):
+  while 1:
+    yn = "n"
+    yn = raw_input("%s? (y/n) [%s]: " % (question,yn))
+    if yn == "y" or yn == "n":
+      break
+    logit("\nWARNING: just 'y' or 'n' please")
+  if yn == "n":
+    raise KeyboardInterrupt
+
+#--------------------------------
 def validate_node(node):
+  logit("... validating node: %s" % node)
   if node <> os.uname()[1]:
     logerr("Node option (%s) shows different host. This is %s" % (node,os.uname()[1]))
 
 #--------------------------------
 def validate_user(user):
+  logit("... validating user: %s" % user)
   try:
-    pwd.getpwnam(user)
+    x = pwd.getpwnam(user)
   except:
     logerr("User account (%s) does not exist. Either create it or specify a different user." % (user))
 
 #--------------------------------
+def validate_installer_user(user):
+  logit("... validating installer_user: %s" % user)
+  install_user = pwd.getpwuid(os.getuid())[0]
+  if user <> install_user:
+    logerr("You are installing as user(%s).\n       The ini file says it should be user(%s)." % (install_user,user))
+
+#--------------------------------
 def validate_gsi(dn_to_validate,type,location):
+  logit("... validating gsi_dn: %s" % dn_to_validate)
+  logit("... validating gsi_authentication: %s" % type)
+  logit("... validating gsi_location: %s" % location)
   dn_in_file = get_gsi_dn(type,location)
   if dn_in_file <> dn_to_validate:
     logerr("The DN of the %s in %s does not match the gsi_dn attribute in your ini file:\n%8s: %s\n     ini: %s\nThis may cause a problem in other services." % (type, location,type,dn_in_file,dn_to_validate))
@@ -154,8 +236,11 @@ def get_gsi_dn(type,filename):
       or proxy.  Using openssl, If it is a proxy, use the -issuer argument.
       If a certificate, use the -subject argument.
   """
+  install_user = pwd.getpwuid(os.getuid())[0]
   if type == "proxy":
     arg = "-issuer"
+    if not os.path.isfile(filename):
+      logerr("Proxy (%s)\nnot found or has wrong permissions/ownership.\nThe proxy has to be owned by %s and have 600 permissions" % (filename,install_user))
   elif type == "cert":
     arg = "-subject"
   else:
@@ -164,12 +249,15 @@ def get_gsi_dn(type,filename):
   if not os.path.isfile(filename):
     logerr("%s '%s' not found" % (type,filename))
 
+  if os.stat(filename).st_uid <> os.getuid():
+    logerr("The %s specified (%s)\nhas to be owned by %s user" % (type,filename,install_user))
+
   #-- read the cert/proxy --
-  dn_fd   = os.popen("openssl x509 %s -noout -in %s" % (arg,filename))
+  dn_fd   = os.popen("openssl x509 %s -noout -in %s 2>/dev/null" % (arg,filename))
   dn_blob = dn_fd.read()
   err = dn_fd.close()
   if err != None:
-    logerr("Failed to read %s '%s'." % (arg,filename))
+    logerr("Failed to read %s from %s" % (arg,filename))
   #-- parse out the DN --
   i = dn_blob.find("= ")
   if i < 0:
@@ -186,6 +274,14 @@ def url_is_valid(url):
     return False
   return True
 
+#----------------------------
+def wget_is_valid(location):
+  err = os.system("wget --quiet --spider %s" % location)
+  if err != 0:
+    return False
+  return True
+
+
 #------------------
 def indent(level):
   indent = ""
@@ -199,15 +295,19 @@ def indent(level):
 if __name__ == '__main__':
   print "Starting some tests"
   try:
-    print "... testing make_directory"
-    testdir = "testdir/testdir1"
-    make_directory(testdir)
+    print "Testing make_directory"
+    owner = pwd.getpwuid(os.getuid())[0]
+    perm = 0755
+    testdir = "/opt/testdir/testdir1/testdir2/testdir3"
+    print "... %s" % testdir
+    make_directory(testdir,owner,perm,empty_required=True)
+    if not os.path.isdir(testdir):
+      print "FAILED"
+    print "PASSED"
     os.rmdir(testdir)
-    os.rmdir(os.path.dirname(testdir))
-    print "... PASSED"
 
-    print "... testing make_backup"
-    make_directory(testdir)
+    print "Testing make_backup"
+    make_directory(testdir,owner,perm,empty_required=True)
     filename = "%s/%s" % (testdir,__file__)
     shutil.copy(__file__,filename)
     make_backup(filename)
@@ -217,7 +317,8 @@ if __name__ == '__main__':
     print "... PASSED"
 
   except Exception,e:
-    print "FAILED test:",e
+    print "FAILED test"
+    print e
     sys.exit(1)
   print "PASSED all tests"
   sys.exit(0)

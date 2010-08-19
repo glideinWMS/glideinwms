@@ -3,6 +3,15 @@
 # This script starts the condor daemons
 # expects a config file as a parameter
 
+#function to handle passing signals to the child processes
+function on_die {
+echo "Condor startup received kill signal... shutting down condor processes"
+$CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master2.pid
+ON_DIE=1
+}
+
+
+
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`
 for v in $condor_vars; do
@@ -16,9 +25,10 @@ pstr='"'
 
 config_file=$1
 
-debug_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
+# find out whether user wants to run job or run test
+operation_mode=`grep -i "^DEBUG_MODE " $config_file | awk '{print $2}'`
 
-if [ "$debug_mode" == "1" ]; then
+if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
     echo "-------- $config_file in condor_startup.sh ----------" 1>&2
     cat $config_file 1>&2
     echo "-----------------------------------------------------" 1>&2
@@ -28,7 +38,11 @@ main_stage_dir=`grep -i "^GLIDEIN_WORK_DIR " $config_file | awk '{print $2}'`
 
 description_file=`grep -i "^DESCRIPTION_FILE " $config_file | awk '{print $2}'`
 
+# grab user proxy so we can authenticate ourselves to run condor_fetchlog
+X509_USER_PROXY=`grep -i "^X509_USER_PROXY " $config_file | awk '{print $2}'`
+
 in_condor_config="${main_stage_dir}/`grep -i '^condor_config ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+
 export CONDOR_CONFIG="${PWD}/condor_config"
 
 cp "$in_condor_config" $CONDOR_CONFIG
@@ -69,6 +83,7 @@ glidein_variables=""
 
 # job_env = environment to pass to the job
 job_env=""
+
 
 #
 # Set a variable read from a file
@@ -228,6 +243,14 @@ let "glidein_toretire=$now + $GLIDEIN_Retire_Time"
 # put some safety margin
 let "session_duration=$x509_duration + 300"
 
+# if in test mode, don't ever start any jobs
+START_JOBS="TRUE"
+if [ "$operation_mode" == "2" ]; then
+	START_JOBS="FALSE"
+  # need to know which startd to fetch against
+  STARTD_NAME=glidein_$$
+fi
+
 cat >> "$CONDOR_CONFIG" <<EOF
 # ---- start of condor_startup fixed part ----
 
@@ -248,8 +271,10 @@ STARTD_NAME = glidein_$$
 #This can be used for locating the proper PID for monitoring
 GLIDEIN_PARENT_PID = $$
 
+START = $START_JOBS 
+
 EOF
-# ##################################
+####################################
 if [ $? -ne 0 ]; then
     echo "Error customizing the condor_config" 1>&2
     exit 1
@@ -257,12 +282,22 @@ fi
 
 monitor_mode=`grep -i "^MONITOR_MODE " $config_file | awk '{print $2}'`
 
-if [ "$monitor_mode" == "MULTI" ]; then
+if [ "$monitor_mode" == "MULTI" ] || [ "$operation_mode" -eq 2 ]; then
     use_multi_monitor=1
 else
     use_multi_monitor=0
 fi
 
+# get check_include file for testing
+if [ "$operation_mode" == "2" ]; then
+	condor_config_check_include="${main_stage_dir}/`grep -i '^condor_config_check_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+    echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
+    cat "$condor_config_check_include" >> "$CONDOR_CONFIG"
+    if [ $? -ne 0 ]; then
+	echo "Error appending check_include to condor_config" 1>&2
+	exit 1
+    fi
+fi
 
 if [ "$use_multi_monitor" -eq 1 ]; then
     condor_config_multi_include="${main_stage_dir}/`grep -i '^condor_config_multi_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
@@ -318,15 +353,16 @@ EOF
     fi
 fi
 
+
 mkdir log execute 
 if [ $? -ne 0 ]; then
     echo "Error creating condor dirs" 1>&2
     exit 1
 fi
 
-# ##################################
+####################################
 
-if [ "$debug_mode" == "1" ]; then
+if [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
   echo "--- condor_config ---" 1>&2
   cat $CONDOR_CONFIG 1>&2
   echo "--- ============= ---" 1>&2
@@ -336,8 +372,9 @@ if [ "$debug_mode" == "1" ]; then
   #env 1>&2
 fi
 
+##	start the condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
-    # start monitoring satrtd
+    # start monitoring startd
     # use the appropriate configuration file
     tmp_condor_config=$CONDOR_CONFIG
     export CONDOR_CONFIG=$condor_config_monitor
@@ -366,15 +403,81 @@ fi
 
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
-
+ON_DIE=0
+trap 'on_die' TERM
+trap 'on_die' INT
 let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
-$CONDOR_DIR/sbin/condor_master -r $retmins -f 
+
+
+#### STARTS CONDOR ####
+if [ "$operation_mode" == "2" ]; then
+	echo "=== Condor started in test mode ==="
+	$CONDOR_DIR/sbin/condor_master -r $retmins -pidfile $PWD/condor_master.pid
+else
+	$CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/monitor/condor_master2.pid &
+	# Wait for a few seconds to make sure the pid file is created, 
+	# then wait on it for completion
+	sleep 5
+	if [ -e "$PWD/monitor/condor_master2.pid" ]; then
+		echo "=== Condor started in background, now waiting on process `cat $PWD/monitor/condor_master2.pid` ==="
+		wait `cat $PWD/monitor/condor_master2.pid`
+	fi
+fi
+
 condor_ret=$?
+
 
 end_time=`date +%s`
 let elapsed_time=$end_time-$start_time
 echo "=== Condor ended `date` (`date +%s`) after $elapsed_time ==="
 echo
+
+## perform a condor_fetchlog against the condor_startd
+##    if fetch fails, sleep for 'fetch_sleeptime' amount
+##    of seconds, then try again.  Repeat until
+##    'timeout' amount of time has been reached.
+if [ $operation_mode -eq 2 ]; then
+
+  HOST=`uname -n`
+
+  # debug statement
+  # echo "CONDOR_CONFIG ENV VAR= `env | grep CONDOR_CONFIG | awk '{split($0,a,"="); print a[2]}'`" 1>&2
+  #echo "running condor_fetchlog with the following:" 1>&2
+  #echo "\t$CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD" 1>&2
+
+  fetch_sleeptime=30      # can be dynamically set
+  fetch_timeout=500       # can be dynamically set
+  fetch_curTime=0         
+  fetch_exit_code=1       
+  let fetch_attemptsLeft="$fetch_timeout / $fetch_sleeptime"
+  while [ "$fetch_curTime" -lt "$fetch_timeout" ]; do	
+    sleep $fetch_sleeptime
+
+    let "fetch_curTime  += $fetch_sleeptime" 
+	  FETCH_RESULTS=`$CONDOR_DIR/sbin/condor_fetchlog -startd $STARTD_NAME@$HOST STARTD`
+    fetch_exit_code=$?
+    if [ $fetch_exit_code -eq 0 ]; then
+      break
+    fi
+    echo "fetch exit code=$fetch_exit_code" 1>&2
+    echo "fetch failed in this iteration...will try $fetch_attemptsLeft more times."  >&2
+    let "fetch_attemptsLeft -= 1" 
+  done
+
+  if [ $fetch_exit_code -ne 0 ]; then 
+    echo "Able to talk to startd? FALSE" 1>&1 1>&2
+		echo "Failed to talk to startd $STARTD_NAME on host $HOST" >&2
+    echo "Reason for failing: Condor_fetchlog took too long to talk to host" >&2
+    echo "time spent trying to fetch : $fetch_curTime" >&2 
+	else
+    echo "Able to talk to startd? TRUE" 1>&1 1>&2
+		echo "Successfully talked to startd $STARTD_NAME on host $HOST" >&2
+		echo "Fetch Results from condor_fetchlog: $FETCH_RESULTS" >&2
+	fi
+
+	## KILL CONDOR
+	KILL_RES=`$CONDOR_DIR/sbin/condor_master -k $PWD/condor_master.pid`
+fi
 
 # log dir is always different
 # get the real name
@@ -386,19 +489,20 @@ if [ -f "${main_starter_log}" ]; then
 fi
 echo === End Stats of main ===
 
-if [ "$debug_mode" == "1" ]; then
+if [ "$operation_mode" == "0" ] || [ "$operation_mode" == "1" ] || [ "$operation_mode" == "2" ]; then
     ls -l log 1>&2
     echo
     cond_print_log MasterLog log/MasterLog
     cond_print_log StartdLog log/StartdLog
     cond_print_log StarterLog ${main_starter_log}
     if [ "$use_multi_monitor" -ne 1 ]; then
-	cond_print_log MasterLog.monitor monitor/log/MasterLog
-	cond_print_log StartdLog.monitor monitor/log/StartdLog
+	    cond_print_log MasterLog.monitor monitor/log/MasterLog
+	    cond_print_log StartdLog.monitor monitor/log/StartdLog
     fi
     cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
 
+## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
     # terminate monitoring startd
     # use the appropriate configuration file
@@ -407,14 +511,27 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 
     monitor_start_time=`date +%s`
     echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
+
+    #### KILL CONDOR ####
     $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid 
+    ####
+
     ret=$?
     if [ "$ret" -ne 0 ]; then
-	echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
+        echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
     fi
 
     # clean back
     export CONDOR_CONFIG=$tmp_condor_config
 fi
+
+if [ "$ON_DIE" -eq 1 ]; then
+    #If we are explicitly killed, do not wait required time
+    echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
+    exit 0;
+fi
+
+##
+##########################################################
 
 exit $condor_ret

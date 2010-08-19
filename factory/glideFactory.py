@@ -137,15 +137,17 @@ def spawn(sleep_time,advertize_rate,startup_dir,
             # do it just before the sleep
             glideFactoryLib.log_files.cleanup()
 
-            glideFactoryLib.log_files.logActivity("Sleep")
+            glideFactoryLib.log_files.logActivity("Sleep %s secs" % sleep_time)
             time.sleep(sleep_time)
     finally:        
         # cleanup at exit
+        glideFactoryLib.log_files.logActivity("Received signal...exit")
         for entry_name in childs.keys():
             try:
                 os.kill(childs[entry_name].pid,signal.SIGTERM)
             except OSError:
                 pass # ignore failed kills of non-existent processes
+        glideFactoryLib.log_files.logActivity("All entries should be terminated")
         
         
 ############################################################
@@ -171,6 +173,14 @@ def main(startup_dir):
                                                        float(glideinDescript.data['LogRetentionMinDays']),
                                                        float(glideinDescript.data['LogRetentionMaxMBs']))
     
+    try:
+        os.chdir(startup_dir)
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logWarning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        raise
+
     try:
         glideinDescript.load_pub_key(recreate=True)
 
@@ -200,8 +210,7 @@ def main(startup_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
-        print tb
+        glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
         raise
 
     # create lock file
@@ -213,11 +222,12 @@ def main(startup_dir):
         try:
             spawn(sleep_time,advertize_rate,startup_dir,
                   glideinDescript,entries,restart_attempts,restart_interval)
+        except KeyboardInterrupt,e:
+            raise e
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
-            print tb
+            glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
     finally:
         pid_obj.relinquish()
     
