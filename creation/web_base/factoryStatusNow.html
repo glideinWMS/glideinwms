@@ -40,6 +40,7 @@ var count = 0;
 var tableMade = 0;  
 var index = 0; 
 var active = 0; 
+var entryName; 
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
@@ -521,7 +522,6 @@ function loadFrontEnd(name)
 		}			
 	}
 	
-	
 	if(name != "Any")
 	{
 		for(i = 0; i< totalEntries.length; i++)
@@ -593,10 +593,20 @@ function updateTable()
 	updating = 1; 
 	loadXMLDoc(); 
 }
+
+function entryClick(entry)
+{
+	entryName = entry;
+	entryName = entryName.childNodes[0].wholeText; 
+	document.location.href = "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryEntryStatusNow.html?view=" + entryName; 
+}
+
 function fillIn()
 {
-	problem = 0; 
-
+	problem = 0;
+	var links = new Array(); 
+	linkCount = 0;
+	 
 	if(tableMade == 0)
 	{
 		makeTable();
@@ -614,7 +624,13 @@ function fillIn()
 	for( i = 0; i< numberRows; i++)
 	{
 		var y = totalEntries[i].attributes.getNamedItem("name").firstChild.data; 
-		table.rows[i].cells[0].innerHTML = y;
+		table.rows[i].cells[0].innerHTML = "";
+		links[i] = document.createElement('a');
+		links[i].setAttribute("id", "entryLinks"); 
+		links[i].innerHTML = y; 
+		links[i].setAttribute("href", "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryEntryStatusNow.html?view=" + y);
+		links[i].setAttribute("onclick", "entryClick(this)");
+		table.rows[i].cells[0].appendChild(links[i]); 
 	}
 		
 	//fill in the for non running entries. 
@@ -642,7 +658,7 @@ function fillIn()
 			if(total[i].childNodes.length >= 7 && total[i].childNodes.length != 0)
 			{
 				var item = total[i].childNodes[5].attributes[attArry[attCount]].nodeValue;  	
-				table.rows[i].cells[counter].innerHTML = item; 			
+				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}	
 		attCount++; 
@@ -1692,12 +1708,6 @@ function selectActive()
 
 	return; 
 }
-function hi()
-{
-	
-	alert("hi"); 
-	}
-
 
 </script>
 <style = "text/css">
@@ -1799,7 +1809,16 @@ td
 	font-weight:bold;
 	text-align:center;
 }
-
+#entryLinks
+{
+	text-decoration:none;
+	font-weight:bold;
+	color:#000;
+}
+#gptions
+{
+	float:right;
+}
 </style>
 
 </head>
