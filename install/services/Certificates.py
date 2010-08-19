@@ -47,9 +47,15 @@ Is it OK to install it in this location""" % self.certificate_dir())
     """ Using the vdt-control script, enable and activate the crontab entries.
     """
     common.logit("... creating crontab entries using vdt-control script")
+    #-- if not root, VDT requires a special arg to enable or activate a service
+    if os.getuid() == 0:
+      non_root_arg = ""
+    else:
+      non_root_arg = " --non-root"
+
     for service in self.vdt_services:
       common.logit("\n...... %s" % service)
-      common.run_script("source %s/setup.sh;vdt-control --enable %s;vdt-control --on %s" % (self.vdt_location(),service,service))
+      common.run_script("source %s/setup.sh;vdt-control %s --enable %s;vdt-control %s --on %s" % (self.vdt_location(),non_root_arg,service,non_root_arg,service))
     common.logit("\nvdt-control --list")
     os.system("source %s/setup.sh;vdt-control --list" % self.vdt_location())
 
@@ -88,13 +94,15 @@ in the certificates directory.  Is it OK to run the script now?""")
         return True
       common.logerr("""The certificates directory contains CA (*.0) files but 
 no CRL (*.r0) files.  This is not a satifactory condition.
-Suggest you check this out before proceeding""")
+Suggest you check this out before proceeding:
+   %s""" % self.certificate_dir())
     #-- checking for other files to insure we are in the correct directory
     files = glob.glob(os.path.join(self.certificate_dir(), '*'))
     if len(files) > 0:
-      common.logerr("""CA Certificates files (*.0) do not exist in %s
-BUT some other files do exist.  This does not make sense. 
-Suggest you check this out before proceeding.""" % self.certificate_dir())
+      common.logerr("""CA Certificates files (*.0) do not exist in certificates
+directory BUT some other files do exist.  This does not make sense. 
+Suggest you check this out before proceeding:
+   %s""" % self.certificate_dir())
     #-- looks good.. we can proceed with an install
     return False
 
