@@ -45,6 +45,8 @@ valid_options = [ "node",
 "match_authentication",
 "install_vdt_client",
 "glidein_install_dir",
+"vdt_location",
+"pacman_location",
 ]
 
 
@@ -117,25 +119,18 @@ class Factory(Configuration):
 
   #---------------------
   def install(self):
-    common.logit ("======== %s install starting ==========" % self.ini_section)
     self.validate_install()
-    self.glidein.validate_install()
-    self.glidein.__install_vdt_client__()
-    self.glidein.create_web_directories()
-    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
-    self.create_factory_dirs(self.unix_acct(),0755)
-    if self.wms.privilege_separation() <> "y":
-      #-- done in WMS collector install if privilege separation is used --
-      self.create_factory_client_dirs(self.unix_acct(),0755)
+    common.logit ("======== %s install starting ==========\n" % self.ini_section)
     self.get_config_entries_data()
-    self.create_config()
     self.create_env_script()
+    self.create_config()
+    common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
     self.start()
-    common.logit ("======== %s install complete ==========" % self.ini_section)
 
   #-----------------------
   def validate_install(self):
+    common.logit( "\nDependency and validation checking starting\n")
     if os.getuid() <> pwd.getpwnam(self.unix_acct())[2]:
       common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.unix_acct())
     # check to see if there will be a problem with client files during the
@@ -144,7 +139,15 @@ class Factory(Configuration):
     #if wms.privsep <> None:
     #  if len(os.listdir(self.client_logs()) <> 0:
     #  if len(os.listdir(self.client_proxies()) <> 0:
-      
+    self.glidein.validate_install()
+    self.glidein.__install_vdt_client__()
+    self.glidein.create_web_directories()
+    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
+    self.create_factory_dirs(self.unix_acct(),0755)
+    if self.wms.privilege_separation() <> "y":
+      #-- done in WMS collector install if privilege separation is used --
+      self.create_factory_client_dirs(self.unix_acct(),0755)
+    common.logit( "\nDependency and validation checking complete\n")
       
 
   #--------------------------------
@@ -170,13 +173,14 @@ class Factory(Configuration):
 
   #-----------------------
   def create_env_script(self):
-    common.logit("Creating env script.")
+    common.logit("Creating environment script...")
     data = """#!/bin/bash
 source %s/setup.sh
 export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
 source %s/condor.sh
 """ % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.wms.condor_location())
     common.write_file("w",0644,self.env_script,data)
+    common.logit("%s\n" % data)
 
 
   #-----------------------
@@ -201,7 +205,7 @@ source %s/condor.sh
   #-------------------------
   def create_config(self):
     config_xml = self.config_data()
-    common.logit("Creating configuration file")
+    common.logit("\nCreating configuration file")
     common.make_directory(self.glidein.config_dir(),self.unix_acct(),0755,empty_required=True)
     common.write_file("w",0644,self.glidein.config_file(),config_xml)
 

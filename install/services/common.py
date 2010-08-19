@@ -169,15 +169,15 @@ def module_exists(module_name):
 
 #--------------------------------
 def validate_email(email):
+  logit("... validating condor_email_address: %s" % email)
   if email.find('@')<0:
     logerr("Invalid email address (%s)" % (email))
 
 #--------------------------------
 def validate_install_location(dir):
-  logit("... checking install location: %s" % dir)
+  logit("... validating install_location: %s" % dir)
   install_user = pwd.getpwuid(os.getuid())[0]
   make_directory(dir,install_user,0755,empty_required=True)
-
 
 #--------------------------------
 def ask_yn(question):
@@ -190,12 +190,25 @@ def ask_yn(question):
   return yn
 
 #--------------------------------
+def ask_continue(question):
+  while 1:
+    yn = "n"
+    yn = raw_input("%s? (y/n) [%s]: " % (question,yn))
+    if yn == "y" or yn == "n":
+      break
+    logit("\nWARNING: just 'y' or 'n' please")
+  if yn == "n":
+    raise KeyboardInterrupt
+
+#--------------------------------
 def validate_node(node):
+  logit("... validating node: %s" % node)
   if node <> os.uname()[1]:
     logerr("Node option (%s) shows different host. This is %s" % (node,os.uname()[1]))
 
 #--------------------------------
 def validate_user(user):
+  logit("... validating user: %s" % user)
   try:
     x = pwd.getpwnam(user)
   except:
@@ -203,12 +216,16 @@ def validate_user(user):
 
 #--------------------------------
 def validate_installer_user(user):
+  logit("... validating installer_user: %s" % user)
   install_user = pwd.getpwuid(os.getuid())[0]
   if user <> install_user:
     logerr("You are installing as user(%s).\n       The ini file says it should be user(%s)." % (install_user,user))
 
 #--------------------------------
 def validate_gsi(dn_to_validate,type,location):
+  logit("... validating gsi_dn: %s" % dn_to_validate)
+  logit("... validating gsi_authentication: %s" % type)
+  logit("... validating gsi_location: %s" % location)
   dn_in_file = get_gsi_dn(type,location)
   if dn_in_file <> dn_to_validate:
     logerr("The DN of the %s in %s does not match the gsi_dn attribute in your ini file:\n%8s: %s\n     ini: %s\nThis may cause a problem in other services." % (type, location,type,dn_in_file,dn_to_validate))
@@ -256,6 +273,14 @@ def url_is_valid(url):
   except:
     return False
   return True
+
+#----------------------------
+def wget_is_valid(location):
+  err = os.system("wget --quiet --spider %s" % location)
+  if err != 0:
+    return False
+  return True
+
 
 #------------------
 def indent(level):

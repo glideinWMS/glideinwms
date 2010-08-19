@@ -29,6 +29,8 @@ valid_options = [ "node",
 "split_condor_config", 
 "number_of_schedds",
 "install_vdt_client",
+"vdt_location",
+"pacman_location",
 ]
 
 class Submit(Condor):

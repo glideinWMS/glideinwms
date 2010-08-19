@@ -144,11 +144,11 @@ class Condor(Configuration):
 
   #--------------------------------
   def install_condor(self):
-    common.logit( "\nDependency and validation checking starting")
+    common.logit( "\nDependency and validation checking starting\n")
     self.__install_certificates__()
     self.__install_vdt_client__()
     self.__validate_condor_install__()
-    common.logit( "Dependency and validation checking complete\n")
+    common.logit( "\nDependency and validation checking complete\n")
     self.__install_condor__()
     self.__setup_condor_env__()
 
@@ -186,27 +186,19 @@ class Condor(Configuration):
   def __install_certificates__(self):
     """ Certificates are required for Condor GSI authentication. """
     certs = Certificates(self.inifile,self.ini_section)
-    if not certs.certificates_exist():
-      common.logit("... certificates do not exist.. starting installation")
-      certs.install()
-    self.certificates = certs.certificate_dir()
-    common.logit("... certificates installed in: %s" % self.certificates)
+    certs.install()
 
   #--------------------------------
   def __install_vdt_client__(self):
     if self.install_vdt_client() == "y":
-      vdt = VDTClient.VDTClient(self.inifile)
-      if vdt.client_exists():
-        common.logit("... VDT client already exists: %s" % vdt.vdt_location())
-      else:
-        common.logit("... VDT client is not installed")
-        vdt.install()
+      vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
+      vdt.install()
     else:
-      common.logit("... VDT client install not requested.")
+      common.logit("\n... VDT client install not requested.")
 
   #--------------------------------
   def __validate_condor_install__(self):
-    common.logit( "... validating Condor data")
+    common.logit( "\nVerifying Condor installation")
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
     common.validate_email(self.admin_email)
@@ -279,7 +271,7 @@ setenv CONDOR_CONFIG %s
  
   #--------------------------------
   def __install_condor__(self):
-    common.logit("Condor install starting")
+    common.logit("\n======== Condor install started ==========")
     common.logit("... install location: %s" % (self.condor_location()))
     try:
       tar_dir="%s/tar" % (self.condor_location())
@@ -289,23 +281,23 @@ setenv CONDOR_CONFIG %s
       common.logerr("Condor installation failed. Cannot make %s directory: %s" % (tar_dir,e))
     
     try:
-        common.logit( "... extracting from tarball")
+        common.logit( "... extracting from tarball: %s" % self.condor_tarball)
         fd = tarfile.open(self.condor_tarball,"r:gz")
         #-- first create the regular files --
         for f in fd.getmembers():
-            if not f.islnk():
-                fd.extract(f,tar_dir)
+          if not f.islnk():
+            fd.extract(f,tar_dir)
         #-- then create the links --
         for f in fd.getmembers():
-            if f.islnk():
-                os.link(os.path.join(tar_dir,f.linkname),os.path.join(tar_dir,f.name))
+          if f.islnk():
+            os.link(os.path.join(tar_dir,f.linkname),os.path.join(tar_dir,f.name))
         fd.close()
 
         common.logit( "... running condor_configure")
         install_str="%s/condor-%s/release.tar" % (tar_dir,self.condor_version)
         if not os.path.isfile(install_str):
-            # Condor v7 changed the packaging
-            install_str="%s/condor-%s"%(tar_dir,self.condor_version)
+          # Condor v7 changed the packaging
+          install_str="%s/condor-%s"%(tar_dir,self.condor_version)
         #if not os.path.isfile(install_str):
         #    common.logerr(("Cannot find path to condor_configure(%s)" % (install_str))
         cmdline="cd %s/condor-%s;./condor_configure --install=%s --install-dir=%s --local-dir=%s --install-log=%s/condor_configure.log" % (tar_dir, self.condor_version, install_str, self.condor_location(), self.condor_local(), tar_dir)
@@ -318,14 +310,14 @@ setenv CONDOR_CONFIG %s
     
     #--  installation files not needed anymore --
     shutil.rmtree(tar_dir)
-    common.logit( "Condor install complete\n")
+    common.logit("======== Condor install complete ==========\n")
 
   #--------------------------------
   def __validate_schedds__(self,value):
     if self.daemon_list.find("SCHEDD") < 0:
-      common.logit("...... no schedds")
+      common.logit("... no schedds")
       return # no schedd daemon
-    common.logit("...... validating schedds: %s" % value)
+    common.logit("... validating schedds: %s" % value)
     min = 0
     max = 99
     try:
@@ -340,9 +332,9 @@ setenv CONDOR_CONFIG %s
   #--------------------------------
   def __validate_secondary_collectors__(self,value):
     if self.daemon_list.find("COLLECTOR") < 0:
-      common.logit("...... no secondary collectors")
+      common.logit("... no secondary collectors")
       return # no collector daemon
-    common.logit("...... validating secondary collectors: %s" % value)
+    common.logit("... validating secondary collectors: %s" % value)
     min = 0
     max = 399
     try:
@@ -357,9 +349,9 @@ setenv CONDOR_CONFIG %s
   #--------------------------------
   def __validate_collector_port__(self,port):
     if self.daemon_list.find("COLLECTOR") < 0:
-      common.logit("...... no collector")
+      common.logit("... no collector")
       return # no collector daemon
-    common.logit("...... validating collector port: %s" % port)
+    common.logit("... validating collector port: %s" % port)
     collector_port = 0
     min = 1
     max = 65535
@@ -384,13 +376,13 @@ setenv CONDOR_CONFIG %s
  
   #--------------------------------
   def __validate_condor_config__(self,value):
-    common.logit("...... validating split_condor_config: %s" % value)
+    common.logit("... validating split_condor_config: %s" % value)
     if not value in ["y","n"]:
       common.logerr("Invalid split_condor_config value (%s)" % (value))
 
   #--------------------------------
   def __validate_tarball__(self,tarball):
-    common.logit("...... validating condor tarball: %s" % tarball)
+    common.logit("... validating condor tarball: %s" % tarball)
     if not os.path.isfile(tarball):
       common.logerr("File (%s) not found" % (tarball))
     try:
@@ -403,7 +395,7 @@ setenv CONDOR_CONFIG %s
             if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
               common.logerr("File (%s) is not a condor tarball! (found (%s), expected 'condor-*/'" %(tarball,first_dir))
             self.condor_version=first_dir[7:-1]
-            common.logit( "...... condor version %s" % (self.condor_version))
+            common.logit( "... condor version %s" % (self.condor_version))
             try:
                 fd.getmember(first_dir+"condor_configure")
             except:

@@ -48,6 +48,8 @@ valid_options = [ "node",
 "match_authentication",
 "expose_grid_env",
 "glidein_install_dir",
+"vdt_location",
+"pacman_location",
 ]
 
 class VOFrontend(Condor):

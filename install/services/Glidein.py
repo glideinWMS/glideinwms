@@ -20,7 +20,7 @@ class Glidein(Configuration):
     Configuration.__init__(self,inifile)
     self.validate_section(ini_section,ini_options)
 
-    self.vdt = VDTClient.VDTClient(self.inifile)
+    self.vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
 
   #---------------------
   def vdt_location(self):
@@ -144,84 +144,81 @@ class Glidein(Configuration):
   #--------------------------------
   def __install_vdt_client__(self):
     if self.install_vdt_client() == "y":
-      if self.vdt.client_exists():
-        common.logit("... VDT client already exists: %s" % self.vdt.vdt_location())
-      else:
-        common.logit("... VDT client is not installed")
-        self.vdt.install()
+      self.vdt.install()
     else:
       common.logit("... VDT client install not requested.")
 
   #---------------------
   def validate_install(self):
-    common.logit( "... validating")
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
     common.validate_installer_user(self.unix_acct())
+    self.validate_web_location()
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     self.preinstallation_software_check()
-    self.validate_web_location()
     common.validate_install_location(self.install_location())
-    common.logit( "... validation complete\n")
 
   #---------------------
   def validate_web_location(self):
     dir = self.web_location()
+    common.logit("... validating web_location: %s" % dir)
     if not os.path.isdir(dir):
       common.logerr("web location (%s) does not exist.\n       It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
     if common.not_writeable(dir):
       common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
-    common.logit("... web location valid")
 
   #---------------------
   def preinstallation_software_check(self):
-    common.logit("Pre-installation monitoring software check started")
     errors = 0
     ##-- rrdtool --
+    msg = ""
     module = "rrdtool"
     if common.module_exists(module):
       script = "rrdtool"
       err = os.system("which %s >/dev/null 2>&1" % script)
       if err == 0:
-        common.logit("... %s available: " % (module))
-        os.system("which %s " % script)
+        msg = "available"
       else:
         errors = errors + 1
-        common.logit("... ERROR: %s script needs to be available in PATH" % script)
+        msg = "ERROR: %s script needs to be available in PATH" % script
     else:
       errors = errors + 1
-      common.logit("... ERROR: %s not installed or not in PYTHONPATH" % module)
+      msg = "ERROR: %s not installed or not in PYTHONPATH" % module
+    common.logit("... validating rrdtool: %s" % msg)
 
     ##-- M2Crypto --
+    msg = ""
     os.environ["PYTHONPATH"] = "%s:%s/%s" % (os.environ["PYTHONPATH"],self.m2crypto(),"usr/lib/python2.3/site-packages/")
     module = "M2Crypto"
     if common.module_exists(module):
-      common.logit("... %s available" % module)
+      msg = "available"
     else:
       errors = errors + 1
-      common.logit("... ERROR: %s not installed or not in PYTHONPATH: %s" % (module,self.m2crypto()))
+      msg = "ERROR: %s not installed or not in PYTHONPATH: %s" % (module,self.m2crypto())
+    common.logit("... validating M2Crypto: %s" % msg)
 
     ##-- javascriptrrd --
+    msg = ""
     filename = os.path.join(self.javascriptrrd(),"src/lib/rrdMultiFile.js")
     if os.path.exists(filename):
-      common.logit("... javascriptrrd available")
-      common.logit(filename)
+      msg = "available in %s" % filename
     else:
       errors = errors + 1
-      common.logit("... ERROR: javascriptrrd not installed: %s not found" % filename)
+      msg = "ERROR: not installed: %s not found" % filename
+    common.logit("... validating javascriptrrd: %s" % msg)
 
     ##-- flot --
+    msg = ""
     filename =  os.path.join(self.flot(),"jquery.flot.js")
     if os.path.exists(filename):
-      common.logit("... flot available")
-      common.logit(filename)
+      msg = "available in %s" % filename
     else:
       errors = errors + 1
-      common.logit("... ERROR: flot not installed: %s not found" % filename)
+      msg = "ERROR: not installed: %s not found" % filename
+    common.logit("... validating flot: %s" % msg)
 
     if errors > 0:
       common.logerr("%i required software modules not available." % errors)
-    common.logit("Pre-installation monitoring software check completed\n")
 
     return 
 
@@ -270,11 +267,11 @@ class Glidein(Configuration):
 
   #---------------------
   def create_web_directories(self):
-    common.logit("\n-- Creating monitoring web directories in %s" % self.web_location())
+    common.logit("\nCreating monitoring web directories in %s" % self.web_location())
     for sdir_name in ("stage","monitor"):
       sdir_fullpath=os.path.join(self.web_location(),sdir_name)
       common.make_directory(sdir_fullpath,self.unix_acct(),0755,empty_required=True)
-    common.logit("-- Monitoring web directories created.\n")
+    common.logit("\nCreating monitoring web directories completed %s\n" % self.web_location())
 
 #---------------------------
 def show_line():

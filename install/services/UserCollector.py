@@ -30,6 +30,8 @@ valid_options = [ "node",
 "split_condor_config", 
 "number_of_secondary_collectors",
 "install_vdt_client",
+"vdt_location",
+"pacman_location",
 ]
 
 class UserCollector(Condor):

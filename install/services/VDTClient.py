@@ -7,9 +7,8 @@ import sys,os,os.path,string,time,glob
 
 
 class VDTClient(VDT):
-  def __init__(self,inifile):
-    VDT.__init__(self,inifile)
-    self.package = "client"
+  def __init__(self,section,inifile):
+    VDT.__init__(self,section,inifile)
     self.vdt_services = ["fetch-crl", "vdt-rotate-logs", "vdt-update-certs",]
 
     #--------------------------
@@ -20,39 +19,50 @@ class VDTClient(VDT):
 
   #-------------------
   def install(self):
+    common.logit("\nVerifying VDT client installation")
     if self.client_exists():
-      common.logit("... client already installed")
+      common.logit("... installed in: %s" % self.vdt_location())
       return
+    common.ask_continue("""... VDT client not found in: %s
+This script is checking for the presence of 2 scripts:
+  setup.sh and voms-proxy-init 
+Is it OK to install it in this location""" % self.vdt_location())
     packages = ""
     for package in self.vdt_packages:
       packages = packages + "%s:%s " % (self.vdt_cache(),package)
     for package in self.osg_packages:
       packages = packages + "%s:%s " % (self.osg_cache(),package)
     
-    common.logit("======== VDT Client install starting ==========")
+    common.logit("\n======== VDT Client install starting ==========")
+    common.logit("The packages that will be installed are:")
     for package in packages.split(" "):
-      common.logit("%s" % package)
+      common.logit("  %s" % package)
     self.install_vdt_package(packages)
-    common.logit("======== VDT Client install complete ==========")
+    if self.client_exists():
+      common.logit("... VDT client installation looks good")
+    common.logit("======== VDT Client install complete ==========\n")
+    common.ask_continue("Continue installation")
 
   #-------------------
   def client_exists(self):
     if not self.vdt_exists():
       return False
     err = os.system("source %s/setup.sh && type voms-proxy-init >/dev/null 2>&1" % self.vdt_location())
-    if err != 0:
-      return False
-    return True
-
+    if err == 0:
+      return True
+    return False
 
 ##########################################
 def main(argv):
   try:
-    inifile = "/home/weigand/weigand-glidein/glideinWMS.ini"
-    client = VDTClient(inifile)
+    inifile = "/home/weigand/glidein/glideinWMS/install/weigand.ini"
+    client = VDTClient("WMSCollector",inifile)
     client.install()
     print "Client exists: ",client.client_exists()
   except common.WMSerror:
+    return 1
+  except KeyboardInterrupt:
+    common.logit("\n... looks like you aborted this script... bye.")
     return 1
 
 ####################################
