@@ -28,7 +28,7 @@ class Certificates(VDT):
       common.logit("... CA Certificates found in: %s" % self.certificate_dir())
       return
     common.ask_continue("""... CA Certificates not found in: %s
-This script is checking for the presence of *.0 files.
+This script is checking for the presence of CA (*.0) and CRL (*.r0) files.
 Is it OK to install it in this location""" % self.certificate_dir())
     common.logit("\n======== CA certificates install starting ==========")
     common.logit("The packages that will be installed are:")
