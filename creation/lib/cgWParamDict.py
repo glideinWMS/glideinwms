@@ -130,7 +130,8 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                       (params.src_dir,'factoryStatus.html'),
                       (params.src_dir,'factoryLogStatus.html'),
                       (params.src_dir,'factoryCompletedStats.html'),
-                      (params.src_dir,'factoryStatusNow.html')):
+                      (params.src_dir,'factoryStatusNow.html'),
+                      (params.src_dir,'factoryEntryStatusNow.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
