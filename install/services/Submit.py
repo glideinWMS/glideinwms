@@ -66,7 +66,7 @@ class Submit(Condor):
   def configure_gsi_security(self):
     common.logit("")
     common.logit("Configuring GSI security")
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.gsi_location)
+    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     #--- UserCollector access ---
     userpool      = UserCollector.UserCollector(self.inifile)
     #--- VOFrontend access ---

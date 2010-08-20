@@ -36,6 +36,15 @@ valid_options = [ "node",
 "pacman_location",
 ]
 
+frontend_options = [ "gsi_dn",
+]
+factory_options = [ "gsi_dn",
+]
+usercollector_options = [ "node",
+"collector_port"
+"secondary_collectors"
+]
+
 class WMSCollector(Condor):
 
   def __init__(self,inifile):
@@ -111,7 +120,7 @@ class WMSCollector(Condor):
   #--------------------------------
   def configure_gsi_security(self):
     common.logit("\nConfiguring GSI security")
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.gsi_location)
+    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     #--- create condor_mapfile entries ---
     condor_entries = """\
 GSI "^%s$" %s

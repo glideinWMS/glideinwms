@@ -23,16 +23,7 @@ class Condor(Configuration):
     self.validate_section(ini_section,ini_options)
 
     self.condor_version      = None
-    self.condor_tarball      = self.option_value(self.ini_section,"condor_tarball")
-    self.admin_email         = self.option_value(self.ini_section,"condor_admin_email")
-    self.split_condor_config = self.option_value(self.ini_section,"split_condor_config")
-    self.gsi_location        = self.option_value(self.ini_section,"cert_proxy_location")
-    self.gsi_authentication  = self.option_value(self.ini_section,"gsi_authentication")
     self.certificates        = None
-
-    self.condor_config       = "%s/etc/condor_config" % self.condor_location()
-    self.condor_config_local = "%s/condor_config.local" % (self.condor_local())
-    self.initd_script        = "%s/%s.sh" % (self.condor_location(),self.service_name())
 
     #--- secondary schedd files --
     self.schedd_setup_file   = "new_schedd_setup.sh"
@@ -51,10 +42,10 @@ class Condor(Configuration):
     return self.option_value(self.ini_section,"condor_location")
   #----------------------------------
   def condor_cfg(self):
-    if self.split_condor_config == "y":
-      return self.condor_config_local
+    if self.split_condor_config() == "y":
+      return self.condor_config_local()
     else:
-      return self.condor_config
+      return self.condor_config()
   #----------------------------------
   def condor_local(self):
     return  "%s/condor_local" % self.condor_location()
@@ -73,6 +64,30 @@ class Condor(Configuration):
   #---------------------
   def node(self):
     return self.option_value(self.ini_section,"node")
+  #---------------------
+  def condor_tarball(self):
+    return self.option_value(self.ini_section,"condor_tarball")
+  #---------------------
+  def admin_email(self):
+    return self.option_value(self.ini_section,"condor_admin_email")
+  #---------------------
+  def split_condor_config(self):
+    return self.option_value(self.ini_section,"split_condor_config")
+  #---------------------
+  def gsi_location(self):
+    return  self.option_value(self.ini_section,"cert_proxy_location")
+  #---------------------
+  def gsi_authentication(self):
+    return self.option_value(self.ini_section,"gsi_authentication")
+  #---------------------
+  def condor_config(self):
+    return "%s/etc/condor_config" % self.condor_location()
+  #---------------------
+  def condor_config_local(self):
+    return "%s/condor_config.local" % (self.condor_local())
+  #---------------------
+  def initd_script(self):
+    return  "%s/%s.sh" % (self.condor_location(),self.service_name())
   #---------------------
   def condor_mapfile(self):
     return "%s/certs/condor_mapfile" % self.condor_location()
@@ -119,21 +134,21 @@ class Condor(Configuration):
       common.logerr( "This is a client only install. Nothing to stop.")
     else: 
       common.logit( "... stopping condor as user %s" % self.unix_acct())
-      common.run_script("%s stop" % self.initd_script)
+      common.run_script("%s stop" % self.initd_script())
   #--------------------------------
   def start_condor(self):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to start.")
     else:
       common.logit( "... starting condor as user %s" % self.unix_acct())
-      common.run_script("%s start" % self.initd_script)
+      common.run_script("%s start" % self.initd_script())
   #--------------------------------
   def restart_condor(self):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to restart.")
     else:
       common.logit( "... restarting condor as user %s" % self.unix_acct())
-      common.run_script("%s restart" % self.initd_script)
+      common.run_script("%s restart" % self.initd_script())
    
   #--------------------------------
   def client_only_install(self):
@@ -144,31 +159,39 @@ class Condor(Configuration):
 
   #--------------------------------
   def install_condor(self):
-    common.logit( "\nDependency and validation checking starting\n")
+    common.logit("\n======== Condor install starting ==========\n")
+    self.validate_condor()
+    self.__install_condor__()
+    self.configure_condor()
+    common.logit("\n======== Condor install complete ==========\n")
+
+  #--------------------------------
+  def validate_condor(self):
+    common.logit( "\nCondor dependency and validation checking starting\n")
     self.__install_certificates__()
     self.__install_vdt_client__()
     self.__validate_condor_install__()
-    common.logit( "\nDependency and validation checking complete\n")
-    self.__install_condor__()
+    common.logit( "\nCondor dependency and validation checking complete")
+
+  #--------------------------------
+  def configure_condor(self):
+    common.logit( "\nCondor configuration starting\n")
     self.__setup_condor_env__()
-
     #-- put condor config in the environment 
-    os.environ['CONDOR_CONFIG']="%s" % self.condor_config
-
+    os.environ['CONDOR_CONFIG']="%s" % self.condor_config()
     #-- put the CONDOR_LOCATION/bin in the PATH for the rest of the installation
     if os.environ.has_key('PATH'):
       os.environ['PATH']="%s/bin:%s" % (self.condor_location(),os.environ['PATH'])
     else:
       os.environ['PATH']="%s/bin:" % self.condor_location()
-
     self.update_condor_config()
     self.configure_secondary_schedds()
     self.__create_initd_script__()
-    common.logit( "Condor install completed")
+    common.logit( "\nCondor configuration completen")
 
   #--------------------------------
   def update_condor_config(self):
-    common.logit( "\nCondor_config update started")
+    common.logit( "\ncondor_config file update started")
     self.__setup_condor_config__()
     self.__update_condor_config_wms__()
     self.__update_condor_config_daemon__()
@@ -180,7 +203,7 @@ class Condor(Configuration):
     if self.ini_section == "WMSCollector":
       self.__update_condor_config_condorg__()
     self.update_condor_config_privsep()
-    common.logit( "Condor_config update complete")
+    common.logit( "condor_config file update complete")
 
   #--------------------------------
   def __install_certificates__(self):
@@ -202,14 +225,14 @@ class Condor(Configuration):
     common.logit( "\nVerifying Condor installation")
     common.validate_node(self.node())
     common.validate_user(self.unix_acct())
-    common.validate_email(self.admin_email)
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.gsi_location)
+    common.validate_email(self.admin_email())
+    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
 ##    self.__validate_privilege_separation__()
     self.__validate_schedds__(self.number_of_schedds())
     self.__validate_collector_port__(self.collector_port())
     self.__validate_secondary_collectors__(self.secondary_collectors())
-    self.__validate_condor_config__(self.split_condor_config)
-    self.__validate_tarball__(self.condor_tarball)
+    self.__validate_condor_config__(self.split_condor_config())
+    self.__validate_tarball__(self.condor_tarball())
     common.validate_install_location(self.condor_location())
 
   #--------------------------------
@@ -220,13 +243,13 @@ if ! echo ${PATH} | grep -q %s/bin ; then
   PATH=${PATH}:%s/bin
 fi
 export CONDOR_CONFIG=%s
-""" % (self.condor_location(),self.condor_location(),self.condor_config)
+""" % (self.condor_location(),self.condor_location(),self.condor_config())
 
     csh_profile = """
 #-- Condor settings --
 set path = ( $path %s/bin )
 setenv CONDOR_CONFIG %s
-""" % (self.condor_location(),self.condor_config)
+""" % (self.condor_location(),self.condor_config())
 
     if os.getuid()==0: # different if root or not
       self.__setup_root_condor_env__(sh_profile,csh_profile)
@@ -245,7 +268,7 @@ setenv CONDOR_CONFIG %s
     ## if os.path.islink('/etc/condor/condor_config') or os.path.exists('/etc/condor/condor_config'):
     ##     common.logit("...  an old version exists... replace it")
     ##     os.unlink('/etc/condor/condor_config')
-    ## os.symlink(self.condor_config, '/etc/condor/condor_config')
+    ## os.symlink(self.condor_config(), '/etc/condor/condor_config')
 
     ## #--  put condor binaries in system wide path --
     ## filename = "/etc/profile.d/condor.sh"
@@ -272,7 +295,7 @@ setenv CONDOR_CONFIG %s
  
   #--------------------------------
   def __install_condor__(self):
-    common.logit("\n======== Condor install started ==========")
+    common.logit("\nCondor installation starting\n")
     common.logit("... install location: %s" % (self.condor_location()))
     try:
       tar_dir="%s/tar" % (self.condor_location())
@@ -282,8 +305,8 @@ setenv CONDOR_CONFIG %s
       common.logerr("Condor installation failed. Cannot make %s directory: %s" % (tar_dir,e))
     
     try:
-        common.logit( "... extracting from tarball: %s" % self.condor_tarball)
-        fd = tarfile.open(self.condor_tarball,"r:gz")
+        common.logit( "... extracting from tarball: %s" % self.condor_tarball())
+        fd = tarfile.open(self.condor_tarball(),"r:gz")
         #-- first create the regular files --
         for f in fd.getmembers():
           if not f.islnk():
@@ -311,7 +334,7 @@ setenv CONDOR_CONFIG %s
     
     #--  installation files not needed anymore --
     shutil.rmtree(tar_dir)
-    common.logit("======== Condor install complete ==========\n")
+    common.logit("\nCondor installation complete")
 
   #--------------------------------
   def __validate_schedds__(self,value):
@@ -429,15 +452,15 @@ FS (.*) \\1
     """ If we are using a condor_config.local, then we will be populating the
         the one in condor_local
     """
-    if self.split_condor_config == "y":
+    if self.split_condor_config() == "y":
       #--- point the regular config to the local one ---
       cfg_data = """
 ########################################################
 # Using local configuration file below
 ########################################################
 LOCAL_CONFIG_FILE = %s
-""" % (self.condor_config_local)
-      common.logit( "... using condor config: %s" % (self.condor_config_local))
+""" % (self.condor_config_local())
+      common.logit( "... using condor config: %s" % (self.condor_config_local()))
     else: 
       #-- else always update the main config --
       cfg_data = """
@@ -446,10 +469,10 @@ LOCAL_CONFIG_FILE = %s
 ########################################################
 LOCAL_CONFIG_FILE = 
 """
-      common.logit( "... using condor config: %s" % (self.condor_config))
+      common.logit( "... using condor config: %s" % (self.condor_config()))
 
     #-- update the main config ---
-    common.write_file("a",0644,self.condor_config,cfg_data)
+    common.write_file("a",0644,self.condor_config(),cfg_data)
 
   #--------------------------------
   def __update_condor_config_wms__(self):
@@ -515,10 +538,10 @@ CONDOR_HOST = %s:%s
   #--------------------------------
   def __append_to_condor_config__(self,data,type):
     common.logit("... updating condor_config: %s entries" % type)
-    if self.split_condor_config == "y":
-      common.write_file("a",0644,self.condor_config_local,data)
+    if self.split_condor_config() == "y":
+      common.write_file("a",0644,self.condor_config_local(),data)
     else:
-      common.write_file("a",0644,self.condor_config,data)
+      common.write_file("a",0644,self.condor_config(),data)
 
   #--------------------------------
   def __create_initd_script__(self):
@@ -527,7 +550,7 @@ CONDOR_HOST = %s:%s
     else:
       common.logit("\nCreating startup initd script")
       data = self.__initd_script__()
-      common.write_file("w",0755,self.initd_script,data)
+      common.write_file("w",0755,self.initd_script(),data)
 
   #----------------------------------
   def configure_secondary_schedds(self):
@@ -736,7 +759,7 @@ SEC_READ_INTEGRITY = OPTIONAL
 SEC_CLIENT_INTEGRITY = OPTIONAL
 SEC_READ_ENCRYPTION = OPTIONAL
 SEC_CLIENT_ENCRYPTION = OPTIONAL
-""" % (self.admin_email)
+""" % (self.admin_email())
 
 
   #-----------------------------
@@ -757,13 +780,13 @@ SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI
 GSI_DAEMON_TRUSTED_CA_DIR=%s
 """ % (self.certificates)
 
-    if self.gsi_authentication == "proxy":
+    if self.gsi_authentication() == "proxy":
       data = data + """
 ############################
 # Credentials
 ############################
 GSI_DAEMON_PROXY = %s 
-""" % self.gsi_location
+""" % self.gsi_location()
     else:
       data = data + """
 ############################
@@ -771,7 +794,7 @@ GSI_DAEMON_PROXY = %s
 ############################
 GSI_DAEMON_CERT = %s
 GSI_DAEMON_KEY  = %s
-""" % (self.gsi_location,string.replace(self.gsi_location,"cert.pem","key.pem"))
+""" % (self.gsi_location(),string.replace(self.gsi_location(),"cert.pem","key.pem"))
 
     if self.condor_version >= "7.4":
       data = data + """

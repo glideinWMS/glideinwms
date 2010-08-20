@@ -65,8 +65,6 @@ class Factory(Configuration):
 
     self.config_entries_list = {} # Config file entries elements
 
-    self.env_script = "%s/factory.sh" % self.glidein.install_location()
-
   #---------------------
   def glidein_install_dir(self):
     return self.glidein.glidein_install_dir()
@@ -86,6 +84,9 @@ class Factory(Configuration):
   #---------------------
   def gsi_dn(self):
     return self.glidein.gsi_dn()
+  #---------------------
+  def env_script(self):
+    return "%s/factory.sh" % self.glidein.install_location()
   #---------------------
   def service_name(self):
     return self.glidein.service_name()
@@ -163,7 +164,7 @@ class Factory(Configuration):
 
   #-----------------------
   def start(self):
-    cmd1 = "source %s" % self.env_script
+    cmd1 = "source %s" % self.env_script()
     cmd2 = "cd %s;./factory_startup start" % (self.glidein_dir())
     common.logit("\nTo start the glideins you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
     if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
@@ -179,14 +180,14 @@ source %s/setup.sh
 export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
 source %s/condor.sh
 """ % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.wms.condor_location())
-    common.write_file("w",0644,self.env_script,data)
+    common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 
 
   #-----------------------
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
-    cmd1 = "source %s" % self.env_script
+    cmd1 = "source %s" % self.env_script()
     cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glidein_install_dir(),self.glidein.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
@@ -386,7 +387,7 @@ source %s/condor.sh
   def get_config_entries_data(self):
     common.logit("\nCollecting  configuration file data. It will be question/answer time.")
     os.environ["PATH"] = "%s/bin:%s" %(self.wms.condor_location(),os.environ["PATH"])
-    os.environ["CONDOR_CONFIG"] = self.wms.condor_config
+    os.environ["CONDOR_CONFIG"] = self.wms.condor_config()
     common.logit("Using %s" % (os.environ["CONDOR_CONFIG"])) 
     self.config_entries_list = {}  # config files entries elements
     while 1:

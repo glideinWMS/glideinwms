@@ -64,12 +64,6 @@ class VOFrontend(Condor):
     self.daemon_list = "MASTER" 
 
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options)
-    self.config_dir   = "%s/instance_%s.cfg" % (self.glidein.install_location(),self.glidein.instance_name())
-    self.config_file  = "%s/glidein.xml" % (self.config_dir)
-    self.grid_mapfile = "%s/grid_mapfile" % (self.config_dir)
-
-    self.frontend_dir = "%s/frontend_%s-%s" % (self.glidein.install_location(),self.glidein.service_name(),self.glidein.instance_name())
-    self.env_script   = "%s/frontend.sh"  % (self.glidein.install_location())
     #-- instances of other services ---
     self.wms      = None
     self.factory  = None
@@ -111,6 +105,21 @@ class VOFrontend(Condor):
   def UserCollector_service_name(self):
     return self.option_value("UserCollector","service_name")
   #--------------------------------
+  def config_dir(self):
+    return "%s/instance_%s.cfg" % (self.glidein.install_location(),self.glidein.instance_name())
+  #--------------------------------
+  def config_file(self):
+    return "%s/glidein.xml" % (self.config_dir())
+  #--------------------------------
+  def grid_mapfile(self):
+    return "%s/grid_mapfile" % (self.config_dir())
+  #--------------------------------
+  def frontend_dir(self):
+    return "%s/frontend_%s-%s" % (self.glidein.install_location(),self.glidein.service_name(),self.glidein.instance_name())
+  #--------------------------------
+  def env_script(self):
+    return "%s/frontend.sh"  % (self.glidein.install_location())
+  #--------------------------------
   def logs_location(self):
     return self.option_value(self.ini_section,"logs_location")
   #--------------------------------
@@ -149,34 +158,45 @@ class VOFrontend(Condor):
     self.get_submit()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     ## JGW Need to figure out how to re-installa and leave condor alone
-    self.validate_install()
-    self.glidein.validate_install()
-    self.glidein.__install_vdt_client__()
-    self.glidein.create_web_directories()
-    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
-    common.make_directory(self.logs_location(),self.unix_acct(),0755,empty_required=True)
+    self.validate_frontend()
     self.install_condor()
+    self.configure_frontend()
+    common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
+    self.create_frontend()
+    self.start()
+
+  #---------------------------------
+  def configure_frontend(self):
+    common.logit ("\nConfiguring VOFrontend started\n")
     ## JGW need some check of gsi dn's in condor mapfile and condor_config
     ## for some co-located (or maybe just from ini file) services.
     ## Not quite sure how yet
     ## self.verify_condor_gsi_settings()
     ## see Factory.check_wmspool_gsi method
-    
     config_data  = self.get_config_data()
     #gridmap_data = self.get_gridmap_data()
     #self.create_config(config_data,gridmap_data)
     self.create_config(config_data)
     self.create_env_script()
-    self.create_frontend()
-    self.start()
-    common.logit ("======== %s install complete ==========" % self.ini_section)
+    common.logit ("\nConfiguring VOFrontend complete\n")
 
   #---------------------------------
-  def validate_install(self):
-    #-- glexec use values ---
+  def validate_frontend(self):
+    common.logit( "\nVOFrontend dependency and validation checking starting\n")
+    self.validate_glexec_use()
+    self.glidein.validate_install()
+    self.glidein.__install_vdt_client__()
+    self.glidein.create_web_directories()
+    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.logs_location(),self.unix_acct(),0755,empty_required=True)
+    common.logit( "\nVOFrontend dependency and validation checking complete")
+
+  #---------------------------------
+  def validate_glexec_use(self):
+    common.logit("... validating glexec_use: %s" % self.glexec_use())
     valid_glexec_use_values = [ "REQUIRED","OPTIONAL","NEVER" ]
     if self.glexec_use() not in valid_glexec_use_values:
-      common.logerr("The glexec_use value specified (%s) in the ini file is invalid.\n      Valid values are: %s" % (self.glexec_use(),valid_glexec_use_values)) 
+      common.logerr("The glexec_use value specified (%s) in the ini file is invalid.\n      Valid values are: %s" % (self.glexec_use(),valid_glexec_use_values))
 
   #---------------------------------
   def get_config_data(self):
@@ -240,10 +260,10 @@ The following DNs are in your grid_mapfile:"""
   ## def create_config(self,config_xml,gridmap_data):
   def create_config(self,config_xml):
     common.logit("\nCreating configuration files")
-    common.make_directory(self.config_dir,self.unix_acct(),0755,empty_required=True)
-    common.write_file("w",0644,self.config_file,config_xml)
-    #common.logit("Creating: %s" % self.grid_mapfile)
-    #gridmap_fd = open(self.grid_mapfile,"w")
+    common.make_directory(self.config_dir(),self.unix_acct(),0755,empty_required=True)
+    common.write_file("w",0644,self.config_file(),config_xml)
+    #common.logit("Creating: %s" % self.grid_mapfile())
+    #gridmap_fd = open(self.grid_mapfile(),"w")
     #try:
     #  for a_uid in gridmap_data.keys():
     #    gridmap_fd.write('"%s" %s\n' % (gridmap_data[a_uid],a_uid))
@@ -253,9 +273,9 @@ The following DNs are in your grid_mapfile:"""
 
   #-----------------------
   def start(self):
-    startup_file = "%s/frontend_startup" % (self.frontend_dir)
-    cmd1 = "source %s" % self.env_script
-    cmd2 = "cd %s;./frontend_startup start" % (self.frontend_dir)
+    startup_file = "%s/frontend_startup" % (self.frontend_dir())
+    cmd1 = "source %s" % self.env_script()
+    cmd2 = "cd %s;./frontend_startup start" % (self.frontend_dir())
     common.logit("\nTo start the frontend you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
     if os.path.isfile(startup_file):
       yn = "n"
@@ -272,15 +292,15 @@ source %s/setup.sh
 export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
 source %s/condor.sh
 """ % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.condor_location())
-    common.write_file("w",0644,self.env_script,data)
-    common.logit("VO frontend env script created: %s" % self.env_script )
+    common.write_file("w",0644,self.env_script(),data)
+    common.logit("VO frontend env script created: %s" % self.env_script() )
 
 
   #---------------------------------
   def create_frontend(self):
     yn=raw_input("Do you want to create the frontend now? (y/n) [n]: ")
-    cmd1 = "source %s" % self.env_script
-    cmd2 = "%s/creation/create_frontend %s" % (self.glidein.glidein_install_dir(),self.config_file)
+    cmd1 = "source %s" % self.env_script()
+    cmd2 = "%s/creation/create_frontend %s" % (self.glidein.glidein_install_dir(),self.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
     else:
@@ -633,7 +653,7 @@ please verify and correct if needed.
   def configure_gsi_security(self):
     common.logit("")
     common.logit("Configuring GSI security")
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication,self.cert_proxy_location())
+    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.cert_proxy_location())
     #--- create condor_mapfile entries ---
     condor_mapfile = """\
 GSI "^%s$" %s
