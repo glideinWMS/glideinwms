@@ -25,16 +25,16 @@ var theadCopy;
 var headCopies;  
 var tableCopy;
 var bodyCopies;
-var paramTable;  
-var h; 
+var paramTable;
+var totalLastTable;
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
 							"cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinIdle", "cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
 							
-var exactCols = new Array("Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in", "Status: Stage out", "Status: Unknown","Status: Held",
-						  "Requested: Max run", "Requested: Idle", "Client Monitor: Claimed",	"Client Monitor: User Running",   "Client Monitor: Unmatched", 
-						  "Client Monitor: User idle", "Client Monitor: Registered", "Client Monitor: Info age");	
+var exactCols = new Array("Running", "Idle", "Waiting", "Pending", "Stage in", "Stage out", "Unknown","Held",
+						  "Max run", "Idle", "Claimed",	"User Running",   "Unmatched", 
+						  "User idle", "Registered", "Info age");	
 						   
 var colorArry = new Array('#FAF0E6', '#FFDAB9', '#CDAF95'); 
 
@@ -114,7 +114,7 @@ function loadXMLDoc()
 			{
 				if(preOption != noOption)
 				{
-					select.selectedIndex = optionIndex + 1;  	
+					select.selectedIndex = optionIndex + 1; 
 					makeTableTotal(currOption);
 				}		
 			}   
@@ -163,31 +163,6 @@ function showTime()
 function makeTableTotal(option) 
 {
 	arry = new Array(6, 8, 10, 12, 14);
-	if(option == "Total")
-	{
-		if(table)
-		{
-			document.getElementById('table').removeChild(table);
-			for(i = 0; i < paramTable.length; i++)
-			{
-				document.getElementsByTagName("h4")[i + 1].innerHTML = ""; 
-				indexFE = arry[i]; 
-				while(document.getElementsByTagName("div")[indexFE].attributes[0].nodeValue != "FETable")
-				{
-					indexFE++; 
-				}
-				document.getElementsByTagName("div")[indexFE].removeChild(feTable[i]);
-				indexFE = arry[i] + 1; 
-				while(document.getElementsByTagName("div")[indexFE].attributes[0].nodeValue != "params")
-				{
-					indexFE++; 
-				} 
-				document.getElementsByTagName("div")[indexFE].removeChild(paramTable[i]); 
-			}
-		}
-		document.location.href = "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryStatusNow.html";
-		return; 
-	}
 	
 	for(i = 0; i< totalEntries.length; i++)
 	{
@@ -205,6 +180,7 @@ function makeTableTotal(option)
 		preOption = currOption;
 		currOption;  
 		document.getElementById('totalTable').removeChild(table);
+		document.getElementById("clientInformationTotalTable").removeChild(totalLastTable); 
 		document.getElementById("current").innerHTML= "Current view: "; 
 		document.getElementById("total").style.visibility = "hidden";
 		for(i = 0; i < paramTable.length; i++)
@@ -232,6 +208,7 @@ function makeTableTotal(option)
 	if(table && preOption != noOption)
 	{
 		document.getElementById('totalTable').removeChild(table);
+		document.getElementById("clientInformationTotalTable").removeChild(totalLastTable); 
  		for(i = 0; i < paramTable.length; i++)
 		{
 			document.getElementsByTagName("h4")[i + 1].innerHTML = ""; 
@@ -257,7 +234,9 @@ function makeTableTotal(option)
 	headerRowOne.setAttribute('id', "StatusRequestedCM");
 
 	var row_num=17; //edit this value to suit
-	var cell_num=feArryMaster.length + 2; //edit this value to suit
+	var cell_num=feArryMaster.length + 3; //edit this value to suit
+	cell_numArry = new Array(cell_num, cell_num, cell_num - 1, cell_num - 1, cell_num - 1, cell_num - 1, cell_num - 1, cell_num - 1, cell_num - 1, cell_num, cell_num - 1,
+	                         cell_num, cell_num - 1, cell_num - 1, cell_num - 1, cell_num - 1, cell_num - 1); 
 	var x = 0; 
 
 	table = document.createElement('table');
@@ -285,22 +264,43 @@ function makeTableTotal(option)
 			row[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
 			row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
 		}
-		for(k = 0; k < cell_num; k++) 
+		for(k = 0; k < cell_numArry[c]; k++) 
 		{
 			cell[k] = document.createElement('td');
 			
+			if(k == 0 && c == 1)
+			{
+				cell[k].setAttribute("rowspan", "8"); 
+				status = document.createTextNode("Status"); 
+				cell[k].appendChild(status);
+				cell[k].setAttribute('id', 'statusRow');  
+			}
+			if(k == 0 && c == 9)
+			{
+				cell[k].setAttribute("rowspan", "2"); 
+				status = document.createTextNode("Requested"); 
+				cell[k].appendChild(status);
+				cell[k].setAttribute('id', 'requestedRow');  
+			}
+			if(k == 0 && c == 11)
+			{
+				cell[k].setAttribute("rowspan", "6");
+				status = document.createTextNode("Client Monitor"); 
+				cell[k].appendChild(status); 
+				cell[k].setAttribute('id', 'cmRow');  
+			}
 			/* 
 			 * Set up the colors for the rows.
 			 */
-			if(k == 0 && (c > 0 && c < 9))
+			if((k == 0 || (k == 1 - (cell_num - cell_numArry[c]))) && (c > 0 && c < 9))
 			{
 				cell[k].setAttribute("bgColor", "#FAF0E6"); 	
 			}
-			else if(k == 0 && (c > 8 && c < 11))
+			else if((k == 0 || (k == 1 - (cell_num - cell_numArry[c]))) && (c > 8 && c < 11))
 			{
 				cell[k].setAttribute("bgColor", "#FFDAB9"); 	
 			}
-			else if(k == 0 && c > 10)
+			else if((k == 0 || (k == 1 - (cell_num - cell_numArry[c]))) && c > 10)
 			{
 				cell[k].setAttribute("bgColor", "#CDAF95"); 	
 			}
@@ -313,24 +313,24 @@ function makeTableTotal(option)
 			 * Fill in first row with header and all the first 
 			 * rows. 
 			 */
-			if(k == 0 && c == 0)
+			if((k == 1 - (cell_num - cell_numArry[c])) && c == 0)
 			{
 				cont = document.createTextNode(currOption + ":");
 			}
-			else if(k == 0 && c > 0)
+			else if((k == 1 - (cell_num - cell_numArry[c])) && c > 0)
 			{
 				cont = document.createTextNode(exactCols[c - 1]);
 				cell[k].setAttribute("id", "totalRowsHeader"); 
 			}
-			else if(c == 0 && k != 1 && k != 0)
+			else if(c == 0 && (k != 1 - (cell_num - cell_numArry[c])) && k != 0 && (k != 2 - (cell_num - cell_numArry[c])))
 			{
-				cont = document.createTextNode(feArryMaster[k - 2].attributes[0].nodeValue + ":");
+				cont = document.createTextNode(feArryMaster[k - 3].attributes[0].nodeValue + ":");
 			}
-			else if(c == 0 && k == 1)
+			else if(c == 0 && (k == 2 - (cell_num - cell_numArry[c])))
 			{
 				cont = document.createTextNode("Total:");
 			}
-			else if(c == 0 && k == 0)
+			else if(c == 0 && (k == 1 - (cell_num - cell_numArry[c])))
 			{
 				cont = document.createTextNode("");
 			}
@@ -346,12 +346,10 @@ function makeTableTotal(option)
 
 		}	
 	}
-	thead.appendChild(thBody); 
 	table.appendChild(tBody); 
 	theadCopy = thead.cloneNode(true);  
 	tableCopy = table.cloneNode(true); 
 
-	document.getElementById('totalHeader').appendChild(thead); 
 	document.getElementById('totalTable').appendChild(table);
 	preOption = currOption; 
 	document.getElementById("total").style.visibility = "visible";
@@ -368,7 +366,257 @@ function makeTableTotal(option)
 		bodyCopies = new Array(); 
 		paramTable = new Array(); 
 	}
+	
+	/* 
+	 * Make the client like table for the total table.
+	 */
+	 
+	attributeArry = new Array("Status: Running", "Requested: Max Run", "Client Monitor: Registered", "Client Monitor: Claimed", "Client Monitor: Unmatched",
+	"Client Monitor: User Running", "Status: Idle", "Requested: Idle", "Status: Waiting", "Client Monitor: User Idle", "Status: Pending", "Status: Stage in", 
+	"Status: Stage out", "Status: Unknown", "Status: Held", "Client Monitor: Info age"); 						  
+	colorArryIndex = new Array(0, 1, 2, 2, 2, 2,    0, 1, 0, 2, 0,   0, 0, 0, 0, 2); 
+	feIndex = 0; 
+	
+	attribute = 0; 
+	totalLastTableBody = document.createElement("tbody"); 
+	totalLastTable = document.createElement("table"); 
+	totalLastTable.setAttribute("id", "feTable"); 
+	feCell = new Array(); 
+	feCellTxt = new Array(); 
+	feRow = new Array(); 
+	brick = new Array(); 
+	feRowOneCell = document.createElement("td"); 
+	feRowOneTxt = new Array();
+	rowLength = 4; 
+	 
+	/* Make first part of table. */
+	x = 0; 
+	txt = 0; 
+	feRow[x] = document.createElement("tr"); 
+		
+	feRowOne = document.createElement("tr");
+	feRowOneTxt = document.createTextNode("Total Information"); 
+	feRowOneCell.appendChild(feRowOneTxt);
+	feRowOneCell.setAttribute("id", "totalTable2Header");
+	feRowOneCell.setAttribute("colspan", "4"); 
+	feRowOne.appendChild(feRowOneCell); 
+		
+	totalLastTableBody.appendChild(feRowOne); 
+	
+	/* Make first part of table. */
+	for(j = 0; j < rowLength * 3; j++)
+	{
+		feCell[j] = document.createElement("td"); 
+		if(j % 2  == 0)
+		{	
+			feCell[j].setAttribute("bgColor", colorArry[colorArryIndex[attribute]]); 
+			feCellTxt[j] = document.createTextNode(attributeArry[attribute]);
+			attribute++; 
+		}
+		else
+		{
+			feCellTxt[j] = document.createTextNode("");
+		}
+		feCell[j].appendChild(feCellTxt[j]); 
+		feRow[x].appendChild(feCell[j]); 
+		totalLastTableBody.appendChild(feRow[x]); 
+					
+		if((j + 1) % rowLength == 0)
+		{	
+			x++; 
+			feRow[x] = document.createElement("tr");
+		}
+	}
+	/* BRICK */
+	brick[0] = document.createElement("td");
+	brick[0].setAttribute("colspan", rowLength); 
+	feRow[x].appendChild(brick[0]); 
+	feRow[x].setAttribute("id", "brick");
+	totalLastTableBody.appendChild(feRow[x]); 
+	x++;
+	feRow[x] = document.createElement("tr"); 
+	
+	/* Make second part of table. */
+	for(k = 0; k < rowLength * 3; k++)
+	{
+		feCell[j + k] = document.createElement("td"); 
+		if(attribute != 11 && (j + k) % 2 == 0)
+		{
+			feCell[j + k].setAttribute("bgColor", colorArry[colorArryIndex[attribute]]); 
+			feCellTxt[j + k] = document.createTextNode(attributeArry[attribute]);
+			attribute++; 
+		}
+		else
+		{
+			feCellTxt[j + k] = document.createTextNode("");
+		}	
+		feCell[j + k].appendChild(feCellTxt[j + k]); 
+		feRow[x].appendChild(feCell[j + k]); 
+		totalLastTableBody.appendChild(feRow[x]); 
+		if(((j + k) + 1) % rowLength == 0)
+		{	
+			x++; 
+			feRow[x] = document.createElement("tr");
+		} 
+	}
+	
+	/* BRICK */
+	brick[1] = document.createElement("td");
+	brick[1].setAttribute("colspan", rowLength); 
+	feRow[x].appendChild(brick[1]); 
+	feRow[x].setAttribute("id", "brick");
+	totalLastTableBody.appendChild(feRow[x]); 
+	x++;
+	feRow[x] = document.createElement("tr");
+	
+	/* Make third part. */
+	for(l = 0; l < rowLength; l++)
+	{
+		feCell[j + k + l] = document.createElement("td"); 
+		if((j + k + l) % 2 == 0)
+		{
+			feCell[j + k + l].setAttribute("bgColor", colorArry[colorArryIndex[attribute]]); 
+			feCellTxt[j + k + l] = document.createTextNode(attributeArry[attribute]);
+			attribute++; 
+		}
+		else
+		{
+			feCellTxt[j + k + l] = document.createTextNode("");
+		}
+		feCell[j + k + l].appendChild(feCellTxt[j + k + l]); 
+		feRow[x].appendChild(feCell[j + k + l]); 
+		totalLastTableBody.appendChild(feRow[x]); 
+		if(((j + k + l) + 1) % rowLength == 0)
+		{	
+			x++; 
+			feRow[x] = document.createElement("tr");
+		} 
+	}
+	
+	/* BRICK */
+	brick[2] = document.createElement("td");
+	brick[2].setAttribute("colspan", rowLength); 
+	feRow[x].appendChild(brick[2]); 
+	feRow[x].setAttribute("id", "brick");
+	totalLastTableBody.appendChild(feRow[x]); 
+	x++;
+	feRow[x] = document.createElement("tr");
+		
+	/* Make 4th part. */
+	for(m = 0; m < rowLength; m++)
+	{
+		feCell[j + k + l + m] = document.createElement("td"); 
+		if((j + k + l + m ) % 2 == 0)
+		{
+			feCell[j + k + l + m].setAttribute("bgColor", colorArry[colorArryIndex[attribute]]); 
+			feCellTxt[j + k + l + m] = document.createTextNode(attributeArry[attribute]);
+			attribute++; 
+		}
+		else
+		{
+			feCellTxt[j + k + l + m] = document.createTextNode("");
+		} 
+		feCell[j + k + l + m].appendChild(feCellTxt[j + k + l + m]); 
+		feRow[x].appendChild(feCell[j + k + l + m]); 
+		totalLastTableBody.appendChild(feRow[x]); 
+	}
+
+	/* BRICK */
+	x++; 
+	feRow[x] = document.createElement("tr"); 
+	brick[3] = document.createElement("td");
+	brick[3].setAttribute("colspan", "8"); 
+	feRow[x].appendChild(brick[3]); 
+	feRow[x].setAttribute("id", "brick");
+	totalLastTableBody.appendChild(feRow[x]); 
+	x++;
+	feRow[x] = document.createElement("tr");
+	
+	/* Make 5th part. */
+	for(n = 0; n < rowLength; n++)
+	{
+		feCell[j + k + l + m +  n] = document.createElement("td"); 
+		if(n != 2 && (j + k + l + m  + n) % 2 == 0)
+		{
+			feCell[j + k + l + m + n].setAttribute("bgColor", colorArry[colorArryIndex[attribute]]); 
+			feCellTxt[j + k + l + m + n] = document.createTextNode(attributeArry[attribute]);
+			attribute++; 
+		}
+		else
+		{
+			feCellTxt[j + k + l + m + n] = document.createTextNode("");
+		} 
+		feCell[j + k + l + m + n].appendChild(feCellTxt[j + k + l + m + n]); 
+		feRow[x].appendChild(feCell[j + k + l + m + n]); 
+		totalLastTableBody.appendChild(feRow[x]); 
+	}
+	totalLastTable.appendChild(totalLastTableBody); 
+	document.getElementById("clientInformationTotalTable").appendChild(totalLastTable); 
+	fillInTotalTable2(); 
+}
+function fillInTotalTable2()
+{
+	child = new Array(5, 3, 1, 1, 1, 1,      5, 3, 5, 1, 5,     -1000,     5, 5, 5, 5, 1); 
+	atts = new  Array(4, 1, 2, 1, 0, 5,      1, 0, 7, 4, 3,     -1000,     5, 6, 2, 0, 3); 
+	rows = new Array(1, 2, 3, 5, 6, 7, 9, 11, 13); 
+	arry = new Array(6, 8, 10, 12, 14);
+	rowLength = 4;
+	itemsToFill = 2;
+	start = 1; 
+	br = 2 ; 
+	end = rowLength - 1;   
+	
+	for(x = 0; x < 1; x++)
+	{
+		cell = start + x; 
+		currTable = document.getElementById("clientInformationTotalTable"); 
+		
+		for(j = 0; j < child.length; j++)
+		{	
+		    if(j == 11)
+			{
+				cell = start + x;  	
+				continue;
+			}
+			row = (j)/2; 
+			row = parseInt(row); 
+			row = rows[row]; 
+			if(x == 0)
+			{
+				//alert("Cell -- " + cell + " Row -- " + row + " feIndex --" + feIndex);
+				if(totalEntries[optionIndex].childNodes[1].childNodes.length != 0)
+				{
+					y = totalEntries[optionIndex].childNodes[1].childNodes[child[j]].attributes[atts[j]].nodeValue; 
+					currTable.childNodes[1].rows[row].cells[cell].innerHTML = y; 
+				}
+				else
+				{
+					currTable.childNodes[1].rows[row].cells[cell].innerHTML = 0; 
+				}
+			}
+			else
+			{
+				y = totalEntries[optionIndex].childNodes[3].childNodes[feIndex].childNodes[child[j]].attributes[atts[j]].nodeValue;
+				currTable.childNodes[1].rows[row].cells[cell].innerHTML = y; 
+				currTable.childNodes[1].rows[row].cells[cell].setAttribute("id", "totalTable2Cell"); 
+			}
+			if(cell > start + x)
+			{
+				cell = start + x; 
+			}
+			else
+			{
+				cell = cell + 2;		
+			}
+		}
+		if(x != 0)
+		{
+			feIndex+=2;
+		}
+	}
 } 
+
+
 function fillInFeTable()
 {
 	child = new Array(5, 3, 1, 1, 1, 1,      5, 3, 5, 1, 5,     -1000,     5, 5, 5, 5, 1); 
@@ -719,7 +967,14 @@ function fillInTotal()
 	{
 		if(total[optionIndex].childNodes.length == 0)
 		{		
-			table.rows[i].cells[1].innerHTML = "0";					
+			if((i >= 2 && i < 9) || (i == 10) || (i > 11))
+			{
+				table.rows[i].cells[1].innerHTML = "0";
+			}
+			else
+			{
+				table.rows[i].cells[2].innerHTML = "0";
+			}		
 		}
 	}
 	/* 
@@ -730,8 +985,15 @@ function fillInTotal()
 	{
 		if(total[optionIndex].childNodes.length != 0)
 		{
-			item = total[optionIndex].childNodes[5].attributes[attArry[counter - 1]].nodeValue;  	
-			table.rows[counter].cells[1].innerHTML = item; 			
+			item = total[optionIndex].childNodes[5].attributes[attArry[counter - 1]].nodeValue;
+			if(counter != 1)
+			{
+				table.rows[counter].cells[1].innerHTML = item; 	
+			}
+			else
+			{
+				table.rows[counter].cells[2].innerHTML = item; 	
+			}
 		}
 	}
 	/*
@@ -742,8 +1004,15 @@ function fillInTotal()
 	{
 		if(total[optionIndex].childNodes.length != 0)
 		{
-			item = total[optionIndex].childNodes[3].attributes[attArry[counter - 9]].nodeValue;  	
-			table.rows[counter].cells[1].innerHTML = item; 
+			item = total[optionIndex].childNodes[3].attributes[attArry[counter - 9]].nodeValue;  
+			if(counter == 10)
+			{
+				table.rows[counter].cells[1].innerHTML = item; 
+			}
+			else
+			{	
+				table.rows[counter].cells[2].innerHTML = item; 
+			}
 		}
 	}
 	
@@ -755,8 +1024,15 @@ function fillInTotal()
 	{	
 		if(total[optionIndex].childNodes.length != 0)
 		{
-			item = total[optionIndex].childNodes[1].attributes[attArry[counter - 11]].nodeValue; 	
-			table.rows[counter].cells[1].innerHTML = item; 
+			item = total[optionIndex].childNodes[1].attributes[attArry[counter - 11]].nodeValue;
+			if(counter != 11)
+			{
+				table.rows[counter].cells[1].innerHTML = item; 
+			}
+			else
+			{
+				table.rows[counter].cells[2].innerHTML = item; 
+			} 	
 		}
 	}
 
@@ -768,8 +1044,15 @@ function fillInTotal()
 		for(i = 1; i< 17; i++)
 		{
 			if(total[optionIndex].childNodes.length == 0)
-			{		
-				table.rows[i].cells[2 + x].innerHTML = "0";					
+			{	
+				if((i >= 2 && i < 9) || (i == 10) || (i > 11))
+				{
+					table.rows[i].cells[2 + x].innerHTML = "0";					
+				}
+				else
+				{
+					table.rows[i].cells[3 + x].innerHTML = "0";					
+				}	
 			}
 		}
 		/* 
@@ -780,8 +1063,15 @@ function fillInTotal()
 		{
 			if(total[optionIndex].childNodes.length != 0)
 			{
-				item = feArryMaster[x].childNodes[5].attributes[attArry[counter - 1]].nodeValue;  	
-				table.rows[counter].cells[2 + x].innerHTML = item; 			
+				item = feArryMaster[x].childNodes[5].attributes[attArry[counter - 1]].nodeValue;
+				if(counter != 1)
+				{
+					table.rows[counter].cells[2 + x].innerHTML = item; 			
+				}
+				else
+				{
+					table.rows[counter].cells[3 + x].innerHTML = item; 			
+				}  	
 			}
 		}
 		/*
@@ -792,8 +1082,15 @@ function fillInTotal()
 		{
 			if(total[optionIndex].childNodes.length != 0)
 			{
-				item = feArryMaster[x].childNodes[3].attributes[attArry[counter - 9]].nodeValue;  	
-				table.rows[counter].cells[2 + x].innerHTML = item; 
+				item = feArryMaster[x].childNodes[3].attributes[attArry[counter - 9]].nodeValue;  
+				if(counter != 9)
+				{
+					table.rows[counter].cells[2 + x].innerHTML = item; 			
+				}
+				else
+				{
+					table.rows[counter].cells[3 + x].innerHTML = item; 			
+				} 	
 			}
 		}
 	
@@ -805,8 +1102,15 @@ function fillInTotal()
 		{	
 			if(total[optionIndex].childNodes.length != 0)
 			{
-				item = feArryMaster[x].childNodes[1].attributes[attArry[counter - 11]].nodeValue; 	
-				table.rows[counter].cells[2 + x].innerHTML = item; 
+				item = feArryMaster[x].childNodes[1].attributes[attArry[counter - 11]].nodeValue; 
+				if(counter != 11)
+				{
+					table.rows[counter].cells[2 + x].innerHTML = item; 			
+				}
+				else
+				{
+					table.rows[counter].cells[3 + x].innerHTML = item; 			
+				} 	
 			}
 		}		
 	}
@@ -866,12 +1170,12 @@ function checkUrl()
 			{
 				if(temp[j].search(/view/i) >= 0)
 				{
-					for(z = 0; z < totalEntries.length; z++)
+					for(q = 0; q < totalEntries.length; q++)
 					{
-						if(temp[j+1] == totalEntries[z].attributes.getNamedItem("name").firstChild.data)	
+						if(temp[j+1] == totalEntries[q].attributes.getNamedItem("name").firstChild.data)	
 						{
 							makeTableTotal(temp[j+1]);
-							select.selectedIndex = z + 1;
+							select.selectedIndex = q + 1;
 						}
 					}
 				}
@@ -915,20 +1219,10 @@ td
 	font-size:12px;
 	padding:5px;
 }
-#table
-{
-	table-layout: fixed; 
-	background-color:#F2F2F2;
-}
-#paramTable
+#table, #paramTable, #feTable
 {
 	table-layout: fixed; 
 	background-color:#F2F2F2; 
-}
-#feTable
-{
-	table-layout: fixed; 
-	background-color:#F2F2F2;
 }
 #current 
 {
@@ -957,6 +1251,10 @@ td
     width: 70px;
 	//float:right;
 }
+#totalTable2Cell
+{
+	text-align:center;
+}
 #total 
 {
 	visibility:hidden;
@@ -968,11 +1266,10 @@ td
 }
 #totalRowsHeader
 {
-	font-weight:bold;
 	text-align:center;
 	font-size:11px;
 }
-#paramCell
+#paramCell, #totalTable2Header
 {
 	text-align:center;
 	font-weight:bold;
@@ -982,6 +1279,21 @@ td
 {
 	background-color:#FFF; 
 }
+#requestedRow, #cmRow
+{
+	font-size:13px;
+	font-weight:bold;
+	text-align:center;
+	font-style:italic; 
+}
+#statusRow
+{
+	font-size:15px;
+	font-weight:bold;
+	text-align:center;
+	font-style:italic; 	
+}
+
 </style>
 
 
@@ -1002,8 +1314,9 @@ td
 <br /><div id = "update"> Loading...  </div>
 
 <h4 id = "total">Total</h4>
-<div id = "totalHeader" > </div>
 <div id = "totalTable"> </div>
+<br  />
+<div id = "clientInformationTotalTable"> </div>
 
 <h4 id = "fe"></h4>
 <div id = "FETable"> </div>
