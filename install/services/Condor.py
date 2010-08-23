@@ -966,12 +966,9 @@ COLLECTOR%i_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector%iLog"
 COLLECTOR%i_ARGS = -f -p %i
 """ % (nbr,nbr,nbr,nbr,self.secondary_collector_ports()[nbr])
 
-    data = data + """
-#-- Add subcollectors to the list of daemons  to start
-DAEMON_LIST = $(DAEMON_LIST) \\
-"""
+    data = data + "\n#-- Add subcollectors to the list of daemons to start\n"
     for nbr in range(int(self.secondary_collectors())):
-      data = data + "COLLECTOR%i \\\n" % nbr
+      data = data + "DAEMON_LIST = $(DAEMON_LIST) COLLECTOR%i\n" % nbr
 
     data = data + """
 #-- Forward ads to the main collector
