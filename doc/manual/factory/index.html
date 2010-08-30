@@ -314,6 +314,15 @@ Please be aware that both will be used.
 	<blockquote>
       glideinWMS/factory/manageFactoryDowntimes.py
 	</blockquote>
+<p>
+This script can allow you to have more control over managing downtimes,
+by allowing you to make downtimes specific to security classes, and adding
+comments to the downtimes file.  A typical entry could be:
+	<blockquote>
+    glideinWMS/factory/manageFactoryDowntimes.py /opt/wmsfactory/glidein_v2_4 SLEEPER_POOL down vofrontend "Testing downtime for vofrontend security class entry"
+	</blockquote>
+    The arguments are, the directory of the factory, the entry name (or "factory" for all), the command (down, for creating a downtime), the security class, and then a comment.  If you wish to put a comment in, you must also specify the security class.  The usage statement for this command has the full list of commands and parameters to create, delete, and check downtimes.
+
 
 <H3><A NAME="factory_info"></A>Getting configuration information</H3>
 
