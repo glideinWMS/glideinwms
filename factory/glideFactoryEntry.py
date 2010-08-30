@@ -30,7 +30,7 @@ import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
-import rrdSupport #added by C.W. Murphy on 08/10/10
+import rrdSupport
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
@@ -356,7 +356,7 @@ def write_stats():
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
-    glideFactoryLib.factoryConfig.sa_stats.writeFile()
+    glideFactoryLib.factoryConfig.sa_stats.writeFiles()
     glideFactoryLib.log_files.logActivity("sa_stats written")
     
     return
@@ -445,10 +445,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             glideFactoryLib.factoryConfig.client_internals = {}
-            for rrd in rrd_list:
-                rrd_name = rrd.split(".")[0]
-                site_name = jobDescript.data['EntryName']
-                glideFactoryLib.factoryConfig.sa_stats.data[rrd_name] = rrdSupport.fetchData(site = site_name, file = rrd)
+            glideFactoryLib.factoryConfig.sa_stats.getData()
 
             done_something=iterate_one(count==0,in_downtime,
                                        glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)

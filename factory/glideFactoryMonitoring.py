@@ -1,3 +1,4 @@
+
 #
 # Description:
 #   This module implements the functions needed
@@ -15,9 +16,11 @@ import rrdSupport
 import logSupport
 import glideFactoryLib
 
+# hard coding should be fixed in the future
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
-
+# list of folders that have rrd files
+folder_list = ('total/','frontend_vocmurphy1.main/', 'frontend_vocmurphy2.main/')
 ############################################################
 #
 # Configuration
@@ -973,57 +976,114 @@ class FactoryStatusData:
 	self.data = {}
 	self.updated = time.time()
 	self.file_updated = None
-
-    def getData(self):
-	self.updated = time.time()
-	return self.data
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.resolution = (3600, 21600, 86400, 604800) # 1hr, 6hrs, 1 day, 1 week
 
     def getUpdated(self):
 	return self.updated
 
-    def getXMLUpdated(self, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = ""):
+    def getXMLUpdated(self):
 	"""returns the time of last update"""
 	local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
 	gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
 	xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
 
-	return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = indent_tab, leading_tab = leading_tab)
+	return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
 
-    def getXMLData(self, rrd_name, res = 300):
-	"""returns the data fetched by rrdtool in a xml readable format"""
-	fetch_data = self.getData()[rrd_name]
-	num_dp = int(res / 300)
-
-	#convert fetch_data to a format that is useable by xmlFormat
-	data = {}
-	for data_set in fetch_data:
-	    """There is a bug in the version of rrdtool install on glidein-1 that prevents it from properly averaging.
-	    The list is sliced because the bug returns (len(list) - 2) datapoints."""
-	    if len(fetch_data[data_set]) > 0:
-		data[data_set] = sum(fetch_data[data_set][-num_dp:]) / len(fetch_data[data_set][-num_dp:])
+    def average(self, list):
+        """There is a bug in the version of rrdtool install on glidein-1 that prevents it from properly averaging."""
+        try:
+	    if len(list) > 0:
+		list_avg = sum(list) / len(list)
 	    else:
-		data[data_set] = 0
+		list_avg = 0
+            return list_avg
+        except TypeError:
+            pass
+            return 0
 
-        return data
+    def getData(self):
+	"""returns the data fetched by rrdtool in a xml readable format"""
+        base_dir = monitoringConfig.monitor_dir
+        
+        # give self.data the necessary form
+        for rrd in rrd_list:
+            self.data[rrd] = {}
+            for folder in folder_list:
+                self.data[rrd][folder] = {}
+                for res in self.resolution:
+                    self.data[rrd][folder][res] = {}
+                
+        # store the data fetched with rrdtool
+        tmp_data = {}
+        for rrd in rrd_list:
+            tmp_data[rrd] = {}
+            for folder in folder_list:
+                tmp_data[rrd][folder] = {}       
+                for res in self.resolution:
+                    end = int(time.time() / res) * res
+                    start = end - res
+                    tmp_data[rrd][folder][res] = rrdSupport.fetchData(file = rrd, pathway = base_dir + "/" + folder, start = start, end = end, res = res)
+                        
 
-    def writeXML(self, rrd_name, resolution = (300, 900, 1800, 3600, 7200), indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = ""):
+        # convert tmp_data to a format that is useable by xmlFormat
+        for rrd in self.data:
+            for folder in self.data[rrd]:
+                for res in self.data[rrd][folder]:
+                    for data_set in tmp_data[rrd][folder][res]:
+                        self.data[rrd][folder][res][data_set] = self.average(tmp_data[rrd][folder][res][data_set])
+        return self.data
+
+    def getXMLData(self, rrd_name):
 	"writes an xml file for the data fetched from a given site."
-	xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
-		'<glideFactoryEntryRRDStats>\n' +
-		self.getXMLUpdated(indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" +
-		xmlFormat.DEFAULT_TAB + '<resolutions>\n')
+        # this will be used later to seperate the total data from the frontend data
+        frontends = []
+        for folder in folder_list:
+            if folder == 'total/':
+                total = folder
+            else:
+                frontends.append(folder)
 
-	for res in resolution:
-            xml_data_str = xmlFormat.dict2string(self.getXMLData(res = res, rrd_name = rrd_name), dict_name = 'resolution', el_name = 'element', params = {'name':str(res)}, indent_tab = indent_tab, leading_tab = "      ") + "\n"
-	    xml_str += xml_data_str
-        xml_str += xmlFormat.DEFAULT_TAB + '</resolutions>\n</glideFactoryEntryRRDStats>'
+        # create a string containing the total data
+        total_xml_str = (self.tab + '<total>\n' +
+                        2 * self.tab + '<periods>\n')
+        for res in self.resolution:
+            total_data = self.data[rrd_name][total][res]
+            total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
+        total_xml_str += (2 * self.tab + '</periods>\n' +
+                         self.tab + '</total>\n')
+
+        # create a string containing the frontend data
+        frontend_xml_str = (self.tab + '<frontends>\n')
+        for frontend in frontends:
+            fe_name = frontend.split("/")[0]
+            frontend_xml_str += (2 * self.tab +
+                                '<frontend name=\"' + fe_name + '\">\n' +
+                                3 * self.tab + '<periods>\n')
+            for res in self.resolution:
+                frontend_data = self.data[rrd_name][frontend][res]
+                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = self.tab, leading_tab = 4 * self.tab) + "\n")
+            frontend_xml_str += (3 * self.tab + '</periods>\n' +
+                         2 * self.tab + '</frontend>')
+        frontend_xml_str += (self.tab + '</frontends>\n')
+                  
+        data_str =  total_xml_str + frontend_xml_str
+        return data_str
+
+    def getXMLStr(self, rrd_name):
+        # write the string containing all the data that is to be returned
+	xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+		  '<glideFactoryEntryRRDStats>\n' +
+		  self.getXMLUpdated() + "\n" +
+                  self.getXMLData(rrd_name = rrd_name) +
+                  '</glideFactoryEntryRRDStats>')
         return xml_str
     
-    def writeFile(self):
+    def writeFiles(self):
         for rrd in rrd_list:
             rrd_name = rrd.split(".")[0]
             file_name = 'rrd_' + rrd_name + '_stats.xml'
-            xml_output = self.writeXML(rrd_name = rrd_name)
+            xml_output = self.getXMLStr(rrd_name = rrd)
             try:
                 monitoringConfig.write_file(file_name, xml_output)
             except IOError:
