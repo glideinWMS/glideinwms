@@ -27,6 +27,7 @@ var tableCopy;
 var bodyCopies;
 var paramTable;
 var totalLastTable;
+var ENTRY; 
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
@@ -41,6 +42,18 @@ var colorArry = new Array('#FAF0E6', '#FFDAB9', '#CDAF95');
 var subjectColArry = new Array("Status :", "Requested: ", "Client Monitor: "); 
 
 
+function goToDestination(option)
+{
+	if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
+	{
+		document.location.href = option.value + "?entry=" + ENTRY; 
+	}
+	else
+	{
+		document.location.href = option.value; 
+	}
+	document.getElementById("destination").selectedIndex = 0; 
+}
 /**/
 function makeFEArray()
 {
@@ -162,6 +175,7 @@ function showTime()
 }
 function makeTableTotal(option) 
 {
+	ENTRY = option; 
 	arry = new Array(6, 8, 10, 12, 14);
 	
 	for(i = 0; i< totalEntries.length; i++)
@@ -271,22 +285,22 @@ function makeTableTotal(option)
 			if(k == 0 && c == 1)
 			{
 				cell[k].setAttribute("rowspan", "8"); 
-				status = document.createTextNode("Status"); 
-				cell[k].appendChild(status);
+				status1 = document.createTextNode("Status"); 
+				cell[k].appendChild(status1);
 				cell[k].setAttribute('id', 'statusRow');  
 			}
 			if(k == 0 && c == 9)
 			{
 				cell[k].setAttribute("rowspan", "2"); 
-				status = document.createTextNode("Requested"); 
-				cell[k].appendChild(status);
+				status2 = document.createTextNode("Requested"); 
+				cell[k].appendChild(status2);
 				cell[k].setAttribute('id', 'requestedRow');  
 			}
 			if(k == 0 && c == 11)
 			{
 				cell[k].setAttribute("rowspan", "6");
-				status = document.createTextNode("Client Monitor"); 
-				cell[k].appendChild(status); 
+				status3 = document.createTextNode("Client Monitor"); 
+				cell[k].appendChild(status3); 
 				cell[k].setAttribute('id', 'cmRow');  
 			}
 			/* 
@@ -1134,7 +1148,7 @@ function goToLink()
 	var holder = document.URL.split('?');
 	
 	constructed = holder[0];
-	constructed = constructed + "?view=" + currOption;
+	constructed = constructed + "?entry=" + currOption;
 	document.location.href = constructed;
 }
 function clearLink()
@@ -1168,7 +1182,7 @@ function checkUrl()
 			temp = contents[i]; 
 			for(j = 0; j < temp.length; j++)
 			{
-				if(temp[j].search(/view/i) >= 0)
+				if(temp[j].search(/entry/i) >= 0)
 				{
 					for(q = 0; q < totalEntries.length; q++)
 					{
@@ -1300,6 +1314,16 @@ td
 </head>
 <body>
 <a id = "title"  style="font-size: 40px" > Glidein Factory Status </a>
+
+<SELECT id="destination" style="float:right" onchange="goToDestination(this)" >
+<OPTION VALUE="" >Choose a Glidein destination...</OPTION>
+<OPTION VALUE="factoryStatusNow.html"> Glidein factory status now. </OPTION>
+<OPTION VALUE="factoryStatus.html"> Glidein factory status. </OPTION>
+<OPTION VALUE="factoryLogStatus.html"> Glidein factory log status. </OPTION>
+<OPTION VALUE="factoryCompletedStats.html"> Glidein factory completed stats. </OPTION>
+<OPTION VALUE="factoryRRDBrowse.html"> Glidein factory browse. </OPTION>
+<OPTION VALUE="factoryRRDEntryMatrix.html"> Glidein factory entry matrix. </OPTION>
+</SELECT>
 
 <script type = "text/javascript"> loadXMLDoc()  </script>
 

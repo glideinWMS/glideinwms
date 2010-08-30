@@ -628,7 +628,7 @@ function fillIn()
 		links[i] = document.createElement('a');
 		links[i].setAttribute("id", "entryLinks"); 
 		links[i].innerHTML = y; 
-		links[i].setAttribute("href", "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryEntryStatusNow.html?view=" + y);
+		links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
 		links[i].setAttribute("onclick", "entryClick(this)");
 		table.rows[i].cells[0].appendChild(links[i]); 
 	}
@@ -845,6 +845,7 @@ function loadXMLDoc()
 			sorted = 0;
 			listMade = 0; 
 			currentSort;
+			document.getElementById("destination").selectedIndex = 0; 
 			fillIn(); /* Fill in all the values. */
 		} 
 			 
@@ -1708,6 +1709,11 @@ function selectActive()
 
 	return; 
 }
+function goToDestination(option)
+{
+	document.location.href = option.value; 
+	document.getElementById("destination").selectedIndex = 0;
+}
 
 </script>
 <style = "text/css">
@@ -1825,6 +1831,16 @@ td
 <body onResize="setHeight()">
 <script type = "text/javascript"> loadXMLDoc()  </script>
 <a id = "title"  style="font-size: 40px" > Glidein Factory Status </a>
+
+<SELECT id="destination" style="float:right" onchange="goToDestination(this)" >
+<OPTION VALUE="" >Choose a Glidein destination...</OPTION>
+<OPTION VALUE="factoryEntryStatusNow.html"> Glidein entry. </OPTION>
+<OPTION VALUE="factoryStatus.html"> Glidein factory status. </OPTION>
+<OPTION VALUE="factoryLogStatus.html"> Glidein factory log status. </OPTION>
+<OPTION VALUE="factoryCompletedStats.html"> Glidein factory completed stats. </OPTION>
+<OPTION VALUE="factoryRRDBrowse.html"> Glidein factory browse. </OPTION>
+<OPTION VALUE="factoryRRDEntryMatrix.html"> Glidein factory entry matrix. </OPTION>
+</SELECT>
 
 <h5 id = "total">(Total Entries)</h5>
 
