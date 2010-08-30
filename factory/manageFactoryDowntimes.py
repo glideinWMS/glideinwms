@@ -9,6 +9,7 @@
 import os.path
 import time,string
 import sys
+import re
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import glideFactoryConfig
@@ -20,8 +21,8 @@ def usage():
     print "  manageFactoryDowntimes.py factory_dir ['all'|'factory'|'entries'|entry_name] [command]"
     print "where command is one of:"
     print "  add start_time end_time - Add a scheduled downtime period"
-    print "  down [delay]            - Put the factory down now(+delay)" 
-    print "  up [delay]              - Get the factory back up now(+delay)"
+    print "  down [delay] [sec [com]]- Put the factory down now(+delay)" 
+    print "  up [delay] [sec [com]]  - Get the factory back up now(+delay)"
     print "  ress [ISinfo]           - Set the up/down based on RESS status"
     print "  bdii [ISinfo]           - Set the up/down based on bdii status"
     print "  ress+bdii [ISinfo]      - Set the up/down based both on RESS and bdii status"
@@ -37,6 +38,11 @@ def usage():
     print "  [HHh][MMm][SS[s]]"
     print "and ISinfo is:"
     print "  'CEStatus' (others will follow in the future)"
+    print "sec is a security class used to restrict a downtime to users"
+    print "  of a specific security class defined in the factory xml"
+    print "  If not specified, the downtime refers to all users."
+    print "com can be a user comment relating to the downtime. Not used by WMS."
+    print "  To use comments, you must enter a security class."
     print
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
@@ -85,10 +91,11 @@ def get_downtime_fd(entry_name,cmdname):
         sys.exit(1)
 
     try:
-        if entry_name=='factory':
-            config=glideFactoryConfig.GlideinDescript()
-        else:
-            config=glideFactoryConfig.JobDescript(entry_name)
+        # New style has config all in the factory file
+        #if entry_name=='factory':
+        config=glideFactoryConfig.GlideinDescript()
+        #else:
+        #    config=glideFactoryConfig.JobDescript(entry_name)
     except IOError, e:
         raise RuntimeError, "Failed to load config for %s"%entry_name
 
@@ -113,7 +120,9 @@ def add(entry_name,argv):
     down_fd=get_downtime_fd(entry_name,argv[0])
     start_time=str2time(argv[1])
     end_time=str2time(argv[2])
-    down_fd.addPeriod(start_time,end_time)
+    if len(argv)>2:
+        sec_name=argv[3];
+    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,security_name=sec_name,comment="")
     return 0
 
 # [HHh][MMm][SS[s]]
@@ -136,36 +145,77 @@ def delay2time(delayStr):
     
     return seconds+60*(minutes+60*hours)
 
+def getargv(argv):
+    when=0
+    sec_name="All"
+    comment=""
+    if len(argv)>1:
+        #Get delay and security class if it exists
+        if (re.match("\d*h*\d*m*\ds?$",argv[1])):
+            when=delay2time(argv[1])
+            if len(argv)>2:
+                sec_name=argv[2];
+            if len(argv)>3:
+                comment=" ".join(argv[3:]);
+        else:
+            #Format does not match time, must be security class
+            sec_name=argv[1];
+            if len(argv)>2:
+                comment=" ".join(argv[2:]);
+    return (when,sec_name,comment);
+
+
+
 def down(entry_name,argv):
     down_fd=get_downtime_fd(entry_name,argv[0])
-    when=0
-    if len(argv)>1:
-        when=delay2time(argv[1])
-
+    (when,sec_name,comment)=getargv(argv);
     when+=long(time.time())
-
-    if not down_fd.checkDowntime(when): #only add a new line if not in downtimeat that time
-        down_fd.startDowntime(when)
+    if not down_fd.checkDowntime(entry=entry_name, security_class=sec_name, check_time=when): #only add a new line if not in downtimeat that time
+        down_fd.startDowntime(start_time=when,security_class=sec_name,entry=entry_name,comment=comment)
     return 0
 
 def up(entry_name,argv):
     down_fd=get_downtime_fd(entry_name,argv[0])
-    when=0
-    if len(argv)>1:
-        when=delay2time(argv[1])
-
+    (when,sec_name,comment)=getargv(argv);
     when+=long(time.time())
-
-    if down_fd.checkDowntime(when): #only terminate downtime if there was an open period
-        down_fd.endDowntime(when)
+    if (down_fd.checkDowntime(entry=entry_name, security_class=sec_name, check_time=when)or (sec_name=="All")): 
+        #only terminate downtime if there was an open period
+        down_fd.endDowntime(end_time=when,entry=entry_name,security_class=sec_name)
     return 0
 
+# This function replaces "check", which does not take into account
+# security classes.  This function will read the downtimes file
+# and parse it to determine whether the downtime is relevant to the 
+# security class
+def printtimes(entry_or_id,argv):
+    config_els=get_downtime_fd_dict(entry_or_id,argv)
+    when=0
+    if len(argv)>1:
+        if (re.match("\d*h*\d*m*\ds?$",argv[1])):
+            when=delay2time(argv[1])
+    when+=long(time.time())
+    entry_keys=config_els.keys()
+    entry_keys.sort()
+    for entry in entry_keys:
+        down_fd=config_els[entry]
+        down_fd.printDowntime(entry=entry, check_time=when)
+
+# This function is now deprecated, replaced by printtimes
+# as it does not take into account that an entry can be down for
+# only some security classes.
 def check(entry_or_id,argv):
     config_els=get_downtime_fd_dict(entry_or_id,argv)
 
     when=0
+    sec_name="All"
     if len(argv)>1:
-        when=delay2time(argv[1])
+        if (re.match("\d*h*\d*m*\ds?$",argv[1])):
+            when=delay2time(argv[1])
+            if len(argv)>2:
+                sec_name=argv[2];
+            else:
+                #Format does not match time, must be security class
+                sec_name=argv[1];
 
     when+=long(time.time())
 
@@ -173,7 +223,7 @@ def check(entry_or_id,argv):
     entry_keys.sort()
     for entry in entry_keys:
         down_fd=config_els[entry]
-        in_downtime=down_fd.checkDowntime(when)
+        in_downtime=down_fd.checkDowntime(entry=entry, security_class=sec_name, check_time=when)
         if in_downtime:
             print "%s\tDown"%entry
         else:
@@ -340,7 +390,7 @@ def main(argv):
     elif cmd=='up':
         return up(entry_name,argv[3:])
     elif cmd=='check':
-        return check(entry_name,argv[3:])
+        return printtimes(entry_name,argv[3:])
     elif cmd=='ress':
         return infosys_based(entry_name,argv[3:],['RESS'])
     elif cmd=='bdii':

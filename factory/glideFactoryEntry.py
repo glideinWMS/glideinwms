@@ -203,6 +203,16 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
         if (frontend_whitelist == "On")and(not security_list.has_key(client_security_name)):
                 glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping request %s "%(client_int_name,client_security_name))
                 continue #skip request
+        
+        #Check security class for downtime
+        factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+        glideFactoryLib.log_files.logActivity("Checking downtime for security class: %s (%s)."%(client_security_name,jobDescript.data['EntryName']))
+
+        in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",security_class=client_security_name) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],security_class=client_security_name))
+        if (in_sec_downtime):
+                glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(client_security_name,jobDescript.data['EntryName']))
+                continue #skip request
+            
 
 
         # Check if proxy passing is compatible with allowed_proxy_source
@@ -459,10 +469,9 @@ def iterate(parent_pid,sleep_time,advertize_rate,
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
-    entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
         check_parent(parent_pid)
-        in_downtime=(factory_downtimes.checkDowntime() or entry_downtimes.checkDowntime())
+        in_downtime=(factory_downtimes.checkDowntime(entry="factory") or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
         if in_downtime:
             glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
         else:
