@@ -1,7 +1,12 @@
-####################################
 #
-# Functions needed to create files
-# used by the glidein entry points
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cgWCreate.py,v 1.49.2.1.8.2 2010/08/31 18:49:15 parag Exp $
+#
+# Description:
+#   Functions needed to create files used by the glidein entry points
 #
 # Author: Igor Sfiligoi
 #

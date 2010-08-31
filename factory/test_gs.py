@@ -1,3 +1,11 @@
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: test_gs.py,v 1.1.1.1.28.1 2010/08/31 18:49:16 parag Exp $
+#
+
 import condorMonitor
 condorMonitor.set_path("/home/sfiligoi/condor/dist/bin")
 

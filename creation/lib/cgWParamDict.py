@@ -1,10 +1,15 @@
-#######################################################
 #
-# Glidein creation module
-# Classes and functions needed to handle dictionary files
-# created out of the parameter object
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cgWParamDict.py,v 1.123.2.5.8.3 2010/08/31 18:49:15 parag Exp $
+#
+# Description:
+#   Glidein creation module
+#   Classes and functions needed to handle dictionary files
+#   created out of the parameter object
+#
 
 import os,os.path,shutil,string
 import cWParams

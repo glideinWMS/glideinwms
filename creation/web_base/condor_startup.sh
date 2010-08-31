@@ -1,7 +1,14 @@
 #!/bin/bash
-
-# This script starts the condor daemons
-# expects a config file as a parameter
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condor_startup.sh,v 1.48.18.1 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+# This script starts the condor daemons expects a config file as a parameter
+#
 
 # first of all, clean up any CONDOR variable
 condor_vars=`env |awk '/^_[Cc][Oo][Nn][Dd][Oo][Rr]_/{split($1,a,"=");print a[1]}'`

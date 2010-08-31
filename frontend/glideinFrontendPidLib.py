@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendPidLib.py,v 1.2.24.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description:
 #  Handle frontend pids
 # 

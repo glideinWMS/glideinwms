@@ -1,4 +1,9 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendPlugins.py,v 1.14.24.1 2010/08/31 18:49:17 parag Exp $
 #
 # Description:
 #  This module implements plugins for the VO frontend

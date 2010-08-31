@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidein_startup.sh,v 1.85.18.2 2010/08/31 18:49:16 parag Exp $
+#
 
 function warn {
  echo `date` $@

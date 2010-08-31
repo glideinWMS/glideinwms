@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.24.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description:
 #   This module implements the functions needed
 #   to aggregate the monitoring fo the frontend

@@ -1,11 +1,15 @@
-####################################
 #
-# Functions needed to create files
-# used by the VO Frontend 
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cvWCreate.py,v 1.7.8.4.2.4 2010/08/31 18:49:15 parag Exp $
+#
+# Description: 
+#   Functions needed to create files used by the VO Frontend 
 #
 # Author: Igor Sfiligoi
 #
-####################################
 
 import os,os.path
 import stat

@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description:
 #   This module implements the functions needed to advertize
 #   and get resources from the Collector

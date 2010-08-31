@@ -1,5 +1,12 @@
 #
-# factory/tool specific condorLogs helper
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: gWftLogParser.py,v 1.9.28.1 2010/08/31 18:49:17 parag Exp $
+#
+# Description:
+#   factory/tool specific condorLogs helper
 #
 
 import time,os.path,mmap,re

@@ -1,4 +1,9 @@
-######################################################
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cWParams.py,v 1.16.18.1 2010/08/31 18:49:15 parag Exp $
 #
 # Desscription:
 #   This module contains the generic params classes
@@ -9,7 +14,6 @@
 # Author:
 #   Igor Sfiligoi
 #
-######################################################
 
 import os
 import copy

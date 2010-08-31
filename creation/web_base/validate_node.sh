@@ -1,7 +1,14 @@
 #!/bin/bash
 
 #
-# This script checks that the node is in good shape
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: validate_node.sh,v 1.6.24.1 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+#   This script checks that the node is in good shape
 #
 
 function check_df {

@@ -1,10 +1,15 @@
-#######################################################
 #
-# Frontend creation module
-# Classes and functions needed to handle dictionary files
-# created out of the parameter object
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cvWParamDict.py,v 1.47.2.3.2.3 2010/08/31 18:49:15 parag Exp $
+#
+# Description: 
+#   Frontend creation module
+#   Classes and functions needed to handle dictionary files
+#   created out of the parameter object
+#
 
 import os,os.path,shutil,string
 import cWParams

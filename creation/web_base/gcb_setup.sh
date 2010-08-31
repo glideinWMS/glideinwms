@@ -1,10 +1,15 @@
 #!/bin/bash
 
-############################################################
 #
-# This script will setup the GCB parameters
+# Project:
+#   glideinWMS
 #
-############################################################
+# File Version: 
+#   $Id: gcb_setup.sh,v 1.18.24.1 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+#   This script will setup the GCB parameters
+#
 
 glidein_config=$1
 

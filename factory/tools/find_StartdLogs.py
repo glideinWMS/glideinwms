@@ -1,8 +1,13 @@
 #!/bin/env python
 #
-# find_StartdLogs.py
+# Project:
+#   glideinWMS
 #
-# Print out the StartdLogs for a certain date
+# File Version: 
+#   $Id: find_StartdLogs.py,v 1.4.24.1 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+#   Print out the StartdLogs for a certain date
 #
 # Usage: find_StartdLogs.py <factory> YY/MM/DD [hh:mm:ss]
 #

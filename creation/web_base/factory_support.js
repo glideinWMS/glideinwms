@@ -1,4 +1,10 @@
 /*
+ * Project:
+ *   glideinWMS
+ *
+ * File Version: 
+ *   $Id: factory_support.js,v 1.3.8.4.8.1 2010/08/31 18:49:16 parag Exp $
+ *
  * Support javascript module for the gfactroy monitoring
  * Part of the gldieinWMS package
  *

@@ -1,4 +1,9 @@
-###########################################################
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cgWParams.py,v 1.63.2.2.8.2 2010/08/31 18:49:15 parag Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -6,7 +11,6 @@
 # Author:
 #   Igor Sfiligoi
 #
-##########################################################
 
 import os
 import copy

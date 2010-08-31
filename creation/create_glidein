@@ -1,6 +1,12 @@
 #!/bin/env python
 
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: create_glidein,v 1.144.6.1.8.1 2010/08/31 18:49:15 parag Exp $
+#
 # Description:
 #  This program creates a glidein factory directory structure
 #  based on a configuration file

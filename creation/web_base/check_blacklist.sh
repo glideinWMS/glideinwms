@@ -1,7 +1,13 @@
 #!/bin/bash
-
 #
-# This script checks that the node is not in a blacklist
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: check_blacklist.sh,v 1.1.24.1 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+#   This script checks that the node is not in a blacklist
 #
 
 function check_blacklist {

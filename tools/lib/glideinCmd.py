@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinCmd.py,v 1.14.28.1 2010/08/31 18:49:18 parag Exp $
+#
 # Description:
 #  Helper module for all glideinWMS pseudo-interactive commands
 #

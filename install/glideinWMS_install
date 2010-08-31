@@ -1,5 +1,15 @@
 #!/bin/env python
 
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinWMS_install,v 1.265.2.9.2.8 2010/08/31 18:49:17 parag Exp $
+#
+# Description:
+#   glideinWMS Installer
+
 import sys,os,os.path,string,time
 import pwd,grp
 import shutil

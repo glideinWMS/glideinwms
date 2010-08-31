@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactoryInterface.py,v 1.44.20.2 2010/08/31 18:49:16 parag Exp $
+#
 # Description:
 #   This module implements the functions needed to advertize
 #   and get commands from the Collector

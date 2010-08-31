@@ -1,6 +1,17 @@
 import string
 import os.path
 
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendConfig.py,v 1.20.2.3.2.1 2010/08/31 18:49:17 parag Exp $
+#
+# Description:
+#   Frontend config related classes
+#
+
 ############################################################
 #
 # Configuration

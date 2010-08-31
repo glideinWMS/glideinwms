@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condorSecurity.py,v 1.1.4.1.2.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description:
 #   This module implements classes that will setup
 #   the Condor security as needed

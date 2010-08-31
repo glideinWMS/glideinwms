@@ -1,11 +1,15 @@
-####################################
 #
-# Keep all the constants used in 
-# the glideinWMS
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cWConsts.py,v 1.4.26.1 2010/08/31 18:49:15 parag Exp $
+#
+# Description:
+#   Keep all the constants used in the glideinWMS
 #
 # Author: Igor Sfiligoi
 #
-####################################
 
 import time
 import string

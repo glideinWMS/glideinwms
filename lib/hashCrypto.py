@@ -1,9 +1,12 @@
-##########################################
+# Project:
+#   glideinWMS
 #
-# This module defines classes to perform
-# hash based cryptography
+# File Version: 
+#   $Id: hashCrypto.py,v 1.6.26.1 2010/08/31 18:49:17 parag Exp $
 #
-##########################################
+# Description:
+#   This module defines classes to perform hash based cryptography
+#
 
 import M2Crypto
 import os,binascii

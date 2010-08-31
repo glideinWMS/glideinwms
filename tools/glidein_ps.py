@@ -1,6 +1,10 @@
 #!/bin/env python
 #
-# glidein_ps.py
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidein_ps.py,v 1.2.28.1 2010/08/31 18:49:17 parag Exp $
 #
 # Description:
 #   Execute a ps command on a condor job

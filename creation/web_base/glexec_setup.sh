@@ -1,10 +1,15 @@
 #!/bin/bash
 
-############################################################
 #
-# This script will setup the gLExec parameters
+# Project:
+#   glideinWMS
 #
-############################################################
+# File Version: 
+#   $Id: glexec_setup.sh,v 1.17.18.2 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+#   This script will setup the gLExec parameters
+#
 
 # Configuration in case GLEXEC should not be used
 function no_use_glexec_config {

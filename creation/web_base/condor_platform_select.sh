@@ -1,12 +1,17 @@
 #!/bin/bash
 
-############################################################
 #
-# This script will select the appropriate condor tarball
-# Must be listed in the file_list before the condor tarballs
-#  as it turns on one of them
+# Project:
+#   glideinWMS
 #
-############################################################
+# File Version: 
+#   $Id: condor_platform_select.sh,v 1.2.22.2 2010/08/31 18:49:16 parag Exp $
+#
+# Description:
+#   This script will select the appropriate condor tarball
+#   Must be listed in the file_list before the condor tarballs
+#   as it turns on one of them
+#
 
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp

@@ -1,12 +1,16 @@
-###########################################################
 #
-# Desscription:
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cvWParams.py,v 1.40.2.3.2.1 2010/08/31 18:49:15 parag Exp $
+#
+# Description:
 #   This module contains the create_frontend params class
 #
 # Author:
 #   Igor Sfiligoi
 #
-##########################################################
 
 import os
 import copy

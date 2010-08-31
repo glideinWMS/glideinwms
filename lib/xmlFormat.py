@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: xmlFormat.py,v 1.15.26.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description: general purpose XML formatter
 #
 # Author:

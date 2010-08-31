@@ -1,5 +1,12 @@
 #
-# Argument parser helper
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: gWftArgsHelper.py,v 1.1.28.1 2010/08/31 18:49:17 parag Exp $
+#
+# Description:
+#   Argument parser helper
 #
 
 def str2int_range(str,min,max):

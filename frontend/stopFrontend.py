@@ -1,5 +1,11 @@
 #!/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: stopFrontend.py,v 1.7.8.1.8.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description:
 #   Stop a running glideinFrontend
 # 

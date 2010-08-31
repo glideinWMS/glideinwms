@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: job_submit.sh,v 1.6.8.1.8.1 2010/08/31 18:49:16 parag Exp $
+#
 
 export GLIDEIN_USER=`id -u -n`
 

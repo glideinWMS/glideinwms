@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendMonitoring.py,v 1.8.22.1 2010/08/31 18:49:17 parag Exp $
+#
 # Description:
 #   This module implements the functions needed
 #   to monitor the VO frontend
@@ -132,7 +138,7 @@ class groupStats:
         return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated(self):
+    def get_updated():
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -365,7 +371,7 @@ class factoryStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated(self):
+    def get_updated():
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):

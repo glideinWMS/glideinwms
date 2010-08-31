@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: local_start.sh,v 1.4.10.1.8.1 2010/08/31 18:49:16 parag Exp $
+#
+
 export GLIDEIN_USER=`id -u -n`
 
 if [ $# -lt 2 ]; then

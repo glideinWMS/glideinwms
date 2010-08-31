@@ -1,12 +1,15 @@
-####################################
 #
-# Keep all the constants used to
-# create glidein entries in this
-# module
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cgWConsts.py,v 1.23.6.2.8.1 2010/08/31 18:49:15 parag Exp $
+#
+# Description:
+#   Keep all the constants used to create glidein entries in this module
 #
 # Author: Igor Sfiligoi
 #
-####################################
 
 import os.path
 import cWConsts
