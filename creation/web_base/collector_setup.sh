@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: collector_setup.sh,v 1.5.24.1 2010/08/31 18:49:16 parag Exp $
+#   $Id: collector_setup.sh,v 1.5.24.2 2010/08/31 20:18:06 dstrain Exp $
 #
 # Description:
 #   This script will setup the Collector parameters
@@ -17,7 +17,7 @@ glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
 function warn {
- echo `date` $@
+ echo `date` $@ 1>&2
 }
 
 # import add_config_line function

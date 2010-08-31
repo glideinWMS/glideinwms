@@ -4,11 +4,11 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.85.18.2 2010/08/31 18:49:16 parag Exp $
+#   $Id: glidein_startup.sh,v 1.85.18.3 2010/08/31 20:18:06 dstrain Exp $
 #
 
 function warn {
- echo `date` $@
+ echo `date` $@ 1>&2
 }
 
 function usage {
@@ -850,7 +850,7 @@ function fetch_file_base {
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
 	    if [ $ret -ne 0 ]; then
-                echo "=== Validation error in $ffb_outname ==="
+                echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2
 		return 1
 	    fi
