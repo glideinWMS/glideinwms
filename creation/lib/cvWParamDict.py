@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.47.2.3.2.3 2010/08/31 18:49:15 parag Exp $
+#   $Id: cvWParamDict.py,v 1.47.2.3.2.3.4.1 2010/09/02 20:05:56 sfiligoi Exp $
 #
 # Description: 
 #   Frontend creation module
@@ -426,6 +426,7 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
+        frontend_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
 
         frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 
