@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2 2010/08/31 18:49:16 parag Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.1 2010/09/02 18:58:50 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -58,6 +58,9 @@ class FactoryConfig:
         # The name of the signtype
         self.factory_signtype_id = "SupportedSignTypes"
         self.client_web_signtype_suffix = "SignType"
+
+        # Should we use TCP for condor_advertise?
+        self.advertise_use_tcp=False
 
         # warning log files
         # default is FakeLog, any other value must implement the write(str) method
@@ -239,7 +242,7 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s"%tmpnam)
+        exe_condor_advertise(tmpnam,"UPDATE_MASTER_AD")
     finally:
         os.remove(tmpnam)
 
@@ -257,7 +260,7 @@ def deadvertizeGlidein(factory_name,glidein_name,entry_name):
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s"%tmpnam)
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
     finally:
         os.remove(tmpnam)
     
@@ -304,7 +307,7 @@ def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_LICENSE_AD %s"%tmpnam) # must use a different AD that the frontend
+        exe_condor_advertise(tmpnam,"UPDATE_LICENSE_AD") # must use a different AD that the frontend
     finally:
         os.remove(tmpnam)
 
@@ -322,7 +325,7 @@ def deadvertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,clie
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_LICENSE_ADS %s"%tmpnam)
+        exe_condor_advertise(tmpnam,"INVALIDATE_LICENSE_ADS")
     finally:
         os.remove(tmpnam)
 
@@ -340,8 +343,24 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_LICENSE_ADS %s"%tmpnam)
+        exe_condor_advertise(tmpnam,"INVALIDATE_LICENSE_ADS")
     finally:
         os.remove(tmpnam)
 
 
+############################################################
+#
+# I N T E R N A L - Do not use
+#
+############################################################
+
+def usetcp2str(use_tcp):
+    if use_tcp:
+        return ""
+    else:
+        return "-tcp"
+
+
+def exe_condor_advertise(fname,command):
+    return condorExe.exe_cmd("../sbin/condor_advertise","%s%s %s"%(usetcp2str(factoryConfig.advertise_use_tcp),command,fname))
+    
