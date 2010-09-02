@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1 2010/08/31 18:49:17 parag Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.1 2010/09/02 19:05:32 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -53,6 +53,9 @@ class FrontendConfig:
         # The name of the signtype
         self.factory_signtype_id = "SupportedSignTypes"
 
+
+        # Should we use TCP for condor_advertise?
+        self.advertise_use_tcp=False
 
         self.condor_reserved_names=("MyType","TargetType","GlideinMyType","MyAddress",'UpdatesHistory','UpdatesTotal','UpdatesLost','UpdatesSequenced','UpdateSequenceNumber','DaemonStartTime')
 
@@ -436,7 +439,7 @@ def advertizeWorkFromFile(factory_pool,
                           fname,
                           remove_file=True):
     try:
-        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s %s"%(pool2str(factory_pool),fname))
+        exe_condor_advertise(fname,"UPDATE_MASTER_AD",factory_pool)
     finally:
         if remove_file:
             os.remove(fname)
@@ -568,7 +571,7 @@ def deadvertizeWork(factory_pool,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s %s"%(pool2str(factory_pool),tmpnam))
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS",factory_pool)
     finally:
         os.remove(tmpnam)
 
@@ -589,7 +592,7 @@ def deadvertizeAllWork(factory_pool,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s %s"%(pool2str(factory_pool),tmpnam))
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS",factory_pool)
     finally:
         os.remove(tmpnam)
 
@@ -603,5 +606,16 @@ def pool2str(pool_name):
     if pool_name==None:
         return ""
     else:
-        return "-pool %s"%pool_name
+        return "-pool %s "%pool_name
 
+def usetcp2str(use_tcp):
+    if use_tcp:
+        return ""
+    else:
+        return "-tcp "
+
+
+def exe_condor_advertise(fname,command,
+                         factory_pool):
+    return condorExe.exe_cmd("../sbin/condor_advertise","%s%s %s%s"%(usetcp2str(frontendConfig.advertise_use_tcp),command,pool2str(factory_pool),fname))
+    
