@@ -49,6 +49,26 @@ def perform_work(entry_name,
                  x509_proxy_fnames,x509_proxy_usernames,
                  client_web,
                  params):
+    """
+    Queries the WMS Collector and does work if needed.
+    
+    
+    @param entry_name: Name of the entry point
+    @param schedd_name: Name of the Condor Schedd for the entry
+    @param client_name: Name of the client
+    @param client_int_name: Internal name of the client
+    @param client_int_req: Internal client request
+    @param idle_glideins: Number of idle glideins in a request
+    @param max_running: Max number of running glideins allowed
+    @param max_held: Max number of held glideins allowed
+    @param jobDescript: Dictionary of 
+    @param x509_proxy_fnames: List of proxy filenames
+    @param x509_proxy_usernames: List of proxy usernames
+    @param client_web:
+    @param params: Dictionary of parameters from the request
+    @return:  Returns 1 if glideins were submitted, 0 if not
+    """
+    
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -106,49 +126,27 @@ def perform_work(entry_name,
 
     submit_attrs=[]
 
-    # KEL++ determine chunk size 
     entry_min = int(jobDescript.data['MinChunkSize'])
     entry_max = int(jobDescript.data['MaxChunkSize'])
     job_chunk_size = entry_min
-    if params.has_key("GLIDEIN_ReqIdleChunkSize"):
+    if params.has_key("ReqIdleChunkSize"):
         try:
-            job_chunk_size = int(params["GLIDEIN_ReqIdleChunkSize"])
+            job_chunk_size = int(params["ReqIdleChunkSize"])
         except:
-            glideFactoryLib.log_files.logActivity("Client '%s', has requested an invalid chunk size %s, skipping"%(client_int_name,params["GLIDEIN_ReqIdleChunkSize"]))
-            glideFactoryLib.log_files.logWarning("Glideins not started because chunk size %s requested by the frontend is not an integer " %params["GLIDEIN_ReqIdleChunkSize"])
+            glideFactoryLib.log_files.logActivity("Client '%s', has requested an invalid chunk size %s, skipping"%(client_int_name,params["ReqIdleChunkSize"]))
+            glideFactoryLib.log_files.logWarning("Glideins not started because chunk size %s requested by the frontend is not an integer " %params["ReqIdleChunkSize"])
             return 0 # work done
     
         if not (entry_min <= job_chunk_size <= entry_max):
             #requested chunk size not available in this entry
-            glideFactoryLib.log_files.logActivity("Client '%s', has requested an invalid chunk size %s, skipping"%(client_int_name,params["GLIDEIN_ReqIdleChunkSize"]))
+            glideFactoryLib.log_files.logActivity("Client '%s', has requested an invalid chunk size %s, skipping"%(client_int_name,params["ReqIdleChunkSize"]))
             glideFactoryLib.log_files.logWarning("Glideins not started because chunk size %s requested by the frontend is not between %s and %s " \
-                                                 %(params["GLIDEIN_ReqIdleChunkSize"], jobDescript.data['MinChunkSize'], jobDescript.data['MaxChunkSize']))
+                                                 %(params["ReqIdleChunkSize"], jobDescript.data['MinChunkSize'], jobDescript.data['MaxChunkSize']))
             return 0 # work done
-
-    # KEL++ if the chunk size is one or there is only one proxy, the old code works fine
-    # other cases so split apart, may be able to come up with something better
-    # use the extended params for submission
-#    proxy_fraction=1.0/len(x509_proxy_keys)
-
-    # I will shuffle proxies around, so I may as well round up all of them
-#    idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
-#    max_running_pproxy=math.ceil(max_running*proxy_fraction)
-
-    # not reducing the held, as that is effectively per proxy, not per request
-#    nr_submitted=0
-    # KEL++ added new param, chunk size to be passed in
-#    for x509_proxy_id in x509_proxy_keys:
-#        nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
-#                                                       idle_glideins_pproxy,max_running_pproxy,max_held,job_chunk_size,submit_attrs,
-#                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
-#                                                       client_web,params)
-
 
     # not reducing the held, as that is effectively per proxy, not per request 
     nr_submitted=0
-
-    # KEL++ split glidein requests to the different conditions (this is the old code)
-    if len(x509_proxy_keys)==1 or job_chunk_size==1:       
+    if len(x509_proxy_keys)==1 or job_chunk_size==1:    # old code, supports one proxy or multiple proxies with chunk size of 1   
         # use the extended params for submission
         proxy_fraction=1.0/len(x509_proxy_keys)
 
@@ -156,8 +154,8 @@ def perform_work(entry_name,
         idle_glideins_pproxy=math.ceil(idle_glideins*proxy_fraction)
         max_running_pproxy=math.ceil(max_running*proxy_fraction)
 
-        # KEL++ added new param, chunk size to be passed in
         for x509_proxy_id in x509_proxy_keys:
+            glideFactoryLib.log_files.logActivity("KEL in find_and_perform_work for loop, (per proxy) %i idle g, %i max_run"%(idle_glideins_pproxy,max_running_pproxy))
             nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
                                                            idle_glideins_pproxy,max_running_pproxy,max_held,job_chunk_size,submit_attrs,
                                                            x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
@@ -619,7 +617,6 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryLib.factoryConfig.max_releases=int(jobDescript.data['MaxReleaseRate'])
     glideFactoryLib.factoryConfig.release_sleep=float(jobDescript.data['ReleaseSleep'])
     
-    # KEL++ add chunk size
     glideFactoryLib.factoryConfig.min_chunk_size=int(jobDescript.data['MinChunkSize'])
     glideFactoryLib.factoryConfig.max_chunk_size=float(jobDescript.data['MaxChunkSize'])
 
