@@ -52,23 +52,46 @@ def create_condor_tar_fd(condor_base_dir):
 
 
 ##########################################
-# Condor submit file dictionary
 class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
+    
+    """
+    Condor submit file dictionary
+    
+    Dictionary containing the key-value pairs used in creating the Condor submit file for a condor-g job. 
+    """
+    
     def populate(self,
                  exe_fname,
                  factory_name,glidein_name,entry_name,
                  gridtype,gatekeeper,rsl,
                  web_base,proxy_url,
                  work_dir,client_log_base_dir):
+        """
+        Populates the key-value pairs in the Condor submit file for an entry.
+        
+        Each entry has a corresponding Condor submit file containing key value pairs.  The following
+        parameters come from the factory config file.
+        
+        @param exe_name: Name of the executable, for now is glidein_startup.sh
+        @param factory_name: Name of the factory
+        @glidein_name: Name of the glidein
+        @param entry_name: Name of the entry
+        @param gridtype: Grid type of the entry
+        @gatekeeper: Name of the gatekeeper
+        @rsl:  The default rsl contained in the factory config file
+        @web_base: Location of the staging area for the glideins
+        @proxy_url: Location of the glidein proxy
+        @work_dir: Location the working directory for the glidein
+        @client_log_base_dir: Location of base directory for logging at the client
+        @raise e: RuntimeError if an rsl string is provided for a gridtype that does not support rsl
+        """
+        
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
-            # KEL++  this additional rsl string will be put into the env of the condor job submit
-            # eventually will be completely dynamic with some part coming from the frontend (esp Corral)
-            # this may also no longer be an if statement with rsl defined in the factory config, will only be determined on the fly
-            # and always contain at least count, jobtype, and queue (at least for gt2, others not used for now, may have diff
-            # requirements 
-            rsl+='$ENV(GLIDEIN_RSL)'
+            # This additional rsl string is put into the env of the condor submit.  Always contains count,  
+            # jobtype, and queue (at least for gt2, others not used for now and may have diff requirements)
+            rsl+='$ENV(GLIDEIN_ADDITIONAL_RSL)'
             if gridtype=='gt2':
                self.add("globus_rsl",rsl)
             elif gridtype=='gt4':
@@ -92,8 +115,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             self.add('+GlideinProxyURL','"%s"'%proxy_url)
         self.add('+GlideinLogNr','"$ENV(GLIDEIN_LOGNR)"')
         self.add('+GlideinWorkDir','"%s"'%work_dir)
-        
-        # KEL++ Add new classad param to the glidein for monitoring purposes         
+               
         self.add('+GlideinChunkSize','$ENV(GLIDEIN_CHUNK_SIZE)')
         
         self.add("Transfer_Executable","True")
