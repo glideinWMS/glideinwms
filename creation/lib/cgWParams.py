@@ -22,10 +22,18 @@ import cWParams
 
 
 ######################################################
-# Params used by create_glideins and recreate_glideins
 class GlideinParams(cWParams.CommonParams):
+    """
+    Params used by create_glideins and recreate_glideins
+    """
+    
     # populate self.defaults
     def init_defaults(self):
+        """
+        Populates the default values for the glideins.
+        
+        Populates dictionaries of the default values for an entry.  It includes entry parameters and configuration values. 
+        """
      
         self.init_support_defaults()
       
@@ -56,7 +64,6 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
         
-        # KEL++ added min and max chunk size
         entry_config_max_jobs_defaults=cWParams.commentedOrderedDict()
         entry_config_max_jobs_defaults["min"]=('1',"nr","Minimum number of glideins that can be requested per glidein submission.",None)
         entry_config_max_jobs_defaults["max"]=('1',"nr","Maximum number of glideins that can be requested per glidein submission.",None)
