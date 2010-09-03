@@ -116,13 +116,14 @@ be defined:</P>
 		&lt;frontend frontend_name=&quot;<I>your name</I>&quot;
 		advertise_delay=&quot;<I>seconds</I>&quot;
 		loop_delay=&quot;<I>nr</I>&quot; 
-		advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
+		advertise_with_tcp=&quot;<I>True|False</I>&quot; advertise_with_multiple=&quot;<I>True|False</I>&quot;&gt;
 		</div>
 	The frontend_name is a combination of the frontend
 	and instance names specified during installation. It is used to
 	create VO Frontend instance directory and files. The delay
 	parameters define how active the VO Frontend should be.
-        Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the factory. 
+        Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassAds to the factory,
+        and advertise_with_multiple can enable the condor_advertise -multiple option present in Condor 7.5.4 and up. 
 	</P></li>
 	<LI><P>
 		<div class="xml">
