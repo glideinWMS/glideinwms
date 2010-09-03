@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.4 2010/09/03 22:30:35 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.5 2010/09/03 23:19:10 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -434,6 +434,8 @@ def createAdvertizeWorkFile(fname,
                     else:
                         escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
                         fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
+            # add a final empty line... useful when appending
+            fd.write('\n')
         finally:
             fd.close()
     except:
