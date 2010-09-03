@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.2 2010/09/02 19:04:32 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.3 2010/09/03 00:56:12 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -356,9 +356,9 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
 
 def usetcp2str(use_tcp):
     if use_tcp:
-        return ""
-    else:
         return "-tcp "
+    else:
+        return ""
 
 
 def exe_condor_advertise(fname,command):

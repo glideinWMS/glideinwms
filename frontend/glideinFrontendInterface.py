@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.1 2010/09/02 19:05:32 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.2 2010/09/03 00:56:12 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -610,9 +610,9 @@ def pool2str(pool_name):
 
 def usetcp2str(use_tcp):
     if use_tcp:
-        return ""
-    else:
         return "-tcp "
+    else:
+        return ""
 
 
 def exe_condor_advertise(fname,command,
