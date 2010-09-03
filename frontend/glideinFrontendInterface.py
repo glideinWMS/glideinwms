@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.3 2010/09/03 22:09:55 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.4 2010/09/03 22:30:35 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -56,6 +56,8 @@ class FrontendConfig:
 
         # Should we use TCP for condor_advertise?
         self.advertise_use_tcp=False
+        # Should we use the new -multiple for condor_advertise?
+        self.advertise_use_multi=False
 
         self.condor_reserved_names=("MyType","TargetType","GlideinMyType","MyAddress",'UpdatesHistory','UpdatesTotal','UpdatesLost','UpdatesSequenced','UpdateSequenceNumber','DaemonStartTime')
 
@@ -366,10 +368,16 @@ class AdvertizeParams:
 def createAdvertizeWorkFile(fname,
                             descript_obj,            # must be of type FrontendDescriptNoGroup (or child)
                             params_obj,              # must be of type AdvertizeParams
-                            key_obj=None):           # must be of type FactoryKeys4Advertize
+                            key_obj=None,            # must be of type FactoryKeys4Advertize
+                            do_append=False):
     global frontendConfig
 
-    fd=file(fname,"w")
+    if do_append:
+        open_type="a"
+    else:
+        open_type="w"
+        
+    fd=file(fname,open_type)
     try:
         try:
             classad_name="%s@%s"%(params_obj.request_name,descript_obj.my_name)
@@ -437,9 +445,10 @@ def createAdvertizeWorkFile(fname,
 # Can throw a CondorExe/ExeError exception
 def advertizeWorkFromFile(factory_pool,
                           fname,
-                          remove_file=True):
+                          remove_file=True,
+                          is_multi=False):
     try:
-        exe_condor_advertise(fname,"UPDATE_MASTER_AD",factory_pool)
+        exe_condor_advertise(fname,"UPDATE_MASTER_AD",factory_pool,is_multi=is_multi)
     finally:
         if remove_file:
             os.remove(fname)
@@ -453,7 +462,8 @@ def advertizeWorkOnce(factory_pool,
                       key_obj=None,            # must be of type FactoryKeys4Advertize
                       remove_file=True):
     createAdvertizeWorkFile(tmpnam,
-                            descript_obj,params_obj,key_obj)
+                            descript_obj,params_obj,key_obj,
+                            do_append=False)
     advertizeWorkFromFile(factory_pool, tmpnam, remove_file)
 
 # As above, but combine many together
@@ -462,17 +472,48 @@ def advertizeWorkMulti(factory_pool,
                        tmpnam,                 # what fname should should I use
                        descript_obj,           # must be of type FrontendDescriptNoGroup (or child)
                        paramkey_list):         # list of tuple (params_obj,key_obj)
+    if frontendConfig.advertise_use_multi:
+        return advertizeWorkMulti_multi(factory_pool,tmpnam,descript_obj,paramkey_list)
+    else:
+        return advertizeWorkMulti_iterate(factory_pool,tmpnam,descript_obj,paramkey_list)
+
+# INTERNAL2
+def advertizeWorkMulti_iterate(factory_pool,
+                               tmpnam,
+                               descript_obj,
+                               paramkey_list):
     error_arr=[]
     for el in paramkey_list:
         params_obj,key_obj=el
         createAdvertizeWorkFile(tmpnam,
-                                descript_obj,params_obj,key_obj)
+                                descript_obj,params_obj,key_obj,
+                                do_append=False)
         try:
             advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True)
         except condorExe.ExeError, e:
             error_arr.append(e)
     if len(error_arr)>0:
         raise MultiExeError, error_arr
+
+# INTERNAL2
+def advertizeWorkMulti_multi(factory_pool,
+                             tmpnam,
+                             descript_obj,
+                             paramkey_list):
+    ap=False
+    for el in paramkey_list:
+        params_obj,key_obj=el
+        createAdvertizeWorkFile(tmpnam,
+                                descript_obj,params_obj,key_obj,
+                                do_append=ap)
+        ap=True # Append from here on
+    
+    try:
+        advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True,is_multi=True)
+    except condorExe.ExeError, e:
+        # the parent expects a MultiError
+        raise MultiExeError,[e]
+
 
 # END INTERNAL
 ########################################
@@ -614,8 +655,14 @@ def usetcp2str(use_tcp):
     else:
         return ""
 
+def ismulti2str(is_multi):
+    if is_multi:
+        return "-multiple "
+    else:
+        return ""
 
 def exe_condor_advertise(fname,command,
-                         factory_pool):
-    return condorExe.exe_cmd("../sbin/condor_advertise","%s%s %s%s"%(usetcp2str(frontendConfig.advertise_use_tcp),command,pool2str(factory_pool),fname))
+                         factory_pool,
+                         is_multi=False):
+    return condorExe.exe_cmd("../sbin/condor_advertise","%s%s%s %s%s"%(usetcp2str(frontendConfig.advertise_use_tcp),ismulti2str(is_multi),command,pool2str(factory_pool),fname))
     
