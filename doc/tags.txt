@@ -4,6 +4,7 @@ vNext	Bug Fix: Correctly interpret DN from a voms proxy generated from a
 	  certain configuration options. Empty values is not the right way to
 	  reset the configuration options.
 	Add support for use of TCP in condor_advertise
+	Add support for condor_advertise -multiple (Condor v7.5.4+)
 
 v2_4_2	Fixed the incompatibility introduced in v2_4_1 in monitoring components.
 
