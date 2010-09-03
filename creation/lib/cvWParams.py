@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.3.2.1.4.1 2010/09/02 20:05:56 sfiligoi Exp $
+#   $Id: cvWParams.py,v 1.40.2.3.2.1.4.2 2010/09/03 23:14:42 sfiligoi Exp $
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -133,6 +133,7 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
         self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
 
         stage_defaults=cWParams.commentedOrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/vofrontend/stage","base_dir","Stage base dir",None)
