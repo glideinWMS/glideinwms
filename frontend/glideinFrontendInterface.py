@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.2 2010/09/03 00:56:12 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.3 2010/09/03 22:09:55 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -248,7 +248,7 @@ class FrontendDescript(FrontendDescriptNoGroup):
     # return a list of strings
     def get_id_attrs(self):
         return (FrontendDescriptNoGroup.get_id_attrs(self)+
-                ('GroupName = "%s"\n'%self.group_name,))
+                ('GroupName = "%s"'%self.group_name,))
 
     def get_web_attrs(self):
         return (FrontendDescriptNoGroup.get_web_attrs(self)+
@@ -276,12 +276,12 @@ class FactoryKeys4Advertize:
     def get_key_attrs(self):
         glidein_symKey_str=self.glidein_symKey.get_code()
         
-        return ('ReqPubKeyID = "%s"\n'%self.factory_pub_key_id,
-                'ReqEncKeyCode = "%s"\n'%self.factory_pub_key.encrypt_hex(glidein_symKey_str),
+        return ('ReqPubKeyID = "%s"'%self.factory_pub_key_id,
+                'ReqEncKeyCode = "%s"'%self.factory_pub_key.encrypt_hex(glidein_symKey_str),
                 # this attribute will be checked against the AuthenticatedIdentity
                 # this will prevent replay attacks, as only who knows the symkey can change this field
                 # no other changes needed, as Condor provides integrity of the whole classAd
-                'ReqEncIdentity = "%s"\n'%self.encrypt_hex(self.classad_identity))
+                'ReqEncIdentity = "%s"'%self.encrypt_hex(self.classad_identity))
     
     def encrypt_hex(self,str):
         return self.glidein_symKey.encrypt_hex(str)
