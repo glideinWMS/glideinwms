@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.4 2010/09/07 18:26:39 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.5 2010/09/07 20:51:24 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -358,7 +358,7 @@ def createGlideinClientMonitoringFile(fname,
             fd.write('\n')
         finally:
             fd.close()
-    finally:
+    except:
         # remove file in case of problems
         os.remove(fname)
         raise
