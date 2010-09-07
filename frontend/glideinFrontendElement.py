@@ -1,11 +1,5 @@
 #!/bin/env python
 #
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.4 2010/08/31 18:49:17 parag Exp $
-#
 # Description:
 #   This is the main of the glideinFrontend
 #
@@ -319,6 +313,20 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         this_stats_arr=(count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],max_running,
                         count_status['Total'],count_status['Idle'],count_status['Running'],
                         glidein_min_idle,glidein_max_run)
+
+        stats['group'].logFactJobs(
+            glideid_str, count_jobs['Idle'],effective_idle, count_jobs['OldIdle'],
+            count_jobs['Running'])
+
+        stats['group'].logFactSlots(
+            glideid_str, count_status['Total'],count_status['Idle'],
+            count_status['Running'])
+
+        stats['group'].logFactReq(
+            glideid_str, glidein_min_idle, glidein_max_run, {})
+
+        stats['group'].logFactDown(glideid_str, glidein_in_downtime)
+
         if glidein_in_downtime:
             total_down_stats_arr=log_and_sum_factory_line(glideid_str,glidein_in_downtime,this_stats_arr,total_down_stats_arr)
         else:

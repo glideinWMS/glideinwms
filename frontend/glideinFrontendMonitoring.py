@@ -1,10 +1,4 @@
 #
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#   $Id: glideinFrontendMonitoring.py,v 1.8.22.1 2010/08/31 18:49:17 parag Exp $
-#
 # Description:
 #   This module implements the functions needed
 #   to monitor the VO frontend
@@ -131,6 +125,70 @@ class groupStats:
                 el[k]=slots_data[k]
         self.updated=time.time()
 
+
+    def logFactJobs(self, factory, idle, effIdle, oldIdle, running):
+        if not 'factories' in self.data:
+            self.data['factories'] = {}
+
+        factories = self.data['factories']
+        if not factory in factories:
+            factories[factory] = {}
+
+        factories[factory]['Jobs'] = {'Idle': idle,
+                                        'EffectiveIdle': effIdle,
+                                        'OldIdle': oldIdle,
+                                        'Running': running
+                                        }
+
+        self.update=time.time()
+
+    def logFactDown(self, factory, isDown):
+        if not 'factories' in self.data:
+            self.data['factories'] = {}
+
+        factories = self.data['factories']
+        if not factory in factories:
+            factories[factory] = {}
+
+        if isDown:
+            factories[factory]['Down'] = 'Down'
+        else:
+            factories[factory]['Down'] = 'Up'
+
+        self.updated = time.time()
+
+    def logFactSlots(self, factory, total, idle, running):
+        if not 'factories' in self.data:
+            self.data['factories'] = {}
+
+        factories = self.data['factories']
+        if not factory in factories:
+            factories[factory] = {}
+
+        factories[factory]['Slots'] = {'Total': total,
+                                        'Idle': idle,
+                                        'Running': running
+                                        }
+
+        self.update=time.time()
+            
+        
+    def logFactReq(self, factory, reqIdle, reqMaxRun, params):
+        if not 'factories' in self.data:
+            self.data['factories'] = {}
+
+        factories = self.data['factories']
+        if not factory in factories:
+            factories[factory] = {}
+        
+
+        factories[factory]['Requested'] = {'Idle': reqIdle,
+                                           'MaxRun': reqMaxRun,
+                                           'Parameters': copy.deepcopy(params)
+                                           }
+
+        self.updated = time.time()
+
     def get_data(self):
         return copy.deepcopy(self.data)
 
@@ -166,6 +224,10 @@ class groupStats:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<VOFrontendGroupStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 xmlFormat.dict2string(self.data['factories'], dict_name='factories',
+                                       el_name='factory', subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
+                                       indent_tab=xmlFormat.DEFAULT_TAB,
+                                       leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  xmlFormat.class2string(self.data['Jobs'],'Jobs',indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  xmlFormat.class2string(self.data['Slots'],'Slots',indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</VOFrontendGroupStats>\n")
