@@ -1,10 +1,4 @@
 #
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2 2010/08/31 18:49:16 parag Exp $
-#
 # Description:
 #   This module implements the functions needed
 #   to monitor the glidein factory
@@ -13,10 +7,11 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
-import os,os.path
+import os,os.path, sys
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
 import rrdSupport
+from datetime import datetime
 
 import logSupport
 import glideFactoryLib
@@ -49,6 +44,7 @@ class MonitoringConfig:
         self.rrd_obj=rrdSupport.rrdSupport()
 
         self.my_name="Unknown"
+
 
     def config_log(self,log_dir,max_days,min_days,max_mbs):
         self.log_dir=log_dir
@@ -92,8 +88,9 @@ class MonitoringConfig:
             fd.close()
 
     def write_file(self,relative_fname,str):
+        print "CWD:", os.getcwd()
         fname=os.path.join(self.monitor_dir,relative_fname)
-        #print "Writing "+fname
+        print "Writing "+fname
         fd=open(fname+".tmp","w")
         try:
             fd.write(str+"\n")
@@ -193,12 +190,15 @@ class MonitoringConfig:
 #
 #########################################################################################################################################
 
+
 class condorQStats:
     def __init__(self):
         self.data={}
         self.updated=time.time()
 
         self.files_updated=None
+
+
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
                          'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
@@ -208,6 +208,8 @@ class condorQStats:
         """
         qc_status is a dictionary of condor_status:nr_jobs
         """
+ 
+        # if client exists in data, 
         if self.data.has_key(client_name):
             t_el=self.data[client_name]
         else:
@@ -381,7 +383,6 @@ class condorQStats:
             # files updated recently, no need to redo it
             return 
         
-
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<glideFactoryEntryQStats>\n'+
@@ -434,14 +435,85 @@ class condorQStats:
 
         self.files_updated=self.updated        
         return
-    
-#########################################################################################################################################
+ 
+
+# #############################################################################
+#
+# completedStats()
+#
+# This class handles data from completed_jobs_<date>.log
+#
+# ########################################
+
+class completedStats:
+
+                                       #  2h,   12h, 1 day, 2 days, 7 days
+    def __init__(self, interval_list = [7200, 43200, 86400, 259200, 604800]):
+        
+        self.updated=time.time()
+
+        self.files_updated=None
+
+        self.interval_list = interval_list
+
+    def get_updated():
+        return self.updated
+
+    def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
+                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
+                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
+                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
+                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
+                              "human":timeConversion.getHuman(self.updated)}}
+        return xmlFormat.dict2string(xml_updated,
+                                     dict_name="updated",el_name="timezone",
+                                     subtypes_params={"class":{}},
+                                     indent_tab=indent_tab,leading_tab=leading_tab)
+
+    def write_file(self, entry_name):
+        global monitoringConfig
+
+        if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
+            # files updated recently, no need to redo it
+            return 
+
+        intv_dict = glideFactoryLib.totalsDict(entry_name, 
+                            datetime.now(), self.interval_list, "v1_0")
+
+        xml_str = ("<AnalyzedEntriesXML>"+"\n"+
+                      self.get_xml_updated(leading_tab="  ")+"\n"+
+                   "  <total>"+"\n"+
+                        xmlFormat.dict2string(intv_dict['total']['periods'],
+                                dict_name="periods",
+                                  el_name="period", subtypes_params={"class":{}},
+                                            leading_tab="    ")+"\n"+
+                   "  </total>"+"\n"+
+                        xmlFormat.dict2string(intv_dict['frontends'],
+                                dict_name="frontends",
+                                  el_name="frontend",
+                                    subtypes_params=
+                                       {"class":
+                                           {"dicts_params":
+                                               {"periods":
+                                                   {"el_name":
+                                                        "period",
+                                                        "subtypes_params":
+                                                            {"class":{}}}}}}, leading_tab="  ")+"\n"+
+                   "</AnalyzedEntriesXML>")
+
+        monitoringConfig.write_file("analyze_entry.xml",xml_str)
+
+        self.files_updated=self.updated        
+
+
+############################################################################################################
 #
 #  condorLogSummary
 #
 #  This class handles the data obtained from parsing the glidein log files
 #
-#########################################################################################################################################
+############################################################################################################
 
 class condorLogSummary:
     def __init__(self):

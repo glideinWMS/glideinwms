@@ -1,11 +1,5 @@
 #!/bin/env python
 #
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6 2010/08/31 18:49:16 parag Exp $
-#
 # Description:
 #   This is the main of the glideinFactoryEntry
 #
@@ -37,6 +31,9 @@ import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
 
+
+entry_nm = ""
+
 ############################################################
 def check_parent(parent_pid):
     if os.path.exists('/proc/%s'%parent_pid):
@@ -55,6 +52,9 @@ def perform_work(entry_name,
                  x509_proxy_fnames,x509_proxy_usernames,
                  client_web,
                  params):
+    global entry_nm
+    entry_nm = entry_name
+
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -354,10 +354,17 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 def write_stats():
     global log_rrd_thread,qc_rrd_thread
     
+    full_name = "entry_" + entry_nm
+
+    glideFactoryLib.log_files.logActivity("Entry Name: %s" % entry_nm)
+    glideFactoryLib.log_files.logActivity("Full entry Name: %s" % full_name)
+    
     glideFactoryLib.factoryConfig.log_stats.write_file()
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
+    glideFactoryLib.factoryConfig.cmpl_stats.write_file(full_name)
+    glideFactoryLib.log_files.logActivity("cmpl_stats written")
 
     return
 
@@ -443,6 +450,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
+            glideFactoryLib.factoryConfig.cmpl_stats=glideFactoryMonitoring.completedStats()
             glideFactoryLib.factoryConfig.client_internals = {}
 
             done_something=iterate_one(count==0,in_downtime,
@@ -457,7 +465,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # never fail for stats reasons!
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)                
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))                
         except KeyboardInterrupt:
             raise # this is an exit signal, pass through
         except:
@@ -467,7 +475,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
                 # if not the first pass, just warn
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 
         glideFactoryLib.log_files.cleanup()
 
@@ -570,7 +578,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
             except:
                 tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                                 sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
                 raise
         finally:
             try:
@@ -589,7 +597,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
                                                                                                        glideinDescript.data['GlideinName'],
                                                                                                        jobDescript.data['EntryName']))
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+                glideFactoryLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
     finally:
         pid_obj.relinquish()
 
@@ -604,8 +612,20 @@ def termsignal(signr,frame):
     raise KeyboardInterrupt, "Received signal %s"%signr
 
 if __name__ == '__main__':
+
+#signal.signal(signalnum, handler)
+#Set the handler for signal signalnum to the function handler. 
+
     signal.signal(signal.SIGTERM,termsignal)
     signal.signal(signal.SIGQUIT,termsignal)
     main(sys.argv[1],int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],sys.argv[5])
  
 
+#def perform_work(entry_name,
+               #  schedd_name,
+               #  client_name,client_int_name,client_int_req,
+                # idle_glideins,max_running,max_held,
+                # jobDescript,
+                # x509_proxy_fnames,x509_proxy_usernames,
+                # client_web,
+                # params):

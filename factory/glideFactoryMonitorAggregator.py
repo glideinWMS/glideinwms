@@ -1,10 +1,4 @@
 #
-# Project:
-#   glideinWMS
-#
-# File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1 2010/08/31 18:49:16 parag Exp $
-#
 # Description:
 #   This module implements the functions needed
 #   to aggregate the monitoring fo the glidein factory
@@ -13,11 +7,11 @@
 #   Igor Sfiligoi (May 23rd 2007)
 #
 
-import copy,time,string,os.path
+import copy,time,string,os.path,sys
 import timeConversion
 import xmlParse,xmlFormat
 import glideFactoryMonitoring
-
+import glideFactoryLib
 
 ############################################################
 #
@@ -36,6 +30,7 @@ class MonitorAggregatorConfig:
         # name of the status files
         self.status_relname="schedd_status.xml"
         self.logsummary_relname="log_summary.xml"
+        self.completed_relname="analyze_entry.xml"
 
     def config_factory(self,monitor_dir,entries):
         self.monitor_dir=monitor_dir
@@ -378,6 +373,92 @@ def aggregateLogSummary():
                                                             "ABSOLUTE",updated,val_dict_wastetime)
     
     return status
+
+#------------------
+
+def aggregateCompleted():
+    
+    global monitorAggregatorConfig
+
+    completed={'entries':{},'total':copy.deepcopy({'periods': None})}
+    completed['total'] = {}
+    completed['total']['periods'] = {}
+
+    number_entries=0
+    for entry in monitorAggregatorConfig.entries:
+        # load entry status file
+        completed_fname=os.path.join(os.path.join('monitor/','entry_'+entry),
+                                  "analyze_entry.xml")
+        try:
+            entry_data=xmlParse.xmlfile2dict(completed_fname)
+        except IOError:
+            continue # file not found, ignore
+
+        # update entry 
+        completed['entries'][entry]={'entry_total': entry_data['total'], 'frontends':entry_data['frontends']}
+
+        glideFactoryLib.log_files.logActivity("gets into here1")
+        # update total
+        number_entries+=1
+        for period, type_list in entry_data['total']['periods'].iteritems():
+            #periods = ['3600':{...}, '7200':{...}, ...]
+
+            if period not in completed['total']['periods']:
+                # new one, just copy over
+                completed['total']['periods'][period]={}
+                for type, param_list in type_list.iteritems():
+                    completed['total']['periods'][period][type]={}
+                    for param_name, param_val in param_list.iteritems():
+                        completed['total']['periods'][period][type][param_name] = int(param_val) 
+            else:                
+                # successive sum 
+                for type, param_list in type_list.iteritems():
+                   for param_name, param_val in param_list.iteritems():
+                       if completed['total']['periods'].has_key(period) and completed['total'][p_title][period].has_key(type) and completed['total'][p_title][period][type].has_key(param):
+                           completed['total']['periods'][period][type][param_name] += int(param_val) 
+                            
+
+    # Write xml files
+    updated=time.time()
+
+
+    xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
+             '<CompletedStats>\n'+
+             get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             '   <entries>\n') 
+
+    for entry in completed['entries'].keys():
+        xml_str += ('      <entry name=\"%s\">\n' % entry)
+            
+        xml_str += xmlFormat.dict2string(completed['entries'][entry]['entry_total']['periods'],
+                                dict_name="periods",
+                                  el_name="period",
+                                    subtypes_params=
+                                       {"class": {}},
+                                               leading_tab="         ")+"\n"
+
+        xml_str += xmlFormat.dict2string(completed['entries'][entry]['frontends'],
+                                dict_name="frontends",
+                                  el_name="frontend",
+                                    subtypes_params=
+                                       {"class":
+                                           {"dicts_params":
+                                               {"periods":
+                                                   {"el_name":
+                                                        "period",
+                                                        "subtypes_params":
+                                                            {"class":{}}}}}}, 
+                                                             leading_tab="            ")+"\n      </entry>\n"
+
+    xml_str += "   </entries>" 
+    xml_str += "   <total>" 
+    xml_str += xmlFormat.dict2string(completed["total"]["periods"],dict_name="periods", el_name="period", subtypes_params={"class": {}},leading_tab=xmlFormat.DEFAULT_TAB)
+    xml_str += "   </total>\n" + "</CompletedStats>\n"
+
+    glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.completed_relname,xml_str)
+
+    return completed
+
 
 #################        PRIVATE      #####################
 
