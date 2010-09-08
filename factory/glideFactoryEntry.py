@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.19 2010/09/08 23:22:38 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.20 2010/09/08 23:37:18 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -400,11 +400,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     continue
             else:
                 # old style
-
-    # Advertise the monitoring
-    advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
-                                                                           jobAttributes.data.copy())
-
                 client_web=None
 
             done_something+=perform_work(entry_name,schedd_name,
@@ -448,6 +443,10 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
                                                pub_key_obj,allowed_proxy_source)
     except:
         glideFactoryLib.log_files.logWarning("Advertize failed")
+
+    # Advertise the monitoring
+    advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
+                                                                           jobAttributes.data.copy())
 
     current_qc_data=glideFactoryLib.factoryConfig.qc_stats.get_data()
     for client_name in current_qc_data.keys():
