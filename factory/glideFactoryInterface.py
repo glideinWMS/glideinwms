@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.7 2010/09/08 00:55:25 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.8 2010/09/08 17:37:30 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -289,6 +289,23 @@ def deadvertizeGlidein(factory_name,glidein_name,entry_name):
     finally:
         os.remove(tmpnam)
     
+def deadvertizeFactory(factory_name,glidein_name):
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('Requirements = (FactoryName=?="%s")&&(GlideinName=?="%s")'%(factory_name,glidein_name))
+        finally:
+            fd.close()
+
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
+    finally:
+        os.remove(tmpnam)
+    
 
 ############################################################
 
@@ -491,6 +508,23 @@ def deadvertizeAllGlideinClientMonitoring(factory_name,glidein_name,entry_name):
         os.remove(tmpnam)
 
 
+def deadvertizeFactoryClientMonitoring(factory_name,glidein_name):
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")'%(factory_name,glidein_name))
+        finally:
+            fd.close()
+
+        exe_condor_advertise(tmpnam,"INVALIDATE_LICENSE_ADS")
+    finally:
+        os.remove(tmpnam)
+    
 ############################################################
 #
 # I N T E R N A L - Do not use
