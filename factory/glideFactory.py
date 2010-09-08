@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.4.2 2010/09/08 17:46:16 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.4.3 2010/09/08 18:03:51 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -66,7 +66,7 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
     return crashing_often
 
 ############################################################
-def clean_exit(sleep_time,childs):
+def clean_exit(childs):
     # first send a nice kill signal
     entries=childs.keys()
     entries.sort()
@@ -78,9 +78,14 @@ def clean_exit(sleep_time,childs):
             glideFactoryLib.log_files.logActivity("Entry %s already dead"%entry_name)
             del childs[entry_name] # already dead
 
+    sleep_time=0.1 # start with very little sleep
     while len(childs.keys())>0:
         glideFactoryLib.log_files.logActivity("Sleep")
         time.sleep(sleep_time)
+        # exponentially increase, up to 5 secs
+        sleep_time=sleep_time*2
+        if sleep_time>5:
+            sleep_time=5
         
         entries=childs.keys()
         entries.sort()
@@ -198,7 +203,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     finally:        
         # cleanup at exit
         try:
-            clean_exit(sleep_time,childs)
+            clean_exit(childs)
         finally:
             glideFactoryLib.log_files.logActivity("Deadvertize myself")
             try:
