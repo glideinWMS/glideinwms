@@ -1,0 +1,1864 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Glidein</title>
+
+<script type="text/javascript">
+
+
+//LOAD XML Object if it exits. 
+
+var loading; 
+var frontEndTable; 
+var linkShown = 0; 
+var loading = 1; 
+var updating = 0; 
+var col; 
+var feArryMaster = new Array(); 
+var preUpdateSort; 
+var thead; 
+var updated; 
+var numberRows = 0;
+var totalEntriesMaster;
+var totalEntries;
+var totalEntriesMast; 
+var totalMas;  
+var totalMaster; 
+var total;
+var sorted = 0;
+var previousSort;
+var currentSort; 
+var frontEnds; 
+var listMade = 0; 
+var frontEnd = 0;
+var table; 
+var select;
+var nameLast;
+var txt2 = new Array(1000); 
+var count = 0; 
+var tableMade = 0;  
+var index = 0; 
+var active = 0; 
+var entryName; 
+
+var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
+							"requestMax", "requestIdle", 
+							"cmGlideinRunning", "cmGlideinJobsRunning", "cmGlideinIdle", "cmGlideinJobsIdle", "cmGlideinTotal", "cmGlideinInfoAge");
+						
+var columnArry = new Array("statusrunning", "statusidle", "statuswait", "statuspending", "statusstagein", "statusstageout", "statusother", "statusheld",
+							"requestmax", "requestidle", 
+							"cmglideinrunning", "cmglideinjobsrunning", "cmglideinidle", "cmglideinjobsidle", "cmglideintotal", "cmglideininfoage");
+							
+var columnSearch = new Array("status_running", "status_idle", "status_wait", "status_pending", "status_stage_in", "status_stage_out", "status_other", "status_held",
+							"request_max", "request_idle", 
+							"cm_glidein_running", "cm_glidein_jobs_running", "cm_glidein_idle", "cm_glidein_jobs_idle", "cm_glidein_total", "cm_glidein_info_age");;
+			
+var exactColumns = new Array("Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in", "Status: Stage out", "Status: Unknown",
+							 "Status: Held", "Requested: Max run", "Requested : Idle", "Client Monitor: Claimed", "Client Monitor: User Running",  
+							 "Client Monitor: Unmatched", "Client Monitor: User idle", "Client Monitor: Registered", "Client Monitor: Info age");  	 
+                 
+var preSortedEntriesArry = new Array();
+var preSortedTotalArry = new Array();
+var preFrontEndName = "Total"; 
+
+function showPopUp(hoveritem)
+{
+	var i = hoveritem; 
+	if(preFrontEndName != "Total" && preFrontEndName != "Any")
+	{
+		return; 
+	}
+	if(frontEndTable)
+	{
+		document.getElementById('hoverpopup').removeChild(frontEndTable);
+	}
+	
+	column = hoveritem.cellIndex; 
+	row = hoveritem.id; 
+	frontEndTable = document.createElement('table'); 
+	
+	var entry = totalEntries[row -1]; 
+	hover = document.getElementById("hoverpopup");
+	head = document.getElementById("header");
+    scrollDiv = document.getElementById("scroll"); 
+
+	if(entry.childNodes[1].childNodes.length == 0)
+	{
+		tr1 = document.createElement('tr'); 
+		tr2 = document.createElement('tr'); 
+		tr3 = document.createElement('tr'); 
+		td1 = document.createElement('td');
+		td2 = document.createElement('td');
+		td3 = document.createElement('td'); 
+		cont = document.createTextNode(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data);
+		cont2 = document.createTextNode(exactColumns[column - 1]);
+		cont3 = document.createTextNode("No Frontends Exist");
+
+		td1.appendChild(cont); 
+		td2.appendChild(cont2);
+		td3.appendChild(cont3); 
+
+		tr1.appendChild(td1);
+		tr2.appendChild(td2);
+		tr3.appendChild(td3);
+		
+		frontEndTable.appendChild(tr1);
+		frontEndTable.appendChild(tr2);
+		frontEndTable.appendChild(tr3);
+
+		hover.appendChild(frontEndTable); 
+		
+		hover.style.top = head.offsetTop + hoveritem.offsetTop - 15 - scrollDiv.scrollTop + "px";
+
+		if(column == 16)
+		{
+			hover.style.left = hoveritem.offsetLeft - 90 + "px";
+		}
+		else
+		{
+			hover.style.left = hoveritem.offsetLeft - 70 + "px";
+		}
+
+		hover.style.visibility = "Visible";
+		return; 
+	}
+	hover.appendChild(frontEndTable); 
+
+	tr1 = document.createElement('tr'); 
+	tr2 = document.createElement('tr'); 
+	td1 = document.createElement('td');
+	td2 = document.createElement('td');
+	td3 = document.createElement('td');
+	td4 = document.createElement('td');
+	cont = document.createTextNode(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data);
+	cont2 = document.createTextNode(exactColumns[column - 1]);
+	td1.appendChild(cont); 
+	td2.appendChild(cont2);
+	tr1.appendChild(td1);
+	tr2.appendChild(td2);
+	tr1.appendChild(td3);
+	tr2.appendChild(td4);
+	frontEndTable.appendChild(tr1);
+	frontEndTable.appendChild(tr2);
+
+	numFE = totalEntries[row -1].childNodes[3].childNodes.length; /* How many front ends the specified entry has. */
+	ends = totalEntries[row -1].childNodes[3]; /* The front ends the specifed entry has. */
+	
+	var unsortedFE = new Array(); 
+	var sortedFE = new Array();
+	 
+	for(i = 1; i < numFE; i+=2)
+	{
+		unsortedFE.push(ends.childNodes[i]); 
+	}
+	for(i = 0; i< feArryMaster.length; i++)
+	{
+		for(j = 0; j < unsortedFE.length; j++)
+		{
+			if(feArryMaster[i].attributes[0].nodeValue == unsortedFE[j].attributes[0].nodeValue)
+			{
+				sortedFE.push(unsortedFE[j]); 	
+			}
+		}
+	}
+	
+	if(numFE == 0)
+	{
+		tr3 = document.createElement('tr');
+		td3 = document.createElement('td'); 
+		cont3 = document.createTextNode("No Frontends Exist");
+		td3.appendChild(cont3);
+		tr3.appendChild(td3);
+		frontEndTable.appendChild(tr3);
+	}
+	else
+	{   i = 0;
+		x = 0; 
+		while(i < sortedFE.length)
+		{ 
+			tr = document.createElement('tr'); 
+			td = document.createElement('td'); 
+			txt = document.createTextNode(sortedFE[i].attributes[0].nodeValue + ":");
+			td2 = document.createElement('td');
+			if(column > 0 && column < 9)
+			{
+				if(sortedFE[i].childNodes.length >= 7)
+				{
+					var attArry = new Array(4,1,7,3,5,6,2,0);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
+				}
+				else
+				{
+					txt2 = document.createTextNode(0);
+				}
+			} 
+			else if(column == 9 || column == 10)
+			{
+				if(sortedFE[i].childNodes.length >= 5)
+				{
+					var attArry = new Array(1,0);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
+				}
+				else
+				{
+					txt2 = document.createTextNode(0);
+				}
+			}
+			else
+			{
+				if(sortedFE[i].childNodes.length >= 3)
+				{
+					var attArry = new Array(1,5,0,4,2,3);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
+				}
+				else
+				{
+					txt2 = document.createTextNode(0);
+				}
+			}
+			td.appendChild(txt); 
+			tr.appendChild(td);
+			td2.appendChild(txt2);
+			td2.setAttribute('align', 'right');  
+			tr.appendChild(td2); 
+			frontEndTable.appendChild(tr); 
+			i++; 
+			if(i > 1)
+			{
+				x++; 
+			}
+		}	
+	}
+	
+	hover.appendChild(frontEndTable);
+
+	if(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data.length > 26 && column == 15)	
+	{
+		hover.style.left = hoveritem.offsetLeft - 150 + "px";
+	}
+	else if(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data.length > 31 && column == 16)	
+	{
+		hover.style.left = hoveritem.offsetLeft - 190 + "px";
+	}
+	else if(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data.length > 21 && column == 16)
+	{
+		hover.style.left = hoveritem.offsetLeft - 130 + "px";
+	}
+	else
+	{
+		hover.style.left = hoveritem.offsetLeft - 110 + "px";
+	}
+	hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";
+	hover.style.visibility = "Visible";	
+
+}
+
+function hidePopUp()
+{
+	if(preFrontEndName != "Total" && preFrontEndName != "Any")
+	{
+		return; 
+	}
+	
+	hover = document.getElementById("hoverpopup");
+	hover.style.visibility = "Hidden";
+}
+
+function showErr()
+{
+	alert("The Glidein tool is currently only fully functional on the latest browsers. Update your browser and try again. We apologize for the inconvenience."); 	
+	window.close(); 
+}
+function showTime()
+{
+	updated = updated[0].childNodes[1].attributes[3].firstChild.nodeValue;	
+	document.getElementById("update").innerHTML= "XML last update:   " + updated; 	
+}
+function sortAlphabetical()
+{
+	sorted = 0;
+	currentSort; 
+	index = -2; 
+	sortSignal(); 
+	if(frontEnd == 0)
+	{
+		totalEntries = totalEntriesMaster;
+		total = totalMaster; 
+		numberRows = totalEntries.length;
+		if(active)
+		{
+			active = 0; 
+			selectActive();	
+		}
+		makeTable(); 
+		fillIn();  
+		return; 
+	}
+	loadFrontEnd(nameLast); 
+	if(active)
+	{
+		active = 0; 
+		selectActive();	
+	}
+}
+
+function makeList()
+{
+	var feArry = new Array(); 
+    feArryMaster = feArry; 
+	if(select)
+	{
+		document.getElementById('tempList').removeChild(select);
+	}
+	select = document.createElement("select");
+	select.setAttribute('id','choose');
+	select.setAttribute("onchange", "loadFrontEnd(document.getElementById('choose').value)"); 
+	var def = document.createElement("option"); 
+	defTxt = document.createTextNode("Total (Default)");
+	var any = document.createElement("option"); 
+	anyTxt = document.createTextNode("Any");
+	def.appendChild(defTxt); 
+	select.appendChild(def); 
+	any.appendChild(anyTxt); 
+	select.appendChild(any); 
+	
+	for(i = 0; i< frontEnds.length; i++)
+	{
+		if(i == 0)
+		{
+			feArry.push(frontEnds[i]); 
+			fe = document.createElement("option"); 
+			txt1 = frontEnds[i].attributes.getNamedItem("name").firstChild.data;
+			feTxt = document.createTextNode(txt1);
+			fe.appendChild(feTxt); 
+			select.appendChild(fe); 
+			continue; 	
+		}
+		for(j = 0; j< feArry.length; j++)
+		{
+			if(feArry[j].attributes.getNamedItem("name").firstChild.data == frontEnds[i].attributes.getNamedItem("name").firstChild.data)
+			{
+				break; 	
+			}
+			if( j == (feArry.length - 1) && feArry[j].attributes.getNamedItem("name").firstChild.data != frontEnds[i].attributes.getNamedItem("name").firstChild.data)
+			{
+				feArry.push(frontEnds[i]); 
+				fe = document.createElement("option"); 
+				txt2[count] = frontEnds[i].attributes.getNamedItem("name").firstChild.data;
+				feTxt = document.createTextNode(txt2[count]);
+				fe.appendChild(feTxt);		
+				select.appendChild(fe); 
+				count++; 	
+				break; 
+			}
+		}
+	}
+	
+	listMade = 1;
+	document.getElementById('tempList').appendChild(select);
+
+
+}
+function checkUrl()
+{
+	
+	var url = window.location.search;
+	var contents = new Array();
+	var temp; 
+	var pairsEqSplit = new Array();  
+	if(url) 
+	{
+		url = url.substring(1); 
+		var pairsAndSplit = url.split("&");
+	 
+	   // Load the key/values of the return collection
+	 
+	    for (var i = 0; i < pairsAndSplit.length; i++)
+		{
+        	pairsEqSplit[i] = pairsAndSplit[i].split("=");
+   		}
+		for(i = 0; i< pairsEqSplit.length; i++)
+		{
+			contents[i] = pairsEqSplit[i];
+		}
+		for(i = 0; i< contents.length; i++)
+		{
+			temp = contents[i]; 
+			for(j = 0; j < temp.length; j++)
+			{
+				if(temp[j].search(/view/i) >= 0)
+				{
+					if(temp[j+1].search(/total/i) >= 0)
+					{
+						if(temp[j+1].search(/active/i) >= 0)
+						{
+							active = 0; 
+							selectActive(); 
+							document.getElementById("active").checked = true; 
+						}
+						else
+						{
+							continue;
+						}
+					} 
+					if(temp[j+1] == "Any")
+					{
+						loadFrontEnd("Any"); 
+						select.selectedIndex += 1   	
+					}
+					if(temp[j+1] == "Any+active" || temp[j+1] == "Any+Active")
+					{
+						loadFrontEnd("Any"); 
+						select.selectedIndex += 1
+						active = 0; 
+						selectActive(); 
+						document.getElementById("active").checked = true;    	
+					}	
+					for(z = 0; z < feArryMaster.length; z++)
+					{
+						if(temp[j+1] == feArryMaster[z].attributes.getNamedItem("name").firstChild.data)	
+						{
+							loadFrontEnd(temp[j+1]);
+							select.selectedIndex = z + 2;
+						}
+						else if(temp[j+1] == (feArryMaster[z].attributes.getNamedItem("name").firstChild.data + "+active"))
+						{	
+							loadFrontEnd(feArryMaster[z].attributes.getNamedItem("name").firstChild.data);
+							select.selectedIndex = z + 2;
+							active = 0; 
+							selectActive(); 
+							document.getElementById("active").checked = true;  
+						}
+					}
+					break; 			
+				}
+				if(temp[j].search(/sort/i) >= 0)
+				{
+					for(l = 0; l < columnArray.length; l++)
+					{
+						temp[j+1] = temp[j+1].toLowerCase(); 
+						if(temp[j+1].search(columnSearch[l]) >= 0 || temp[j+1].search(columnArry[l]) >= 0)
+						{
+							sortTableDescending(columnArray[l]);
+							break;  
+						}
+					}
+				}
+			}			
+		}
+	}
+}
+
+function loadFrontEnd(name)
+{
+	preFrontEndName = name; 
+	if(name == "Total (Default)")
+	{
+		preFrontEndName = "Total"; 
+		totalEntries = totalEntriesMaster; 
+		total = totalMaster;
+		numberRows = totalEntries.length; 
+ 		makeTable(); 
+		frontEnd = 0; 
+		if(sorted == 1 && currentSort == "ascending")
+		{
+			tableMade = 0;
+			sorted = 0; 
+			if(active)
+			{
+				active = 0;
+				selectActive(); 	
+			}
+			sortTableDescending(col); 
+			sortTableAscending(col);
+			return;   	
+		}
+		else if(sorted == 1 && currentSort == "descending")
+		{
+			if(active)
+			{
+				active = 0;
+				selectActive(); 	
+			}
+			tableMade = 0;
+			sorted = 0;
+			sortTableDescending(col); 
+			sortSignal(); 
+			return; 
+		}
+		else
+		{
+			if(active)
+			{
+				active = 0;
+				selectActive(); 
+				return; 	
+			}
+			fillIn(); 
+			return; 
+		}
+	} 
+	
+   	nameLast = name; 
+	var feEntries = new Array();
+	var feTotal = new Array();
+	totalEntries = totalEntriesMaster; 
+	total = totalMaster; 
+	tableMade = 0;   
+	
+	if(name == "Any")
+	{
+		for(i = 0; i< totalEntries.length; i++)
+		{
+			if(totalEntries[i].childNodes[3].childNodes.length > 1)
+			{
+				if(totalEntries[i].childNodes[3].childNodes[1].childNodes.length > 0)
+				{
+					feEntries.push(totalEntries[i]); 
+					feTotal.push(total[i]); 
+				}
+			}
+		}			
+	}
+	
+	if(name != "Any")
+	{
+		for(i = 0; i< totalEntries.length; i++)
+		{
+			if(totalEntries[i].childNodes[3].childNodes.length != 0)
+			{
+				for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
+				{
+					if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
+					{
+						feEntries.push(totalEntries[i]); 
+						feTotal.push(totalEntries[i].childNodes[3].childNodes[j]); 
+					}
+				}
+			}
+		}			
+	}
+	
+	frontEnd = 1;
+	totalEntries = feEntries; 
+	feTotal.push(1);
+	total = feTotal;
+	numberRows = totalEntries.length; 
+	totalEntriesMast = totalEntries; 
+	totalMast = total; 
+	count = 0;
+	if(sorted == 1 && currentSort == "ascending")
+	{
+		sorted = 0; 
+		currentSort;
+		makeTable();  
+		if(active)
+		{
+			active = 0;
+			selectActive(); 	
+		}
+		sortTableDescending(col); 
+		sortTableAscending(col);
+		return;   	
+	}
+	else if(sorted == 1 && currentSort == "descending")
+	{
+		sorted = 0; 
+		currentSort;
+		makeTable(); 
+		if(active)
+		{
+			active = 0;
+			selectActive(); 	
+		} 
+		sortTableDescending(col); 
+		sortSignal(); 
+		return; 
+	}
+	else
+	{
+		if(active)
+		{
+			active = 0; 
+			selectActive(); 
+			return; 	
+		}
+		fillIn();
+	}
+}
+
+function updateTable()
+{ 
+	updating = 1; 
+	loadXMLDoc(); 
+}
+
+function entryClick(entry)
+{
+	entryName = entry;
+	entryName = entryName.childNodes[0].wholeText; 
+	document.location.href = "http://glidein-1.t2.ucsd.edu:8319/glidefactory/monitor/glidein_Production_v3_1/factoryEntryStatusNow.html?view=" + entryName; 
+}
+
+function fillIn()
+{
+	problem = 0;
+	var links = new Array(); 
+	linkCount = 0;
+	 
+	if(tableMade == 0)
+	{
+		makeTable();
+	}
+	if(listMade == 0)
+	{
+		makeList(); 	
+	}
+	
+	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")"; 
+	var table = document.getElementById("table"); //Access to the entire table
+
+	
+	//Fill in entries 
+	for( i = 0; i< numberRows; i++)
+	{
+		var y = totalEntries[i].attributes.getNamedItem("name").firstChild.data; 
+		table.rows[i].cells[0].innerHTML = "";
+		links[i] = document.createElement('a');
+		links[i].setAttribute("id", "entryLinks"); 
+		links[i].innerHTML = y; 
+		links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
+		links[i].setAttribute("onclick", "entryClick(this)");
+		table.rows[i].cells[0].appendChild(links[i]); 
+	}
+		
+	//fill in the for non running entries. 
+	for(j = 1; j < 17 ; j++)
+	{	
+		for(i = 0; i< total.length -1; i++)
+		{
+			if(total[i].childNodes.length == 0)
+			{
+				//fill in everything excpet the first column with 0 if entry is not doing anything.
+				table.rows[i].cells[j].innerHTML = "0";					
+			}	
+		}
+	}
+	
+	/* 
+	 * Fill in status fields.  
+	 */
+	var attArry = new Array(4,1,7,3,5,6,2,0); 
+	attCount = 0;
+	for(var counter = 1; counter<= 8; counter++)
+	{
+		for(var i = 0; i< totalEntries.length; i++)
+		{
+			if(total[i].childNodes.length >= 7 && total[i].childNodes.length != 0)
+			{
+				var item = total[i].childNodes[5].attributes[attArry[attCount]].nodeValue;  	
+				table.rows[i].cells[counter].innerHTML = item; 
+			}
+		}	
+		attCount++; 
+ 	}
+	
+	
+	/*
+	 * Fill in requested fields. 
+	 */
+	var attArry = new Array(1,0); 
+	var attCount = 0; 
+	for(var counter = 9; counter <= 10; counter++)
+	{
+		for(var i = 0; i< totalEntries.length; i++)
+		{
+			if(total[i].childNodes.length >= 5 && total[i].childNodes.length != 0)
+			{
+				var item = total[i].childNodes[3].attributes[attArry[attCount]].nodeValue;  	
+				table.rows[i].cells[counter].innerHTML = item; 
+			}
+		}
+		attCount++; 	
+	}
+	
+	/* 
+     * Fill in client monitor fields 
+ 	 */
+	var attArry = new Array(1,5,0,4,2,3); 
+	attCount = 0; 
+	for(var counter = 11; counter <= 16; counter++)
+	{
+		for(var i = 0; i< totalEntries.length; i++)
+		{	
+			if(total[i].childNodes.length >= 3 && total[i].childNodes.length != 0)
+			{
+				var item = total[i].childNodes[1].attributes[attArry[attCount]].nodeValue; 	
+				table.rows[i].cells[counter].innerHTML = item; 
+			}
+		}
+		attCount++; 
+	}
+	if(loading == 1)
+	{
+		loading = 0; 
+	    checkUrl();
+	}
+	
+}
+function loadXMLDoc()
+{	
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	  
+	//Wait for server to reply that it is ready.   
+	xmlhttp.onreadystatechange=function()
+	{	
+	
+		if(!active)
+		{
+			document.getElementById("active").checked = false; /* Reset active check box. */
+		}
+		
+		if (xmlhttp.readyState==4) //If 4 it it is ready. 
+    	{
+			updated = xmlhttp.responseXML.documentElement.getElementsByTagName("updated"); 
+			showTime(); 
+			totalEntriesMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			totalMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
+			frontEnds = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
+			totalEntries = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			total = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
+			totalEntriesHold = totalEntries; 
+			numberRows = totalEntries.length;
+			totalHold = total; 
+			if(updating == 1)
+			{
+				/* Update table in default view, descending sort. (WORKS) */
+				if(sorted != 0 && currentSort == 'descending' && frontEnd == 0)
+				{
+					currentSort;
+					sorted = 0;
+					updating = 0;
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
+					else
+					{
+						makeTable();
+					}
+					tableMade = 0;  
+					sortTableDescending(col); 
+					sortSignal();
+					return;  
+				}
+				/* Update table in default view, ascending sort. (WORKS) */
+				if(sorted != 0 && currentSort == 'ascending' && frontEnd == 0)
+				{
+					currentSort;
+					sorted = 0;
+					updating = 0; 
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
+					else
+					{
+						makeTable();
+					}
+					tableMade = 0;  
+					sortTableDescending(col);
+					sortTableAscending(col);
+					return; 
+				}
+
+				/* (WORKS) */
+				if(sorted == 0 && frontEnd != 0)
+				{
+					frontEnd = 0;
+					updating = 0;
+					makeTable();
+					loadFrontEnd(preFrontEndName);
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
+					return; 
+				}
+				/**/
+				if(sorted != 0 && currentSort == 'ascending' && frontEnd != 0)
+				{
+					currentSort;
+					sorted = 0; 
+					frontEnd = 0; 
+					updating = 0;
+					loadFrontEnd(preFrontEndName);
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					} 
+					tableMade = 0; 
+					sortTableDescending(col); 
+					sortTableAscending(col);
+					return; 
+				}
+				if(sorted != 0 && currentSort == 'descending' && frontEnd != 0)
+				{
+					currentSort;
+					sorted = 0; 
+					frontEnd = 0;
+					updating = 0; 
+					loadFrontEnd(preFrontEndName); 
+					if(active)
+					{	
+						active = 0; 
+						selectActive(); 	
+					}
+					tableMade = 0; 
+					sortTableDescending(col);
+					sortSignal();
+					
+					return; 
+				}
+			}
+			if(active)
+			{	
+				active = 0; 
+				selectActive(); 	
+			}
+			updating = 0; 
+			preFrontEndName = "Total"; 
+			tableMade = 0; 
+    		frontEnd = 0; 
+			sorted = 0;
+			listMade = 0; 
+			currentSort;
+			document.getElementById("destination").selectedIndex = 0; 
+			fillIn(); /* Fill in all the values. */
+		} 
+			 
+	}
+	xmlhttp.open("GET", "schedd_status.xml",true);
+	xmlhttp.send(null);
+
+	
+}
+function makeTable() 
+{
+if(table)
+{
+	document.getElementById('scroll').removeChild(table);
+	document.getElementById('header').removeChild(thead); 
+}
+
+var row=new Array();
+var cell=new Array();
+var cell2 = new Array();
+row2 = document.createElement('tr'); 
+
+var row_num=numberRows+1; //edit this value to suit
+var cell_num=17; //edit this value to suit
+var x = 0; 
+
+thead = document.createElement('table');
+thBody = document.createElement('tbody');
+thead.setAttribute('id', 'thead');
+
+table = document.createElement('table');
+tBody=document.createElement('tbody');
+table.setAttribute('id','table');
+
+for(x = 0; x < 4; x++)
+{
+	if(x == 0)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute('bgColor', '#DCDCDC');
+		cell2[x].setAttribute('id', 'empty');
+		cell2[x].setAttribute("colspan", "1");
+		cell2[x].setAttribute("width", "23%");
+	}
+	if( x== 1)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute("colspan", "8"); 
+		cell2[x].setAttribute('bgColor', '#FAF0E6');
+		td1Txt = document.createTextNode("Status: ");
+		cell2[x].appendChild(td1Txt);
+		cell2[x].setAttribute('id', 'requested'); 
+	}
+	if(x == 2)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute("colspan", "2"); 
+		cell2[x].setAttribute('bgColor', '#FFDAB9');
+		td1Txt = document.createTextNode("Requested: ");
+		cell2[x].appendChild(td1Txt);
+		cell2[x].setAttribute('id', 'status'); 
+	}
+	if( x == 3)
+	{
+		cell2[x] = document.createElement('td');
+		cell2[x].setAttribute("colspan", "6");
+		cell2[x].setAttribute('bgColor', '#CDAF95'); 
+		td3Txt = document.createTextNode("Client Monitor: "); 	
+		cell2[x].appendChild(td3Txt);
+		cell2[x].setAttribute('id', 'client');
+	}
+
+	row2.appendChild(cell2[x]); 
+}
+thBody.appendChild(row2); 
+
+
+for(c = 0; c < row_num; c++)
+{
+	row[c] = document.createElement('tr');
+	
+	row[c].setAttribute('id', 'entries'); 
+	if(c > 0)
+	{
+		row[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
+		row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+	}
+	for(k = 0; k < cell_num; k++) 
+	{
+		cell[k] = document.createElement('td');
+	
+		if(c > 0 && k> 0)
+		{
+			cell[k].setAttribute('onmouseover', 'showPopUp(this)');
+			cell[k].setAttribute('onmouseout', 'hidePopUp()');
+			cell[k].setAttribute('id', c);  				
+		}
+		if(c > 0 && k == 0)
+		{
+			cell[k].setAttribute('width', '23%');  				
+		}
+		
+	
+		if(c == 0 && k == 0)
+		{
+			cont = document.createTextNode("Entry Name")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'entryName'); 
+	    	cell[k].setAttribute("onclick", "sortAlphabetical()");
+			cell[k].setAttribute('bgColor', '#DCDCDC');  	 
+		}
+		if( c == 0 && k == 1)
+		{
+			cont = document.createTextNode("Running")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusRunning'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusRunning') "); 
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 	 
+		}
+		if( c == 0 && k == 2)
+		{
+			cont = document.createTextNode("Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusIdle') "); 
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 3)
+		{
+			cont = document.createTextNode("Waiting")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusWait'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusWait') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 4)
+		{
+			cont = document.createTextNode("Pending")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusPending'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusPending') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 
+		}
+		if( c == 0 && k == 5)
+		{
+			cont = document.createTextNode("Staging in")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusStageIn'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageIn') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 
+		}
+		if( c == 0 && k == 6)
+		{ 
+			cont = document.createTextNode("Staging out")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusStageOut'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusStageOut') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 7)
+		{ 
+			cont = document.createTextNode("Unknown");
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusOther'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusOther') "); 
+			cell[k].setAttribute('bgColor', '#FAF0E6');
+		}
+		if( c == 0 && k == 8)
+		{
+			cont = document.createTextNode("Held")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'statusHeld'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('statusHeld') ");
+			cell[k].setAttribute('bgColor', '#FAF0E6'); 
+		}
+		if( c == 0 && k == 9)
+		{
+			cont = document.createTextNode("Max run")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'requestIdle');
+		    cell[k].setAttribute("onclick", "sortTableDescending('requestMax') "); 
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 
+		}
+		if( c == 0 && k == 10)
+		{
+			cont = document.createTextNode("Idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'requestIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('requestIdle') "); 
+			cell[k].setAttribute('bgColor', '#FFDAB9'); 	 
+		}
+		if( c == 0 && k == 11)
+		{
+			cont = document.createTextNode("Claimed")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinRunning'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinRunning') ");
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
+		}
+		if( c == 0 && k == 12)
+		{
+			cont = document.createTextNode("User running")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinJobsRunning'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsRunning')"); 
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
+		}
+		if( c == 0 && k == 13)
+		{ 
+			cont = document.createTextNode("Unmatched")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinIdle') ");
+			cell[k].setAttribute('bgColor', '#CDAF95');
+		}
+		if( c == 0 && k == 14)
+		{
+			cont = document.createTextNode("User idle")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinJobsIdle'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinJobsIdle') ");
+			cell[k].setAttribute('bgColor', '#CDAF95');
+		}
+		if( c == 0 && k == 15)
+		{
+			cont = document.createTextNode("Registered")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinTotal'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinTotal') "); 
+			cell[k].setAttribute('bgColor', '#CDAF95');
+		}
+		if( c == 0 && k == 16)
+		{
+			cont = document.createTextNode("Info age")
+			cell[k].appendChild(cont);
+			cell[k].setAttribute('id', 'cmGlideinInfoAge'); 
+		    cell[k].setAttribute("onclick", "sortTableDescending('cmGlideinInfoAge') ");
+			cell[k].setAttribute('bgColor', '#CDAF95'); 
+		}
+		
+		if( c > 0 )
+		{
+			cont = document.createTextNode(0+"")
+			cell[k].appendChild(cont);
+		}
+		
+		row[c].appendChild(cell[k]);
+	}
+	if(c == 0)
+	{
+		thBody.appendChild(row[c]); 
+	}
+	else
+	{
+		tBody.appendChild(row[c]);
+	}
+	tableMade = 1;
+	
+}
+
+thead.appendChild(thBody); 
+table.appendChild(tBody); 
+document.getElementById('header').appendChild(thead); 
+document.getElementById('scroll').appendChild(table);
+document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 
+
+
+} 
+
+function setHeight()
+{
+	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 
+}
+
+function sortSignal()
+{
+	
+	for(i = 0; i < 17; i++)
+	{
+		for(j = 0; j< totalEntries.length; j++)
+		{
+			if(i != (index + 1))
+			{
+				table.rows[j].cells[i].bgColor = "#F2F2F2";  
+			}
+		}
+		if(i == 0)
+		{
+			thead.rows[1].cells[i].bgColor =  "#DCDCDC";
+		}
+		else if(i > 0 && i < 9)
+		{
+			thead.rows[1].cells[i].bgColor =  "#FAF0E6";
+		}
+		else if(i == 9 || i == 10)
+		{
+			thead.rows[1].cells[i].bgColor =  "#FFDAB9";
+		}
+		else
+		{
+			thead.rows[1].cells[i].bgColor =  "#CDAF95"; 
+		}
+	}
+    if(index == -2)
+	{
+	   return; 	
+	}
+	for(i = 0; i< totalEntries.length; i++)
+	{
+		
+		if(index + 1 >  0 && index + 1 < 9)
+		{
+			table.rows[i].cells[index + 1].bgColor =  "#FAF0E6";
+		}
+		else if(index + 1 == 9 || index + 1 == 10)
+		{
+			table.rows[i].cells[index + 1].bgColor =  "#FFDAB9";
+		}
+		else
+		{
+			table.rows[i].cells[index + 1].bgColor =  "#CDAF95"; 
+		}
+	}
+	if(index + 1 > 0 && index+ 1 < 9)
+	{
+		thead.rows[1].cells[index + 1].bgColor =  "#FAF0E6";
+	}
+	else if(index + 1 == 9 || index + 1 == 10)
+	{
+		thead.rows[1].cells[index + 1].bgColor =  "#FFDAB9";
+	}
+	else
+	{
+		thead.rows[1].cells[index + 1].bgColor =  "#CDAF95"; 
+	}
+
+
+}
+
+
+function sortTableAscending(column)
+{
+	col = column; 
+	var newTotal = new Array(); 
+	var newEntries = new Array();
+	var i = 0; 
+	var counter = 0;
+	var child; 
+	var att; 
+
+	/* Running. */
+	if(column == columnArray[0])
+	{
+		child = 5; att = 4; index = 0; sortSignal(); 
+	}
+	/* Idle. */
+	if(column == columnArray[1])
+	{
+		child = 5; att = 1; index = 1; sortSignal(); 
+	}
+	/* Wait. */
+	if(column == columnArray[2])
+	{
+		child = 5; att = 7; index = 2; sortSignal(); 
+	} 
+	/* Pending. */  
+	if(column == columnArray[3])
+	{
+		child = 5; att = 3; index = 3; sortSignal(); 
+	} 
+	/* StageIn. */ 
+	if(column == columnArray[4])
+	{
+		child = 5; att = 5; index = 4; sortSignal();
+	}
+	/* StageOut. */
+	if(column == columnArray[5])
+	{
+		child = 5; att = 6; index = 5; sortSignal();
+	} 
+	/* Idle Other. */
+	if(column == columnArray[6])
+	{
+		child = 5; att = 2; index = 6; sortSignal();
+	}
+	/* Held. */
+	if(column == columnArray[7])
+	{
+		child = 5; att = 0; index = 7; sortSignal();
+	} 
+	/* Max Run. */
+	if(column == columnArray[8])
+	{
+		child = 3; att = 1; index = 8; sortSignal();
+	}
+	/* Idle. */
+	if(column == columnArray[9])
+	{
+		child = 3; att = 0; index = 9; sortSignal();
+	} 
+	/* Glidein Running. */
+	if(column == columnArray[10])
+	{
+		child = 1; att = 1; index = 10; sortSignal();
+	} 
+	/* Jobs Running. */
+	if(column == columnArray[11])
+	{
+		child = 1; att = 5; index = 11; sortSignal();
+	} 
+	/* Glidein Idle. */
+	if(column == columnArray[12])
+	{
+		child = 1; att = 0; index = 12; sortSignal();
+	} 
+	/* Jobs Idle. */
+	if(column == columnArray[13])
+	{
+		child = 1; att = 4; index = 13; sortSignal();
+	} 
+	/* Glidein Total. */
+	if(column == columnArray[14])
+	{
+		child = 1; att = 2; index = 14; sortSignal();
+	}
+	/* Info Age. */
+	if(column == columnArray[15])
+	{
+		child = 1; att = 3; index = 15; sortSignal();
+	}
+
+
+	/* Empty entries. */
+	for(var i = totalEntries.length - 1; i >= 0; i--)
+	{
+		if(total[i].childNodes.length == 0)
+		{		
+			newTotal.push(total[i]); 
+			newEntries.push(totalEntries[i]); 	
+		}
+	}
+
+	for(var i = totalEntries.length - 1; i >= 0; i--)
+	{	
+		if(total[i].childNodes.length != 0)
+		{
+			if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
+			{
+				newTotal.push(total[i]); 
+				newEntries.push(totalEntries[i]); 
+			}
+		}
+	}
+
+	for(var i = totalEntries.length - 1; i >= 0; i--)
+	{
+		if(total[i].childNodes.length != 0)
+		{
+		   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
+		   {
+			   newTotal.push(total[i]); 
+			   newEntries.push(totalEntries[i]); 
+		   }	
+		}
+	}	
+
+	currentSort = "ascending"; 
+	newTotal.push(1);
+	previousSort = column;
+	total = newTotal; 
+	totalEntries = newEntries; 
+	preSortedEntriesArry = newEntries; 
+	preSortedTotalArry = newTotal; 
+	sorted = 1;
+	preUpdateSort = 1;  
+	fillIn();
+	
+
+}
+function sortTableDescending(column)
+{
+col = column; 
+if(previousSort != column)
+{
+	sorted = 0; 
+}
+if(sorted == 1 && currentSort != "ascending")
+{
+	sorted = 0; 
+ 	sortTableAscending(column); //replace sortTableDescending(column) 
+    return; 
+}
+
+var newTotal = new Array(); 
+var newEntries = new Array();
+var i = 0; 
+var counter = 0;
+var child; 
+var att; 
+
+	/* Running. */
+	if(column == columnArray[0])
+	{
+		child = 5; att = 4; index = 0; sortSignal(); 
+	}
+	/* Idle. */
+	if(column == columnArray[1])
+	{
+		child = 5; att = 1; index = 1; sortSignal(); 
+	}
+	/* Wait. */
+	if(column == columnArray[2])
+	{
+		child = 5; att = 7; index = 2; sortSignal(); 
+	} 
+	/* Pending. */  
+	if(column == columnArray[3])
+	{
+		child = 5; att = 3; index = 3; sortSignal(); 
+	} 
+	/* StageIn. */ 
+	if(column == columnArray[4])
+	{
+		child = 5; att = 5; index = 4; sortSignal();
+	}
+	/* StageOut. */
+	if(column == columnArray[5])
+	{
+		child = 5; att = 6; index = 5; sortSignal();
+	} 
+	/* Idle Other. */
+	if(column == columnArray[6])
+	{
+		child = 5; att = 2; index = 6; sortSignal();
+	}
+	/* Held. */
+	if(column == columnArray[7])
+	{
+		child = 5; att = 0; index = 7; sortSignal();
+	} 
+	/* Max Run. */
+	if(column == columnArray[8])
+	{
+		child = 3; att = 1; index = 8; sortSignal();
+	}
+	/* Idle. */
+	if(column == columnArray[9])
+	{
+		child = 3; att = 0; index = 9; sortSignal();
+	} 
+	/* Glidein Running. */
+	if(column == columnArray[10])
+	{
+		child = 1; att = 1; index = 10; sortSignal();
+	} 
+	/* Jobs Running. */
+	if(column == columnArray[11])
+	{
+		child = 1; att = 5; index = 11; sortSignal();
+	} 
+	/* Glidein Idle. */
+	if(column == columnArray[12])
+	{
+		child = 1; att = 0; index = 12; sortSignal();
+	} 
+	/* Jobs Idle. */
+	if(column == columnArray[13])
+	{
+		child = 1; att = 4; index = 13; sortSignal();
+	} 
+	/* Glidein Total. */
+	if(column == columnArray[14])
+	{
+		child = 1; att = 2; index = 14; sortSignal();
+	}
+	/* Info Age. */
+	if(column == columnArray[15])
+	{
+		child = 1; att = 3; index = 15; sortSignal();
+	}
+	
+
+/* Get everything that is not 0. */
+for(var i = 0; i< totalEntries.length; i++)
+{
+	if(total[i].childNodes.length != 0)
+	{
+	   if((child == 5 && !(total[i].childNodes.length >= 7)) || (child == 3 && !(total[i].childNodes.length >= 5)) || (child == 1 && !(total[i].childNodes.length >= 3)))
+	   {
+		   return;    
+	   }
+	   else if(total[i].childNodes[child].attributes[att].nodeValue > 0)
+	   {
+		   newTotal.push(total[i]); 
+		   newEntries.push(totalEntries[i]); 
+	   }	
+	}
+}
+	
+for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
+{
+    for(var j = i+1; j < newTotal.length; j++)   // rest of the elements
+    {
+		if(parseInt(newTotal[i].childNodes[child].attributes[att].nodeValue) <= parseInt(newTotal[j].childNodes[child].attributes[att].nodeValue))          
+        {
+            temp = newTotal[i];              // swap
+			newTotal[i] = newTotal[j];
+            newTotal[j] = temp;
+			temp = newEntries[i];            // swap
+			newEntries[i] = newEntries[j];
+            newEntries[j] = temp;
+        }
+	}
+}
+for(var i = totalEntries.length - 1; i >= 0; i--)
+{	
+	if(total[i].childNodes.length != 0)
+	{
+		if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
+		{
+			newTotal.push(total[i]); 
+			newEntries.push(totalEntries[i]); 
+		}
+	}
+}	
+/* Empty entries. */
+for(var i = totalEntries.length -1; i >= 0; i--)
+{
+	if(total[i].childNodes.length == 0)
+	{		
+		newTotal.push(total[i]); 
+		newEntries.push(totalEntries[i]); 	
+	}
+}
+
+
+for(i = 0 ; i < newTotal.length; i++)
+{
+	if(newTotal[i].childNodes.length != 0)
+	{ 
+	    if(newTotal[i].childNodes[child].attributes[att].nodeValue != 0)
+		{
+			break;
+		}
+	}
+	if(i == newTotal.length - 1)
+	{
+		return; 	
+	}
+}
+
+
+currentSort = "descending";
+newTotal.push(1);
+previousSort = column; 
+total = newTotal; 
+totalEntries = newEntries; 
+sorted = 1; 
+preUpdateSort = 1; 
+fillIn();
+
+}
+function goToLink()
+{
+	var constructed;
+	var holder = document.URL.split('?');
+	
+	if(frontEnd != 0 && sorted != 0)
+	{
+		if(active)
+		{
+			constructed = holder[0] + "?view=" + preFrontEndName + "+active" + "&sort=" + col;
+		}
+		else
+		{
+			constructed = holder[0] + "?view=" + preFrontEndName + "&sort=" + col;
+		}
+	}
+	else if(frontEnd != 0 && sorted == 0)
+	{
+		if(active)
+		{
+			constructed = holder[0]+ "?view=" + preFrontEndName + "+active";
+		}
+		else
+		{
+			constructed = holder[0]+ "?view=" + preFrontEndName;
+		}
+	}
+	else if(frontEnd == 0 && sorted != 0)
+	{
+		if(active)
+		{
+			constructed = holder[0] + "?view=" + "active" + "?sort=" + col;
+		}
+		else
+		{
+			constructed = holder[0] + "?sort=" + col;
+		}
+	}
+	else
+	{
+		if(active)
+		{
+			constructed = holder[0] + "?view=total+" + "active";
+		}
+		else
+		{
+			constructed = holder[0];
+		}
+	}
+	document.location.href = constructed;
+			
+}
+
+function selectActive()
+{
+	var found; 
+	var activeEntries = new Array();
+	var activeTotal = new Array(); 
+	
+	if(active)
+	{
+		if(frontEnd)
+		{
+			totalEntries = totalEntriesMast;
+			total = totalMast;
+			tableMade = 0; 
+			numberRows = totalEntries.length;		
+			fillIn(); 
+			active = 0; 
+			if(sorted != 0 && currentSort == 'descending')
+			{
+				currentSort;
+				sorted = 0; 
+				tableMade = 0; 
+				sortTableDescending(col);
+				sortSignal();			
+				return; 
+			}
+			if(sorted != 0 && currentSort == 'ascending')
+			{
+				currentSort;
+				sorted = 0;
+				tableMade = 0;  
+				sortTableDescending(col);
+				sortTableAscending(col);
+				return; 
+			}
+			return;	
+		}
+		else
+		{
+			totalEntries = totalEntriesMaster;
+			total = totalMaster;
+			tableMade = 0; 
+			numberRows = totalEntries.length;		
+			fillIn(); 
+			active = 0;
+			if(sorted != 0 && currentSort == 'descending')
+			{
+				currentSort;
+				sorted = 0; 
+				tableMade = 0; 
+				sortTableDescending(col);
+				sortSignal();			
+				return; 
+			}
+			if(sorted != 0 && currentSort == 'ascending')
+			{
+				currentSort;
+				sorted = 0;
+				tableMade = 0;  
+				sortTableDescending(col);
+				sortTableAscending(col);
+				return; 
+			} 
+			return;
+		}
+	}
+	
+	for(i = 0; i < totalEntries.length; i++)
+	{
+		found = 0; 
+		if(total[i].childNodes.length != 0)
+		{
+			for(j = 0; j < total[i].childNodes[1].attributes.length; j++)
+			{
+				if(j == 3)
+				{
+					continue; 	
+				}
+				if(parseInt(total[i].childNodes[1].attributes[j].value) != 0)
+				{
+					activeEntries.push(totalEntries[i]);
+					activeTotal.push(total[i]);
+					found = 1; 
+					break;
+				}
+			}	
+			if(found)
+			{
+				continue; 	
+			}
+			for(k = 0; k < total[i].childNodes[3].attributes.length; k++)
+			{
+				if(k == 1)
+				{
+					continue; 	
+				}
+				if(parseInt(total[i].childNodes[3].attributes[k].value) != 0)
+				{
+					activeEntries.push(totalEntries[i]);
+					activeTotal.push(total[i]);
+					found = 1; 
+					break;
+				}
+			}
+			if(found)
+			{
+				continue; 	
+			}
+			for(l = 0; l < total[i].childNodes[5].attributes.length; l++)
+			{
+				if(parseInt(total[i].childNodes[5].attributes[l].value) != 0)
+				{
+					activeEntries.push(totalEntries[i]);
+					activeTotal.push(total[i]);
+					break;
+				}
+			}
+		}
+	} 
+	
+	active = 1;
+	activeTotal.push(1);
+	total = activeTotal; 
+	totalEntries = activeEntries;
+	numberRows = totalEntries.length;		
+	tableMade = 0; 
+	fillIn(); 
+	
+	if(sorted != 0 && currentSort == 'descending')
+	{
+		currentSort;
+		sorted = 0; 
+		tableMade = 0; 
+		sortTableDescending(col);
+		sortSignal();			
+		return; 
+	}
+	if(sorted != 0 && currentSort == 'ascending')
+	{
+		currentSort;
+		sorted = 0;
+		tableMade = 0;  
+		sortTableDescending(col);
+		sortTableAscending(col);
+		return; 
+	}
+
+	return; 
+}
+function goToDestination(option)
+{
+	document.location.href = option.value; 
+	document.getElementById("destination").selectedIndex = 0;
+}
+
+</script>
+<style = "text/css">
+
+td
+{
+	border: 2px solid #BBB;
+	border-width: thin;
+	font-size:12px;
+	padding:5px;
+}
+#title
+{
+	color: #000; 	
+	font: bold 330%/100% "Times New Roman";
+	text-decoration:none;
+	left:50%; 
+}
+#table
+{
+	table-layout: fixed; 
+	width: 100%; 
+	background-color:#F2F2F2;
+}
+#total
+{
+	color:#D00;
+}
+#entries
+{
+	font-weight: bold;
+}
+#thead
+{
+	table-layout: fixed;
+ 	width: 99%; 
+	text-align:left;
+}
+#button
+{
+   font-family:Lucida Console,monospace;  
+   font-weight:bold;
+   color: #330000;
+   width: 110px;
+}
+#choose 
+{
+	margin-left:auto;
+	margin-right:auto;
+	margin: 0;
+	padding: 0;
+	width: 170px;
+}
+#select
+{
+	color:#300;
+	font-size:12px;
+	font-weight:bold;
+}
+#update
+{
+	color: #303;
+	font-size:13px;
+	text-align: left;  
+}
+#scroll
+{
+	overflow: scroll;
+	width: auto;
+	min-height:90%; 
+}
+#hoverpopup
+{
+	visibility:hidden;
+	position:absolute; 
+	top:0; left:0;
+	background-color: #999;
+}
+#link
+{
+	font-family:Lucida Console,monospace;   
+	font-weight:bold;
+	color: #330000;
+    width: 70px;
+	float:right;
+}
+#client
+{
+	font-weight:bold;
+	text-align:center;
+}
+#status
+{
+	font-weight:bold;
+	text-align:center;
+}
+#requested
+{
+	font-weight:bold;
+	text-align:center;
+}
+#entryLinks
+{
+	text-decoration:none;
+	font-weight:bold;
+	color:#000;
+}
+#gptions
+{
+	float:right;
+}
+</style>
+
+</head>
+<body onResize="setHeight()">
+<script type = "text/javascript"> loadXMLDoc()  </script>
+<a id = "title"  style="font-size: 40px" > Glidein Factory Status </a>
+
+<SELECT id="destination" style="float:right" onchange="goToDestination(this)" >
+<OPTION VALUE="" >Choose a Glidein destination...</OPTION>
+<OPTION VALUE="factoryEntryStatusNow.html"> Glidein entry. </OPTION>
+<OPTION VALUE="factoryStatus.html"> Glidein factory status. </OPTION>
+<OPTION VALUE="factoryLogStatus.html"> Glidein factory log status. </OPTION>
+<OPTION VALUE="factoryCompletedStats.html"> Glidein factory completed stats. </OPTION>
+<OPTION VALUE="factoryRRDBrowse.html"> Glidein factory browse. </OPTION>
+<OPTION VALUE="factoryRRDEntryMatrix.html"> Glidein factory entry matrix. </OPTION>
+</SELECT>
+
+<h5 id = "total">(Total Entries)</h5>
+
+<div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" o>Active only<br></div> 
+
+<div id = "tempList"></div>
+
+<br /><br /><br /><br />
+
+<form  > <input id = "button" type="button" value="Update Table"  onclick="updateTable()"/> </form>
+<form  > <input id = "link" type="button" value="Link" onclick="goToLink()" /> </form>
+
+<br /><div id = "update"> Loading...  </div>
+<div id = "preHeader"> </div>
+<div id = "header" > </div>
+<div id = "scroll"></div> 
+<div id = "hoverpopup"></div>
+
+
+</body>
+</html>

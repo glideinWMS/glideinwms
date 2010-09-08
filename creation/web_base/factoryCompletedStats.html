@@ -1,13 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <!--
-Project:
-  glideinWMS
-
-File Version: 
-  $Id: factoryCompletedStats.html,v 1.10.8.3.2.1 2010/08/31 18:49:16 parag Exp $
-
-Description:
   Browse the glideinWMS RRDs
 
   Based on
@@ -38,12 +31,16 @@ Description:
     <table width="100%">
     <tr>
      <td><h1 id="title">Glidein factory status from logs</h1>
-     <td align="right">[ 
-	    <a href="factoryStatus.html">Status</a> |
-	    <a href="factoryLogStatus.html">Log status</a> |
-	    <a href="factoryRRDBrowse.html">Browse</a> |
-	    <a href="factoryRRDEntryMatrix.html">Entry Matrix</a> 
-	    ]
+     <td align="right">
+      <SELECT id="destination" style="float:right" onChange="goToDestination(this)" >
+<OPTION VALUE="" >Choose a Glidein destination...</OPTION>
+<OPTION VALUE="factoryEntryStatusNow.html"> Glidein entry. </OPTION>
+<OPTION VALUE="factoryStatusNow.html"> Glidein factory status now. </OPTION>
+<OPTION VALUE="factoryStatus.html"> Glidein factory status. </OPTION>
+<OPTION VALUE="factoryLogStatus.html"> Glidein factory log status. </OPTION>
+<OPTION VALUE="factoryRRDBrowse.html"> Glidein factory browse.</OPTION>
+<OPTION VALUE="factoryRRDEntryMatrix.html"> Glidein factory entry matrix. </OPTION>
+</SELECT>
     </tr>
     </table>
 
@@ -59,7 +56,7 @@ Description:
      <tr>
        <th>Info group</th>
        <td valign="middle"><form id="gtypes">
-	<input type="radio" name="gtype" value="Lasted" checked>Wallclock time per glidein
+	<input type="radio" name="gtype" value="Lasted">Wallclock time per glidein
 	<input type="radio" name="gtype" value="JobsNr">User jobs per glidein
 	<input type="radio" name="gtype" value="JobsLasted">Wallclock time per user job
 	      <br>
@@ -67,11 +64,11 @@ Description:
 	<input type="radio" name="gtype" value="idle">Fraction wasted because idle
 	      <br>
 	<input type="radio" name="gtype" value="nosuccess">Fraction wasted due to job failures
-	<input type="radio" name="gtype" value="badput">Fraction not used by user jobs
+	<input type="radio" name="gtype" value="badput" checked>Fraction not used by user jobs
        </form></td>
      </tr>
      <tr>
-      <td colspan=2><button onclick="fname_update()">Update</button></td>
+      <td colspan=2><button onClick="fname_update()">Update</button><button onClick="showLink()" style="float:right">Link</button></td>
      </tr>
     </table>
 
@@ -87,9 +84,14 @@ Description:
    <hr>
     <p>Powered by
         <a href="http://oss.oetiker.ch/rrdtool/" target="_blank">RRDTool</a>,
-        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                                 <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
+        <a href="https://sourceforge.net/projects/javascriptrrd/" target="_blank">JavascriptRRD</a> and                                                              
+        <a href="http://code.google.com/p/flot/" target="_blank">Flot</a>.
 
      <script type="text/javascript">
+
+      var a =  document.getElementById("gtypes"); 
+	  var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput");
+	  var ENTRY; 
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -145,6 +147,7 @@ Description:
       gtype_id=undefined;
       rrd_group_data=[];
       files_loaded = 0;
+	  checkUrl(); 
 
       function entrylist2groupname(elist) {
           var gname = elist;
@@ -366,6 +369,131 @@ Description:
           }
         }
       }
+	/* Function to read from the url any parameters the user has specified. */
+	function checkUrl()
+	{
+		var url = window.location.search;
+		parameterArry = new Array("entry", "infoGroup"); 
+		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
+		group = 0;  
+		var entrySpec; 
+		var infoGroupSpec;
+		urlValid = 0; 
+		paramSpecArry = new Array(); 
+		if(url)
+		{
+			url = url.substring(1);
+			urlSplit = url.split('&'); 
+			i = 0; 
+			while(i < urlSplit.length)
+			{ 
+				equalSplit = urlSplit[i].split('='); 
+				if(equalSplit[0] == parameterArry[i])
+				{
+					paramSpecArry[i] = equalSplit[1];
+				}
+				i++; 
+			}
+		}
+		for(i = 0; i< paramSpecArry.length; i++)
+		{
+			counter = 2; 
+			if(i == 0)
+			{
+				for(entry in entries)
+				{
+					if(entry == paramSpecArry[0])
+					{
+						ENTRY = paramSpecArry[0]; 
+						urlValid = 1; 
+						for(j = 0; j< groups.length; j++)
+						{
+							if(entry == groups[j])
+							{
+								document.getElementById("entries").selectedIndex = counter + 1; 
+								group = 1;
+								break;  
+							}	
+						}
+						if(!group)
+						{
+							document.getElementById("entries").selectedIndex = counter; 
+						}
+						break;
+					} 
+					else if("total" == 	paramSpecArry[0])
+					{
+						urlValid = 1; 
+						document.getElementById("entries").selectedIndex = 0; 
+						break;  	
+					}
+					counter++; 
+				}
+			}
+			else if(i == 1)
+			{
+				child = 1; 
+				for(i = 0; i< infoGroupOptions.length; i++)
+				{
+					if(infoGroupOptions[i] == paramSpecArry[1])
+					{
+						document.getElementById("gtypes").elements[i].checked = true;
+						urlValid = 1; 
+					}
+					child+=2;	
+				}
+			}
+		}
+		if(urlValid)
+		{
+			fname_update();
+		}
+	}
+	/* Function to show link for current options. */
+	function showLink()
+	{
+		constructed = document.URL.split('?');
+		entriesTable = document.getElementById("entries"); 
+		var specifiedEntry;
+		var specifiedGOption; 
+		/* Find the current entry specified. */
+		for(i = 0; i < entriesTable.options.length; i++)
+		{
+			if(entriesTable.options[i].selected == true)
+			{
+				specifiedEntry = entriesTable.options[i].text; 	
+			}
+		}
+		gOptionTable = document.getElementById("gtypes");
+		j = 0;  
+		/* Find the current group option specified. */
+		for(i = 1; i< gOptionTable.childNodes.length; i+=2)
+		{
+			if(gOptionTable.childNodes[i].checked == true)
+			{
+				specifiedGOption = infoGroupOptions[j];
+			}
+			if(gOptionTable.childNodes[i].value)
+			{
+				j++;
+			}
+		}
+		constructed = constructed[0] + "?entry=" + specifiedEntry + "&infoGroup=" + specifiedGOption; 
+		document.location.href = constructed; 
+	}  
+	/* Function to navigate to other glidein tools. */
+	function goToDestination(option)
+	{
+		if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
+		{
+			document.location.href = option.value + "?entry=" + ENTRY; 
+		}
+		else
+		{
+			document.location.href = option.value; 
+		}
+		document.getElementById("destination").selectedIndex = 0; 
+	}
     </script>
   </body>
 </html>
