@@ -1,6 +1,10 @@
 #!/bin/env python
 #
-# glidein_interactive.py
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidein_interactive.py,v 1.1.12.1 2010/09/08 03:09:36 parag Exp $
 #
 # Description:
 #   Execute an arbitrary command on a condor job working directory

@@ -1,3 +1,11 @@
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: test_gfi.py,v 1.2.12.1 2010/09/08 03:12:32 parag Exp $
+#
+
 import os,sys,glideinFrontendInterface
 
 glideins=glideinFrontendInterface.findGlideins()

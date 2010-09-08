@@ -1,6 +1,12 @@
 #!/bin/env python
 
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidecondor_addDN,v 1.1.2.2 2010/09/08 03:11:32 parag Exp $
+#
 # Description:
 #   This tool adds a DN to the Condor security configuration
 #

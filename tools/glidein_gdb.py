@@ -1,6 +1,10 @@
 #!/bin/env python
 #
-# glidein_gdb.py
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidein_gdb.py,v 1.7.12.1 2010/09/08 03:09:36 parag Exp $
 #
 # Description:
 #   Execute a ls command on a condor job working directory

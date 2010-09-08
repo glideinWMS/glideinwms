@@ -1,5 +1,11 @@
 #!/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: wmsTxtView.py,v 1.14.2.4 2010/09/08 03:09:36 parag Exp $
+#
 # Description:
 #   This tool displays the status of the glideinWMS pool
 #   in a text format

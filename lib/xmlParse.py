@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: xmlParse.py,v 1.7.12.1 2010/09/08 03:10:47 parag Exp $
+#
 # Description: general purpose XML decoder
 #
 # Author:

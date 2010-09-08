@@ -1,5 +1,11 @@
 #!/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: checkFrontend.py,v 1.3.8.1 2010/09/08 03:12:31 parag Exp $
+#
 # Description:
 #   Check if a glideinFrontend is running
 # 

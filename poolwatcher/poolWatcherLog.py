@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: poolWatcherLog.py,v 1.2.8.1 2010/09/08 03:09:51 parag Exp $
+#
 # Description:
 #   This module implements the classes needed
 #   to handle the status log files

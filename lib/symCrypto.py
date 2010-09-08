@@ -1,10 +1,14 @@
-##########################################
 #
-# This module defines classes to perform
-# symmetric key cryptography
-# (shared or hidden key)
+# Project:
+#   glideinWMS
 #
-##########################################
+# File Version: 
+#   $Id: symCrypto.py,v 1.6.2.1 2010/09/08 03:10:47 parag Exp $
+#
+# Description:
+#   This module defines classes to perform symmetric key cryptography
+#   (shared or hidden key)
+#
 
 import M2Crypto
 import os,binascii

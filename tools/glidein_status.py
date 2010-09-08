@@ -1,6 +1,10 @@
 #!/bin/env python
 #
-# glidein_status.py
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidein_status.py,v 1.32.8.1 2010/09/08 03:09:36 parag Exp $
 #
 # Description:
 #   Equivalent to condor_status, but with glidein specific info
