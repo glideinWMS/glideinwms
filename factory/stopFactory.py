@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: stopFactory.py,v 1.7.24.1 2010/08/31 18:49:16 parag Exp $
+#   $Id: stopFactory.py,v 1.7.24.1.6.1 2010/09/08 20:19:28 sfiligoi Exp $
 #
 # Description:
 #   Stop a running glideinFactory
@@ -43,7 +43,7 @@ def get_entry_pids(startup_dir,factory_pid):
 
     return entry_pids
 
-def main(startup_dir):
+def main(startup_dir,force=False):
     # get the pids
     try:
         factory_pid=glideFactoryPidLib.get_factory_pid(startup_dir)
@@ -52,53 +52,75 @@ def main(startup_dir):
         return 1
     #print factory_pid
 
+    if not glideFactoryPidLib.pidSupport.check_pid(factory_pid):
+        # Factory already dead
+        return 0
+
+    # kill processes
+    # first soft kill the factory (20s timeout)
+    try:
+        os.kill(factory_pid,signal.SIGTERM)
+    except OSError:
+        pass # factory likely already dead
+
+    for retries in range(100):
+        if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
+            time.sleep(0.2)
+        else:
+            return 0 # factory dead
+
+    if not force:
+        print "Factory did not dye withing the timeout"
+        return 1
+
+    # retry soft kill the factory... should exit now (5s timeout)
+    print "Retrying a soft kill"
+    try:
+        os.kill(factory_pid,signal.SIGTERM)
+    except OSError:
+        pass # factory likely already dead
+
+    for retries in range(25):
+        if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
+            time.sleep(0.2)
+        else:
+            return 0 # factory dead
+    
+    print "Factory still alive... sending hard kill"
+
     entry_pids=get_entry_pids(startup_dir,factory_pid)
     #print entry_pids
 
     entry_keys=entry_pids.keys()
     entry_keys.sort()
 
-    # kill processes
-    # first soft kill the factory (5s timeout)
-    os.kill(factory_pid,signal.SIGTERM)
-    for retries in range(25):
-        if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
-            time.sleep(0.2)
-        else:
-            break # factory dead
+    for entry in entry_keys:
+        if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
+            print "Hard killing entry %s"%entry
+            try:
+                os.kill(entry_pids[entry],signal.SIGKILL)
+            except OSError:
+                pass # ignore already dead processes
 
-    # now check the entries (5s timeout)
-    entries_alive=False
-    for entry in entry_keys:
-        if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
-            #print "Entry '%s' still alive, sending SIGTERM"%entry
-            os.kill(entry_pids[entry],signal.SIGTERM)
-            entries_alive=True
-    if entries_alive:
-        for retries in range(25):
-            entries_alive=False
-            for entry in entry_keys:
-                if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
-                    entries_alive=True
-            if entries_alive:
-                time.sleep(0.2)
-            else:
-                break # all entries dead
-        
-    # final check for processes
-    if glideFactoryPidLib.pidSupport.check_pid(factory_pid):
-        print "Hard killed factory"
+    if not glideFactoryPidLib.pidSupport.check_pid(factory_pid):
+        return 0 # factory died
+
+    try:
         os.kill(factory_pid,signal.SIGKILL)
-    for entry in entry_keys:
-        if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
-            print "Hard killed entry '%s'"%entry
-            os.kill(entry_pids[entry],signal.SIGKILL)
+    except OSError:
+        pass # ignore problems
     return 0
-        
 
 if __name__ == '__main__':
     if len(sys.argv)<2:
-        print "Usage: stopFactory.py submit_dir"
+        print "Usage: stopFactory.py [-force] submit_dir"
         sys.exit(1)
 
-    sys.exit(main(sys.argv[1]))
+    if len(sys.argv)>2:
+        if sys.argv[1]=='-force':
+            sys.exit(main(sys.argv[2],True))
+        else:
+            print "Usage: stopFactory.py [-force] submit_dir"
+            sys.exit(1)
+    else:
+        sys.exit(main(sys.argv[1]))

@@ -255,6 +255,20 @@ frontends, you need following configuration parameters:</P>
 	<tt>&quot;myschedd@mymachine.mydomain&quot;</tt><br/>
 	<tt>&quot;myschedd_g1@mymachine.mydomain,myschedd_g2@mymachine.mydomain,myschedd_g3@mymachine.mydomain&quot;</tt><br/>
 	</P></li>
+        <LI>
+                <div class="xml">
+                &lt;glidein advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
+                </div>
+        <p>
+                Defines if the factory should use TCP to advertise its classads.
+        </p>
+        <LI>
+                <div class="xml">
+                &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
+                </div>
+        <p>
+                Defines if the factory should use -multiple to advertise its classads (requires Condor 7.5.4+).
+        </p>
 	<LI>
 		<div class="xml">
 		&lt;glidein loop_delay=&quot;<I>seconds</I>&quot;

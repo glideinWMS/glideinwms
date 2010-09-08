@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.63.2.2.8.2 2010/08/31 18:49:15 parag Exp $
+#   $Id: cgWParams.py,v 1.63.2.2.8.2.6.1 2010/09/08 20:19:27 sfiligoi Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -118,6 +118,8 @@ class GlideinParams(cWParams.CommonParams):
 
         self.defaults['loop_delay']=('60','seconds', 'Number of seconds between iterations',None)
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
+        self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
         self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
         self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 
