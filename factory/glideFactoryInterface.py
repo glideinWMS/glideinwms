@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.8 2010/09/08 17:37:30 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.9 2010/09/08 17:58:10 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -516,7 +516,7 @@ def deadvertizeFactoryClientMonitoring(factory_name,glidein_name):
     try:
         try:
             fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('TargetType = "%s"\n'%factoryConfig.factoryclient_id)
             fd.write('Requirements = (ReqFactoryName=?="%s")&&(ReqGlideinName=?="%s")'%(factory_name,glidein_name))
         finally:
             fd.close()
