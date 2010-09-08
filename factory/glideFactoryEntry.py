@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.2 2010/09/08 00:11:21 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.3 2010/09/08 00:24:16 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -555,6 +555,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                      float(glideinDescript.data['CondorLogRetentionMaxMBs']))
 
     glideFactoryInterface.factoryConfig.advertise_use_tcp=(glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
+    glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
     
     # create lock file
     pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
