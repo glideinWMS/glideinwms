@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1 2010/08/31 18:49:16 parag Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.1 2010/09/08 22:18:05 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -66,7 +66,7 @@ def aggregateStatus():
 
     type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
-    status={'entries':{},'total':copy.deepcopy(global_total)}
+    status={'entries':{},'total':global_total}
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
