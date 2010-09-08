@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.5 2010/09/03 23:19:10 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.1.4.6 2010/09/08 00:58:22 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -510,11 +510,12 @@ def advertizeWorkMulti_multi(factory_pool,
                                 do_append=ap)
         ap=True # Append from here on
     
-    try:
-        advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True,is_multi=True)
-    except condorExe.ExeError, e:
-        # the parent expects a MultiError
-        raise MultiExeError,[e]
+    if ap: # if true, there is at least one el -> file has been created
+        try:
+            advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True,is_multi=True)
+        except condorExe.ExeError, e:
+            # the parent expects a MultiError
+            raise MultiExeError,[e]
 
 
 # END INTERNAL

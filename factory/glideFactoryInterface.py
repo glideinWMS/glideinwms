@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.6 2010/09/08 00:11:21 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.7 2010/09/08 00:55:25 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -360,8 +360,6 @@ class MultiAdvertizeGlideinClientMonitoring:
             raise MultiExeError, error_arr
         
     def do_advertize_multi(self):
-        error_arr=[]
-
         # get a 9 digit number that will stay 9 digit for the next 25 years
         short_time = time.time()-1.05e9
         tmpnam="/tmp/gfi_agcm_%li_%li"%(short_time,os.getpid())
@@ -374,13 +372,15 @@ class MultiAdvertizeGlideinClientMonitoring:
                                               do_append=ap)
             ap=True # Append from here on
 
-        try:
-            advertizeGlideinClientMonitoringFromFile(tmpnam,remove_file=True,is_multi=True)
-        except condorExe.ExeError, e:
-            error_arr.append(e)
+        if ap:
+            error_arr=[]
+            try:
+                advertizeGlideinClientMonitoringFromFile(tmpnam,remove_file=True,is_multi=True)
+            except condorExe.ExeError, e:
+                error_arr.append(e)
 
-        if len(error_arr)>0:
-            raise MultiExeError, error_arr
+            if len(error_arr)>0:
+                raise MultiExeError, error_arr
         
 
 
