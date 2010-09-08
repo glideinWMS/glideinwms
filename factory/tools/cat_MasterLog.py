@@ -1,8 +1,13 @@
 #!/bin/env python
 #
-# cat_MasterLog.py
+# Project:
+#   glideinWMS
 #
-# Print out the MasterLog for a glidein output file
+# File Version: 
+#   $Id: cat_MasterLog.py,v 1.3.12.1 2010/09/08 03:22:59 parag Exp $
+#
+# Description:
+#   Print out the MasterLog for a glidein output file
 #
 # Usage: cat_MasterLog.py logname
 #

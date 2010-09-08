@@ -1,8 +1,13 @@
 #!/bin/env python
 #
-# cat_StarterLog.py
+# Project:
+#   glideinWMS
 #
-# Print out the StarterLog for a glidein output file
+# File Version: 
+#   $Id: cat_StarterLog.py,v 1.5.12.1 2010/09/08 03:22:59 parag Exp $
+#
+# Description:
+#   Print out the StarterLog for a glidein output file
 #
 # Usage: cat_StarterLog.py logname
 #

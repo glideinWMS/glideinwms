@@ -1,5 +1,11 @@
 #!/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactory.py,v 1.89.2.4 2010/09/08 03:22:58 parag Exp $
+#
 # Description:
 #   This is the main of the glideinFactory
 #
@@ -152,6 +158,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
         
 ############################################################
 def main(startup_dir):
+    
     startup_time=time.time()
 
     # force integrity checks on all the operations
@@ -173,6 +180,15 @@ def main(startup_dir):
                                                        float(glideinDescript.data['LogRetentionMinDays']),
                                                        float(glideinDescript.data['LogRetentionMaxMBs']))
     
+
+    try:
+        os.chdir(startup_dir)
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logWarning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        raise
+
     try:
         os.chdir(startup_dir)
     except:

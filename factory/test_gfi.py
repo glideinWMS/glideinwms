@@ -1,3 +1,11 @@
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: test_gfi.py,v 1.1.1.1.12.1 2010/09/08 03:22:59 parag Exp $
+#
+
 import os,sys,glideFactoryInterface
 
 glideFactoryInterface.factoryConfig.activity_log=sys.stdout

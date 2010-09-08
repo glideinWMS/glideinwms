@@ -1,5 +1,11 @@
 #!/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: stopFactory.py,v 1.7.8.1 2010/09/08 03:22:59 parag Exp $
+#
 # Description:
 #   Stop a running glideinFactory
 # 

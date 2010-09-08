@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactoryLib.py,v 1.55.2.5 2010/09/08 03:22:59 parag Exp $
+#
 # Description:
 #   This module implements the functions needed to keep the
 #   required number of idle glideins

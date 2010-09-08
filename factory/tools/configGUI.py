@@ -1,5 +1,10 @@
 #!/bin/env python
-#####################################################
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: configGUI.py,v 1.1.2.1 2010/09/08 03:22:59 parag Exp $
 #
 # Description:
 #   This program implements a GUI
@@ -8,7 +13,6 @@
 # Author:
 #   Robert Chen @UCSD
 #
-#####################################################
 
 #import wxWidgets
 import wx

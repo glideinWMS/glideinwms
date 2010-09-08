@@ -1,8 +1,13 @@
 #!/bin/env python
 #
-# find_logs.py
+# Project:
+#   glideinWMS
 #
-# Find the logs for a certain date
+# File Version: 
+#   $Id: find_logs.py,v 1.2.8.1 2010/09/08 03:22:59 parag Exp $
+#
+# Description:
+#   Find the logs for a certain date
 #
 # Usage: find_logs.py <factory> YY/MM/DD [hh:mm:ss]
 #
