@@ -481,6 +481,9 @@ class completedStats:
         intv_dict = glideFactoryLib.totalsDict(entry_name, 
                             datetime.now(), self.interval_list, "v1_0")
 
+        
+        #glideFactoryLib.log_files.logActivity(intv_dict)
+
         xml_str = ("<AnalyzedEntriesXML>"+"\n"+
                       self.get_xml_updated(leading_tab="  ")+"\n"+
                    "  <total>"+"\n"+

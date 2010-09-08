@@ -356,42 +356,28 @@ def getDates(start_time, end_time):
     return dates_d
 
 # -----------------------------------------------------
-# totalsDict.py
+# totalsDict
 #
-# This script goes through the completed jobs logs
-#	of entries in the entry_list, over a user-given
-#	interval and returns a dictionary of entries 
-#   with their corresponding dictionaries of parameters
-#   such as total jobs, total time used, as well as
-#   the number of jobs which had certain problems. 
-# -----------------------------------------------------
-
 # returns a dictionary of the form: 
-#  dict = {'total': 
-#            {'jobs': 321,... }, 
+#  dict = {'total':
+#            {'periods': 
+#               {3600:  
+#                {'job_totals':
+#                    {'glideins':123, 'duration': ... },
+#                 {'job_counts':
+#                    {'zero_jobs': 32, 'val1000': ...}}}}}},
 #         'frontends': 
 #            {'fe1': 
-#                {'jobs': 123, ...}
-#             'fe2':
-#                {'jobs': 197, ...}
-#              ...                    }
-#                 ...                     }
+#               {'periods':
+#                  {3600:
+#                    {'job_totals':
+#                       {...}}}}}
 #
-
-# attributes and re are 1:1 - a name for the report and it's regex
-# attributes = ["validation_total","validation1000", ...]
-# attributes_re = ['validation=/"/d*/"','validation="1000"',..]
-
 
 def totalsDict(entry, 
                end_time,          # datetime element (datetime.now()) 
                interval_list,     #times in seconds
                gfactory_version):
-
-    #log_files.logWarning("tD entry name: %s" % entry)
-    #log_files.logWarning("tD end time:",  end_time)
-    #log_files.logWarning("tD interval list:", interval_list)
-    #log_files.logWarning("tD gfactory version: %s" % gfactory_version)
 
     final_dictionary = {}
     final_dictionary['total'] = {}
@@ -408,7 +394,7 @@ def totalsDict(entry,
      
     analyzed_title_list = ["validation1000",       "zero_jobs", 
                            "badput1000",           "zero_goodput", 
-                           "idle1000",             "no_cond_start"]
+                           "idle1000",             "no_condor_start"]
 
     agg_re_list = ['',                             'duration=\"(\d+)\"', 
                    'condor_duration=\"(\d+)\"',    'jobsnr=\"(\d+)\"', 
@@ -421,10 +407,11 @@ def totalsDict(entry,
                         'idle=\"1000\"',                'condor_started=\"False\"']
 #-------------
 
+    ## does this need to be changed?
     original_dir = os.getcwd()
-
     log_path = "../../glideinsubmit/glidein_"+gfactory_version+"/log/"
-    
+    ##    
+
     if os.path.exists(log_path):
         os.chdir(log_path)
     if os.path.exists(entry): 
@@ -449,9 +436,12 @@ def totalsDict(entry,
             f = open(c, 'r')
             jobs = (f.read()).split("\n")
             
+            # if skip flag up - whole log is needed for this day
+            #        so add all jobs to the list
             if skip == 1:
                 joblist += filter(None, jobs)
     
+            # else, check each job's timestamp to see if in interval
             else:
                 for j in filter(None, jobs):
                     term_time = re.findall('terminated=\"\S*\"', j)
@@ -460,7 +450,6 @@ def totalsDict(entry,
 
         if len(joblist) == 0:
            continue 
- 
 
         # ----- Totals -------------------------------------------
         final_dictionary['total']['periods'][interval]['job_counts'] = {} 
@@ -474,6 +463,7 @@ def totalsDict(entry,
         for j in joblist:
 
             for i in range(len(agg_title_list)):
+                # i=0 is the number of glideins, has to be separate from the others
                 if i == 0:
                     final_dictionary['total']['periods'][interval]['job_totals'][agg_title_list[0]] += 1
                     continue
@@ -491,11 +481,14 @@ def totalsDict(entry,
             # To change from username to client, just change next two lines
             job_client = re.findall('client=\"(\S*)\"',j)[0]
 
-            if job_client not in client_joblist:
-                client_joblist[job_client]= []
-            
+            if job_client not in final_dictionary['frontends']:
                 final_dictionary['frontends'][job_client] = {}
                 final_dictionary['frontends'][job_client]['periods'] = {}
+                final_dictionary['frontends'][job_client]['periods'][interval] = {}
+                final_dictionary['frontends'][job_client]['periods'][interval]['job_totals'] = {}
+                final_dictionary['frontends'][job_client]['periods'][interval]['job_counts'] = {}
+
+            if interval not in final_dictionary['frontends'][job_client]['periods']:
                 final_dictionary['frontends'][job_client]['periods'][interval] = {}
                 final_dictionary['frontends'][job_client]['periods'][interval]['job_totals'] = {}
                 final_dictionary['frontends'][job_client]['periods'][interval]['job_counts'] = {}
@@ -505,31 +498,32 @@ def totalsDict(entry,
             for i in range(len(analyzed_title_list)):
                 final_dictionary['frontends'][job_client]['periods'][interval]['job_counts'][analyzed_title_list[i]] = 0
 
+            if job_client not in client_joblist:
+                client_joblist[job_client]= []
             client_joblist[job_client].append(j)
  
-            for client, joblist in client_joblist.iteritems():
-                for j in joblist:
-                    for i in range(len(agg_title_list)):
-                        if i == 0:
-                            final_dictionary['frontends'][client]['periods'][interval]['job_totals'][agg_title_list[0]] += 1
-                            continue
-                        temp = re.findall(agg_re_list[i], j)
-                        if len(temp) > 0:
-                            final_dictionary['frontends'][client]['periods'][interval]['job_totals'][agg_title_list[i]] += int(temp[0])
-                    
-                    for i in range(len(analyzed_title_list)):
-                        temp = re.findall(analyzed_re_list[i], j)
-                        if len(temp) > 0:
-                            final_dictionary['frontends'][client]['periods'][interval]['job_counts'][analyzed_title_list[i]] += len(temp)
+        for client, c_joblist in client_joblist.iteritems():
+            for cj in c_joblist:
+                for i in range(len(agg_title_list)):
+                    if i == 0:
+                        final_dictionary['frontends'][client]['periods'][interval]['job_totals'][agg_title_list[0]] += 1
+                        continue
+                    temp = re.findall(agg_re_list[i], cj)
+                    if len(temp) > 0:
+                        final_dictionary['frontends'][client]['periods'][interval]['job_totals'][agg_title_list[i]] += int(temp[0])
+                
+                for i in range(len(analyzed_title_list)):
+                    temp = re.findall(analyzed_re_list[i], cj)
+                    if len(temp) > 0:
+                        final_dictionary['frontends'][client]['periods'][interval]['job_counts'][analyzed_title_list[i]] += len(temp)
 
+    # add empty missing intervals (ex: 3600: {}) - might be necessary
+    #for clients in final_dictionary['frontends']:
+    #    for interval in interval_list:
+    #        if interval not in final_dictionary['frontends'][client]['periods']:
+    #            final_dictionary['frontends'][client]['periods'][interval] = {}
 
-    for clients in final_dictionary['frontends']:
-        for interval in interval_list:
-            if interval not in final_dictionary['frontends'][client]['periods']:
-                final_dictionary['frontends'][client]['periods'][interval] = {}
-    print os.getcwd()
     os.chdir(original_dir)
-    print os.getcwd()
     return final_dictionary
 
 ####################################################################

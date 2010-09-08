@@ -383,6 +383,7 @@ def aggregateCompleted():
     completed={'entries':{},'total':copy.deepcopy({'periods': None})}
     completed['total'] = {}
     completed['total']['periods'] = {}
+    completed['total']['frontends'] = {}
 
     number_entries=0
     for entry in monitorAggregatorConfig.entries:
@@ -397,7 +398,6 @@ def aggregateCompleted():
         # update entry 
         completed['entries'][entry]={'entry_total': entry_data['total'], 'frontends':entry_data['frontends']}
 
-        glideFactoryLib.log_files.logActivity("gets into here1")
         # update total
         number_entries+=1
         for period, type_list in entry_data['total']['periods'].iteritems():
@@ -414,11 +414,30 @@ def aggregateCompleted():
                 # successive sum 
                 for type, param_list in type_list.iteritems():
                    for param_name, param_val in param_list.iteritems():
-                       if completed['total']['periods'].has_key(period) and completed['total'][p_title][period].has_key(type) and completed['total'][p_title][period][type].has_key(param):
+                       if completed['total'][p_title][period].has_key(type) and completed['total'][p_title][period][type].has_key(param_name):
                            completed['total']['periods'][period][type][param_name] += int(param_val) 
-                            
+        
+        for frontend in entry_data['frontends']:
+            if frontend not in completed['total']['frontends']:
+                completed['total']['frontends'][frontend] = {}        
+                completed['total']['frontends'][frontend]['periods'] = {}       
+ 
+            for period, type_list in entry_data['frontends'][frontend]['periods'].iteritems():
+                if period not in completed['total']['frontends'][frontend]['periods']:
+                    # period not here, copy over
+                    completed['total']['frontends'][frontend]['periods'][period] = {}
+                    for type, param_list in type_list.iteritems():
+                        completed['total']['frontends'][frontend]['periods'][period][type] = {}
+                        for param_name, param_val in param_list.iteritems():
+                            completed['total']['frontends'][frontend]['periods'][period][type][param_name] = int(param_val)
+                else:  # period already added, add to what's here
+                    for type, param_list in type_list.iteritems():
+                        for param_name, param_type in param_list.iteritems():
+                            if completed['total']['frontends'][frontend]['periods'][period].has_key(type) and completed['total']['frontend'][frontend]['periods'][period][type].has_key(param_name):
+                                completed['total']['frontends'][frontend]['periods'][period][type][param_name] += int(param_val)
 
-    # Write xml files
+    ### Write xml file ###################
+
     updated=time.time()
 
 
@@ -453,6 +472,12 @@ def aggregateCompleted():
     xml_str += "   </entries>" 
     xml_str += "   <total>" 
     xml_str += xmlFormat.dict2string(completed["total"]["periods"],dict_name="periods", el_name="period", subtypes_params={"class": {}},leading_tab=xmlFormat.DEFAULT_TAB)
+    xml_str += xmlFormat.dict2string(completed["total"]["frontends"],dict_name="frontends", el_name="frontend", subtypes_params={"class": 
+                      {"dicts_params": 
+                         {"periods":
+                             {"el_name":
+                                 "period",
+                                 "subtypes_params": {"class":{}}}}}},leading_tab=xmlFormat.DEFAULT_TAB)
     xml_str += "   </total>\n" + "</CompletedStats>\n"
 
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.completed_relname,xml_str)
