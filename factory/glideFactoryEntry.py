@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.4 2010/09/08 17:39:51 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.5 2010/09/08 18:18:31 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -38,11 +38,28 @@ import glideFactoryDowntimeLib
 import logSupport
 
 ############################################################
-def check_parent(parent_pid):
+def check_parent(parent_pid,glideinDescript,jobDescript):
     if os.path.exists('/proc/%s'%parent_pid):
         return # parent still exists, we are fine
     
     glideFactoryLib.log_files.logActivity("Parent died, exit.")    
+
+    # there is nobody to clean up after ourselves... do it here
+    glideFactoryLib.log_files.logActivity("Deadvertize myself")
+    
+    try:
+        glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],	 
+                                                 glideinDescript.data['GlideinName'],	 
+                                                 jobDescript.data['EntryName'])	 
+    except:
+        glideFactoryLib.log_files.logWarning("Failed to deadvertize myself")
+    try:
+        glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(glideinDescript.data['FactoryName'],	 
+                                                                    glideinDescript.data['GlideinName'],	 
+                                                                    jobDescript.data['EntryName'])	 
+    except:
+        glideFactoryLib.log_files.logWarning("Failed to deadvertize my monitoring")
+
     raise KeyboardInterrupt,"Parent died"
 
 
@@ -442,7 +459,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
-        check_parent(parent_pid)
+        check_parent(parent_pid,glideinDescript,jobDescript)
         in_downtime=(factory_downtimes.checkDowntime() or entry_downtimes.checkDowntime())
         if in_downtime:
             glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
@@ -584,6 +601,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
                 raise
         finally:
+            # no need to cleanup.. the parent should be doing it
             glideFactoryLib.log_files.logActivity("Dying")
     finally:
         pid_obj.relinquish()
