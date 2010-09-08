@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.1 2010/09/02 21:36:46 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.2 2010/09/08 00:11:21 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -383,6 +383,11 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     except:
         glideFactoryLib.log_files.logWarning("Advertize failed")
 
+
+    # Advertise the monitoring
+    advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
+                                                                           jobAttributes.data.copy())
+
     current_qc_data=glideFactoryLib.factoryConfig.qc_stats.get_data()
     for client_name in current_qc_data.keys():
         client_qc_data=current_qc_data[client_name]
@@ -405,10 +410,13 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         for p in fparams.keys():
             if p in params.keys(): # can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
-        try:
-            glideFactoryInterface.advertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
-        except:
-            glideFactoryLib.log_files.logWarning("Advertize of '%s' failed"%client_name)
+        advertizer.add(client_internals["CompleteName"],client_name,client_internals["ReqName"],
+                       params,client_monitors.copy())
+        
+    try:
+        advertizer.do_advertize()
+    except:
+        glideFactoryLib.log_files.logWarning("Advertize of monitoring failed")
         
 
     return

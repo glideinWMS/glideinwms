@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.5 2010/09/07 20:51:24 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.4.6 2010/09/08 00:11:21 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -300,12 +300,89 @@ def advertizeGlideinClientMonitoring(factory_name,glidein_name,entry_name,
                                      glidein_attrs={},client_params={},client_monitors={}):
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    tmpnam="/tmp/gfi_agcm_%li_%li"%(short_time,os.getpid())
 
     createGlideinClientMonitoringFile(tmpnam,factory_name,glidein_name,entry_name,
                                       client_name,client_int_name,client_int_req,
                                       glidein_attrs,client_params,client_monitors)
     advertizeGlideinClientMonitoringFromFile(tmpnam,remove_file=True)
+
+class MultiAdvertizeGlideinClientMonitoring:
+    # glidein_attrs is a dictionary of values to publish
+    #  like {"Arch":"INTEL","MinDisk":200000}
+    def __init__(self,
+                 factory_name,glidein_name,entry_name,
+                 glidein_attrs):
+        self.factory_name=factory_name
+        self.glidein_name=glidein_name
+        self.entry_name=entry_name
+        self.glidein_attrs=glidein_attrs
+        self.client_data=[]
+
+    def add(self,
+            client_name,client_int_name,client_int_req,
+            client_params={},client_monitors={}):
+        el={'client_name':client_name,
+            'client_int_name':client_int_name,
+            'client_int_req':client_int_req,
+            'client_params':client_params,
+            'client_monitors':client_monitors}
+        self.client_data.append(el)
+
+    # do the actual advertizing
+    # can throw MultiExeError
+    def do_advertize(self):
+        if factoryConfig.advertise_use_multi:
+            self.do_advertize_multi()
+        else:
+            self.do_advertize_iterate()
+        self.client_data=[]
+
+        
+    # INTERNAL
+    def do_advertize_iterate(self):
+        error_arr=[]
+
+        # get a 9 digit number that will stay 9 digit for the next 25 years
+        short_time = time.time()-1.05e9
+        tmpnam="/tmp/gfi_agcm_%li_%li"%(short_time,os.getpid())
+
+        for el in self.client_data:
+            createGlideinClientMonitoringFile(tmpnam,self.factory_name,self.glidein_name,self.entry_name,
+                                              el['client_name'],el['client_int_name'],el['client_int_req'],
+                                              self.glidein_attrs,el['client_params'],el['client_monitors'])
+            try:
+                advertizeGlideinClientMonitoringFromFile(tmpnam,remove_file=True)
+            except condorExe.ExeError, e:
+                error_arr.append(e)
+
+        if len(error_arr)>0:
+            raise MultiExeError, error_arr
+        
+    def do_advertize_multi(self):
+        error_arr=[]
+
+        # get a 9 digit number that will stay 9 digit for the next 25 years
+        short_time = time.time()-1.05e9
+        tmpnam="/tmp/gfi_agcm_%li_%li"%(short_time,os.getpid())
+
+        ap=False
+        for el in self.client_data:
+            createGlideinClientMonitoringFile(tmpnam,self.factory_name,self.glidein_name,self.entry_name,
+                                              el['client_name'],el['client_int_name'],el['client_int_req'],
+                                              self.glidein_attrs,el['client_params'],el['client_monitors'],
+                                              do_append=ap)
+            ap=True # Append from here on
+
+        try:
+            advertizeGlideinClientMonitoringFromFile(tmpnam,remove_file=True,is_multi=True)
+        except condorExe.ExeError, e:
+            error_arr.append(e)
+
+        if len(error_arr)>0:
+            raise MultiExeError, error_arr
+        
+
 
 ##############################
 # Start INTERNAL
