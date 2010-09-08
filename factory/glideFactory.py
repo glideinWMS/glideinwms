@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.4.3 2010/09/08 18:03:51 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.4.4 2010/09/08 18:10:08 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -203,7 +203,16 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     finally:        
         # cleanup at exit
         try:
-            clean_exit(childs)
+            try:
+                clean_exit(childs)
+            except:
+                # if anything goes wrong, hardkill the rest
+                for entry_name in childs.keys():
+                    glideFactoryLib.log_files.logActivity("Hard killing entry %s"%entry_name)
+                    try:
+                        os.kill(childs[entry_name].pid,signal.SIGKILL)
+                    except OSError:
+                        pass # ignore dead clients
         finally:
             glideFactoryLib.log_files.logActivity("Deadvertize myself")
             try:
