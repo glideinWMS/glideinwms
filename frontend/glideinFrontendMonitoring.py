@@ -108,8 +108,11 @@ class groupStats:
                          'Slots':("Idle","Running","Total")}
 
     def logJobs(self,jobs_data):
+        if not 'totals' in self.data:
+            self.data['totals'] = {}
+
         el={}
-        self.data['Jobs']=el
+        self.data['totals']['Jobs']=el
 
         for k in self.attributes['Jobs']:
             if jobs_data.has_key(k):
@@ -117,8 +120,11 @@ class groupStats:
         self.updated=time.time()
 
     def logSlots(self,slots_data):
+        if not 'totals' in self.data:
+            self.data['totals'] = {}
+
         el={}
-        self.data['Slots']=el
+        self.data['totals']['Slots']=el
 
         for k in self.attributes['Slots']:
             if slots_data.has_key(k):
@@ -190,11 +196,17 @@ class groupStats:
         self.updated = time.time()
 
     def get_data(self):
-        return copy.deepcopy(self.data)
+        return copy.deepcopy(self.data['factories'])
 
     def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
+        data=self.get_data()
+        return xmlFormat.dict2string(data,
+                                     dict_name='factories', el_name='factory',
+                                     subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
+                                       indent_tab=indent_tab,leading_tab=leading_tab)
+
+        #return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
+        #                             indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_updated():
         return self.updated
@@ -211,6 +223,15 @@ class groupStats:
                                      subtypes_params={"class":{}},
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
+    def get_total(self):
+        return copy.deepcopy(self.data['totals'])
+
+    def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+        total=self.get_total()
+        return xmlFormat.class2string(total,
+                                      inst_name="total",
+                                      indent_tab=indent_tab,leading_tab=leading_tab)
+
 
     def write_file(self):
         global monitoringConfig
@@ -224,13 +245,20 @@ class groupStats:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<VOFrontendGroupStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 "</VOFrontendGroupStats>\n")
+
+        '''xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
+                 '<VOFrontendGroupStats>\n'+
+                 self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  xmlFormat.dict2string(self.data['factories'], dict_name='factories',
                                        el_name='factory', subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
                                        indent_tab=xmlFormat.DEFAULT_TAB,
                                        leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  xmlFormat.class2string(self.data['Jobs'],'Jobs',indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  xmlFormat.class2string(self.data['Slots'],'Slots',indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 "</VOFrontendGroupStats>\n")
+                 "</VOFrontendGroupStats>\n")'''
         monitoringConfig.write_file("frontend_status.xml",xml_str)
 
         # update RRDs
