@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.3 2010/09/08 00:24:16 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.4.4 2010/09/08 17:39:51 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -584,23 +584,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
                 raise
         finally:
-            try:
-                glideFactoryLib.log_files.logActivity("Deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
-                                                                                              glideinDescript.data['GlideinName'],
-                                                                                              jobDescript.data['EntryName']))
-                glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],
-                                                         glideinDescript.data['GlideinName'],
-                                                         jobDescript.data['EntryName'])
-                glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(glideinDescript.data['FactoryName'],
-                                                                            glideinDescript.data['GlideinName'],
-                                                                            jobDescript.data['EntryName'])
-            except:
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
-                                                                                                       glideinDescript.data['GlideinName'],
-                                                                                                       jobDescript.data['EntryName']))
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+            glideFactoryLib.log_files.logActivity("Dying")
     finally:
         pid_obj.relinquish()
 
