@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.4.1 2010/09/08 17:40:13 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.4.2 2010/09/08 17:46:16 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -78,7 +78,7 @@ def clean_exit(sleep_time,childs):
             glideFactoryLib.log_files.logActivity("Entry %s already dead"%entry_name)
             del childs[entry_name] # already dead
 
-    while len(childs.keys()>0):
+    while len(childs.keys())>0:
         glideFactoryLib.log_files.logActivity("Sleep")
         time.sleep(sleep_time)
         
