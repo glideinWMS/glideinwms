@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cvWCreate.py,v 1.7.8.7 2010/09/08 03:29:59 parag Exp $
+#   $Id: cvWCreate.py,v 1.7.8.8 2010/09/08 23:22:37 sfiligoi Exp $
 #
 # Description:
 #   Functions needed to create files used by the VO Frontend
@@ -67,6 +67,9 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         
         fd.write("restart() {\n")
         fd.write("        stop\n")
+        fd.write("        if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("          exit $RETVAL\n")
+        fd.write("        fi\n")
         fd.write("        start\n")
         fd.write("}\n\n")
 
@@ -82,6 +85,9 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         fd.write("        notrun=$?\n")
         fd.write("        if [ $notrun -eq 0 ]; then\n")
         fd.write("          stop\n")
+        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("            exit $RETVAL\n")
+        fd.write("          fi\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" $1\n')
         fd.write('	  RETVAL=$?\n')

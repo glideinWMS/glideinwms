@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.18 2010/09/08 03:22:59 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.19 2010/09/08 23:22:38 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -38,11 +38,28 @@ import glideFactoryDowntimeLib
 import logSupport
 
 ############################################################
-def check_parent(parent_pid):
+def check_parent(parent_pid,glideinDescript,jobDescript):
     if os.path.exists('/proc/%s'%parent_pid):
         return # parent still exists, we are fine
     
     glideFactoryLib.log_files.logActivity("Parent died, exit.")    
+
+    # there is nobody to clean up after ourselves... do it here
+    glideFactoryLib.log_files.logActivity("Deadvertize myself")
+    
+    try:
+        glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],	 
+                                                 glideinDescript.data['GlideinName'],	 
+                                                 jobDescript.data['EntryName'])	 
+    except:
+        glideFactoryLib.log_files.logWarning("Failed to deadvertize myself")
+    try:
+        glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(glideinDescript.data['FactoryName'],	 
+                                                                    glideinDescript.data['GlideinName'],	 
+                                                                    jobDescript.data['EntryName'])	 
+    except:
+        glideFactoryLib.log_files.logWarning("Failed to deadvertize my monitoring")
+
     raise KeyboardInterrupt,"Parent died"
 
 
@@ -383,6 +400,11 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     continue
             else:
                 # old style
+
+    # Advertise the monitoring
+    advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
+                                                                           jobAttributes.data.copy())
+
                 client_web=None
 
             done_something+=perform_work(entry_name,schedd_name,
@@ -449,10 +471,13 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         for p in fparams.keys():
             if p in params.keys(): # can only overwrite existing params, not create new ones
                 params[p]=fparams[p]
-        try:
-            glideFactoryInterface.advertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_internals["CompleteName"],client_name,client_internals["ReqName"],jobAttributes.data.copy(),params,client_monitors.copy())
-        except:
-            glideFactoryLib.log_files.logWarning("Advertize of '%s' failed"%client_name)
+        advertizer.add(client_internals["CompleteName"],client_name,client_internals["ReqName"],
+                       params,client_monitors.copy())
+        
+    try:
+        advertizer.do_advertize()
+    except:
+        glideFactoryLib.log_files.logWarning("Advertize of monitoring failed")
         
 
     return
@@ -476,7 +501,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     while 1:
-        check_parent(parent_pid)
+        check_parent(parent_pid,glideinDescript,jobDescript)
         in_downtime=(factory_downtimes.checkDowntime(entry="factory") or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
         if in_downtime:
             glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
@@ -588,6 +613,9 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                                                      float(glideinDescript.data['CondorLogRetentionMinDays']),
                                                      float(glideinDescript.data['CondorLogRetentionMaxMBs']))
 
+    glideFactoryInterface.factoryConfig.advertise_use_tcp=(glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
+    glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
+    
     # create lock file
     pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
     
@@ -615,23 +643,8 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
                 glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
                 raise
         finally:
-            try:
-                glideFactoryLib.log_files.logActivity("Deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
-                                                                                              glideinDescript.data['GlideinName'],
-                                                                                              jobDescript.data['EntryName']))
-                glideFactoryInterface.deadvertizeGlidein(glideinDescript.data['FactoryName'],
-                                                         glideinDescript.data['GlideinName'],
-                                                         jobDescript.data['EntryName'])
-                glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(glideinDescript.data['FactoryName'],
-                                                                            glideinDescript.data['GlideinName'],
-                                                                            jobDescript.data['EntryName'])
-            except:
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                glideFactoryLib.log_files.logWarning("Failed to deadvertize of (%s,%s,%s)"%(glideinDescript.data['FactoryName'],
-                                                                                                       glideinDescript.data['GlideinName'],
-                                                                                                       jobDescript.data['EntryName']))
-                glideFactoryLib.log_files.logWarning("Exception occurred: %s" % tb)
+            # no need to cleanup.. the parent should be doing it
+            glideFactoryLib.log_files.logActivity("Dying")
     finally:
         pid_obj.relinquish()
 

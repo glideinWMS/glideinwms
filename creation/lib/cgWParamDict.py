@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.13 2010/09/08 03:29:59 parag Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14 2010/09/08 23:22:37 sfiligoi Exp $
 #
 # Description:
 #   Glidein creation module
@@ -542,6 +542,10 @@ def populate_factory_descript(work_dir,
                 active_sub_list.append(sub)
 
         glidein_dict.add('Entries',string.join(active_sub_list,','))
+        glidein_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
+        glidein_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
+        glidein_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
+        glidein_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('RestartAttempts',params.restart_attempts)

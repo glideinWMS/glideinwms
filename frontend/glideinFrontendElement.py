@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.8 2010/09/08 03:12:31 parag Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.9 2010/09/08 23:22:39 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -468,6 +468,9 @@ def main(parent_pid, work_dir, group_name):
     signatureDescript=glideinFrontendConfig.GroupSignatureDescript(work_dir,group_name)
 
     glideinFrontendMonitoring.monitoringConfig.monitor_dir=os.path.join(work_dir,"monitor/group_%s"%group_name)
+
+    glideinFrontendInterface.frontendConfig.advertise_use_tcp=(elementDescript.frontend_data['AdvertiseWithTCP'] in ('True','1'))
+    glideinFrontendInterface.frontendConfig.advertise_use_multi=(elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True','1'))
 
     if len(elementDescript.merged_data['Proxies'])>0:
         if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):

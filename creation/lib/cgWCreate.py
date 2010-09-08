@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.5 2010/09/08 03:29:59 parag Exp $
+#   $Id: cgWCreate.py,v 1.49.2.6 2010/09/08 23:22:37 sfiligoi Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -163,6 +163,9 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("stop() {\n")
         fd.write('        echo -n "Shutting down glideinWMS factory $id_str: "\n')
         fd.write('        "$glideinWMS_dir/factory/stopFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write("        if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("          exit $RETVAL\n")
+        fd.write("        fi\n")
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
         fd.write("}\n\n")
@@ -179,6 +182,9 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("           has_arg=0\n")
         fd.write('           echo $"Usage: factory_startup reconfig <fname>"\n')
         fd.write('           echo "ERROR: configuration file does not exist: $1"\n')
+        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("            exit $RETVAL\n")
+        fd.write("          fi\n")
         fd.write("           exit 1\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null\n')
