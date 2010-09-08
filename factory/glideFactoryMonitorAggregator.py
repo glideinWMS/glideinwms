@@ -32,7 +32,7 @@ class MonitorAggregatorConfig:
         self.logsummary_relname="log_summary.xml"
 		
         # name of the rrd files
-        self.rrdstats_relname_fmt = 'rrd_%s_stats.xml'
+        self.rrdstats_relname_fmt = 'rrd_%s.xml'
         self.rrdstats_relname = ['Status_Attributes', 'Log_Completed', 'Log_Completed_Stats', 'Log_Completed_WasteTime', 'Log_Counts']
 
     def config_factory(self,monitor_dir,entries):
@@ -382,47 +382,82 @@ def aggregateLogSummary():
 
 def aggregateRRDStats():
     global monitorAggregatorConfig
+    tab = xmlFormat.DEFAULT_TAB
 
     for rrd in monitorAggregatorConfig.rrdstats_relname:
 	
         # assigns the data from every site to 'stats'
         stats = {}
         for entry in monitorAggregatorConfig.entries:
+            rrd_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry), rrd_site(rrd))
             try:
-                rrd_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry), rrd_site(rrd))
-                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'element':{}})
+                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'element':{}, 'timezone':{}})
             except IOError:
                 pass
 
         # an entry is need to access to the data sets, I used the first one
-        if monitorAggregatorConfig.entries: 
-            example_entry = monitorAggregatorConfig.entries[0]
-            # create a dictionary that will hold the aggregate data
-            resolution = stats[example_entry]['resolutions'].keys()
-            aggregate_output = {}
+        example_entry = monitorAggregatorConfig.entries[0]
+        # create a dictionary that will hold the aggregate data
+        resolution = stats[example_entry]['total']['periods'].keys()
+        frontends = stats[example_entry]['frontends'].keys()
+        clients = frontends + ['total']
+        aggregate_output = {}
+        for client in clients:
+            aggregate_output[client] = {}
             for res in resolution:
-                aggregate_output[res] = {}
-                data_sets = stats[example_entry]['resolutions'][res]
+                aggregate_output[client][res] = {}
+                if client == 'total':
+                    data_sets = stats[example_entry][client]['periods'][res]
+                else:
+                    data_sets = stats[example_entry]['frontends'][client]['periods'][res]
                 for data_set in data_sets:
-                    aggregate_output[res][data_set] = 0
+                    aggregate_output[client][res][data_set] = 0
 
         # assign the aggregate data to 'aggregate_output'
-        for res in aggregate_output:
-            for data_set in aggregate_output[res]:
-                for entry in monitorAggregatorConfig.entries:
-                    aggregate_output[res][data_set] += float(stats[entry]['resolutions'][res][data_set]['val'])
+        for client in aggregate_output:
+            for res in aggregate_output[client]:
+                for data_set in aggregate_output[client][res]:
+                    for entry in monitorAggregatorConfig.entries:
+                        if client == 'total':
+                            aggregate_output[client][res][data_set] += int(stats[entry][client]['periods'][res][data_set]['val'])
+                        else:
+                            try:
+                                aggregate_output[client][res][data_set] += int(stats[entry]['frontends'][client]['periods'][res][data_set]['val'])
+                            except KeyError:
+                                pass
 
-        # write xml file
+        # write an aggregate XML file
+        total_xml_str = (tab + '<total>\n' + 2 * tab + '<periods>\n')
+        for res in resolution:
+            total_data = aggregate_output['total'][res]
+            try:
+                total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = tab, leading_tab = 3 * tab) + "\n")
+            except NameError, UnboundLocalError:
+                pass
+        total_xml_str += (2 * tab + '</periods>\n' + tab + '</total>\n')
+        
+        frontend_xml_str = (tab + '<frontends>\n')
+        try:
+            for frontend in frontends:
+                frontend_xml_str += (2 * tab +
+                                     '<frontend name=\"' + frontend + '\">\n' +
+                                     3 * tab + '<periods>\n')
+                for res in resolution:
+                    frontend_data = aggregate_output[frontend][res]
+                    frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+                frontend_xml_str += (3 * tab + '</periods>\n' +
+                                 2 * tab + '</frontend>')
+        except TypeError:
+            pass
+        frontend_xml_str += (tab + '</frontends>\n')
+                  
+        data_str =  total_xml_str + frontend_xml_str
+
         updated = time.time()
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryRRDStats>\n' +
                    get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" +
-                   xmlFormat.DEFAULT_TAB +
-                   '<resolutions>\n')
-        for res in resolution:
-            xml_data_str = xmlFormat.dict2string(aggregate_output[res], dict_name = 'resolution', el_name = 'element', params = {'name':res}, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = "      ") + "\n"
-            xml_str += xml_data_str
-        xml_str += xmlFormat.DEFAULT_TAB + '</resolutions>\n</glideFactoryRRDStats>'
+                   data_str + '</glideFactoryRRDStats>')
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:

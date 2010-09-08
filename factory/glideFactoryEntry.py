@@ -32,9 +32,6 @@ import glideFactoryDowntimeLib
 import logSupport
 import rrdSupport
 
-# list of rrd files that each site has
-rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
-
 ############################################################
 def check_parent(parent_pid):
     if os.path.exists('/proc/%s'%parent_pid):
@@ -54,6 +51,18 @@ def perform_work(entry_name,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
+
+    try:
+        glideFactoryLib.factoryConfig.rrd_stats.getData(client_name)
+        f = open('/home/cmurphy/log.txt', 'ab')
+        f.write(client_name + "\n")
+        f.close()
+    except glideFactoryLib.condorExe.ExeError,e:
+        glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
+        glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
+        f = open('/home/cmurphy/log.txt', 'ab')
+        f.write("Something went wrong.\n")
+        f.close()
 
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
@@ -159,7 +168,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
-
+    
     done_something=0
     for work_key in work.keys():
         # merge work and default params
@@ -356,8 +365,8 @@ def write_stats():
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
-    glideFactoryLib.factoryConfig.sa_stats.writeFiles()
-    glideFactoryLib.log_files.logActivity("sa_stats written")
+    glideFactoryLib.factoryConfig.rrd_stats.writeFiles()
+    glideFactoryLib.log_files.logActivity("rrd_stats written")
     
     return
 
@@ -431,7 +440,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
-    glideFactoryLib.factoryConfig.sa_stats = glideFactoryMonitoring.FactoryStatusData()
+    glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
@@ -445,7 +454,6 @@ def iterate(parent_pid,sleep_time,advertize_rate,
             glideFactoryLib.factoryConfig.log_stats.reset()
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             glideFactoryLib.factoryConfig.client_internals = {}
-            glideFactoryLib.factoryConfig.sa_stats.getData()
 
             done_something=iterate_one(count==0,in_downtime,
                                        glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)

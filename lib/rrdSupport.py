@@ -484,13 +484,12 @@ class rrdtool_exe:
 #
 import rrdtool, time
 
-now = time.time()
 #Defaults for rrdtool fetch
 resDefault = 300
-endDefault = int(now / resDefault) * resDefault
+endDefault = int(time.time() / resDefault) * resDefault
 startDefault = endDefault - 86400
 	
-def fetchData(site, res = resDefault, start = startDefault, end = endDefault, base_dir = '/var/www/html/cmurphy/glidefactory/monitor/glidein_v1_0/entry_', file = 'Status_Attributes.rrd'):
+def fetchData(file, pathway, res = resDefault, start = startDefault, end = endDefault):
 	"""Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
 
 	rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
@@ -499,12 +498,21 @@ def fetchData(site, res = resDefault, start = startDefault, end = endDefault, ba
 	[2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
 
 	#use rrdtool to fetch data
-	fetched = rrdtool.fetch(base_dir + site + '/total/' + file, 'AVERAGE', '-r', str(res), '-s', str(start), '-e', str(end))		
-	
+	fetched = rrdtool.fetch(pathway + file, 'AVERAGE', '-r', str(res), '-s', str(start), '-e', str(end))
+        
+	#sometimes rrdtool returns extra tuples that don't contain data
+        actual_res = fetched[0][2]
+        actual_start = fetched[0][0]
+        actual_end = fetched[0][1]
+        num2slice = ((actual_end - end) - (actual_start - start)) / actual_res
+        if num2slice > 0:
+            fetched_data_raw = fetched[2][:-num2slice]
+        else:
+            fetched_data_raw = fetched[2]
         #converts fetched from tuples to lists
 	fetched_names = list(fetched[1])
 	fetched_data = []
-	for data in fetched[2][:-2]: #rrdtool always returns 2 extra tuples that don't contain data
+	for data in fetched_data_raw:
 		fetched_data.append(list(data))
 	
 	#creates a dictionary to be filled with lists of data
@@ -516,8 +524,7 @@ def fetchData(site, res = resDefault, start = startDefault, end = endDefault, ba
 	for data_set in data_sets:
 		index = fetched_names.index(data_set)	
 		for data in fetched_data:
-			if data[index]:
-				int(round(data[index]))
+			if isinstance(data[index], (int, float)):
 				data_sets[data_set].append(data[index])
 	
 	return data_sets
