@@ -1,6 +1,6 @@
 #!/bin/env python
 
-import sys,os,string
+import sys,os,string,time
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
 import condorPrivsep,condorExe
@@ -28,12 +28,15 @@ def exec_info(user,args):
       print "ERROR: voms-proxy-info not found, but needed"
       return 1
  
+   # get a 9 digit number that will stay 9 digit for the next 25 years
+   short_time = time.time()-1.05e9
+
    fname=args[-1]
    dirname=os.path.dirname(fname)
    env=[]
    for k in os.environ.keys():
       env.append('%s=%s'%(k,os.environ[k]))
-   out = condorPrivsep.execute(user,dirname,voms_path,(voms_path,'-dont-verify-ac','-file',fname)+tuple(args[:-1]),env,stderr_fname='/tmp/a1111.txt')
+   out = condorPrivsep.execute(user,dirname,voms_path,(voms_path,'-dont-verify-ac','-file',fname)+tuple(args[:-1]),env,stderr_fname='/tmp/pi_vi_%li_%li.txt'%(short_time,os.getpid()))
    print string.join(out,"")
 
 def exec_cat(user,fname):
