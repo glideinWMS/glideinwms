@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: stopFactory.py,v 1.7.24.1.4.2 2010/09/08 18:42:11 sfiligoi Exp $
+#   $Id: stopFactory.py,v 1.7.24.1.4.3 2010/09/08 18:45:39 sfiligoi Exp $
 #
 # Description:
 #   Stop a running glideinFactory
@@ -118,7 +118,7 @@ if __name__ == '__main__':
 
     if len(sys.argv)>2:
         if sys.argv[1]=='-force':
-            sys.exit(main(sys.argv[2]),True)
+            sys.exit(main(sys.argv[2],True))
         else:
             print "Usage: stopFactory.py [-force] submit_dir"
             sys.exit(1)
