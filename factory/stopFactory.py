@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: stopFactory.py,v 1.7.24.1.4.1 2010/09/08 18:39:03 sfiligoi Exp $
+#   $Id: stopFactory.py,v 1.7.24.1.4.2 2010/09/08 18:42:11 sfiligoi Exp $
 #
 # Description:
 #   Stop a running glideinFactory
@@ -52,12 +52,6 @@ def main(startup_dir,force=False):
         return 1
     #print factory_pid
 
-    entry_pids=get_entry_pids(startup_dir,factory_pid)
-    #print entry_pids
-
-    entry_keys=entry_pids.keys()
-    entry_keys.sort()
-
     if not glideFactoryPidLib.pidSupport.check_pid(factory_pid):
         # Factory already dead
         return 0
@@ -93,6 +87,13 @@ def main(startup_dir,force=False):
             return 0 # factory dead
     
     print "Factory still alive... sending hard kill"
+
+    entry_pids=get_entry_pids(startup_dir,factory_pid)
+    #print entry_pids
+
+    entry_keys=entry_pids.keys()
+    entry_keys.sort()
+
     for entry in entry_keys:
         if glideFactoryPidLib.pidSupport.check_pid(entry_pids[entry]):
             print "Hard killing entry %s"%entry
