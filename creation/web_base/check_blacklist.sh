@@ -1,19 +1,25 @@
 #!/bin/bash
-
 #
-# This script checks that the node is not in a blacklist
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: check_blacklist.sh,v 1.1.8.1 2010/09/08 03:30:00 parag Exp $
+#
+# Description:
+#   This script checks that the node is not in a blacklist
 #
 
 function check_blacklist {
     myname=`uname -n`
     if [ $? -ne 0 ]; then
-	echo "Cannot get my name!"
+	echo "Cannot get my name!" 1>&2
 	exit 1
     fi
     emyname=`echo $myname | sed 's/\./\\\./g'`
     grep -q -e "^'$emyname'" "$blacklist_file"
     if [ $? -eq 0 ]; then
-	echo "My name '$myname' is in blacklist! Exiting."
+	echo "My name '$myname' is in blacklist! Exiting." 1>&2
 	exit 1
     fi
 
@@ -25,7 +31,7 @@ function check_blacklist {
     emyip=`echo $myip | sed 's/\./\\\./g'`
     grep -q -e "^'$emyip'" "$blacklist_file"
     if [ $? -eq 0 ]; then
-	echo "My ip '$myip' is in blacklist! Exiting."
+	echo "My ip '$myip' is in blacklist! Exiting." 1>&2
 	exit 1
     fi
 

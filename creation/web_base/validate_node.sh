@@ -1,7 +1,14 @@
 #!/bin/bash
 
 #
-# This script checks that the node is in good shape
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: validate_node.sh,v 1.6.8.1 2010/09/08 03:30:00 parag Exp $
+#
+# Description:
+#   This script checks that the node is in good shape
 #
 
 function check_df {
@@ -11,8 +18,8 @@ function check_df {
     free=`df -kP $chdf_dir | awk '{if (NR==2) print $4}'`
     let "chdf_reqkbs=$chdf_reqmbs * 1024"
     if [ $free -lt $chdf_reqkbs ]; then
-	echo "Space on '$chdf_dir' not enough."
-	echo "At least $chdf_reqmbs MBs required, found $free KBs"
+	echo "Space on '$chdf_dir' not enough." 1>&2
+	echo "At least $chdf_reqmbs MBs required, found $free KBs" 1>&2
 	exit 1
     fi
     return 0
@@ -29,8 +36,8 @@ function check_quotas {
 	myquota=`echo $myquotastr|awk '{print $2}'`
 	let "blocks=$chdf_reqmbs * 1024 * 2"
 	if [ $myquota -lt $blocks ]; then
-	    echo "Quota on '$chdf_dir' too small."
-	    echo "At least $chdf_reqmbs MBs required, found $myquota blocks"
+	    echo "Quota on '$chdf_dir' too small." 1>&2
+	    echo "At least $chdf_reqmbs MBs required, found $myquota blocks" 1>&2
 	    exit 1
 	fi
     fi
@@ -73,7 +80,7 @@ check_df /tmp 10
 # and that I can create a temo dir in it
 tmp_dir=`mktemp -d "/tmp/wmsglide_XXXXXX"`
 if [ $? -ne 0 ]; then
-    echo "Cannot create a dir in /tmp"
+    echo "Cannot create a dir in /tmp" 1>&2
     exit 1
 fi
 

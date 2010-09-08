@@ -1,8 +1,13 @@
-#######################################################
 #
-# Classes needed to handle dictionary files
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cWDictFile.py,v 1.26.2.4 2010/09/08 03:29:59 parag Exp $
+#
+# Description:
+#   Classes needed to handle dictionary files
+#
 
 import os,os.path,string,shutil,copy
 import hashCrypto

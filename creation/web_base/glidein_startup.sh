@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glidein_startup.sh,v 1.85.2.5 2010/09/08 03:30:00 parag Exp $
+#
 
 function on_die {
         echo "Received kill signal... shutting down child processes"
@@ -7,7 +14,7 @@ function on_die {
 }
 
 function warn {
- echo `date` $@
+ echo `date` $@ 1>&2
 }
 
 function usage {
@@ -855,7 +862,7 @@ function fetch_file_base {
 	    "$ffb_outname" glidein_config "$ffb_id"
 	    ret=$?
 	    if [ $ret -ne 0 ]; then
-                echo "=== Validation error in $ffb_outname ==="
+                echo "=== Validation error in $ffb_outname ===" 1>&2
 		warn "Error running '$ffb_outname'" 1>&2
 		return 1
 	    fi

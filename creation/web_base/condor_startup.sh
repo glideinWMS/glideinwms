@@ -1,7 +1,14 @@
 #!/bin/bash
-
-# This script starts the condor daemons
-# expects a config file as a parameter
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condor_startup.sh,v 1.48.2.5 2010/09/08 03:30:00 parag Exp $
+#
+# Description:
+# This script starts the condor daemons expects a config file as a parameter
+#
 
 #function to handle passing signals to the child processes
 function on_die {

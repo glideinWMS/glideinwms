@@ -1,6 +1,12 @@
 #!/bin/env python
 
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: reconfig_glidein,v 1.22.10.2 2010/09/08 03:29:59 parag Exp $
+#
 # Description:
 #  This program updates a glidein factory directory structure
 #  based on a configuration file
