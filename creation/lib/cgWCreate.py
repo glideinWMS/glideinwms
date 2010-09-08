@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.1.8.2 2010/08/31 18:49:15 parag Exp $
+#   $Id: cgWCreate.py,v 1.49.2.1.8.2.4.1 2010/09/08 19:28:37 sfiligoi Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -163,6 +163,9 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         
         fd.write("restart() {\n")
         fd.write("        stop\n")
+        fd.write("        if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("          exit $RETVAL\n")
+        fd.write("        fi\n")
         fd.write("        start\n")
         fd.write("}\n\n")
 
@@ -179,6 +182,9 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("        notrun=$?\n")
         fd.write("        if [ $notrun -eq 0 ]; then\n")
         fd.write("          stop\n")
+        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("            exit $RETVAL\n")
+        fd.write("          fi\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
         fd.write("        reconfig_failed=$?\n")
