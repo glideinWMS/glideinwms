@@ -382,6 +382,55 @@ class BaseRRDSupport:
         end=((now-1)/rrd_step)*rrd_step
         return self.rrd2graph_multi(fname,rrd_step,start,end,width,height,title,rrd_files,cdef_arr,trend,img_format)
 
+    ###################################################
+    def fetch_rrd(self, filename, CF, resolution = None, start = None,
+                  end = None, daemon = None):
+        """
+        Fetch will analyze the RRD and try to retrieve the data in the
+        resolution requested.
+
+        Arguments:
+          filename      -the name of the RRD you want to fetch data from
+          CF            -the consolidation function that is applied to the data
+                         you want to fetch (AVERAGE, MIN, MAX, LAST)
+          resolution    -the interval you want your values to have
+                         (default 300 sec)
+          start         -start of the time series (default end - 1day)
+          end           -end of the time series (default now)
+          daemon        -Address of the rrdcached daemon. If specified, a flush
+                         command is sent to the server before reading the RRD
+                         files. This allows rrdtool to return fresh data even
+                         if the daemon is configured to cache values for a long
+                         time.
+
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        if None == self.rrd_obj:
+            return # nothing to do in this case
+
+        if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
+            consolFunc = str(CF)
+        else:
+            raise RuntimeError,"Invalid consolidation function %s"%CF
+        args = [str(filename), consolFunc]
+        if not (resolution == None):
+            args.append('-r')
+            args.append(str(resolution))
+        if not (end == None):
+            args.append('-e')
+            args.append(str(end))
+        if not (start == None):
+            args.append('-s')
+            args.append(str(start))
+        if not (daemon == None):
+            args.append('--daemon')
+            args.append(str(daemon))
+
+        return self.rrd_obj.fetch(*args)
+        
+        
+
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
     def __init__(self):
@@ -475,57 +524,4 @@ class rrdtool_exe:
         if (errcode!=0):
             raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
         return tempOut
-
-
-#
-#
-# Chris's hacked support for fetching
-#
-#
-import rrdtool, time
-
-#Defaults for rrdtool fetch
-resDefault = 300
-endDefault = int(time.time() / resDefault) * resDefault
-startDefault = endDefault - 86400
-	
-def fetchData(file, pathway, res = resDefault, start = startDefault, end = endDefault):
-	"""Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
-
-	rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
-	[0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
-	[1] returns the names of the datasets.  These names are listed in the key.
-	[2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
-
-	#use rrdtool to fetch data
-	fetched = rrdtool.fetch(pathway + file, 'AVERAGE', '-r', str(res), '-s', str(start), '-e', str(end))
-        
-	#sometimes rrdtool returns extra tuples that don't contain data
-        actual_res = fetched[0][2]
-        actual_start = fetched[0][0]
-        actual_end = fetched[0][1]
-        num2slice = ((actual_end - end) - (actual_start - start)) / actual_res
-        if num2slice > 0:
-            fetched_data_raw = fetched[2][:-num2slice]
-        else:
-            fetched_data_raw = fetched[2]
-        #converts fetched from tuples to lists
-	fetched_names = list(fetched[1])
-	fetched_data = []
-	for data in fetched_data_raw:
-		fetched_data.append(list(data))
-	
-	#creates a dictionary to be filled with lists of data
-	data_sets = {}
-	for name in fetched_names:
-		data_sets[name] = []	
-
-	#check to make sure the data exists
-	for data_set in data_sets:
-		index = fetched_names.index(data_set)	
-		for data in fetched_data:
-			if isinstance(data[index], (int, float)):
-				data_sets[data_set].append(data[index])
-	
-	return data_sets
 

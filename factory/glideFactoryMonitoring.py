@@ -15,7 +15,6 @@ import rrdSupport
 
 import logSupport
 import glideFactoryLib
-import sys, rrdtool
 
 # list of rrd files that each site has
 rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
@@ -981,19 +980,6 @@ class FactoryStatusData:
         self.resolution = (3600, 21600, 86400, 604800) # 1hr, 6hrs, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
-
-    def handleError(self, error):
-        file_name = "FactoryStatusData." + time.strftime("%Y%m%d", time.localtime(time.time())) + ".err.log"
-        dir = "/home/cmurphy/glideinsubmit/glidein_v1_0/log/glideFactoryMonitoring/"
-        timestamp = time.strftime("[%a, %d %b %Y %H:%M:%S]\t", time.localtime(time.time()))
-        try:
-            log = open(dir + file_name, 'ab')
-            try:
-                log.write(timestamp + str(error) + "\n")
-            finally:
-                log.close()
-        except IOError:
-            pass
                   
     def getUpdated(self):
 	return self.updated
@@ -1006,16 +992,49 @@ class FactoryStatusData:
 
 	return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
 
-    def average(self, list):
-        """There is a bug in the version of rrdtool install on glidein-1 that prevents it from properly averaging."""
-        try:
-	    if len(list) > 0:
-		list_avg = int(round(sum(list) / len(list)))
-	    else:
-		list_avg = 0
-            return list_avg
-        except TypeError:
-            self.handleError("average: TypeError")
+    def fetchData(self, file, pathway, res, start, end):
+	"""Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
+
+	rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
+	[0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
+	[1] returns the names of the datasets.  These names are listed in the key.
+	[2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
+
+	#use rrdtool to fetch data
+        baseRRDSupport = rrdSupport.BaseRRDSupport()
+	fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
+        
+	#sometimes rrdtool returns extra tuples that don't contain data
+        actual_res = fetched[0][2]
+        actual_start = fetched[0][0]
+        actual_end = fetched[0][1]
+        num2slice = ((actual_end - end) - (actual_start - start)) / actual_res
+        if num2slice > 0:
+            fetched_data_raw = fetched[2][:-num2slice]
+        else:
+            fetched_data_raw = fetched[2]
+        #converts fetched from tuples to lists
+	fetched_names = list(fetched[1])
+	fetched_data = []
+	for data in fetched_data_raw:
+		fetched_data.append(list(data))
+	
+	#creates a dictionary to be filled with lists of data
+	data_sets = {}
+	for name in fetched_names:
+		data_sets[name] = []	
+
+	#check to make sure the data exists
+	for data_set in data_sets:
+		index = fetched_names.index(data_set)	
+		for data in fetched_data:
+			if isinstance(data[index], (int, float)):
+                            data_sets[data_set].append(data[index])
+                            if len(data_sets[data_set]) > 0:
+                                data_sets[data_set] = int(round(sum(data_sets[data_set]) / len(data_sets[data_set])))
+                            else:
+                                data_sets[data_set] = 0
+	return data_sets
 
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
@@ -1037,11 +1056,11 @@ class FactoryStatusData:
                 end = int(time.time() / res) * res
                 start = end - res
                 try:
-                    fetched_data = rrdSupport.fetchData(file = rrd, pathway = base_dir + "/" + client, start = start, end = end, res = res)
+                    fetched_data = self.fetchData(file = rrd, pathway = base_dir + "/" + client, start = start, end = end, res = res)
                     for data_set in fetched_data:
-                        self.data[rrd][client][res][data_set] = self.average(fetched_data[data_set])
-                except TypeError, rrdtool.error:
-                    self.handleError("fetchData: TypeError or rrdtool.error")
+                        self.data[rrd][client][res][data_set] = fetched_data[data_set]
+                except TypeError:
+                    glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
 
         return self.data
 
@@ -1058,7 +1077,7 @@ class FactoryStatusData:
                 total_data = self.data[rrd][self.total][res]
                 total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
             except NameError, UnboundLocalError:
-                self.handleError("total_data: NameError or UnboundLocalError")
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
         total_xml_str += (2 * self.tab + '</periods>\n' +
                           self.tab + '</total>\n')
 
@@ -1074,7 +1093,7 @@ class FactoryStatusData:
                     frontend_data = self.data[rrd][frontend][res]
                     frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = self.tab, leading_tab = 4 * self.tab) + "\n")
                 except NameError, UnboundLocalError:
-                    self.handleError("frontend_data: NameError or UnboundLocalError")
+                    glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
             frontend_xml_str += (3 * self.tab + '</periods>\n' +
                                  2 * self.tab + '</frontend>')
         frontend_xml_str += (self.tab + '</frontends>\n')
@@ -1093,7 +1112,7 @@ class FactoryStatusData:
             try:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
-                self.handleError("write_file: IOError")
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
         self.file_updated = time.time()
 	return
 

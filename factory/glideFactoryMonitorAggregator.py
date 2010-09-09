@@ -67,7 +67,7 @@ def aggregateStatus():
 
     type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
-    status={'entries':{},'total':copy.deepcopy(global_total)}
+    status={'entries':{},'total':global_total}
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
