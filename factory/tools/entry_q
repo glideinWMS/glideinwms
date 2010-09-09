@@ -44,7 +44,7 @@ def main(argv):
             i=i+1
             gfactory_dir=argv[i]
             i=i+1
-        if ael=='-printschedd':
+        elif ael=='-printschedd':
             i=i+1
             want_schedd=True
         else:
@@ -72,13 +72,24 @@ def main(argv):
 
     schedd_name=jobDescript.data['Schedd']
     const_str='GlideinEntryName =?= "%s"'%entry
+
+    cq_argv=argv[i:]
+    #print cq_argv
+
+    i=0
+    while (i<len(cq_argv)):
+        qel=cq_argv[i]
+        if qel[:3]=='-co':
+            const_str='(%s)&&(%s)'%(const_str,cq_argv[i+1])
+            del cq_argv[i]
+            del cq_argv[i]
+        else:
+            i=i+1 # not an interesting one
+
     if want_schedd:
         print "Schedd: %s"%schedd_name
         print "Constraint: '%s'"%const_str
     
-    cq_argv=argv[i:]
-    #print cq_argv
-
     # must flush out before forking, or any buffered content wil be lost
     sys.__stdout__.flush()
     sys.__stderr__.flush()
