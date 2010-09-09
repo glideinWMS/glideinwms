@@ -70,8 +70,10 @@ def main(argv):
     jobDescript=glideFactoryConfig.JobDescript(entry)
     os.chdir(curdir)
 
+    factory_name=glideinDescript.data['FactoryName']
+    glidein_name=glideinDescript.data['GlideinName']
     schedd_name=jobDescript.data['Schedd']
-    const_str='GlideinEntryName =?= "%s"'%entry
+    const_str='(GlideinFactory=?="%s")&&(GlideinName=?="%s")&&(GlideinEntryName=?="%s")'%(factory_name,glidein_name,entry)
 
     cq_argv=argv[i:]
     #print cq_argv
