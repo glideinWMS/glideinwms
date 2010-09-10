@@ -30,7 +30,6 @@ import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
-import rrdSupport
 
 ############################################################
 def check_parent(parent_pid):

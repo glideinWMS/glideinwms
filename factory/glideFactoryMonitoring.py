@@ -993,15 +993,15 @@ class FactoryStatusData:
 	return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
 
     def fetchData(self, file, pathway, res, start, end):
-	"""Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
+        """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
 
-	rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
-	[0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
-	[1] returns the names of the datasets.  These names are listed in the key.
-	[2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
+        rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
+        [0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
+        [1] returns the names of the datasets.  These names are listed in the key.
+        [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
 
 	#use rrdtool to fetch data
-        baseRRDSupport = rrdSupport.BaseRRDSupport()
+        baseRRDSupport = rrdSupport.rrdSupport()
 	fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
         
 	#sometimes rrdtool returns extra tuples that don't contain data
@@ -1030,11 +1030,22 @@ class FactoryStatusData:
 		for data in fetched_data:
 			if isinstance(data[index], (int, float)):
                             data_sets[data_set].append(data[index])
-                            if len(data_sets[data_set]) > 0:
-                                data_sets[data_set] = int(round(sum(data_sets[data_set]) / len(data_sets[data_set])))
-                            else:
-                                data_sets[data_set] = 0
+                            #if len(data_sets[data_set]) > 0:
+                                #data_sets[data_set] = int(round(sum(data_sets[data_set]) / len(data_sets[data_set])))
+                            #else:
+                                #data_sets[data_set] = 0
 	return data_sets
+
+    def average(self, list):
+        try:
+            if len(list) > 0:
+                avg_list = sum(list) / len(list)
+            else:
+                avg_list = 0
+            return avg_list
+        except TypeError:
+            glideFactoryLib.log_files.logDebug("average: TypeError")
+            return
 
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
@@ -1058,7 +1069,7 @@ class FactoryStatusData:
                 try:
                     fetched_data = self.fetchData(file = rrd, pathway = base_dir + "/" + client, start = start, end = end, res = res)
                     for data_set in fetched_data:
-                        self.data[rrd][client][res][data_set] = fetched_data[data_set]
+                        self.data[rrd][client][res][data_set] = int(round(self.average(fetched_data[data_set])))
                 except TypeError:
                     glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
 
