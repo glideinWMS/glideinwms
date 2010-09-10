@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: rrdSupport.py,v 1.8.10.1 2010/09/08 03:10:47 parag Exp $
+#   $Id: rrdSupport.py,v 1.8.10.2 2010/09/10 22:01:14 sfiligoi Exp $
 #
 # Description:
 #   This module implements the basic functions needed
@@ -127,7 +127,7 @@ class BaseRRDSupport:
 
         lck=self.get_disk_lock(rrdfname)
         try:
-            self.rrd_obj.update(str(rrdfname),'%li:%i'%(time,val))
+            self.rrd_obj.update(str(rrdfname),'%li:%s'%(time,val))
         finally:
             lck.close()
 
@@ -156,7 +156,7 @@ class BaseRRDSupport:
         ds_vals=[]
         for ds_name in ds_names:
             if val_dict[ds_name]!=None:
-                ds_vals.append("%i"%val_dict[ds_name])
+                ds_vals.append("%s"%val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
         if len(ds_names_real)==0:
