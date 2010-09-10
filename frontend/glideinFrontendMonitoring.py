@@ -105,7 +105,7 @@ class groupStats:
 
         self.files_updated=None
         self.attributes={'Jobs':("Idle","OldIdle","Running","Total"),
-                         'Slots':("Idle","Running","Total")}
+                         'Glideins':("Idle","Running","Total")}
 
     def logJobs(self,jobs_data):
         if not 'totals' in self.data:
@@ -126,7 +126,7 @@ class groupStats:
         el={}
         self.data['totals']['Glideins']=el
 
-        for k in self.attributes['Slots']:
+        for k in self.attributes['Glideins']:
             if slots_data.has_key(k):
                 el[k]=slots_data[k]
         self.updated=time.time()
@@ -251,9 +251,10 @@ class groupStats:
 
         monitoringConfig.write_file("frontend_status.xml",xml_str)
 
+        total_el = self.get_total()
         # update RRDs
         val_dict={}
-        type_strings={'Jobs':'Jobs','Slots':'Slots'}
+        type_strings={'Jobs':'Jobs','Glideins':'Slots'}
 
         #init, so tha all get created properly
         for tp in self.attributes.keys():
@@ -263,7 +264,7 @@ class groupStats:
                 val_dict["%s%s"%(tp_str,a)]=None
             
         
-        for tp in self.data.keys():
+        for tp in total_el:
             # type - Jobs,Slots
             if not (tp in self.attributes.keys()):
                 continue
@@ -272,7 +273,7 @@ class groupStats:
 
             attributes_tp=self.attributes[tp]
                 
-            fe_el_tp=self.data[tp]
+            fe_el_tp=total_el[tp]
             for a in fe_el_tp.keys():
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
