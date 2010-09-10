@@ -124,7 +124,7 @@ class groupStats:
             self.data['totals'] = {}
 
         el={}
-        self.data['totals']['Slots']=el
+        self.data['totals']['Glideins']=el
 
         for k in self.attributes['Slots']:
             if slots_data.has_key(k):
@@ -249,16 +249,6 @@ class groupStats:
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</VOFrontendGroupStats>\n")
 
-        '''xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
-                 '<VOFrontendGroupStats>\n'+
-                 self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 xmlFormat.dict2string(self.data['factories'], dict_name='factories',
-                                       el_name='factory', subtypes_params={"class":{'subclass_params':{'Requested':{'dicts_params':{'Parameters':{'el_name':'Parameter'}}}}}},
-                                       indent_tab=xmlFormat.DEFAULT_TAB,
-                                       leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 xmlFormat.class2string(self.data['Jobs'],'Jobs',indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 xmlFormat.class2string(self.data['Slots'],'Slots',indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
-                 "</VOFrontendGroupStats>\n")'''
         monitoringConfig.write_file("frontend_status.xml",xml_str)
 
         # update RRDs
