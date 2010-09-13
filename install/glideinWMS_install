@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.9.2.8 2010/08/31 18:49:17 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.9.2.9 2010/09/13 15:18:36 parag Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -137,7 +137,9 @@ def main_install_components():
     install_options={'a':{"title":"OSG VDT client",
                           "proc":query_vdt,"order":1},
                      'b':{"title":"Base Condor installation",
-                          "proc":install_condor,"order":2}}
+                          "proc":install_condor,"order":2},
+                     'h':{"title":"VOMS Certs",
+                          "proc":install_vomscerts,"order":8}}
 
     if os.getuid()==0:
         install_options['c']={"title":"Web server",
@@ -2214,7 +2216,61 @@ def install_vdt(minimal):
     print
     
     VDT_BASE_PATH=user_dir
+
+    # get VOMS CAs
+    print
+    print "Some non-OSG sites need VOMS certificates."
+    yn=raw_input("Do you want to install them?: (y/n) [n] ")
+    if yn=='y':
+        install_vomscerts()
+    
     return
+
+# install the VOMS certs
+def install_vomscerts():
+    global VDT_BASE_PATH
+
+    if VDT_BASE_PATH==None:
+        query_vdt()
+
+    print
+    print "VOMS certs installation"
+    print
+
+    while 1:
+        default_url="http://eticssoft.web.cern.ch/eticssoft/repository/org.glite/lcg-vomscerts/5.9.0/noarch/lcg-vomscerts-5.9.0-1.tar.gz"
+        print "The default WLCG location is: %s"%default_url
+        url=raw_input("Where should I fetch the VOMS certs from?: [%s] "%default_url)
+        if url=="":
+            url=default_url
+
+        err=os.system("cd %s/glite&&rm -f vomscerts.tgz&&wget %s -O vomscerts.tgz &&tar --no-same-owner -xzvf vomscerts.tgz"%(VDT_BASE_PATH,url))
+        if err!=0:
+            print "Failed to install the VOMS certs!"
+            continue
+        break
+
+    if os.getuid()==0:
+        # make also a symlink in /etc/grid-security
+        if os.path.lexists('/etc/grid-security/vomsdir'):
+            # move it out of the way... for historical reasons
+            os.rename('/etc/grid-security/vomsdir','/etc/grid-security/vomsdir.%i.%i'%(time.time(),os.getpid()))
+        os.symlink(os.path.join(VDT_BASE_PATH,'glite/vomsdir'),'/etc/grid-security/vomsdir')
+    else:
+        print
+        print "Some tools (like Condor) will only look for"
+        print "VOMS certs in /etc/grid-security/vomsdir"
+        print "Please be aware of this."
+        print
+
+    
+    print
+    print "VOMS certs installed"
+    print
+
+    return
+
+
 
 # Create /etc/init.d/condor
 # startup script
@@ -3062,7 +3118,7 @@ def setup_privsep():
         groups={}
         users=[]
         print
-        print "List the usernames the factroy will use"
+        print "List the usernames the factory will use"
         print "to separate frontends from one another."
         print "An empty username entry means you are done."
         while 1:
