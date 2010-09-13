@@ -54,7 +54,6 @@ def perform_work(entry_name,
     try:
         glideFactoryLib.factoryConfig.rrd_stats.getData(client_name)
     except glideFactoryLib.condorExe.ExeError,e:
-        glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
         glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
 
     if params.has_key("GLIDEIN_Collector"):
