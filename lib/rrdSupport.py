@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: rrdSupport.py,v 1.8.26.1.6.1 2010/09/10 22:04:52 sfiligoi Exp $
+#   $Id: rrdSupport.py,v 1.8.26.1.6.2 2010/09/13 21:14:06 sfiligoi Exp $
 #
 # Description:
 #   This module implements the basic functions needed
@@ -388,6 +388,55 @@ class BaseRRDSupport:
         end=((now-1)/rrd_step)*rrd_step
         return self.rrd2graph_multi(fname,rrd_step,start,end,width,height,title,rrd_files,cdef_arr,trend,img_format)
 
+    ###################################################
+    def fetch_rrd(self, filename, CF, resolution = None, start = None,
+                  end = None, daemon = None):
+        """
+        Fetch will analyze the RRD and try to retrieve the data in the
+        resolution requested.
+
+        Arguments:
+          filename      -the name of the RRD you want to fetch data from
+          CF            -the consolidation function that is applied to the data
+                         you want to fetch (AVERAGE, MIN, MAX, LAST)
+          resolution    -the interval you want your values to have
+                         (default 300 sec)
+          start         -start of the time series (default end - 1day)
+          end           -end of the time series (default now)
+          daemon        -Address of the rrdcached daemon. If specified, a flush
+                         command is sent to the server before reading the RRD
+                         files. This allows rrdtool to return fresh data even
+                         if the daemon is configured to cache values for a long
+                         time.
+
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        if None == self.rrd_obj:
+            return # nothing to do in this case
+
+        if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
+            consolFunc = str(CF)
+        else:
+            raise RuntimeError,"Invalid consolidation function %s"%CF
+        args = [str(filename), consolFunc]
+        if not (resolution == None):
+            args.append('-r')
+            args.append(str(resolution))
+        if not (end == None):
+            args.append('-e')
+            args.append(str(end))
+        if not (start == None):
+            args.append('-s')
+            args.append(str(start))
+        if not (daemon == None):
+            args.append('--daemon')
+            args.append(str(daemon))
+
+        return self.rrd_obj.fetch(*args)
+        
+        
+
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
     def __init__(self):
@@ -481,3 +530,4 @@ class rrdtool_exe:
         if (errcode!=0):
             raise RuntimeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
         return tempOut
+
