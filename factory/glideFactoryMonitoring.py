@@ -975,16 +975,13 @@ class FactoryStatusData:
         for rrd in rrd_list:
             self.data[rrd] = {}
 	self.updated = time.time()
-	self.file_updated = None
         self.tab = xmlFormat.DEFAULT_TAB
         self.resolution = (3600, 21600, 86400, 604800) # 1hr, 6hrs, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
-                  
-    def getUpdated(self):
-	return self.updated
+        self.base_dir = monitoringConfig.monitor_dir
 
-    def getXMLUpdated(self):
+    def getUpdated(self):
 	"""returns the time of last update"""
 	local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
 	gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
@@ -1030,10 +1027,6 @@ class FactoryStatusData:
 		for data in fetched_data:
 			if isinstance(data[index], (int, float)):
                             data_sets[data_set].append(data[index])
-                            #if len(data_sets[data_set]) > 0:
-                                #data_sets[data_set] = int(round(sum(data_sets[data_set]) / len(data_sets[data_set])))
-                            #else:
-                                #data_sets[data_set] = 0
 	return data_sets
 
     def average(self, list):
@@ -1049,8 +1042,6 @@ class FactoryStatusData:
 
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
-        base_dir = monitoringConfig.monitor_dir
-
         folder = str(input)
         if folder == self.total:
             client = folder
@@ -1067,9 +1058,9 @@ class FactoryStatusData:
                 end = int(time.time() / res) * res
                 start = end - res
                 try:
-                    fetched_data = self.fetchData(file = rrd, pathway = base_dir + "/" + client, start = start, end = end, res = res)
+                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client, start = start, end = end, res = res)
                     for data_set in fetched_data:
-                        self.data[rrd][client][res][data_set] = int(round(self.average(fetched_data[data_set])))
+                        self.data[rrd][client][res][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
                     glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
 
@@ -1079,35 +1070,28 @@ class FactoryStatusData:
 	"writes an xml file for the data fetched from a given site."
 
         # create a string containing the total data
-        total_xml_str = (self.tab + '<total>\n' +
-                         2 * self.tab + '<periods>\n')
+        total_xml_str = self.tab + '<total>\n'
         get_data_total = self.getData(self.total)
-        for res in self.resolution:
-            try:
-                #total_data = get_data_total[rrd][self.total][res]
-                total_data = self.data[rrd][self.total][res]
-                total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
-            except NameError, UnboundLocalError:
-                glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
-        total_xml_str += (2 * self.tab + '</periods>\n' +
-                          self.tab + '</total>\n')
+        try:
+            total_data = self.data[rrd][self.total]
+            total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 2 * self.tab) + "\n")
+        except NameError, UnboundLocalError:
+            glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
+        total_xml_str += self.tab + '</total>\n'
 
         # create a string containing the frontend data
         frontend_xml_str = (self.tab + '<frontends>\n')
         for frontend in self.frontends:
             fe_name = frontend.split("/")[0]
             frontend_xml_str += (2 * self.tab +
-                                 '<frontend name=\"' + fe_name + '\">\n' +
-                                 3 * self.tab + '<periods>\n')
-            for res in self.resolution:
-                try:
-                    frontend_data = self.data[rrd][frontend][res]
-                    frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'period', el_name = 'element', params = {'name':str(res)}, indent_tab = self.tab, leading_tab = 4 * self.tab) + "\n")
-                except NameError, UnboundLocalError:
-                    glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
-            frontend_xml_str += (3 * self.tab + '</periods>\n' +
-                                 2 * self.tab + '</frontend>')
-        frontend_xml_str += (self.tab + '</frontends>\n')
+                                 '<frontend name=\"' + fe_name + '\">\n')
+            try:
+                frontend_data = self.data[rrd][frontend]
+                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
+            except NameError, UnboundLocalError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
+            frontend_xml_str += 2 * self.tab + '</frontend>'
+        frontend_xml_str += self.tab + '</frontends>\n'
                   
         data_str =  total_xml_str + frontend_xml_str
         return data_str
@@ -1117,14 +1101,13 @@ class FactoryStatusData:
             file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
             xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                        '<glideFactoryEntryRRDStats>\n' +
-                       self.getXMLUpdated() + "\n" +
+                       self.getUpdated() + "\n" +
                        self.getXMLData(rrd) +
                        '</glideFactoryEntryRRDStats>')
             try:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
                 glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
-        self.file_updated = time.time()
 	return
 
     
