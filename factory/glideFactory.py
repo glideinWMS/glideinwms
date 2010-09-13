@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.1 2010/09/08 20:19:28 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.2 2010/09/13 19:44:23 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -67,19 +67,24 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
 
 ############################################################
 def clean_exit(childs):
-    # first send a nice kill signal
-    entries=childs.keys()
-    entries.sort()
-    glideFactoryLib.log_files.logActivity("Killing entries %s"%entries)
-    for entry_name in childs.keys():
-        try:
-            os.kill(childs[entry_name].pid,signal.SIGTERM)
-        except OSError:
-            glideFactoryLib.log_files.logActivity("Entry %s already dead"%entry_name)
-            del childs[entry_name] # already dead
-
+    count=100000000 # set it high, so it is triggered at the first iteration
     sleep_time=0.1 # start with very little sleep
     while len(childs.keys())>0:
+        count+=1
+        if count>4:
+            # Send a term signal to the childs
+            # May need to do it several times, in case there are in the middle of something
+            count=0
+            entries=childs.keys()
+            entries.sort()
+            glideFactoryLib.log_files.logActivity("Killing entries %s"%entries)
+            for entry_name in childs.keys():
+                try:
+                    os.kill(childs[entry_name].pid,signal.SIGTERM)
+                except OSError:
+                    glideFactoryLib.log_files.logActivity("Entry %s already dead"%entry_name)
+                    del childs[entry_name] # already dead
+            
         glideFactoryLib.log_files.logActivity("Sleep")
         time.sleep(sleep_time)
         # exponentially increase, up to 5 secs
@@ -91,6 +96,7 @@ def clean_exit(childs):
         entries.sort()
         
         glideFactoryLib.log_files.logActivity("Checking dying entries %s"%entries)
+        dead_entries=[]
         for entry_name in childs.keys():
             child=childs[entry_name]
 
@@ -111,10 +117,12 @@ def clean_exit(childs):
             # look for exited child
             if child.poll()!=-1:
                 # the child exited
-                glideFactoryLib.log_files.logActivity("Entry %s is now dead"%entry_name)
+                dead_entries.append(entry_name)
                 del childs[entry_name]
                 tempOut = child.fromchild.readlines()
                 tempErr = child.childerr.readlines()
+        if len(dead_entries)>0:
+            glideFactoryLib.log_files.logActivity("These entries died: %s"%dead_entries)
 
     glideFactoryLib.log_files.logActivity("All entries dead")
 
