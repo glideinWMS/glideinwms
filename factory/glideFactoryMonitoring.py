@@ -976,7 +976,7 @@ class FactoryStatusData:
             self.data[rrd] = {}
 	self.updated = time.time()
         self.tab = xmlFormat.DEFAULT_TAB
-        self.resolution = (3600, 21600, 86400, 604800) # 1hr, 6hrs, 1 day, 1 week
+        self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
         self.total = "total/"
         self.frontends = []
         self.base_dir = monitoringConfig.monitor_dir
