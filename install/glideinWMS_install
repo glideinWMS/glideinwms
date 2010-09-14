@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.9.2.9 2010/09/13 15:18:36 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.9.2.10 2010/09/14 21:00:53 parag Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -2008,8 +2008,13 @@ def query_vdt():
               break
 
     GSI_TRUSTED_CA_DIR="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
-    if os.path.isfile("%s/globus/bin/voms-proxy-info"%VDT_BASE_PATH):
-        VOMS_PROXY_INFO_BIN="source %s/setup.sh;voms-proxy-info"%VDT_BASE_PATH
+    # find out where is voms-proxy-info
+    fd=os.popen("source %s/setup.sh;which voms-proxy-info"%VDT_BASE_PATH)
+    lines=fd.readlines()
+    err=fd.close()
+    if err==None: # found
+        VOMS_PROXY_INFO_BIN=lines[0][:-1]
+
     return
 
 # add a bunch of lines to crontab
