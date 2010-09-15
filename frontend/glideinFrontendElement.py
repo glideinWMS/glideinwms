@@ -156,7 +156,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                        'Idle':{'dict':status_dict_idle,'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
                        'Running':{'dict':status_dict_running,'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
 
-    stats['group'].logSlots({'Total':status_dict_types['Total']['abs'],
+    stats['group'].logGlideins({'Total':status_dict_types['Total']['abs'],
                             'Idle':status_dict_types['Idle']['abs'],
                             'Running':status_dict_types['Running']['abs']})
 

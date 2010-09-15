@@ -119,7 +119,7 @@ class groupStats:
                 el[k]=jobs_data[k]
         self.updated=time.time()
 
-    def logSlots(self,slots_data):
+    def logGlideins(self,slots_data):
         if not 'totals' in self.data:
             self.data['totals'] = {}
 
@@ -140,7 +140,7 @@ class groupStats:
         if not factory in factories:
             factories[factory] = {}
 
-        factories[factory]['Jobs'] = {'Idle': idle,
+        factories[factory]['MatchedJobs'] = {'Idle': idle,
                                         'EffectiveIdle': effIdle,
                                         'OldIdle': oldIdle,
                                         'Running': running
