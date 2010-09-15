@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.9.2.10 2010/09/14 21:00:53 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.9.2.11 2010/09/15 16:20:58 parag Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -48,6 +48,7 @@ CONDOR_UPD_CONFIG_FILE=None
 VDT_BASE_PATH=None
 # voms_proxy_info location (if false, the user already said it does not have one installed)
 VOMS_PROXY_INFO_BIN=None
+VOMS_CERTS_DIR=None
 # where are the certificates
 GSI_TRUSTED_CA_DIR=None
 # Has the GSI securtiy been configured
@@ -2040,6 +2041,8 @@ MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','Globus-Client','VOMS-Client','MyProxy
 
 def install_vdt(minimal):
     global VDT_BASE_PATH
+    global VOMS_CERTS_DIR
+
     if os.getuid()==0:
         def_vdt_base_path="/opt/vdt"
     else:
@@ -2223,20 +2226,25 @@ def install_vdt(minimal):
     VDT_BASE_PATH=user_dir
 
     # get VOMS CAs
-    print
-    print "Some non-OSG sites need VOMS certificates."
-    yn=raw_input("Do you want to install them?: (y/n) [n] ")
-    if yn=='y':
-        install_vomscerts()
+    if VOMS_CERTS_DIR==None:
+        print
+        print "Some non-OSG sites need VOMS certificates."
+        yn=raw_input("Do you want to install them?: (y/n) [n] ")
+        if yn=='y':
+            install_vomscerts()
     
     return
 
 # install the VOMS certs
 def install_vomscerts():
     global VDT_BASE_PATH
+    global VOMS_CERTS_DIR
 
     if VDT_BASE_PATH==None:
         query_vdt()
+
+    if VOMS_CERTS_DIR!=None:
+        return
 
     print
     print "VOMS certs installation"
@@ -2272,6 +2280,8 @@ def install_vomscerts():
     print
     print "VOMS certs installed"
     print
+
+    VOMS_CERTS_DIR=os.path.join(VDT_BASE_PATH,'glite/vomsdir')
 
     return
 
@@ -2862,6 +2872,7 @@ def configure_gsi_security(gsi_setup=None):
     global GSI_TRUSTED_CA_DIR
     global GSI_SECURITY_CONFIGURED
     global CONDOR_UPD_CONFIG_FILE
+    global VOMS_CERTS_DIR
 
     print "Configuring GSI security"
     print
@@ -3051,6 +3062,21 @@ def configure_gsi_security(gsi_setup=None):
     finally:
         config_fd.close()
 
+
+    if VOMS_CERTS_DIR!=None:
+        # insert the VOMS attribute values into the startup script
+        # Condor daemons need them for CREAM
+        # assume it uses the VDT structure
+        fd=open("%s/start_condor.sh"%CONDOR_BASE_PATH,"r+")
+        try:
+            lines=fd.readlines()
+            lines=lines[0:1]+['export X509_VOMS_DIR=%s\n'%VOMS_CERTS_DIR,
+                              'export VOMS_USERCONF=%s\n'%os.path.abspath("%s/../etc/vomses"%VOMS_CERTS_DIR),
+                              'export VOMS_LOCATION=%s\n'%os.path.abspath("%s/.."%VOMS_CERTS_DIR)]+lines[1:]
+            fd.seek(0)
+            fd.writelines(lines)
+        finally:
+            fd.close()
 
     #################################
     #GSI security configured
