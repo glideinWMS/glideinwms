@@ -487,9 +487,7 @@ def aggregateRRDStats():
                    '<glideFactoryRRDStats>\n' +
                    get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" + entry_str + 
                    data_str + '</glideFactoryRRDStats>')
-        f = open('/home/cmurphy/xml.str', 'ab')
-        f.write(xml_str)
-        f.close()
+
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:
