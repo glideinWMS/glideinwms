@@ -226,8 +226,8 @@ class groupStats:
     def get_total(self):
         total={'MatchedJobs':None,'Requested':None,'Slots':None}
 
-        for f in self.data[factories].keys():
-            fa=self.data[factories][f]
+        for f in self.data['factories'].keys():
+            fa=self.data['factories'][f]
             for w in fa.keys():
                 if total.has_key(w): # ignore eventual not supported classes
                     el=fa[w]
