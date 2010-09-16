@@ -224,7 +224,42 @@ class groupStats:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_total(self):
-        return copy.deepcopy(self.data['totals'])
+        total={'MatchedJobs':None,'Requested':None,'Slots':None}
+
+        for f in self.data[factories].keys():
+            fa=self.data[factories][f]
+            for w in fa.keys():
+                if total.has_key(w): # ignore eventual not supported classes
+                    el=fa[w]
+                    tel=total[w]
+
+                    if tel==None:
+                        # first one, just copy over
+                        total[w]={}
+                        tel=total[w]
+                        for a in el.keys():
+                            if type(el[a])==type(1): # copy only numbers
+                                tel[a]=el[a]
+                    else:
+                        # successive, sum 
+                        for a in el.keys():
+                            if type(el[a])==type(1): # consider only numbers
+                                if tel.has_key(a):
+                                    tel[a]+=el[a]
+                            # if other frontends did't have this attribute, ignore
+                        # if any attribute from prev. frontends are not in the current one, remove from total
+                        for a in tel.keys():
+                            if not el.has_key(a):
+                                del tel[a]
+                            elif type(el[a])!=type(1):
+                                del tel[a]
+        
+        for w in total.keys():
+            if total[w]==None:
+                del total[w] # remove entry if not defined
+
+        total.update(copy.deepcopy(self.data['totals']))
+        return total
 
     def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         total=self.get_total()
