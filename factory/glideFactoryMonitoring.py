@@ -971,10 +971,10 @@ class condorLogSummary:
 class FactoryStatusData:
     """documentation"""
     def __init__(self):
-	self.data = {}
+        self.data = {}
         for rrd in rrd_list:
             self.data[rrd] = {}
-	self.updated = time.time()
+        self.updated = time.time()
         self.tab = xmlFormat.DEFAULT_TAB
         self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
         self.total = "total/"
@@ -982,12 +982,12 @@ class FactoryStatusData:
         self.base_dir = monitoringConfig.monitor_dir
 
     def getUpdated(self):
-	"""returns the time of last update"""
-	local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
-	gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
-	xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
+        """returns the time of last update"""
+        local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
+        gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
+        xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
 
-	return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
+        return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
 
     def fetchData(self, file, pathway, res, start, end):
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
@@ -997,11 +997,11 @@ class FactoryStatusData:
         [1] returns the names of the datasets.  These names are listed in the key.
         [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
 
-	#use rrdtool to fetch data
+        #use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
-	fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
+        fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
         
-	#sometimes rrdtool returns extra tuples that don't contain data
+        #sometimes rrdtool returns extra tuples that don't contain data
         actual_res = fetched[0][2]
         actual_start = fetched[0][0]
         actual_end = fetched[0][1]
@@ -1011,23 +1011,23 @@ class FactoryStatusData:
         else:
             fetched_data_raw = fetched[2]
         #converts fetched from tuples to lists
-	fetched_names = list(fetched[1])
-	fetched_data = []
-	for data in fetched_data_raw:
-		fetched_data.append(list(data))
-	
-	#creates a dictionary to be filled with lists of data
-	data_sets = {}
-	for name in fetched_names:
-		data_sets[name] = []	
+        fetched_names = list(fetched[1])
+        fetched_data = []
+        for data in fetched_data_raw:
+            fetched_data.append(list(data))
+        
+        #creates a dictionary to be filled with lists of data
+        data_sets = {}
+        for name in fetched_names:
+            data_sets[name] = []
 
-	#check to make sure the data exists
-	for data_set in data_sets:
-		index = fetched_names.index(data_set)	
-		for data in fetched_data:
-			if isinstance(data[index], (int, float)):
-                            data_sets[data_set].append(data[index])
-	return data_sets
+        #check to make sure the data exists
+        for data_set in data_sets:
+            index = fetched_names.index(data_set)	
+            for data in fetched_data:
+                if isinstance(data[index], (int, float)):
+                    data_sets[data_set].append(data[index])
+        return data_sets
 
     def average(self, list):
         try:
@@ -1067,7 +1067,7 @@ class FactoryStatusData:
         return self.data
 
     def getXMLData(self, rrd):
-	"writes an xml file for the data fetched from a given site."
+        "writes an xml file for the data fetched from a given site."
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
@@ -1108,7 +1108,7 @@ class FactoryStatusData:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
                 glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
-	return
+        return
 
     
 ############### P R I V A T E ################
