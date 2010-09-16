@@ -55,7 +55,7 @@ def aggregateStatus():
     global monitorAggregatorConfig
 
     type_strings={'Jobs':'Jobs','Glideins':'Slots'}
-    global_total={'Jobs':None,'Glideins':None}
+    global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'Slots':None}
     status={'groups':{},'total':global_total}
 
     # initialize the RRD dictionary, so it gets created properly
