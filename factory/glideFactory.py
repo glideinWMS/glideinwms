@@ -30,6 +30,7 @@ import glideFactoryPidLib
 import glideFactoryConfig
 import glideFactoryLib
 import glideFactoryMonitorAggregator
+import glideFactoryMonitoring
 
 ############################################################
 def aggregate_stats():
@@ -161,6 +162,37 @@ def main(startup_dir):
 
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
+    # added by C.W. Murphy to make descript.xml
+    frontendDescript = glideFactoryConfig.FrontendDescript()
+
+    glidein_data = glideinDescript.data
+    frontend_data = frontendDescript.data
+    entry_data = {}
+    for entry in glidein_data['Entries'].split(","):
+        entry_data[entry] = {}
+        
+        entryDescript = glideFactoryConfig.JobDescript(entry)
+        entry_data[entry]['descript'] = entryDescript.data
+        
+        entryAttributes = glideFactoryConfig.JobAttributes(entry)
+        entry_data[entry]['attributes'] = entryAttributes.data
+        
+        entryParams = glideFactoryConfig.JobParams(entry)
+        entry_data[entry]['params'] = entryParams.data
+
+    descript2XML = glideFactoryMonitoring.Descript2XML()
+    xml_str = (descript2XML.glideinDescript(glidein_data) +
+               descript2XML.frontendDescript(frontend_data) +
+               descript2XML.entryDescript(entry_data))
+               
+    path = os.path.join(startup_dir, 'monitor/')
+
+    try:
+       descript2XML.writeFile(path, xml_str)
+    except IOError:
+        glideFactoryLib.log_files.logDebug("IOError in writeFile in descript2XML")
+    # end add
+    
 
     # the log dir is shared between the factory main and the entries, so use a subdir
     log_dir=os.path.join(glideinDescript.data['LogDir'],"factory")

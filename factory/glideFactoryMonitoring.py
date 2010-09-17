@@ -1040,6 +1040,17 @@ class FactoryStatusData:
             glideFactoryLib.log_files.logDebug("average: TypeError")
             return
 
+    def average(self, list):
+        try:
+            if len(list) > 0:
+                avg_list = sum(list) / len(list)
+            else:
+                avg_list = 0
+            return avg_list
+        except TypeError:
+            glideFactoryLib.log_files.logDebug("average: TypeError")
+            return
+
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
         folder = str(input)
@@ -1109,6 +1120,87 @@ class FactoryStatusData:
             except IOError:
                 glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
         return
+
+class Descript2XML:
+    def __init__(self):
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.entry_descript_blacklist = ('DowntimesFile', 'Schedd')
+        self.frontend_blacklist = ('usermap')
+        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource', 'Entries', 'FactoryName', 'GlideinName', 'LoopDelay', 'PubKeyType', 'WebURL')
+        
+    def val2string(self, dict):
+        for key in dict:
+            if not type(dict[key]) == type("Hi"):
+                dict[key] = str(dict[key])
+        return dict
+    
+    def frontendDescript(self, dict):
+        for key in self.frontend_blacklist:
+            try:
+                for frontend in dict:
+                    try:
+                        del dict[frontend][key]
+                    except KeyError:
+                        glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+        try:
+            str = xmlFormat.dict2string(dict,dict_name = "frontends", el_name = "frontend", subtypes_params = {"class":{}}, leading_tab = self.tab)
+            return str +"\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in frontendDescript")
+            return
+
+    def entryDescript(self, dict):
+        for key in self.entry_descript_blacklist:
+            try:
+                for entry in dict:
+                    try:
+                        del dict[entry]['descript'][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "entries", el_name = "entry", subtypes_params = {"class":{'subclass_params':{}}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in jobDescript")
+            return
+
+    def glideinDescript(self, dict):
+        w_dict = {}
+        for key in self.glidein_whitelist:
+            try:
+                w_dict[key] = dict[key]
+            except KeyError:
+                continue
+        try:
+            # this is a hack.  there has to be a better way
+            q = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="glidein", subtypes_params={"class":{}})
+            w = q.split("\n")[1]
+            e = w.split('name="" ')
+            str = "".join(e)
+            return str + "\n"            
+        except SyntaxError, RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
+            return
+
+    def writeFile(self, path, str):
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<descript>\n' + str + '</descript>')
+        fname = path + 'descript.xml'
+        f = open(fname + '.tmp', 'wb')
+        try:
+            f.write(xml_str)
+        finally:
+            f.close()
+
+        tmp2final(fname)
+        return
+        
+        
+        
 
     
 ############### P R I V A T E ################
