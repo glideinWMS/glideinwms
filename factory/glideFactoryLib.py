@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.1.8.3 2010/08/31 18:49:16 parag Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.1.8.3.6.1 2010/09/17 00:20:16 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -79,6 +79,7 @@ class FactoryConfig:
         self.client_internals = None
         self.qc_stats = None
         self.log_stats = None
+        self.rrd_stats = None
 
         self.supported_signtypes=['sha1']
 

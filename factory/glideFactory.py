@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.2 2010/09/13 19:44:23 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.3 2010/09/17 00:20:16 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -44,7 +44,7 @@ def aggregate_stats():
     
     status=glideFactoryMonitorAggregator.aggregateStatus()
     status=glideFactoryMonitorAggregator.aggregateLogSummary()
-
+    status=glideFactoryMonitorAggregator.aggregateRRDStats()
     return
 
 ############################################################

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2 2010/08/31 18:49:16 parag Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.1 2010/09/17 00:20:16 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -20,6 +20,9 @@ import rrdSupport
 
 import logSupport
 import glideFactoryLib
+
+# list of rrd files that each site has
+rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
 
 ############################################################
 #
@@ -959,6 +962,157 @@ class condorLogSummary:
 
 
         self.files_updated=self.updated
+        return
+
+    
+###############################################################################
+#
+# factoryStatusData
+# added by C.W. Murphy starting on 08/09/10
+# this class handles the data obtained from the rrd files
+#
+###############################################################################
+
+class FactoryStatusData:
+    """documentation"""
+    def __init__(self):
+        self.data = {}
+        for rrd in rrd_list:
+            self.data[rrd] = {}
+        self.updated = time.time()
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
+        self.total = "total/"
+        self.frontends = []
+        self.base_dir = monitoringConfig.monitor_dir
+
+    def getUpdated(self):
+        """returns the time of last update"""
+        local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
+        gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
+        xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
+
+        return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
+
+    def fetchData(self, file, pathway, res, start, end):
+        """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
+
+        rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
+        [0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
+        [1] returns the names of the datasets.  These names are listed in the key.
+        [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
+
+        #use rrdtool to fetch data
+        baseRRDSupport = rrdSupport.rrdSupport()
+        fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
+        
+        #sometimes rrdtool returns extra tuples that don't contain data
+        actual_res = fetched[0][2]
+        actual_start = fetched[0][0]
+        actual_end = fetched[0][1]
+        num2slice = ((actual_end - end) - (actual_start - start)) / actual_res
+        if num2slice > 0:
+            fetched_data_raw = fetched[2][:-num2slice]
+        else:
+            fetched_data_raw = fetched[2]
+        #converts fetched from tuples to lists
+        fetched_names = list(fetched[1])
+        fetched_data = []
+        for data in fetched_data_raw:
+            fetched_data.append(list(data))
+        
+        #creates a dictionary to be filled with lists of data
+        data_sets = {}
+        for name in fetched_names:
+            data_sets[name] = []
+
+        #check to make sure the data exists
+        for data_set in data_sets:
+            index = fetched_names.index(data_set)	
+            for data in fetched_data:
+                if isinstance(data[index], (int, float)):
+                    data_sets[data_set].append(data[index])
+        return data_sets
+
+    def average(self, list):
+        try:
+            if len(list) > 0:
+                avg_list = sum(list) / len(list)
+            else:
+                avg_list = 0
+            return avg_list
+        except TypeError:
+            glideFactoryLib.log_files.logDebug("average: TypeError")
+            return
+
+    def getData(self, input):
+        """returns the data fetched by rrdtool in a xml readable format"""
+        folder = str(input)
+        if folder == self.total:
+            client = folder
+        else:
+            folder_name = folder.split('@')[-1]
+            client = folder_name.join(["frontend_","/"])
+            if client not in self.frontends:
+                self.frontends.append(client)
+        
+        for rrd in rrd_list:
+            self.data[rrd][client] = {}
+            for res in self.resolution:
+                self.data[rrd][client][res] = {}
+                end = int(time.time() / res) * res
+                start = end - res
+                try:
+                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client, start = start, end = end, res = res)
+                    for data_set in fetched_data:
+                        self.data[rrd][client][res][data_set] = self.average(fetched_data[data_set])
+                except TypeError:
+                    glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
+
+        return self.data
+
+    def getXMLData(self, rrd):
+        "writes an xml file for the data fetched from a given site."
+
+        # create a string containing the total data
+        total_xml_str = self.tab + '<total>\n'
+        get_data_total = self.getData(self.total)
+        try:
+            total_data = self.data[rrd][self.total]
+            total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 2 * self.tab) + "\n")
+        except NameError, UnboundLocalError:
+            glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
+        total_xml_str += self.tab + '</total>\n'
+
+        # create a string containing the frontend data
+        frontend_xml_str = (self.tab + '<frontends>\n')
+        for frontend in self.frontends:
+            fe_name = frontend.split("/")[0]
+            frontend_xml_str += (2 * self.tab +
+                                 '<frontend name=\"' + fe_name + '\">\n')
+            try:
+                frontend_data = self.data[rrd][frontend]
+                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
+            except NameError, UnboundLocalError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
+            frontend_xml_str += 2 * self.tab + '</frontend>'
+        frontend_xml_str += self.tab + '</frontends>\n'
+                  
+        data_str =  total_xml_str + frontend_xml_str
+        return data_str
+    
+    def writeFiles(self):
+        for rrd in rrd_list:
+            file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
+            xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                       '<glideFactoryEntryRRDStats>\n' +
+                       self.getUpdated() + "\n" +
+                       self.getXMLData(rrd) +
+                       '</glideFactoryEntryRRDStats>')
+            try:
+                monitoringConfig.write_file(file_name, xml_str)
+            except IOError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
         return
 
     

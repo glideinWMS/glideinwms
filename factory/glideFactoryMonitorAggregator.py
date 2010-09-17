@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.1 2010/09/08 22:18:05 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.2 2010/09/17 00:20:16 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -17,6 +17,7 @@ import copy,time,string,os.path
 import timeConversion
 import xmlParse,xmlFormat
 import glideFactoryMonitoring
+import glideFactoryLib
 
 
 ############################################################
@@ -45,6 +46,10 @@ class MonitorAggregatorConfig:
 
 # global configuration of the module
 monitorAggregatorConfig=MonitorAggregatorConfig()
+
+def rrd_site(name):
+    sname = name.split(".")[0]
+    return "rrd_%s.xml" %sname
 
 ###########################################################
 #
@@ -379,6 +384,124 @@ def aggregateLogSummary():
     
     return status
 
+def aggregateRRDStats():
+    global monitorAggregatorConfig
+    factoryStatusData = glideFactoryMonitoring.FactoryStatusData()
+    rrdstats_relname = glideFactoryMonitoring.rrd_list
+    tab = xmlFormat.DEFAULT_TAB
+
+    for rrd in rrdstats_relname:
+	
+        # assigns the data from every site to 'stats'
+        stats = {}
+        for entry in monitorAggregatorConfig.entries:
+            rrd_fname = os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir, 'entry_' + entry), rrd_site(rrd))
+            try:
+                stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
+            except IOError:
+                glideFactoryLib.log_files.logDebug("parse_xml, IOError")
+
+        # an entry is need to access to the data sets, I used the first one
+        example_entry = monitorAggregatorConfig.entries[0]
+        # create a dictionary that will hold the aggregate data
+        if monitorAggregatorConfig.entries: 
+            resolution = stats[example_entry]['total']['periods'].keys()
+            frontends = stats[example_entry]['frontends'].keys()
+            clients = frontends + ['total']
+            aggregate_output = {}
+            for client in clients:
+                aggregate_output[client] = {}
+                for res in resolution:
+                    aggregate_output[client][res] = {}
+                    if client == 'total':
+                        data_sets = stats[example_entry][client]['periods'][res]
+                    else:
+                        data_sets = stats[example_entry]['frontends'][client]['periods'][res]
+                    for data_set in data_sets:
+                        aggregate_output[client][res][data_set] = 0
+
+        # assign the aggregate data to 'aggregate_output'
+        for client in aggregate_output:
+            for res in aggregate_output[client]:
+                for data_set in aggregate_output[client][res]:
+                    for entry in monitorAggregatorConfig.entries:
+                        if client == 'total':
+                            aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
+                        else:
+                            try:
+                                aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
+                            except KeyError:
+                                glideFactoryLib.log_files.logDebug("aggregate_data, KeyError")
+
+        # write an aggregate XML file
+
+        # data from indivdual entries
+        entry_str = tab + "<entries>\n"
+        for entry in monitorAggregatorConfig.entries:
+            entry_name = entry.split("/")[-1]
+            entry_str += 2 * tab + "<entry name = \"" + entry_name + "\">\n"
+            entry_str += 3 * tab + '<total>\n'
+            try:
+                entry_str += (xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+            except NameError, UnboundLocalError:
+                glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+            entry_str += 3 * tab + '</total>\n'
+        
+            entry_str += (3 * tab + '<frontends>\n')
+            try:
+                for frontend in frontends:
+                    entry_str += (4 * tab + '<frontend name=\"' +
+                                  frontend + '\">\n')
+                    try:
+                        entry_str += (xmlFormat.dict2string(stats[entry]['frontends'][frontend]['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 5 * tab) + "\n")
+                    except KeyError:
+                        glideFactoryLib.log_files.logDebug("frontend_data, KeyError")
+                    entry_str += 4 * tab + '</frontend>\n'
+            except TypeError:
+                glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
+            entry_str += (3 * tab + '</frontends>\n')
+            entry_str += 2 * tab + "</entry>\n"
+        entry_str += tab + "</entries>\n"
+		
+        # aggregated data
+        total_xml_str = 2 * tab + '<total>\n'
+        total_data = aggregate_output['total']
+        try:
+            total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+        except NameError, UnboundLocalError:
+            glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+        total_xml_str += 2 * tab + '</total>\n'
+        
+        frontend_xml_str = (2 * tab + '<frontends>\n')
+        try:
+            for frontend in frontends:
+                frontend_xml_str += (3 * tab + '<frontend name=\"' +
+                                     frontend + '\">\n')
+                frontend_data = aggregate_output[frontend]
+                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
+                frontend_xml_str += 3 * tab + '</frontend>'
+        except TypeError:
+            glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
+        frontend_xml_str += (2 * tab + '</frontends>\n')
+                  
+        data_str =  (tab + "<total>\n" + total_xml_str + frontend_xml_str +
+                     tab + "</total>\n")
+
+        # putting it all together
+        updated = time.time()
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<glideFactoryRRDStats>\n' +
+                   get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" + entry_str + 
+                   data_str + '</glideFactoryRRDStats>')
+
+        try:
+            glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
+        except IOError:
+            glideFactoryLib.log_files.logDebug("write_file, IOError")
+
+    return
+
+    
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):

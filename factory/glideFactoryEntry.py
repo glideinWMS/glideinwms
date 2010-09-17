@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.6.1 2010/09/08 20:19:28 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.6.2 2010/09/17 00:20:16 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -73,6 +73,11 @@ def perform_work(entry_name,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
+
+    try:
+        glideFactoryLib.factoryConfig.rrd_stats.getData(client_name)
+    except glideFactoryLib.condorExe.ExeError,e:
+        glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
 
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
@@ -178,7 +183,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
-
+    
     done_something=0
     for work_key in work.keys():
         # merge work and default params
@@ -375,7 +380,9 @@ def write_stats():
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
-
+    glideFactoryLib.factoryConfig.rrd_stats.writeFiles()
+    glideFactoryLib.log_files.logActivity("rrd_stats written")
+    
     return
 
 ############################################################
@@ -456,6 +463,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
+    glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
