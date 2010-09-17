@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.20 2010/09/08 23:37:18 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.21 2010/09/17 00:56:46 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -73,6 +73,11 @@ def perform_work(entry_name,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
+
+    try:
+        glideFactoryLib.factoryConfig.rrd_stats.getData(client_name)
+    except glideFactoryLib.condorExe.ExeError,e:
+        glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
 
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
@@ -178,7 +183,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 security_list[entry_part[0]]=[entry_part[1]];
    
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-
+    
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
@@ -419,7 +424,9 @@ def write_stats():
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
-
+    glideFactoryLib.factoryConfig.rrd_stats.writeFiles()
+    glideFactoryLib.log_files.logActivity("rrd_stats written")
+    
     return
 
 ############################################################
@@ -498,6 +505,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     count=0;
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
+    glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     while 1:
         check_parent(parent_pid,glideinDescript,jobDescript)
