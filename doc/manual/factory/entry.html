@@ -1099,11 +1099,13 @@ For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options:
 		<blockquote>
 		&lt;attrs&gt;<br/>
 		&nbsp;&nbsp;&lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" parameter="True" publish="False" type="string" value="<i>Arch</i>"/&gt;<br/>
-      		&nbsp;&nbsp;&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="<i>Condor_Version</i>"/&gt;<br/>
+      		&nbsp;&nbsp;&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="<i>Condor_Version</i>"/&gt;<br/>
 		&nbsp;&nbsp;&lt;attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="True"/&gt;<br/>
 		&lt;/attrs&gt;<br/>
 		</blockquote>
-		The CONDOR_VERSION should match the version in the tarball, and the CONDOR_ARCH should match the arch in the tarball tag.  If set to "auto", the glidein will decide the appropriate tarball to use.
+		The CONDOR_OS and the CONDOR_ARCH should match the os and arch defined in the tarball tag.  If set to "auto", the glidein will decide the appropriate tarball to use for that worker node.   
+		By default, the CONDOR_VERSION will be defined globally in &lt;glidein&gt;&lt;attrs&gt; and should match the version in the tarball tag.  You can overwrite this global version and  
+		define one locally in the entry if needed.
 	</li>
 	<li>Reconfigure the factory using the command:
 		<blockquote>
