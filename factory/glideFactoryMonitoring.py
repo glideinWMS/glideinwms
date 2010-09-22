@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.1 2010/09/17 00:20:16 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.2 2010/09/22 03:15:27 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1004,8 +1004,12 @@ class FactoryStatusData:
 
         #use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
-        fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
-        
+        try:
+            fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
+        except:
+            # probably not created yet
+            glideFactoryLib.log_files.logDebug("Failed to load %s"%(pathway + file))
+            return {}
         #sometimes rrdtool returns extra tuples that don't contain data
         actual_res = fetched[0][2]
         actual_start = fetched[0][0]
