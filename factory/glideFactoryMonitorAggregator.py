@@ -8,6 +8,7 @@
 #
 
 import copy,time,string,os.path
+import sets
 import timeConversion
 import xmlParse,xmlFormat
 import glideFactoryMonitoring
@@ -393,45 +394,68 @@ def aggregateRRDStats():
             try:
                 stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
             except IOError:
-                glideFactoryLib.log_files.logDebug("parse_xml, IOError")
+                glideFactoryLib.log_files.logDebug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
 
-        # an entry is need to access to the data sets, I used the first one
-        example_entry = monitorAggregatorConfig.entries[0]
+        stats_entries=stats.keys()
+        if len(stats_entries)==0:
+            continue # skip this RRD... nothing to aggregate
+        stats_entries.sort()
+        
+        # Get all the resolutions, data_sets and frontends... for totals
+        resolution = sets.Set([])
+        frontends = sets.Set([])
+        data_sets = sets.Set([])
+        for entry in stats_entries:
+            entry_resolution = stats[entry]['total']['periods'].keys()
+            if len(entry_resolution)==0:
+                continue # not an interesting entry
+            resolution=resolution.union(entry_resolution)
+            entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
+            data_sets=data_sets.union(entry_data_sets)
+            entry_frontends = stats[entry]['frontends'].keys()
+            frontends=frontends.union(entry_frontends)
+            entry_data_sets = stats[entry]['total']['periods'][entry_resolution[0]]
+
+        resolution=list(resolution)
+        frontends=list(frontends)
+        data_sets=list(data_sets)
+
         # create a dictionary that will hold the aggregate data
-        if monitorAggregatorConfig.entries: 
-            resolution = stats[example_entry]['total']['periods'].keys()
-            frontends = stats[example_entry]['frontends'].keys()
-            clients = frontends + ['total']
-            aggregate_output = {}
-            for client in clients:
-                aggregate_output[client] = {}
-                for res in resolution:
-                    aggregate_output[client][res] = {}
-                    if client == 'total':
-                        data_sets = stats[example_entry][client]['periods'][res]
-                    else:
-                        data_sets = stats[example_entry]['frontends'][client]['periods'][res]
-                    for data_set in data_sets:
-                        aggregate_output[client][res][data_set] = 0
+        clients = frontends + ['total']
+        aggregate_output = {}
+        for client in clients:
+            aggregate_output[client] = {}
+            for res in resolution:
+                aggregate_output[client][res] = {}
+                for data_set in data_sets:
+                    aggregate_output[client][res][data_set] = 0
 
         # assign the aggregate data to 'aggregate_output'
         for client in aggregate_output:
             for res in aggregate_output[client]:
                 for data_set in aggregate_output[client][res]:
-                    for entry in monitorAggregatorConfig.entries:
+                    for entry in stats_entries:
                         if client == 'total':
-                            aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
-                        else:
                             try:
-                                aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
+                                aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
                             except KeyError:
-                                glideFactoryLib.log_files.logDebug("aggregate_data, KeyError")
+                                # well, some may be just missing.. can happen
+                                glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+
+                        else:
+                            if stats[entry]['frontends'].has_key(client):
+                                # not all the entries have all the frontends
+                                try:
+                                    aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
+                                except KeyError:
+                                    # well, some may be just missing.. can happen
+                                    glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
 
         # write an aggregate XML file
 
         # data from indivdual entries
         entry_str = tab + "<entries>\n"
-        for entry in monitorAggregatorConfig.entries:
+        for entry in stats_entries:
             entry_name = entry.split("/")[-1]
             entry_str += 2 * tab + "<entry name = \"" + entry_name + "\">\n"
             entry_str += 3 * tab + '<total>\n'
@@ -443,7 +467,9 @@ def aggregateRRDStats():
         
             entry_str += (3 * tab + '<frontends>\n')
             try:
-                for frontend in frontends:
+                entry_frontends = stats[entry]['frontends'].keys()
+                entry_frontends.sort()
+                for frontend in entry_frontends:
                     entry_str += (4 * tab + '<frontend name=\"' +
                                   frontend + '\">\n')
                     try:
@@ -473,7 +499,7 @@ def aggregateRRDStats():
                                      frontend + '\">\n')
                 frontend_data = aggregate_output[frontend]
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
-                frontend_xml_str += 3 * tab + '</frontend>'
+                frontend_xml_str += 3 * tab + '</frontend>\n'
         except TypeError:
             glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
         frontend_xml_str += (2 * tab + '</frontends>\n')
@@ -491,7 +517,7 @@ def aggregateRRDStats():
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:
-            glideFactoryLib.log_files.logDebug("write_file, IOError")
+            glideFactoryLib.log_files.logDebug("write_file %s, IOError"%rrd_site(rrd))
 
     return
 
