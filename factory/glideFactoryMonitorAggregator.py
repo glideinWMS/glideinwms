@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.2 2010/09/17 00:20:16 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.3 2010/09/22 00:00:20 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -401,10 +401,14 @@ def aggregateRRDStats():
             except IOError:
                 glideFactoryLib.log_files.logDebug("parse_xml, IOError")
 
+        stats_entries=stats.keys()
+        if len(stats_entries)==0:
+            continue # skip this RRD... nothing to aggregate
+        
         # an entry is need to access to the data sets, I used the first one
-        example_entry = monitorAggregatorConfig.entries[0]
+        example_entry = stats_entries[0]
         # create a dictionary that will hold the aggregate data
-        if monitorAggregatorConfig.entries: 
+        if stats_entries: 
             resolution = stats[example_entry]['total']['periods'].keys()
             frontends = stats[example_entry]['frontends'].keys()
             clients = frontends + ['total']
