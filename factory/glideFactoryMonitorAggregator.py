@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.4 2010/09/22 00:43:33 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.5 2010/09/22 00:49:28 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -505,7 +505,7 @@ def aggregateRRDStats():
                                      frontend + '\">\n')
                 frontend_data = aggregate_output[frontend]
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
-                frontend_xml_str += 3 * tab + '</frontend>'
+                frontend_xml_str += 3 * tab + '</frontend>\n'
         except TypeError:
             glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
         frontend_xml_str += (2 * tab + '</frontends>\n')
