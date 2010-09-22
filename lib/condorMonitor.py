@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorMonitor.py,v 1.10.8.1.2.2 2010/08/31 18:49:17 parag Exp $
+#   $Id: condorMonitor.py,v 1.10.8.1.2.2.6.1 2010/09/22 03:08:53 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to query the condor daemons
@@ -462,7 +462,12 @@ def xml2list(xml_data):
             break
 
     if found_xml>=0:
+      try:
         p.Parse(string.join(xml_data[found_xml:]),1)
+      except TypeError, e:
+        raise RuntimeError, "Failed to parse XML data, TypeError: %s"%e
+      except:
+        raise RuntimeError, "Failed to parse XML data, generic error"
     # else no xml, so return an empty list
     
     return xml2list_data
