@@ -999,8 +999,12 @@ class FactoryStatusData:
 
         #use rrdtool to fetch data
         baseRRDSupport = rrdSupport.rrdSupport()
-        fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
-        
+        try:
+            fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
+        except:
+            # probably not created yet
+            glideFactoryLib.log_files.logDebug("Failed to load %s"%(pathway + file))
+            return {}
         #sometimes rrdtool returns extra tuples that don't contain data
         actual_res = fetched[0][2]
         actual_start = fetched[0][0]
