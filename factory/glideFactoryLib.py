@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.1.8.3.6.1 2010/09/17 00:20:16 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.1.8.3.6.2 2010/09/23 14:34:18 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -269,7 +269,7 @@ def getCondorQData(entry_name,
     x509id_str=factoryConfig.x509id_schedd_attribute
 
     q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
-    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s")]
+    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s"),("HoldReasonCode","i"), ("HoldReasonSubCode","i")]
 
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factoryConfig.factory_name
@@ -522,8 +522,14 @@ def sanitizeGlideins(condorq,status):
         log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
 
+    # Check if there are held glideins that are not recoverable
+    unrecoverable_held_list=extractUnrecoverableHeld(condorq,status)
+    if len(unrecoverable_held_list)>0:
+        log_files.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
+        removeGlideins(condorq.schedd_name,unrecoverable_held_list,force=False)
+
     # Check if there are held glideins
-    held_list=extractHeld(condorq,status)
+    held_list=extractRecoverableHeld(condorq,status)
     if len(held_list)>0:
         log_files.logWarning("Found %i held glideins"%len(held_list))
         releaseGlideins(condorq.schedd_name,held_list)
@@ -553,8 +559,14 @@ def sanitizeGlideinsSimple(condorq):
         log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
 
+    # Check if there are held glideins that are not recoverable
+    unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
+    if len(unrecoverable_held_list)>0:
+        log_files.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
+        removeGlideins(condorq.schedd_name,unrecoverable_held_list, force=False)
+
     # Check if there are held glideins
-    held_list=extractHeldSimple(condorq)
+    held_list=extractRecoverableHeldSimple(condorq)
     if len(held_list)>0:
         log_files.logWarning("Found %i held glideins"%len(held_list))
         releaseGlideins(condorq.schedd_name,held_list)
@@ -720,8 +732,46 @@ def extractStaleSimple(q):
     
     return qstale_list
 
+def extractUnrecoverableHeld(q,status):
+    # first find out the held jids that are not recoverable
+    #  Held==5 and glideins are not recoverable
+    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el)))
+    qheld_list=qheld.keys()
+    
+    # find out if any "Held" glidein is running instead (in condor_status)
+    sheld_list=extractRegistered(q,status,qheld_list)
+    return diffList(qheld_list,sheld_list)
+
+def extractUnrecoverableHeldSimple(q):
+    #  Held==5 and glideins are not recoverable
+    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el)))
+    qheld_list=qheld.keys()
+    return qheld_list
+
+def extractRecoverableHeld(q,status):
+    # first find out the held jids
+    #  Held==5 and glideins are recoverable
+    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
+    qheld_list=qheld.keys()
+    
+    # find out if any "Held" glidein is running instead (in condor_status)
+    sheld_list=extractRegistered(q,status,qheld_list)
+
+    return diffList(qheld_list,sheld_list)
+
+def extractRecoverableHeldSimple(q):
+    #  Held==5 and glideins are recoverable
+    #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
+    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
+    qheld_list=qheld.keys()
+    return qheld_list
+
 def extractHeld(q,status):
-    # first find out the stale idle jids
+
+    # first find out the held jids
     #  Held==5
     qheld=q.fetchStored(lambda el:el["JobStatus"]==5)
     qheld_list=qheld.keys()
@@ -898,7 +948,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                 try:
                     submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
-                    log_files.logWarning("condor_submit failed: %s"%e);
+                    log_files.logWarning("condor_submit failed: %s"%e)
                     submit_out=[]
                 
                 
@@ -911,7 +961,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
         log_files.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
 
 # remove the glideins in the list
-def removeGlideins(schedd_name,jid_list):
+def removeGlideins(schedd_name,jid_list,force=False):
     ####
     # We are assuming the gfactory to be
     # a condor superuser and thus does not need
@@ -931,12 +981,23 @@ def removeGlideins(schedd_name,jid_list):
         try:
             condorExe.exe_cmd("condor_rm","%s %li.%li"%(schedd_str,jid[0],jid[1]))
             removed_jids.append(jid)
+
+            # Force the removal if requested
+            if force == True:
+                try:
+                    log_files.logActivity("Forcing the removal of glideins in X state")
+                    condorExe.exe_cmd("condor_rm","-forcex %s %li.%li"%(schedd_str,jid[0],jid[1]))
+                except condorExe.ExeError, e:
+                    log_files.logWarning("Forcing the removal of glideins in %s.%s state failed" % (jid[0],jid[1]))
+
         except condorExe.ExeError, e:
+            # silently ignore errors, and try next one
             log_files.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
-            pass # silently ignore errors, and try next one
 
         if len(removed_jids)>=factoryConfig.max_removes:
             break # limit reached, stop
+
+
     log_files.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
 
 # release the glideins in the list
@@ -962,10 +1023,44 @@ def releaseGlideins(schedd_name,jid_list):
             released_jids.append(jid)
         except condorExe.ExeError, e:
             log_files.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
-            pass # silently ignore errors, and try next one
 
         if len(released_jids)>=factoryConfig.max_releases:
             break # limit reached, stop
     log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
 
 
+# Get list of CondorG job status for held jobs that are not recoverable
+def isGlideinUnrecoverable(jobInfo):
+    # CondorG held jobs have HeldReasonCode 2
+    # CondorG held jobs with following HeldReasonSubCode are not recoverable
+    # 0   : Job failed, no reason given by GRAM server 
+    # 4   : jobmanager unable to set default to the directory requested 
+    # 7   : authentication with the remote server failed 
+    # 8   : the user cancelled the job 
+    # 9   : the system cancelled the job 
+    # 10  : globus_xio_gsi: Token size exceeds limit
+    # 17  : the job failed when the job manager attempted to run it
+    # 22  : the job manager failed to create an internal script argument file
+    # 31  : the job manager failed to cancel the job as requested 
+    # 47  : the gatekeeper failed to run the job manager 
+    # 48  : the provided RSL could not be properly parsed 
+    # 76  : cannot access cache files in ~/.globus/.gass_cache,
+    #       check permissions, quota, and disk space 
+    # 79  : connecting to the job manager failed. Possible reasons: job
+    #       terminated, invalid job contact, network problems, ... 
+    # 121 : the job state file doesn't exist 
+    # 122 : could not read the job state file
+    
+    unrecoverable = False
+    # Dictionary of {HeldReasonCode: HeldReasonSubCode}
+    unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17, 
+                               22, 27, 28, 31, 37, 47, 48, 
+                               72, 76, 79, 81, 86, 87,
+                               121, 122 ]}
+
+    if jobInfo.has_key('HoldReasonCode') and jobInfo.has_key('HoldReasonSubCode'):
+        code = jobInfo['HoldReasonCode']
+        subCode = jobInfo['HoldReasonSubCode']
+        if (unrecoverableCodes.has_key(code) and (subCode in unrecoverableCodes[code])):
+            unrecoverable = True
+    return unrecoverable
