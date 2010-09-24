@@ -648,7 +648,10 @@ def get_new_status(old_status, new_status):
             if old_status[0] != "0": # may have already fixed it, out of order
                 status = str(int(old_status[0]) - 1) + old_status[1:]
             # else keep the old one
-    elif old_status in ('003','006','008','028'):
+    elif new_status in ('007','024'):
+        # this is an abort... back to idle/wait
+        status='000'
+    elif new_status in ('003','006','008','028'):
         pass # do nothing, that was just informational
     else:
         # a significant status found, use it
@@ -794,8 +797,9 @@ def parseSubmitLogFastRawCallback(fname, callback):
         idx += 16
 
         if jobs.has_key(jobid):
-            new_status = get_new_status(jobs[jobid], status)
-            if new_status != status:
+            old_status=jobs[jobid]
+            new_status = get_new_status(old_status, status)
+            if new_status != old_status:
                 callback(new_status, line_time, jobid)
                 if new_status in ('005', '009'):
                     del jobs[jobid] #end of live, don't need it anymore
