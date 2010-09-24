@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Description:
 #   Check if a glideinFrontend is running

@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import sys,os,string,time
 STARTUP_DIR=sys.path[0]

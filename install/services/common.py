@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import sys,os.path,string,time,stat,shutil, getpass
 import pwd
