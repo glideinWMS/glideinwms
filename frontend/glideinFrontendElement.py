@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.5 2010/09/08 20:42:00 parag Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.6 2010/09/24 15:38:10 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend

@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: find_logs.py,v 1.2.24.1 2010/08/31 18:49:17 parag Exp $
+#   $Id: find_logs.py,v 1.2.24.2 2010/09/24 15:38:10 parag Exp $
 #
 # Description:
 #   Find the logs for a certain date

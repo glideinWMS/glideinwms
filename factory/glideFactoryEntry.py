@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6 2010/08/31 18:49:16 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.7 2010/09/24 15:38:10 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry

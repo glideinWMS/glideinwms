@@ -1,11 +1,11 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.9.2.11 2010/09/15 16:20:58 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.9.2.12 2010/09/24 15:38:11 parag Exp $
 #
 # Description:
 #   glideinWMS Installer

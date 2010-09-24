@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_top.py,v 1.3.28.1 2010/08/31 18:49:17 parag Exp $
+#   $Id: glidein_top.py,v 1.3.28.2 2010/09/24 15:38:11 parag Exp $
 #
 # Description:
 #   Execute a top command on a condor job
