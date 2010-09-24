@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cat_StartdLog.py,v 1.7.12.1 2010/09/08 03:22:59 parag Exp $
+#   $Id: cat_StartdLog.py,v 1.7.12.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Print out the StartdLog for a glidein output file

@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 import traceback
 import sys,os,os.path,string,time

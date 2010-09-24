@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: find_StartdLogs.py,v 1.4.8.1 2010/09/08 03:22:59 parag Exp $
+#   $Id: find_StartdLogs.py,v 1.4.8.2 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #   Print out the StartdLogs for a certain date

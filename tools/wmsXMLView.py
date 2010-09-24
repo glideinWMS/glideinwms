@@ -1,10 +1,10 @@
-#!/bin/env python
+#!/usr/bin/env python
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: wmsXMLView.py,v 1.16.2.6 2010/09/08 03:09:36 parag Exp $
+#   $Id: wmsXMLView.py,v 1.16.2.7 2010/09/24 15:30:37 parag Exp $
 #
 # Description:
 #   This tool displays the status of the glideinWMS pool

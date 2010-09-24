@@ -1,11 +1,11 @@
-#!/bin/env python
+#!/usr/bin/env python
 
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.2 2010/09/08 03:22:59 parag Exp $
+#   $Id: manageFactoryDowntimes.py,v 1.39.2.3 2010/09/24 15:30:36 parag Exp $
 #
 # Description:
 #  This program allows to add announced downtimes
