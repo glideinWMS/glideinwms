@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.6.3 2010/09/25 04:12:01 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.6.4 2010/09/25 04:39:51 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -388,9 +388,9 @@ def write_stats():
 # added by C.W. Murphy for glideFactoryEntryDescript
 def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_dir):
     entry_data = {entry_name:{}}
-    entry_data[entry_name]['descript'] = entryDescript.data
-    entry_data[entry_name]['attributes'] = entryAttributes.data
-    entry_data[entry_name]['params'] = entryParams.data
+    entry_data[entry_name]['descript'] = copy.deepcopy(entryDescript.data)
+    entry_data[entry_name]['attributes'] = copy.deepcopy(entryAttributes.data)
+    entry_data[entry_name]['params'] = copy.deepcopy(entryParams.data)
 
     descript2XML = glideFactoryMonitoring.Descript2XML()
     str = descript2XML.entryDescript(entry_data)

@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.4 2010/09/25 04:12:01 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.5 2010/09/25 04:39:51 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -50,8 +50,8 @@ def aggregate_stats():
 
 # added by C.W. Murphy to make descript.xml
 def write_descript(glideinDescript,frontendDescript,monitor_dir):
-    glidein_data = glideinDescript.data
-    frontend_data = frontendDescript.data
+    glidein_data = copy.deepcopy(glideinDescript.data)
+    frontend_data = copy.deepcopy(frontendDescript.data)
     entry_data = {}
     for entry in glidein_data['Entries'].split(","):
         entry_data[entry] = {}
