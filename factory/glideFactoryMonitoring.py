@@ -1117,16 +1117,19 @@ class FactoryStatusData:
 ##############################################################################
 #
 #  create an XML file out of glidein.descript, frontend.descript,
-#   entry.descript,
-#                            attributes.cfg, and params.cfg
+#    entry.descript, attributes.cfg, and params.cfg
+#
 #############################################################################
 
 class Descript2XML:
     def __init__(self):
         self.tab = xmlFormat.DEFAULT_TAB
-        self.entry_descript_blacklist = ('DowntimesFile', 'EntryName', 'Schedd')
+        self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
+                                         'Schedd')
         self.frontend_blacklist = ('usermap', )
-        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource', 'FactoryName', 'GlideinName', 'LoopDelay', 'PubKeyType', 'WebURL')
+        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource',
+                                  'FactoryName', 'GlideinName', 'LoopDelay',
+                                  'PubKeyType', 'WebURL')
 
     def frontendDescript(self, dict):
         for key in self.frontend_blacklist:
@@ -1170,11 +1173,10 @@ class Descript2XML:
             except KeyError:
                 continue
         try:
-            # this is a hack.  there has to be a better way
-            q = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
-            w = q.split("\n")[1]
-            e = w.split('name="" ')
-            str = "".join(e)
+            a = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
+            b = a.split("\n")[1]
+            c = b.split('name="" ')
+            str = "".join(c)
             return str + "\n"            
         except SyntaxError, RuntimeError:
             glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
