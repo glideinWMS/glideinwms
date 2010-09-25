@@ -1,9 +1,10 @@
+
 #
 # Project:
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.2 2010/09/22 03:15:27 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.3 2010/09/25 04:12:01 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1117,6 +1118,100 @@ class FactoryStatusData:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
                 glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
+        return
+    
+##############################################################################
+#
+#  create an XML file out of glidein.descript, frontend.descript,
+#    entry.descript, attributes.cfg, and params.cfg
+#
+#############################################################################
+
+class Descript2XML:
+    def __init__(self):
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
+                                         'Schedd')
+        self.frontend_blacklist = ('usermap', )
+        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource',
+                                  'FactoryName', 'GlideinName', 'LoopDelay',
+                                  'PubKeyType', 'WebURL')
+
+    def frontendDescript(self, dict):
+        for key in self.frontend_blacklist:
+            try:
+                for frontend in dict:
+                    try:
+                        del dict[frontend][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in frontendDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "frontends", el_name = "frontend", subtypes_params = {"class":{}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in frontendDescript")
+            return
+
+    def entryDescript(self, dict):
+        for key in self.entry_descript_blacklist:
+            try:
+                for entry in dict:
+                    try:
+                        del dict[entry]['descript'][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "entries", el_name = "entry", subtypes_params = {"class":{'subclass_params':{}}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in entryDescript")
+            return
+
+    def glideinDescript(self, dict):
+        w_dict = {}
+        for key in self.glidein_whitelist:
+            try:
+                w_dict[key] = dict[key]
+            except KeyError:
+                continue
+        try:
+            a = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
+            b = a.split("\n")[1]
+            c = b.split('name="" ')
+            str = "".join(c)
+            return str + "\n"            
+        except SyntaxError, RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
+            return
+
+    def getUpdated(self):
+        """returns the time of last update"""
+        local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(time.time()))
+        gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time.time()))
+        xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':time.time()}
+
+        return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
+
+    def writeFile(self, path, str, singleEntry = False):
+        if singleEntry:
+            root_el = 'glideFactoryEntryDescript'
+        else:
+            root_el = 'glideFactoryDescript'
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<' + root_el + '>\n' + self.getUpdated() + "\n" + str +
+                   '</' + root_el + '>')
+        fname = path + 'descript.xml'
+        f = open(fname + '.tmp', 'wb')
+        try:
+            f.write(xml_str)
+        finally:
+            f.close()
+
+        tmp2final(fname)
         return
 
     
