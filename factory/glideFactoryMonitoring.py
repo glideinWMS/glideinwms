@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.3 2010/09/25 04:12:01 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.4 2010/09/25 04:24:31 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -189,6 +189,19 @@ class MonitoringConfig:
         return
     
 
+####################################
+def time2xml(the_time,outer_tag,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+    xml_data={"UTC":{"unixtime":timeConversion.getSeconds(the_time),
+                     "ISO8601":timeConversion.getISO8601_UTC(the_time),
+                     "RFC2822":timeConversion.getRFC2822_UTC(the_time)},
+              "Local":{"ISO8601":timeConversion.getISO8601_Local(the_time),
+                       "RFC2822":timeConversion.getRFC2822_Local(the_time),
+                       "human":timeConversion.getHuman(the_time)}}
+    return xmlFormat.dict2string(xml_data,
+                                 dict_name=outer_tag,el_name="timezone",
+                                 subtypes_params={"class":{}},
+                                 indent_tab=indent_tab,leading_tab=leading_tab)
+
 #########################################################################################################################################
 #
 #  condorQStats
@@ -366,17 +379,7 @@ class condorQStats:
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
-
+        return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
     def write_file(self):
         global monitoringConfig
@@ -842,16 +845,7 @@ class condorLogSummary:
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
+        return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
     def write_file(self):
         global monitoringConfig
@@ -989,11 +983,7 @@ class FactoryStatusData:
 
     def getUpdated(self):
         """returns the time of last update"""
-        local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
-        gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
-        xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
-
-        return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
+        return time2xml(self.updated,"updated",indent_tab=self.tab,leading_tab=self.tab)
 
     def fetchData(self, file, pathway, res, start, end):
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
@@ -1190,11 +1180,7 @@ class Descript2XML:
 
     def getUpdated(self):
         """returns the time of last update"""
-        local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(time.time()))
-        gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(time.time()))
-        xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':time.time()}
-
-        return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
+        return time2xml(time.time(),"updated",indent_tab=self.tab,leading_tab=self.tab)
 
     def writeFile(self, path, str, singleEntry = False):
         if singleEntry:

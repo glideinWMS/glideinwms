@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.5 2010/09/22 00:49:28 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.6 2010/09/25 04:24:31 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -531,15 +531,7 @@ def aggregateRRDStats():
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-    xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(when),
-                        "ISO8601":timeConversion.getISO8601_UTC(when),
-                        "RFC2822":timeConversion.getRFC2822_UTC(when)},
-                 "Local":{"ISO8601":timeConversion.getISO8601_Local(when),
-                          "RFC2822":timeConversion.getRFC2822_Local(when),
-                          "human":timeConversion.getHuman(when)}}
-    return xmlFormat.dict2string(xml_updated,
-                                 dict_name="updated",el_name="timezone",
-                                 subtypes_params={"class":{}},
-                                 indent_tab=indent_tab,leading_tab=leading_tab)
+    return glideFactoryMonitoring.time2xml(when,"updated",indent_tab,leading_tab)
+
 
 
