@@ -41,6 +41,35 @@ def aggregate_stats():
     status=glideFactoryMonitorAggregator.aggregateRRDStats()
     return
 
+# added by C.W. Murphy to make descript.xml
+def write_descript(glideinDescript,frontendDescript,monitor_dir):
+    glidein_data = glideinDescript.data
+    frontend_data = frontendDescript.data
+    entry_data = {}
+    for entry in glidein_data['Entries'].split(","):
+        entry_data[entry] = {}
+
+        entryDescript = glideFactoryConfig.JobDescript(entry)
+        entry_data[entry]['descript'] = entryDescript.data
+
+        entryAttributes = glideFactoryConfig.JobAttributes(entry)
+        entry_data[entry]['attributes'] = entryAttributes.data
+
+        entryParams = glideFactoryConfig.JobParams(entry)
+        entry_data[entry]['params'] = entryParams.data
+
+    descript2XML = glideFactoryMonitoring.Descript2XML()
+    xml_str = (descript2XML.glideinDescript(glidein_data) +
+               descript2XML.frontendDescript(frontend_data) +
+               descript2XML.entryDescript(entry_data))
+
+    try:
+       descript2XML.writeFile(monitor_dir, xml_str)
+    except IOError:
+        glideFactoryLib.log_files.logDebug("IOError in writeFile in descript2XML")
+    # end add
+
+
 ############################################################
 def is_crashing_often(startup_time, restart_interval, restart_attempts):
     crashing_often = True
@@ -162,37 +191,9 @@ def main(startup_dir):
 
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
-    # added by C.W. Murphy to make descript.xml
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
-    glidein_data = glideinDescript.data
-    frontend_data = frontendDescript.data
-    entry_data = {}
-    for entry in glidein_data['Entries'].split(","):
-        entry_data[entry] = {}
-        
-        entryDescript = glideFactoryConfig.JobDescript(entry)
-        entry_data[entry]['descript'] = entryDescript.data
-        
-        entryAttributes = glideFactoryConfig.JobAttributes(entry)
-        entry_data[entry]['attributes'] = entryAttributes.data
-        
-        entryParams = glideFactoryConfig.JobParams(entry)
-        entry_data[entry]['params'] = entryParams.data
-
-    descript2XML = glideFactoryMonitoring.Descript2XML()
-    xml_str = (descript2XML.glideinDescript(glidein_data) +
-               descript2XML.frontendDescript(frontend_data) +
-               descript2XML.entryDescript(entry_data))
-               
-    path = os.path.join(startup_dir, 'monitor/')
-
-    try:
-       descript2XML.writeFile(path, xml_str)
-    except IOError:
-        glideFactoryLib.log_files.logDebug("IOError in writeFile in descript2XML")
-    # end add
-    
+    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
 
     # the log dir is shared between the factory main and the entries, so use a subdir
     log_dir=os.path.join(glideinDescript.data['LogDir'],"factory")
