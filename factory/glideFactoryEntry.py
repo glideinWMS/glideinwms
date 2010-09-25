@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.22 2010/09/24 15:30:36 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.23 2010/09/25 04:57:37 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -429,6 +429,29 @@ def write_stats():
     
     return
 
+# added by C.W. Murphy for glideFactoryEntryDescript
+def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_dir):
+    entry_data = {entry_name:{}}
+    entry_data[entry_name]['descript'] = copy.deepcopy(entryDescript.data)
+    entry_data[entry_name]['attributes'] = copy.deepcopy(entryAttributes.data)
+    entry_data[entry_name]['params'] = copy.deepcopy(entryParams.data)
+
+    descript2XML = glideFactoryMonitoring.Descript2XML()
+    str = descript2XML.entryDescript(entry_data)
+    xml_str = ""
+    for line in str.split("\n")[1:-2]:
+        line = line[3:] + "\n" # remove the extra tab
+        xml_str += line
+
+    try:
+        descript2XML.writeFile(monitor_dir + "/",
+                               xml_str, singleEntry = True)
+    except IOError:
+        glideFactoryLib.log_files.logDebug("IOError in writeFile in descript2XML")
+
+    return
+
+
 ############################################################
 def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
     entry_name=jobDescript.data['EntryName']
@@ -584,6 +607,8 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     jobDescript=glideFactoryConfig.JobDescript(entry_name)
     jobAttributes=glideFactoryConfig.JobAttributes(entry_name)
     jobParams=glideFactoryConfig.JobParams(entry_name)
+
+    write_descript(entry_name,jobDescript,jobAttributes,jobParams,glideFactoryMonitoring.monitoringConfig.monitor_dir)
 
     # use config values to configure the factory
     glideFactoryLib.factoryConfig.config_whoamI(glideinDescript.data['FactoryName'],

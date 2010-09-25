@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.8 2010/09/22 03:18:38 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.9 2010/09/25 04:57:37 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -188,6 +188,19 @@ class MonitoringConfig:
         return
     
 
+####################################
+def time2xml(the_time,outer_tag,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+    xml_data={"UTC":{"unixtime":timeConversion.getSeconds(the_time),
+                     "ISO8601":timeConversion.getISO8601_UTC(the_time),
+                     "RFC2822":timeConversion.getRFC2822_UTC(the_time)},
+              "Local":{"ISO8601":timeConversion.getISO8601_Local(the_time),
+                       "RFC2822":timeConversion.getRFC2822_Local(the_time),
+                       "human":timeConversion.getHuman(the_time)}}
+    return xmlFormat.dict2string(xml_data,
+                                 dict_name=outer_tag,el_name="timezone",
+                                 subtypes_params={"class":{}},
+                                 indent_tab=indent_tab,leading_tab=leading_tab)
+
 #########################################################################################################################################
 #
 #  condorQStats
@@ -365,17 +378,7 @@ class condorQStats:
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
-
+        return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
     def write_file(self):
         global monitoringConfig
@@ -841,16 +844,7 @@ class condorLogSummary:
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
+        return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
     def write_file(self):
         global monitoringConfig
@@ -988,11 +982,7 @@ class FactoryStatusData:
 
     def getUpdated(self):
         """returns the time of last update"""
-        local = time.strftime("%a, %d %b %Y %H:%M:%S", time.localtime(self.updated))
-        gmt = time.strftime("%a, %d %b %Y %H:%M:%S", time.gmtime(self.updated))
-        xml_updated = {'Local':local, 'UTC':gmt, 'unixtime':self.updated}
-
-        return xmlFormat.dict2string(xml_updated, dict_name = "updated", el_name = "timezone", subtypes_params = {"class":{}}, indent_tab = self.tab, leading_tab = self.tab)
+        return time2xml(self.updated,"updated",indent_tab=self.tab,leading_tab=self.tab)
 
     def fetchData(self, file, pathway, res, start, end):
         """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
@@ -1117,6 +1107,96 @@ class FactoryStatusData:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
                 glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
+        return
+    
+##############################################################################
+#
+#  create an XML file out of glidein.descript, frontend.descript,
+#    entry.descript, attributes.cfg, and params.cfg
+#
+#############################################################################
+
+class Descript2XML:
+    def __init__(self):
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
+                                         'Schedd')
+        self.frontend_blacklist = ('usermap', )
+        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource',
+                                  'FactoryName', 'GlideinName', 'LoopDelay',
+                                  'PubKeyType', 'WebURL')
+
+    def frontendDescript(self, dict):
+        for key in self.frontend_blacklist:
+            try:
+                for frontend in dict:
+                    try:
+                        del dict[frontend][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in frontendDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "frontends", el_name = "frontend", subtypes_params = {"class":{}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in frontendDescript")
+            return
+
+    def entryDescript(self, dict):
+        for key in self.entry_descript_blacklist:
+            try:
+                for entry in dict:
+                    try:
+                        del dict[entry]['descript'][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "entries", el_name = "entry", subtypes_params = {"class":{'subclass_params':{}}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in entryDescript")
+            return
+
+    def glideinDescript(self, dict):
+        w_dict = {}
+        for key in self.glidein_whitelist:
+            try:
+                w_dict[key] = dict[key]
+            except KeyError:
+                continue
+        try:
+            a = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
+            b = a.split("\n")[1]
+            c = b.split('name="" ')
+            str = "".join(c)
+            return str + "\n"            
+        except SyntaxError, RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
+            return
+
+    def getUpdated(self):
+        """returns the time of last update"""
+        return time2xml(time.time(),"updated",indent_tab=self.tab,leading_tab=self.tab)
+
+    def writeFile(self, path, str, singleEntry = False):
+        if singleEntry:
+            root_el = 'glideFactoryEntryDescript'
+        else:
+            root_el = 'glideFactoryDescript'
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<' + root_el + '>\n' + self.getUpdated() + "\n" + str +
+                   '</' + root_el + '>')
+        fname = path + 'descript.xml'
+        f = open(fname + '.tmp', 'wb')
+        try:
+            f.write(xml_str)
+        finally:
+            f.close()
+
+        tmp2final(fname)
         return
 
     
