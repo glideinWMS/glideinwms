@@ -9,6 +9,7 @@
 
 //LOAD XML Object if it exits. 
 
+var a; 
 var loading; 
 var frontEndTable; 
 var linkShown = 0; 
@@ -32,7 +33,7 @@ var currentSort;
 var frontEnds; 
 var listMade = 0; 
 var frontEnd = 0;
-var table; 
+var table; var trTable; 
 var select;
 var nameLast;
 var txt2 = new Array(1000); 
@@ -41,6 +42,16 @@ var tableMade = 0;
 var index = 0; 
 var active = 0; 
 var entryName; 
+var troubleshoot = 0; 
+var childView;
+var frontEndName;  
+var trTable; 
+var diffSorted;
+var tempTotal; 
+var tempTotalEntries; 
+var diffColNum; 
+var trSortCol;  
+var trSortAsc; 
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
@@ -56,29 +67,40 @@ var columnSearch = new Array("status_running", "status_idle", "status_wait", "st
 			
 var exactColumns = new Array("Status: Running", "Status: Idle", "Status: Waiting", "Status: Pending", "Status: Stage in", "Status: Stage out", "Status: Unknown",
 							 "Status: Held", "Requested: Max run", "Requested : Idle", "Client Monitor: Claimed", "Client Monitor: User Running",  
-							 "Client Monitor: Unmatched", "Client Monitor: User idle", "Client Monitor: Registered", "Client Monitor: Info age");  	 
+							 "Client Monitor: Unmatched", "Client Monitor: User idle", "Client Monitor: Registered", "Client Monitor: Info age");  
+var trColumns = new Array("Status: Running", "Client Monitor: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", "Requested: Idle", 
+                           "Diff(Status: Idle, Requested: Idle)", "Client Monitor: User Idle"); 	 
                  
 var preSortedEntriesArry = new Array();
 var preSortedTotalArry = new Array();
 var preFrontEndName = "Total"; 
+var links = new Array(); 
 
 function showPopUp(hoveritem)
 {
-	var i = hoveritem; 
+	child1 = 0; 
+	child2 = 0; 
+	att1 = 0; 
+	att2 = 0;
+	
 	if(preFrontEndName != "Total" && preFrontEndName != "Any")
 	{
 		return; 
 	}
+	column = hoveritem.cellIndex; 
 	if(frontEndTable)
 	{
 		document.getElementById('hoverpopup').removeChild(frontEndTable);
 	}
-	
-	column = hoveritem.cellIndex; 
+	if(diffSorted && troubleshoot)
+	{
+		friend = totalEntries; 
+		totalEntries = tempTotalEntries; 
+	}
 	row = hoveritem.id; 
 	frontEndTable = document.createElement('table'); 
 	
-	var entry = totalEntries[row -1]; 
+	var entry = totalEntries[row - 1]; 
 	hover = document.getElementById("hoverpopup");
 	head = document.getElementById("header");
     scrollDiv = document.getElementById("scroll"); 
@@ -92,7 +114,14 @@ function showPopUp(hoveritem)
 		td2 = document.createElement('td');
 		td3 = document.createElement('td'); 
 		cont = document.createTextNode(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data);
-		cont2 = document.createTextNode(exactColumns[column - 1]);
+		if(troubleshoot)
+		{
+			cont2 = document.createTextNode(trColumns[column - 1]);
+		}
+		else
+		{
+			cont2 = document.createTextNode(exactColumns[column - 1]);
+		}
 		cont3 = document.createTextNode("No Frontends Exist");
 
 		td1.appendChild(cont); 
@@ -109,7 +138,14 @@ function showPopUp(hoveritem)
 
 		hover.appendChild(frontEndTable); 
 		
-		hover.style.top = head.offsetTop + hoveritem.offsetTop - 15 - scrollDiv.scrollTop + "px";
+		if(troubleshoot)
+		{
+			hover.style.top = head.offsetTop + hoveritem.offsetTop - 45 - scrollDiv.scrollTop + "px";
+		}
+		else
+		{
+			hover.style.top = head.offsetTop + hoveritem.offsetTop - 15 - scrollDiv.scrollTop + "px";
+		}
 
 		if(column == 16)
 		{
@@ -124,7 +160,7 @@ function showPopUp(hoveritem)
 		return; 
 	}
 	hover.appendChild(frontEndTable); 
-
+	
 	tr1 = document.createElement('tr'); 
 	tr2 = document.createElement('tr'); 
 	td1 = document.createElement('td');
@@ -132,7 +168,49 @@ function showPopUp(hoveritem)
 	td3 = document.createElement('td');
 	td4 = document.createElement('td');
 	cont = document.createTextNode(totalEntries[row-1].attributes.getNamedItem("name").firstChild.data);
-	cont2 = document.createTextNode(exactColumns[column - 1]);
+	if(troubleshoot)
+	{
+		cont2 = document.createTextNode(trColumns[column - 1]);
+	}
+	else
+	{
+		cont2 = document.createTextNode(exactColumns[column - 1]);
+	}
+	
+	if(troubleshoot)
+	{
+		if(column == 2)
+		{
+			column = 15; 
+		}
+		else if(column == 4)
+		{
+			column = 2; 
+		}
+		else if(column == 5)
+		{
+			column = 10; 
+		}
+		else if(column == 7)
+		{
+			column = 14; 
+		}
+		else if(column == 3)
+		{
+			child1 = 5;
+			child2 = 1;
+			att1 = 4;
+			att2 = 2;
+		}
+		else if(column == 6)
+		{
+			child1 = 5; 
+			child2 = 3; 
+			att1 = 1; 
+			att2 = 0; 
+		}
+	}	
+	
 	td1.appendChild(cont); 
 	td2.appendChild(cont2);
 	tr1.appendChild(td1);
@@ -181,7 +259,18 @@ function showPopUp(hoveritem)
 			td = document.createElement('td'); 
 			txt = document.createTextNode(sortedFE[i].attributes[0].nodeValue + ":");
 			td2 = document.createElement('td');
-			if(column > 0 && column < 9)
+
+			if((column == 3 || column == 6) && troubleshoot)
+			{
+				val1 = 0; 
+				val2 = 0; 
+				diff = 0; 
+				try{ val1 = parseInt(sortedFE[i].childNodes[child1].attributes[att1].nodeValue); } catch(err){}
+				try{ val2 = parseInt(sortedFE[i].childNodes[child2].attributes[att2].nodeValue); } catch(err){}
+				diff = val1 - val2; 
+				txt2 = document.createTextNode(diff);
+			}
+			else if(column > 0 && column < 9)
 			{
 				if(sortedFE[i].childNodes.length >= 7)
 				{
@@ -205,7 +294,7 @@ function showPopUp(hoveritem)
 					txt2 = document.createTextNode(0);
 				}
 			}
-			else
+			else	
 			{
 				if(sortedFE[i].childNodes.length >= 3)
 				{
@@ -217,6 +306,7 @@ function showPopUp(hoveritem)
 					txt2 = document.createTextNode(0);
 				}
 			}
+ 	
 			td.appendChild(txt); 
 			tr.appendChild(td);
 			td2.appendChild(txt2);
@@ -249,8 +339,20 @@ function showPopUp(hoveritem)
 	{
 		hover.style.left = hoveritem.offsetLeft - 110 + "px";
 	}
-	hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";
+	if(troubleshoot)
+	{
+		hover.style.top = head.offsetTop + hoveritem.offsetTop - 45 - (30 * x) - scrollDiv.scrollTop + "px";
+	}
+	else
+	{
+		hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";
+	}
+	
 	hover.style.visibility = "Visible";	
+	if(diffSorted && troubleshoot)
+	{
+		totalEntries = friend; 
+	}
 
 }
 
@@ -277,32 +379,87 @@ function showTime()
 }
 function sortAlphabetical()
 {
+	trSortAsc = 0; /* Reset to initially sort descending. */
+	/* No longer sorted! */
+	diffSorted = 0; 
 	sorted = 0;
 	currentSort; 
 	index = -2; 
-	sortSignal(); 
+	
+	/* Take out tr table to reset everything. */
+	if(troubleshoot)
+	{
+		troubleshooting(); 
+		troubleshoot = 1; 			
+	}
+	sortSignal(); /* Take out sort colors. */
+	
+	/* If in Total view. */
 	if(frontEnd == 0)
 	{
+		/* Reset everything for regular table. */
 		totalEntries = totalEntriesMaster;
 		total = totalMaster; 
 		numberRows = totalEntries.length;
+		
+		if(active)
+		{
+			active = 0;
+			if(troubleshoot)
+			{
+				troubleshoot = 0; 
+				selectActive();				
+				troubleshoot = 1;
+			}
+			else
+			{
+				selectActive();				
+			}
+		}
+		makeTable(); 
+		fillIn(); 
+		
+		/* Put in the tr table with the update information. */
+		if(troubleshoot)
+		{
+			troubleshoot = 0; 			
+			troubleshooting(); 
+		}
+	}
+	else /* If in one of the frontend or Any views. */
+	{
+		if(troubleshoot)
+		{	
+			troubleshoot = 0; 
+			loadFrontEnd(nameLast); 
+			troubleshoot = 1;
+		}
+		else
+		{
+			loadFrontEnd(nameLast); 
+		}
+		
 		if(active)
 		{
 			active = 0; 
-			selectActive();	
+			if(troubleshoot)
+			{
+				troubleshoot = 0; 
+				selectActive();				
+				troubleshoot = 1;
+			}
+			else
+			{
+				selectActive();				
+			} 
 		}
-		makeTable(); 
-		fillIn();  
-		return; 
-	}
-	loadFrontEnd(nameLast); 
-	if(active)
-	{
-		active = 0; 
-		selectActive();	
+		if(troubleshoot)
+		{
+			troubleshoot = 0; 			
+			troubleshooting(); 
+		}
 	}
 }
-
 function makeList()
 {
 	var feArry = new Array(); 
@@ -362,7 +519,6 @@ function makeList()
 }
 function checkUrl()
 {
-	
 	var url = window.location.search;
 	var contents = new Array();
 	var temp; 
@@ -391,11 +547,25 @@ function checkUrl()
 				{
 					if(temp[j+1].search(/total/i) >= 0)
 					{
-						if(temp[j+1].search(/active/i) >= 0)
+						if(temp[j+1] == "total+active+troubleshoot")
 						{
 							active = 0; 
 							selectActive(); 
+							troubleshooting(); 
+							document.getElementById("troubleshoot").checked = true; 
 							document.getElementById("active").checked = true; 
+						}
+						else if(temp[j+1] == "total+active")
+						{
+							active = 0; 
+							troubleshoot = 0; 
+							selectActive(); 
+							document.getElementById("active").checked = true;
+						}
+						else if(temp[j+1] == "total+troubleshoot")
+						{
+							troubleshooting(); 
+							document.getElementById("troubleshoot").checked = true; 
 						}
 						else
 						{
@@ -405,31 +575,72 @@ function checkUrl()
 					if(temp[j+1] == "Any")
 					{
 						loadFrontEnd("Any"); 
+						troubleshoot = 0; 
 						select.selectedIndex += 1   	
 					}
-					if(temp[j+1] == "Any+active" || temp[j+1] == "Any+Active")
+					if(temp[j+1] == "Any+active")
+					{
+						loadFrontEnd("Any"); 
+						select.selectedIndex += 1
+						active = 0;
+						troubleshoot = 0; 
+						selectActive(); 
+						document.getElementById("active").checked = true;    	
+					}	
+					if(temp[j+1] == "Any+active+troubleshoot")
 					{
 						loadFrontEnd("Any"); 
 						select.selectedIndex += 1
 						active = 0; 
 						selectActive(); 
-						document.getElementById("active").checked = true;    	
-					}	
-					for(z = 0; z < feArryMaster.length; z++)
+						troubleshooting(); 
+						document.getElementById("active").checked = true; 
+						document.getElementById("troubleshoot").checked = true; 
+					}
+					if(temp[j+1] == "Any+troubleshoot")
 					{
-						if(temp[j+1] == feArryMaster[z].attributes.getNamedItem("name").firstChild.data)	
+						loadFrontEnd("Any"); 
+						select.selectedIndex += 1
+						troubleshooting(); 
+						document.getElementById("troubleshoot").checked = true; 
+					}
+					else
+					{
+						for(z = 0; z < feArryMaster.length; z++)
 						{
-							loadFrontEnd(temp[j+1]);
-							select.selectedIndex = z + 2;
-						}
-						else if(temp[j+1] == (feArryMaster[z].attributes.getNamedItem("name").firstChild.data + "+active"))
-						{	
-							loadFrontEnd(feArryMaster[z].attributes.getNamedItem("name").firstChild.data);
-							select.selectedIndex = z + 2;
-							active = 0; 
-							selectActive(); 
-							document.getElementById("active").checked = true;  
-						}
+							if(temp[j+1] == feArryMaster[z].attributes.getNamedItem("name").firstChild.data)	
+							{
+								loadFrontEnd(temp[j+1]);
+								select.selectedIndex = z + 2;
+								troubleshoot = 0; 
+							}
+							else if(temp[j+1] == (feArryMaster[z].attributes.getNamedItem("name").firstChild.data + "+active+troubleshoot"))
+							{	
+								loadFrontEnd(feArryMaster[z].attributes.getNamedItem("name").firstChild.data);
+								select.selectedIndex = z + 2;
+								active = 0; 
+								selectActive(); 
+								troubleshooting(); 
+								document.getElementById("active").checked = true;  
+								document.getElementById("troubleshoot").checked = true;  
+							}
+							else if(temp[j+1] == (feArryMaster[z].attributes.getNamedItem("name").firstChild.data + "+active"))
+							{
+								loadFrontEnd(feArryMaster[z].attributes.getNamedItem("name").firstChild.data);
+								select.selectedIndex = z + 2;
+								active = 0; 
+								selectActive(); 
+								troubleshoot = 0; 
+								document.getElementById("active").checked = true;  
+							}
+							else if(temp[j+1] == (feArryMaster[z].attributes.getNamedItem("name").firstChild.data + "+troubleshoot"))
+							{
+								loadFrontEnd(feArryMaster[z].attributes.getNamedItem("name").firstChild.data);
+								select.selectedIndex = z + 2;
+								troubleshooting(); 
+								document.getElementById("troubleshoot").checked = true; 
+							}
+						}	
 					}
 					break; 			
 				}
@@ -440,8 +651,38 @@ function checkUrl()
 						temp[j+1] = temp[j+1].toLowerCase(); 
 						if(temp[j+1].search(columnSearch[l]) >= 0 || temp[j+1].search(columnArry[l]) >= 0)
 						{
+							if(troubleshoot)
+							{
+								troubleshoot = 1; 
+								troubleshooting();
+								troubleshoot = 1;  
+							}
 							sortTableDescending(columnArray[l]);
-							break;  
+							if(troubleshoot)
+							{
+								troubleshoot = 0; 
+								troubleshooting(); 
+								trSortSignal(trSortCol);
+							}
+							return;   
+						}
+						else
+						{
+							if(troubleshoot)
+							{				
+								if(temp[j + 1] == "diff(status:running,client:registered)")
+								{
+									sortTrCol("Diff(Status: Running, Client: Registered)");
+									trSortSignal(3); 
+									return; 	
+								}
+								else if(temp[j + 1] == "diff(status:idle,requested:idle)")
+								{
+									sortTrCol("Diff(Status: Idle, Requested: Idle)");
+									trSortSignal(6); 
+									return; 	
+								}
+							}
 						}
 					}
 				}
@@ -452,19 +693,217 @@ function checkUrl()
 
 function loadFrontEnd(name)
 {
-	preFrontEndName = name; 
+	frontEndName = name; 
+	preFrontEndName = name;
+	
+	/* Remove tr table to reset all information. */ 
+	if(troubleshoot)
+	{
+		if(diffSorted)
+		{
+			friend = diffSorted; 
+			troubleshooting(); 
+			diffSorted = friend; 
+		}
+		else
+		{
+			troubleshooting(); 
+		}
+		troubleshoot = 1; 
+	}
+	if(diffSorted)
+	{
+		diffSorted = 1; 	
+	}
+	
+	/* If Total view! */
 	if(name == "Total (Default)")
 	{
+		/* Reset everything. */
+		childView = null;  
 		preFrontEndName = "Total"; 
 		totalEntries = totalEntriesMaster; 
 		total = totalMaster;
-		numberRows = totalEntries.length; 
+		numberRows = totalEntries.length;
  		makeTable(); 
-		frontEnd = 0; 
+		frontEnd = 0;
+		
 		if(sorted == 1 && currentSort == "ascending")
 		{
 			tableMade = 0;
 			sorted = 0; 
+			if(active)
+			{
+				if(troubleshoot)
+				{
+					troubleshoot = 0; 
+					active = 0;
+					selectActive();
+					troubleshoot = 1; 
+				}
+				else
+				{
+					active = 0;
+					selectActive();
+				}
+			}
+			sortTableDescending(col); 
+			sortTableAscending(col);
+			if(troubleshoot)
+			{
+				troubleshoot = 0; 	
+				troubleshooting(); 
+			}
+		}
+		else if(sorted == 1 && currentSort == "descending")
+		{
+			if(active)
+			{
+				if(troubleshoot)
+				{
+					troubleshoot = 0; 
+					active = 0;
+					selectActive();
+					troubleshoot = 1; 
+				}
+				else
+				{
+					active = 0;
+					selectActive();
+				}
+			}
+			tableMade = 0;
+			sorted = 0;
+			sortTableDescending(col); 
+			sortSignal();
+			if(troubleshoot)
+			{
+				troubleshoot = 0; 	
+				troubleshooting(); 
+			} 
+		}
+		else
+		{
+			if(active) /* If in an active view! */
+			{
+				active = 0;
+				if(troubleshoot)
+				{
+					troubleshoot = 0; 
+					selectActive();				
+					troubleshoot = 1;
+				}
+				else
+				{
+					selectActive();				
+				}
+				/* Place the tr table back on the screen. s*/
+				if(troubleshoot)
+				{
+					troubleshoot = 0;
+					friend = diffSorted; 
+					diffSorted = 0;  	
+					troubleshooting(); 
+					diffSorted = friend; 
+				} 
+				/* If a sort is specified. */
+				if(diffSorted)
+				{
+					diffSorted--; 
+					if(diffColNum == 1)
+					{
+						sortTrCol("Diff(Status: Running, Client: Registered)");
+					}
+					else
+					{
+						sortTrCol("Diff(Status: Idle, Requested: Idle)");
+					}
+				}
+			}
+			else /* If no view specs. */
+			{
+				fillIn(); 
+				if(troubleshoot) /* Restore the tr table if no sort spec. */
+				{
+					troubleshoot = 0;
+					friend = diffSorted; 
+					diffSorted = 0;  	
+					troubleshooting(); 
+					diffSorted = friend; 
+				}
+				/* If a sort is specified. */
+				if(diffSorted)
+				{
+					diffSorted--; 
+					if(diffColNum == 1)
+					{
+						sortTrCol("Diff(Status: Running, Client: Registered)");
+					}
+					else
+					{
+						sortTrCol("Diff(Status: Idle, Requested: Idle)");
+					}
+				}
+			}
+		}
+	}
+	else /* If in a frontend or Any view! */
+	{
+   		nameLast = name; 
+		feEntries = new Array();
+		feTotal = new Array();
+		totalEntries = totalEntriesMaster; 
+		total = totalMaster; 
+		tableMade = 0;   
+		
+		if(name == "Any")
+		{
+			childView = null; 
+			for(i = 0; i< totalEntries.length; i++)
+			{
+				if(totalEntries[i].childNodes[3].childNodes.length > 1)
+				{
+					if(totalEntries[i].childNodes[3].childNodes[1].childNodes.length > 0)
+					{
+						feEntries.push(totalEntries[i]); 
+						feTotal.push(total[i]); 
+					}
+				}
+			}			
+		}	
+		else
+		{
+			for(i = 0; i< totalEntries.length; i++)
+			{
+			if(totalEntries[i].childNodes[3].childNodes.length != 0)
+				{
+					for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
+					{
+						if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
+						{	
+							childView = j; 
+							feEntries.push(totalEntries[i]); 
+							feTotal.push(totalEntries[i].childNodes[3].childNodes[j]); 
+						}
+					}
+				}
+			}			
+		}
+		
+		frontEnd = 1;
+		totalEntries = feEntries; 
+		feTotal.push(1);
+		total = feTotal;
+		numberRows = totalEntries.length; 
+		totalEntriesMast = totalEntries; 
+		totalMast = total; 
+		count = 0;
+		
+		if(sorted == 1 && currentSort == "ascending")
+		{
+			sorted = 0; 
+			currentSort;
+			makeTable();  
 			if(active)
 			{
 				active = 0;
@@ -472,122 +911,111 @@ function loadFrontEnd(name)
 			}
 			sortTableDescending(col); 
 			sortTableAscending(col);
+			if(troubleshoot)
+			{
+				troubleshoot = 0; 	
+				troubleshooting(); 
+			}
 			return;   	
 		}
 		else if(sorted == 1 && currentSort == "descending")
 		{
+			sorted = 0; 
+			currentSort;
+			makeTable(); 
 			if(active)
 			{
-				active = 0;
-				selectActive(); 	
-			}
-			tableMade = 0;
-			sorted = 0;
+				if(troubleshoot)
+				{
+					troubleshoot = 0; /* Reset just for the active method. */
+					selectActive();   
+					troubleshoot = 1; /* Turn on to put troubeshoot table back up. */
+				}
+				else
+				{
+					selectActive();   
+				} 	
+			} 
 			sortTableDescending(col); 
-			sortSignal(); 
+			sortSignal();
+			if(troubleshoot)
+			{	
+				troubleshoot = 0; 	
+				troubleshooting(); 
+			} 
 			return; 
 		}
-		else
+		else /* If no default table compatible sort. */
 		{
 			if(active)
 			{
-				active = 0;
-				selectActive(); 
+				active = 0; 
+				if(troubleshoot)
+				{
+					troubleshoot = 0; /* Reset just for the active method. */
+					selectActive();   
+					troubleshoot = 1; /* Turn on to put troubeshoot table back up. */
+				}
+				else
+				{
+					selectActive();   
+				}
+				if(troubleshoot)
+				{
+					if(diffSorted)
+					{
+						friend = diffSorted; 
+						troubleshoot = 0; 
+						diffSorted = 0; 
+						troubleshooting();
+						diffSorted = friend; 
+						diffSorted--; 
+						if(diffColNum == 1)
+						{
+							sortTrCol("Diff(Status: Running, Client: Registered)"); 
+						}
+						else if(diffColNum == 2)
+						{
+							sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+						}						
+					} 
+					else /* If no sort! */
+					{
+						troubleshoot = 0;
+						troubleshooting();	
+					}
+				} 
 				return; 	
 			}
-			fillIn(); 
-			return; 
+			fillIn();
 		}
-	} 
-	
-   	nameLast = name; 
-	var feEntries = new Array();
-	var feTotal = new Array();
-	totalEntries = totalEntriesMaster; 
-	total = totalMaster; 
-	tableMade = 0;   
-	
-	if(name == "Any")
-	{
-		for(i = 0; i< totalEntries.length; i++)
+		if(troubleshoot) /* If not active but troubleshoot mode. */
 		{
-			if(totalEntries[i].childNodes[3].childNodes.length > 1)
-			{
-				if(totalEntries[i].childNodes[3].childNodes[1].childNodes.length > 0)
+			if(diffSorted)
+			{	
+				friend = diffSorted;
+				troubleshoot = 0; 
+				diffSorted = 0; 
+				troubleshooting();
+				diffSorted = friend - 1; 
+				
+				if(diffColNum == 1)
 				{
-					feEntries.push(totalEntries[i]); 
-					feTotal.push(total[i]); 
+					sortTrCol("Diff(Status: Running, Client: Registered)"); 
+				}
+				else if(diffColNum == 2)
+				{
+					sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
 				}
 			}
-		}			
-	}
-	
-	if(name != "Any")
-	{
-		for(i = 0; i< totalEntries.length; i++)
-		{
-			if(totalEntries[i].childNodes[3].childNodes.length != 0)
+			else
 			{
-				for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
-				{
-					if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
-					{
-						feEntries.push(totalEntries[i]); 
-						feTotal.push(totalEntries[i].childNodes[3].childNodes[j]); 
-					}
-				}
+				troubleshoot = 0; 	
+				troubleshooting(); 
 			}
-		}			
-	}
-	
-	frontEnd = 1;
-	totalEntries = feEntries; 
-	feTotal.push(1);
-	total = feTotal;
-	numberRows = totalEntries.length; 
-	totalEntriesMast = totalEntries; 
-	totalMast = total; 
-	count = 0;
-	if(sorted == 1 && currentSort == "ascending")
-	{
-		sorted = 0; 
-		currentSort;
-		makeTable();  
-		if(active)
-		{
-			active = 0;
-			selectActive(); 	
 		}
-		sortTableDescending(col); 
-		sortTableAscending(col);
-		return;   	
-	}
-	else if(sorted == 1 && currentSort == "descending")
-	{
-		sorted = 0; 
-		currentSort;
-		makeTable(); 
-		if(active)
-		{
-			active = 0;
-			selectActive(); 	
-		} 
-		sortTableDescending(col); 
-		sortSignal(); 
-		return; 
-	}
-	else
-	{
-		if(active)
-		{
-			active = 0; 
-			selectActive(); 
-			return; 	
-		}
-		fillIn();
 	}
 }
-
 function updateTable()
 { 
 	updating = 1; 
@@ -604,7 +1032,6 @@ function entryClick(entry)
 function fillIn()
 {
 	problem = 0;
-	var links = new Array(); 
 	linkCount = 0;
 	 
 	if(tableMade == 0)
@@ -659,6 +1086,10 @@ function fillIn()
 			{
 				var item = total[i].childNodes[5].attributes[attArry[attCount]].nodeValue;  	
 				table.rows[i].cells[counter].innerHTML = item; 
+			}
+			else
+			{
+				table.rows[i].cells[counter].innerHTML = 0; 
 			}
 		}	
 		attCount++; 
@@ -726,8 +1157,12 @@ function loadXMLDoc()
 		{
 			document.getElementById("active").checked = false; /* Reset active check box. */
 		}
+		if(!updating && !troubleshoot)
+		{
+			document.getElementById("troubleshoot").checked = false; /* Reset troubleshoot box. */
+		}
 		
-		if (xmlhttp.readyState==4) //If 4 it it is ready. 
+		if(xmlhttp.readyState==4) //If 4 it it is ready. 
     	{
 			updated = xmlhttp.responseXML.documentElement.getElementsByTagName("updated"); 
 			showTime(); 
@@ -741,6 +1176,14 @@ function loadXMLDoc()
 			totalHold = total; 
 			if(updating == 1)
 			{
+				updating = 0; 
+				if(troubleshoot)
+				{
+					friend = diffSorted; 
+					troubleshooting(); 
+					troubleshoot = 1; 
+					diffSorted = friend; 
+				}
 				/* Update table in default view, descending sort. (WORKS) */
 				if(sorted != 0 && currentSort == 'descending' && frontEnd == 0)
 				{
@@ -750,7 +1193,17 @@ function loadXMLDoc()
 					if(active)
 					{	
 						active = 0; 
-						selectActive(); 	
+						if(troubleshoot)
+						{
+							troubleshoot = 0; 
+							selectActive();				
+							troubleshoot = 1;
+						}
+						else
+						{
+							selectActive();				
+						}  
+						document.getElementById("active").checked = true; 
 					}
 					else
 					{
@@ -759,10 +1212,15 @@ function loadXMLDoc()
 					tableMade = 0;  
 					sortTableDescending(col); 
 					sortSignal();
-					return;  
+					if(troubleshoot)
+					{
+						troubleshoot = 0; 
+						troubleshooting();
+					}
+					return; 
 				}
 				/* Update table in default view, ascending sort. (WORKS) */
-				if(sorted != 0 && currentSort == 'ascending' && frontEnd == 0)
+				else if(sorted != 0 && currentSort == 'ascending' && frontEnd == 0)
 				{
 					currentSort;
 					sorted = 0;
@@ -770,7 +1228,17 @@ function loadXMLDoc()
 					if(active)
 					{	
 						active = 0; 
-						selectActive(); 	
+						if(troubleshoot)
+						{
+							troubleshoot = 0; 
+							selectActive();				
+							troubleshoot = 1;
+						}
+						else
+						{
+							selectActive();				
+						}  
+						document.getElementById("active").checked = true; 
 					}
 					else
 					{
@@ -779,64 +1247,143 @@ function loadXMLDoc()
 					tableMade = 0;  
 					sortTableDescending(col);
 					sortTableAscending(col);
+					if(troubleshoot)
+					{
+						troubleshoot = 0; 
+						troubleshooting();
+					}
 					return; 
 				}
-
 				/* (WORKS) */
-				if(sorted == 0 && frontEnd != 0)
+				else if(sorted == 0 && frontEnd != 0)
 				{
 					frontEnd = 0;
 					updating = 0;
 					makeTable();
+					friend = troubleshoot; 
+					troubleshoot = 0; 
 					loadFrontEnd(preFrontEndName);
+					troubleshoot = friend; 
 					if(active)
 					{	
 						active = 0; 
-						selectActive(); 	
+						if(troubleshoot)
+						{
+							troubleshoot = 0; 
+							selectActive();				
+							troubleshoot = 1;
+						}
+						else
+						{
+							selectActive();				
+						}  
+						document.getElementById("active").checked = true; 
+					}
+					if(troubleshoot)
+					{
+						troubleshoot = 0; 
+						troubleshooting();
+						if(diffSorted)
+						{
+							diffSorted--; 
+							if(diffColNum == 1)
+							{
+								sortTrCol("Diff(Status: Running, Client: Registered)"); 
+							}
+							else if(diffColNum == 2)
+							{
+								sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+							}
+						}
 					}
 					return; 
 				}
 				/**/
-				if(sorted != 0 && currentSort == 'ascending' && frontEnd != 0)
+				else if(sorted != 0 && currentSort == 'ascending' && frontEnd != 0)
 				{
 					currentSort;
 					sorted = 0; 
 					frontEnd = 0; 
 					updating = 0;
+					friend = troubleshoot; 
+					troubleshoot = 0; 
 					loadFrontEnd(preFrontEndName);
+					troubleshoot = friend;
 					if(active)
 					{	
 						active = 0; 
-						selectActive(); 	
+						if(troubleshoot)
+						{
+							troubleshoot = 0; 
+							selectActive();				
+							troubleshoot = 1;
+						}
+						else
+						{
+							selectActive();				
+						}  
+						document.getElementById("active").checked = true;
 					} 
 					tableMade = 0; 
 					sortTableDescending(col); 
 					sortTableAscending(col);
+					if(troubleshoot)
+					{
+						troubleshoot = 0; 
+						troubleshooting();
+					}
 					return; 
 				}
-				if(sorted != 0 && currentSort == 'descending' && frontEnd != 0)
+				else if(sorted != 0 && currentSort == 'descending' && frontEnd != 0)
 				{
 					currentSort;
 					sorted = 0; 
 					frontEnd = 0;
 					updating = 0; 
-					loadFrontEnd(preFrontEndName); 
+					friend = troubleshoot; 
+					troubleshoot = 0; 
+					loadFrontEnd(preFrontEndName);
+					troubleshoot = friend;
 					if(active)
 					{	
 						active = 0; 
-						selectActive(); 	
+						if(troubleshoot)
+						{
+							troubleshoot = 0; 
+							selectActive();				
+							troubleshoot = 1;
+						}
+						else
+						{
+							selectActive();				
+						}  
+						document.getElementById("active").checked = true; 
 					}
 					tableMade = 0; 
 					sortTableDescending(col);
 					sortSignal();
-					
+					if(troubleshoot)
+					{
+						troubleshoot = 0; 
+						troubleshooting();
+					}
 					return; 
 				}
 			}
 			if(active)
 			{	
-				active = 0; 
-				selectActive(); 	
+				active = 0;
+				if(troubleshoot)
+				{
+					troubleshoot = 0; 
+					selectActive();				
+					troubleshoot = 1;
+				}
+				else
+				{
+					selectActive();				
+				} 	
+				document.getElementById("active").checked = true; 
 			}
 			updating = 0; 
 			preFrontEndName = "Total"; 
@@ -847,6 +1394,24 @@ function loadXMLDoc()
 			currentSort;
 			document.getElementById("destination").selectedIndex = 0; 
 			fillIn(); /* Fill in all the values. */
+			if(troubleshoot)
+			{
+				troubleshoot = 0; 
+				troubleshooting();
+				document.getElementById("troubleshoot").checked = true; 
+				if(diffSorted)
+				{
+					diffSorted--; 
+					if(diffColNum == 1)
+					{
+						sortTrCol("Diff(Status: Running, Client: Registered)"); 
+					}
+					else if(diffColNum == 2)
+					{
+						sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+					}
+				}
+			}
 		} 
 			 
 	}
@@ -1181,8 +1746,6 @@ function sortSignal()
 	{
 		thead.rows[1].cells[index + 1].bgColor =  "#CDAF95"; 
 	}
-
-
 }
 
 
@@ -1196,92 +1759,92 @@ function sortTableAscending(column)
 	var child; 
 	var att; 
 
-	/* Running. */
+		/* Running. */
 	if(column == columnArray[0])
 	{
-		child = 5; att = 4; index = 0; sortSignal(); 
+		length = 7; child = 5; att = 4; index = 0; trSortCol = 1; sortSignal(); 
 	}
 	/* Idle. */
 	if(column == columnArray[1])
 	{
-		child = 5; att = 1; index = 1; sortSignal(); 
+		length = 7; child = 5; att = 1; index = 1; trSortCol = 4; sortSignal(); 
 	}
 	/* Wait. */
 	if(column == columnArray[2])
 	{
-		child = 5; att = 7; index = 2; sortSignal(); 
+		length = 7; child = 5; att = 7; index = 2; sortSignal(); 
 	} 
 	/* Pending. */  
 	if(column == columnArray[3])
 	{
-		child = 5; att = 3; index = 3; sortSignal(); 
+		length = 7; child = 5; att = 3; index = 3; sortSignal(); 
 	} 
 	/* StageIn. */ 
 	if(column == columnArray[4])
 	{
-		child = 5; att = 5; index = 4; sortSignal();
+		length = 7; child = 5; att = 5; index = 4; sortSignal();
 	}
 	/* StageOut. */
 	if(column == columnArray[5])
 	{
-		child = 5; att = 6; index = 5; sortSignal();
+		length = 7; child = 5; att = 6; index = 5; sortSignal();
 	} 
 	/* Idle Other. */
 	if(column == columnArray[6])
 	{
-		child = 5; att = 2; index = 6; sortSignal();
+		length = 7; child = 5; att = 2; index = 6; sortSignal();
 	}
 	/* Held. */
 	if(column == columnArray[7])
 	{
-		child = 5; att = 0; index = 7; sortSignal();
+		length = 7; child = 5; att = 0; index = 7; sortSignal();
 	} 
 	/* Max Run. */
 	if(column == columnArray[8])
 	{
-		child = 3; att = 1; index = 8; sortSignal();
+		length = 5; child = 3; att = 1; index = 8; sortSignal();
 	}
 	/* Idle. */
 	if(column == columnArray[9])
 	{
-		child = 3; att = 0; index = 9; sortSignal();
+		length = 5; child = 3; att = 0; index = 9; trSortCol = 5; sortSignal();
 	} 
 	/* Glidein Running. */
 	if(column == columnArray[10])
 	{
-		child = 1; att = 1; index = 10; sortSignal();
+		length = 3; child = 1; att = 1; index = 10; sortSignal();
 	} 
 	/* Jobs Running. */
 	if(column == columnArray[11])
 	{
-		child = 1; att = 5; index = 11; sortSignal();
+		length = 3; child = 1; att = 5; index = 11; sortSignal();
 	} 
 	/* Glidein Idle. */
 	if(column == columnArray[12])
 	{
-		child = 1; att = 0; index = 12; sortSignal();
+		length = 3; child = 1; att = 0; index = 12; sortSignal();
 	} 
 	/* Jobs Idle. */
 	if(column == columnArray[13])
 	{
-		child = 1; att = 4; index = 13; sortSignal();
+		length = 3; child = 1; att = 4; index = 13; trSortCol = 7; sortSignal();
 	} 
 	/* Glidein Total. */
 	if(column == columnArray[14])
 	{
-		child = 1; att = 2; index = 14; sortSignal();
+		length = 3; child = 1; att = 2; index = 14; trSortCol = 2; sortSignal();
 	}
 	/* Info Age. */
 	if(column == columnArray[15])
 	{
-		child = 1; att = 3; index = 15; sortSignal();
+		length = 3; child = 1; att = 3; index = 15; sortSignal();
 	}
 
 
 	/* Empty entries. */
 	for(var i = totalEntries.length - 1; i >= 0; i--)
 	{
-		if(total[i].childNodes.length == 0)
+		if(total[i].childNodes.length == 0 || total[i].childNodes.length < length)
 		{		
 			newTotal.push(total[i]); 
 			newEntries.push(totalEntries[i]); 	
@@ -1290,7 +1853,7 @@ function sortTableAscending(column)
 
 	for(var i = totalEntries.length - 1; i >= 0; i--)
 	{	
-		if(total[i].childNodes.length != 0)
+		if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 		{
 			if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
 			{
@@ -1302,7 +1865,7 @@ function sortTableAscending(column)
 
 	for(var i = totalEntries.length - 1; i >= 0; i--)
 	{
-		if(total[i].childNodes.length != 0)
+		if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 		{
 		   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
 		   {
@@ -1322,7 +1885,6 @@ function sortTableAscending(column)
 	sorted = 1;
 	preUpdateSort = 1;  
 	fillIn();
-	
 
 }
 function sortTableDescending(column)
@@ -1346,108 +1908,105 @@ var counter = 0;
 var child; 
 var att; 
 
-	/* Running. */
+		/* Running. */
 	if(column == columnArray[0])
 	{
-		child = 5; att = 4; index = 0; sortSignal(); 
+		length = 7; child = 5; att = 4; index = 0; trSortCol = 1; sortSignal(); 
 	}
 	/* Idle. */
 	if(column == columnArray[1])
 	{
-		child = 5; att = 1; index = 1; sortSignal(); 
+		length = 7; child = 5; att = 1; index = 1; trSortCol = 4; sortSignal(); 
 	}
 	/* Wait. */
 	if(column == columnArray[2])
 	{
-		child = 5; att = 7; index = 2; sortSignal(); 
+		length = 7; child = 5; att = 7; index = 2; sortSignal(); 
 	} 
 	/* Pending. */  
 	if(column == columnArray[3])
 	{
-		child = 5; att = 3; index = 3; sortSignal(); 
+		length = 7; child = 5; att = 3; index = 3; sortSignal(); 
 	} 
 	/* StageIn. */ 
 	if(column == columnArray[4])
 	{
-		child = 5; att = 5; index = 4; sortSignal();
+		length = 7; child = 5; att = 5; index = 4; sortSignal();
 	}
 	/* StageOut. */
 	if(column == columnArray[5])
 	{
-		child = 5; att = 6; index = 5; sortSignal();
+		length = 7; child = 5; att = 6; index = 5; sortSignal();
 	} 
 	/* Idle Other. */
 	if(column == columnArray[6])
 	{
-		child = 5; att = 2; index = 6; sortSignal();
+		length = 7; child = 5; att = 2; index = 6; sortSignal();
 	}
 	/* Held. */
 	if(column == columnArray[7])
 	{
-		child = 5; att = 0; index = 7; sortSignal();
+		length = 7; child = 5; att = 0; index = 7; sortSignal();
 	} 
 	/* Max Run. */
 	if(column == columnArray[8])
 	{
-		child = 3; att = 1; index = 8; sortSignal();
+		length = 5; child = 3; att = 1; index = 8; sortSignal();
 	}
 	/* Idle. */
 	if(column == columnArray[9])
 	{
-		child = 3; att = 0; index = 9; sortSignal();
+		length = 5; child = 3; att = 0; index = 9; trSortCol = 5; sortSignal();
 	} 
 	/* Glidein Running. */
 	if(column == columnArray[10])
 	{
-		child = 1; att = 1; index = 10; sortSignal();
+		length = 3; child = 1; att = 1; index = 10; sortSignal();
 	} 
 	/* Jobs Running. */
 	if(column == columnArray[11])
 	{
-		child = 1; att = 5; index = 11; sortSignal();
+		length = 3; child = 1; att = 5; index = 11; sortSignal();
 	} 
 	/* Glidein Idle. */
 	if(column == columnArray[12])
 	{
-		child = 1; att = 0; index = 12; sortSignal();
+		length = 3; child = 1; att = 0; index = 12; sortSignal();
 	} 
 	/* Jobs Idle. */
 	if(column == columnArray[13])
 	{
-		child = 1; att = 4; index = 13; sortSignal();
+		length = 3; child = 1; att = 4; index = 13; trSortCol = 7; sortSignal();
 	} 
 	/* Glidein Total. */
 	if(column == columnArray[14])
 	{
-		child = 1; att = 2; index = 14; sortSignal();
+		length = 3; child = 1; att = 2; index = 14; trSortCol = 2; sortSignal();
 	}
 	/* Info Age. */
 	if(column == columnArray[15])
 	{
-		child = 1; att = 3; index = 15; sortSignal();
+		length = 3; child = 1; att = 3; index = 15; sortSignal();
 	}
 	
-
-/* Get everything that is not 0. */
+	
+/* Get everything that is not 0 and exists. */
 for(var i = 0; i< totalEntries.length; i++)
 {
-	if(total[i].childNodes.length != 0)
+	if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 	{
-	   if((child == 5 && !(total[i].childNodes.length >= 7)) || (child == 3 && !(total[i].childNodes.length >= 5)) || (child == 1 && !(total[i].childNodes.length >= 3)))
-	   {
-		   return;    
-	   }
-	   else if(total[i].childNodes[child].attributes[att].nodeValue > 0)
+	   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
 	   {
 		   newTotal.push(total[i]); 
 		   newEntries.push(totalEntries[i]); 
 	   }	
 	}
 }
-	
-for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
+
+/* Sort all all non zero elements. */	
+for(var i = 0; i< newTotal.length - 1; i++)    // element to be compared
 {
-    for(var j = i+1; j < newTotal.length; j++)   // rest of the elements
+    for(var j = i + 1; j < newTotal.length; j++)   // rest of the elements
     {
 		if(parseInt(newTotal[i].childNodes[child].attributes[att].nodeValue) <= parseInt(newTotal[j].childNodes[child].attributes[att].nodeValue))          
         {
@@ -1460,9 +2019,11 @@ for(var i=0; i< newTotal.length - 1; i++)    // element to be compared
         }
 	}
 }
+
+/* Get entries that are 0. */
 for(var i = totalEntries.length - 1; i >= 0; i--)
 {	
-	if(total[i].childNodes.length != 0)
+	if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 	{
 		if(parseInt(total[i].childNodes[child].attributes[att].nodeValue) == 0)
 		{
@@ -1470,21 +2031,22 @@ for(var i = totalEntries.length - 1; i >= 0; i--)
 			newEntries.push(totalEntries[i]); 
 		}
 	}
-}	
+}
+	
 /* Empty entries. */
 for(var i = totalEntries.length -1; i >= 0; i--)
 {
-	if(total[i].childNodes.length == 0)
+	if(total[i].childNodes.length == 0 || total[i].childNodes.length < length)
 	{		
 		newTotal.push(total[i]); 
 		newEntries.push(totalEntries[i]); 	
 	}
 }
 
-
+/* Make sure the whole column is not all 0's. */
 for(i = 0 ; i < newTotal.length; i++)
 {
-	if(newTotal[i].childNodes.length != 0)
+	if(newTotal[i].childNodes.length != 0 && newTotal[i].childNodes.length >= length)
 	{ 
 	    if(newTotal[i].childNodes[child].attributes[att].nodeValue != 0)
 		{
@@ -1497,12 +2059,11 @@ for(i = 0 ; i < newTotal.length; i++)
 	}
 }
 
-
 currentSort = "descending";
 newTotal.push(1);
 previousSort = column; 
 total = newTotal; 
-totalEntries = newEntries; 
+totalEntries = newEntries;
 sorted = 1; 
 preUpdateSort = 1; 
 fillIn();
@@ -1513,44 +2074,131 @@ function goToLink()
 	var constructed;
 	var holder = document.URL.split('?');
 	
-	if(frontEnd != 0 && sorted != 0)
+	/* If we are in a frontend view and there is some kind of sort going on. */
+	if(frontEnd != 0 && (sorted != 0 || diffSorted))
 	{
-		if(active)
+		/* If active and troubleshoot view specified. */
+		if(active && troubleshoot)
+		{
+			/* If in troubleshoot view difference columsn are being sorted. */
+			if(diffSorted)
+			{
+				/* If first diff cols is being sorted. */
+				if(diffColNum == 1)
+				{
+					constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot" + "&sort=diff(Status:Running,Client:Registered)";
+				}
+				else /* If second diff cols is being sorted. */
+					constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot" + "&sort=diff(Status:Idle,Requested:Idle)";
+			}
+			else /* Else if normal column sort is going on. */
+				constructed = holder[0] + "?view=" + preFrontEndName + "+active+troubleshoot" + "&sort=" + col;
+		}
+		/* If active but not in troubleshoot mode. */
+		else if(active && !troubleshoot)
 		{
 			constructed = holder[0] + "?view=" + preFrontEndName + "+active" + "&sort=" + col;
 		}
-		else
+		/* If not active but in troubleshoot mode. */
+		else if(!active && troubleshoot)
+		{
+			/* If in troubleshoot view difference columsn are being sorted. */
+			if(diffSorted)
+			{
+				/* If first diff cols is being sorted. */
+				if(diffColNum == 1)
+				{
+					constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot" + "&sort=diff(Status:Running,Client:Registered)";
+				}
+				else /* If second diff cols is being sorted. */
+					constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot" + "&sort=diff(Status:Idle,Requested:Idle)";
+			}
+			else /* Else if normal column sort is going on. */
+				constructed = holder[0] + "?view=" + preFrontEndName + "+troubleshoot" + "&sort=" + col;
+		}
+		else /* If neither. */
 		{
 			constructed = holder[0] + "?view=" + preFrontEndName + "&sort=" + col;
 		}
 	}
+	/* If no sort but in frontend mode. */
 	else if(frontEnd != 0 && sorted == 0)
 	{
-		if(active)
+		if(active && troubleshoot)
+		{
+			constructed = holder[0]+ "?view=" + preFrontEndName + "+active+troubleshoot";
+		}
+		else if(active && !troubleshoot)
 		{
 			constructed = holder[0]+ "?view=" + preFrontEndName + "+active";
+		}
+		else if(!active && troubleshoot)
+		{
+			constructed = holder[0]+ "?view=" + preFrontEndName + "+troubleshoot";
 		}
 		else
 		{
 			constructed = holder[0]+ "?view=" + preFrontEndName;
 		}
 	}
-	else if(frontEnd == 0 && sorted != 0)
+	
+	/* If no frontend mode but there is a sort. */
+	else if(frontEnd == 0 && (sorted != 0 || diffSorted))
 	{
-		if(active)
+		if(active && troubleshoot)
 		{
-			constructed = holder[0] + "?view=" + "active" + "?sort=" + col;
+			/* If in troubleshoot view difference columsn are being sorted. */
+			if(diffSorted)
+			{
+				/* If first diff cols is being sorted. */
+				if(diffColNum == 1)
+				{
+					constructed = holder[0] + "?view=total+active+troubleshoot&sort=diff(Status:Running,Client:Registered)";
+				}
+				else /* If second diff cols is being sorted. */
+					constructed = holder[0] + "?view=total+active+troubleshoot&sort=diff(Status:Idle,Requested:Idle)";
+			}
+			else /* Else if normal column sort is going on. */
+				constructed = holder[0] + "?view=total+active+troubleshoot&sort=" + col;
+		}
+		else if(active && !troubleshoot)
+		{
+			constructed = holder[0] + "?view=total+active&sort=" + col;
+		}
+		else if(!active && troubleshoot)
+		{
+			/* If in troubleshoot view difference columsn are being sorted. */
+			if(diffSorted)
+			{
+				/* If first diff cols is being sorted. */
+				if(diffColNum == 1)
+				{
+					constructed = holder[0] + "?view=total+troubleshoot&sort=diff(Status:Running,Client:Registered)";
+				}
+				else /* If second diff cols is being sorted. */
+					constructed = holder[0] + "?view=total+troubleshoot&sort=diff(Status:Idle,Requested:Idle)";
+			}
+			else /* Else if normal column sort is going on. */
+				constructed = holder[0] + "?view=total+troubleshoot&sort=" + col;
 		}
 		else
 		{
 			constructed = holder[0] + "?sort=" + col;
 		}
 	}
-	else
+	else /* If no sort and no frontend view. s*/
 	{
-		if(active)
+		if(active && troubleshoot)
 		{
-			constructed = holder[0] + "?view=total+" + "active";
+			constructed = holder[0] + "?view=total+active+troubleshoot";
+		}
+		else if(!active && troubleshoot)
+		{
+			constructed = holder[0] + "?view=total+troubleshoot";
+		}
+		else if(active && !troubleshoot)
+		{
+			constructed = holder[0] + "?view=total+active";
 		}
 		else
 		{
@@ -1566,6 +2214,22 @@ function selectActive()
 	var found; 
 	var activeEntries = new Array();
 	var activeTotal = new Array(); 
+	
+	/* Remove the table. */
+	if(troubleshoot)
+	{
+		if(diffSorted)
+		{
+			troubleshooting(); 
+			troubleshoot = 1;
+			diffSorted = 1; 
+		}
+		else
+		{
+			troubleshooting(); 
+			troubleshoot = 1;
+		}
+	}
 	
 	if(active)
 	{
@@ -1584,16 +2248,35 @@ function selectActive()
 				tableMade = 0; 
 				sortTableDescending(col);
 				sortSignal();			
-				return; 
 			}
-			if(sorted != 0 && currentSort == 'ascending')
+			else if(sorted != 0 && currentSort == 'ascending')
 			{
 				currentSort;
 				sorted = 0;
 				tableMade = 0;  
 				sortTableDescending(col);
 				sortTableAscending(col);
-				return; 
+			}
+			if(troubleshoot)
+			{ 
+			    /* First make the tr table. */
+				tempTotalEntries = totalEntries; 
+				troubleshoot = 0; 
+				troubleshooting();
+				
+				/* If a sort is necessary. */
+				if(diffSorted)
+				{
+					diffSorted--; 	
+					if(diffColNum == 1)
+					{
+						sortTrCol("Diff(Status: Running, Client: Registered)"); 
+					}
+					else if(diffColNum == 2)
+					{
+						sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+					}
+				}		
 			}
 			return;	
 		}
@@ -1611,7 +2294,12 @@ function selectActive()
 				sorted = 0; 
 				tableMade = 0; 
 				sortTableDescending(col);
-				sortSignal();			
+				sortSignal();
+				if(troubleshoot == 1) /* Restore table if needed. */
+				{
+					troubleshoot = 0; 
+					troubleshooting(); 	
+				} 
 				return; 
 			}
 			if(sorted != 0 && currentSort == 'ascending')
@@ -1621,8 +2309,34 @@ function selectActive()
 				tableMade = 0;  
 				sortTableDescending(col);
 				sortTableAscending(col);
+				if(troubleshoot == 1) /* Restore table if needed. */
+				{
+					troubleshoot = 0; 
+					troubleshooting(); 	
+				} 
 				return; 
 			} 
+			if(troubleshoot)
+			{ 
+			    /* First make the tr table. */
+				tempTotalEntries = totalEntries; 
+				troubleshoot = 0; 
+				troubleshooting();
+				
+				/* If a sort is necessary. */
+				if(diffSorted)
+				{
+					diffSorted--; 	
+					if(diffColNum == 1)
+					{
+						sortTrCol("Diff(Status: Running, Client: Registered)"); 
+					}
+					else if(diffColNum == 2)
+					{
+						sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+					}
+				}		
+			}
 			return;
 		}
 	}
@@ -1668,6 +2382,10 @@ function selectActive()
 			{
 				continue; 	
 			}
+			if(total[i].childNodes.length != 7)
+			{
+				continue; 	
+			}
 			for(l = 0; l < total[i].childNodes[5].attributes.length; l++)
 			{
 				if(parseInt(total[i].childNodes[5].attributes[l].value) != 0)
@@ -1678,7 +2396,7 @@ function selectActive()
 				}
 			}
 		}
-	} 
+	}
 	
 	active = 1;
 	activeTotal.push(1);
@@ -1694,27 +2412,541 @@ function selectActive()
 		sorted = 0; 
 		tableMade = 0; 
 		sortTableDescending(col);
-		sortSignal();			
-		return; 
+		sortSignal();
+					
 	}
-	if(sorted != 0 && currentSort == 'ascending')
+	else if(sorted != 0 && currentSort == 'ascending')
 	{
 		currentSort;
 		sorted = 0;
 		tableMade = 0;  
 		sortTableDescending(col);
 		sortTableAscending(col);
-		return; 
 	}
-
-	return; 
+	if(troubleshoot)
+	{ 
+    	/* First make the tr table. */
+		troubleshoot = 0; 
+		troubleshooting();
+		
+		/* If a sort is necessary. */
+		if(diffSorted)
+		{
+			diffSorted--; 	
+			if(diffColNum == 1)
+			{
+				sortTrCol("Diff(Status: Running, Client: Registered)"); 
+			}
+			else if(diffColNum == 2)
+			{
+				sortTrCol("Diff(Status: Idle, Requested: Idle)"); 
+			}
+		}		
+	}
 }
 function goToDestination(option)
 {
 	document.location.href = option.value; 
 	document.getElementById("destination").selectedIndex = 0;
 }
+function troubleshooting()
+{	
+	hrefs = new Array(); 
+	if(troubleshoot == 0)
+	{
+		if(!diffSorted && sorted && col != "statusRunning" && col != "cmGlideinTotal" && col != "statusIdle" && col != "requestIdle" && col != "cmGlideinJobsIdle")
+		{
+			tempTotalEntries = totalEntriesMaster; 
+		}
+		else if(!diffSorted)
+		{
+			tempTotalEntries = totalEntries; 
+		}
+		
+		troubleshoot = 1; 
+		document.getElementById("scroll").removeChild(table); 
+		document.getElementById('header').removeChild(thead);
+		columnText = new Array("Entry Name", "Status: Running", "Client: Registered", "Diff(Status: Running, Client: Registered)", "Status: Idle", "Requested: Idle", 
+		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 
+		columnId = new Array("entryLinks", "status", "client","difference", "status", "requested", "difference","client"); 
+		colors = new Array("#DCDCDC","#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
+		child = new Array(5, 1, 5, 3, 1); 
+		count = 0; 
+		att = new Array(4, 2, 1, 0, 4); 
+		rows = new Array(); 
+		cols = new Array();
+		trTable = document.createElement('table'); 
+		trTable.setAttribute('id', 'trTable'); 
+		trHeader = document.createElement('table'); 
+		trHeader.setAttribute('id', 'trHeader'); 
+		
+		for(i = 0; i < tempTotalEntries.length + 1; i++) //rows
+		{
+			if(childView && i > 0)
+			{
+				for(n = 1; n < tempTotalEntries[i - 1].childNodes[3].childNodes.length; n+=2)
+				{
+					if(tempTotalEntries[i - 1].childNodes[3].childNodes[n].attributes[0].value == frontEndName)
+					{
+						childView = n; 
+						break; 	
+					}
+				}
+			}
+			count = 0; 
+			rows[i] = document.createElement('tr');
+			rows[i].setAttribute('id', 'entries'); 
+			if(i != 0)
+			{
+				rows[i].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
+				rows[i].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+			}
+			for(j = 0; j < 8; j++) //cols
+			{
+				cols[j] = document.createElement('td'); 
+				if(i > 0 && j > 0)
+				{
+					cols[j].setAttribute('onmouseover', 'showPopUp(this)');
+					cols[j].setAttribute('onmouseout', 'hidePopUp()');
+					cols[j].setAttribute('id', i); 
+				}
+				if(i == 0)
+				{
+					cols[j].appendChild(document.createTextNode(columnText[j]));
+					cols[j].setAttribute('id', columnId[j]); 
+					cols[j].setAttribute('bgColor', colors[j]);
+					if(j == 0)
+					{
+						cols[j].setAttribute('onclick', 'sortAlphabetical()'); 
+					}
+					if(j > 0)
+					{ 
+						cols[j].setAttribute('onclick', 'sortTrCol(this)'); 
+					}
+				}
+				else
+				{
+					if(j == 0)
+					{						
+						y = tempTotalEntries[i - 1].attributes.getNamedItem("name").firstChild.data; 
+						hrefs[i - 1] = document.createElement('a');
+						hrefs[i - 1].setAttribute("id", "entryLinks"); 
+						hrefs[i - 1].innerHTML = y; 
+						hrefs[i - 1].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
+						hrefs[i - 1].setAttribute("onclick", "entryClick(this)");
+						cols[j].appendChild(hrefs[i - 1]); 
+					}
+					else
+					{
+						var val1; 
+						var val2; 
+						var one = 1;
+						var two = 1;  
+						if(j == 3 || j == 6)
+						{
+							if(!childView)
+							{
+								if((tempTotalEntries[i - 1].childNodes[1].childNodes.length != 7 && child[count - 2] == 5) || 
+								tempTotalEntries[i - 1].childNodes[1].childNodes.length == 0)
+								{
+									val1 = 0;
+									one = 0;  
+								}
+								if((tempTotalEntries[i - 1].childNodes[1].childNodes.length != 7 && child[count - 1] == 5) || 
+								tempTotalEntries[i - 1].childNodes[1].childNodes.length == 0)
+								{
+									val2 = 0;
+									two = 0;   
+								}
+							}
+							else
+							{
+								if((tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length != 7 && child[count - 2] == 5) || 
+								tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length == 0)
+								{
+									val1 = 0;
+									one = 0;  
+								}
+								if((tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length != 7 && child[count - 1] == 5) || 
+								tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length == 0)
+								{
+									val2 = 0;
+									two = 0;   
+								}
+								
+							}
+							if(one && two)
+							{
+								if(!childView)
+								{
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 2]].attributes[att[count - 2]].value); 
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 1]].attributes[att[count - 1]].value);
+								}
+									else
+								{
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 2]].attributes[att[count - 2]].
+									value); 
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1]].
+									value);	
+								}
+							}
+							else if(one && !two)
+							{
+								if(!childView)
+								{
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 2]].attributes[att[count - 2]].value);
+								}
+								else
+								{
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 2]].attributes[att[count - 2]].
+									value);
+								}
+							}
+							else if(!one && two)
+							{
+								if(!childView)
+								{
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 1]].attributes[att[count - 1]].value);
+								}
+								else
+								{
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1]].
+									value);
+								}
+							}
+							diff = val1 - val2; 
+							if(val1 == 0 && val2 == 0)
+							{
+								cols[j].appendChild(document.createTextNode("0"));
+							}
+							else
+							{
+								cols[j].appendChild(document.createTextNode(diff));
+							}
+						}
+						else
+						{
+							if(!childView)
+							{
+								if((tempTotalEntries[i - 1].childNodes[1].childNodes.length != 7 && child[count] == 5) || tempTotalEntries[i - 1].childNodes[1].childNodes.
+								length == 0)	
+								{
+									cols[j].appendChild(document.createTextNode("0"));
+								}
+								else
+								{
+									val = tempTotalEntries[i - 1].childNodes[1].childNodes[child[count]].attributes[att[count]].value; 
+									cols[j].appendChild(document.createTextNode(val));
+								}	
+							}
+							else
+							{
+								if((tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length != 7 && child[count] == 5) || 
+								tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length ==0)	
+								{
+									cols[j].appendChild(document.createTextNode("0"));
+								}
+								else
+								{
+									val = tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count]].attributes[att[count]].value; 
+									cols[j].appendChild(document.createTextNode(val));
+								}	
+							}
+							count++; 
+						}
+					}
+				}
+				if(j == 0)
+				{
+					cols[j].setAttribute('width', '25%'); 	
+				}
+				rows[i].appendChild(cols[j]); 
+			}
+			if(i == 0)
+			{
+				trHeader.appendChild(rows[i]); 	
+			}
+			else
+			{
+				trTable.appendChild(rows[i]); 
+			}	
+		}
+		
+		document.getElementById("scroll").appendChild(trTable); 
+		document.getElementById('header').appendChild(trHeader);
+		if(sorted && (col == "statusRunning" || col == "cmGlideinTotal" || col == "statusIdle" || col == "requestIdle" || col == "cmGlideinJobsIdle"))
+		{
+			trSortSignal(trSortCol); 	
+		}
+	}
+	else
+	{
+		/* Reset everything. */
+		troubleshoot = 0; 
+		diffSorted = 0; 
+		trSortAsc = 0; 
+		document.getElementById("scroll").removeChild(trTable); 
+		document.getElementById('header').removeChild(trHeader);
+		document.getElementById("scroll").appendChild(table); 
+		document.getElementById('header').appendChild(thead);
+		if(!diffSorted && sorted && col != "statusRunning" && col != "cmGlideinTotal" && col != "statusIdle" && col != "requestIdle" && col != "cmGlideinJobsIdle")
+		{
+			sortAlphabetical();
+		}
+	}
+}
+function sortTrCol(col)
+{
+	diffArry = new Array;
+	exists = 0;  
+	if(diffSorted)
+	{
+		friend = diffSorted; 
+		troubleshoot = 1; 
+		troubleshooting();
+		diffSorted = friend; 
+	}
+	else
+	{
+		troubleshoot = 1; 
+		troubleshooting();	
+	}
 
+	if(col.innerHTML)
+	{
+		col = col.innerHTML;
+	}
+	
+	entryLog = new Array(); 
+	tempTotal = new Array(); 
+	colMaster = new Array("Status: Running", "Client: Registered", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
+	sortCol = new Array("statusRunning", "cmGlideinTotal", "diff", "statusIdle", "requestIdle", "diff", "cmGlideinJobsIdle"); 
+	diffCol = new Array("Diff(Status: Running, Client: Registered)", "Diff(Status: Idle, Requested: Idle)");
+	diffCell = new Array(3, 6);  
+	child = new Array(5, 1, 5, 3); 
+	att = new Array(4, 2, 1, 0); 
+	cellSort = 0; 
+
+	for(i = 0; i < colMaster.length; i++)
+	{
+		if(col == colMaster[i])
+		{
+			diffSorted = 0;
+			sortTableDescending(sortCol[i]); 
+			troubleshooting(); 
+			trSortSignal(i + 1); 
+		}
+		else
+		{
+			for(j = 0; j < diffCol.length; j++)
+			{
+				if(col == diffCol[j])
+				{
+					cellSort = diffCell[j];
+					if(diffColNum != (j + 1))
+					{			
+						diffSorted = 0; 
+						diffColNum = (j + 1); 	
+					}
+					if(!diffSorted)
+					{
+						tempTotalEntries = new Array(); 
+					}
+					for(k = 0; k < trTable.rows.length; k++)
+					{
+						diffArry.push(parseInt(trTable.rows[k].cells[diffCell[j]].innerHTML));
+					}
+					diffArry.sort(sortNumber);
+					if(diffSorted != 1 && diffSorted != 2)
+					{
+						diffSorted = 1; 	
+					}
+					else if(diffSorted == 1)
+					{
+						tempTotalEntries.reverse();
+						troubleshoot = 0; 
+						troubleshooting();
+						sorted = 0; 
+						trSortSignal(cellSort);
+						diffSorted = 2; 
+						return; 
+					}
+					else if(diffSorted == 2)
+					{
+						tempTotalEntries.reverse(); 
+						troubleshoot = 0; 
+						troubleshooting(); 
+						sorted = 0; 
+						trSortSignal(cellSort);
+						diffSorted = 1;
+						return;  
+					} 
+					diffColNum = (j + 1); 
+	
+					for(l = 0; l < diffArry.length; l++)
+					{
+						/* Now sort the actual entries. */
+						for(k = 0; k < totalEntries.length; k++)
+						{
+							if(childView)
+							{
+								for(n = 1; n < totalEntries[k].childNodes[3].childNodes.length; n+=2)
+								{
+									if(totalEntries[k].childNodes[3].childNodes[n].attributes[0].value == frontEndName)
+									{
+										childView = n; 
+										break; 	
+									}
+								}
+							}
+							if(childView)
+							{ 
+								val1 = 0; 
+								val2 = 0; 
+								helper = j; 
+								if(helper == 1)
+								{
+									helper++; 	
+								} 
+								try
+								{
+									val1 = parseInt(totalEntries[k].childNodes[3].childNodes[childView].childNodes[child[helper]].attributes[att[helper]].value); 
+								}
+								catch(err){}
+								try
+								{
+									val2 = 	parseInt(totalEntries[k].childNodes[3].childNodes[childView].childNodes[child[helper + 1]].attributes[att[helper + 1]].value); 
+								}
+								catch(err){}
+								diff =  val1 - val2; 
+								if(val1 == 0 && val2 == 0)
+								{
+									diff = 0; 	
+								}
+								if(diff == diffArry[l])
+								{
+									for(p = 0; p < entryLog.length; p++)
+									{
+										if(k == entryLog[p])
+										{
+											exists = 1; 
+											break; 	
+										}	
+									}
+									if(exists == 1)
+									{
+										exists = 0; 
+										continue; 	
+									}
+									entryLog.push(k);
+									tempTotalEntries.push(totalEntries[k]);
+									tempTotal.push(total[k]);
+									break;  
+								}	
+							}	
+							else	
+							{
+								val1 = 0; 
+								val2 = 0;
+								helper = j; 
+								if(helper == 1)
+								{
+									helper++; 	
+								} 
+								try
+								{
+									val1 = parseInt(totalEntries[k].childNodes[1].childNodes[child[helper]].attributes[att[helper]].value); 
+								}
+								catch(err){}
+								try
+								{
+									val2 = 	parseInt(totalEntries[k].childNodes[1].childNodes[child[helper + 1]].attributes[att[helper + 1]].value); 
+								}
+								catch(err){}
+								diff =  val1 - val2;
+								if(val1 == 0 && val2 == 0)
+								{
+									diff = 0; 	
+								}
+								if(diff == diffArry[l])
+								{
+									for(p = 0; p < entryLog.length; p++)
+									{
+										if(k == entryLog[p])
+										{
+											exists = 1; 
+											break; 	
+										}	
+									}
+									if(exists == 1)
+									{
+										exists = 0; 
+										continue; 	
+									}
+									entryLog.push(k);
+									tempTotalEntries.push(totalEntries[k]);
+									tempTotal.push(total[k]);
+									break;  
+								}
+							}
+						}
+					}
+					tempTotal.push(1); 
+					troubleshoot = 0; 
+					troubleshooting();
+					sorted = 0; 
+					trSortSignal(cellSort);
+					return;  
+				}
+			}
+		}
+	}
+}
+function sortNumber(a, b)
+{
+	return b - a; 
+}
+function sortReverse(a, b)
+{
+	return a - b; 
+}
+function trSortSignal(col)
+{
+	if(col > 7)
+	{
+		return; 
+	}
+	 
+	for(i = 0; i < 8; i++)
+	{
+		for(j = 0; j < trTable.rows.length; j++)
+		{
+			if(i == col)
+			{
+				if(i == 1 || i == 4)
+				{
+					trTable.rows[j].cells[i].bgColor = "#FAF0E6";
+				}
+				else if(i == 2 || i == 7)
+				{
+					trTable.rows[j].cells[i].bgColor = "#CDAF95";
+				}
+				else if(i == 3 || i == 6)
+				{
+					trTable.rows[j].cells[i].bgColor = "#7D9EC0";
+				}
+				else if(i == 5)
+				{
+					trTable.rows[j].cells[i].bgColor = "#FFDAB9";
+				}
+			}
+			else
+			{
+				trTable.rows[j].cells[i].bgColor = "#F2F2F2";
+			}
+		}
+	}
+}
 </script>
 <style = "text/css">
 
@@ -1732,7 +2964,7 @@ td
 	text-decoration:none;
 	left:50%; 
 }
-#table
+#table, #trTable
 {
 	table-layout: fixed; 
 	width: 100%; 
@@ -1746,7 +2978,7 @@ td
 {
 	font-weight: bold;
 }
-#thead
+#thead, #trHeader
 {
 	table-layout: fixed;
  	width: 99%; 
@@ -1800,17 +3032,7 @@ td
     width: 70px;
 	float:right;
 }
-#client
-{
-	font-weight:bold;
-	text-align:center;
-}
-#status
-{
-	font-weight:bold;
-	text-align:center;
-}
-#requested
+#client, #status, #requested, #difference
 {
 	font-weight:bold;
 	text-align:center;
@@ -1844,7 +3066,8 @@ td
 
 <h5 id = "total">(Total Entries)</h5>
 
-<div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" o>Active only<br></div> 
+<div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" >Active only
+<input type="checkbox" id = "troubleshoot" name="option2" value="troubleshoot" onclick= "troubleshooting()" > Troubleshoot <br></div> 
 
 <div id = "tempList"></div>
 
