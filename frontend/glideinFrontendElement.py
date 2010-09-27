@@ -322,9 +322,6 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glideid_str, count_status['Total'],count_status['Idle'],
             count_status['Running'])
 
-        stats['group'].logFactReq(
-            glideid_str, glidein_min_idle, glidein_max_run, {})
-
         stats['group'].logFactDown(glideid_str, glidein_in_downtime)
 
         if glidein_in_downtime:
@@ -338,6 +335,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             kexpr=paramsDescript.expr_objs[k]
             # convert kexpr -> kval
             glidein_params[k]=glideinFrontendLib.evalParamExpr(kexpr,paramsDescript.const_data,glidein_el)
+
+        stats['group'].logFactReq(
+            glideid_str, glidein_min_idle, glidein_max_run, glidein_params)
 
         glidein_monitors={}
         for t in count_jobs.keys():
