@@ -322,7 +322,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glideid_str, count_status['Total'],count_status['Idle'],
             count_status['Running'])
 
-        stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue'))
+        stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue','PubKeyObj'))
 
         stats['group'].logFactDown(glideid_str, glidein_in_downtime)
 
