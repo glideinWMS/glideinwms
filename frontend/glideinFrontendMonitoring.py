@@ -100,7 +100,7 @@ class MonitoringConfig:
 
 class groupStats:
     def __init__(self):
-        self.data={}
+        self.data={'factories':{},'totals':{}}
         self.updated=time.time()
 
         self.files_updated=None
@@ -108,9 +108,6 @@ class groupStats:
                          'Glideins':("Idle","Running","Total")}
 
     def logJobs(self,jobs_data):
-        if not 'totals' in self.data:
-            self.data['totals'] = {}
-
         el={}
         self.data['totals']['Jobs']=el
 
@@ -120,9 +117,6 @@ class groupStats:
         self.updated=time.time()
 
     def logGlideins(self,slots_data):
-        if not 'totals' in self.data:
-            self.data['totals'] = {}
-
         el={}
         self.data['totals']['Glideins']=el
 
@@ -133,9 +127,6 @@ class groupStats:
 
 
     def logFactJobs(self, factory, idle, effIdle, oldIdle, running):
-        if not 'factories' in self.data:
-            self.data['factories'] = {}
-
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
@@ -149,9 +140,6 @@ class groupStats:
         self.update=time.time()
 
     def logFactDown(self, factory, isDown):
-        if not 'factories' in self.data:
-            self.data['factories'] = {}
-
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
@@ -164,9 +152,6 @@ class groupStats:
         self.updated = time.time()
 
     def logFactSlots(self, factory, total, idle, running):
-        if not 'factories' in self.data:
-            self.data['factories'] = {}
-
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
@@ -180,9 +165,6 @@ class groupStats:
             
         
     def logFactReq(self, factory, reqIdle, reqMaxRun, params):
-        if not 'factories' in self.data:
-            self.data['factories'] = {}
-
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
