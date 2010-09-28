@@ -163,6 +163,17 @@ class groupStats:
 
         self.update=time.time()
             
+    def logFactAttrs(self, factory, attrs, blacklist):
+        factories = self.data['factories']
+        if not factory in factories:
+            factories[factory] = {}
+
+        factories[factory]['Attributes'] = {}
+        for attr in attrs:
+            if not attr in blacklist:
+                factories[factory]['Attributes'][attr] = attrs[atr]
+
+        self.update=time.time()
         
     def logFactReq(self, factory, reqIdle, reqMaxRun, params):
         factories = self.data['factories']
