@@ -171,7 +171,7 @@ class groupStats:
         factories[factory]['Attributes'] = {}
         for attr in attrs:
             if not attr in blacklist:
-                factories[factory]['Attributes'][attr] = attrs[atr]
+                factories[factory]['Attributes'][attr] = attrs[attr]
 
         self.update=time.time()
         
