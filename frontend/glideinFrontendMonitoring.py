@@ -126,7 +126,7 @@ class groupStats:
         self.updated=time.time()
 
 
-    def logFactJobs(self, factory, idle, effIdle, oldIdle, running):
+    def logMatchedJobs(self, factory, idle, effIdle, oldIdle, running):
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
@@ -151,12 +151,12 @@ class groupStats:
 
         self.updated = time.time()
 
-    def logFactSlots(self, factory, total, idle, running):
+    def logMatchedGlideins(self, factory, total, idle, running):
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
 
-        factories[factory]['Slots'] = {'Total': total,
+        factories[factory]['MatchedGlideins'] = {'Total': total,
                                         'Idle': idle,
                                         'Running': running
                                         }
@@ -217,7 +217,7 @@ class groupStats:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_total(self):
-        total={'MatchedJobs':None,'Requested':None,'Slots':None}
+        total={'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
 
         for f in self.data['factories'].keys():
             fa=self.data['factories'][f]

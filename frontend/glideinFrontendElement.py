@@ -314,11 +314,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                         count_status['Total'],count_status['Idle'],count_status['Running'],
                         glidein_min_idle,glidein_max_run)
 
-        stats['group'].logFactJobs(
+        stats['group'].logMatchedJobs(
             glideid_str, count_jobs['Idle'],effective_idle, count_jobs['OldIdle'],
             count_jobs['Running'])
 
-        stats['group'].logFactSlots(
+        stats['group'].logMatchedGlideins(
             glideid_str, count_status['Total'],count_status['Idle'],
             count_status['Running'])
 
