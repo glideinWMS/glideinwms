@@ -54,7 +54,7 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
 def aggregateStatus():
     global monitorAggregatorConfig
 
-    type_strings={'Jobs':'Jobs','Glideins':'Slots'}
+    type_strings={'Jobs':'Jobs','Glideins':'Glidein'}
     global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
     status={'groups':{},'total':global_total}
 
