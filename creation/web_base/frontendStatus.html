@@ -1,13 +1,6 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <!--
-Project:
-  glideinWMS
-
-File Version: 
-  $Id: frontendStatus.html,v 1.2.8.1.8.1 2010/08/31 18:49:16 parag Exp $
-
-Description:
   Browse the glideinWMS RRDs
 
   Based on
@@ -109,21 +102,21 @@ Description:
         
 
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('JobsRunning','SlotsTotal','SlotsRunning','SlotsIdle','JobsIdle');
-        gtype_DSs['idle']=new Array('JobsIdle','JobsOldIdle','SlotsTotal');
+        gtype_DSs['running']=new Array('JobsRunning','GlideinTotal','GlideinRunning','GlideinIdle','JobsIdle');
+        gtype_DSs['idle']=new Array('JobsIdle','JobsOldIdle','GlideinTotal');
 
         var gtype_formats=new Object();
         gtype_formats['running']={'JobsRunning':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
                                                   lines: { show: true, fill: true, fillColor:"#00ff00"} },
-                                  'SlotsTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
-                                  'SlotsRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff", checked:true},
-                                  'SlotsIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},
+                                  'GlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
+                                  'GlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff", checked:true},
+                                  'GlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00", checked:true},
                                   'StatusIdle':{title: 'Idle jobs', label:'Idle', color: "#00ffff"}};
 
         gtype_formats['idle']={'JobsIdle':{ title: 'Idle jobs', label:'Idle', color: "#00f8f8", checked:true, 
                                            lines: { show: true, fill: true, fillColor:"#00ffff"} },
                                'JobsOldIdle':{title: 'Idle old jobs', label:'OldIdle', color: "#0000ff", checked:true},
-                               'SlotsTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#ff00ff", yaxis:2}};
+                               'GlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#ff00ff", yaxis:2}};
 
         var rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
         // the rrdFlot object creates and handles the graph

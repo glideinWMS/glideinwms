@@ -282,7 +282,7 @@ class groupStats:
         total_el = self.get_total()
         # update RRDs
         val_dict={}
-        type_strings={'Jobs':'Jobs','Glideins':'Slots'}
+        type_strings={'Jobs':'Jobs','Glideins':'Glidein'}
 
         #init, so tha all get created properly
         for tp in self.attributes.keys():
