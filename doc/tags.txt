@@ -1,6 +1,21 @@
-vNext	Bug Fix: Correctly interpret DN from a voms proxy generated from a 
+v2_4_3	Install VOMS Certificates during the install time
+	Entry does not print stacktrace when it fails to submit glidein.
+	  Instead it logs the error message appropriately.
+	Default scripts run on the worker node correctly print errors to 
+	  stderr instead of stdout
+	Allow factory to startup from any directory
+	Python scripts get the python from /usr/bin/env python instead of
+	  /bin/env python making them more portable accross different linux
+	  distros
+	Better exception handling and error reporting
+	Fixed how voms_proxy_init is looked for after VDT install
+	BUG FIX: Fixed a bug where Summarize.listStored() in CondorMonitor.py
+	  returned the wrong value
+	BUG FIX: Fixed a bug in factory monitoring that prevented proper
+	  aggregation of sites
+	BUG FIX: Correctly interpret DN from a voms proxy generated from a 
 	  service certificate.
-	Bug Fix: Generate frontend's condor_config without empty values for
+	BUG FIX: Generate frontend's condor_config without empty values for
 	  certain configuration options. Empty values is not the right way to
 	  reset the configuration options.
 
