@@ -132,7 +132,7 @@ class groupStats:
             factories[factory] = {}
 
         factories[factory]['MatchedJobs'] = {'Idle': idle,
-                                        'EffectiveIdle': effIdle,
+                                        'EffIdle': effIdle,
                                         'OldIdle': oldIdle,
                                         'Running': running
                                         }
