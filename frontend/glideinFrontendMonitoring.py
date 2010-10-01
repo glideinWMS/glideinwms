@@ -105,7 +105,10 @@ class groupStats:
 
         self.files_updated=None
         self.attributes={'Jobs':("Idle","OldIdle","Running","Total"),
-                         'Glideins':("Idle","Running","Total")}
+                         'Glideins':("Idle","Running","Total"),
+                         'MatchedJobs':("Idle","EffIdle","OldIdle","Running"),
+                         'MatchedGlideins':("Total","Idle","Running"),
+                         'Requested':("Idle","MaxRun")}
 
     def logJobs(self,jobs_data):
         el={}
@@ -131,10 +134,10 @@ class groupStats:
         if not factory in factories:
             factories[factory] = {}
 
-        factories[factory]['MatchedJobs'] = {'Idle': idle,
-                                        'EffIdle': effIdle,
-                                        'OldIdle': oldIdle,
-                                        'Running': running
+        factories[factory]['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: idle,
+                                        self.attributes['MatchedJobs'][1]: effIdle,
+                                        self.attributes['MatchedJobs'][2]: oldIdle,
+                                        self.attributes['MatchedJobs'][3]: running
                                         }
 
         self.update=time.time()
@@ -156,9 +159,9 @@ class groupStats:
         if not factory in factories:
             factories[factory] = {}
 
-        factories[factory]['MatchedGlideins'] = {'Total': total,
-                                        'Idle': idle,
-                                        'Running': running
+        factories[factory]['MatchedGlideins'] = {self.attributes['MatchedGlideins'][0]: total,
+                                        self.attributes['MatchedGlideins'][1]: idle,
+                                        self.attributes['MatchedGlideins'][2]: running
                                         }
 
         self.update=time.time()
@@ -181,8 +184,8 @@ class groupStats:
             factories[factory] = {}
         
 
-        factories[factory]['Requested'] = {'Idle': reqIdle,
-                                           'MaxRun': reqMaxRun,
+        factories[factory]['Requested'] = {self.attributes['Requested'][0]: reqIdle,
+                                           self.attributes['Requested'][1]: reqMaxRun,
                                            'Parameters': copy.deepcopy(params)
                                            }
 
@@ -282,7 +285,8 @@ class groupStats:
         total_el = self.get_total()
         # update RRDs
         val_dict={}
-        type_strings={'Jobs':'Jobs','Glideins':'Glidein'}
+        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJobs',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 
         #init, so tha all get created properly
         for tp in self.attributes.keys():

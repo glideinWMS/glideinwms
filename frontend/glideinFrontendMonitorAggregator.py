@@ -46,7 +46,10 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 ###########################################################
 
 status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
-                   'Glideins':("Idle","Running","Total")}
+                   'Glideins':("Idle","Running","Total"),
+                   'MatchedJobs':("Idle","EffIdle","OldIdle","Running"),
+                   'MatchedGlideins':("Total","Idle","Running"),
+                   'Requested':("Idle","MaxRun")}
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -54,7 +57,8 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
 def aggregateStatus():
     global monitorAggregatorConfig
 
-    type_strings={'Jobs':'Jobs','Glideins':'Glidein'}
+    type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJobs',
+                  'MatchedGlideins':'MatchGlidein','Requested':'Req'}
     global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
     status={'groups':{},'total':global_total}
 
