@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.1.8.3.6.2 2010/09/23 14:34:18 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.1.8.3.6.3 2010/10/02 04:02:11 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -645,7 +645,7 @@ def hash_status(el):
         # count only real running, all others become Other
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
-            if grid_status in ("ACTIVE","INLRMS: R"):
+            if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R"):
                 return 2
             elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING"):
                 return 4010
