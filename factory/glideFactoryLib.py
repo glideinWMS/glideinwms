@@ -626,7 +626,7 @@ def hash_status(el):
         # count only real running, all others become Other
         if el.has_key("GridJobStatus"):
             grid_status=el["GridJobStatus"]
-            if grid_status in ("ACTIVE","INLRMS: R"):
+            if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R"):
                 return 2
             elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING"):
                 return 4010
