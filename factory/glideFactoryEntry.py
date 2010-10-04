@@ -365,9 +365,9 @@ def write_stats():
 # added by C.W. Murphy for glideFactoryEntryDescript
 def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_dir):
     entry_data = {entry_name:{}}
-    entry_data[entry_name]['descript'] = entryDescript.data
-    entry_data[entry_name]['attributes'] = entryAttributes.data
-    entry_data[entry_name]['params'] = entryParams.data
+    entry_data[entry_name]['descript'] = copy.deepcopy(entryDescript.data)
+    entry_data[entry_name]['attributes'] = copy.deepcopy(entryAttributes.data)
+    entry_data[entry_name]['params'] = copy.deepcopy(entryParams.data)
 
     descript2XML = glideFactoryMonitoring.Descript2XML()
     str = descript2XML.entryDescript(entry_data)
