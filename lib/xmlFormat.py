@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: xmlFormat.py,v 1.15.10.1 2010/09/08 03:10:47 parag Exp $
+#   $Id: xmlFormat.py,v 1.15.10.2 2010/10/05 21:55:03 parag Exp $
 #
 # Description: general purpose XML formatter
 #
@@ -381,7 +381,7 @@ def dict2file(fd,dict,dict_name,el_name,dict_attr_name="name",el_attr_name=None,
         keys = dict.keys()
         keys.sort()
     else:
-        keys = range(len(dist)) # allow lists to be used as dictionaries
+        keys = range(len(dict)) # allow lists to be used as dictionaries
     
     
     for idx in keys:
