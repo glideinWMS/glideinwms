@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.6 2010/09/08 23:22:37 sfiligoi Exp $
+#   $Id: cgWCreate.py,v 1.49.2.7 2010/10/06 23:26:08 sfiligoi Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -163,15 +163,15 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("stop() {\n")
         fd.write('        echo -n "Shutting down glideinWMS factory $id_str: "\n')
         fd.write('        "$glideinWMS_dir/factory/stopFactory.py" "$factory_dir" 2>/dev/null 1>&2 </dev/null && success || failure\n')
-        fd.write("        if [ $RETVAL -ne 0 ]; then\n")
-        fd.write("          exit $RETVAL\n")
-        fd.write("        fi\n")
         fd.write("        RETVAL=$?\n")
         fd.write("        echo\n")
         fd.write("}\n\n")
         
         fd.write("restart() {\n")
         fd.write("        stop\n")
+        fd.write("        if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("          exit $RETVAL\n")
+        fd.write("        fi\n")
         fd.write("        start\n")
         fd.write("}\n\n")
 
@@ -182,15 +182,15 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("           has_arg=0\n")
         fd.write('           echo $"Usage: factory_startup reconfig <fname>"\n')
         fd.write('           echo "ERROR: configuration file does not exist: $1"\n')
-        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
-        fd.write("            exit $RETVAL\n")
-        fd.write("          fi\n")
         fd.write("           exit 1\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/factory/checkFactory.py" "$factory_dir" >/dev/null 2>&1 </dev/null\n')
         fd.write("        notrun=$?\n")
         fd.write("        if [ $notrun -eq 0 ]; then\n")
         fd.write("          stop\n")
+        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("            exit $RETVAL\n")
+        fd.write("          fi\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_glidein" -force_name "$glidein_name" $1\n')
         fd.write("        reconfig_failed=$?\n")
