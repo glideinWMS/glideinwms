@@ -37,6 +37,7 @@ valid_options = [ "node",
 ]
 
 frontend_options = [ "gsi_dn",
+"frontend_identity",
 ]
 factory_options = [ "gsi_dn",
 ]
@@ -47,15 +48,18 @@ usercollector_options = [ "node",
 
 class WMSCollector(Condor):
 
-  def __init__(self,inifile):
+  def __init__(self,inifile,options=None):
     global valid_options
+    if options <> None:
+       valid_options = options
     self.inifile = inifile
     self.ini_section = "WMSCollector"
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
-    self.certificates = None
+    #self.certificates = None
     self.schedd_name_suffix = "glideins"
-    self.daemon_list = "MASTER, COLLECTOR, NEGOTIATOR, SCHEDD"
+    self.daemon_list = "COLLECTOR, NEGOTIATOR, SCHEDD"
+    self.colocated_services = []
     self.frontend      = None     # VOFrontend object
     self.factory       = None     # Factory object
     self.usercollector = None     # User collector object
@@ -80,23 +84,34 @@ class WMSCollector(Condor):
       self.privsep = PrivilegeSeparation.PrivilegeSeparation(self.condor_location(),self.factory,[self.frontend,],self.frontend_users())
   #--------------------------------
   def frontend_users(self):
-    #-- need to convert a string to a dictionary --
-    s = self.option_value(self.ini_section,"frontend_users")
-    t = s.replace(" ","").split(",")
     mydict = {}
-    for a in t:
-      b = a.split(":")
-      if len(b) == 2:
-        mydict[b[0]] = b[1]
+    if self.privilege_separation() == "y":
+      #-- need to convert a string to a dictionary --
+      s = self.option_value(self.ini_section,"frontend_users")
+      t = s.replace(" ","").split(",")
+      for a in t:
+        b = a.split(":")
+        if len(b) == 2:
+          mydict[b[0]] = b[1]
+    else:
+      self.get_factory()
+      self.get_frontend()
+      mydict[self.frontend.service_name()] = self.factory.unix_acct()
     return mydict
   #--------------------------------
   def install(self):
     self.get_factory()
     self.get_frontend()
+    common.logit("======== %s install starting ==========" % self.ini_section)
+    common.ask_continue("Continue")
     self.get_privsep()
     self.verify_no_conflicts()
-    common.logit("======== %s install starting ==========" % self.ini_section)
+    ##  self.validate_install_location()
+    self.install_certificates()
+    self.install_vdtclient()
+    self.validate_condor_install()
     self.install_condor()
+    self.configure_condor()
     if self.privsep <> None:
       self.privsep.update()
     common.logit("======== %s install complete ==========" % self.ini_section)
@@ -109,6 +124,10 @@ class WMSCollector(Condor):
       common.run_script(cmd)
     else:
       common.logit("\nTo start the WMS Collector, you can run:\n %s" % cmd)
+
+  #-----------------------------
+  def validate_install_location(self):
+    common.validate_install_location(self.condor_location())
 
   #-----------------------------
   def condor_config_privsep_data(self):
@@ -130,27 +149,25 @@ GSI "^%s$" %s""" % \
     #-- frontends ---
     # These unix account are local to the wmscollector/factory node
     condor_entries = condor_entries + """
-GSI "^%s$" %s""" % \
-        (re.escape(self.frontend.gsi_dn()),
-        self.frontend.service_name())
+GSI "^%(frontend_gsi_dn)s$" %(frontend_service)s""" % \
+        { "frontend_gsi_dn"  : re.escape(self.frontend.gsi_dn()),
+          "frontend_service" : self.frontend.service_name(),
+        }
 
     self.__create_condor_mapfile__(condor_entries) 
 
-#### ----------------------------------------------
-#### No longer required effective with 7.5.1
-#### ----------------------------------------------
-#    #-- update the condor config file entries ---
-#    gsi_daemon_entries = """\
-## --- WMS collector user: %s ---
-#GSI_DAEMON_NAME=%s
-## --- Factory user: %s ---
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-## --- VOFrontend user: %s ---
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-#""" % (self.unix_acct(),         self.gsi_dn(),
-#       self.factory.unix_acct(), self.factory.gsi_dn(),
-#       self.frontend.service_name(),self.frontend.gsi_dn())
-#    self.__update_condor_config_gsi__(gsi_daemon_entries) 
+    #-- update the condor config file entries ---
+    gsi_daemon_entries = """\
+# --- WMS collector user: %s ---
+GSI_DAEMON_NAME=%s
+# --- Factory user: %s ---
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+# --- VOFrontend user: %s ---
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+""" % (       self.unix_acct(),        self.gsi_dn(),
+      self.factory.unix_acct(),        self.factory.gsi_dn(),
+     self.frontend.frontend_identity(),self.frontend.gsi_dn())
+    self.__update_gsi_daemon_names__(gsi_daemon_entries) 
 
 
   #--------------------------------

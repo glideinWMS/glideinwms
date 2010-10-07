@@ -30,7 +30,9 @@ class Certificates(VDT):
     common.ask_continue("""... CA Certificates not found in: %s
 This script is checking for the presence of CA (*.0) and CRL (*.r0) files.
 Is it OK to install it in this location""" % self.certificate_dir())
-    common.logit("\n======== CA certificates install starting ==========")
+    if common.not_writeable(self.certificates()):
+      common.logerr("You do not have permissions to write in this directory: %s" % self.certificates())
+    common.logit("\nCA certificates install starting")
     common.logit("The packages that will be installed are:")
     common.logit("  %s" % self.package)
     self.install_vdt_package(self.package)
@@ -39,7 +41,7 @@ Is it OK to install it in this location""" % self.certificate_dir())
     self.create_crontab()
     if self.certificates_exist():
       common.logit("... certificate installation looks good")
-    common.logit("======== CA certificates install complete ==========\n")
+    common.logit("\nCA certificates install complete\n")
     common.ask_continue("Continue installation")
 
   #-------------------

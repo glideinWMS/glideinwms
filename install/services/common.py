@@ -39,6 +39,7 @@ def write_file(mode,perm,filename,data):
 
 #--------------------------
 def make_directory(dirname,owner,perm,empty_required=True):
+  ## logit("... checking directory: %s" % dirname)
   if os.path.isdir(dirname):
     if not_writeable(dirname):
       logerr("Directory (%s) exists but is not writable by user %s" % (dirname,owner))
@@ -56,6 +57,8 @@ def make_directory(dirname,owner,perm,empty_required=True):
     return  # we done.. all is ok
 
   #-- create it but check entire path ---
+  ## ask_continue("... directory does not exist. Is it OK to create it")
+  logit("... creating directory: %s" % dirname)
   dirs = [dirname,]  # directories we need to create
   dir = dirname
   while dir <> "/":
@@ -223,9 +226,9 @@ def validate_installer_user(user):
 
 #--------------------------------
 def validate_gsi(dn_to_validate,type,location):
-  logit("... validating gsi_dn: %s" % dn_to_validate)
   logit("... validating gsi_authentication: %s" % type)
   logit("... validating gsi_location: %s" % location)
+  logit("... validating gsi_dn: %s" % dn_to_validate)
   dn_in_file = get_gsi_dn(type,location)
   if dn_in_file <> dn_to_validate:
     logerr("The DN of the %s in %s does not match the gsi_dn attribute in your ini file:\n%8s: %s\n     ini: %s\nThis may cause a problem in other services." % (type, location,type,dn_in_file,dn_to_validate))
@@ -287,7 +290,7 @@ def indent(level):
   indent = ""
   while len(indent) < (level * 2):
     indent = indent + "  "
-  return "\n" + indent
+  return indent
 
 
 

@@ -7,7 +7,7 @@ import re
 import optparse
 #-------------------------
 import common
-from Certificates  import Certificates  
+#from Certificates  import Certificates  
 from Condor        import Condor  
 import WMSCollector
 import VOFrontend
@@ -34,6 +34,10 @@ valid_options = [ "node",
 "pacman_location",
 ]
 
+wmscollector_options = [ "node",
+]
+
+
 class UserCollector(Condor):
 
   def __init__(self,inifile):
@@ -42,20 +46,26 @@ class UserCollector(Condor):
     self.ini_section = "UserCollector"
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
-    self.certificates = None
     self.wmscollector = None  # User collector object
-    self.daemon_list = "MASTER, COLLECTOR, NEGOTIATOR"
+    self.daemon_list = "COLLECTOR, NEGOTIATOR"
+    self.colocated_services = []
 
   #--------------------------------
   def get_wmscollector(self):
     if self.wmscollector == None:
-      self.wmscollector = WMSCollector.WMSCollector(self.inifile)
+      self.wmscollector = WMSCollector.WMSCollector(self.inifile,wmscollector_options)
 
   #--------------------------------
   def install(self):
-    self.verify_no_conflicts()
     common.logit ("======== %s install starting ==========" % self.ini_section)
+    common.ask_continue("Continue")
+    self.verify_no_conflicts()
+    self.validate_install_location()
+    self.install_certificates()
+    self.install_vdtclient()
+    self.validate_condor_install()
     self.install_condor()
+    self.configure_condor()
     common.logit ("======== %s install complete ==========" % self.ini_section)
     os.system("sleep 3")
     common.logit("")
@@ -67,12 +77,15 @@ class UserCollector(Condor):
     else:
       common.logit("\nTo start the User Collector, you can run:\n %s" % cmd)
 
-
+  #-----------------------------
+  def validate_install_location(self):
+    common.validate_install_location(self.condor_location())
 
   #--------------------------------
   def configure_gsi_security(self):
     common.logit("")
     common.logit("Configuring GSI security")
+    common.logit("... updating condor_mapfile")
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     #--- Submit access ---
     submit      = Submit.Submit(self.inifile)
@@ -96,30 +109,28 @@ GSI "^%s$" %s""" % (re.escape(dn),frontend_service_name)
 
     self.__create_condor_mapfile__(condor_entries) 
 
-#### ----------------------------------------------
-#### No longer required effective with 7.5.1
-#### ----------------------------------------------
-#    #-- create the condor config file entries ---
-#    gsi_daemon_entries = """\
-## --- User collector user: %s
-#GSI_DAEMON_NAME=%s
-## --- Submit user: %s
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-## --- Frontend user: %s
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
-#       (self.unix_acct(),    self.gsi_dn(),
-#      submit.unix_acct(),  submit.gsi_dn(),
-#    frontend.unix_acct(),frontend.gsi_dn())
-#    #-- add in the frontend glidein puilot proxies --
-#    cnt = 0
-#    for dn in frontend.glidein_proxies_dns():
-#      cnt = cnt + 1
-#      gsi_daemon_entries = gsi_daemon_entries + """
+    #-- create the condor config file entries ---
+    common.logit("... updating condor_config for GSI_DAEMON_NAMEs")
+    gsi_daemon_entries = """\
+# --- User collector user: %s
+GSI_DAEMON_NAME=%s
+# --- Submit user: %s
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
+# --- Frontend user: %s
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
+       (self.unix_acct(),    self.gsi_dn(),
+      submit.unix_acct(),  submit.gsi_dn(),
+    frontend.unix_acct(),frontend.gsi_dn())
+    #-- add in the frontend glidein pilot proxies --
+    cnt = 0
+    for dn in frontend.glidein_proxies_dns():
+      cnt = cnt + 1
+      gsi_daemon_entries = gsi_daemon_entries + """
 # --- Frontend pilot proxy: %s --
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
-#
-#    #-- update the condor config file entries ---
-#    self.__update_condor_config_gsi__(gsi_daemon_entries) 
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
+
+    #-- update the condor config file entries ---
+    self.__update_gsi_daemon_names__(gsi_daemon_entries) 
 
   #--------------------------------
   def verify_no_conflicts(self):

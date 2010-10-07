@@ -22,6 +22,7 @@ os.environ["PYTHONPATH"] = ""
 valid_options = [ "node", 
 "unix_acct", 
 "service_name", 
+"frontend_identity",
 "condor_location", 
 "install_location", 
 "logs_location", 
@@ -52,34 +53,50 @@ valid_options = [ "node",
 "pacman_location",
 ]
 
+wmscollector_options = [ "node",
+"gsi_dn",
+]
+factory_options = [ "node",
+"unix_acct",
+]
+usercollector_options = [ "node",
+"install_location",
+"collector_port"
+"gsi_dn"
+]
+
+
 class VOFrontend(Condor):
 
-  def __init__(self,inifile):
+  def __init__(self,inifile,options=None):
     global valid_options
+    if options <> None:
+       valid_options = options
     self.inifile = inifile
     self.ini_section = "VOFrontend"
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
-    self.daemon_list = "MASTER" 
+    self.daemon_list = "" 
 
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options)
     #-- instances of other services ---
-    self.wms      = None
-    self.factory  = None
-    self.userpool = None
-    self.submit   = None
+    self.wms           = None
+    self.factory       = None
+    self.usercollector = None
+    self.submit        = None
+    self.colocated_services = []
 
   #-- get service instances --------
   def get_wms(self):
     if self.wms == None:
-      self.wms = WMSCollector.WMSCollector(self.inifile)
+      self.wms = WMSCollector.WMSCollector(self.inifile,wmscollector_options)
   def get_factory(self):
     if self.factory == None:
-      self.factory = Factory.Factory(self.inifile)
-  def get_userpool(self):
-    if self.userpool == None:
-      self.userpool = UserCollector.UserCollector(self.inifile)
+      self.factory = Factory.Factory(self.inifile,factory_options)
+  def get_usercollector(self):
+    if self.usercollector == None:
+      self.usercollector = UserCollector.UserCollector(self.inifile)
   def get_submit(self):
     if self.submit == None:
       self.submit = Submit.Submit(self.inifile)
@@ -135,6 +152,9 @@ class VOFrontend(Condor):
   def service_name(self):
     return self.option_value(self.ini_section,"service_name")
   #--------------------------------
+  def frontend_identity(self):
+    return self.option_value(self.ini_section,"frontend_identity")
+  #--------------------------------
   def expose_grid_env(self):
     return self.option_value(self.ini_section,"expose_grid_env")
   #--------------------------------
@@ -154,16 +174,67 @@ class VOFrontend(Condor):
   def install(self):
     self.get_wms()
     self.get_factory()
-    self.get_userpool()
+    self.get_usercollector()
     self.get_submit()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     ## JGW Need to figure out how to re-installa and leave condor alone
+    common.ask_continue("Continue")
+    self.install_certificates()
+    self.install_vdtclient()
     self.validate_frontend()
-    self.install_condor()
+    self.determine_co_located_services()
+    #if len(self.colocated_services) == 0:
+    #  self.validate_condor_install()
+    #  self.install_condor()
+    #  self.configure_condor()
     self.configure_frontend()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_frontend()
     self.start()
+
+  #-----------------------------
+  def determine_co_located_services(self):
+    """ The VOfrontend service can share the same instance of Condor with
+        the UserCollector and/or Schedd services.  
+        So we want to check and see if this is the case.  
+        We will skip the installation of Condor and just perform the 
+        configuration of the condor_config file.
+    """
+    common.logit("\nChecking for co-located services")
+    # -- if not on same node, we don't have any co-located
+    if self.node() <> self.usercollector.node() and \
+       self.node() <> self.submit.node():
+      common.logit("... no services are co-located on this node")
+      return
+    common.logit("""
+The VOFrontend, Submit and/or the User Collector service are being installed on 
+the same node and can share the same Condor instance, as well as certificates 
+and VDT client instances.""")
+    #--- Condor ---
+    common.logit("...... VOFrontend Condor: %s" % self.condor_location())
+    common.logit(".......... Submit Condor: %s" % self.condor_location())
+    common.logit("... UserCollector Condor: %s" % self.usercollector.condor_location())
+    if self.condor_location() == self.usercollector.condor_location():
+      self.colocated_services.append("usercollector")
+    else:
+      common.ask_continue("""
+The condor_location for UserCollector service is different. 
+Do you really want to keep them separate?  
+If not, stop and fix your ini file condor_location.
+Do you want to continue""")
+
+    common.logit(".......... Submit Condor: %s" % self.condor_location())
+    if self.condor_location() == self.submit.condor_location():
+      self.colocated_services.append("submit")
+    else:
+      common.ask_continue("""
+The condor_location for Submit service is different. 
+Do you really want to keep them separate?  
+If not, stop and fix your ini file condor_location.
+Do you want to continue""")
+    common.logit("\nChecking for co-located services complete\n")
+
+
 
   #---------------------------------
   def configure_frontend(self):
@@ -183,12 +254,11 @@ class VOFrontend(Condor):
   #---------------------------------
   def validate_frontend(self):
     common.logit( "\nVOFrontend dependency and validation checking starting\n")
+    ##  self.glidein.__install_vdt_client__()
     self.validate_glexec_use()
     self.glidein.validate_install()
-    self.glidein.__install_vdt_client__()
+    self.validate_logs_location()
     self.glidein.create_web_directories()
-    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
-    common.make_directory(self.logs_location(),self.unix_acct(),0755,empty_required=True)
     common.logit( "\nVOFrontend dependency and validation checking complete")
 
   #---------------------------------
@@ -197,6 +267,11 @@ class VOFrontend(Condor):
     valid_glexec_use_values = [ "REQUIRED","OPTIONAL","NEVER" ]
     if self.glexec_use() not in valid_glexec_use_values:
       common.logerr("The glexec_use value specified (%s) in the ini file is invalid.\n      Valid values are: %s" % (self.glexec_use(),valid_glexec_use_values))
+
+  #---------------------------------
+  def validate_logs_location(self):
+    common.logit("... validating logs_location: %s" % self.logs_location())
+    common.make_directory(self.logs_location(),self.unix_acct(),0755,empty_required=True)
 
   #---------------------------------
   def get_config_data(self):
@@ -260,6 +335,7 @@ The following DNs are in your grid_mapfile:"""
   ## def create_config(self,config_xml,gridmap_data):
   def create_config(self,config_xml):
     common.logit("\nCreating configuration files")
+    common.logit("... %s" % self.config_file())
     common.make_directory(self.config_dir(),self.unix_acct(),0755,empty_required=True)
     common.write_file("w",0644,self.config_file(),config_xml)
     #common.logit("Creating: %s" % self.grid_mapfile())
@@ -443,12 +519,22 @@ please verify and correct if needed.
       job_attributes = string.split(job_attributes,',')
 
     #--- create xml ----
-    data  = """%s<group name="%s" enabled="True">""" % (common.indent(2),group_name)
-    data = data + """%s<match match_expr=%s>""" % (common.indent(3),xmlFormat.xml_quoteattr(match_str))
-    data = data + """%s%s""" % (common.indent(4),self.factory_data(factory_attributes))
-    data = data + """%s%s""" % (common.indent(4),self.factory_data(job_attributes))
-    data = data + """%s</match>""" % (common.indent(3))
-    data = data + """%s</group>""" % (common.indent(2))
+    data  = """
+%(indent2)s<group name="%(group_name)s" enabled="True">
+%(indent3)s<match match_expr=%(match_str)s>
+%(indent4)s%(factory_attributes)s
+%(indent4)s%(job_attributes)s
+%(indent3)s</match>
+%(indent2)s</group>
+""" % \
+{ "indent2" : common.indent(2),
+  "indent3" : common.indent(3),
+  "indent4" : common.indent(4),
+  "group_name"         : group_name,
+  "match_str"          : xmlFormat.xml_quoteattr(match_str),
+  "factory_attributes" : self.factory_data(factory_attributes),
+  "job_attributes"     : self.factory_data(job_attributes),
+}
     return data 
 
   #-----------------------
@@ -526,98 +612,162 @@ please verify and correct if needed.
     return data
   #---------------------------
   def config_work_data(self):
-    return """%s<work base_dir="%s" base_log_dir="%s"/>""" % (common.indent(1),self.glidein.install_location(),self.logs_location())
+    return """
+%(indent1)s<work base_dir="%(install_location)s" base_log_dir="%(logs_location)s"/>""" % \
+{ "indent1" : common.indent(1),
+  "install_location" : self.glidein.install_location(),
+  "logs_location" : self.logs_location(),
+}
   #---------------------------
   def config_stage_data(self):
-    return """%s<stage web_base_url="%s/%s/stage" base_dir="%s/stage"/>""" %\
-           (common.indent(1),
-            self.glidein.web_url(),
-            os.path.basename(self.glidein.web_location()),
-            self.glidein.web_location())
+    return """
+%(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage" base_dir="%(web_location)s/stage"/>""" % \
+{ "indent1"      : common.indent(1),
+  "web_url"      : self.glidein.web_url(),
+  "web_dir"      : os.path.basename(self.glidein.web_location()),
+  "web_location" : self.glidein.web_location(),
+}
   #---------------------------
   def config_monitor_data(self):
-    return """%s<monitor base_dir="%s/monitor" javascriptRRD_dir="%s" flot_dir="%s" jquery_dir="%s"/>""" %\
-           (common.indent(1),
-            self.glidein.web_location(),
-            self.glidein.javascriptrrd(),
-            self.glidein.flot(),
-            self.glidein.flot())
+    return """
+%(indent1)s<monitor base_dir="%(web_location)s/monitor" javascriptRRD_dir="%(javascriptrrd)s" flot_dir="%(flot)s" jquery_dir="%(flot)s"/>""" % \
+{ "indent1"       : common.indent(1),
+  "web_location"  : self.glidein.web_location(),
+  "javascriptrrd" : self.glidein.javascriptrrd(),
+  "flot"          : self.glidein.flot(),
+}
   #---------------------------
   def config_collectors_data(self):
-    data = """%s<collectors>""" % common.indent(1)
-    data = data + """%s<collector node="%s:%s" DN="%s" secondary="False"/>""" %\
-          (common.indent(2),
-           self.userpool.node(),
-           self.userpool.collector_port(),
-           self.userpool.gsi_dn())
+    data = """
+%(indent1)s<collectors>
+%(indent2)s<collector node="%(usercollector_node)s:%(usercollector_port)s" DN="%(usercollector_gsi_dn)s" secondary="False"/>""" %\
+{ "indent1" : common.indent(1),
+  "indent2" : common.indent(2),
+  "usercollector_node"   : self.usercollector.node(),
+  "usercollector_port"   : self.usercollector.collector_port(),
+  "usercollector_gsi_dn" : self.usercollector.gsi_dn(),
+}
+
     #--- secondary collectors -- 
-    if self.userpool.secondary_collectors() <> 0:
-      first_port = self.userpool.secondary_collector_ports()[0] 
-      last_port  = self.userpool.secondary_collector_ports()[int(self.userpool.secondary_collectors()) - 1]
+    if self.usercollector.secondary_collectors() <> 0:
+      first_port = self.usercollector.secondary_collector_ports()[0] 
+      last_port  = self.usercollector.secondary_collector_ports()[int(self.usercollector.secondary_collectors()) - 1]
       port_range = "%s-%s" % (first_port,last_port)
       data = data + """%s<collector node="%s:%s" DN="%s" secondary="True"/>""" %\
           (common.indent(2),
-           self.userpool.node(),
+           self.usercollector.node(),
            port_range,
-           self.userpool.gsi_dn())
+           self.usercollector.gsi_dn())
     data = data + """%s</collectors>""" % common.indent(1)
     return data
   #--------------------------
   def config_security_data(self):
-    data = """%s<security security_name="%s" proxy_selection_plugin="ProxyAll" classad_proxy="%s" proxy_DN="%s">""" %\
-             (common.indent(1), self.service_name(), self.cert_proxy_location(), self.gsi_dn())
-    data = data + """%s<proxies>"""   % (common.indent(2))
+    data = """
+%(indent1)s<security security_name="%(service_name)s" proxy_selection_plugin="ProxyAll" classad_proxy="%(cert_proxy_location)s" proxy_DN="%(gsi_dn)s">
+%(indent2)s<proxies>""" % \
+{ "indent1" : common.indent(1), 
+  "indent2" : common.indent(2), 
+  "service_name"        : self.service_name(), 
+  "cert_proxy_location" : self.cert_proxy_location(), 
+  "gsi_dn"              : self.gsi_dn(),
+}
     proxies = self.glidein_proxies()
     for proxy in proxies.split(" "):
-      data = data + """%s<proxy absfname="%s"/>""" % (common.indent(3),proxy)
-    data = data + """%s</proxies>"""  % (common.indent(2))
-    data = data + """%s</security>""" % (common.indent(1))
+      data = data + """
+%(indent3)s<proxy security_class="frontend" absfname="%(proxy)s"/>""" % \
+{ "indent3" : common.indent(3),
+  "proxy"   : proxy
+}
+    data = data + """
+%(indent2)s</proxies>
+%(indent1)s</security>""" % \
+{ "indent1" : common.indent(1), 
+  "indent2" : common.indent(2), 
+}
     return data
+
   #--------------------------
   def config_match_data(self,schedds,job_constraints):
-    data = """%s<match>"""             % (common.indent(1))
-    data = data + """%s<factory>"""    % (common.indent(2))
-    data = data + """%s<collectors>""" % (common.indent(3))
-    data = data + """%s<collector node="%s" DN="%s" factory_identity="%s@%s" my_identity="%s@%s" comment="Define factory collectors globally for simplicity"/>""" %\
-           (common.indent(4), self.wms.node(),self.wms.gsi_dn(),self.factory.unix_acct(),self.factory.node(),self.service_name(),self.factory.node())
-    data = data + """%s</collectors>""" % (common.indent(3))
-    data = data + """%s</factory>"""    % (common.indent(2))
-    data = data + """%s<job query_expr=%s  comment="Define job constraint and schedds globally for simplicity">""" %\
-           (common.indent(2),xmlFormat.xml_quoteattr(job_constraints))
-    data = data + """%s<schedds>"""    % (common.indent(3))
-    for schedd in schedds:
-      data = data + """%s<schedd fullname="%s" DN="%s"/>""" % (common.indent(4),schedd,self.submit.gsi_dn())
-    data = data + """%s</schedds>"""    % (common.indent(3))
+    data = """
+%(indent1)s<match>
+%(indent2)s<factory>
+%(indent3)s<collectors>
+%(indent4)s<collector node="%(wms_node)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_unix_acct)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
+%(indent3)s</collectors>
+%(indent2)s</factory>
+%(indent2)s<job query_expr=%(job_constraints)s  comment="Define job constraint and schedds globally for simplicity">
+%(indent3)s<schedds>""" % \
+{ "indent1"           : common.indent(1), 
+  "indent2"           : common.indent(2), 
+  "indent3"           : common.indent(3), 
+  "indent4"           : common.indent(4), 
+  "wms_node"          : self.wms.node(),
+  "wms_gsi_gn"        : self.wms.gsi_dn(),
+  "factory_unix_acct" : self.factory.unix_acct(),
+  "frontend_identity" : self.service_name(),
+  "job_constraints"   : xmlFormat.xml_quoteattr(job_constraints),
+}
 
-    data = data + """%s</job>"""        % (common.indent(2))
-    data = data + """%s</match>"""      % (common.indent(1))
+    for schedd in schedds:
+      data = data + """
+%(indent4)s<schedd fullname="%(schedd)s" DN="%(submit_gsi_dn)s"/>""" % \
+{ "indent4"        : common.indent(4),
+  "schedd"         : schedd,
+  "submit_gsi_dn"  : self.submit.gsi_dn()
+}
+
+    data = data + """
+%(indent3)s</schedds>
+%(indent2)s</job>
+%(indent1)s</match>
+""" % \
+{ "indent1"          : common.indent(1), 
+  "indent2"          : common.indent(2), 
+  "indent3"          : common.indent(3), 
+}
     return data
   #------------------------------------------
   def config_attrs_data(self):
-    data = """%s<attrs>""" % (common.indent(1))
-    data = data + """%s<attr name="GLIDEIN_Glexec_Use" value="%s" glidein_publish="True" job_publish="True" parameter="False" type="string"/>""" %\
-            (common.indent(2),self.glexec_use())
-    data = data + """%s<attr name="GLIDEIN_Expose_Grid_Env" value="%s" glidein_publish="True" job_publish="True" parameter="False" type="string"/>""" %\
-            (common.indent(2),self.expose_grid_env())
-    data = data + """%s<attr name="USE_MATCH_AUTH" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/> """ %\
-           (common.indent(2),self.glidein.match_authentication() == "y")
-    data = data + """%s<attr name="GLIDEIN_Entry_Start" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/>""" %\
-            (common.indent(2),"True")
-    data = data + """%s<attr name="GLIDEIN_Entry_Rank" value="%s" glidein_publish="False" job_publish="False" parameter="True" type="string"/>""" %\
-            (common.indent(2),"1")
-    data = data + """%s</attrs>""" % (common.indent(1))
-    return data
+    return """
+%(indent1)s<attrs>
+%(indent2)s<attr name="GLIDEIN_Glexec_Use"      value="%(glexec_use)s"      glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
+%(indent2)s<attr name="GLIDEIN_Expose_Grid_Env" value="%(expose_grid_env)s" glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
+%(indent2)s<attr name="USE_MATCH_AUTH"          value="%(use_match_auth)s"  glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
+%(indent2)s<attr name="GLIDEIN_Entry_Start"     value="%(entry_start)s"     glidein_publish="False" job_publish="False" parameter="True" type="string"/>
+%(indent2)s<attr name="GLIDEIN_Entry_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
+%(indent1)s</attrs> 
+""" % \
+{ "indent1"          : common.indent(1), 
+  "indent2"          : common.indent(2), 
+  "indent3"          : common.indent(3), 
+  "glexec_use"       : self.glexec_use(),
+  "expose_grid_env"  : self.expose_grid_env(),
+  "use_match_auth"   : self.glidein.match_authentication() == "y",
+  "entry_start"       : "True",
+  "entry_rank"       : "1",
+}
+
   #------------------------------------------
   def config_groups_data(self,match_criteria):
-    data = """%s<groups>""" % (common.indent(1)) 
-    data = data + """%s%s""" % (common.indent(2),match_criteria)
-    data = data + """%s</groups>""" % (common.indent(1)) 
-    return data
+    return """\
+%(indent1)s<groups>
+%(indent2)s%(match_criteria)s
+%(indent1)s</groups>
+""" % \
+{ "indent1"          : common.indent(1), 
+  "indent2"          : common.indent(2), 
+  "match_criteria"  : match_criteria,
+}
+
   #------------------------------------------
   def config_files_data(self):
-    data = """%s<files>""" % (common.indent(1)) 
-    data = data +"""%s</files>""" % (common.indent(1)) 
-    return data
+    return """\
+%(indent1)s<files>
+%(indent1)s</files>
+""" % \
+{ "indent1"          : common.indent(1), 
+  "indent2"          : common.indent(2), 
+}
 
   #---------------------------------
   def extract_factory_attrs(self,match_str):
@@ -653,6 +803,10 @@ please verify and correct if needed.
   def configure_gsi_security(self):
     common.logit("")
     common.logit("Configuring GSI security")
+    if len(self.colocated_services) > 0:
+      common.logit("... VOFrontend  service colocated with UserCollector and/or Submit/schedd")
+      common.logit("... no updates to condor mapfile required")
+      return
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.cert_proxy_location())
     #--- create condor_mapfile entries ---
     condor_mapfile = """\
@@ -663,31 +817,29 @@ GSI "^%s$" %s""" % \
           (re.escape(self.gsi_dn()),         self.service_name(),
        re.escape(self.wms.gsi_dn()),     self.wms.service_name(),
     re.escape(self.submit.gsi_dn()),  self.submit.service_name(),
-  re.escape(self.userpool.gsi_dn()),self.userpool.service_name())
+  re.escape(self.usercollector.gsi_dn()),self.usercollector.service_name())
 
     self.__create_condor_mapfile__(condor_mapfile)
 
-#### ----------------------------------------------
-#### No longer required effective with 7.5.1
-#### ----------------------------------------------
+#    NOT REALLY NEEDED AS THERE ARE NO DAEMONS ASSOCIATED WITH THIS SERVICE
 #    #-- create the condor config file entries ---
 #    gsi_daemon_entries = """\
 ## --- Submit user: %s
 #GSI_DAEMON_NAME=%s
-## --- WMS collector user: %s
+# --- WMS collector user: %s
 #GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-## --- Submit user: %s
+# --- Submit user: %s
 #GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-## --- Userpool user: %s
+# --- Userpool user: %s
 #GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 #""" % \
 #          (self.gsi_dn(),         self.service_name(),
 #       self.wms.gsi_dn(),     self.wms.service_name(),
 #    self.submit.gsi_dn(),  self.submit.service_name(),
-#  self.userpool.gsi_dn(),self.userpool.service_name())
-#
+#  self.usercollector.gsi_dn(),self.usercollector.service_name())
+
 #    #-- update the condor config file entries ---
-#    self.__update_condor_config_gsi__(gsi_daemon_entries)
+#    self.__update_gsi_daemon_names__(gsi_daemon_entries)
 
 #---------------------------
 def show_line():
@@ -720,7 +872,7 @@ def main(argv):
     options = validate_args(argv)
     vo = VOFrontend(options.inifile)
     #vo.install()
-    vo.get_userpool()
+    vo.get_usercollector()
     print vo.config_collectors_data()
     #vo.configure_gsi_security()
   except KeyboardInterrupt, e:

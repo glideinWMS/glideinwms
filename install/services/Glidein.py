@@ -270,8 +270,9 @@ class Glidein(Configuration):
     common.logit("\nCreating monitoring web directories in %s" % self.web_location())
     for sdir_name in ("stage","monitor"):
       sdir_fullpath=os.path.join(self.web_location(),sdir_name)
+      common.logit("... checking: %s" % sdir_fullpath)
       common.make_directory(sdir_fullpath,self.unix_acct(),0755,empty_required=True)
-    common.logit("\nCreating monitoring web directories completed %s\n" % self.web_location())
+    common.logit("Creating monitoring web directories completed\n")
 
 #---------------------------
 def show_line():

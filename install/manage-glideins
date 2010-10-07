@@ -9,6 +9,7 @@ sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"./services"))
 
 import common
+import Configuration
 import WMSCollector
 import UserCollector
 import Submit
@@ -19,18 +20,22 @@ from Configuration import ConfigurationError
 
 global gProgramName
 global gAction
+global gDEBUG
 
 #--------------------------------
 def run_command(service,user,node,command):
   global gAction
+  global gDEBUG
   hdr = "%s %s user(%s) node(%s)" %(gAction,service,user,node) 
   common.logit("\n############################################################")
   common.logit("## %s " % hdr)
-  cmd = "ssh -l %s %s '%s'" % (user,node,command)
-  common.logit("Commands: %s" % cmd)
+  cmd = """ssh -l %s %s "%s" """ % (user,node,command)
+  if gDEBUG:
+    common.logit("Commands: %s" % cmd)
   os.system(cmd)
   common.logit("## %s " % hdr)
   common.logit("############################################################\n")
+  os.system("sleep 3")
 
 #--------------------------------
 def apache(action):
@@ -53,8 +58,8 @@ def wmscollector(service,action,inifile):
   if action == "stop":
     cmd2 = "%s %s" % (obj.initd_script(),action)
   if action == "status":
-    cmd2 = "condor_status -any;sleep 2" 
-    cmd3 = "condor_q -global" 
+    cmd2 = "condor_status -any || (echo;echo 'Not running';echo) "
+    cmd3 = "condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
   cmds = "%s;%s;%s" % (cmd1,cmd2,cmd3)
   run_command(service,user,obj.node(),cmds)
 
@@ -72,9 +77,8 @@ def usercollector(service,action,inifile):
   if action == "stop":
     cmd2 = "%s %s" % (obj.initd_script(),action)
   if action == "status":
-    cmd2 = "condor_status -any;sleep 2" 
-    cmd3 = "condor_q -global" 
-  cmds = "%s;%s;%s" % (cmd1,cmd2,cmd3)
+    cmd2 = "condor_status -any || (echo;echo 'Not running';echo)"
+  cmds = "%s;%s" % (cmd1,cmd2)
   run_command(service,obj.unix_acct(),obj.node(),cmds)
 
 #--------------------------------
@@ -91,8 +95,8 @@ def submit(service,action,inifile):
   if action == "stop":
     cmd2 = "%s %s" % (obj.initd_script(),action)
   if action == "status":
-    cmd2 = "condor_status -any;sleep 2" 
-    cmd3 = "condor_q " 
+    cmd2 = "condor_status -any || (echo;echo 'Not running';echo)"
+    cmd3 = "condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
   cmds = "%s;%s;%s" % (cmd1,cmd2,cmd3)
   run_command(service,obj.unix_acct(),obj.node(),cmds)
 
@@ -109,10 +113,7 @@ def vofrontend(service,action,inifile):
   if action == "stop":
     cmd2 = "./frontend_startup %s"  % action
   if action == "status":
-    cmd2 = """
-./frontend_startup %s;echo;ps -ef|grep glideinFrontend.py |egrep -v grep
-"""  % (action)
-
+    cmd2 = """echo;./frontend_startup %s;echo"""  % (action)
   cmds = "%s;%s" % (cmd1,cmd2)
   run_command(service,obj.unix_acct(),obj.node(),cmds)
 
@@ -132,33 +133,45 @@ def factory(service,action,inifile):
   if action == "stop":
     cmd2 = "./factory_startup %s"  % action
   if action == "status":
-    cmd2 = """
-./factory_startup %s;sleep 2;
-ps -ef |grep glideFactoryEntry.py |egrep -v grep;
-echo;echo ... Entries;
-%s/tools/wmsTxtView.py Entries;
-echo;echo ... Sites;
-%s/tools/wmsTxtView.py Sites;
-echo;echo ... Gatekeepers;
-%s/tools/wmsTxtView.py Gatekeepers;
-"""  % (action, obj.glidein_install_dir(), obj.glidein_install_dir(), obj.glidein_install_dir())
+    cmd2 = """echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)"""  % (action, obj.glidein_install_dir())
 
   cmds = "%s;%s" % (cmd1,cmd2)
   run_command(service,obj.unix_acct(),obj.node(),cmds)
 
 #----------------
+def find_services(inifile):
+   """ Finds the services that can be installed on this unix node. """
+   services = []
+   cfg = Configuration.Configuration(inifile)
+   sections = [ "WMSCollector", "Factory", "UserCollector", "Submit", "VOFrontend", ]
+   for section in sections:
+     if cfg.has_option(section,"node"):
+       if cfg.option_value(section,"node") == os.uname()[1]:
+         services.append(section.lower())
+     else:
+       common.logerr("ini file section(%s) does not contain a node option(%s)" % (section,"node"))
+
+   if len(services) == 0:
+       common.logerr("The ini file shows no services for this node: %s" % os.unmae()[1])
+
+   common.ask_continue("The following services will be processed on this node:\n   %s\n... do you want to continue" % services)
+   return services
+         
+
+#----------------
 def process_request(service,action,inifile):
   if service == "wmscollector":
     wmscollector(service,action,inifile)
-  if service == "usercollector":
+  elif service == "usercollector":
     usercollector(service,action,inifile)
-  if service == "submit":
+  elif service == "submit":
     submit(service,action,inifile)
-  if service == "factory":
+  elif service == "factory":
     factory(service,action,inifile)
-  if service == "vofrontend":
+  elif service == "vofrontend":
     vofrontend(service,action,inifile)
-  
+  else:
+    common.logerr("Service(%s) not supported" % service)
 
 #----------------
 def usage(services):
@@ -167,29 +180,41 @@ def usage(services):
   for service in services:
     valid_services = valid_services + " " + service 
   msg = """
-Usage: %s --<action> <service>  --ini <ini_file>
+Usage: %(program)s --<action> <service>  --ini <ini_file>  <--debug>
 
-  actions: install, start, stop, status
-  services: %s all
+  action: install, start, stop, status 
+  services: %(services)s  
+            all - can only be used with start/stop/status actions
+  --debug:  When used with start/stop/status actions, it will
+            display the series of commands used.
 
 This process can be used to install, start, stop or check the status of 
 the glidein services based on the configuration in the specified ini file.
 
-All actions can be performed remotely, with exception of the --install, 
-providing the user has valid access to the other service's node via the 
-.k5login of that user.
+The start/stop/status actions can be performed remotely providing the user 
+has valid access to the other service's node via the .k5login of that user.
+For these actions, this process ssh's into the services node thereby insuring 
+a clean environment.
 
-When starting and stopping a service, this process ssh's into the services 
-node thereby insuring a clean environment.
+The install/install-node/create-entries can only be used on the node for that
+service. 
 
-Additionally, it can be used to select new glidein entry points after the
-initial installation.  If will walk you through the same question and answer
-process querying ReSS and BDII for resources.  It will then create a file 
-containing the entry elements for those selected.  This can then be merged with
-the existing Factory configuration file.  The syntax to perform this is:
+ %(program)s --install-node --ini <ini_file>
 
-  %s --create-entries --ini <ini_file>
-""" % (gProgramName,valid_services,gProgramName)
+This option  allows you to install all services for the node you are installing
+on.  There are some limitation to this.
+
+ %(program)s --create-entries --ini <ini_file>
+
+This option can be used to select new glidein entry points after the
+initial installation of a factory service.  If will walk you through the same 
+question and answer process querying ReSS and BDII for resources.  It will then
+create a file containing the entry elements for those selected.  This can then 
+be merged with the existing Factory configuration file. 
+""" % \
+{ "program"  : gProgramName,
+  "services" : valid_services,
+}
   common.logit(msg)
 
 ##########################################
@@ -197,10 +222,12 @@ def main(argv):
   try:
     global gProgramName
     global gAction
+    global gDEBUG
     gProgramName = argv[0]
     gAction = None
+    gDEBUG = False
     inifile = ""
-    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries" ]
+    arglist = [ "help", "debug", "start=", "stop=", "status=", "install=","ini=","create-entries","install-node" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
     stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
@@ -213,10 +240,22 @@ def main(argv):
         usage(services)
         return 1
 
+      if o in ("--debug"):
+        gDEBUG = True
+        continue
+
       if o in ("--ini"):
         inifile = a
         if not os.path.isfile(inifile):
           common.logerr("ini file does not exist: %s" % inifile)
+        continue
+
+      if o == "--install-node":
+        gAction = o[2:]
+        continue
+
+      if o == "--create-entries":
+        gAction = o[2:]
         continue
 
       if o in ("--start","--stop","--status","--install"):
@@ -225,16 +264,14 @@ def main(argv):
           if o == "--stop":
             services = stop_order
           continue
+
         if a in services:
           services = [a,]
           continue
         usage(services)
         common.logerr("Invalid service: %s" % a)
+    #--- end of options --
 
-      if o in ("--create-entries",):
-        services = ["factory",]
-        gAction = "create-entries"
-    
     if gAction == None and len(inifile) == 0:
       usage(services)
       common.logerr("Missing all command line  arguments")
@@ -247,9 +284,26 @@ def main(argv):
       usage(services)
       common.logerr("Missing the 'action' argument")
 
+    if gAction == "install-node":
+      services = find_services(inifile)
+      gAction = "install"
+
+    if gAction == "create-entries":
+      services = ["factory",]
+
+    installed_services = 0
     for service in services:        
-      common.logit("----- %s ----" % (service))
-      process_request(service,gAction,inifile)
+      try:
+        installed_services = installed_services + 1
+        common.logit("----- %s ----" % (service))
+        process_request(service,gAction,inifile)
+      except common.WMSerror:
+        raise
+      except:
+        if len(services) <> installed_services:
+          common.ask_continue("... continue with next service")
+  
+    common.logit("... requested installations completed")
 
   except getopt.error, e:
     msg = e.__str__()
