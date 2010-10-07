@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.9.2.12 2010/09/24 15:38:11 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.9.2.13 2010/10/07 21:43:07 parag Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -1192,7 +1192,7 @@ def gfactory_install():
                 fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA">\n')
             else:
                 # allow both factory proxy and VO proxy
-                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA"/>n')
+                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA">\n')
             fd.write('    <frontends>\n')
             for fe_name in frontends.keys():
                 fd.write('     <frontend name="%s" identity="%s">\n'%(fe_name,frontends[fe_name]['id']))
