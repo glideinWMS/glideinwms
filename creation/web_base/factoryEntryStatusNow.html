@@ -600,7 +600,12 @@ function fillInTotalTable2()
 				//alert("Cell -- " + cell + " Row -- " + row + " feIndex --" + feIndex);
 				if(totalEntries[optionIndex].childNodes[1].childNodes.length != 0)
 				{
-					y = totalEntries[optionIndex].childNodes[1].childNodes[child[j]].attributes[atts[j]].nodeValue; 
+					if(totalEntries[optionIndex].childNodes[1].childNodes.length >= 7 || child[j] != 5)
+					{
+						y = totalEntries[optionIndex].childNodes[1].childNodes[child[j]].attributes[atts[j]].nodeValue;
+					}
+					else
+						y = 0; 
 					currTable.childNodes[1].rows[row].cells[cell].innerHTML = y; 
 				}
 				else
@@ -658,7 +663,12 @@ function fillInFeTable()
 			row = (j)/2; 
 			row = parseInt(row); 
 			row = rows[row]; 
-			feTab.rows[row].cells[cel[j]].innerHTML = totalEntries[optionIndex].childNodes[3].childNodes[feIndex].childNodes[child[j]].attributes[atts[j]].nodeValue; 		
+			if(totalEntries[optionIndex].childNodes[3].childNodes[feIndex].childNodes.length >= 7 || child[j] != 5)
+			{
+				feTab.rows[row].cells[cel[j]].innerHTML = totalEntries[optionIndex].childNodes[3].childNodes[feIndex].childNodes[child[j]].attributes[atts[j]].nodeValue; 
+			}
+			else
+				feTab.rows[row].cells[cel[j]].innerHTML = 0; 
 		}
 		feIndex+=2; 
 	}
@@ -999,14 +1009,28 @@ function fillInTotal()
 	{
 		if(total[optionIndex].childNodes.length != 0)
 		{
-			item = total[optionIndex].childNodes[5].attributes[attArry[counter - 1]].nodeValue;
-			if(counter != 1)
+			if(total[optionIndex].childNodes.length >= 7)
 			{
-				table.rows[counter].cells[1].innerHTML = item; 	
+				item = total[optionIndex].childNodes[5].attributes[attArry[counter - 1]].nodeValue;
+				if(counter != 1)
+				{
+					table.rows[counter].cells[1].innerHTML = item; 	
+				}
+				else
+				{
+					table.rows[counter].cells[2].innerHTML = item; 	
+				}
 			}
 			else
 			{
-				table.rows[counter].cells[2].innerHTML = item; 	
+				if(counter != 1)
+				{
+					table.rows[counter].cells[1].innerHTML = 0; 	
+				}
+				else
+				{
+					table.rows[counter].cells[2].innerHTML = 0; 	
+				}
 			}
 		}
 	}
@@ -1077,15 +1101,29 @@ function fillInTotal()
 		{
 			if(total[optionIndex].childNodes.length != 0)
 			{
-				item = feArryMaster[x].childNodes[5].attributes[attArry[counter - 1]].nodeValue;
-				if(counter != 1)
+				if(total[optionIndex].childNodes.length >= 7)
 				{
-					table.rows[counter].cells[2 + x].innerHTML = item; 			
+					item = feArryMaster[x].childNodes[5].attributes[attArry[counter - 1]].nodeValue;
+					if(counter != 1)
+					{
+						table.rows[counter].cells[2 + x].innerHTML = item; 			
+					}
+					else
+					{
+						table.rows[counter].cells[3 + x].innerHTML = item; 			
+					}
 				}
 				else
 				{
-					table.rows[counter].cells[3 + x].innerHTML = item; 			
-				}  	
+					if(counter != 1)
+					{
+						table.rows[counter].cells[2 + x].innerHTML = 0; 			
+					}
+					else
+					{
+						table.rows[counter].cells[3 + x].innerHTML = 0; 			
+					}
+				}
 			}
 		}
 		/*
