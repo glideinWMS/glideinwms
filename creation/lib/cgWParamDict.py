@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.5.8.3.6.1 2010/09/08 20:19:27 sfiligoi Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.5.8.3.6.2 2010/10/08 23:59:23 sfiligoi Exp $
 #
 # Description:
 #   Glidein creation module
@@ -133,7 +133,9 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
                       (params.src_dir,'factoryRRDEntryMatrix.html'),
                       (params.src_dir,'factoryStatus.html'),
                       (params.src_dir,'factoryLogStatus.html'),
-                      (params.src_dir,'factoryCompletedStats.html')):
+                      (params.src_dir,'factoryCompletedStats.html'),
+                      (params.src_dir,'factoryStatusNow.html'),
+                      (params.src_dir,'factoryEntryStatusNow.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
             mfobj.load()
