@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.6.4 2010/09/25 04:39:51 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.4.2.6.6.5 2010/10/08 23:53:49 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -167,6 +167,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
+    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
 
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
@@ -488,6 +489,7 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+    
     entry_downtimes=glideFactoryDowntimeLib.DowntimeFile(jobDescript.data['DowntimesFile'])
     while 1:
         check_parent(parent_pid,glideinDescript,jobDescript)

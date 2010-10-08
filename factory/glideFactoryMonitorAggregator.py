@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.6 2010/09/25 04:24:31 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.1.6.7 2010/10/08 23:53:49 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -65,7 +65,7 @@ status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn",
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
-def aggregateStatus():
+def aggregateStatus(in_downtime):
     global monitorAggregatorConfig
 
     avgEntries=('InfoAge',)
@@ -98,7 +98,7 @@ def aggregateStatus():
             continue # file not found, ignore
 
         # update entry 
-        status['entries'][entry]={'frontends':entry_data['frontends']}
+        status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}
 
         # update total
         if entry_data.has_key('total'):
@@ -136,11 +136,14 @@ def aggregateStatus():
                 if a in avgEntries:
                     tel[a]=tel[a]/nr_entries # since all entries must have this attr to be here, just divide by nr of entries
 
+    xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
+
     # Write xml files
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
              '<glideFactoryQStats>\n'+
              get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xml_downtime + "\n" +
              xmlFormat.dict2string(status["entries"],dict_name="entries",el_name="entry",
                                    subtypes_params={"class":{"dicts_params":{"frontends":{"el_name":"frontend",
                                                                                           "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",

@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.5 2010/09/25 04:39:51 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.1.8.2.6.6 2010/10/08 23:53:49 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -38,14 +38,34 @@ import glideFactoryLib
 import glideFactoryInterface
 import glideFactoryMonitorAggregator
 import glideFactoryMonitoring
+import glideFactoryDowntimeLib
 
 ############################################################
-def aggregate_stats():
-    global rrd_thread
+def aggregate_stats(in_downtime):
+    try:
+        status=glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
+    except:
+        # protect and report
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logDebug("aggregateStatus failed: %s" % string.join(tb,''))
     
-    status=glideFactoryMonitorAggregator.aggregateStatus()
-    status=glideFactoryMonitorAggregator.aggregateLogSummary()
-    status=glideFactoryMonitorAggregator.aggregateRRDStats()
+    try:
+        status=glideFactoryMonitorAggregator.aggregateLogSummary()
+    except:
+        # protect and report
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logDebug("aggregateLogStatus failed: %s" % string.join(tb,''))
+    
+    try:
+        status=glideFactoryMonitorAggregator.aggregateRRDStats()
+    except:
+        # protect and report
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logDebug("aggregateRRDStats failed: %s" % string.join(tb,''))
+    
     return
 
 # added by C.W. Murphy to make descript.xml
@@ -169,6 +189,8 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     #restart_attempts = 3
     #restart_interval = 1800
 
+    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+
     glideFactoryLib.log_files.logActivity("Starting entries %s"%entries)
     try:
         for entry_name in entries:
@@ -231,7 +253,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                         glideFactoryLib.log_files.logWarning("Entry startup/restart times: %s"%childs_uptime)
 
             glideFactoryLib.log_files.logActivity("Aggregate monitoring data")
-            aggregate_stats()
+            aggregate_stats(factory_downtimes.checkDowntime())
             
             # do it just before the sleep
             glideFactoryLib.log_files.cleanup()
