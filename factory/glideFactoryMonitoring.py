@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.9 2010/09/25 04:57:37 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.10 2010/10/09 20:12:26 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -218,7 +218,8 @@ class condorQStats:
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
                          'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
-
+        # create a global downtime field since we want to propagate it in various places
+        self.downtime = 'True'
 
     def logSchedd(self,client_name,qc_status):
         """
@@ -259,6 +260,7 @@ class condorQStats:
 
         el={}
         t_el['Requested']=el
+        t_el['Downtime'] = {'status':self.downtime}
 
         if requests.has_key('IdleGlideins'):
             el['Idle']=requests['IdleGlideins']
@@ -380,6 +382,14 @@ class condorQStats:
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
+    def set_downtime(self, in_downtime):
+        self.downtime = str(in_downtime)
+        return
+
+    def get_xml_downtime(self, leading_tab = xmlFormat.DEFAULT_TAB):
+        xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':self.downtime}, leading_tab = leading_tab)
+        return xml_downtime
+
     def write_file(self):
         global monitoringConfig
 
@@ -392,6 +402,7 @@ class condorQStats:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<glideFactoryEntryQStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</glideFactoryEntryQStats>\n")

@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.23 2010/09/25 04:57:37 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24 2010/10/09 20:12:26 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -183,6 +183,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 security_list[entry_part[0]]=[entry_part[1]];
    
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
+    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
     
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
