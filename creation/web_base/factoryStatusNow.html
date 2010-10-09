@@ -6,10 +6,8 @@
 
 <script type="text/javascript">
 
-
 //LOAD XML Object if it exits. 
 
-var a; 
 var loading; 
 var frontEndTable; 
 var linkShown = 0; 
@@ -20,12 +18,12 @@ var feArryMaster = new Array();
 var preUpdateSort; 
 var thead; 
 var updated; 
-var numberRows = 0;
-var totalEntriesMaster;
-var totalEntries;
+var numberRows = 0; 
+var totalEntriesMaster; var totalEntriesMasterP;
+var totalEntries; var totalEntriesP;
 var totalEntriesMast; 
 var totalMas;  
-var totalMaster; 
+var totalMaster; var totalMasterP; 
 var total;
 var sorted = 0;
 var previousSort;
@@ -33,7 +31,7 @@ var currentSort;
 var frontEnds; 
 var listMade = 0; 
 var frontEnd = 0;
-var table; var trTable; 
+var table; var trTable; var tableP; 
 var select;
 var nameLast;
 var txt2 = new Array(1000); 
@@ -51,7 +49,13 @@ var tempTotal;
 var tempTotalEntries; 
 var diffColNum; 
 var trSortCol;  
-var trSortAsc; 
+var trSortAsc;
+var periodV; 
+var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var totStatChild; var totReqChild; var totCMChild; 
+
+var headColArry = new Array("Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
+							"Max run", "Idle", 
+							"Claimed", "User running", "Unmatched", "User idle", "Registered", "Info age"); 
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
@@ -105,7 +109,8 @@ function showPopUp(hoveritem)
 	head = document.getElementById("header");
     scrollDiv = document.getElementById("scroll"); 
 
-	if(entry.childNodes[1].childNodes.length == 0)
+	/* If no frontends exist. */
+	if(entry.childNodes[totChild].childNodes.length == 0)
 	{
 		tr1 = document.createElement('tr'); 
 		tr2 = document.createElement('tr'); 
@@ -159,6 +164,7 @@ function showPopUp(hoveritem)
 		hover.style.visibility = "Visible";
 		return; 
 	}
+	
 	hover.appendChild(frontEndTable); 
 	
 	tr1 = document.createElement('tr'); 
@@ -197,15 +203,15 @@ function showPopUp(hoveritem)
 		}
 		else if(column == 3)
 		{
-			child1 = 5;
-			child2 = 1;
+			child1 = feStatChild;
+			child2 = feCMChild;
 			att1 = 4;
 			att2 = 2;
 		}
 		else if(column == 6)
 		{
-			child1 = 5; 
-			child2 = 3; 
+			child1 = feStatChild;
+			child2 = feReqChild; 
 			att1 = 1; 
 			att2 = 0; 
 		}
@@ -220,8 +226,8 @@ function showPopUp(hoveritem)
 	frontEndTable.appendChild(tr1);
 	frontEndTable.appendChild(tr2);
 
-	numFE = totalEntries[row -1].childNodes[3].childNodes.length; /* How many front ends the specified entry has. */
-	ends = totalEntries[row -1].childNodes[3]; /* The front ends the specifed entry has. */
+	numFE = totalEntries[row -1].childNodes[feChild].childNodes.length; /* How many front ends the specified entry has. */
+	ends = totalEntries[row -1].childNodes[feChild]; /* The front ends the specifed entry has. */
 	
 	var unsortedFE = new Array(); 
 	var sortedFE = new Array();
@@ -240,7 +246,6 @@ function showPopUp(hoveritem)
 			}
 		}
 	}
-	
 	if(numFE == 0)
 	{
 		tr3 = document.createElement('tr');
@@ -275,7 +280,7 @@ function showPopUp(hoveritem)
 				if(sortedFE[i].childNodes.length >= 7)
 				{
 					var attArry = new Array(4,1,7,3,5,6,2,0);
-					txt2 = document.createTextNode(sortedFE[i].childNodes[5].attributes[attArry[column - 1]].nodeValue);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[attArry[column - 1]].nodeValue);
 				}
 				else
 				{
@@ -287,7 +292,7 @@ function showPopUp(hoveritem)
 				if(sortedFE[i].childNodes.length >= 5)
 				{
 					var attArry = new Array(1,0);
-					txt2 = document.createTextNode(sortedFE[i].childNodes[3].attributes[attArry[column - 9]].nodeValue);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[attArry[column - 9]].nodeValue);
 				}
 				else
 				{
@@ -299,7 +304,7 @@ function showPopUp(hoveritem)
 				if(sortedFE[i].childNodes.length >= 3)
 				{
 					var attArry = new Array(1,5,0,4,2,3);
-					txt2 = document.createTextNode(sortedFE[i].childNodes[1].attributes[attArry[column - 11]].nodeValue);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[attArry[column - 11]].nodeValue);
 				}
 				else
 				{
@@ -480,7 +485,7 @@ function makeList()
 	any.appendChild(anyTxt); 
 	select.appendChild(any); 
 	
-	for(i = 0; i< frontEnds.length; i++)
+	for(i = 0; i < frontEnds.length; i++)
 	{
 		if(i == 0)
 		{
@@ -604,6 +609,11 @@ function checkUrl()
 						troubleshooting(); 
 						document.getElementById("troubleshoot").checked = true; 
 					}
+					else if(temp[j+1] == "period")
+					{
+						//period(); 
+						//document.getElementById("period").checked = true; 
+					}
 					else
 					{
 						for(z = 0; z < feArryMaster.length; z++)
@@ -695,6 +705,7 @@ function loadFrontEnd(name)
 {
 	frontEndName = name; 
 	preFrontEndName = name;
+	currChild = 1; 
 	
 	/* Remove tr table to reset all information. */ 
 	if(troubleshoot)
@@ -861,9 +872,9 @@ function loadFrontEnd(name)
 			childView = null; 
 			for(i = 0; i< totalEntries.length; i++)
 			{
-				if(totalEntries[i].childNodes[3].childNodes.length > 1)
+				if(totalEntries[i].childNodes[feChild].childNodes.length > 1)
 				{
-					if(totalEntries[i].childNodes[3].childNodes[1].childNodes.length > 0)
+					if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes.length > 0)
 					{
 						feEntries.push(totalEntries[i]); 
 						feTotal.push(total[i]); 
@@ -875,15 +886,15 @@ function loadFrontEnd(name)
 		{
 			for(i = 0; i< totalEntries.length; i++)
 			{
-			if(totalEntries[i].childNodes[3].childNodes.length != 0)
+				if(totalEntries[i].childNodes[feChild].childNodes.length != 0)
 				{
-					for(j = 1; j< totalEntries[i].childNodes[3].childNodes.length; j+=2)
+					for(j = 1; j< totalEntries[i].childNodes[feChild].childNodes.length; j+=2)
 					{
-						if(totalEntries[i].childNodes[3].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
+						if(totalEntries[i].childNodes[feChild].childNodes[j].attributes.getNamedItem("name").firstChild.data == name)
 						{	
 							childView = j; 
 							feEntries.push(totalEntries[i]); 
-							feTotal.push(totalEntries[i].childNodes[3].childNodes[j]); 
+							feTotal.push(totalEntries[i].childNodes[feChild].childNodes[j]); 
 						}
 					}
 				}
@@ -1033,6 +1044,7 @@ function fillIn()
 {
 	problem = 0;
 	linkCount = 0;
+	currChild = 1; 
 	 
 	if(tableMade == 0)
 	{
@@ -1060,6 +1072,7 @@ function fillIn()
 		table.rows[i].cells[0].appendChild(links[i]); 
 	}
 		
+	
 	//fill in the for non running entries. 
 	for(j = 1; j < 17 ; j++)
 	{	
@@ -1067,11 +1080,12 @@ function fillIn()
 		{
 			if(total[i].childNodes.length == 0)
 			{
-				//fill in everything excpet the first column with 0 if entry is not doing anything.
+				//fill in everything except the first column with 0 if entry is not doing anything.
 				table.rows[i].cells[j].innerHTML = "0";					
 			}	
 		}
 	}
+	
 	
 	/* 
 	 * Fill in status fields.  
@@ -1084,7 +1098,12 @@ function fillIn()
 		{
 			if(total[i].childNodes.length >= 7 && total[i].childNodes.length != 0)
 			{
-				var item = total[i].childNodes[5].attributes[attArry[attCount]].nodeValue;  	
+				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+				{
+					var item = total[i].childNodes[feStatChild].attributes[attArry[attCount]].nodeValue;
+				}
+				else
+					var item = total[i].childNodes[totStatChild].attributes[attArry[attCount]].nodeValue;
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 			else
@@ -1107,7 +1126,12 @@ function fillIn()
 		{
 			if(total[i].childNodes.length >= 5 && total[i].childNodes.length != 0)
 			{
-				var item = total[i].childNodes[3].attributes[attArry[attCount]].nodeValue;  	
+				if(frontEnd)
+				{
+					var item = total[i].childNodes[feReqChild].attributes[attArry[attCount]].nodeValue; 
+				}
+				else
+					var item = total[i].childNodes[totReqChild].attributes[attArry[attCount]].nodeValue; 
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
@@ -1125,7 +1149,12 @@ function fillIn()
 		{	
 			if(total[i].childNodes.length >= 3 && total[i].childNodes.length != 0)
 			{
-				var item = total[i].childNodes[1].attributes[attArry[attCount]].nodeValue; 	
+				if(frontEnd)
+				{
+					var item = total[i].childNodes[feCMChild].attributes[attArry[attCount]].nodeValue;
+				}
+				else
+					var item = total[i].childNodes[totCMChild].attributes[attArry[attCount]].nodeValue;
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
@@ -1137,6 +1166,31 @@ function fillIn()
 	    checkUrl();
 	}
 	
+}
+function loadXML2()
+{
+	if (window.XMLHttpRequest)
+	{// code for IE7+, Firefox, Chrome, Opera, Safari
+		xmlhttp=new XMLHttpRequest();
+	}
+	else
+	{// code for IE6, IE5
+		xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+		
+	xmlhttp.onreadystatechange=function()
+	{
+		if(xmlhttp.readyState==4) //If 4 it it is ready. 
+    	{
+			totalEntriesPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			totalMasterP = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
+			frontEndsP = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
+			totalEntriesP = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total"); 
+		}
+	}
+	xmlhttp.open("GET", "rrd_Status_Attributes.xml",true);
+	xmlhttp.send(null);
 }
 function loadXMLDoc()
 {	
@@ -1173,7 +1227,79 @@ function loadXMLDoc()
 			total = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
 			totalEntriesHold = totalEntries; 
 			numberRows = totalEntries.length;
-			totalHold = total; 
+			totalHold = total;
+			
+			
+			/*
+			 * Find all the child nodes for everything.
+			 */ 
+			for(i = 0; i < totalEntries.length; i++)
+			{
+				for(m = 1; m < totalEntries[i].childNodes.length; m+=2)
+				{
+					if(totalEntries[i].childNodes[m].tagName == "total")
+					{
+						totChild = m; 
+						continue; 
+					}
+					else if(totalEntries[i].childNodes[m].tagName == "frontends")
+					{
+						feChild = m;
+						continue;  
+					}
+				}
+				if(totChild && feChild)
+				{
+					break; 	
+				}
+			} 
+
+			for(i = 0; i < totalEntries.length; i++)
+			{
+				if(totalEntries[i].childNodes[totChild].childNodes.length != 0)
+				{
+					for(k = 1; k < totalEntries[i].childNodes[totChild].childNodes.length; k+=2)
+					{
+						if(totalEntries[i].childNodes[totChild].childNodes[k].tagName == "Status")
+						{
+							totStatChild = k; 	
+						}
+						else if(totalEntries[i].childNodes[totChild].childNodes[k].tagName == "ClientMonitor")
+						{
+							totCMChild = k; 	
+						}
+						else if(totalEntries[i].childNodes[totChild].childNodes[k].tagName == "Requested")
+						{
+							totReqChild = k; 	
+						}
+					}
+					break; 
+				}	
+			}
+		 
+			for(i = 0; i < totalEntries.length; i++)
+			{
+				if(totalEntries[i].childNodes[feChild].childNodes.length > 1)
+				{
+					for(k = 1; k < totalEntries[i].childNodes[feChild].childNodes[1].childNodes.length; k+=2)
+					{
+						if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "Status")
+						{
+							feStatChild = k; 	
+						}
+						else if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "ClientMonitor")
+						{
+							feCMChild = k; 	
+						}
+						else if(totalEntries[i].childNodes[feChild].childNodes[1].childNodes[k].tagName == "Requested")
+						{
+							feReqChild = k; 	
+						}
+					}
+					break; 
+				}	
+			}
+			
 			if(updating == 1)
 			{
 				updating = 0; 
@@ -1412,13 +1538,12 @@ function loadXMLDoc()
 					}
 				}
 			}
+			loadXML2(); 
 		} 
 			 
 	}
 	xmlhttp.open("GET", "schedd_status.xml",true);
 	xmlhttp.send(null);
-
-	
 }
 function makeTable() 
 {
@@ -1512,7 +1637,6 @@ for(c = 0; c < row_num; c++)
 		{
 			cell[k].setAttribute('width', '23%');  				
 		}
-		
 	
 		if(c == 0 && k == 0)
 		{
@@ -1748,7 +1872,6 @@ function sortSignal()
 	}
 }
 
-
 function sortTableAscending(column)
 {
 	col = column; 
@@ -1759,85 +1882,181 @@ function sortTableAscending(column)
 	var child; 
 	var att; 
 
-		/* Running. */
+	/* Running. */
 	if(column == columnArray[0])
 	{
-		length = 7; child = 5; att = 4; index = 0; trSortCol = 1; sortSignal(); 
+		length = 7; att = 4; index = 0; trSortCol = 1; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild; 
 	}
 	/* Idle. */
 	if(column == columnArray[1])
 	{
 		length = 7; child = 5; att = 1; index = 1; trSortCol = 4; sortSignal(); 
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	}
 	/* Wait. */
 	if(column == columnArray[2])
 	{
-		length = 7; child = 5; att = 7; index = 2; sortSignal(); 
+		length = 7; child = 5; att = 7; index = 2; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild; 
 	} 
 	/* Pending. */  
 	if(column == columnArray[3])
 	{
-		length = 7; child = 5; att = 3; index = 3; sortSignal(); 
+		length = 7; child = 5; att = 3; index = 3; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild; 
 	} 
 	/* StageIn. */ 
 	if(column == columnArray[4])
 	{
 		length = 7; child = 5; att = 5; index = 4; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	}
 	/* StageOut. */
 	if(column == columnArray[5])
 	{
 		length = 7; child = 5; att = 6; index = 5; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	} 
 	/* Idle Other. */
 	if(column == columnArray[6])
 	{
 		length = 7; child = 5; att = 2; index = 6; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	}
 	/* Held. */
 	if(column == columnArray[7])
 	{
 		length = 7; child = 5; att = 0; index = 7; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	} 
 	/* Max Run. */
 	if(column == columnArray[8])
 	{
 		length = 5; child = 3; att = 1; index = 8; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feReqChild; 
+		}
+		else
+			child = totReqChild;
 	}
 	/* Idle. */
 	if(column == columnArray[9])
 	{
 		length = 5; child = 3; att = 0; index = 9; trSortCol = 5; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feReqChild; 
+		}
+		else
+			child = totReqChild;
 	} 
 	/* Glidein Running. */
 	if(column == columnArray[10])
 	{
 		length = 3; child = 1; att = 1; index = 10; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Jobs Running. */
 	if(column == columnArray[11])
 	{
 		length = 3; child = 1; att = 5; index = 11; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Glidein Idle. */
 	if(column == columnArray[12])
 	{
 		length = 3; child = 1; att = 0; index = 12; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Jobs Idle. */
 	if(column == columnArray[13])
 	{
 		length = 3; child = 1; att = 4; index = 13; trSortCol = 7; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Glidein Total. */
 	if(column == columnArray[14])
 	{
 		length = 3; child = 1; att = 2; index = 14; trSortCol = 2; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	}
 	/* Info Age. */
 	if(column == columnArray[15])
 	{
 		length = 3; child = 1; att = 3; index = 15; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	}
 
 
@@ -1867,11 +2086,11 @@ function sortTableAscending(column)
 	{
 		if(total[i].childNodes.length != 0 && total[i].childNodes.length >= length)
 		{
-		   if(total[i].childNodes[child].attributes[att].nodeValue > 0)
-		   {
+		   	if(total[i].childNodes[child].attributes[att].nodeValue > 0)
+		   	{
 			   newTotal.push(total[i]); 
 			   newEntries.push(totalEntries[i]); 
-		   }	
+		    }			
 		}
 	}	
 
@@ -1908,85 +2127,181 @@ var counter = 0;
 var child; 
 var att; 
 
-		/* Running. */
+	/* Running. */
 	if(column == columnArray[0])
 	{
-		length = 7; child = 5; att = 4; index = 0; trSortCol = 1; sortSignal(); 
+		length = 7; att = 4; index = 0; trSortCol = 1; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild; 
 	}
 	/* Idle. */
 	if(column == columnArray[1])
 	{
 		length = 7; child = 5; att = 1; index = 1; trSortCol = 4; sortSignal(); 
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	}
 	/* Wait. */
 	if(column == columnArray[2])
 	{
-		length = 7; child = 5; att = 7; index = 2; sortSignal(); 
+		length = 7; child = 5; att = 7; index = 2; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild; 
 	} 
 	/* Pending. */  
 	if(column == columnArray[3])
 	{
-		length = 7; child = 5; att = 3; index = 3; sortSignal(); 
+		length = 7; child = 5; att = 3; index = 3; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild; 
 	} 
 	/* StageIn. */ 
 	if(column == columnArray[4])
 	{
 		length = 7; child = 5; att = 5; index = 4; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	}
 	/* StageOut. */
 	if(column == columnArray[5])
 	{
 		length = 7; child = 5; att = 6; index = 5; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	} 
 	/* Idle Other. */
 	if(column == columnArray[6])
 	{
 		length = 7; child = 5; att = 2; index = 6; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	}
 	/* Held. */
 	if(column == columnArray[7])
 	{
 		length = 7; child = 5; att = 0; index = 7; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feStatChild; 
+		}
+		else
+			child = totStatChild;
 	} 
 	/* Max Run. */
 	if(column == columnArray[8])
 	{
 		length = 5; child = 3; att = 1; index = 8; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feReqChild; 
+		}
+		else
+			child = totReqChild;
 	}
 	/* Idle. */
 	if(column == columnArray[9])
 	{
 		length = 5; child = 3; att = 0; index = 9; trSortCol = 5; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feReqChild; 
+		}
+		else
+			child = totReqChild;
 	} 
 	/* Glidein Running. */
 	if(column == columnArray[10])
 	{
 		length = 3; child = 1; att = 1; index = 10; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Jobs Running. */
 	if(column == columnArray[11])
 	{
 		length = 3; child = 1; att = 5; index = 11; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Glidein Idle. */
 	if(column == columnArray[12])
 	{
 		length = 3; child = 1; att = 0; index = 12; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Jobs Idle. */
 	if(column == columnArray[13])
 	{
 		length = 3; child = 1; att = 4; index = 13; trSortCol = 7; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	} 
 	/* Glidein Total. */
 	if(column == columnArray[14])
 	{
 		length = 3; child = 1; att = 2; index = 14; trSortCol = 2; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	}
 	/* Info Age. */
 	if(column == columnArray[15])
 	{
 		length = 3; child = 1; att = 3; index = 15; sortSignal();
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = feCMChild; 
+		}
+		else
+			child = totCMChild;
 	}
 	
 	
@@ -2214,6 +2529,7 @@ function selectActive()
 	var found; 
 	var activeEntries = new Array();
 	var activeTotal = new Array(); 
+	currChild = 1; 
 	
 	/* Remove the table. */
 	if(troubleshoot)
@@ -2346,13 +2662,19 @@ function selectActive()
 		found = 0; 
 		if(total[i].childNodes.length != 0)
 		{
-			for(j = 0; j < total[i].childNodes[1].attributes.length; j++)
+			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+			{
+				currChild = feCMChild; 
+			}
+			else
+				currChild = totCMChild; 
+			for(j = 0; j < total[i].childNodes[currChild].attributes.length; j++)
 			{
 				if(j == 3)
 				{
 					continue; 	
 				}
-				if(parseInt(total[i].childNodes[1].attributes[j].value) != 0)
+				if(parseInt(total[i].childNodes[currChild].attributes[j].value) != 0)
 				{
 					activeEntries.push(totalEntries[i]);
 					activeTotal.push(total[i]);
@@ -2364,13 +2686,19 @@ function selectActive()
 			{
 				continue; 	
 			}
-			for(k = 0; k < total[i].childNodes[3].attributes.length; k++)
+			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+			{
+				currChild = feRewChild; 
+			}
+			else
+				currChild = totReqChild;
+			for(k = 0; k < total[i].childNodes[currChild].attributes.length; k++)
 			{
 				if(k == 1)
 				{
 					continue; 	
 				}
-				if(parseInt(total[i].childNodes[3].attributes[k].value) != 0)
+				if(parseInt(total[i].childNodes[currChild].attributes[k].value) != 0)
 				{
 					activeEntries.push(totalEntries[i]);
 					activeTotal.push(total[i]);
@@ -2386,9 +2714,15 @@ function selectActive()
 			{
 				continue; 	
 			}
-			for(l = 0; l < total[i].childNodes[5].attributes.length; l++)
+			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 			{
-				if(parseInt(total[i].childNodes[5].attributes[l].value) != 0)
+				currChild = feStatChild; 
+			}
+			else
+				currChild = totStatChild;
+			for(l = 0; l < total[i].childNodes[currChild].attributes.length; l++)
+			{
+				if(parseInt(total[i].childNodes[currChild].attributes[l].value) != 0)
 				{
 					activeEntries.push(totalEntries[i]);
 					activeTotal.push(total[i]);
@@ -2451,6 +2785,7 @@ function goToDestination(option)
 }
 function troubleshooting()
 {	
+	currChild = 1; 
 	hrefs = new Array(); 
 	if(troubleshoot == 0)
 	{
@@ -2470,7 +2805,12 @@ function troubleshooting()
 		"Diff(Status: Idle, Requested: Idle)", "Client: User Idle"); 
 		columnId = new Array("entryLinks", "status", "client","difference", "status", "requested", "difference","client"); 
 		colors = new Array("#DCDCDC","#FAF0E6", "#CDAF95", "#7D9EC0","#FAF0E6", "#FFDAB9","#7D9EC0", "#CDAF95"); 
-		child = new Array(5, 1, 5, 3, 1); 
+		if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+		{
+			child = new Array(feStatChild, feCMChild, feStatChild, feReqChild, feCMChild); 
+		}	 
+		else	 
+			child = new Array(totStatChild, totCMChild, totStatChild, totReqChild, totCMChild); 
 		count = 0; 
 		att = new Array(4, 2, 1, 0, 4); 
 		rows = new Array(); 
@@ -2484,9 +2824,9 @@ function troubleshooting()
 		{
 			if(childView && i > 0)
 			{
-				for(n = 1; n < tempTotalEntries[i - 1].childNodes[3].childNodes.length; n+=2)
+				for(n = 1; n < tempTotalEntries[i - 1].childNodes[feChild].childNodes.length; n+=2)
 				{
-					if(tempTotalEntries[i - 1].childNodes[3].childNodes[n].attributes[0].value == frontEndName)
+					if(tempTotalEntries[i - 1].childNodes[feChild].childNodes[n].attributes[0].value == frontEndName)
 					{
 						childView = n; 
 						break; 	
@@ -2546,14 +2886,14 @@ function troubleshooting()
 						{
 							if(!childView)
 							{
-								if((tempTotalEntries[i - 1].childNodes[1].childNodes.length != 7 && child[count - 2] == 5) || 
-								tempTotalEntries[i - 1].childNodes[1].childNodes.length == 0)
+								if((tempTotalEntries[i - 1].childNodes[totChild].childNodes.length < 7 && child[count - 2] == totStatChild) || 
+								tempTotalEntries[i - 1].childNodes[totChild].childNodes.length == 0)
 								{
 									val1 = 0;
 									one = 0;  
 								}
-								if((tempTotalEntries[i - 1].childNodes[1].childNodes.length != 7 && child[count - 1] == 5) || 
-								tempTotalEntries[i - 1].childNodes[1].childNodes.length == 0)
+								if((tempTotalEntries[i - 1].childNodes[totChild].childNodes.length < 7 && child[count - 1] == totStatChild) || 
+								tempTotalEntries[i - 1].childNodes[totChild].childNodes.length == 0)
 								{
 									val2 = 0;
 									two = 0;   
@@ -2561,14 +2901,14 @@ function troubleshooting()
 							}
 							else
 							{
-								if((tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length != 7 && child[count - 2] == 5) || 
-								tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length == 0)
+								if((tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length < 7 && child[count - 2] == feStatChild) || 
+								tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length == 0)
 								{
 									val1 = 0;
 									one = 0;  
 								}
-								if((tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length != 7 && child[count - 1] == 5) || 
-								tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length == 0)
+								if((tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length < 7 && child[count - 1] == feStatChild) || 
+								tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length == 0)
 								{
 									val2 = 0;
 									two = 0;   
@@ -2579,14 +2919,16 @@ function troubleshooting()
 							{
 								if(!childView)
 								{
-									val1 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 2]].attributes[att[count - 2]].value); 
-									val2 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 1]].attributes[att[count - 1]].value);
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count - 2]].attributes[att[count - 2]].value); 
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count - 1]].attributes[att[count - 1]].value);
 								}
-									else
+								else
 								{
-									val1 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 2]].attributes[att[count - 2]].
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count - 2]].attributes[att[count - 2
+									]].
 									value); 
-									val2 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1]].
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1
+									]].
 									value);	
 								}
 							}
@@ -2594,11 +2936,12 @@ function troubleshooting()
 							{
 								if(!childView)
 								{
-									val1 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 2]].attributes[att[count - 2]].value);
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count - 2]].attributes[att[count - 2]].value);
 								}
 								else
 								{
-									val1 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 2]].attributes[att[count - 2]].
+									val1 = parseInt(tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count - 2]].attributes[att[count - 2
+									]].
 									value);
 								}
 							}
@@ -2606,11 +2949,12 @@ function troubleshooting()
 							{
 								if(!childView)
 								{
-									val2 = parseInt(tempTotalEntries[i - 1].childNodes[1].childNodes[child[count - 1]].attributes[att[count - 1]].value);
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count - 1]].attributes[att[count - 1]].value);
 								}
 								else
 								{
-									val2 = parseInt(tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1]].
+									val2 = parseInt(tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count - 1]].attributes[att[count - 1
+									]].
 									value);
 								}
 							}
@@ -2628,27 +2972,27 @@ function troubleshooting()
 						{
 							if(!childView)
 							{
-								if((tempTotalEntries[i - 1].childNodes[1].childNodes.length != 7 && child[count] == 5) || tempTotalEntries[i - 1].childNodes[1].childNodes.
-								length == 0)	
+								if((tempTotalEntries[i - 1].childNodes[totChild].childNodes.length < 7 && child[count] == totStatChild) || tempTotalEntries[i - 1].
+								childNodes[totChild].childNodes.length == 0)	
 								{
 									cols[j].appendChild(document.createTextNode("0"));
 								}
 								else
 								{
-									val = tempTotalEntries[i - 1].childNodes[1].childNodes[child[count]].attributes[att[count]].value; 
+									val = tempTotalEntries[i - 1].childNodes[totChild].childNodes[child[count]].attributes[att[count]].value; 
 									cols[j].appendChild(document.createTextNode(val));
 								}	
 							}
 							else
 							{
-								if((tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length != 7 && child[count] == 5) || 
-								tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes.length ==0)	
+								if((tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length < 7 && child[count] == feStatChild) || 
+								tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes.length == 0)	
 								{
 									cols[j].appendChild(document.createTextNode("0"));
 								}
 								else
 								{
-									val = tempTotalEntries[i - 1].childNodes[3].childNodes[childView].childNodes[child[count]].attributes[att[count]].value; 
+									val = tempTotalEntries[i - 1].childNodes[feChild].childNodes[childView].childNodes[child[count]].attributes[att[count]].value; 
 									cols[j].appendChild(document.createTextNode(val));
 								}	
 							}
@@ -2722,8 +3066,13 @@ function sortTrCol(col)
 	colMaster = new Array("Status: Running", "Client: Registered", "diff", "Status: Idle", "Requested: Idle", "diff", "Client: User Idle");
 	sortCol = new Array("statusRunning", "cmGlideinTotal", "diff", "statusIdle", "requestIdle", "diff", "cmGlideinJobsIdle"); 
 	diffCol = new Array("Diff(Status: Running, Client: Registered)", "Diff(Status: Idle, Requested: Idle)");
-	diffCell = new Array(3, 6);  
-	child = new Array(5, 1, 5, 3); 
+	diffCell = new Array(3, 6);
+	if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
+	{
+		child = new Array(feStatChild, feCMChild, feStatChild, feReqChild); 
+	} 
+	else	 
+		child = new Array(totStatChild, totCMChild, totStatChild, totReqChild); 
 	att = new Array(4, 2, 1, 0); 
 	cellSort = 0; 
 
@@ -2731,9 +3080,11 @@ function sortTrCol(col)
 	{
 		if(col == colMaster[i])
 		{
+			friend = i; 
 			diffSorted = 0;
 			sortTableDescending(sortCol[i]); 
 			troubleshooting(); 
+			i = friend; 
 			trSortSignal(i + 1); 
 		}
 		else
@@ -2790,9 +3141,9 @@ function sortTrCol(col)
 						{
 							if(childView)
 							{
-								for(n = 1; n < totalEntries[k].childNodes[3].childNodes.length; n+=2)
+								for(n = 1; n < totalEntries[k].childNodes[feChild].childNodes.length; n+=2)
 								{
-									if(totalEntries[k].childNodes[3].childNodes[n].attributes[0].value == frontEndName)
+									if(totalEntries[k].childNodes[feChild].childNodes[n].attributes[0].value == frontEndName)
 									{
 										childView = n; 
 										break; 	
@@ -2810,12 +3161,13 @@ function sortTrCol(col)
 								} 
 								try
 								{
-									val1 = parseInt(totalEntries[k].childNodes[3].childNodes[childView].childNodes[child[helper]].attributes[att[helper]].value); 
+									val1 = parseInt(totalEntries[k].childNodes[feChild].childNodes[childView].childNodes[child[helper]].attributes[att[helper]].value); 
 								}
 								catch(err){}
 								try
 								{
-									val2 = 	parseInt(totalEntries[k].childNodes[3].childNodes[childView].childNodes[child[helper + 1]].attributes[att[helper + 1]].value); 
+									val2 = 	parseInt(totalEntries[k].childNodes[feChild].childNodes[childView].childNodes[child[helper + 1]].attributes[att[helper + 1]].
+									value); 
 								}
 								catch(err){}
 								diff =  val1 - val2; 
@@ -2855,12 +3207,12 @@ function sortTrCol(col)
 								} 
 								try
 								{
-									val1 = parseInt(totalEntries[k].childNodes[1].childNodes[child[helper]].attributes[att[helper]].value); 
+									val1 = parseInt(totalEntries[k].childNodes[totChild].childNodes[child[helper]].attributes[att[helper]].value); 
 								}
 								catch(err){}
 								try
 								{
-									val2 = 	parseInt(totalEntries[k].childNodes[1].childNodes[child[helper + 1]].attributes[att[helper + 1]].value); 
+									val2 = 	parseInt(totalEntries[k].childNodes[totChild].childNodes[child[helper + 1]].attributes[att[helper + 1]].value); 
 								}
 								catch(err){}
 								diff =  val1 - val2;
@@ -2906,10 +3258,6 @@ function sortNumber(a, b)
 {
 	return b - a; 
 }
-function sortReverse(a, b)
-{
-	return a - b; 
-}
 function trSortSignal(col)
 {
 	if(col > 7)
@@ -2945,6 +3293,434 @@ function trSortSignal(col)
 				trTable.rows[j].cells[i].bgColor = "#F2F2F2";
 			}
 		}
+	}
+}
+function period()
+{
+	if(table && !periodV)
+	{
+		document.getElementById('scroll').removeChild(table);
+		document.getElementById('header').removeChild(thead); 
+	}
+	else
+	{
+		document.getElementById('scroll').removeChild(tableP);
+		document.getElementById('header').removeChild(theadP);
+		document.getElementById('scroll').appendChild(table);
+		document.getElementById('header').appendChild(thead); 
+		periodV = 0;
+		return;  
+	}
+	periodV = 1; 
+							
+	row=new Array();
+	cell=new Array();
+	cell2 = new Array();
+	row2 = document.createElement('tr'); 
+
+	row_num=totalEntriesP.length; //edit this value to suit	
+	cell_num=18; //edit this value to suit
+	x = 0;
+
+	theadP = document.createElement('table');
+	thBodyP = document.createElement('tbody');
+	theadP.setAttribute('id', 'thead');
+
+	tableP = document.createElement('table');	
+	tBodyP =document.createElement('tbody');
+	tableP.setAttribute('id','table');
+	colorArry = new Array("#FAF0E6", "#FFDAB9", "#CDAF95"); 
+
+	for(x = 0; x < 5; x++)
+	{
+		if(x == 0)
+		{
+			cell2[x] = document.createElement('td');
+			cell2[x].setAttribute('bgColor', '#DCDCDC');
+			cell2[x].setAttribute('id', 'periodH');
+			cell2[x].setAttribute("colspan", "1");
+			td1Txt = document.createTextNode("");
+			cell2[x].appendChild(td1Txt);
+			cell2[x].setAttribute("width", "23%");
+		}
+		if(x == 1)
+		{
+			cell2[x] = document.createElement('td');
+			cell2[x].setAttribute("colspan", ""); 
+			cell2[x].setAttribute('bgColor', '#FFFAF0');
+			td1Txt = document.createTextNode("Period:");
+			cell2[x].appendChild(td1Txt);
+			cell2[x].setAttribute('id', 'periodH');
+		}
+		if(x == 2)
+		{
+			cell2[x] = document.createElement('td');
+			cell2[x].setAttribute("colspan", "8"); 
+			cell2[x].setAttribute('bgColor', '#FAF0E6');
+			td1Txt = document.createTextNode("Status:");
+			cell2[x].appendChild(td1Txt);
+			cell2[x].setAttribute('id', 'periodH'); 
+		}
+		if(x == 3)
+		{
+			cell2[x] = document.createElement('td');
+			cell2[x].setAttribute("colspan", "2"); 
+			cell2[x].setAttribute('bgColor', '#FFDAB9');
+			td1Txt = document.createTextNode("Requested:");
+			cell2[x].appendChild(td1Txt);
+			cell2[x].setAttribute('id', 'periodH'); 
+		}
+		if( x == 4)
+		{
+			cell2[x] = document.createElement('td');
+			cell2[x].setAttribute("colspan", "6");
+			cell2[x].setAttribute('bgColor', '#CDAF95'); 
+			td3Txt = document.createTextNode("Client Monitor:"); 	
+			cell2[x].appendChild(td3Txt);
+			cell2[x].setAttribute('id', 'periodH');
+		}
+		row2.appendChild(cell2[x]); 
+	}
+	
+	thBodyP.appendChild(row2); 
+	friend = cell_num; 
+
+	for(c = 0; c < row_num * 3 + 1; c++)
+	{
+		row[c] = document.createElement('tr');	
+		row[c].setAttribute('id', 'entries'); 
+		if(c > 0)
+		{
+			row[c].setAttribute('onmouseover', "this.bgColor='#FFFF66'");
+			row[c].setAttribute('onmouseout', "this.bgColor='#F2F2F2'"); 
+		}
+		for(k = 0; k < friend; k++) 
+		{
+			friend = cell_num; 
+			cell[k] = document.createElement('td');
+			if((c + 2) % 3 == 0 && k == 0)
+			{
+				cell[k].setAttribute("bgColor", "#F2F2F2"); 	
+			}
+			if((c + 2) % 3 != 0 && c != 0)
+			{
+				friend--;  
+			}
+			
+			if(((c + 2) % 3 == 0) && k == 0)
+			{
+				cell[k].setAttribute('rowspan', '3'); 	
+			}
+	
+			if(c > 0 && k> 1)
+			{
+				//cell[k].setAttribute('onmouseover', 'showPopUp(this)');
+				//cell[k].setAttribute('onmouseout', 'hidePopUp()');
+				cell[k].setAttribute('id', c);  				
+			}
+			if(c > 0 && k == 0)
+			{
+				cell[k].setAttribute('width', '23%');  				
+			}
+		
+			if(c == 0 && k == 0)
+			{
+				cont = document.createTextNode("Entry Name")
+				cell[k].appendChild(cont);
+				cell[k].setAttribute('id', 'entryName'); 
+	    		//cell[k].setAttribute("onclick", "sortAlphabetical()");
+				cell[k].setAttribute('bgColor', '#DCDCDC');  	 
+			}
+			if( c == 0 && k == 1)
+			{
+				cont = document.createTextNode("Name")
+				cell[k].appendChild(cont);
+				cell[k].setAttribute('id', ''); 
+			    cell[k].setAttribute("onclick", ""); 
+				cell[k].setAttribute('bgColor', '#FFFAF0'); 	 
+			}
+			if(c == 0 && k >= 2)
+			{
+				cont = document.createTextNode(headColArry[k - 2])
+				cell[k].appendChild(cont);
+				cell[k].setAttribute('id', ''); 
+			    //cell[k].setAttribute("onclick", "sortTableDescending('') "); 
+				if(k < 10)
+				{
+					cell[k].setAttribute('bgColor', colorArry[0]); 
+				}
+				else if(k < 12)
+				{
+					cell[k].setAttribute('bgColor', colorArry[1]); 
+				}
+				else
+					cell[k].setAttribute('bgColor', colorArry[2]); 
+			}
+			
+			if( c > 0 )
+			{
+				cont = document.createTextNode(0 + "")
+				cell[k].appendChild(cont);
+			}
+			
+			row[c].appendChild(cell[k]);
+		}
+		if(c == 0)
+		{
+			thBodyP.appendChild(row[c]); 
+		}
+		else
+		{
+			tBodyP.appendChild(row[c]);
+		}
+		tableMade = 1;
+	}
+
+	theadP.appendChild(thBodyP); 
+	tableP.appendChild(tBodyP); 
+	document.getElementById('header').appendChild(theadP); 
+	document.getElementById('scroll').appendChild(tableP);
+	document.getElementById('scroll').style.height = (window.innerHeight - 74) + "px"; 	
+	fillInPeriod();
+}
+function fillInPeriod()
+{
+	problem = 0;
+	linkCount = 0;
+	 
+	if(tableMade == 0)
+	{
+		makeTable();
+	}
+	if(listMade == 0)
+	{
+		makeList(); 	
+	}
+	
+	document.getElementById("total").innerHTML= " &bull;" + "View has: " + numberRows + " Total Entries - (" + preFrontEndName + ")"; 
+	
+	//Fill in entries ]
+	count = 0; 
+	for( i = 0; i < row_num * 3; i++)
+	{
+		if(i % 3 == 0)
+		{
+			y = totalEntriesP[count].attributes.getNamedItem("name").firstChild.data; 
+			tableP.rows[i].cells[0].innerHTML = "";
+			links[i] = document.createElement('a');
+			links[i].setAttribute("id", "entryLinks"); 
+			links[i].innerHTML = y; 
+			links[i].setAttribute("href", "factoryEntryStatusNow.html?entry=" + y);
+			links[i].setAttribute("onclick", "entryClick(this)");
+			tableP.rows[i].cells[0].appendChild(links[i]);
+			count++;  
+		}
+	}
+	
+	/* 
+	 * Fill in the period names.
+	 */
+	count = 0;
+	child = 1;
+	three = 0; 
+	valFinal = 0;   
+	for(i = 0; i < tableP.rows.length; i++)
+	{
+		if(i % 3 != 0)
+		{
+			if(child == 5)
+			{
+				child = 3; 	
+			}
+			else
+				child = 5; 
+							
+			valFinal = 0; 
+			val = totalEntriesP[count].childNodes[1].childNodes[1].childNodes[child].attributes[0].value; 
+			val2 = val % 60; /* Remaining seconds */
+
+			/* Minutes */ val3 = val / 60;
+			valFinal = val3 + " mins"; 
+			
+			/* If more than 60 minutes converto hours. */
+			if(val3 > 60)
+			{
+				/* Hours */ val4 = val3 / 60; 
+				valFinal = val4 + " hours"; 
+
+				/* If hours more than 24 convert to days. */	
+				if(val4 > 24)
+				{
+					/* Days */ val5 = val4 / 24;
+					valFinal = val5 + " days"; 
+					
+					/* If more than 365 days convert to years. */
+					if(val5 > 365)
+					{
+						/* Years */ val6 = val5/ 365; 
+						valFinal = val6 + " years"; 
+					}
+				}
+			}
+			
+			tableP.rows[i].cells[0].innerHTML = valFinal;
+			three++; 
+			if(three == 3)
+			{
+				count++; 
+			}
+		}
+		else
+		{
+			child = 1; 
+			valFinal = 0; 
+			val = totalEntriesP[count].childNodes[1].childNodes[1].childNodes[child].attributes[0].value; 
+			val2 = val % 60; /* Remaining seconds */
+
+			/* Minutes */ val3 = val / 60;
+			valFinal = val3 + " mins"; 
+			
+			/* If more than 60 minutes converto hours. */
+			if(val3 > 60)
+			{
+				/* Hours */ val4 = val3 / 60; 
+				valFinal = val4 + " hours"; 
+
+				/* If hours more than 24 convert to days. */	
+				if(val4 > 24)
+				{
+					/* Days */ val5 = val4 / 24;
+					valFinal = val5 + " days"; 
+					
+					/* If more than 365 days convert to years. */
+					if(val5 > 365)
+					{
+						/* Years */ val6 = val5/ 365; 
+						valFinal = val6 + " years"; 
+					}
+				}
+			}
+			tableP.rows[i].cells[1].innerHTML = valFinal;
+			three++; 
+		}	
+	}
+	
+	/* 
+	 * Fill in status fields.  
+	 */
+	var attArry = new Array(13,10,16,12,14,15,11,9); 
+	attCount = 0;
+	child = 1; 
+	count = 0;
+	for(i = 0; i < totalEntriesP.length; i++)
+	{
+		child = 1;
+		for(j = 0; j < 3; j++)
+		{ 
+			attCount = 0;  
+			for(counter = 2; counter <= 9; counter++)
+			{
+				x = totalP[i].childNodes[1].childNodes[child].attributes[attArry[attCount]].nodeValue;
+				x = Math.round(x * 100)/100; 
+				if(j == 0)
+				{
+					tableP.rows[count].cells[counter].innerHTML = x;
+				}
+				else
+				{
+					tableP.rows[count].cells[counter - 1].innerHTML = x; 
+				}
+				attCount++; 
+			}
+			if(child == 5)
+			{
+				child = 3; 	
+			}
+			else
+				child = 5;
+				
+			count++; 	
+		}
+ 	}
+	
+	/*
+	 * Fill in requested fields. 
+	 */
+	var attArry = new Array(8,7); 
+	attCount = 0;
+	child = 1; 
+	count = 0; 
+	for(i = 0; i < totalEntries.length; i++)
+	{
+		child = 1;
+		for(j = 0; j < 3; j++)
+		{ 
+			attCount = 0;  
+			for(counter = 10; counter <= 11; counter++)
+			{
+				x = totalP[i].childNodes[1].childNodes[child].attributes[attArry[attCount]].nodeValue;
+				x = Math.round(x * 100)/100; 
+				if(j == 0)
+				{
+					tableP.rows[count].cells[counter].innerHTML = x;
+				}
+				else
+				{
+					tableP.rows[count].cells[counter - 1].innerHTML = x; 
+				}
+				attCount++; 
+			}
+			if(child == 5)
+			{
+				child = 3; 	
+			}
+			else
+				child = 5;
+			count++; 	
+		}	
+ 	}
+	
+	/* 
+     * Fill in client monitor fields 
+ 	 */
+	var attArry = new Array(2,6,1,5,3,4); 
+	attCount = 0;
+	child = 1; 
+	count = 0; 
+	for(i = 0; i < totalEntriesP.length; i++)
+	{
+		child = 1;
+		for(j = 0; j < 3; j++)
+		{ 
+			attCount = 0;  
+			for(counter = 12; counter <= 17; counter++)
+			{
+				x = totalP[i].childNodes[1].childNodes[child].attributes[attArry[attCount]].nodeValue;
+				x = Math.round(x * 100)/100; 
+				if(j == 0)
+				{
+					tableP.rows[count].cells[counter].innerHTML = x;
+				}
+				else
+				{
+					tableP.rows[count].cells[counter - 1].innerHTML = x; 
+				}
+				attCount++; 
+			}
+			if(child == 5)
+			{
+				child = 3; 	
+			}
+			else
+				child = 5;
+			count++; 	
+		}	
+ 	}
+	
+	if(loading == 1)
+	{
+		loading = 0; 
+	    checkUrl();
 	}
 }
 </script>
@@ -3047,6 +3823,11 @@ td
 {
 	float:right;
 }
+#periodH
+{
+	font-weight:bold;
+	text-align:center;
+}
 </style>
 
 </head>
@@ -3067,10 +3848,11 @@ td
 <h5 id = "total">(Total Entries)</h5>
 
 <div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" >Active only
-<input type="checkbox" id = "troubleshoot" name="option2" value="troubleshoot" onclick= "troubleshooting()" > Troubleshoot <br></div> 
+<input type="checkbox" id = "troubleshoot" name="option2" value="troubleshoot" onclick= "troubleshooting()" > Troubleshoot
+<!-- <input type="checkbox" id = "period" name="option3" value="troubleshoot" onclick= "period()" > Period <br /> --></div> 
 
 <div id = "tempList"></div>
-
+                      
 <br /><br /><br /><br />
 
 <form  > <input id = "button" type="button" value="Update Table"  onclick="updateTable()"/> </form>
