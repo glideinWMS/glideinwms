@@ -4,8 +4,10 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.85.2.5 2010/09/08 03:30:00 parag Exp $
+#   $Id: glidein_startup.sh,v 1.85.2.6 2010/10/11 19:11:47 burt Exp $
 #
+
+export LANG=C
 
 function on_die {
         echo "Received kill signal... shutting down child processes"
