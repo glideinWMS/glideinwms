@@ -4,8 +4,10 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.85.18.3 2010/08/31 20:18:06 dstrain Exp $
+#   $Id: glidein_startup.sh,v 1.85.18.4 2010/10/11 19:10:56 burt Exp $
 #
+
+export LANG=C
 
 function warn {
  echo `date` $@ 1>&2
