@@ -80,12 +80,29 @@ USAGE:
     data = {}
     frontend_list = []
 
+
     for entry in c_data['entries']:
         for frontend in c_data['entries'][entry]['frontends']:
-            
             if frontend not in frontend_list:
                 frontend_list.append(frontend)
 
+    if filter_frontend != 0:
+        if filter_frontend not in frontend_list:
+            print "\nFrontend", filter_frontend, "not found at source.\n"
+            print "Choices are:\n "
+            for frontend in frontend_list:
+                print frontend
+            print
+            sys.exit(1)
+      
+    for entry in c_data['entries']:
+
+        for frontend in c_data['entries'][entry]['frontends']:
+
+            if filter_frontend != 0:
+                if frontend != filter_frontend:
+                    continue
+            
             for period in c_data['entries'][entry]['frontends'][frontend]['periods']:
 
                 if int(period) not in data:
@@ -98,24 +115,6 @@ USAGE:
                 for x_data in [c_data, j_data, w_data]:
                     for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
                         data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
-
-    if filter_frontend != 0:
-        if filter_frontend not in frontend_list:
-            print "\nFrontend", filter_frontend, "not found at source.\n"
-            print "Choices are:\n "
-            for frontend in frontend_list:
-                print frontend
-            print
-            sys.exit(1)
-        else:
-            remove_list = []
-            for period in data:
-               for frontend in data[period]:
-                   if frontend != filter_frontend:
-                       remove_list.append(frontend) 
-               for r_frontend in remove_list:
-                   if r_frontend in data[period]:
-                       del data[period][r_frontend]
             
 
 ######################################################################
@@ -123,16 +122,19 @@ USAGE:
 ######################################################################
 
 
-    print("""
+    if filter_frontend == 0:
+        print("""
 Glidein log analysis for All Entries - %s
 """ % datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S"))
+    else: print("""
+Glidein log analysis for frontend %s - %s
+""" % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
           
-    if filter_frontend != 0: 
-        print "\nSorting by frontend:", filter_frontend.lstrip('frontend_'), "\n"
 
     period_data = {}
     frontend_data = {}
     entry_data = {}
+    entry_data_all_frontends = {}
     
     for period, frontends in data.iteritems():
         glideins, jobs, used, waste, validation, idle = 0,0,0,0,0,0
@@ -141,6 +143,7 @@ Glidein log analysis for All Entries - %s
         period_data[period] = {}
         frontend_data[period] = {}
         entry_data[period] = {}
+        entry_data_all_frontends[period] = {}
 
         for frontend, entries in frontends.iteritems(): 
 
@@ -175,6 +178,15 @@ Glidein log analysis for All Entries - %s
                         if multiplier == "Most": multiplier = 750 # approximation
                         if multiplier == "None": multiplier = 0
                         eidle += value*(int(multiplier)/1000)
+                
+                if entry not in entry_data_all_frontends[period]:
+                    entry_data_all_frontends[period][entry] = {} 
+
+                for a in ['FailedNr','validation_All','JobsNr_None','badput_All','Lasted']:
+                    if a not in entry_data_all_frontends[period][entry]:
+                        entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
+                    else: entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
+
                     
                 for name, value in {'glideins': eglideins, 
                          'jobs': ejobs,
@@ -182,7 +194,12 @@ Glidein log analysis for All Entries - %s
                          'waste': ewaste,
                          'validation': evalidation,
                          'idle': eidle}.iteritems():
+
                     entry_data[period][frontend][entry][name] = value
+
+                    if name not in entry_data_all_frontends[period][entry]:
+                        entry_data_all_frontends[period][entry][name] = value
+                    else: entry_data_all_frontends[period][entry][name] += value
 
                 fglideins += eglideins
                 fjobs += ejobs
@@ -254,16 +271,72 @@ CPU time efficiency: %.2f
        float(period_data[period]['used'])/float(period_data[period]['waste']),
        float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
 
-    print """
----------------------------------------
----------------------------------------
-Per Entry stats for the past %s hours.""" % (x)
-
-    period = int(x)*3600
 
     if period not in data:
         print "Interval",x,"does not exist in data.\n"# Choices are:",c_data['total']['period'].keys(),"\n"
         return
+
+################################################################################
+#    Print per entry stats (all frontends)
+################################################################################
+
+    period = int(x)*3600
+
+    if filter_frontend == 0:
+
+        print """
+---------------------------------------
+---------------------------------------
+Per Entry (all frontends) stats for the past %s hours.\n""" % x
+
+
+        print("%-40s %4s %6s %7s %7s %7s %7s %8s" % ( 
+                  "", "start","val","0job","badp","waste","time","total"))
+
+        to_be_printed = {}  # dict of paired entry data with wastetime for sorting
+
+        for entry_name, entry in entry_data_all_frontends[period].iteritems():
+ 
+            if entry['glideins'] == 0:
+                continue
+
+            if entry['validation'] == 0:
+                entry['validation'] = 1
+            
+                           
+            to_be_printed[int(entry['waste'])] = ("%-40s %4d%%  %4d%%  %5d%%  %5d%%  %6.1f  %6.1f  %1s %4d" 
+                 % (entry_name.lstrip("entry_"),
+                    (float(entry['FailedNr'])/float(entry['glideins']))*100,
+                    (float(entry['validation_All'])/float(entry['Lasted']))*100,
+                    (float(entry['JobsNr_None'])/float(entry['glideins']))*100,
+                    (float(entry['badput_All'])/float(entry['Lasted']))*100,
+                    entry['waste']/3600.0,
+                    #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
+                    entry['Lasted']/3600.0,
+                    "|",
+                    entry['glideins']))
+
+        if sort_waste == 1:
+            wastetimes = to_be_printed.keys()
+            wastetimes.sort()
+            wastetimes.reverse()
+            for a in wastetimes:
+                print to_be_printed[a]
+            print("----------------------------------")
+        else: 
+            for a in to_be_printed:
+                print to_be_printed[a]
+
+
+################################################################################
+#    Print per frontend per entry stats
+################################################################################
+
+
+    print """
+---------------------------------------
+---------------------------------------
+Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
 
     for frontend, entries in data[period].iteritems():
 
