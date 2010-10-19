@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.2 2010/09/08 22:14:29 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.24.3 2010/10/19 19:23:54 weigand Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -365,8 +365,8 @@ def aggregateLogSummary():
                     val_dict_wastetime['%s_%s'%(w,p)]=time_waste_mill_w[p]
 
     # write the data to disk
-    glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Counts"%fe_dir,
-                                                            "GAUGE",updated,val_dict_counts)
+    glideFactoryMonitoring.monitoringConfig.write_rrd_multi_hetero("%s/Log_Counts"%fe_dir,
+                                                            val_dict_counts_desc,updated,val_dict_counts)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_completed)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
