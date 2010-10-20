@@ -303,7 +303,7 @@ def main(argv):
         if len(services) <> installed_services:
           common.ask_continue("... continue with next service")
   
-    common.logit("... requested installations completed")
+    common.logit("... requested action completed")
 
   except getopt.error, e:
     msg = e.__str__()
