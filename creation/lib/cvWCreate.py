@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cvWCreate.py,v 1.7.8.8 2010/09/08 23:22:37 sfiligoi Exp $
+#   $Id: cvWCreate.py,v 1.7.8.9 2010/10/20 19:39:48 parag Exp $
 #
 # Description:
 #   Functions needed to create files used by the VO Frontend
@@ -227,7 +227,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
-        fd.write("CONDOR_HOST = %s\n"%string.join(collector_nodes,","))
+        fd.write("COLLECTOR_HOST = %s\n"%string.join(collector_nodes,","))
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")
