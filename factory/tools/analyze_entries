@@ -80,7 +80,6 @@ USAGE:
     data = {}
     frontend_list = []
 
-
     for entry in c_data['entries']:
         for frontend in c_data['entries'][entry]['frontends']:
             if frontend not in frontend_list:
@@ -115,7 +114,8 @@ USAGE:
                 for x_data in [c_data, j_data, w_data]:
                     for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
                         data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
-            
+
+    
 
 ######################################################################
 # Organize totals/stats for each period, frontend, and entry independantly
@@ -137,7 +137,7 @@ Glidein log analysis for frontend %s - %s
     entry_data_all_frontends = {}
     
     for period, frontends in data.iteritems():
-        glideins, jobs, used, waste, validation, idle = 0,0,0,0,0,0
+        glideins, jobs, used, waste, validation, idle, badput = 0,0,0,0,0,0,0
 
         period = int(period)
         period_data[period] = {}
@@ -147,12 +147,12 @@ Glidein log analysis for frontend %s - %s
 
         for frontend, entries in frontends.iteritems(): 
 
-            fglideins, fjobs, fused, fwaste, fvalidation, fidle = 0,0,0,0,0,0
+            fglideins, fjobs, fused, fwaste, fvalidation, fidle, fbadput = 0,0,0,0,0,0,0
             frontend_data[period][frontend] = {}
             entry_data[period][frontend] = {}
 
             for entry, elements in entries.iteritems():
-                eglideins, ejobs, eused, ewaste, evalidation, eidle = 0,0,0,0,0,0
+                eglideins, ejobs, eused, ewaste, evalidation, eidle, ebadput = 0,0,0,0,0,0,0
                 entry_data[period][frontend][entry] = {}  
 
                 eglideins = elements["Glideins"]
@@ -187,12 +187,15 @@ Glidein log analysis for frontend %s - %s
                         entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
                     else: entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
 
-                    
+                ewaste = data[period][frontend][entry]["Lasted"] - data[period][frontend][entry]["JobsLasted"]
+                ebadput = data[period][frontend][entry]["Lasted"] - data[period][frontend][entry]["JobsGoodput"]
+ 
                 for name, value in {'glideins': eglideins, 
                          'jobs': ejobs,
                          'used': eused,
                          'waste': ewaste,
                          'validation': evalidation,
+                         'badput': ebadput,
                          'idle': eidle}.iteritems():
 
                     entry_data[period][frontend][entry][name] = value
@@ -207,12 +210,14 @@ Glidein log analysis for frontend %s - %s
                 fwaste += ewaste
                 fvalidation += evalidation
                 fidle += eidle
+                fbadput += ebadput
 
             for name, value in {'glideins': fglideins, 
                      'jobs': fjobs,
                      'used': fused,
                      'waste': fwaste,
                      'validation': fvalidation,
+                     'badput': fbadput,
                      'idle': fidle}.iteritems():
                 frontend_data[period][frontend][name] = value
 
@@ -222,12 +227,14 @@ Glidein log analysis for frontend %s - %s
             waste += fwaste
             validation += fvalidation
             idle += fidle
+            badput += fbadput
 
         for name, value in {'glideins': glideins, 
                      'jobs': jobs,
                      'used': used,
                      'waste': waste,
                      'validation': validation,
+                     'badput': badput,
                      'idle': idle}.iteritems():
             period_data[period][name] = value
 
@@ -297,7 +304,7 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
 
         for entry_name, entry in entry_data_all_frontends[period].iteritems():
  
-            if entry['glideins'] == 0:
+            if entry['glideins'] == 0 or entry['Lasted'] == 0:
                 continue
 
             if entry['validation'] == 0:
@@ -309,7 +316,8 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
                     (float(entry['FailedNr'])/float(entry['glideins']))*100,
                     (float(entry['validation_All'])/float(entry['Lasted']))*100,
                     (float(entry['JobsNr_None'])/float(entry['glideins']))*100,
-                    (float(entry['badput_All'])/float(entry['Lasted']))*100,
+                    (float(entry['badput'])/float(entry['Lasted']))*100,
+                    #(float(entry['badput_All'])/float(entry['Lasted']))*100,
                     entry['waste']/3600.0,
                     #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
                     entry['Lasted']/3600.0,
@@ -343,6 +351,7 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
         if period_data[period]['glideins'] == 0 or frontend_data[period][frontend]['glideins'] == 0:
             continue
 
+        # to avoid divisions by zero
         if frontend_data[period][frontend]['waste'] == 0:
             frontend_data[period][frontend]['waste'] = 1
 
@@ -390,7 +399,8 @@ CPU time efficiency: %.2f
                         (float(e['FailedNr'])/float(entry_data[period][frontend][entry]['glideins']))*100,
                         (float(e['validation_All'])/float(e['Lasted']))*100,
                         (float(e['JobsNr_None'])/float(entry_data[period][frontend][entry]['glideins']))*100,
-                        (float(e['badput_All'])/float(e['Lasted']))*100,
+                        (float(entry_data[period][frontend][entry]['badput'])/float(e['Lasted']))*100,
+                        #(float(e['badput_All'])/float(e['Lasted']))*100,
                         entry_data[period][frontend][entry]['waste']/3600.0,
                         #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
                         e['Lasted']/3600.0,
@@ -420,8 +430,8 @@ KEY:
 start = condor failed to start
 val = failed to validate (hit 1000s limit)
 0jobs = 0 jobs/glidein
-badput = 100% badput (hit 1000s limit)
-wasted = wallclock time wasted (hours)
+badput = badput (Lasted - JobsGoodput)
+wasted = wallclock time wasted (hours) (Lasted - JobsLasted)
 time = total wallclock time (hours)
 total = total number of glideins
 -------------------------------------
