@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.3 2010/09/08 03:12:31 parag Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.4 2010/10/28 00:38:37 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -323,3 +323,90 @@ def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,f
             out_status_dict[collector]=status
     return out_status_dict
 
+#############################################
+#
+# Extract unique subsets from a list of sets
+# by Benjamin Hass @ UCSD (working under Igor Sfiligoi)
+#
+# Input: list of sets
+# Output: list of (index set, value subset) pairs + a set that is the union of all input sets
+#
+# Example in:
+#   [Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+#    Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#         21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]),
+#    Set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])]
+# Example out:
+#   ([(Set([2]), Set([32, 33, 34, 35, 31])),
+#     (Set([0, 1, 2]), Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])),
+#     (Set([2, 3]), Set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#                        21, 22, 23, 24, 25, 26, 27, 28, 29, 30]))],
+#    Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#         21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]))
+#
+def uniqueSets(in_sets):
+    #sets is a list of sets
+    sorted_sets=[]
+    for i in in_sets:
+        common_list = []
+        common = sets.Set()
+        new_unique = sets.Set()
+        old_unique_list = []
+        old_unique = sets.Set()
+        new = []
+        #make a list of the elements common to i
+        #(current iteration of sets) and the existing
+        #sorted sets
+        for k in sorted_sets:
+            #for now, old unique is a set with all elements of
+            #sorted_sets
+            old_unique = old_unique | k
+            common = k&i
+            if common:
+                common_list.append(common)
+            else:
+                pass
+        #figure out which elements in i
+        # and which elements in old_uniques are unique
+        for j in common_list:
+            i = i - j
+            old_unique = old_unique - j
+        #make a list of all the unique elements in sorted_sets
+        for k in sorted_sets:
+            old_unique_list.append(k&old_unique)
+        new_unique=i
+        if new_unique:
+            new.append(new_unique)
+        for o in old_unique_list:
+            if o:
+                new.append(o)
+        for c in common_list:
+            if c:
+                new.append(c)
+        sorted_sets=new
+
+    # set with all unique elements
+    sum_set = sets.Set()
+    for s in sorted_sets:
+        sum_set = sum_set | s
+
+    sorted_sets.append(sum_set)
+
+    # index_list is a list of lists. Each list corresponds to 
+    # an element in sorted_sets, and contains the indexes of 
+    # that elements shared elements in the initial list of sets
+    index_list = []
+    for s in sorted_sets:
+        indexes = []
+        temp_sets = in_sets[:]
+        for t in temp_sets:
+            if s & t:
+                indexes.append(temp_sets.index(t))
+                temp_sets[temp_sets.index(t)]=sets.Set()
+        index_list.append(indexes)	
+
+    # create output
+    outvals=[]
+    for i in range(len(index_list)-1): # last one contains all the values
+        outvals.append((sets.Set(index_list[i]),sorted_sets[i]))
+    return (outvals,sorted_sets[-1])
