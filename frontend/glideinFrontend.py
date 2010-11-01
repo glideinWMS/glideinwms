@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontend.py,v 1.77.4.4 2010/09/24 15:30:36 parag Exp $
+#   $Id: glideinFrontend.py,v 1.77.4.5 2010/11/01 19:10:40 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -155,8 +155,7 @@ def main(work_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
-        print tb
+        glideinFrontendLib.log_files.logWarning("Exception occurred: %s" % tb)
         raise
 
     # create lock file
@@ -173,8 +172,7 @@ def main(work_dir):
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
-            print tb
+            glideinFrontendLib.log_files.logWarning("Exception occurred: %s" % tb)
     finally:
         pid_obj.relinquish()
     
