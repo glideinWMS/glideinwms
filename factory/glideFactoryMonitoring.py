@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.5 2010/10/08 23:53:49 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.6 2010/11/02 19:32:35 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1053,6 +1053,8 @@ class FactoryStatusData:
 
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
+        global monitoringConfig
+        
         folder = str(input)
         if folder == self.total:
             client = folder
@@ -1064,14 +1066,27 @@ class FactoryStatusData:
         
         for rrd in rrd_list:
             self.data[rrd][client] = {}
-            for res in self.resolution:
-                self.data[rrd][client][res] = {}
-                end = int(time.time() / res) * res
-                start = end - res
+            for res_raw in self.resolution:
+                # calculate the best resolution
+                res_idx=0
+                rrd_res=monitoringConfig.rrd_archives[res_idx][2]*monitoringConfig.rrd_step
+                period_mul=int(res_raw/rrd_res)
+                while (period_mul>=monitoringConfig.rrd_archives[res_idx][3]):
+                    # not all elements in the higher bucket, get next lower resolution
+                    res_idx+=1
+                    rrd_res=monitoringConfig.rrd_archives[res_idx][2]*monitoringConfig.rrd_step
+                    period_mul=int(res_raw/rrd_res)
+
+                period=period_mul*rrd_res
+            
+                self.data[rrd][client][period] = {}
+                end = (int(time.time()/rrd_res)-1)*rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
+                start = end - period
                 try:
-                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client, start = start, end = end, res = res)
+                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client,
+                                                  start = start, end = (end-1), res = rrd_res)
                     for data_set in fetched_data:
-                        self.data[rrd][client][res][data_set] = self.average(fetched_data[data_set])
+                        self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
                     glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
 
