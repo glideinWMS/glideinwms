@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.7 2010/11/02 20:12:09 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.8 2010/11/02 20:21:45 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1012,33 +1012,34 @@ class FactoryStatusData:
             # probably not created yet
             glideFactoryLib.log_files.logDebug("Failed to load %s"%(pathway + file))
             return {}
-        #sometimes rrdtool returns extra tuples that don't contain data
-        actual_res = fetched[0][2]
-        actual_start = fetched[0][0]
-        actual_end = fetched[0][1]
-        num2slice = ((actual_end - end) - (actual_start - start)) / actual_res
-        if num2slice > 0:
-            fetched_data_raw = fetched[2][:-num2slice]
-        else:
-            fetched_data_raw = fetched[2]
+
         #converts fetched from tuples to lists
         fetched_names = list(fetched[1])
+        
+        fetched_data_raw = fetched[2]
         fetched_data = []
         for data in fetched_data_raw:
             fetched_data.append(list(data))
-        
+
         #creates a dictionary to be filled with lists of data
         data_sets = {}
         for name in fetched_names:
             data_sets[name] = []
 
         #check to make sure the data exists
+        all_empty=True
         for data_set in data_sets:
             index = fetched_names.index(data_set)	
             for data in fetched_data:
                 if isinstance(data[index], (int, float)):
                     data_sets[data_set].append(data[index])
-        return data_sets
+                    all_empty=False
+
+        if all_empty:
+            # probably not updated recently
+            return {}
+        else:
+            return data_sets
 
     def average(self, list):
         try:
