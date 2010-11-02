@@ -263,13 +263,21 @@ by the VO factory clients.</P>
 	</TR>
 	<TR>
 		<td> <b>GLIDEIN_Job_Max_Time</b> </td>
-		<TD> Int </TD>
-		<TD> 360k<BR>(100 hours) </TD>
+		<TD> Bool </TD>
+		<TD> True </TD>
 		<TD>
 			<P>Max allowed time for the job to end.<BR>This is used by the
 			condor_startd; once it enters the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00456000000000000000"><I>Retiring</I>
 			state</A> it will wait at most this amount of time before killing
 			the job.</P>
+		</TD>
+	</TR>
+	<TR>
+		<td> <b>GLIDEIN_Monitoring_Enabled</b> </td>
+		<TD> Bool </TD>
+		<TD> True </TD>
+		<TD>
+			<P>Ability to control whether the pseduo-interactive monitoring slot is started on the worker node.  Set to False if you do not want the monitoring slot started.</P>
 		</TD>
 	</TR>
 	<TR>
