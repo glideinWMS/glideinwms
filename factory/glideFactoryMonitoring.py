@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.9 2010/11/02 22:27:41 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.10 2010/11/02 22:31:17 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1014,9 +1014,9 @@ class FactoryStatusData:
             return {}
 
         #converts fetched from tuples to lists
-        fetched_names = list(fetched[1][:-1]) # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
+        fetched_names = list(fetched[1])
         
-        fetched_data_raw = fetched[2]
+        fetched_data_raw = fetched[2][:-1] # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
         fetched_data = []
         for data in fetched_data_raw:
             fetched_data.append(list(data))
