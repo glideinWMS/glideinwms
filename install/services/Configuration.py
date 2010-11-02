@@ -87,7 +87,7 @@ class Configuration:
   #----------------
   def validate_section(self,section,valid_option_list):
     if not self.has_section(section):
-      common.logerr("Section (%s) does not exist in ini file (%s)" % (self,self.inifile))
+      common.logerr("Section (%s) does not exist in ini file (%s)" % (section,self.inifile))
     errors = [] 
     for option in valid_option_list:
       if self.has_option(section,option):
