@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.8 2010/11/02 20:21:45 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.9 2010/11/02 22:27:41 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1014,7 +1014,7 @@ class FactoryStatusData:
             return {}
 
         #converts fetched from tuples to lists
-        fetched_names = list(fetched[1])
+        fetched_names = list(fetched[1][:-1]) # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
         
         fetched_data_raw = fetched[2]
         fetched_data = []
@@ -1085,7 +1085,7 @@ class FactoryStatusData:
                 start = end - period
                 try:
                     fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client,
-                                                  start = start, end = (end-rrd_res), res = rrd_res) # end must be < real end, and multiple of rrd_res
+                                                  start = start, end = end, res = rrd_res)
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
