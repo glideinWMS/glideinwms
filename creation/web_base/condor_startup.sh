@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.48.2.5 2010/09/08 03:30:00 parag Exp $
+#   $Id: condor_startup.sh,v 1.48.2.6 2010/11/02 19:27:28 klarson1 Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -13,7 +13,7 @@
 #function to handle passing signals to the child processes
 function on_die {
 echo "Condor startup received kill signal... shutting down condor processes"
-$CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master2.pid
+$CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
 ON_DIE=1
 }
 
@@ -316,23 +316,25 @@ if [ "$use_multi_monitor" -eq 1 ]; then
     fi
 else
     condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
-    condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
 
     # using two different configs... one for monitor and one for main
-    condor_config_monitor=${CONDOR_CONFIG}.monitor
-    cp "$CONDOR_CONFIG" "$condor_config_monitor"
-    if [ $? -ne 0 ]; then
-	echo "Error copying condor_config into condor_config.monitor" 1>&2
-	exit 1
-    fi
-    cat "$condor_config_monitor_include" >> "$condor_config_monitor"
-    if [ $? -ne 0 ]; then
-	echo "Error appending monitor_include to condor_config.monitor" 1>&2
-	exit 1
-    fi
+    # don't create the monitoring configs and dirs if monitoring is disabled
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+      condor_config_monitor=${CONDOR_CONFIG}.monitor
+      cp "$CONDOR_CONFIG" "$condor_config_monitor"
+      if [ $? -ne 0 ]; then
+	  echo "Error copying condor_config into condor_config.monitor" 1>&2
+	  exit 1
+      fi
+      cat "$condor_config_monitor_include" >> "$condor_config_monitor"
+      if [ $? -ne 0 ]; then
+	  echo "Error appending monitor_include to condor_config.monitor" 1>&2
+	  exit 1
+      fi
 
-    cat >> "$condor_config_monitor" <<EOF
+      cat >> "$condor_config_monitor" <<EOF
 # use a different name for monitor
 MASTER_NAME = monitor_$$
 STARTD_NAME = monitor_$$
@@ -340,23 +342,26 @@ STARTD_NAME = monitor_$$
 # use plural names, since there may be more than one if multiple job VMs
 Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
 EOF
-
+    fi
+    
     cat $condor_config_main_include >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
 	echo "Error appending main_include to condor_config" 1>&2
 	exit 1
     fi
 
-    cat >> "$CONDOR_CONFIG" <<EOF
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      cat >> "$CONDOR_CONFIG" <<EOF
 
 Monitoring_Name = "monitor_$$@\$(FULL_HOSTNAME)"
 EOF
 
-    # also needs to create "monitor" dir for log and execute dirs
-    mkdir monitor monitor/log monitor/execute 
-    if [ $? -ne 0 ]; then
-	echo "Error creating monitor dirs" 1>&2
-	exit 1
+      # also needs to create "monitor" dir for log and execute dirs
+      mkdir monitor monitor/log monitor/execute 
+      if [ $? -ne 0 ]; then
+	  echo "Error creating monitor dirs" 1>&2
+	  exit 1
+      fi
     fi
 fi
 
@@ -381,13 +386,15 @@ fi
 
 ##	start the condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
-    # start monitoring startd
-    # use the appropriate configuration file
-    tmp_condor_config=$CONDOR_CONFIG
-    export CONDOR_CONFIG=$condor_config_monitor
+    # don't start if monitoring is disabled
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      # start monitoring startd
+      # use the appropriate configuration file
+      tmp_condor_config=$CONDOR_CONFIG
+      export CONDOR_CONFIG=$condor_config_monitor
 
-    monitor_start_time=`date +%s`
-    echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
+      monitor_start_time=`date +%s`
+      echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
 
     # set the worst case limit
     # should never hit it, but let's be safe and shutdown automatically at some point
@@ -398,11 +405,12 @@ if [ "$use_multi_monitor" -ne 1 ]; then
 	echo 'Failed to start monitoring condor... still going ahead' 1>&2
     fi
 
-    # clean back
-    export CONDOR_CONFIG=$tmp_condor_config
+      # clean back
+      export CONDOR_CONFIG=$tmp_condor_config
 
-    main_starter_log='log/StarterLog'
-    monitor_starter_log='monitor/log/StarterLog'
+      monitor_starter_log='monitor/log/StarterLog'
+    fi
+      main_starter_log='log/StarterLog'
 else
     main_starter_log='log/StarterLog.vm2'
     monitor_starter_log='log/StarterLog.vm1'
@@ -421,13 +429,13 @@ if [ "$operation_mode" == "2" ]; then
 	echo "=== Condor started in test mode ==="
 	$CONDOR_DIR/sbin/condor_master -r $retmins -pidfile $PWD/condor_master.pid
 else
-	$CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/monitor/condor_master2.pid &
+	$CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/condor_master2.pid &
 	# Wait for a few seconds to make sure the pid file is created, 
 	# then wait on it for completion
 	sleep 5
-	if [ -e "$PWD/monitor/condor_master2.pid" ]; then
-		echo "=== Condor started in background, now waiting on process `cat $PWD/monitor/condor_master2.pid` ==="
-		wait `cat $PWD/monitor/condor_master2.pid`
+	if [ -e "$PWD/condor_master2.pid" ]; then
+		echo "=== Condor started in background, now waiting on process `cat $PWD/condor_master2.pid` ==="
+		wait `cat $PWD/condor_master2.pid`
 	fi
 fi
 
@@ -503,33 +511,39 @@ if [ "$operation_mode" == "0" ] || [ "$operation_mode" == "1" ] || [ "$operation
     cond_print_log StartdLog log/StartdLog
     cond_print_log StarterLog ${main_starter_log}
     if [ "$use_multi_monitor" -ne 1 ]; then
+      if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then 
 	    cond_print_log MasterLog.monitor monitor/log/MasterLog
 	    cond_print_log StartdLog.monitor monitor/log/StartdLog
+        cond_print_log StarterLog.monitor ${monitor_starter_log}
+	  fi
+	else
+      cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
-    cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
     # terminate monitoring startd
-    # use the appropriate configuration file
-    tmp_condor_config=$CONDOR_CONFIG
-    export CONDOR_CONFIG=$condor_config_monitor
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      # use the appropriate configuration file
+      tmp_condor_config=$CONDOR_CONFIG
+      export CONDOR_CONFIG=$condor_config_monitor
 
-    monitor_start_time=`date +%s`
-    echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
+      monitor_start_time=`date +%s`
+      echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
 
 		#### KILL CONDOR ####
-    $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid 
+      $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid 
 		####
 
-    ret=$?
-    if [ "$ret" -ne 0 ]; then
+      ret=$?
+      if [ "$ret" -ne 0 ]; then
 			echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
-    fi
+      fi
 
-    # clean back
-    export CONDOR_CONFIG=$tmp_condor_config
+      # clean back
+      export CONDOR_CONFIG=$tmp_condor_config
+    fi
 fi
 
 if [ "$ON_DIE" -eq 1 ]; then
