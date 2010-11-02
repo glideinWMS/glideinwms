@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.6 2010/11/02 19:32:35 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.7 2010/11/02 20:12:09 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1084,7 +1084,7 @@ class FactoryStatusData:
                 start = end - period
                 try:
                     fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client,
-                                                  start = start, end = (end-1), res = rrd_res)
+                                                  start = start, end = (end-rrd_res), res = rrd_res) # end must be < real end, and multiple of rrd_res
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
