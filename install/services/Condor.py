@@ -534,8 +534,11 @@ RESERVED_SWAP = 0
 ####################################
 # Collector for user submitted jobs
 ####################################
-CONDOR_HOST = %s
-""" % (self.option_value("UserCollector","node"))
+CONDOR_HOST = %(host)s
+COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
+""" % { "host" : self.option_value("UserCollector","node"),
+        "port" : self.option_value("UserCollector","collector_port"),
+      }
     self.__append_to_condor_config__(data,"COLLECTOR")
 
   #--------------------------------
