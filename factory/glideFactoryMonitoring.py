@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.10 2010/10/09 20:12:26 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.11 2010/11/02 22:47:09 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1011,33 +1011,34 @@ class FactoryStatusData:
             # probably not created yet
             glideFactoryLib.log_files.logDebug("Failed to load %s"%(pathway + file))
             return {}
-        #sometimes rrdtool returns extra tuples that don't contain data
-        actual_res = fetched[0][2]
-        actual_start = fetched[0][0]
-        actual_end = fetched[0][1]
-        num2slice = ((actual_end - end) - (actual_start - start)) / actual_res
-        if num2slice > 0:
-            fetched_data_raw = fetched[2][:-num2slice]
-        else:
-            fetched_data_raw = fetched[2]
+
         #converts fetched from tuples to lists
         fetched_names = list(fetched[1])
+        
+        fetched_data_raw = fetched[2][:-1] # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
         fetched_data = []
         for data in fetched_data_raw:
             fetched_data.append(list(data))
-        
+
         #creates a dictionary to be filled with lists of data
         data_sets = {}
         for name in fetched_names:
             data_sets[name] = []
 
         #check to make sure the data exists
+        all_empty=True
         for data_set in data_sets:
             index = fetched_names.index(data_set)	
             for data in fetched_data:
                 if isinstance(data[index], (int, float)):
                     data_sets[data_set].append(data[index])
-        return data_sets
+                    all_empty=False
+
+        if all_empty:
+            # probably not updated recently
+            return {}
+        else:
+            return data_sets
 
     def average(self, list):
         try:
@@ -1052,6 +1053,8 @@ class FactoryStatusData:
 
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
+        global monitoringConfig
+        
         folder = str(input)
         if folder == self.total:
             client = folder
@@ -1063,14 +1066,27 @@ class FactoryStatusData:
         
         for rrd in rrd_list:
             self.data[rrd][client] = {}
-            for res in self.resolution:
-                self.data[rrd][client][res] = {}
-                end = int(time.time() / res) * res
-                start = end - res
+            for res_raw in self.resolution:
+                # calculate the best resolution
+                res_idx=0
+                rrd_res=monitoringConfig.rrd_archives[res_idx][2]*monitoringConfig.rrd_step
+                period_mul=int(res_raw/rrd_res)
+                while (period_mul>=monitoringConfig.rrd_archives[res_idx][3]):
+                    # not all elements in the higher bucket, get next lower resolution
+                    res_idx+=1
+                    rrd_res=monitoringConfig.rrd_archives[res_idx][2]*monitoringConfig.rrd_step
+                    period_mul=int(res_raw/rrd_res)
+
+                period=period_mul*rrd_res
+            
+                self.data[rrd][client][period] = {}
+                end = (int(time.time()/rrd_res)-1)*rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
+                start = end - period
                 try:
-                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client, start = start, end = end, res = res)
+                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client,
+                                                  start = start, end = end, res = rrd_res)
                     for data_set in fetched_data:
-                        self.data[rrd][client][res][data_set] = self.average(fetched_data[data_set])
+                        self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
                     glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
 
