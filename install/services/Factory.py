@@ -426,11 +426,11 @@ source %s/condor.sh
     data = ""
     if self.glidein.use_ccb() =="y":
       # Put USE_CCB in the entries so that it is easy to disable it selectively
-      data = data = """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
+      data = data + """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
     else:
       # Put GCB_ORDER in the entries so that it is easy to disable if selectively
       if len(self.glidein.gcb_list()) > 0:
-        data = data + """%s<attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
+        data = data + """%s<attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
     return data
 
   #-------------
