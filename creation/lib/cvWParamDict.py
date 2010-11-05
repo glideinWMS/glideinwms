@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.47.2.7 2010/09/08 23:22:38 sfiligoi Exp $
+#   $Id: cvWParamDict.py,v 1.47.2.8 2010/11/05 17:08:14 parag Exp $
 #
 # Description: 
 #   Frontend creation module
@@ -426,6 +426,8 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
+        frontend_dict.add('RestartAttempts',params.restart_attempts)
+        frontend_dict.add('RestartInterval',params.restart_interval)
         frontend_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
         frontend_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
 

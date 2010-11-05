@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.5 2010/09/08 23:22:38 sfiligoi Exp $
+#   $Id: cvWParams.py,v 1.40.2.6 2010/11/05 17:08:14 parag Exp $
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -134,6 +134,8 @@ class VOFrontendParams(cWParams.CommonParams):
         self.defaults['advertise_delay']=('5','NR', 'Advertize evert NR loops',None)
         self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
         self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
+        self.defaults['restart_attempts']=('3','NR', 'Max allowed NR restarts every restart_interval before shutting down',None)
+        self.defaults['restart_interval']=('1800','NR', 'Time interval NR sec which allow max restart attempts',None)
 
         stage_defaults=cWParams.commentedOrderedDict()
         stage_defaults["base_dir"]=("/var/www/html/vofrontend/stage","base_dir","Stage base dir",None)
