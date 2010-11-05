@@ -682,7 +682,6 @@ function fillInTotalTable2()
 				}
 				else
 				{
-					alert("here"); 
 					currTable.childNodes[1].rows[row].cells[cell].innerHTML = 0; 
 				}
 			}
@@ -739,10 +738,9 @@ function fillInFeTable()
 			row = (j)/2; 
 			row = parseInt(row); 
 			row = rows[row]; 
-			if(totalEntries[optionIndex].childNodes[feChild].childNodes[feIndex].childNodes.length >= 7 || childFE[j] != feStatChild)
+			if(feArryMaster[x].childNodes.length >= 7 || childFE[j] != feStatChild)
 			{
-				feTab.rows[row].cells[cel[j]].innerHTML = totalEntries[optionIndex].childNodes[feChild].childNodes[feIndex].childNodes[childFE[j]].attributes[atts[j]].
-				nodeValue; 
+				feTab.rows[row].cells[cel[j]].innerHTML = feArryMaster[x].childNodes[childFE[j]].attributes[atts[j]].nodeValue; 
 			}
 			else
 				feTab.rows[row].cells[cel[j]].innerHTML = 0; 
@@ -821,7 +819,8 @@ function makeTableFE()
 			{
 				indexFE++; 
 			}
-			document.getElementsByTagName("div")[indexFE].appendChild(feTable[i]);			if((j + 1) % 4 == 0)
+			document.getElementsByTagName("div")[indexFE].appendChild(feTable[i]);			
+			if((j + 1) % 4 == 0)
 			{	
 				x++; 
 				feRow[x] = document.createElement("tr"); 
