@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorManager.py,v 1.2.28.1 2010/08/31 18:49:17 parag Exp $
+#   $Id: condorManager.py,v 1.2.28.1.6.1 2010/11/05 18:28:58 sfiligoi Exp $
 #
 # Description:
 #   This module implements functions that will act on Condor
@@ -17,6 +17,20 @@ import string
 import condorExe
 
 ##############################################
+# Helper functions
+def pool2str(pool_name):
+    if pool_name!=None:
+        return "-pool %s "%pool_name
+    else:
+        return ""
+
+def schedd2str(schedd_name):
+    if schedd_name!=None:
+        return "-name %s "%schedd_name
+    else:
+        return ""
+
+##############################################
 #
 # Submit a new job, given a submit file
 # Works only when a single cluster is created
@@ -24,11 +38,7 @@ import condorExe
 # returns ClusterId
 #
 def condorSubmitOne(submit_file,schedd_name=None,pool_name=None):
-    submit_opts=submit_file
-    if schedd_name!=None:
-        submit_opts="-name %s %s"%(schedd_name,submit_opts)
-    if pool_name!=None:
-        submit_opts="-pool %s %s"%(pool_name,submit_opts)
+    submit_opts="%s%s%s"%(pool2str(pool_name),schedd2str(schedd_name),submit_file)
     outstr=condorExe.exe_cmd("condor_submit",submit_opts)
 
     #extract 'submitted to cluster xxx.' part
@@ -44,11 +54,7 @@ def condorSubmitOne(submit_file,schedd_name=None,pool_name=None):
 # Remove a set of jobs from the queue
 #
 def condorRemove(constraint,schedd_name=None,pool_name=None):
-    rm_opts="-constraint '%s'"%constraint
-    if schedd_name!=None:
-        rm_opts="-name %s %s"%(schedd_name,rm_opts)
-    if pool_name!=None:
-        rm_opts="-pool %s %s"%(pool_name,rm_opts)
+    rm_opts="%s%s-constraint '%s'"%(pool2str(pool_name),schedd2str(schedd_name),constraint)
     return condorExe.exe_cmd("condor_rm",rm_opts)
 
 ##############################################
@@ -56,11 +62,7 @@ def condorRemove(constraint,schedd_name=None,pool_name=None):
 # Remove a job from the queue
 #
 def condorRemoveOne(cluster_or_uname,schedd_name=None,pool_name=None):
-    rm_opts="%s"%cluster_or_uname
-    if schedd_name!=None:
-        rm_opts="-name %s %s"%(schedd_name,rm_opts)
-    if pool_name!=None:
-        rm_opts="-pool %s %s"%(pool_name,rm_opts)
+    rm_opts="%s%s%s"%(pool2str(pool_name),schedd2str(schedd_name),cluster_or_uname)
     return condorExe.exe_cmd("condor_rm",rm_opts)
 
 ##############################################
@@ -68,13 +70,33 @@ def condorRemoveOne(cluster_or_uname,schedd_name=None,pool_name=None):
 # Issue a condor_reschedule
 #
 def condorReschedule(schedd_name=None,pool_name=None):
-    cmd_opts=""
-    if schedd_name!=None:
-        cmd_opts="-name %s %s"%(schedd_name,cmd_opts)
-    if pool_name!=None:
-        cmd_opts="-pool %s %s"%(pool_name,cmd_opts)
+    cmd_opts="%s%s"%(pool2str(pool_name),schedd2str(schedd_name))
     condorExe.exe_cmd("condor_reschedule",cmd_opts)
     return
 
+
+##############################################
+# Helper functions of condorAdvertise
+def usetcp2str(use_tcp):
+    if use_tcp:
+        return "-tcp "
+    else:
+        return ""
+
+def ismulti2str(is_multi):
+    if is_multi:
+        return "-multiple "
+    else:
+        return ""
+
+##############################################
+#
+# Remove a job from the queue
+#
+def condorAdvertise(classad_fname,command,
+                    use_tcp=False,is_multi=False,pool_name=None):
+    cmd_opts="%s%s%s%s %s"%(pool2str(pool_name),usetcp2str(use_tcp),ismulti2str(is_multi),command,classad_fname)
+    return condorExe.exe_cmd_sbin("condor_advertise",cmd_opts)
+    
 
 
