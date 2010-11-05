@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.20.2.6.1 2010/09/08 20:19:28 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.20.2.6.2 2010/11/05 18:30:28 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -15,6 +15,7 @@
 
 import condorExe
 import condorMonitor
+import condorManager
 import os
 import time
 import string
@@ -531,19 +532,8 @@ def deadvertizeFactoryClientMonitoring(factory_name,glidein_name):
 #
 ############################################################
 
-def usetcp2str(use_tcp):
-    if use_tcp:
-        return "-tcp "
-    else:
-        return ""
-
-def ismulti2str(is_multi):
-    if is_multi:
-        return "-multiple "
-    else:
-        return ""
-
 def exe_condor_advertise(fname,command,
                          is_multi=False):
-    return condorExe.exe_cmd("../sbin/condor_advertise","%s%s%s %s"%(usetcp2str(factoryConfig.advertise_use_tcp),ismulti2str(is_multi),command,fname))
+    return condorManager.condorAdvertise(fname,command,factoryConfig.advertise_use_tcp,is_multi)
+
     

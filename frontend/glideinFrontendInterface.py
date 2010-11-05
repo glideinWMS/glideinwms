@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.2.2.1 2010/09/08 20:19:28 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.3.8.2.2.2 2010/11/05 18:31:08 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -15,6 +15,7 @@
 
 import condorExe
 import condorMonitor
+import condorManager
 import os,os.path
 import copy
 import time
@@ -646,26 +647,9 @@ def deadvertizeAllWork(factory_pool,
 #
 ############################################################
 
-def pool2str(pool_name):
-    if pool_name==None:
-        return ""
-    else:
-        return "-pool %s "%pool_name
-
-def usetcp2str(use_tcp):
-    if use_tcp:
-        return "-tcp "
-    else:
-        return ""
-
-def ismulti2str(is_multi):
-    if is_multi:
-        return "-multiple "
-    else:
-        return ""
-
 def exe_condor_advertise(fname,command,
                          factory_pool,
                          is_multi=False):
-    return condorExe.exe_cmd("../sbin/condor_advertise","%s%s%s %s%s"%(usetcp2str(frontendConfig.advertise_use_tcp),ismulti2str(is_multi),command,pool2str(factory_pool),fname))
+    return condorManager.condorAdvertise(fname,command,frontendConfig.advertise_use_tcp,is_multi,factory_pool)
+
     
