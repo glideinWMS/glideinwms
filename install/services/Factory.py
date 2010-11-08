@@ -402,7 +402,7 @@ source %s/condor.sh
 %(indent3)s</files>
 %(indent2)s</entry> 
 """ % { "indent2"     : common.indent(2),
-  "indent(3)"   : common.indent(3), 
+  "indent3"     : common.indent(3), 
   "indent4"     : common.indent(4),
   "entry_name"  : entry_name,
   "rsl"         : rsl_str,
@@ -424,7 +424,7 @@ source %s/condor.sh
    #-----------------
   def entry_ccb_gcb_attrs(self):
     data = ""
-    if self.glidein.use_ccb() =="y":
+    if self.glidein.use_ccb() == "y":
       # Put USE_CCB in the entries so that it is easy to disable it selectively
       data = data + """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
     else:
