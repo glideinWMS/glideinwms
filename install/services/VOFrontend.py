@@ -183,10 +183,10 @@ class VOFrontend(Condor):
     self.install_certificates()
     self.validate_frontend()
     self.determine_co_located_services()
-    #if len(self.colocated_services) == 0:
-    #  self.validate_condor_install()
-    #  self.install_condor()
-    #  self.configure_condor()
+    if len(self.colocated_services) == 0:
+      self.validate_condor_install()
+      self.install_condor()
+      self.configure_condor()
     self.configure_frontend()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_frontend()
