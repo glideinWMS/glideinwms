@@ -68,8 +68,8 @@ class Submit(Condor):
     self.get_usercollector()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
-    self.install_certificates()
     self.install_vdtclient()
+    self.install_certificates()
     self.determine_co_located_services()
     self.validate_condor_install()
     if "usercollector" not in self.colocated_services:

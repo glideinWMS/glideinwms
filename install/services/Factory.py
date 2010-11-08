@@ -402,7 +402,7 @@ source %s/condor.sh
 %(indent3)s</files>
 %(indent2)s</entry> 
 """ % { "indent2"     : common.indent(2),
-  "indent3"     : common.indent(3), 
+  "indent"     : common.indent(3), 
   "indent4"     : common.indent(4),
   "entry_name"  : entry_name,
   "rsl"         : rsl_str,
@@ -414,6 +414,7 @@ source %s/condor.sh
   "site_name"   : entry_el['site_name'],
   "glexec_path" : entry_el['glexec_path'],
 }
+#JGW SILENT
 
     #--- end of entry element --
     data = data + """%(indent1)s</entries> """ % \

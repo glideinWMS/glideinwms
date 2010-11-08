@@ -179,8 +179,8 @@ class VOFrontend(Condor):
     common.logit ("======== %s install starting ==========" % self.ini_section)
     ## JGW Need to figure out how to re-installa and leave condor alone
     common.ask_continue("Continue")
-    self.install_certificates()
     self.install_vdtclient()
+    self.install_certificates()
     self.validate_frontend()
     self.determine_co_located_services()
     #if len(self.colocated_services) == 0:
