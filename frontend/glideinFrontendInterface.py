@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.8 2010/11/09 03:10:32 parag Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.9 2010/11/09 17:43:40 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -21,7 +21,6 @@ import copy
 import time
 import string
 import pubCrypto,symCrypto
-import glideinWMSVersion
 
 ############################################################
 #
