@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.12 2010/11/09 03:10:32 parag Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.1 2010/11/09 20:38:32 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
