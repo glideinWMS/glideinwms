@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.8 2010/10/02 04:03:29 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.9 2010/11/09 20:31:23 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -940,9 +940,11 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                 except condorPrivsep.ExeError, e:
                     log_files.logWarning("condor_submit failed (user %s): %s"%(username,e))
                     submit_out=[]
+                    raise
                 except:
                     log_files.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
                     submit_out=[]
+                    raise
             else:
                 # avoid using privsep, if possible
                 try:

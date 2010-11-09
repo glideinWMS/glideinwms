@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.25 2010/11/09 17:16:21 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.26 2010/11/09 20:31:23 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -516,7 +516,14 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
 ############################################################
 def iterate_one(do_advertize,in_downtime,
                 glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
-    done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams)
+    
+    done_something=0
+    
+    try:
+        done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams)
+    except:
+        glideFactoryLib.log_files.logWarning("Error occurred while trying to find and do work.  ")
+        
     if do_advertize or done_something:
         glideFactoryLib.log_files.logActivity("Advertize")
         advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams)
