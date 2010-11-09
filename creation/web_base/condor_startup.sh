@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.48.2.6 2010/11/02 19:27:28 klarson1 Exp $
+#   $Id: condor_startup.sh,v 1.48.2.7 2010/11/09 18:49:41 klarson1 Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -224,16 +224,26 @@ done < condor_vars.lst.tmp
 
 #let "max_job_time=$job_max_hours * 3600"
 
+# calculate retire time if wall time is defined (undefined=-1)
+if [ -z "$GLIDEIN_Max_Walltime" ]; then
+  retire_time=$GLIDEIN_Retire_Time
+  echo "used param defined retire time, $retire_time" 1>&2
+else
+  echo "max wall time, $GLIDEIN_Max_Walltime" 1>&2
+  retire_time=$(($GLIDEIN_Max_Walltime - $GLIDEIN_Job_Max_Time))
+  GLIDEIN_Retire_Time=$retire_time
+  echo "calculated retire time, $retire_time" 1>&2
+fi
+org_GLIDEIN_Retire_Time=$retire_time
 # randomize the retire time, to smooth starts and terminations
-org_GLIDEIN_Retire_Time=$GLIDEIN_Retire_Time
 let "random100=$RANDOM%100"
-let "GLIDEIN_Retire_Time=$GLIDEIN_Retire_Time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
+let "retire_time=$retire_time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
 
 # but protect from going too low
-if [ "$GLIDEIN_Retire_Time" -lt "600" ]; then
-  GLIDEIN_Retire_Time=600
+if [ "$retire_time" -lt "600" ]; then
+  retire_time=600
 fi
-echo "Retire time set to $GLIDEIN_Retire_Time" 1>&2
+echo "Retire time set to $retire_time" 1>&2
 
 now=`date +%s`
 let "x509_duration=$X509_EXPIRE - $now - 1"
@@ -245,7 +255,7 @@ let "x509_duration=$X509_EXPIRE - $now - 1"
 #    let "glidein_expire=$now + $max_job_time"
 #fi
 
-let "glidein_toretire=$now + $GLIDEIN_Retire_Time"
+let "glidein_toretire=$now + $retire_time"
 
 # put some safety margin
 let "session_duration=$x509_duration + 300"
@@ -396,14 +406,14 @@ if [ "$use_multi_monitor" -ne 1 ]; then
       monitor_start_time=`date +%s`
       echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
 
-    # set the worst case limit
-    # should never hit it, but let's be safe and shutdown automatically at some point
-    let "monretmins=( $GLIDEIN_Retire_Time + $GLIDEIN_Job_Max_Time ) / 60 - 1"
-    $CONDOR_DIR/sbin/condor_master -f -r $monretmins -pidfile $PWD/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
-    ret=$?
-    if [ "$ret" -ne 0 ]; then
-	echo 'Failed to start monitoring condor... still going ahead' 1>&2
-    fi
+      # set the worst case limit
+      # should never hit it, but let's be safe and shutdown automatically at some point
+      let "monretmins=( $retire_time + $GLIDEIN_Job_Max_Time ) / 60 - 1"
+      $CONDOR_DIR/sbin/condor_master -f -r $monretmins -pidfile $PWD/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
+      ret=$?
+      if [ "$ret" -ne 0 ]; then
+	  echo 'Failed to start monitoring condor... still going ahead' 1>&2
+      fi
 
       # clean back
       export CONDOR_CONFIG=$tmp_condor_config
@@ -421,7 +431,7 @@ echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
+let "retmins=$retire_time / 60 - 1"
 
 
 #### STARTS CONDOR ####
