@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4 2010/11/05 18:24:44 sfiligoi Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.5 2010/11/09 17:16:21 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -19,6 +19,7 @@ import condorManager
 import os
 import time
 import string
+import glideinWMSVersion
 
 ############################################################
 #
@@ -39,6 +40,9 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
+
+        #Default the glideinWMS version string
+        self.glideinwms_version = "glideinWMS UNKNOWN"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -237,6 +241,7 @@ def advertizeGlidein(factory_name,glidein_name,entry_name,
         try:
             fd.write('MyType = "%s"\n'%factoryConfig.factory_id)
             fd.write('GlideinMyType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('GlideinWMSVersion = "%s"\n'%factoryConfig.glideinwms_version)
             fd.write('Name = "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
@@ -426,6 +431,7 @@ def createGlideinClientMonitoringFile(fname,
         try:
             fd.write('MyType = "%s"\n'%factoryConfig.factoryclient_id)
             fd.write('GlideinMyType = "%s"\n'%factoryConfig.factoryclient_id)
+            fd.write('GlideinWMSVersion = "%s"\n'%factoryConfig.glideinwms_version)
             fd.write('Name = "%s"\n'%client_name)
             fd.write('ReqGlidein = "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
             fd.write('ReqFactoryName = "%s"\n'%factory_name)

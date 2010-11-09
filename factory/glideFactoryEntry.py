@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24 2010/10/09 20:12:26 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.25 2010/11/09 17:16:21 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -36,6 +36,7 @@ import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import logSupport
+import glideinWMSVersion
 
 ############################################################
 def check_parent(parent_pid,glideinDescript,jobDescript):
@@ -649,6 +650,15 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryInterface.factoryConfig.advertise_use_tcp=(glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
     glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
     
+    try:
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0]))).version()
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logWarning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
+        glideFactoryLib.log_files.logDebug("Exception occurred: %s" % tb)    
+
+
     # create lock file
     pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
     
