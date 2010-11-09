@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7 2010/11/05 18:25:07 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.8 2010/11/09 03:10:32 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -21,6 +21,7 @@ import copy
 import time
 import string
 import pubCrypto,symCrypto
+import glideinWMSVersion
 
 ############################################################
 #
@@ -37,6 +38,9 @@ class FrontendConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
+        
+        #Default the glideinWMS version string
+        self.glideinwms_version = "glideinWMS UNKNOWN"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -385,6 +389,7 @@ def createAdvertizeWorkFile(fname,
             
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
+            fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
             fd.write('Name = "%s"\n'%classad_name)
             fd.write(string.join(descript_obj.get_id_attrs(),'\n')+"\n")
             fd.write('ReqName = "%s"\n'%params_obj.request_name)
