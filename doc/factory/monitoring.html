@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+        <li>Monitoring</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+         <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> Monitoring</li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Monitoring</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#monitoring_web">Using the Web monitoring</a></li>
+        <li><a href="#monitoring_tools">Using the WMS tools</a></li>
+        <li><a href="#monitoring_logs">Looking at the glidein factory log files</a></li>
+        <li><a href="#monitoring_glideins">Looking at the glidein outputs</a></li>
+        <li><a href="#monitoring_condor">Checking the WMS collector ads</a></li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+<li><a href="../frontend/monitoring.html">Frontend Monitoring</a></li>
+</ul>
+</div>
+<div class="section">
+
+    <h2><a name="monitoring">Glidein Factory monitoring</a></h2>
+
+    <p>There are several ways to monitor the entry points of the glidein factory:</p>
+
+    <h3><a name="monitoring_web">Glidein factory entry Web monitoring</a></h3>
+
+    <p>
+        You can either monitor the factory as a whole, or just a single entry point.<br>
+        <br>
+        The factory monitoring is located at a URL like the one below
+    </p>
+
+    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</blockquote>
+
+    <p>
+
+        Moreover, each entry point, has its own history on the Web.<br>
+        <br>
+        Assuming you have a SanDiego entry, it can be monitored at
+    </p>
+
+    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</blockquote>
+
+    <h3><a name="monitoring_tools">Glidein factory monitoring via WMS tools</a></h3>
+
+    <p>You can get the equivalent of the Web page snaphot by using</p>
+
+    <blockquote>cd glideinWMS/tools/<br>python wmsXMLView.py</blockquote>
+
+    <h3><a name="monitoring_logs">Glidein factory entry log files</a></h3>
+
+    <p>
+        The glidein factory writes two log files per entry point <b>factory_info.YYYYMMDD.log</b> 
+        and <b>factory_err.YYYYMMDD.log</b>.<br>
+
+        <br>
+        Assuming you have a SanDiego entry, the log files are in
+    </p>
+
+    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+
+    <p>
+        All errors are reported in the <b>factory_err.YYYYMMDD.log</b>. file, while <b>factory_info.YYYYMMDD.log</b>
+
+        contains entries about what the factory is doing.
+    </p>
+
+    <h3><a name="monitoring_glideins">Glidein output</a></h3>
+
+    <p>
+        Each glidein creates 2 files on exit; job.<b>ID</b>.out and job.<b>ID</b>.err.<br>
+
+        <br>
+        Assuming you have a SanDiego entries, the log files are in
+    </p>
+
+    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+
+    <p>Problems are usually reasonably easy to spot.</p>
+
+    <h3><a name="monitoring_condor">Glidein factory ClassAds in the WMS Collector</a></h3>
+
+    <p>
+        The glidein factory also advertises summary information in the WMS collector.<br>
+        <br>
+        Use <b>condor_status</b>:
+    </p>
+
+    <blockquote>condor_status -any</blockquote>
+
+    <p>and look for <b>glidefactory</b> and <b>glidefactoryclient</b> ads.</p>
+
+</div>
+
+<div class="section">
+<h2><a name="textmon"></a>glideinWMS text monitoring</h2>
+<p>A system administrator can also monitor the glideinWMS status
+using text tools. 
+</p>
+<p>Move into 
+</p>
+<pre>glideinWMS/tools</pre><p>
+and run either 
+</p>
+<pre>./wmsXMLView.py</pre><p>
+or 
+</p>
+<pre>./wmsTxtView.py [Entries|Sites|Gatekeepers]</pre><p>
+
+</p></div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
+einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+
+</body>
+</html>

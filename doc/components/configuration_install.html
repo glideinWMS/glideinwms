@@ -1,0 +1,919 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Components</a></li>
+        <li>Configuration Installer</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+        <div id="cse-search-form" style="width: 100%;">Loading</div>
+        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+        <script src="../common/glidein.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+        </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <h2>Installation</h2>
+	<ul class="subcomponents">
+	     <li> Overview</li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	</ul>
+        <h3>Configuration-Based Installer</h3>
+	</div>
+    <div class="jump">
+    <u>Jump to:</u>
+    <ol>
+        <li> <a href="#overview">Overview</a></li>
+        <li> <a href="#procedure">Procedure</a></li>
+        <li> <a href="#manage_script">manage-glideins script</a></li>
+    </ol>
+    </div>
+    <div class="related">
+    <u><b>Installation Procedure</b></u><br/><br/>
+
+        <a href="../install.html">Installation Overview</a><br><br>
+
+        Configuration-based installer is an
+        alternative to the standard procedure.
+    </div>
+<div class="section">
+<a name="overview" />
+<h2>Overview</h2>
+<p>
+This installer uses a configuration file (ini format) to perform the installation of the glideinWMS services in lieu of a question/answer (q/a) type installer. It requires knowledge and planning of the glideinWMS services just as the the q/a installer did. The major difference is that you essentially pre-answer all the questions previously asked and document them in the ini file. In addition to having them documented, this performs the actual installation faster and allows for re-installs more quickly when some of the attribute values are incorrect (an inevitable consequence of a complex set of services such as these).
+</p><p>
+Another major difference, with this installer, is that it does NOT modify any scripts that set a user environment upon log in, e.g., .bashrc file, /etc/profile.d files, et al. Instead, an environment script is created for each service in its respective "home" location. If inclusion of these scripts is required at a location, it will need to be performed manually. The only exception to this is when privilege separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in Condor and cannot be changed. 
+
+</p>
+<p>
+<ul>
+<li><b>wmscollector, usercollector, submit</b>: condor_location/condor.sh</li>
+<li><b>factory</b>: install_location/factory.sh</li>
+<li><b>vofrontend</b>: install_location/frontend.sh</li>
+</ul>
+</p>
+</div>
+<div class="section">
+<a name="procedure" />
+<h2>Installation Procedure</h2>
+Installation proceeds in the same order as the dialog installer:
+<ol>
+<li>WMS Collector</li>
+<li>WMS Factory</li>
+<li>User Collector</li>
+<li>User Schedd (submit node)</li>
+<li>Glidein Frontend (or Corral Frontend)</li>
+</ol>
+Services have dependencies ibetween them.  If you get an error or change
+the ini file, it is recommended that you go back and re-install ALL services.
+</div>
+<div class="section">
+<a name="manage_script" />
+<h2> manage-glideins script </h2>
+
+The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>  . 
+
+<blockquote>
+Usage: ./manage-glideins --ACTION SERVICE --ini  [--debug]<br/>
+Example: cd glideinWMS/install; ./manage-glideins --install service_name --ini inifile_location 
+</blockquote>
+
+ACTION can be one of:
+<ul>
+<li><b>install</b>: Install the service</li>
+<li><b>start</b>: Start the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</li>
+<li><b>stop</b>: Stop the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</li>
+<li><b>status</b>: Return the status of the service</li>
+</ul>
+
+SERVICE can be one of:
+<ol>
+<li>wmscollector</li>
+<li>usercollector</li>
+<li>factory</li>
+<li>submit</li>
+<li>vofrontend</li>
+<li>all: can only be used with start/stop/status actions</li>
+</ol>
+<p>
+--debug: When used with start/stop/status actions, it will
+display the series of commands used.
+</p><p>
+This process can be used to install, start, stop or check the status of
+the glidein services based on the configuration in the specified ini file.
+</p><p>
+
+The start/stop/status actions can be performed remotely providing the user
+has valid access to the other service's node via the .k5login of that user.
+For these actions, this process ssh's into the services node thereby insuring
+a clean environment.
+</p><p>
+The install/install-node/create-entries can only be used on the node for that
+service.
+</p><p>
+<blockquote>
+./manage-glideins --install-node --ini
+</blockquote>
+
+This option allows you to install all services for the node you are installing
+on. There are some limitation to this.
+
+<blockquote>
+./manage-glideins --create-entries --ini
+</blockquote>
+
+This option can be used to select new glidein entry points after the
+initial installation of a factory service. If will walk you through the same
+question and answer process querying ReSS and BDII for resources. It will then
+create a file containing the entry elements for those selected. This can then
+be merged with the existing Factory configuration file. 
+</div>
+<div class="section">
+<h2>glideinWMS ini file</h2>
+
+<p>
+The ini file determines the installation and configuration of the various services.  All ini file attributes are required. However, in several cases the value may be left empty. These should be noted in the comments column of the tables. 
+</p>
+
+<h3>Default Section</h3>
+<p>
+The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically in that section.
+
+The 2 pacman related attributes are used to bring down the OSG/VDT client software and CA certificates if they are not already installed on the node. These should not be changed. 
+</p>
+    <table width="90%" class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr>
+        <tr>
+            <td>pacman_version</td>
+            <td>pacman-3.28</td>
+            <td>Version of pacman to use. </td>
+        </tr>
+        <tr>
+            <td>pacman_url</td>
+            <td>http://physics.bu.edu/pacman/sample_cache/tarballs </td>
+            <td>URL to retrieve pacman. </td>
+            <td></td>
+        </tr>
+    </tbody></table>
+</div>
+<div class="section">
+<h3>WMSCollector section</h3>
+
+Under most circumstances, installation of wmscollector using manage-glideins
+will be need to run as <b>root</b>, since Condor installations require some files 
+to be owned by root in order to properly use privilege separation.
+<blockquote>
+    ./manage-glideins --install wmscollector --ini glideinWMS.ini
+</blockquote>
+
+See below for the ini file attributes that installing/running WMS collector requires:<br/><br/>
+
+    <table width="90%" class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr>
+        <tr>
+        <td>node</td>
+        <td>cms-xen21.fnal.gov </td>
+        <td>     hostname for WMS Collector. </td>
+        <td>The WMS collector and Factory must be collocated at this time.</td>
+        </tr>
+        <tr>
+        <td>unix_acct</td>
+        <td>condor (or whatever non-root user you decide on) </td>
+        <td>UNIX user account that this services will run under. DO NOT use "root". </td>
+        <td>
+            For security purposes, this value should always be a non-root user.
+            However, if using privilege separation, the manage-glideins script
+            itself will be need to be run as root (see above), since
+            the Condor switchboard requires some files to be 
+            owned by root and some files to
+            be owned by the non-superuser unix_acct for privilege separation
+            to work correctly.
+        </td>
+        </tr>
+        <tr>
+        <td>service_name</td>
+        <td>     condor-wms </td>
+        <td>Used in naming the condor startup script (condor_). </td>
+        <td>This allows multiple glidein condor services to be used in init.d services with unique names.
+
+This is also used in the condor_mapfile of the other glidein services as the 'nickname' to more easily identify the DNs in that file. </td>
+        </tr>
+        <tr>
+        <td>condor_location</td>
+        <td>/home/weigand/glidein/condor-wms</td>
+        <td>Directory in which the condor software will be installed. </td>
+        </tr>
+        <tr>
+        <td>collector_port</td>
+        <td>9618 (condor default)</td>
+        <td>Defines the Condor Collector port. </td>
+        <td>Condor default is 9618. If multiple glidein services are installed on the same node, this should be unique of each service. </td>
+        </tr>
+        <tr>
+        <td>privilege_separation</td>
+        <td>y</td>
+        <td>Valid values:<br/>
+            * y - privilege separation is used<br/>
+            * n - privilege separation is not used <br/>
+        </td>
+        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor PrivSep Documentation</a> for more information</td>
+        </tr>
+        <tr>
+        <td>frontend_users </td>
+        <td>cms_jgw : vo_cms </td>
+        <td>A comma separated list mapping the vofrontend's service name to the UNIX account that has been created for it.  The format for each frontend is:
+<b>service_name : unix account </b></td>
+        </tr>
+        <tr>
+        <td>certificates</td>
+        <td>/home/weigand/glidein/vdt </td>
+        <td>The parentdirectory where the CA certificates are maintained. </td>
+        </tr>
+        <tr>
+        <td>gsi_authentication </td>
+        <td>cert</td>
+        <td>Used to identify the WMS Collector to the other glidein services.
+            Valid values:<br/>
+            * cert - certificate used<br/>
+            * proxy - proxy used 
+        </td>
+        </tr>
+        <tr>
+        <td>cert_proxy_location </td>
+        <td>/home/weigand/grid-security/cms-xen21glideincert.pem </td>
+        <td>The location of the certificate or proxy (depending of the gsi_authentication value). </td>
+        <td>If a certificate, all that is need needed is the cert file name, not the key.pem file (full path required) eg. hostcert.pem </td>
+        </tr>
+        <tr>
+        <td>gsi_dn</td>
+        <td>     /DC=org/DC=doegrids/OU=Services/CN=glidein/cms-xen21.fnal.gov </td>
+        <td>If the gsi_authentication is:<br/>
+            * cert, the subject of the certificate<br/>
+            * proxy, the issuer of the proxy 
+        </td>
+        <td>
+            openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/>
+            This is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glidein services.
+        </td>
+        </tr>
+        </tr><tr>
+        <td>condor_tarball</td>
+        <td>       /home/weigand/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz</td>
+        <td>      Location of the condor tarball. It must be a zipped tarball.    The installation script will perform the installation of condor.</td>
+        </tr><tr>
+        <td>condor_admin_email</td>
+        <td>  whomever@fnal.gov</td>
+        <td>   Used in the condor_config.local only.    
+        </tr><tr>
+        <td>split_condor_config</td>
+        <td>     y</td>
+        <td>   Valid values:<br/>
+            * y - will create a 
+            CONDOR_LOCATION/condor_local/condor_config.local<br/>
+            * n - will append to the CONDOR_LOCATION/etc/condor_config</td>
+        <td>  It is recommended that you split the condor_config file.</td>
+        </tr><tr>
+        <td>number_of_schedds</td>
+        <td>   5</td>
+        <td>The desired number of schedds to be used.    </td>
+        </tr><tr>
+        <td> install_vdt_client</td>
+        <td>  y</td>
+        <td>   Valid values:
+* y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.
+* n - will not attempt to install the VDT client    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+        </tr><tr>
+        <td>vdt_location</td>
+        <td>    /home/weigand/glidein/vdt</td>
+        <td>   The location of the OSG/VDT client software.</td>
+        <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation: 1. setup.sh 2. existence of a voms-proxy-init executable.</td>
+        </tr><tr>
+        <td>pacman_location</td>
+        <td>     /home/weigand/glidein</td>
+        <td>   Parent directory for the pacman software.</td>
+        <td> Pacman is used to install the OSG/VDT client software and the CA certificates if they are not already installed</td>
+        </tr><tr>
+        <td> glidein_install_dir</td>
+        <td>     /home/weigand/glideinWMS    </td>
+        <td>Directory of the glideinWMS software.</td>
+        <td>   Since this is a Condor service only, this software is only used during the installation process. </td>
+        </tr>
+    </tbody></table>
+</div>
+<div class="section">
+<h2>Factory Section</h2>
+The manage-glideins script should be run as the factory user when installing
+the wms factory (see unix_acct below).
+<blockquote>
+    ./manage-glideins --install wmsfactory --ini glideinWMS.ini
+</blockquote>
+
+See below for the ini file attributes that installing/running WMS factory 
+requires:<br/><br/>
+
+    <table width="90%" class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr><tr>
+            <td>node</td>
+            <td>     cms-xen21.fnal.gov</td>
+            <td>      hostname for Factory.</td>
+            <td>       The WMS collector and Factory must be collocated at this time.</td>
+        </tr><tr>
+            <td>unix_acct</td>
+            <td>   weigand</td>
+            <td>     UNIX user account that this services will run under.</td>
+            <td>    Although the WMS Collector and Factory must be co-located, they can be run as independent users.</td>
+        </tr><tr>
+            <td>service_name</td>
+            <td>    factory-jgw</td>
+            <td>     Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.   </td>
+        </tr><tr>
+            <td>install_location</td>
+            <td>    /home/weigand/glidein/factory</td>
+            <td>   HOME directory for the factory software.     </td>
+        </tr><tr>
+            <td>client_files</td>
+            <td>    /var/spool/factory-jgw</td>
+            <td>  This identifies the location of the client log and proxy files.   </td>
+            <td>  If privilege separation is used, then the entire path (inclusive of this directory) must be root-writable-only (0755 and owned by root).  If privilege separation is not used, then the directory will be created by the install script assuming the factory user has write permissions to the parent directory.</td>
+        </tr><tr>
+            <td>instance_name</td>
+            <td>   v2_2</td>
+            <td>    Used in naming files and directories.    </td>
+        </tr><tr>
+            <td>gsi_authentication</td>
+            <td>  cert</td>
+            <td>    Used to identify the Factory to the other glidein services.</td>
+            <td> Valid values:<br/>
+                * cert - certificate used<br/>
+                * proxy - proxy used</td>
+        </tr><tr>
+            <td>cert_proxy_location</td>
+            <td>     /home/weigand/grid-security/x509_pilot_xen21_cms_proxy</td>
+            <td>  The location of the certificate or proxy (depending on the gsi_authentication value).   If a certificate, all that is need needed is the cert file name, not the key.pem file (full path required) eg. hostcert.pem</td>
+        </tr><tr>
+            <td>gsi_dn</td>
+            <td>  /DC=org/DC=doegrids/OU=Services/CN=cmsxen21/cms-xen21.fnal.gov
+            </td>
+            <td>  If the gsi_authentication is:<br/>
+                * cert, the subject of the certificate<br/>
+                * proxy, the issuer of the proxy</td>
+            <td>    openssl x509 -issuer -subject -noout -in [cert_proxy_location]</td>
+        </tr><tr>
+            <td>use_vofrontend_proxy</td>
+            <td>    y</td>
+            <td>   Specifies if the VO frontend or factory proxy should be used    'y' should be specified under most circumstances.</td>
+        </tr><tr>
+            <td> use_glexec</td>
+            <td>  y</td>
+            <td>   Used to specify how user submitted jobs are authorized on the CE/WN node:<br/>
+                * y - downloads and uses gLexec
+                * n - pilot(glidein) proxy is used</td>
+            <td>  With gLexec, the individual users proxy submitted with their job is used to authorize the job and is reflected in the accounting.</td>
+        </tr><tr>
+            <td>use_ccb</td>
+            <td>     n</td>
+            <td>   Valid values:
+* y - uses CCB
+* n - does not use CCB   
+        </tr><tr>
+            <td>gcb_list</td>
+            <td></td>
+            <td>CCB (default) is preferred to GCB configuration.  
+            Use GCB only if you are using a restrictive network that
+            prevents CCB.
+            GCB servers must be configured separately from the 
+            configuration based installer.
+            See <a href="../components/gcb.html">GCB configuration</a> for information</td>
+        </tr><tr>
+            <td>match_authentication</td>
+            <td>    y</td>
+            <td>   Valid values:<br/>
+                * y - uses it<br/>
+                * n - does not use it
+            </td>
+            <td>
+                Match authentication is more efficient and used in newer versions of Condor. This is recommended unless using an older version of Condor.</td>
+        </tr><tr>
+            <td> ress_host</td>
+            <td>   osg-ress-4.fnal.gov</td>
+            <td>     Identifies the ReSS server to be used to select Entry points (CEs) to submit glidein pilot jobs to.
+The only validation performed is to verify if that server exists.   </td>
+            <td>OSG values:
+            <ul>
+                <li>OSG Production: osg-ress-1.fnal.gov</li>
+                <li>OSG ITB: osg-ress-4.fnal.gov</li>
+            </ul>
+            </td>
+        </tr><tr>
+            <td>bdii_host</td>
+            <td>   exp-bdii.cern.ch</td>
+            <td>    Identifies the ReSS server to be used to select Entry points (CEs) to submit glidein pilot jobs to.
+The only validation performed is to verify if that server exists.</td>
+        </tr><tr>
+            <td>entry_vos</td>
+            <td>   cms, dzero</td>
+            <td>  A comma delimited set of VOs that should be used to select the entry points that glideins can be submitted to.</td>
+            <td>  These are the used as the initial criteria in querying ReSS and/or BDII for glidein entry points.</td>
+        </tr><tr>
+            <td>entry_filters</td>
+            <td>   (int(GlueCEPolicyMaxCPUTime) &lt;(25*60))</td>
+            <td>     An additional entry point (CE) filter for insuring that specific resources are available.   </td>
+            <td>After the initial set of entry points have been selected using the 'entry_vos' criteria, these filters are applied.  The format is a python expression using Glue schema attributes.</td>
+        </tr><tr>
+            <td>install_vdt_client</td>
+            <td>  y</td>
+            <td>   Valid values:
+* y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.
+* n - will not attempt to install the VDT client</td>
+            <td>    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+        </tr><tr>
+            <td>glidein_install_dir     </td>
+            <td>/home/weigand/glideinWMS</td>
+            <td>Directory of the glideinWMS software.</td>
+            <td>The glideinWMS software is used for both the installation of the various services and during the actual running of the glidein services.</td>
+        </tr><tr>
+            <td>web_location</td>
+            <td> /var/www/html/factory_weigand</td>
+            <td>Specifies the location for the monitoring and staging accessible by web services.   </td>
+            <td>This should be created before installing the Factory as the Factory user and the web server user are generally different and this script will not be able to create this directory with proper ownership.</td>
+        </tr><tr>
+            <td>web_url</td>
+            <td>http://%(node)s</td>
+            <td>Identifies the url used by the glidein pilots to download necessary software and to record monitoring data.</td>
+        </tr><tr>
+            <td>javascriptrrd</td>
+            <td>/home/weigand/glidein/utilities/javascriptrrd-0.5.0</td>
+            <td>Identifies the location of the javascript rrd software. </td>
+        </tr><tr>
+            <td>flot</td>
+            <td>/home/weigand/glidein/utilities/javascriptrrd-0.5.0/flot</td>
+            <td>Identifies the location of the flot software.   Note: With javascriptrrd-0.5.0, flot is now a part of that package. To verify, look for a flot directory in it's path.</td>
+        </tr><tr>
+            <td>m2crypto</td>
+            <td>/home/weigand/glidein/utilities/M2Crypt</td>
+            <td>Identifies the location of the M2Crypto software.</td>
+        </tr><tr>
+            <td>javascriptrrd_tarball</td>
+            <td>/home/weigand/tarballs/javascriptrrd-0.5.0.tgz</td>
+            <td> Identifies the location of a zipped tarball that can be used to install the javascriptrrd software.</td>
+            <td>Only required if javascriptrrd is not already installed.</td>
+        </tr><tr>
+            <td>flot_tarball</td>
+            <td></td>
+            <td>Identifies the location of a zipped tarball that can be used to install the flot software.  Only required if flot is not already installed.</td>
+        </tr><tr>
+            <td>m2crypto_tarball</td>
+            <td>/home/weigand/tarballs/M2Crypto-0.19.1.tar.gz</td>
+            <td>Identifies the location of a zipped tarball that can be used to install the M2Crypto software.</td>
+            <td>  Only required if M2Crypto is not already installed. </td>
+        </tr>
+    </tbody></table>
+</div>
+<div class="section">
+<h2>User Collector Section</h2>
+Under most circumstances, installation of usercollector using manage-glideins
+will be need to run as <b>root</b>, since Condor installations require some files to be owned by root in order to properly use privilege separation.
+<blockquote>
+    ./manage-glideins --install usercollector --ini glideinWMS.ini
+</blockquote>
+
+See below for the ini file attributes that installing/running user collector requ
+ires:<br/><br/>
+
+    <table width="90%" class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr><tr>
+            <td>node</td>
+            <td>     cms-xen23.fnal.gov      </td>
+            <td>hostname for User Collector.    </td>
+            </tr><tr>
+            <td>unix_acct</td>
+            <td>   weigand</td>
+            <td>UNIX user account that this services will run under.</td>
+            <td>This value must be a non-root user.  However, some files Condor
+            owns need to be owned by root, so the manage-glideins script
+            itself should be run as root when you install (see above).
+            </td>
+            </tr><tr>
+            <td>service_name</td>
+            <td>    userpool    </td>
+            <td>Used in naming the condor startup script (condor_).</td>
+            <td>
+                Example - condor_userpool   This allows multiple glidein condor services to be used in init.d services with unique names.</td>
+            </tr><tr>
+            <td>condor_location     </td>
+            <td>/home/weigand/glidein/condor-userpool   </td>
+            <td>Directory in which the condor software will be installed.    </td>
+            </tr><tr>
+            <td>collector_port  </td>
+            <td>9618 (condor default)   </td>
+            <td>Defines the Condor Collector port.  </td>
+            <td>Condor default is 9618. If multiple glidein services are installed on the same node, this should be unique of each service.</td>
+            </tr><tr>
+            <td>certificates    </td>
+            <td>/home/weigand/glidein/vdt   </td>
+            <td>The parent directory where the CA certificates are maintained.</td>
+            </tr><tr>
+            <td>gsi_authentication  </td>
+            <td>cert    </td>
+            <td>Used to identify the User Collector to the other glidein services.  Valid values:<br/>
+            * cert - certificate used<br/>
+            * proxy - proxy used     </td>
+            </tr><tr>
+            <td>cert_proxy_location</td>
+            <td>     /home/weigand/grid-security/cms-xen23glideincert.pem    </td>
+            <td>The location of the certificate or proxy (depending of the gsi_authentication value).   </td>
+            <td>If a certificate, all that is need needed is the cert file name, not the key.pem file (full path required) eg. hostcert.pem</td>
+            </tr><tr>
+            <td>gsi_dn  </td>
+            <td>/DC=org/DC=doegrids/OU=Services/CN=glidein/cms-xen23.fnal.gov   </td>
+            <td>If the gsi_authentication is:<br/>
+                * cert, the subject of the certificate<br/>
+                * proxy, the issuer of the proxy <br/>   </td>
+            <td>openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/><br/>
+                This is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glidein services.
+            </tr><tr>
+            <td>condor_tarball  </td>
+            <td>/home/weigand/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz  </td>
+            <td>Location of the condor tarball. It must be a zipped tarball.    The installation script will perform the installation of condor.</td>
+            </tr><tr>
+            <td>condor_admin_email  </td>
+            <td>whomever@fnal.gov   </td>
+            <td>Used in the condor_config.local only.   </td> 
+            </tr><tr>
+            <td>split_condor_config     </td>
+            <td>y   </td>
+            <td>Valid values:<br/>
+* y - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
+* n - will append to the CONDOR_LOCATION/etc/condor_config  </td>
+            <td>It is recommended that you split the condor_config file.</td>
+            </tr><tr>
+            <td>number_of_secondary_collectors  </td>
+            <td>5   </td>
+            <td>The desired number of secondary collectors to be used.   </td>
+            </tr><tr>
+            <td>install_vdt_client  </td>
+            <td>y   </td>
+            <td>Valid values:<br/>
+                * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
+                * n - will not attempt to install the VDT client    </td>
+             <td>If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+            </tr><tr>
+            <td>glidein_install_dir     </td>
+            <td>/home/weigand/glideinWMS    </td>
+            <td>Directory of the glideinWMS software.   </td>
+            <td>Since this is a Condor service only, this software is only used during the installation process. </td>
+            </tr>
+</tbody></table>
+</div>
+
+<div class="section">
+<h2>Submit Section</h2>
+<blockquote>
+    ./manage-glideins --install submit --ini glideinWMS.ini
+</blockquote>
+
+See below for the ini file attributes that installing/running the submit node
+requires:
+
+<br/><br/>
+
+    <table width="90%" class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr><tr>
+        <td>node</td>
+        <td>     cms-xen24.fnal.gov      </td>
+        <td>hostname for Submit node     </td>
+        </tr><tr>
+        <td>unix_acct   </td>
+        <td>weigand     </td>
+        <td>UNIX user account that this services will run under. </td>    
+        </tr><tr>
+        <td>service_name    </td>
+        <td>submit  </td>
+        <td>Used in naming the condor startup script (condor_).  </td>
+        <td>Example - condor_submit     This allows multiple glidein condor services to be used in init.d services with unique names.</td>
+        </tr><tr>
+        <td>condor_location     </td>
+        <td>/home/weigand/glidein/condor-submit     </td>
+        <td>Directory in which the condor software will be installed.    </td>
+        </tr><tr>
+        <td>certificates    </td>
+        <td>/home/weigand/glidein/vdt   </td>
+        <td>The parentdirectory where the CA certificates are maintained.    </td>
+        </tr><tr>
+        <td>gsi_authentication  </td>
+        <td>cert    </td>
+        <td>Used to identify the User Collector to the other glidein services.
+Valid values:<br/>
+            * cert - certificate used<br/>
+            * proxy - proxy used     </td>
+        </tr><tr>
+        <td>cert_proxy_location     </td>
+        <td>/home/weigand/grid-security/cms-xen24glideincert.pem    </td>
+        <td>The location of the certificate or proxy (depending of the gsi_authentication value).   </td>
+         <td>If a certificate, all that is need needed is the cert file name, not the key.pem file (full path required)
+eg. hostcert.pem</td>
+        </tr><tr>
+        <td>gsi_dn  </td>
+        <td>/DC=org/DC=doegrids/OU=Services/CN=glidein/cms-xen24.fnal.gov</td>
+        <td>If the gsi_authentication is:<br/>
+            * cert, the subject of the certificate<br/>
+            * proxy, the issuer of the proxy    </td>
+        <td>openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/><br/>
+            This is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glidein services.</td>
+        </tr><tr>
+        <td>condor_tarball  </td>
+        <td>/home/weigand/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz </td>
+        <td> Location of the condor tarball. It must be a zipped tarball.    The installation script will perform the installation of condor.</td>
+        </tr><tr>
+        <td>condor_admin_email  </td>
+        <td>whomever@fnal.gov   </td>
+        <td>Used in the condor_config.local only.    </td>
+        </tr><tr>
+        <td>split_condor_config     </td>
+        <td>y   </td>
+        <td>Valid values:<br/>
+            * y - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
+            * n - will append to the CONDOR_LOCATION/etc/condor_config  </td>
+        <td>It is recommended that you split the condor_config file.</td>
+        </tr><tr>
+        <td>number_of_schedds   </td>
+        <td>5   </td>
+        <td>The desired number of schedds to be used.    
+        </tr><tr>
+        <td>match_authentication    </td>
+        <td>y</td>
+        <td>   Valid values:<br/>
+            * y - uses it<br/>
+            * n - does not use it   </td>
+        <td>
+                Match authentication is more efficient and used in newer versions of Condor. This is recommended unless using an older version of Condor.</td>
+        </tr><tr>
+        <td>install_vdt_client  </td>
+        <td>y   </td>
+        <td>Valid values:<br/>
+            * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
+            * n - will not attempt to install the VDT client    </td>
+        <td>If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+        </tr><tr>
+        <td>glidein_install_dir     </td>
+        <td>/home/weigand/glideinWMS    </td>
+        <td>Directory of the glideinWMS software.   </td>
+        <td>Since this is a Condor service only, this software is only used during the installation process. </td>
+        </tr>
+
+</tbody></table>
+</div>
+<div class="section">
+<h2>Glidein Frontend</h2>
+
+The installation of the frontend should be done as the frontend user
+(see unix_acct below).
+<blockquote>
+    ./manage-glideins --install vofrontend --ini glideinWMS.ini
+</blockquote>
+
+See below for the ini file attributes that installing/running the 
+glideinWMS frontend requires:<br/><br/>
+
+    <table width="90%" class="attributes">
+        <tbody><tr class="head">
+        <td>Attribute</td>
+        <td>Example</td>
+        <td>Description</td>
+        <td>Comments</td>
+        </tr><tr>
+        <td>node     </td>
+        <td>cms-xen22.fnal.gov      </td>
+        <td>hostname for VOFrontend.    </td>
+        <td> 
+        </tr><tr>
+        <td>unix_acct   </td>
+        <td>weigand     </td>
+        <td>UNIX user account that this services will run under.    </td>
+        <td> 
+        </tr><tr>
+        <td>service_name    </td>
+        <td>cms_frontend    </td>
+        <td>Used as the 'nickname' for the GSI DN in the condor_mapfile.    </td>
+        <td> 
+        </tr><tr>
+        <td>frontend_identity   </td>
+        <td>cms_frontend    </td>
+        <td>Used in the frontend config file to identify this VOFrontend to the factory     </td>
+        <td> 
+        </tr><tr>
+        <td>install_location    </td>
+        <td>/home/weigand/glidein/cms   </td>
+        <td>HOME directory for the frontend software.   </td>
+        <td>When the frontend glideins are created the following files/directories will exist:<br/>
+            * frontend.sh - environment script<br/>
+            * instance_[instance_name].cfg - the configuration file for the factory.<br/>
+            * frontend_[service_name]_[instance_name] - directory containing the frontend files</td>
+        </tr><tr>
+        <td>logs_location   </td>
+        <td>/home/cms/glidein/logs  </td>
+        <td>Provides a central location for all log files.  </td>
+        <td> </td>
+        </tr><tr>
+        <td>instance_name   </td>
+        <td>v2_2    </td>
+        <td>Used in naming files and directories.   </td>
+        <td> </td>
+        </tr><tr>
+        <td>condor_location     </td>
+        <td>/home/weigand/glidein/condor-submit     </td>
+        <td>Directory in which the condor software will be installed.   </td>
+        <td>Note: The Frontend never runs any Condor daemons. It only uses the Condor client tools.</td>
+        </tr><tr>
+        <td>condor_tarball  </td>
+        <td>/home/weigand/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz  </td>
+        <td>Location of the condor tarball. It must be a zipped tarball.    </td>
+        <td>The installation script will perform the installation of condor.</td>
+        </tr><tr>
+        <td>condor_admin_email  </td>
+        <td>whomever@fnal.gov   </td>
+        <td>Used in the condor_config.local only.    </td>
+        </tr><tr>
+        <td>split_condor_config     </td>
+        <td>y   </td>
+        <td>Valid values:<br/>
+            * y - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
+            * n - will append to the CONDOR_LOCATION/etc/condor_config  </td>
+        <td> 
+        </tr><tr>
+        <td>certificates    </td>
+        <td>/home/weigand/glidein/vdt   </td>
+        <td>The parentdirectory where the CA certificates are maintained.   </td>
+        <td> </td>
+        </tr><tr>
+        <td>gsi_authentication  </td>
+        <td>proxy   </td>
+        <td>Valid values: proxy     </td>
+        <td>This must always be a proxy for the VO Frontend to communicate with the Factory.</td>
+        </tr><tr>
+        <td>cert_proxy_location     </td>
+        <td>/home/weigand/grid-security/x509_glidein_xen22_proxy    </td>
+        <td>The location of the proxy.  </td>
+        <td>I should just change this to 'proxy_location' and eliminate the gsi_authentication attribute.</td>
+        </tr><tr>
+        <td>gsi_dn  </td>
+        <td>/DC=org/DC=doegrids/OU=Services/CN=glidein/cms-xen22.fnal.gov   </td>
+        <td>This is the issuer of the proxy     </td>
+        <td>openssl x509 -issuer -noout -in [cert_proxy_location]</td>
+        </tr><tr>
+        <td>glidein_proxies     </td>
+        <td>/home/weigand/grid-security/x509_pilot_xen22_dzero_proxy <br/>
+        /home/weigand/grid-security/x509_pilot_xen22_fermilab_proxy  
+        <td>Identifies the proxy(s) to be used to submit the glidein pilot jobs.
+        </td>
+        <td>
+When specifying multiple proxies, whitespace is the delimiter.  These will be the proxies used by the glidein pilot jobs if you have specified that Frontend proxies are to be used in the Factory section of this ini file.</td>
+        </tr><tr>
+        <td>glidein_proxies_dns</td>
+        <td>     /DC=org/DC=doegrids/OU=Services/CN=dzeroxen22/cms-xen22.fnal.gov;/DC=org/DC=doegrids/OU=Services/CN=fermilabxen22/cms-xen22.fnal.gov    </td>
+        <td>Identifies the issuer(s) of the glidein_proxies being used</td>
+        <td>This is a semicolon separated list for each proxy identified in the glidein_proxies attribute.   </td>
+        </tr><tr>
+        <td>glexec_use</td>
+        <td>  required    </td>
+        <td>Valid values:<br/>
+            * required - will only request glidein pilots to entry points that use glexec<br/>
+            * optional - will request glidein pilots regardless of glexec use<br/>
+            * never - will never request glidein pilots for entry points using glexec    <br/></td>
+        </tr><tr>
+        <td>expose_grid_env</td>
+        <td>True</td>
+        <td>Valid values:<br/> 
+            * True- jobs will export shell variables to the user job running.<br/>
+            * False - no shell variables will be exported.</td>
+        </tr><tr>
+        <td>match_authentication</td>
+        <td>    y</td>
+        <td>   Valid values:<br/>
+            * y - uses it
+            * n - does not use it   
+        </td>
+        <td>Match authentication is more efficient and used in newer versions of Condor. This is recommended unless using an older version of Condor.</td>
+        </tr><tr>
+        <td>match_string</td>
+        <td>True    </td>
+        <td>This is a python format string for matching glideins to jobs.</td>
+        <td>
+            This must be in python format so using the exact case (True and False must be capitalized) is critical. One example is:<br/>
+            <i>jobs_constraint = (JobUniverse==5)&&(DESIRED_Sites=!=UNDEFINED)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",") </i></td>
+        </tr><tr>
+        <td>install_vdt_client</td>
+        <td>  y   </td>
+        <td>Valid values:<br/>
+                * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
+                * n - will not attempt to install the VDT client    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+        </tr><tr>
+        <td>glidein_install_dir     </td>
+        <td>/home/weigand/glideinWMS    </td>
+        <td>Directory of the glideinWMS software.   </td>
+        <td>The glideinWMS software is used for both the installation of the various services and during the actual running of the glidein services.</td>
+        </tr><tr>
+        <td>web_location    </td>
+        <td>/var/www/html/cms_frontend  </td>
+        <td>Specifies the location for the monitoring and staging accessible by web services.   This should be created before installing the Frontend as the Frontend user and the web server user are generally different and this script will not be able to create this directory with proper ownership.</td>
+        </tr><tr>
+        <td>web_url     </td>
+        <td>http://%(node)s     </td>
+        <td>Identifies the url used by the glidein pilots to download necessary software and to record monitoring data.      </tD>
+        </tr><tr>
+        <td>javascriptrrd   </td>
+        <td>/home/weigand/glidein/utilities/javascriptrrd-0.4.2     </td>
+        <td>Identifies the location of the javascript rrd software.   </td>   
+        </tr><tr>
+        <td>flot    </td>
+        <td>/home/weigand/glidein/utilities/flot    </td>
+        <td>Identifies the location of the flot software.    </td>
+        </tr><tr>
+        <td>m2crypto    </td>
+        <td>/home/weigand/glidein/utilities/M2Crypt     </td>
+        <td>Identifies the location of the M2Crypto software.    </td>
+        </tr><tr>
+        <td>javascriptrrd_tarball   </td>
+        <td>/home/weigand/tarballs/javascriptrrd-0.4.2.tgz  </td>
+        <td>Identifies the location of a zipped tarball that can be used to install the javascript rrd software.    </td>
+        <td>Only required if javascript rrd is not already installed.</td>
+        </tr><tr>
+        <td>flot_tarball    </td>
+        <td>/home/weigand/tarballs/flot-0.5.tar.gz  </td>
+        <td>Identifies the location of a zipped tarball that can be used to install the flot software.  </td>
+        <td>Only required if flot is not already installed.</td>
+        </tr><tr>
+        <td>m2crypto_tarball    </td>
+        <td>/home/weigand/tarballs/M2Crypto-0.19.1.tar.gz   </td>
+        <td>Identifies the location of a zipped tarball that can be used to install the M2Crypto software.  </td>
+        <td>Only required if M2Crypto is not already installed. </td>
+        </tr>
+</tbody></table>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

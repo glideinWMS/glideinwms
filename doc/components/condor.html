@@ -1,0 +1,518 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Components</a></li>
+        <li>Condor</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last"> Condor</li>
+	</ul>
+        <h3>Advanced Condor Configuration</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li><a href="#schedds">Multiple Schedds</a></li>
+    <li><a href="#gcb">Configuring GCB</a></li>
+    <li><a href="#quill">Quill</a></li>
+</ol>
+</div>
+<div class="related">
+Related Links:
+<ul>
+<li><a target="_blank" href="http://www.cs.wisc.edu/condor/">Condor Website</a></li>
+</div>
+<div class="section">
+<a name="schedds"><h2>Multiple Schedds</h2></a>
+
+    <p>
+    The installation will assume you
+    <a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">
+        have installed Condor v7.0.5
+    </a>.<br>
+    The install directory is <b>/opt/glidecondor</b>, the working directory is
+    <b>/opt/glidecondor/condor_local</b> and the machine name is 
+    <b>mymachine.fnal.gov</b>.<br>
+
+    If you want to use a different setup, make the necessary changes.
+    </p>
+    <p>
+    It also assumes you have <a href="#quill" title="configured Quill">configured
+    Quill</a>; you can use multiple Schedds without using Quill, but this is not
+    described here, although it should be obvious what you can skip in that case.
+    </p>
+    <p>
+    Unless explicity mentioned, all operations are to be done as root.
+    </p>
+    <h3>Create setup files</h3>
+    <p>
+    In order to easily manage a secondary schedd, create
+    <b>/opt/glidecondor/new_schedd_setup.sh</b>,
+    containing:
+    </p>
+    <blockquote>
+      if [ $# -ne 1 ]<br>
+      then<br>
+
+      &nbsp;echo "Schedd name expected!"<br>
+      &nbsp;return 1<br>
+      fi<br>
+      <br>
+    LD=`condor_config_val LOCAL_DIR`<br>
+      QDB=`condor_config_val QUILL_DB_NAME`<br>
+
+      <br>
+      export _CONDOR_SCHEDD_NAME=schedd_$1<br>
+      export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}<br>
+      # SCHEDD and MASTER names MUST be the same (Condor requirement)<br>
+      export _CONDOR_QUILL_NAME=quill_$1@`uname -n`<br>
+      export _CONDOR_QUILL_DB_NAME=${QDB}_$1<br>
+
+      export _CONDOR_DAEMON_LIST="MASTER, SCHEDD,QUILL"<br>
+      export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br>
+      export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br>
+      <br>
+      unset LD<br>
+      unset QDB<br>
+
+    </blockquote>
+    <p>
+    The same file can be downloaded from
+    <a href="example-config/multi_schedd/new_schedd_setup.sh" title="example-config/multi_schedd/new_schedd_setup.sh">
+        example-config/multi_schedd/new_schedd_setup.sh
+    </a>.
+    </p>
+    <p>
+    To create the necessary directories and files, create
+    <b>/opt/glidecondor/init_schedd.sh</b>:<br>
+
+    </p><blockquote>
+      #!/bin/sh<br>
+      source /opt/glidecondor/new_schedd_setup.sh $1<br>
+      # add whatever other config you need<br>
+      # create needed directories<br>
+      /opt/glidecondor/sbin/condor_init<br>
+
+      # copy Quill writer passwd<br>
+    </blockquote>
+    Then:
+    <blockquote>
+        cp -p $_CONDOR_LOCAL_DIR/../spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/<br>
+    </blockquote>
+    This one you want to make executable:<br>
+    <blockquote>
+
+      chmod a+x /opt/glidecondor/init_schedd.sh<br>
+    </blockquote>
+    The same file can be downloaded from
+    <a href="example-config/multi_schedd/init_schedd.sh" title="example-config/multi_schedd/init_schedd.sh">
+        example-config/multi_schedd/init_schedd.sh
+    </a>.
+    <p></p>
+    <p>
+    Similarly, you will want to have a way to easily start a secondary schedd, so create
+    <b>/opt/glidecondor/start_master_schedd.sh</b>:<br>
+
+    </p><blockquote>
+      #!/bin/sh<br>
+      source /opt/glidecondor/new_schedd_setup.sh $1<br>
+      # add whatever other config you need<br>
+      /opt/glidecondor/sbin/condor_master<br>
+    </blockquote>
+    This one you want to make executable:
+    <blockquote>
+
+      chmod a+x /opt/glidecondor/start_master_schedd.sh<br>
+    </blockquote>
+    The same file can be downloaded from
+    <a href="example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
+        example-config/multi_schedd/start_master_schedd.sh
+    </a>.
+<h3>Initialize schedds</h3>
+    <p>
+    To initialize a secondary schedd, use
+    <b>/opt/glidecondor/init_schedd.sh</b> created above.
+    </p>
+    <p>
+    If you came here from another document, 
+    <b>make sure you configure the schedds specified there.</b>
+    </p>
+    <p>
+    For example, supposing you want to create schedds named schedd_jobs1, schedd_jobs2 and schedd_glideins1, you would run:
+    </p><blockquote>
+
+      /opt/glidecondor/init_schedd.sh jobs1<br>
+      /opt/glidecondor/init_schedd.sh jobs2<br>
+      /opt/glidecondor/init_schedd.sh glideins1<br>
+    </blockquote>
+<h3><a name="starting">Starting up schedds</a></h3>
+    <p>
+
+    If you came to this document as part of another installation, go back and follow
+those instructions.
+    </p>
+    <p>
+    Else, when you are ready, you can start the schedd by running
+    <b>/opt/glidecondor/start_master_schedd.sh</b> created above.
+    </p>
+    <p>
+    For example, supposing you want to start schedds named schedd_jobs1, schedd_jobs2 and schedd_glideins1, you would run:
+    </p><blockquote>
+      /opt/glidecondor/start_master_schedd.sh jobs1<br>
+
+      /opt/glidecondor/start_master_schedd.sh jobs2<br>
+      /opt/glidecondor/start_master_schedd.sh glideins1
+    </blockquote>
+    <b>Note:</b> Always start them after you have started the Collector.
+<h3><a name="submission">Submission and monitoring</a></h3>
+    <p>
+
+    The secondary schedds can be seen by issuing
+    </p><blockquote>
+      condor_status -schedd<br>
+    </blockquote>
+    To submit or query a secondary schedd, you need to use the <b>-name</b> options, like:
+    <blockquote>
+      condor_submit -name schedd_jobs1@ job.jdl<br>
+
+      condor_q -name scjedd_jobs1@
+    </blockquote>
+</div>
+<div class="section">
+<h2><a name="gcb">GCB Installation</a></h2>
+    <img src="../images/overview_gcb.png" name="graphics1" height="213" width="359" align="right" border="0"><p></p>
+    <p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
+    <p>This node will serveas a 
+    <a target="_blank" href="http://www.cs.wisc.edu/condor/gcb/">Generic Connection Brokering (GCB)</a> node. 
+    If you are working over firewalls or NATs, and are using an older version of condor (before v7.3.0) you will need one or more of these.  If in use, GCB is needed every time you have a firewall or a NAT.
+    If this node dies, all the glideins relying on it will die with it. If possible use <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">CCB</a> instead.
+    </p>
+<h3><a name="hardware"></a>Hardware requirements </h3>
+    <p>This machine needs <b>a reasonably recent CPU</b> and a small amount of <b>memory</b>
+    (<b>256MB</b> should be enough).</p>
+
+    <p>It must have a <b>reliable network</b> connectivity and must be 
+    <b>on the public internet,</b> with <b>no firewalls</b>.  It will work as a router. 
+    It will <b>use 20k IP ports</b>, so it should not be collocated with other network intensive
+    applications.</p>
+    <p> The machine must be <b>very stable</b>.  If the GCB dies, 
+    all the glideins relying on it will die with it..
+    (Multiple GCBs can improve this by minimizing the damage of a downtime, 
+    but this machine should still be on the most stable machine affordable).</p>
+
+    <p>About <b>5GB of disk space</b> is needed for Condor binaries and log files.</p>
+    <p>As these specifications are not disk/memory intensive, you may consider collocating it with a 
+    <a href="frontend_install.html">Glidein Frontend</a>.</p>
+<h3><a name="software">Needed software </a></h3>
+<p>You will need a reasonably recent Linux OS (SL4 used at press time), and 
+    the <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor distribution</a>.</p>
+<h3><a name="condor">Installation instructions </a></h3>
+
+    <p>The GCB should be installed as a non privileged user. </p>
+    <p>The whole process is managed by a install script described below. You will need to provide a valid
+    <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/">Condor tarball</a>,
+    so you should download it before starting the installer.</p>
+    <p>
+    Move into the "glideinWMS/install" directory and execute
+    </p><blockquote>
+
+        ./glideinWMS_install
+    </blockquote>
+    You will be presented with this screen:
+    <blockquote>
+    What do you want to install?<br>
+    (May select several options at one, using a , separated list)<br>
+    [1] glideinWMS Collector<br>
+    [2] Glidein Factory<br>
+
+    [3] GCB<br>
+    [4] pool Collector<br>
+    [5] Schedd node<br>
+    [6] Condor for Glidein Frontend<br>
+    [7] Glidein Frontend<br>
+    [8] Components
+    </blockquote>
+
+    Select <b>3</b>.  Now follow the instructions. The installation is straightforward.<p></p>
+    The installer will also start the Condor daemons. 
+    <p></p>
+<h3><a name="starting">Starting and Stopping</a></h3>
+    <p>
+    To start the Condor daemons, issue:
+    </p><blockquote>
+
+    cd &lt;install dir&gt;<br>
+    ./start_condor.sh
+    </blockquote>
+
+    <p></p>
+    <p>
+    To stop the Condor daemons, issue:
+    </p><blockquote>
+        killall condor_master
+    </blockquote>
+
+    <p></p>
+<h3><a name="verify">Verify it is running</a></h3>
+
+    <p>You can check that the processes are running:
+    </p><blockquote>
+        ps -u `id -un`|grep gcb
+    </blockquote>
+    You should see one gcb_broker and at least one gcb_relay_server.
+    <p></p>
+    <p>
+
+    You can also check that they are working by pinging it with gcb_broker_query:
+    </p><blockquote>
+    &lt;install dir&gt;/sbin/gcb_broker_query &lt;your_ip&gt; freesockets
+    </blockquote>
+
+<h3><a name="tuning">Fine tuning</a></h3>
+<h4>Increase the number of available ports</h4>
+    <p>
+
+    The default installation will set up GCB to handle up to 20k requests. Look in
+the &lt;install dir&gt;/etc/condor_config.local for
+    </p><blockquote>
+    GCB_MAX_RELAY_SERVERS=200<br>
+    GCB_MAX_CLIENTS_PER_RELAY_SERVER=100
+    </blockquote>
+    This is enough for approximately 4000 glideins (each glidein uses 5-6 ports).
+    <p></p>
+    <p>
+    If you want a single GCB to serve more glideins that that, you can increase those numbers.
+However, be aware that the OS also has its limits. On most Linux systems, the limit is set in 
+
+<b>/proc/sys/net/ipv4/ip_local_port_range</b>.
+    </p><blockquote>
+    $ cat /proc/sys/net/ipv4/ip_local_port_range<br>
+    32768   61000
+    </blockquote>
+    For example, the typical port range listed above has only ~28k ports available. 
+    If you want to configure GCB/CCB to serve more than that, first change the system limit, 
+    then the GCB/CCB configuration.
+    <p></p>
+<h4>Increase the number of available file descriptors</h4>
+
+    <p>Note that every port used by the GCB/CCB also consumes available file descriptors. The default number of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of ports GCB/CCB is allowed to open.</p>
+
+    <p>This can be done by issuing a "ulimit -n" command as well as changing the values in the /etc/security/limits.conf file</p>
+</div>
+<div class="section">
+    <h2><a name="quill">Installing Quill</a></h2>
+<h3><a name="software">Required software</a></h3>
+    <ul>
+    <li>
+        A reasonably recent Linux OS (SL4 used at press time).
+    </li>
+    <li>
+        A <a target="_blank" href="http://www.postgresql.org/" title="PostgreSQL Hoe Page">
+            PostgreSQL server</a>.
+    </li>
+
+    <li>
+        The
+        <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads/" title="Condor download page">
+            Condor distribution</a>.<br>
+    </li>
+    </ul>
+<h3><a name="install">Installation instructions</a></h3>
+
+    <p>
+    The installation will assume you
+    <a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">
+        have installed Condor v7.0.5
+    </a>.
+    </p>
+    <p>
+    The install directory is <b>/opt/glidecondor</b>, the working directory is
+    <b>/opt/glidecondor/condor_local</b> and the machine name is 
+    <b>mymachine.fnal.gov</b>. and its IP 
+    <b>131.225.70.222</b>.
+    </p>
+
+    <p>
+    If you want to use a different setup, make the necessary changes.
+    </p>
+    <p>
+    Unless explicity mentioned, all operations are to be done as root.
+    </p>
+<h3>Obtain and install PostgreSQL RPMs</h3>
+    <p>
+
+    Most Linux distributions come with very old versions of PostgreSQL, so you will
+    want to download the latest version.
+    </p>
+    <p>
+    The RPMs can be found on
+    <a target="_blank" href="http://www.postgresql.org/ftp/binary/" title="PostgreSQL Download page">http://www.postgresql.org/ftp/binary/</a>
+    </p>
+    <p>
+    At the time of writing, the latest version is v8.2.4, and the RPM files to install are
+    </p><blockquote>
+      postgresql-8.2.4-1PGDG.i686.rpm<br>
+
+      postgresql-libs-8.2.4-1PGDG.i686.rpm<br>
+      postgresql-server-8.2.4-1PGDG.i686.rpm<br>
+    </blockquote>
+<h3>Initialize PostgreSQL</h3>
+    <p>
+    Switch to user postgres:
+    </p><blockquote>
+
+      su - postgres<br>
+    </blockquote>
+    And initialize initialize the database with:
+    <blockquote>
+      initdb -A "ident sameuser" -D /var/lib/pgsql/data<br>
+    </blockquote>
+    <p></p>
+
+<h3>Configure PostgreSQL</h3>
+    <p>
+    PostgreSQL by default only accepts local connections., so you need to configure
+it in order for Quill to use it.
+    </p>
+    <p>
+    Please do it as user postgres.
+    </p>
+    <p>
+    To enable TCP/IP traffic, you need to change
+    <b>listen_addresses</b> in <b>/var/lib/pgsql/data/postgresql.conf</b> to:<br>
+
+    </p><blockquote>
+      # Make it listen to TCP ports<br>
+      listen_addresses = '*'<br>
+    </blockquote>
+    <p></p>
+    <p>
+    Moreover, you need to specify which machines will be able to access it.<br>
+
+    Unless you have strict security policies forbiding this, I recommend enabling
+    read access to the whole world by adding the following line
+    to <b>/var/lib/pgsql/data/pg_hba.conf</b>:
+    </p><blockquote>
+      host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
+      quillreader&nbsp;&nbsp;&nbsp;&nbsp; 0.0.0.0/0
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; md5<br>
+
+    </blockquote>
+    On the other hand, we want only the local machine to be able to write the
+    database.  So, we will add to
+    <b>/var/lib/pgsql/data/pg_hba.conf</b>:
+    <blockquote>
+      host&nbsp;&nbsp;&nbsp; all&nbsp;&nbsp;&nbsp;&nbsp;
+      quillwriter&nbsp;&nbsp;&nbsp;&nbsp; 131.225.70.222/32 &nbsp; md5<br>
+
+    </blockquote>
+    <p></p>
+<h3>Start PostgreSQL</h3>
+    To start PostgreSQL, just run:
+    <blockquote>
+      /etc/init.d/postgresql start<br>
+    </blockquote>
+
+    There should be no error messages.
+<h3>Initalize Quill users</h3>
+    Switch to user postgres:<br>
+    <blockquote>
+      su - postgres<br>
+    </blockquote>
+
+    And initialize initialize the Quill users with:<br>
+    <blockquote>
+  createuser quillreader --no-createdb --no-adduser --no-createrole --pwprompt<br>
+  # passwd <b>reader</b><br>
+  createuser quillwriter --createdb --no-adduser --no-createrole --pwprompt<br>
+  # password &lt;writer passwd&gt;<br>
+
+  psql -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
+  psql -d template1 -c "REVOKE CREATE ON SCHEMA public FROM PUBLIC;"<br>
+  psql -d template1 -c "GRANT CREATE ON SCHEMA public TO quillwriter; GRANT USAGE ON SCHEMA public TO quillwriter;"<br>
+    </blockquote>
+<h3>Configure Condor</h3>
+Append the following lines to
+
+<b>/opt/glidecondor/etc/condor_config</b>:
+    <blockquote>
+      #############################<br>
+      # Quill settings<br>
+      #############################<br>
+      QUILL_ENABLED = TRUE<br>
+      QUILL_NAME = quill@$(FULL_HOSTNAME)<br>
+
+      QUILL_DB_NAME = $(HOSTNAME)<br>
+      QUILL_DB_QUERY_PASSWORD = reader<br>
+      QUILL_DB_IP_ADDR = $(HOSTNAME):5432<br>
+      QUILL_MANAGE_VACUUM = TRUE<br>
+    </blockquote>
+    In <b>/opt/glidecondor/condor_local/condor_config.local</b>,
+    add <b>QUILL</b> to <b>DAEMON_LIST,</b> getting something like:
+    <blockquote>
+
+DAEMON_LIST&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  = MASTER, QUILL, SCHEDD
+    </blockquote>
+    Finally, put the writer passwd into
+    <b>/opt/glidecondor/condor_local/spool/.quillwritepassword</b>:
+    <blockquote>
+      echo "&lt;writer passwd&gt;" &gt;
+      /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+
+      chown condor /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+      chmod go-rwx /opt/glidecondor/condor_local/spool/.quillwritepassword<br>
+    </blockquote>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

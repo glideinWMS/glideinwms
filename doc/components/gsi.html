@@ -1,0 +1,428 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Components</a></li>
+        <li>GSI</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+         <li> GSI</li>
+	     <li class="last"> <a href="./condor.html">Condor</a></li>
+	</ul>
+        <h3>GSI Authentication</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li> <a href="#reference">Quick Reference</a></li>
+    <li><a href="#software">Required software</a></li>
+    <li><a href="#install">Installation</a></li>
+
+</ol>
+</div>
+<div class="related">
+<ul>
+<li><a href="../factory/troubleshooting.html#colorcoded">GSI Quick Color-coded Guide</a></li>
+</div>
+<div class="section">
+<a name="reference" />
+<h2>1. Quick Reference Guide to GSI Authentication Setup</h2>
+
+<p>
+glideinWMS uses GSI for authentication/authorization of services and clients.
+The table below acts as a quick reference guide for configuring GSI in glideinWMS.
+</p>  
+<table class="requirements">
+  <tbody><tr class="head">
+    <td>Service</td>
+    <td>Comments</td>
+
+  </tr>
+  <tr>
+    <td>glideinWMS Collector</td>
+       <td>
+         <ul>
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of glideinWMS Collector.
+           </li>
+           <li>Condor Mapfile should contain DNs of WMS Collector, Glidein Frontend, Glidein Factory.
+           </li>
+
+           <li>DN of glideinWMS Collector should be in GSI_DAEMON_NAME in condor_config of 
+               glideinWMS Collector and condor mapfile of glideinWMS Collector.
+           </li>
+         </ul>
+       </td>
+     </tr>
+     <tr>
+       <td>Glidein Factory</td>
+       <td>
+         <ul>
+
+           <li>condor mapfile to be used by glidein startd should contain DN of user schedds and Glidein Pool
+               Collector.
+           </li>
+           <li>DN of Glidein Factory should be in condor mapfile of glideinWMS Collector,
+               glidein Pool collector and user schedds.           
+           </li>
+         </ul>
+       </td>
+     </tr>
+     <tr>
+       <td>Glidein Pool Collector</td>
+
+       <td>
+         <ul>
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, 
+               User Schedd Nodes, Glidein Factory (glidein startd).
+           </li>
+           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes,
+               Glidein Factory (glidein startd).
+           </li>
+           <li>DN of Glidein Pool Collector should be in gridmap file of User Schedd Nodes and 
+               glidein startd that will run on worker node.
+           </li>
+         </ul>
+       </td>
+
+     </tr>
+     <tr>
+       <td>Glidein Frontend</td>
+       <td>
+         <ul>
+           <li>DN of Glidein Frontend should be in the gridmapfile of glideinWMS Collector.
+           </li>
+         </ul>
+       </td>
+
+     </tr>
+     <tr>
+       <td>User Schedd</td>
+       <td>
+         <ul>
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, 
+               User Schedd Node itself, Glidein Factory (glidein startd).
+           </li>
+           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, 
+               Glidein Factory (glidein startd).
+           </li>
+
+           <li>DN of User Schedd should be in the GSI_DAEMON_NAME of its own condor_config file and 
+               in the condor mapfile used by the glidein startd that will run on worker node.
+           </li>
+         </ul>
+       </td>
+     </tr>
+</tbody></table> 
+</div>
+<div class="section">
+<h2><a name="software">2. Required software</a></h2>
+    <ul>
+
+    <li>
+    Any
+    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/1_5Availability.html title="Available architectures">
+        Condor-supported OS
+    </a>.
+    </li>
+    <li>
+    The
+    <a href=https://twiki.grid.iu.edu/twiki/bin/view/Documentation/WebHome title="OSG User Web page">
+        OSG client software</a>.
+    </li>
+
+    <li>
+    The
+    <a href=http://www.cs.wisc.edu/condor/downloads/ title="Condor download page">
+        Condor distribution</a>.
+    </li>
+    </ul>
+</div>
+
+<div class="section">
+<h2><a name="install">  3. Installation instructions</a></h2>
+
+    <p>
+    The installation will assume you
+    <a href="condor_v7.0.5_install.html" title="Condor v7.0.5 Installation">
+        have installed Condor v7.0.5</a>.
+    The install directory is <b>/opt/glidecondor</b>.
+    If you want to use a different setup, make the necessary changes.
+    </p>
+    <p>
+    Unless explicity mentioned, all operations are to be done as root.
+    </p>
+</div>
+
+<div class="section">
+<h3>  3.1 Install OSG client</h3>
+    <p>
+    If you have not installed the OSG client in <b>/opt/vdt</b> already, do it now.<br/>
+    <i>(Note: An EGEE/gLite Grid User Interface will work as well, but you need to
+replace /opt/vdt with whatever is appropriate for that installation)</i>
+    </p>
+
+    <p>
+    To install OSG 0.6.0 client, as of the time of writing, you would execute the following as <b>root</b><br/>
+(please be aware that you will need gcc, g++ and python-devel installed, and that you may need <b>-pretend-platform</b> packman option on some systems):
+    <blockquote>
+        mkdir /opt/vdt<br/>
+        cd /opt/vdt<br/>
+
+        wget http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.19.tar.gz<br/>
+        tar --no-same-owner -xzvf pacman-3.19.tar.gz<br/>
+        cd pacman-3.19<br/>
+        source setup.sh<br/>
+        cd ..<br/>
+        pacman -trust-all-caches -get OSG:client<br/>
+
+        #Do you agree to the licenses? [y/n] y<br/>
+        #Would you like to enable the Condor batch system to run automatically? n<br/>
+        #Would you like to setup daily rotation of VDT log files? y<br/>
+        #Do you want to update the CA certification revocation lists (CRLs)
+        automatically? [y/n] y<br/>
+        #Where would you like to install CA files? r<br/>
+        pacman -remove Condor<br/>
+
+        # ignore error messages<br/>
+        source setup.sh<br/>
+        vdt-control --on<br/>
+    </blockquote>
+    PS: The most up-to-date instructions can be found on
+    <a href=https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide title="OSG client installation guide">
+        https://twiki.grid.iu.edu/twiki/bin/view/ReleaseDocumentation/ClientInstallationGuide</a>.
+    </p>
+
+    <p>
+    <i>(Please notice that those installation instructions tell you to install in ~/client_directory, 
+    please use /opt/vdt instead)</i>
+    </p>
+</div>
+<div class="section">
+<h3>  3.2 Prepare the security directories and files</h3>
+    <p>
+    Create <b>/opt/glidecondor/certs</b>
+
+    <blockquote>
+      mkdir /opt/glidecondor/certs<br/>
+      chmod a+rx /opt/glidecondor/certs
+    </blockquote>
+    This directory will host the grid-mapfile and eventual service proxy (see below).
+    </p>
+    <p>
+    Now you need to select what proxy or certificate you will be used for authentication. 
+    You have essentially three options:
+    <ol>
+      <li>
+
+        You use the host certificates located in
+        <b>/etc/grid-security</b>
+      </li>
+      <li>
+        You request a service certificate for use with Condor, and put it in
+        <b>/opt/glidecondor/certs</b>
+      </li>
+      <li>
+        You create and maintain a valid proxy, obtained from a personal or service
+        certificate, in <b>/opt/glidecondor/certs</b>.
+        How you keep this proxy valid (via
+        <a href=http://grid.ncsa.uiuc.edu/myproxy/ title="MyProxy home page">MyProxy</a>,
+        <a href=http://www.kx509.org/ title="kx509 Mode Page">kx509</a>,
+        voms-proxy-init from a local certificate, scp from other nodes, or other
+        methods), is beyond the scope of this document.
+      </li>
+
+    </ol>
+    Most of my test installations used option(3), but you may be better served with
+    (1) or (2) for a large production pool.
+    </p>
+    <p>
+    Anyhow, most of the examples in this collection will assume you use (3), with
+    the proxy being named
+    <b>/opt/glidecondor/certs/x509_service_proxy</b>.
+    <p>
+    <b>Note:</b> The proxy and/or the certificate key must bereadable by the owner only! 
+    <b>If it is either group or world readable</b> (and/or writable),
+    <b>Condor will refuse to use it</b> 
+    (since it could have been stolen and/or compromised by now).
+    </p>
+
+    <p>
+    Once you have the proxy or the certificate, you need to create
+    <b>/opt/glidecondor/certs/grid-mapfile</b> and insert the DN of the proxy/cert 
+    followed by a symbolic name.
+    </p>
+    <p>
+    Assuming the DN of the proxy/cert to be "/DC=org/DC=doegrids/OU=Service/CN=mycondor345", 
+    you would insert:
+    <blockquote>
+      "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+    </blockquote>
+
+    The symbolic name is not really important, it has no meaning in Unix space. It
+    is just a nickname you will use in configuration and log files.
+    </p>
+    <p>
+    In addition to its own DN, the grid-mapfile must contain also the DNs of all the
+    clients and servers that will ever talk to this Condor installation:
+    <ul>
+      <li>
+        The DNs of other Condor nodes, i.e. the
+        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+        Central Manager</a>,&nbsp; the
+        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+        Submit nodes</a> and the
+        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Condor
+        Execute nodes</a>.
+      </li>
+
+      <li>
+        If this is a
+        <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Submit
+        node</a>
+        or&nbsp;<a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">Execute
+        node</a> and your users use GSI authentication, you also need to list all the users' DNs.
+      </li>
+    </ul>
+    Again, you will need to add nicknames to those DNs. In the case of a
+    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
+
+        Submit node
+    </a>
+    or 
+    <a href=http://www.cs.wisc.edu/condor/manual/v7.0/3_1Introduction.html#SECTION00411000000000000000 title="Condor manual">
+        Execute node
+    </a> 
+    running as root, the user nicknames must represent actual Unix account.
+    </p>
+    <p>
+    In all other cases, the nicknames have no special meanin, and are there just for 
+    use in configuration and log files.
+    </p>
+    <p>
+
+    For example, assuming this is the Central Manager, and it has two Submit nodes,
+    with DNs "/DC=org/DC=doegrids/OU=Service/CN=schedd34" and
+    "/DC=org/DC=doegrids/OU=Service/CN=schedd98", while all the Execute nodes are
+    glideins, and thus share the same DN "/DC=org/DC=doegrids/OU=Service/CN=work12",
+    the <b>/opt/glidecondor/certs/grid-mapfile</b>could be:
+    <blockquote>
+      "/DC=org/DC=doegrids/OU=Service/CN=mycondor345" condor<br>
+      "/DC=org/DC=doegrids/OU=Service/CN=schedd34" scondor1<br>
+      "/DC=org/DC=doegrids/OU=Service/CN=schedd98" scondor2<br>
+      "/DC=org/DC=doegrids/OU=Service/CN=work12" gcondor<br>
+
+    </blockquote>
+</div>
+<div class="section">
+<h3>  3.3 Configure Condor security</h3>
+    <p>Force GSI authentication in
+    <b>/etc/condor/condor_config</b>, by adding:
+    <blockquote>
+      ############################################################<br/>
+      ## Security config<br/>
+
+      ############################################################<br/>
+      <br/>
+      ############################<br/>
+      # Authentication settings<br/>
+      ############################<br/>
+      SEC_DEFAULT_AUTHENTICATION = REQUIRED<br/>
+
+      SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI<br/>
+      SEC_READ_AUTHENTICATION = OPTIONAL<br/>
+      SEC_CLIENT_AUTHENTICATION = OPTIONAL<br/>
+      <br/>
+      # Grid Certificate directory<br/>
+      GSI_DAEMON_TRUSTED_CA_DIR=/opt/vdt/globus/TRUSTED_CA<br/>
+
+      <br/>
+      ############################<br/>
+      # Privacy settings<br/>
+      ############################<br/>
+      SEC_DEFAULT_ENCRYPTION = OPTIONAL<br/>
+      SEC_DEFAULT_INTEGRITY = REQUIRED<br/>
+
+      SEC_READ_INTEGRITY = OPTIONAL<br/>
+      SEC_CLIENT_INTEGRITY = OPTIONAL<br/>
+      SEC_READ_ENCRYPTION = OPTIONAL<br/>
+      SEC_CLIENT_ENCRYPTION = OPTIONAL<br/>
+      <br/>
+      ############################<br/>
+
+      # Set daemon cert location<br/>
+      ############################<br/>
+      GSI_DAEMON_DIRECTORY = /opt/glidecondor/certs<br/>
+      <br/>
+      # Keep this if you use a proxy<br/>
+      GSI_DAEMON_PROXY = $(GSI_DAEMON_DIRECTORY)/x509_service_proxy<br/>
+
+      <br/>
+      # If you use a Certificate, uncomment below, pointing it to the right place,
+      and comment the proxy line<br/>
+      #GSI_DAEMON_CERT = /etc/grid-security/hostcert.pem<br/>
+      #GSI_DAEMON_KEY = /etc/grid-security/hostkey.pem<br/>
+      <br/>
+      ############################<br/>
+      # Where to find DN-&gt;uid mappings<br/>
+
+      ############################<br/>
+      GRIDMAP=$(GSI_DAEMON_DIRECTORY)/grid-mapfile<br/>
+    </blockquote>
+    Since all the security is now GSI based, we don't rely on IP checks anymore.
+    Change <b>HOSTALLOW_WRITE</b> in <b>/etc/condor/condor_config</b>, to:
+    <blockquote>
+      # do not use IP based controls<br/>
+
+      HOSTALLOW_WRITE = *<br/>
+    </blockquote>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

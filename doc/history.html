@@ -1,0 +1,649 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="./index.html">Home</a></li>
+        <li>History</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	<li> <a href="./index.html">Home</a></li>
+	<li> <a href="./download.html">Download</a></li>
+	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
+    <li> <a target="_blank" href="./corral.html">Corral Frontend</a></li>
+	<li> <a href="./factory/index.html">WMS Factory</a></li>
+	<li> <a href="./components/index.html" >Components</a></li>
+	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+        <div id="cse-search-form" style="width: 100%;">Loading</div>
+        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+        <script src="./common/glidein.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+    </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="./images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="./corral.html" />
+    </map>
+
+    <h2>GlideinWMS</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./download.html">Download</a></li>
+	     <li> <a href="./documentation.html">Documentation</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> History</li>
+	     <li class="last"> <a href="./license.html">License</a></li>
+	</ul>
+        <h3>History</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+    <ul>
+      <li><a href="#stable">Stable Series</a></li>
+
+      <li><a href="#development">Development Series</a></li>
+      <li><a href="#old">Old Releases</a></li>
+    </ul>
+</div>
+<div class="related">
+Related Pages:
+<ul>
+<li>
+    <a href="upgrade.html">Upgrade Guide</a>
+</li>
+</ul>
+</div>
+<div class="section">
+
+<a name="stable"></a>
+    <h3>Stable Series</h3>
+    <ul>
+      <li>
+
+        <b>v2_4_3</b> released on September 30, 2010 (<a href="doc.v2_4_3/manual/index.html">Manual</a>,<a href="doc.v2_4_3/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_4_3.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Install VOMS Certificates during the install time
+          <li>Entry does not print stacktrace when it fails to submit glidein.  Instead it logs the error message appropriately.
+          <li>Default scripts run on the worker node correctly print errors to stderr instead of stdout
+          <li>Allow factory to startup from any directory
+          <li>Python scripts get the python from /usr/bin/env python instead of /bin/env python making them more portable accross different linux
+          distros
+          <li>Better exception handling and error reporting
+          <li>Fixed how voms_proxy_init is looked for after VDT install
+          <li>BUG FIX: Fixed a bug where Summarize.listStored() in CondorMonitor.py returned the wrong value
+          <li>BUG FIX: Fixed a bug in factory monitoring that prevented proper aggregation of sites
+          <li>BUG FIX: Correctly interpret DN from a voms proxy generated from a service certificate.
+          <li>BUG FIX: Generate frontend's condor_config without empty values for certain configuration options. Empty values is not the right way to reset the configuration options.
+        </ul>
+
+      </li>
+      <li>
+        <b>v2_4_2</b> released on August 03, 2010 (<a href="doc.v2_4_2/manual/index.html">Manual</a>,<a href="doc.v2_4_2/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_4_2.tgz">Tarball</a>)<br>
+        <ul>
+
+          <li>Fixed the incompatibility introduced in v2_4_1 in monitoring components.
+        </ul>
+      </li>
+      <li>
+        <b>v2_4_1</b> released on July 27, 2010 (<a href="doc.v2_4_1/manual/index.html">Manual</a>,<a href="doc.v2_4_1/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_4_1.tgz">Tarball</a>)<br>
+
+        <ul>
+          <li>Add a new configuration option for PREEMPT_GRACE_TIME
+          <li>Move configuration of GLIDEIN_Job_Max_Time from the factory to the frontend
+          <li>In factory config added checks to make sure Factory configuration is consistent w.r.t CONDOR_ARCH, CONDOR_VERSION, CONDOR_OS
+          <li>Monitoring enhancement to make selection/deselection of groups/entries easier
+          <li>Support GLIDEIN_Glexec_Use in frontend config attrs. Frontend can mandate or make the use of GLEXEC optional. Used in conjunction with GLEXEC_BIN in factory config. If GLEXEC_BIN in set to NONE for an entry in factory config, it is assumed that the entry doesn't have GLEXEC configured on site.
+          <li>Improvements to documentation
+          <li>BUG FIX: Allow the use of the same DN for both the security and the collector
+          <li>BUG FIX: Returning invalid variable during proxy creation
+          <li><b>KNOWN ISSUE:</b> Running glideinWMS v2_4_1 with Condor 7.5.3 has not been tested. Altough, most of the things may work, security changes in Condor may affect your installation.
+      <li><b>KNOWN ISSUE</b>: Installer is not always able to get the correct DN from the certificates/proxies. It does not correctly strip the CN=<blah> bit of the DN in certain cases. If the DN guessed is not correct, make the required changes in the configurations and/or condor_mapfile.
+        </ul>
+
+      </li>
+      <li>
+        <b>v2_4</b> released on May 04, 2010 (<a href="doc.v2_4/manual/index.html">Manual</a>,<a href="doc.v2_4/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_4.tgz">Tarball</a>)<br>
+        <ul>
+
+          <li>Add proxy security classes to the frontend
+      <li>Add SecurityName to the frontend.
+      <li>Add DNs for frontend proxy and all the daemons the frontend talks to; create own Condor config file and gldiein gridmap file out of them.
+      <li>Frontend now dynalically creates GLIDEIN_Collector.
+      <li>Frontend now requires Match authentication.
+      <li>Add frontend autentication info to the factory config.
+      <li>Add support for different frontend identities in different WMS collectors.
+      <li>Put log files in a separate tree.
+      <li>Put client logs and client proxies in separate trees.
+      <li>Implement privilege separation in the factory.
+      <li>Various minor refactoring of code to achieve the above.
+      <li>Aggregate gatekeeper/sites for factory monitoring. 
+      <li>Introduced monitoringgroups to group sites together for monitoring purposes in factory.
+      <li><b>KNOWN ISSUES</b>: Installer is not always able to get the correct 
+      DN from the certificates/proxies. It does not correctly strip the
+      CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+      correct, make the required changes in the configurations and/or
+      condor_mapfile.
+
+        </ul>
+
+      </li>
+    </ul>
+    <hr> 
+
+    <a name="development"></a>
+    <h3>Development Series</h3>
+    This is work in progress, so some pieces may be broken and 
+    the documentation out of sync. 
+    But it is a good place to look for what is going on.<br>
+    <ul>
+      <li>
+
+        <b>v2_3_2</b>, released on April 06, 2010 (<a href="doc.v2_3_2/manual/index.html">Manual</a>,<a href="doc.v2_3_2/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_3_2.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Fixed a security bug in the way certificate/proxy DN(s) are handled. <b>If you are upgrading the installation rather than full install, you should patch the condor_mapfile used by Condor daemons in your installation using the convert_condormap tool available from the glideinWMS download page.</b> For additional security, users should add new DN to the condor_mapfile only by using the glidecondor_addDN tool available in the glideinWMS/install directory.
+        </ul>
+
+      <li>
+        <b>v2_3_1</b>, released on March 11, 2010 (<a href="doc.v2_3_1/manual/index.html">Manual</a>,<a href="doc.v2_3_1/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_3_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Documentation Changes. There are no code changes since v2_3
+        </ul>
+
+      <li>
+        <b>v2_3</b>, released on February 02, 2010 (<a href="doc.v2_3/manual/index.html">Manual</a>,<a href="doc.v2_3/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_3.tgz">Tarball</a>)<br>
+        Current development version.<br>
+        Improvements list:
+        <ul>
+
+          <li>Attempt to restart a crashed entry few times before shutting down the factory. Restarting is allowed for max restart_attempts in time interval restart_interval sec in te factory.
+          <li>Add vacuum option to manageDowntimes.
+          <li>Factory now properly handles new-style frontends without a group.
+          <li>Frontend code has been refactored to allow use as a library.
+          <li>More protections in place.
+          <li>Fixed a security bug in key handling. BREAKES BACKWARDS COMPATIBILITY! But it is needed.
+          <li>Fixed a bug in glidein_startup.sh that prevented the passing of * as a parameter value
+          <li>Fixed a logical bug in the glidein config that resulted in job preemption.
+          <li>Added support for condor_ssh (v7.4 and up)
+          <li>Add support for unquoted string to be published in classads. The type is 'expr'
+          <li>Documentation Changes
+          <li>Minor bugs fixed.
+        </ul>
+        KNOWN ISSUES: If using condor 7.4.0-7.4.2 and 7.5.0, USE_VOMS_ATTRIBUTESshould be set to false for Collector and negotiator to avoid potential problems and memory leaks in GSI libraries.<br>
+
+        WARNING: This release has security bug fixes and is not compatible with older releases.
+       You will need to update all the daemons at the same time.
+      </li>
+      <li>
+        <b>v2_2</b>, released on November 3rd, 2009 (<a href="doc.v2_2/manual/index.html">Manual</a>,<a href="doc.v2_2/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_2.tgz">Tarball</a>)<br>
+        Current development version.<br>
+
+        Improvements list:
+        <ul>
+           <li>Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins classds. This was preventing psuedo interactive monitoring to work in case of GLEXEC.
+           <li>Made VDT optional.
+           <li>Addedd support for VDT 2.0, and made it the default.
+           <li>Added Globus-Client and Myproxy-Client in the minimal VDT install.
+       <li>Installer now allows the collector to run on non-standard port.
+       <li>Factory now only checks X509_USER_PROXY if it needs it.  
+       <li>Added support for multiple versions of condor in a single factory.
+       <li>Added ReqEncIdentity to the frontend->factory protocol to prevent replay attacks.
+        </ul>
+    WARNING: This effectively prevents old-style frontends to talk to new style factories.<br>
+    NOTE: Will only work with Condor 7.3.1 or newer<br>
+
+    KNOWN ISSUES: Pseudo interactive monitoring will not work with glexec. <br>
+      </li>
+      <li>
+        <b>v2_1</b>, released on August 24th, 2009 (<a href="doc.v2_1/manual/index.html">Manual</a>,<a href="doc.v2_1/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_1.tgz">Tarball</a>)<br>
+
+        Improvements list:
+        <ul>
+           <li>Fixed a bug that was throwing an exception if a glidein failed.
+           <li>Fixed handling of grid-mapfiles coming from client.
+           <li>Fixed support for nordugrid.
+           <li>Improvements to the monitoring.
+           <li>Improvements to the installer.
+           <li>Improved documentation.
+        </ul>
+       </li>
+      <li>
+        <b>v2_0</b>, released on Mar 5th, 2009 (<a href="doc.v2_0/manual/index.html">Manual</a>,<a href="doc.v2_0/install/index.html">Installation instructions</a>,<a href="glideinWMS_v2_0.tgz">Tarball</a>)<br>
+
+        Improvements list:
+        <ul>
+          <li>create_frontend and create_glidein now share much code
+          <li>Added create_frontend, recreate_frontend.
+          <li>Frontend now has a stage web area and passes it to the factory
+          <li>Factory publishes list of supported signtypes and frontend uses this for factory selection
+          <li>User provided code in the glidein API changed. The 2nd arg is now one of main|entry|client|client_group
+          <li>Added tools/glidein_status.py.
+          <li>The monitoring page now has client-side monitoring based on javascriptRRD.
+          <li>Support multiple proxies... frontend drives this via plugins.
+        </ul>
+     </ul>
+    <hr>   
+
+    <a name="old"></a>
+
+    <h3>Old Releases</h3>
+     <ul>
+      <li>
+        <b>v1_6_3</b>, released on April 06, 2010 (<a href="doc.v1_6_3/manual/index.html">Manual</a>,<a href="doc.v1_6_3/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_6_3.tgz">Tarball</a>)<br>
+
+        <ul>
+          <li>Fixed a security bug in the way certificate/proxy DN(s) are handled. <b>If you are upgrading the installation rather than full install, you should patch the condor_mapfile used by Condor daemons in your installation using the convert_condormap tool available from the glideinWMS download page.</b> For additional security, users should add new DN to the condor_mapfile only by using the glidecondor_addDN tool available in the glideinWMS/install directory.
+        </ul>
+       <li>
+        <b>v1_6_2</b>, released on Sep 14, 2009 (<a href="doc.v1_6_2/manual/index.html">Manual</a>,<a href="doc.v1_6_2/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_6_2.tgz">Tarball</a>)<br>
+
+        Current production version.<br>
+        Minor bug fixes.<br>
+        <p>
+        Systems that installed v1.6.1 need to upgrade to this release. They only need to replace the glideinWMS files.
+        <br>
+        Improvements list:
+        <ul>
+          <li>Fixed a bug in frontend that would lead frontend to crash in certain conditions while logging the information
+       </ul>
+
+       </li>
+
+       <li>
+        <b>v1_6_1</b>, released on Sep 08th, 2009 (<a href="doc.v1_6_1/manual/index.html">Manual</a>,<a href="doc.v1_6_1/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_6_1.tgz">Tarball</a>)<br>
+        Current production version.<br>
+
+        Minor bug fixes.<br>
+        <p>
+        Most systems don't need to upgrade.
+        <br>
+        Improvements list:
+        <ul>
+          <li>Better randomization of GCBs and collectors
+          <li>Collector list now supports ranges of ports
+          <li>Fixed Condor-G log parsing
+          <li>Better treatment of multiple-collectors in the installer
+          <li>Add support for CCB and USE_MATCH_AUTH in the installer.
+          <li>Add OSG:vo-client to the minimal VDT install
+          <li>Better handling of Nordugrid sites.
+          <li>Start factory in nice mode to give priority to Condor daemons
+          <li>In condor_config for glideins remove explicit STARTER_UPDATE_INTERVAL
+          <li>Removing GLIDEIN_Use_TCP, now uses UPDATE_COLLECTOR_WITH_TCP instead
+          <li>Force integrity on reads from WMS collector
+          <li>Better layout of monitoring pages
+          <li>Better error handling in Factory downtime management
+          <li>Better formatting of error logs for factory and frontend
+          <li>Bug Fix: GLEXEC_JOB and GLEXEC_STARTER were not published in glideins
+          classds. This was preventing psuedo interactive monitoring to work
+          in case of GLEXEC
+          <li>Improved documentation
+       </ul>
+
+       <li>
+        <b>v1_6</b>, released on Mar 5th, 2009 (<a href="doc.v1_6/manual/index.html">Manual</a>,<a href="doc.v1_6/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_6.tgz">Tarball</a>)<br>
+        Current production version.<br>
+        Improved scalability, improved documentation and minor bug fixes.<br>
+
+        Added dependency on <a target="_blank" href="http://freshmeat.net/projects/m2crypto">m2crypto</a>.
+        <p>
+        Most systems don't need to upgrade.
+        <br>
+        Improvements list:
+        <ul>
+     <li>The XML file now supports comments.
+         <li>Installer uses both .profile and .bashrc.
+         <li>Frontend now requires integrity checks when talking to
+             the WMS collector.
+         <li>Refactored install options so that most tasks performed
+             as a non-privileged user.
+         <li>Using m2crypto for sha1 checks.
+         <li>Fixed startup bugs in various debug tools.
+         <li>Improved monitoring scalability (fewer RRD files)
+         <li>Add support for CCB.
+        </ul>
+
+      <li>
+        <b>v1_5_2</b>, released on Nov 6th, 2008 (<a href="doc.v1_5_2/manual/index.html">Manual</a>,<a href="doc.v1_5_2/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_5_2.tgz">Tarball</a>)<br>
+        The major new feature is a fix for VDT installation.<br>
+        Most systems don't need to upgrade.
+        <br>
+
+        Improvements list:
+        <ul>
+          <li>Fixed VDT installation.
+          <li>Factory now changes public key at each restart.
+          <li>Minor monitoring improvements.
+        </ul>
+      <li>
+        <b>v1_5_1</b>, released on Oct 28th, 2008 (<a href="doc.v1_5_1/manual/index.html">Manual</a>,<a href="doc.v1_5_1/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_5_1.tgz">Tarball</a>)<br>
+
+        This is essentially a bug fix release for v1_5.<br>
+    It is safe to upgrade.<br> 
+        Improvements list:
+        <ul>
+      <li>Added flag that allows/requires proxies from frontend.
+      <li>Fixed bug in factory installation with encryption.
+      <li>The glidein now finds out about OSG squid.
+      <li>Fixed bug in the node blacklisting code.
+        </ul>
+      <li>
+        <b>v1_5</b>, released on Oct 24th, 2008 (<a href="doc.v1_5/manual/index.html">Manual</a>,<a href="doc.v1_5/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_5.tgz">Tarball</a>)<br>
+
+        Current version.<br>
+        Contains several scalability features over v1_4_X.<br>
+    Contains a new secure message passing infrastructure.<br> 
+        Improvements list:
+        <ul>
+      <li>Added support for secure info passing between
+        VO frontend and gfactory<br>
+        <b>Requires M2Crypto Python module</b>
+
+      <li>VO frontend can now give the gfactory its own proxy
+        to be used for pilot submission<br>
+        <b>Requires the encryption mentioned above</b>
+      <li>gcb_setup is now loaded by default<br>
+        Can use GCB_ORDER=NONE to disable it<br>
+        <b>Warning</b>: Explicit listing of gcb_setup may create problems.
+      <li>glexec_setup is now loaded by default<br>
+
+        Can use GLEXEC_BIN=NONE to disable it<br>
+        <b>Warning</b>: Explicit listing of glexec_setup may create problems.
+      <li>Randomized the retire time to smooth terminations.<br>
+        Can be controlled via GLIDEIN_Retire_Time_Spread.
+      <li>Some monitoring tweaks.
+          <li>Added more switches<br>
+        <b>Warning</b>: xml slightly incompatible with v1_4_X
+      <li>The factory config file is now read only.
+      <li>Added switches to limit log file growth.
+        </ul>
+
+    <b>Warning</b>: If upgrading from v1_4_X, the reconfig will fail due changes in the monitoring setup. 
+    Manually remove want_split_terminated_graphs switch in the XML file and the reconfig will work again.
+      <li>
+        <b>v1_4_4</b>, released on Sep 30th, 2008 (<a href="doc.v1_4_4/manual/index.html">Manual</a>,<a href="doc.v1_4_4/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_4_4.tgz">Tarball</a>)<br>
+        This is a bug fix and condor update release, and you are encouraged to upgrade from v1_4_3.<br>
+
+        Improvements list:
+        <ul>
+          <li>Add factory_constraint parameter to the frontend.
+      <li>Add support for GLEXEC_JOB.
+      <li>Add support for USE_MATCH_AUTH.
+      <li>Add new protection against condor_submit errors.
+      <li>Warnings go into the info file, too. Easier to correlate errors this way.
+      <li>Better colors in graphs.
+        </ul>
+      <li>
+        <b>v1_4_3</b>, released on Sep 5th, 2008 (<a href="doc.v1_4_3/manual/index.html">Manual</a>,<a href="doc.v1_4_3/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_4_3.tgz">Tarball</a>)<br>
+
+        This is a scalability release, and you are encouraged to upgrade from v1_4_2.<br>
+        Improvements list:
+        <ul>
+          <li>Added mutexes to reduce factory load due to monitoring.<br>
+              Previous releases were not really scalable to more than approximately 50 entry points. 
+        </ul>
+       <li>
+        <b>v1_4_2</b>, released on Aug 26th, 2008 (<a href="doc.v1_4_2/manual/index.html">Manual</a>,<a href="doc.v1_4_2/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_4_2.tgz">Tarball</a>)<br>
+
+        This is a bugfix release, and you are encouraged to upgrade from a v1_4_1.<br>
+        Improvements list:
+        <ul>
+      <li>Improved pseudo-interactive monitoring
+        <ul>
+          <li>The changes introduced in v1_4_1 could leave behind zombies.
+        </ul>
+      <li>Fix glexec setup script bug.
+    </ul>
+      <li>
+
+        <b>v1_4_1</b>, released on Aug 13th, 2008 (<a href="doc.v1_4_1/manual/index.html">Manual</a>,<a href="doc.v1_4_1/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_4_1.tgz">Tarball</a>)<br>
+        It is safe to upgrade from a v1_4.<br>
+        Improvements list:
+        <ul>
+      <li>Improved pseudo-interactive monitoring
+        <ul>
+
+          <li>By default use a separate startd for montoring
+          <li>Old multi-VM mode can be enabled by <a href="doc/manual/factory/entry.html#multi-monitor">MONITOR_MODE=MULTI</a>
+        </ul>
+      <li>Fixed factory handling held jobs
+      <li>Improved installer defaults
+    </ul>
+      <li><b>v1_4</b>, released on Aug 7th, 2008 (<a href="doc.v1_4/manual/index.html">Manual</a>,<a href="doc.v1_4/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_4.tgz">Tarball</a>)<br>
+
+        Improvements list:
+        <ul>
+      <li>Better support for RESS and BDII<br>
+        Including automatic downtime handling
+      <li>User STARTD_SENDS_ALIVES=True by default.<br>
+        Disable glidein UDP port by default.<br>
+        <b>Note: This affects how Condor works</b> 
+      <li>Global files can now be loaded after entry
+      <li>Added support for job wrapper scripts.
+      <li>Fix monitor locking.
+      <li>gcb_setup now supports ORDER=NONE.<br>
+
+        gcb_setup is now loaded automatically.
+      <li>Add verbosity to entries.
+      <li>Add config section to entries.
+      <li>Improve held handling.
+      <li>Add a completed job log.
+      <li>Improve signal handling (for stopping frontend/factory)
+      <li>Made the most CPU intensive part of monitoring optional.
+      <li>Installer now supports multiple collectors.
+        </ul>
+        <b>WARNING: If you used a previous version, consider reinstalling everything, including Condor.<br>
+      This version contains several key changes.</b>
+      <li>
+
+        <b>v1_3</b>, released on Jul 17th, 2008 (<a href="doc.v1_3/manual/index.html">Manual</a>,<a href="doc.v1_3/install/index.html">Installation instructions</a>,<a href="glideinWMS_v1_3.tgz">Tarball</a>)<br>
+        Improvements list:
+        <ul>
+      <li>Factory and frontend now gets sleep and advertize attr from config.
+      <li>Add downtime concept to the factory and relative management tool.
+      <li>Add command to get info about factory config file.
+      <li>Add init.d style startup script.
+      <li>Fix pseudo-interactive monitoring when glexec is used.
+      <li>Reduce VO frontend condor_q load by adding job_attributes.
+      <li>VO frontend now queries the collector and advertises result.
+      <li>Smarter algorithm to calculate min_idle, also using condor_status.
+      <li>Improve monitoring.
+          <li>Minor bug fixes.
+        </ul>
+
+        <b>WARNING: Entry points need to be recreated,
+      if you used an older version.</b>
+      <li>
+        <b>v1_2_3</b>, released on Jul 2nd, 2008 (<a href="doc.v1_2_3/manual/index.html">Manual</a>,<a href="doc.v1_2_3/install/index.html">Installation instructions</a>)<br>
+        Improvements list:
+        <ul>
+          <li>Fix glexec handling in condor v7.0.2 and above.
+          <li>Cut in half the number of condor_q's in the frontend.
+          <li>Minor monitoring twaeks.
+          <li>Minor installation tweaks.
+        </ul>
+
+      <li>
+        <b>v1_2_2</b>, released on Jun 27th, 2008 (<a href="doc.v1_2_2/manual/index.html">Manual</a>,<a href="doc.v1_2_2/install/index.html">Installation instructions</a>)<br>
+        This version fixes a major installer bug and has monitoring over v1_2_1.
+        It is safe to upgrade from a v1_2_1, 
+        <b>however, the entry points need to be recreated</b>.<br>
+        Improvements list:
+        <ul>
+
+      <li>Fix condor installation.
+          <li>Update versions in installer.
+          <li>Added glidein_gcb and collector_setup.
+          <li>Add LIBEXEC to condor_config.
+          <li>Better support for EGEE (by supporting $TMPDIR).
+        </ul>
+      <li>
+        <b>v1_2_1</b>, released on May 30th, 2008 (<a href="doc.v1_2_1/manual/index.html">Manual</a>,<a href="doc.v1_2_1/install/index.html">Installation instructions</a>)<br>
+
+        This version has essentially usability and monitoring improvements over v1_2. 
+        It is safe to upgrade from a v1_2.<br>
+    The major improvements are:
+        <ul>
+      <li>Added support for BDII.
+      <li>Added stop scripts for factory and frontend.
+      <li>Added tools/wmsTxtList.py and tools/glidein_interactive.py.
+      <li>All commands now are executable.
+      <li>Add client and Condor-G monitoring in factory data.
+      <li>Greatly improved log stats monitoring.
+      <li>Add doc section on monitoring.
+        </ul>
+      <li>
+
+        <b>v1_2</b>, released on May 5th, 2008 (<a href="doc.v1_2/manual/index.html">Manual</a>,<a href="doc.v1_2/install/index.html">Installation instructions</a>)<br>
+        It has several improvements over v1_1, including:
+        <ul>
+      <li>More fine grained configuration of glideins
+      <li>Factory reads now force integrity checks
+      <li>Glideins now publish the gatekeeper name
+      <li>Fixed several bugs
+        </ul>
+
+      <li>
+        <b>v1_1</b>, released on Jan 30th, 2008 (<a href="doc.v1_1/manual/index.html">Manual</a>,<a href="doc.v1_1/install/index.html">Installation instructions</a>)<br>
+        It has several improvements over v1_0, including:
+        <ul>
+      <li>Entry points can now be updated by using reconfig_glidein
+      <li>Add automatic OSG glexec discovery
+      <li>Use condor_mapfile for authorization
+      <li>Installer now supports Condor v7 (without Quill)
+      <li>Installer now supports gLExec
+      <li>Fixed several minor bugs
+        </ul>
+
+        <b>WARNING: Security configuration has been overhauled to fix the security issues of the provious verisons.<br>
+      Please reinstall (or at least reconfigure) your Condor installation.</b>
+      <li>
+        <b>v1_0</b>, released on Dec 18th, 2007 (<a href="doc.v1_0/manual/index.html">Manual</a>,<a href="doc.v1_0/install/index.html">Installation instructions</a>)<br>
+        It has several improvements over v0_9, including:
+        <ul>
+
+      <li>During installation, Quill is now optional.
+      <li>During installation, Condor config can be split into condor_config.local.
+      <li>Files are now loaded in order specified.
+      <li>Added local_start.sh to ease testing.
+      <li>create_glideins code had a major rewrite, but users should not notice
+        any major change.
+      <li>Slimmed down glidein_submit.sh.
+      <li>Many bugs fixed.
+        </ul>
+        <b>WARNING: Entry points need to be recreated,
+      if you used an older version.</b>
+      <li>
+        <b>v0_9</b>, released on Nov 14th, 2007<br>
+
+        It has several improvements over v0_8, including:
+        <ul>
+      <li>Significant speedup in the VO frontend matchmaking
+      <li>Added MaxRunningGlideins request
+      <li>Use human readable dates in logs
+      <li>Factory will use python rrd module if present
+      <li>Reduced graphing load of the factory
+      <li>Frontend will work even if some of the schedd are down
+      <li>Improved installation scripts.
+        </ul>
+        <b>WARNING: The config directory structure has changed a lot for both the factory and the frontend and need to be recreated, 
+      if you used an older version.</b>
+      <li>
+
+        <b>v0_8</b>, released on May 24th, 2007<br>
+        It has several improvements over v0_7, including:
+        <ul>
+          <li>Add support for multiple schedds
+          <li>Add initial support for pseudo interactive monitoring
+          <li>Inproved Web monitoring
+          <li>Better documentation
+        </ul>
+        <b>WARNING: The config directory structure has changed a lot and need to be recreated, if you used an older version.</b>
+      <li>
+
+         <b>v0_7</b>, released on Apr 11th, 2007<br>
+        It has several improvements over v0_6, including:
+        <ul>
+          <li>Add support for Condor 6.9.2.
+          <li>Add support for user variables
+          <li>Move log and monitoring files into entry dir.
+          <li>Add lock files.
+          <li>Create proper ClassAd cleanup when daemons exit.
+        </ul>
+        <b>WARNING: The config directory structure has changed a lot and need to be recreated, if you used an older version.</b>
+
+      <li>
+        <b>v0_6</b>, released on Apr 9th, 2007<br>
+        The glidein factory was extensively reworked:
+        <ul>
+          <li>A single factory daemon now can serve several entry points.
+          <li>The config file is XML based.
+        </ul>
+        <b>WARNING: The config directory structure has changed a lot and need to be recreated, if you used an older version.</b>
+      <li>
+
+    <b>v0_5</b>, released on Mar 23rd, 2007<br>
+    It has several improvements over v0_4, including:
+    <ul>
+      <li>Several bugs has been fixed
+      <li>Improved glidein factory monitoring.
+          <li>Added monitoring information in the ClassAds.
+    </ul>
+      <li>
+    <b>v0_4</b>, released on Feb 12th, 2007<br>
+
+    It has several improvements over v0_3, including:
+    <ul>
+      <li>Several bugs has been fixed
+      <li>The glidein factory now has an extensive graphical monitoring.
+    </ul>
+      <li>
+    <b>v0_3</b>, released on Oct 31st, 2006<br>
+    It has several improvements over v0_2, including:
+    <ul>
+      <li>Several bugs has been fixed
+      <li>It now supports GCB for WAN deployments and
+        gLExec to comply with Grid site accounting
+      <li>It is now much more stable and has better logging.
+       <li>The user documentation has been greatly improved
+        and now describes advanced configuration options, too.
+    </ul>
+
+      <li>
+    <b>v0_2</b>, released on Oct 9th, 2006<br>
+    The first usable version
+    </ul>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
+einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</body>
+</html>

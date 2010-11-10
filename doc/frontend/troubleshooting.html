@@ -1,0 +1,230 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS - Glidein Frontend</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Glidein Frontend</a></li>
+        <li>Troubleshooting</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+    <h2>Glidein Frontend</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> <a href="./design.html">Design</a></li>
+         <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> Troubleshooting</li>
+	</ul>
+        <h3>Troubleshooting</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <li><a href="#general">General Issues</a></li>
+    <li><a href="#submitting">Problems Submitting</a></li>
+
+    <li><a href="#idle_jobs">Jobs Stay Idle</a></li>
+
+</ol>
+</div>
+<div class="related">
+Troubleshooting Information:
+
+Frontend troubleshooting:
+<ul>
+<li> General issues</li>
+<li> Problems submitting</li>
+<li> Jobs stay idle (frontend)</li>
+</ul>
+
+Factory troubleshooting:
+<ul>
+<li> <a href="../factory/troubleshooting.html#idle_jobs">Jobs stay idle (factory)</a></li>
+<li> <a href="../factory/troubleshooting.html#idle_glideins">Glideins stay idle</a></li>
+<li> <a href="../factory/troubleshooting.html#no_resource">Resource not registered</a></li>
+<li> <a href="../factory/troubleshooting.html#no_start">Jobs don't start</a></li>
+</ul>
+</div>
+<div class="section">
+
+<h2><a name="general">General Issues</a></h2>
+    <p>
+        This section contains tips and troubles relevant to all phases of a job's execution.
+    </p>
+    <h3>Authentication Issues</h3>
+    <p>
+        Many glideinWMS issues are caused by authentication.  Make sure that your proxy and 
+        certificate are correct.  Each process needs a proxy/cert that is owned by that user.
+        <br/>
+
+        Also, make sure that this cert has authorization to run a job by running a command such as
+        (all on one line): 
+        <blockquote>
+            X509_USER_CERT=/tmp/x509up_u&lt;UID&gt; globus-job-run -a -r &lt;gatekeeper in factory config&gt;
+        </blockquote>
+        Note that /tmp/x509up_u&lt;UID&gt; is the typical location for kerberos certificates, but use 
+        the proper location if the place of your server certificate varies.
+    </p>
+
+    <h3>Wrong condor.sh sourced</h3>
+    <p> 
+        Always source the correct condor.sh before running any commands.  
+        Many problems are caused are by using the wrong path/environment, 
+        (for instance, sourcing the user pool condor.sh then running WMS collector commands).
+        Run "which condor_q" to see if your path is correct.<br/>
+        <b>Note:  If you are using VDT and source the setup.sh (e.g. for voms-proxy-init), 
+        this may change your path/environment, and you may need to run condor.sh again.
+        </b>
+    </p>
+   </div>
+
+
+
+
+
+    <div class="section">
+    <h2><a name="submitting">Problems submitting your job</a></h2>
+    <b>Symptoms:</b> Error submitting user job<br/>
+    <b>Useful files:</b> GLIDEINWMS_USERSCHEDD_HOME/condor_local/logs/SchedLog
+    <br/>
+
+    <b>Debugging Steps:</b>
+    <p>
+    If you encounter errors submitting your job using condor_submit, the error messages printed on the screen will be useful in identifying potential problems. Occasionally, you can additional information in the condor schedd logs.
+    </p>
+    <p> 
+    Always make sure that you have sourced the condor.sh and that the path and environment is correct.
+    <blockqoute>
+    source $GLIDEINWMS_USERSCHEDD_HOME/condor.sh
+    </blockquote>
+    
+    Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by “condor_config_val local_dir”
+    </p>
+
+    <p>
+    If you are installing all services on one machine (not recommended but sometimes useful for testing) make sure that the user collector and wms collector are on two different ports (such as 9618 and 8618).  You can do "ps -ef" to see if the processes are started (should be multiple condor_masters, condor_schedds and condor_procd for each machine).  Make sure they are running as the proper users (user schedd should be probably be run as root.  wms collector should be run as root if you want privsep).
+    </p>
+    <p>
+    Also refer to the <a href="../components/collector_install.html">Collector install</a> for verification steps.
+    </p>
+   </div>
+
+
+    <div class="section">
+    <h2><a name="idle_jobs">User Jobs Stay Idle</a></h2>
+    <b>Symptoms:</b>User job stays idle and there are no glideins submitted that correspond to your job.<br/>
+
+    <p>
+    This step involves the interaction of the VO frontend and WMS Factory.  Hence, there are two separate facilities to see why no glideins are being created.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> page if none of these suggestions help.
+    </p>
+
+    <h3>Frontend unable to map your job to any entry point</h3>
+    <b>Symptoms</b>:  User job stays idle and there is no information in the frontend logs about glideins required to run your job.<br/>
+    <b>Useful files:</b>
+    GLIDEINWMS_VOFRONTEND_HOME/log/*<br/>
+    GLIDEINWMS_VOFRONTEND_HOME/group_&lt;GROUP_NAME&gt;/log/* <br/>
+    <b>Debugging Steps:</b>
+    <p>
+    Check if the VO frontend is running. If not start it.
+    </p><p>
+    Glidein Frontend processes periodically query for user jobs in the user schedd. Once you have submitted the job, VO frontend should notice it during its next queering cycle. Once the frontend identifies potential entry points that can run your job, it will reflect this information in the glideclient classad in WMS collector for that corresponding entry point. You can find this information by running “condor_status -any -pool &lt;wms collector fqdn&gt;”
+    </p><p>
+
+    Check for error messages in logs located in GLIDEINWMS_VOFRONTEND_HOME/log.  Assuming that you have named frontend main group as “main”, check the log files in GLIDEINWMS_VOFRONTEND_HOME/group_main/log. 
+        <blockquote>
+        [2009-12-07T15:16:25-05:00 12398] For ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Idle 19 (effective 19 old 19) Running 0 (max 10000)<br/>
+        [2009-12-07T15:16:25-05:00 12398] Glideins for ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Total 0 Idle 0 Running 0<br/>
+        [2009-12-07T15:16:25-05:00 12398] Advertize ress_GRATIA_TEST_31@v1_0@mySites-cmssrv97@cmssrv97.fnal.gov Request idle 11 max_run 22
+        </blockquote>
+    You should notice something like above in the logs corresponding to your job. If the frontend does not identify any entry that can run your job, then either the the desired entry is not configured in the glidein factory or the requirements you have expressed in your jobs are not correct.
+    </p><p>
+    Also, check the security classad to make sure the proxy/cert for the frontend is correct.  It should be chmod 600 and owned by the frontend user.<br/>
+
+    
+    If using voms, try to query the information to verify:
+    <blockquote>
+        X509_USER_CERT=&lt;vofronted_proxy_location&gt; voms-proxy-info.
+    </blockquote>
+    </p>
+
+<p>The symptoms of this issue are a break in communication between the VO frontend and the factory.  In this case, the problem may also be a problem with the factory.  See the <a href="../factory/troubleshooting.html">Factory Troubleshooting</a> guide for more details.
+</p>
+</div>
+<div class="section">
+<h3>Found an untrusted factory </h3>
+<b>Symptoms:</b>  You will receive an error similar to:
+<blockquote>
+<i>info log:</i><br/>
+[2010-09-29T09:07:24-05:00 26824] WARNING: Found an untrusted factory ress_ITB_GRATIA_TEST_2@v2_4_3@factory_service at cms-xen21.fnal.gov; ignoring.<br/>
+<i>debug log:</i><br/>
+[2010-09-29T09:07:24-05:00 26824] Found an untrusted factory ress_ITB_GRATIA_TEST_2@v2_4_3@factory_service at cms-xen21.fnal.gov; identity mismatch ' weigand@cms-xen21.fnal.gov'!='factory@cms-xen21.fnal.gov ' 
+</blockquote>
+<b>Debugging Steps</b>:
+<p>
+    Verify the frontend config:<br/>
+    &lt;frontend &gt; &lt;collector ... <b>factory_identity="..."</b>&gt;<br/>
+    The frontend config's security element security_name attribute does not match the factory config's frontend element name attribute. 
+    <br/>
+    You can find the authenticated identity by:
+    <blockquote>
+        condor_status -collector &gt;WMSCollector_node:port&gt; -long |grep -i AuthenticatedIdentity |sort -u 
+    </blockquote>
+</p>
+</div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</div>
+</body>
+</html>

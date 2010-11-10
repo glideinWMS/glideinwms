@@ -1,0 +1,179 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="./index.html">Home</a></li>
+        <li>Download</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	<li> <a href="./index.html">Home</a></li>
+	<li> <a href="./download.html">Download</a></li>
+	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
+    <li> <a target="_blank" href="./corral.html">Corral Frontend</a></li>
+	<li> <a href="./factory/index.html">WMS Factory</a></li>
+	<li> <a href="./components/index.html" >Components</a></li>
+	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
+        </ul>
+    <div class="search">
+        <div id="cse-search-form" style="width: 100%;">Loading</div>
+        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+        <script src="./common/glidein.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+    </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="./images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="./corral.html" />
+    </map>
+
+    <h2>GlideinWMS</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> Download</li>
+	     <li> <a href="./documentation.html">Documentation</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./history.html">History</a></li>
+	     <li class="last"> <a href="./license.html">License</a></li>
+	</ul>
+        <h3>Download</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+<li> <a href="#download">Download</a></li>
+<li> <a href="#special">Special Instructions</a></li>
+<li> <a href="#previous">Previous Releases</a></li>
+</ol>
+</div>
+<div class="related">
+Frontend:
+<ul>
+<li> <a href="">Download</a></li>
+<li> <a href="./frontend/install.html">Install</a></li>
+</ul>
+Factory:
+<ul>
+<li> <a href="">Download</a></li>
+<li> <a href="./factory/install.html">Install</a></li>
+</ul>
+</div>
+<div class="section">
+   <a name="release" />
+    <h2>Current release</h2>
+
+    <table frame="box" width="600px">
+      <thead style="background-color:grey; font-weight:bold; border-width:1; border-color:black; border-style:solid; ">
+        <td><b>Release Type</b></td>
+        <td><b>Release Version</b></td>
+        <td><b>Release Date</b></td>
+        <td><b>Download Instructions</b></td>
+      </thead>
+
+      <tr>
+        <td>Current Stable Series</td>
+        <td>v2_4_3</td>
+        <td>September 30, 2010</td>
+        <td><a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">Download</a></td>
+      </tr>
+      <tr>
+
+        <td>Development Series</td>
+        <td>-</td>
+        <td>-</td>
+        <td>Use Current Stable Series instead</td>
+      </tr>
+      <tr>
+        <td>Previous Stable Series</td>
+
+        <td>v1_6_3</td>
+        <td>April 06, 2010</td>
+        <td><a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">Download</a></td>
+      </tr>
+      <tr>
+        <td>Older Releases</td>
+        <td>-</td>
+
+        <td>-</td>
+        <td><a href="history.html">History</a></td>
+      </tr>
+    </table>
+
+    <a name="download" />
+    <h2>Download instructions</h2>
+
+    The code is maintained in <a target="_blank" href="http://www.nongnu.org/cvs/">CVS</a>.
+    <br><br>
+
+    The code repository head is<br>
+    <div style="margin-left: 40px;"><span style="font-family: monospace;">:pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only</span></div>
+    and the package name is<br>
+    <div style="margin-left: 40px;"><span style="font-family: monospace;">glideinWMS</span></div>
+    <br>
+    So the complete BASH command would be:
+    <pre>cvs -d :pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only co -r v2_4_3 glideinWMS</pre>
+
+   <br>
+   The package can also be downloaded as a tarball:
+   <UL>
+     <li>Current Production Series: <a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">glideinWMS_v2_4_3.tgz</a></li>
+     <li>Previous Production Series: <a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_6_3.tgz">glideinWMS_v1_6_3.tgz</a></li>
+   </ul>
+    </div>
+
+    <div class="section">
+    <a name="special" />
+    <h2>Special instructions for v1_6_3 and v2_3_2</h2>
+    <p>
+      v1_6_3 and v2_3_2 contain security fixes. These releases fixes the way
+      certificate subjects are mapped in condor_mapfile. If you are upgrading
+      to these releases over the existing releases, you need to manually apply
+      the fix to condor_mapfile used by condor in your installation.
+      <pre> Usage:
+ convert_condormap infile outfile
+      </pre>
+    </p>
+    After converting the condor_mapfile, please make sure that all the entries have been written back into the convered mapfile
+    </div>
+
+    <div class="section">
+    <a name="previous" />
+   <h2>Previous releases</h2>
+
+    See the <a href="history.html">History page</a> for previous releases.
+ 
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
+einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+</body>
+</html>
