@@ -51,7 +51,8 @@ def make_directory(dirname,owner,perm,empty_required=True):
 
     if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
       logerr("Terminating at your request")
-    if not_writeable(os.path.dirname(dirname)):
+    #if not_writeable(os.path.dirname(dirname)): #not removing in case correct
+    if not_writeable(dirname):
       logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
     remove_dir_contents(dirname)
     return  # we done.. all is ok
