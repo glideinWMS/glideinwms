@@ -326,6 +326,17 @@ by the VO factory clients.</P>
         </TD>
     </TR>
     <TR>
+        <td> <b>GLIDEIN_Max_Walltime</b> </td>
+        <TD> N/A </TD>
+        <TD> N/A </TD>
+
+        <TD>
+            <P>Max allowed time for the glidein.<BR>This variable is optional.  If you specify this variable, 
+            then Condor startup scripts will calculate the GLIDEIN_Retire_Time for the glidein as GLIDEIN_MAX_Walltime - GLIDEIN_Job_Max_Time.  
+            If GLIDEIN_Retire_Time is also specified, it will be ignored and only the calculated value is used. </P>
+        </TD>
+    </TR>
+    <TR>
         <td> <b>GLIDEIN_Monitoring_Enabled</b> </td>
         <TD> Bool </TD>
  	<TD> True </TD>
