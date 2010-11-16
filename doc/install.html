@@ -108,6 +108,11 @@ configuration file (ini file) with all the required fields up front.  Once
 this is done, you can install each component using the tool and this ini file.
 It prevents the frustration of running the Q&amp;A installer multiple times
 in case of errors.</p>
+<p>
+<b>Important Note:</b> You can only use either the Q&amp;A installer to install all components or the configuration based installer to install all components.  You cannot mix installations by installing partially with the Q&amp;A installer and partially with the configuration installer.  
+Also, note that both installers assume you are performing a full installation of all components.  For upgrades, see the <a href="upgrade.html">upgrade guide</a>
+or contact glidein support.
+</p>
 </div>
 <div class="section">
 <a name="documents" />
@@ -149,7 +154,9 @@ in case of errors.</p>
         <p>While the documents presented here assume you will install each
         component on a different machine, there is nothing preventing you
         from installing all of them on fewer machines, or even on one machine
-        only (excluding GCB, but you should not use it anyhow).  
+        only (excluding GCB, but you should not use it anyhow).  Note that
+        only configurations with the WMS collector and factory on the 
+        same node are supported.<br/>
     Several possible configurations are below.</p>
     
     <p><b>Two Server configuration</b> (recommended minimum):
