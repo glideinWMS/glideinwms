@@ -517,8 +517,8 @@ The only validation performed is to verify if that server exists.</td>
 </div>
 <div class="section">
 <h2>User Collector Section</h2>
-Under most circumstances, installation of usercollector using manage-glideins
-will be need to run as <b>root</b>, since Condor installations require some files to be owned by root in order to properly use privilege separation.
+The pool Collector can be installed either as root or as a non privileged user. Either case, make sure that the user has access to the needed GSI credentials. 
+There is no real advantage to install as root, so non-privileged installation is recommended if installed separately.
 <blockquote>
     ./manage-glideins --install usercollector --ini glideinWMS.ini
 </blockquote>
@@ -619,10 +619,11 @@ ires:<br/><br/>
 
 <div class="section">
 <h2>Submit Section</h2>
+The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious security implications; 
+see the <a href="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#sec:Non-Root">Security section of the Condor manual</a> for details.
 <blockquote>
     ./manage-glideins --install submit --ini glideinWMS.ini
 </blockquote>
-
 See below for the ini file attributes that installing/running the submit node
 requires:
 
