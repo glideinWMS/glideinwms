@@ -102,7 +102,8 @@ the ini file, it is recommended that you go back and re-install ALL services.
 <a name="manage_script" />
 <h2> manage-glideins script </h2>
 
-The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>  . 
+The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>.  You must run the script from the directory that it is located in but the ini 
+file may be located anywhere, including a shared file space so you don't need to maintain the file in multiple locations.
 
 <blockquote>
 Usage: ./manage-glideins --ACTION SERVICE --ini  [--debug]<br/>
@@ -366,8 +367,8 @@ requires:<br/><br/>
         </tr><tr>
             <td>unix_acct</td>
             <td>   weigand</td>
-            <td>     UNIX user account that this services will run under.</td>
-            <td>    Although the WMS Collector and Factory must be co-located, they can be run as independent users.</td>
+            <td>     UNIX user account that this services will run under. DO NOT use "root". </td>
+            <td>    For security purposes, this value should always be a non-root user.  Although the WMS Collector and Factory must be co-located, they can be run as independent users.</td>
         </tr><tr>
             <td>service_name</td>
             <td>    factory-jgw</td>
@@ -539,11 +540,8 @@ ires:<br/><br/>
             </tr><tr>
             <td>unix_acct</td>
             <td>   weigand</td>
-            <td>UNIX user account that this services will run under.</td>
-            <td>This value must be a non-root user.  However, some files Condor
-            owns need to be owned by root, so the manage-glideins script
-            itself should be run as root when you install (see above).
-            </td>
+            <td>UNIX user account that this services will run under. DO NOT use "root".</td>
+            <td> For security purposes, this value should always be a non-root user.</td>
             </tr><tr>
             <td>service_name</td>
             <td>    userpool    </td>
@@ -642,7 +640,8 @@ requires:
         </tr><tr>
         <td>unix_acct   </td>
         <td>weigand     </td>
-        <td>UNIX user account that this services will run under. </td>    
+        <td>UNIX user account that this services will run under. DO NOT use "root". </td> 
+        <td> For security purposes, this value should always be a non-root user. </td>   
         </tr><tr>
         <td>service_name    </td>
         <td>submit  </td>
@@ -742,22 +741,22 @@ glideinWMS frontend requires:<br/><br/>
         <td>node     </td>
         <td>cms-xen22.fnal.gov      </td>
         <td>hostname for VOFrontend.    </td>
-        <td> 
+        <td>   </td>
         </tr><tr>
         <td>unix_acct   </td>
         <td>weigand     </td>
-        <td>UNIX user account that this services will run under.    </td>
-        <td> 
+        <td>UNIX user account that this services will run under. DO NOT use "root". </td>
+        <td> For security purposes, this value should always be a non-root user. </td>
         </tr><tr>
         <td>service_name    </td>
         <td>cms_frontend    </td>
-        <td>Used as the 'nickname' for the GSI DN in the condor_mapfile.    </td>
-        <td> 
+        <td>  Used as the 'nickname' for the GSI DN in the condor_mapfile.  This name MUST correspond to frontend service name listed the factory configuration for the frontend to be able to talk to the factory.  </td>
+        <td>   </td>
         </tr><tr>
         <td>frontend_identity   </td>
         <td>cms_frontend    </td>
         <td>Used in the frontend config file to identify this VOFrontend to the factory     </td>
-        <td> 
+        <td>   </td>
         </tr><tr>
         <td>install_location    </td>
         <td>/home/weigand/glidein/cms   </td>
@@ -796,7 +795,7 @@ glideinWMS frontend requires:<br/><br/>
         <td>Valid values:<br/>
             * y - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
             * n - will append to the CONDOR_LOCATION/etc/condor_config  </td>
-        <td> 
+        <td>   </td>
         </tr><tr>
         <td>certificates    </td>
         <td>/home/weigand/glidein/vdt   </td>
