@@ -95,7 +95,7 @@ Installation proceeds in the same order as the dialog installer:
 <li>User Schedd (submit node)</li>
 <li>Glidein Frontend (or Corral Frontend)</li>
 </ol>
-Services have dependencies ibetween them.  If you get an error or change
+Services have dependencies between them.  If you get an error or change
 the ini file, it is recommended that you go back and re-install ALL services.
 </div>
 <div class="section">
@@ -235,10 +235,8 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td>service_name</td>
         <td>     condor-wms </td>
-        <td>Used in naming the condor startup script (condor_). </td>
-        <td>This allows multiple glidein condor services to be used in init.d services with unique names.
-
-This is also used in the condor_mapfile of the other glidein services as the 'nickname' to more easily identify the DNs in that file. </td>
+        <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.   </td>
+        <td> </td>
         </tr>
         <tr>
         <td>condor_location</td>
@@ -545,9 +543,8 @@ ires:<br/><br/>
             </tr><tr>
             <td>service_name</td>
             <td>    userpool    </td>
-            <td>Used in naming the condor startup script (condor_).</td>
-            <td>
-                Example - condor_userpool   This allows multiple glidein condor services to be used in init.d services with unique names.</td>
+            <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.  </td>
+            <td></td>
             </tr><tr>
             <td>condor_location     </td>
             <td>/home/weigand/glidein/condor-userpool   </td>
@@ -645,8 +642,8 @@ requires:
         </tr><tr>
         <td>service_name    </td>
         <td>submit  </td>
-        <td>Used in naming the condor startup script (condor_).  </td>
-        <td>Example - condor_submit     This allows multiple glidein condor services to be used in init.d services with unique names.</td>
+        <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.   </td>
+        <td></td>
         </tr><tr>
         <td>condor_location     </td>
         <td>/home/weigand/glidein/condor-submit     </td>
