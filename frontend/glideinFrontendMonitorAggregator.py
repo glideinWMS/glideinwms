@@ -47,7 +47,7 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 
 status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                    'Glideins':("Idle","Running","Total"),
-                   'MatchedJobs':("Idle","EffIdle","OldIdle","Running"),
+                   'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
                    'MatchedGlideins':("Total","Idle","Running"),
                    'Requested':("Idle","MaxRun")}
 
@@ -57,7 +57,7 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
 def aggregateStatus():
     global monitorAggregatorConfig
 
-    type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJobs',
+    type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
                   'MatchedGlideins':'MatchGlidein','Requested':'Req'}
     global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
     status={'groups':{},'total':global_total}

@@ -152,6 +152,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
 
+    glideinFrontendLib.log_files.logDebug("condor stat: %s\n\n" % status_dict_running[None].fetchStored())
+
+    glideinFrontendLib.appendRealRunning(condorq_dict_running, status_dict_running)
+
+    glideinFrontendLib.log_files.logDebug("condorq running: %s\n\n" % condorq_dict_running['devg-1.t2.ucsd.edu'].fetchStored())
+
     status_dict_types={'Total':{'dict':status_dict,'abs':glideinFrontendLib.countCondorStatus(status_dict)},
                        'Idle':{'dict':status_dict_idle,'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
                        'Running':{'dict':status_dict_running,'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
@@ -235,10 +241,14 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     glideinFrontendLib.log_files.logActivity("Match")
 
+    #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
+
     for dt in condorq_dict_types.keys():
         condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
         # is the semantics right?
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+
+    count_real = glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
     fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
@@ -316,7 +326,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
         stats['group'].logMatchedJobs(
             glideid_str, count_jobs['Idle'],effective_idle, count_jobs['OldIdle'],
-            count_jobs['Running'])
+            count_jobs['Running'], count_real[glideid])
 
         stats['group'].logMatchedGlideins(
             glideid_str, count_status['Total'],count_status['Idle'],

@@ -106,7 +106,7 @@ class groupStats:
         self.files_updated=None
         self.attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                          'Glideins':("Idle","Running","Total"),
-                         'MatchedJobs':("Idle","EffIdle","OldIdle","Running"),
+                         'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
                          'MatchedGlideins':("Total","Idle","Running"),
                          'Requested':("Idle","MaxRun")}
 
@@ -129,7 +129,7 @@ class groupStats:
         self.updated=time.time()
 
 
-    def logMatchedJobs(self, factory, idle, effIdle, oldIdle, running):
+    def logMatchedJobs(self, factory, idle, effIdle, oldIdle, running, realRunning):
         factories = self.data['factories']
         if not factory in factories:
             factories[factory] = {}
@@ -137,7 +137,8 @@ class groupStats:
         factories[factory]['MatchedJobs'] = {self.attributes['MatchedJobs'][0]: idle,
                                         self.attributes['MatchedJobs'][1]: effIdle,
                                         self.attributes['MatchedJobs'][2]: oldIdle,
-                                        self.attributes['MatchedJobs'][3]: running
+                                        self.attributes['MatchedJobs'][3]: running,
+                                        self.attributes['MatchedJobs'][4]: realRunning
                                         }
 
         self.update=time.time()
@@ -285,7 +286,7 @@ class groupStats:
         total_el = self.get_total()
         # update RRDs
         val_dict={}
-        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJobs',
+        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
                       'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 
         #init, so tha all get created properly
