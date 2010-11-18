@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.2 2010/09/08 03:22:59 parag Exp $
+#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.3 2010/11/18 20:42:55 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to
@@ -159,12 +159,12 @@ def printDowntime(fname,entry="Any",check_time=None):
         
         if entry=="Any":
             for e in downtime_keys:
-                print "%s\tDown\t%s"%(e,downtime_keys[e]);
+                print "%-30s Down\t%s"%(e,downtime_keys[e]);
         else:
             if entry in downtime_keys:
-                print "%s\tDown\t%s"%(entry,downtime_keys[entry]);
+                print "%-30s Down\t%s"%(entry,downtime_keys[entry]);
             else:
-                print "%s\tUp\tAll"%(entry);
+                print "%-30s Up  \tAll"%(entry);
 
 
 
@@ -201,11 +201,11 @@ def addPeriod(fname,start_time,end_time,entry="All",security_class="All",comment
         try:
             fcntl.flock(fd,fcntl.LOCK_EX)
             if not exists: # new file, create header
-                fd.write("# Downtime file\n#Start\t\t\t\tEnd\n")
+                fd.write("#%-29s %-30s %-20s %-20s # %s\n"%("Start","End","Entry","Sec_Class","Comment"))
             if end_time!=None:
-                fd.write("%s\t%s\t%s\t%s\t#%s\n"%(timeConversion.getISO8601_Local(start_time),timeConversion.getISO8601_Local(end_time),entry,security_class,comment))
+                fd.write("%-30s %-20s%-20s %-20s # %-20s\n"%(timeConversion.getISO8601_Local(start_time),timeConversion.getISO8601_Local(end_time),entry,security_class,comment))
             else:
-                fd.write("%s\t%s\t%s\t%s\t#%s\n"%(timeConversion.getISO8601_Local(start_time),"None",entry,security_class,comment))
+                fd.write("%-30s %-30s %-20s %-20s # %s\n"%(timeConversion.getISO8601_Local(start_time),"None",entry,security_class,comment))
         finally:
             fd.close()
 
@@ -311,7 +311,7 @@ def endDowntime(fname,end_time=None,entry="All",security_class="All"):
                 if line[0:1]=='#':
                     outlines.append(long_line)
                     continue # pass on comments
-                arr=line.split("\t")
+                arr=line.split()
                 if len(arr)<2:
                     outlines.append(long_line)
                     continue # pass on malformed lines
@@ -327,11 +327,16 @@ def endDowntime(fname,end_time=None,entry="All",security_class="All"):
 
                 if arr[1]=='None':
                     # open period -> close
-                    outlines.append("%s\t%s"%(arr[0],timeConversion.getISO8601_Local(end_time)))
+                    outlines.append("%-30s %-30s"%(arr[0],timeConversion.getISO8601_Local(end_time)))
                     if (len(arr)>2):
-                        sep="\t";
+                        sep=" ";
+                        t=2
                         for param in arr[2:]:
-                            outlines.append("%s%s" % (sep,param));
+                            if t<4:
+                                outlines.append("%s%-20s" % (sep,param));
+                            else:
+                                outlines.append("%s%s" % (sep,param));
+                            t=t+1
                     outlines.append("\n");
                     closed_nr+=1
                 else:

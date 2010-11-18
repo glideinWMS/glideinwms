@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14 2010/09/08 23:22:37 sfiligoi Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.15 2010/11/18 20:42:54 dstrain Exp $
 #
 # Description:
 #   Glidein creation module
@@ -529,7 +529,7 @@ def populate_factory_descript(work_dir,
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
         if down_fname==None:
-            down_fname=os.path.join(work_dir,'factory.downtimes')
+            down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)

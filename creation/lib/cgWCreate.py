@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.7 2010/10/06 23:26:08 sfiligoi Exp $
+#   $Id: cgWCreate.py,v 1.49.2.8 2010/11/18 20:42:54 dstrain Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -212,23 +212,18 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("}\n\n")
 
         fd.write('downtime() {\n')
-        fd.write('       if [ -z "$2" ]; then\n')
-        fd.write('           echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
+        fd.write('       if [ -z "$3" ]; then\n')
+        fd.write('           echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-security sec_class|\'All\'] [-comment comment]"\n')
         fd.write('           exit 1\n')
         fd.write('       fi\n\n')
         fd.write('	 if [ "$1" == "down" ]; then\n')
-        fd.write('	   echo -n "Setting downtime for"\n')
+        fd.write('	   echo -n "Setting downtime..."\n')
         fd.write('	 elif [ "$1" == "up" ]; then\n')
-        fd.write('	   echo -n "Removing downtime for"\n')
+        fd.write('	   echo -n "Removing downtime..."\n')
         fd.write('	 else\n')
-        fd.write('	   echo -n "Infosys-based downtime management for"\n')
+        fd.write('	   echo -n "Infosys-based downtime management."\n')
         fd.write('	 fi\n\n')
-        fd.write('	 if [ "$2" == "factory" ]; then\n')
-        fd.write('	   echo -n " factory:"\n')
-        fd.write('       else\n')
-        fd.write('	   echo -n " entry $2:"\n')
-        fd.write('	 fi\n\n')
-        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 $1 $3 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" 2>/dev/null 1>&2 </dev/null && success || failure\n')
         fd.write('	 RETVAL=$?\n')
         fd.write('	 echo\n')
         fd.write('}\n\n')
@@ -256,20 +251,20 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("                reconfig $2\n")
         fd.write("        ;;\n")
         fd.write("	  down)\n")
-        fd.write("		  downtime down $2 $3\n")
+        fd.write("		  downtime down \"$@\"\n")
         fd.write("	  ;;\n")
         fd.write("	  up)\n")
-        fd.write("		  downtime up $2 $3\n")
+        fd.write("		  downtime up \"$@\"\n")
         fd.write("	  ;;\n")
         fd.write("	  infosysdown)\n")
-        fd.write("		  downtime ress+bdii entries $2\n")
+        fd.write("		  downtime ress+bdii entries \"$@\"\n")
         fd.write("	  ;;\n")
         fd.write("	  statusdown)\n")
         fd.write('            if [ -z "$2" ]; then\n')
         fd.write('              echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
         fd.write('              exit 1\n')
         fd.write('            fi\n')
-        fd.write('            "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 check $3\n')
+        fd.write('            "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -dir "$factory_dir" -entry $2 -cmd check -delay $3\n')
         fd.write('            RETVAL=$?\n')
         fd.write("	  ;;\n")
         fd.write("        *)\n")
