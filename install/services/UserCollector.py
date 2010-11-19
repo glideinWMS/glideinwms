@@ -59,11 +59,11 @@ class UserCollector(Condor):
   def install(self):
     common.logit ("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
-    self.verify_no_conflicts()
-    self.validate_install_location()
     self.install_vdtclient()
     self.install_certificates()
+    self.validate_install_location()
     self.validate_condor_install()
+    self.verify_no_conflicts()
     self.install_condor()
     self.configure_condor()
     common.logit ("======== %s install complete ==========" % self.ini_section)

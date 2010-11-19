@@ -271,6 +271,14 @@ def get_gsi_dn(type,filename):
   return my_dn
 
 #----------------------------
+def not_an_integer(value):
+  try:
+    nbr = int(value)
+  except:
+    return True
+  return False
+
+#----------------------------
 def url_is_valid(url):
   try:
     ress_ip=socket.gethostbyname(url)

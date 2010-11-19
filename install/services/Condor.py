@@ -109,19 +109,28 @@ class Condor(Configuration):
     option = "number_of_schedds"
     if not self.has_option(self.ini_section,option):
       return int(0)
-    return self.option_value(self.ini_section,option)
+    value =  self.option_value(self.ini_section,option)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #----------------------------------
   def collector_port(self):
     option = "collector_port"
     if not self.has_option(self.ini_section,option):
       return int(0)
-    return self.option_value(self.ini_section,option)
+    value = self.option_value(self.ini_section,option)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #---------------------
   def secondary_collectors(self):
     option = "number_of_secondary_collectors"
     if not self.has_option(self.ini_section,option):
       return int(0)
-    return self.option_value(self.ini_section,option)
+    value = self.option_value(self.ini_section,option)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #---------------------
   def secondary_collector_ports(self):
     ports = []
@@ -213,9 +222,9 @@ class Condor(Configuration):
     common.validate_user(self.unix_acct())
     common.validate_email(self.admin_email())
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
-    self.__validate_collector_port__(self.collector_port())
-    self.__validate_secondary_collectors__(self.secondary_collectors())
-    self.__validate_schedds__(self.number_of_schedds())
+    self.__validate_collector_port__()
+    self.__validate_secondary_collectors__()
+    self.__validate_schedds__()
     self.__validate_condor_config__(self.split_condor_config())
     if "usercollector" not in self.colocated_services:
       self.__validate_tarball__(self.condor_tarball())
@@ -327,58 +336,49 @@ setenv CONDOR_CONFIG %s
     common.logit("\nCondor installation complete")
 
   #--------------------------------
-  def __validate_schedds__(self,value):
+  def __validate_schedds__(self):
     if self.daemon_list.find("SCHEDD") < 0:
       common.logit("... no schedds")
       return # no schedd daemon
-    common.logit("... validating schedds: %s" % value)
+    common.logit("... validating schedds: %s" % self.number_of_schedds())
+    nbr = self.number_of_schedds()
     min = 0
     max = 99
-    try:
-      nbr = int(value)
-    except:
-      common.logerr("number of schedds is not a number: %s" % (value))
     if nbr < min:
-      common.logerr("number of schedds is negative: %s" % (value))
+      common.logerr("number of schedds is negative: %s" % (nbr))
     if nbr > max:
-      common.logerr("number of schedds exceeds maximum allowed value: %s" % (value))
+      common.logerr("number of schedds exceeds maximum allowed value: %s" % (nbr))
 
   #--------------------------------
-  def __validate_secondary_collectors__(self,value):
+  def __validate_secondary_collectors__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
       common.logit("... no secondary collectors")
       return # no collector daemon
-    common.logit("... validating secondary collectors: %s" % value)
+    common.logit("... validating secondary collectors: %s" % self.secondary_collectors())
+    nbr = self.secondary_collectors()
     min = 0
     max = 399
-    try:
-      nbr = int(value)
-    except:
-      common.logerr("nbr of secondary collectors is not a number: %s" % (value))
     if nbr < min:
-      common.logerr("nbr of secondary collectors is negative: %s" % (value))
+      common.logerr("nbr of secondary collectors is negative: %s" % (nbr))
     if nbr > max:
-      common.logerr("nbr of secondary collectors exceeds maximum allowed value: %s" % (value))
+      common.logerr("nbr of secondary collectors exceeds maximum allowed value: %s" % (nbr))
  
   #--------------------------------
-  def __validate_collector_port__(self,port):
+  def __validate_collector_port__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
       common.logit("... no collector")
       return # no collector daemon
-    common.logit("... validating collector port: %s" % port)
+    common.logit("... validating collector port: %s" % self.collector_port())
+    port = self.collector_port()
     collector_port = 0
     min = 1
     max = 65535
     root_port = 1024
-    try:
-      nbr = int(port)
-    except:
-      common.logerr("collector port option is not a number: %s" % (port))
-    if nbr < min:
+    if port < min:
       common.logerr("collector port option is negative: %s" % (port))
-    if nbr > max:
+    if port > max:
       common.logerr("collector port option exceeds maximum allowed value: %s" % (port))
-    if nbr < root_port:
+    if port < root_port:
       if os.getuid() == 0:  #-- root user --
         common.logit("Ports less that %i are generally reserved." % (root_port))
         common.logit("You have specified port %s for the collector." % (port))
