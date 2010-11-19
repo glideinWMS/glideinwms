@@ -469,7 +469,7 @@ source %s/condor.sh
         self.additional_entry_points()
       if len(self.config_entries_list) > 0:
         break
-      common.logerr("You have no entry points. You need at least 1.\...... check your ini file's entry_vos and entry_filters attributes..")
+      common.logerr("You have no entry points. You need at least 1. Check your ini file's entry_vos and entry_filters attributes..")
     common.logit("Configuration file questioning complete.\n")
    
 
@@ -724,30 +724,29 @@ source %s/condor.sh
     print "Please list all additional glidein entry points,"
     while 1:
       print
-      entry_name = raw_input("Entry name (leave empty when finished): ")
+      entry_name = raw_input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":
         if len(self.config_entries_list.keys()) < 1:
-          print "You must instert at least one entry point"
+          print "You must insert at least one entry point"
           continue
         break
-
       if entry_name in self.config_entries_list.keys():
         print "You already inserted '%s'!" % entry_name
         continue
-      gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name)
+      gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name).strip()
       if gatekeeper_name == "":
         print "Gatekeeper cannot be empty!"
         continue
-      rsl_name        = raw_input("RSL for '%s': " % entry_name)
-      work_dir        = raw_input("Work dir for '%s': [.] " % entry_name)
+      rsl_name = raw_input("RSL for '%s': " % entry_name).strip() # can be empty
+      work_dir = raw_input("Work dir for '%s': [.] " % entry_name).strip()
       if work_dir == "":
         work_dir = "."
-      site_name       = raw_input("Site name for '%s': [%s] " % (entry_name,entry_name))
+      site_name = raw_input("Site name for '%s': [%s] " % (entry_name,entry_name)).strip()
       if site_name == "":
         site_name = entry_name
       glexec_path = ""
       if self.glidein.use_glexec() == "y":
-        glexec_path = raw_input("gLExec path for '%s': [OSG] " % entry_name)
+        glexec_path = raw_input("gLExec path for '%s': [OSG] " % entry_name).strip()
         if glexec_path == "":
           glexec_path = 'OSG'
       else:
