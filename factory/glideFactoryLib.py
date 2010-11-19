@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.9 2010/11/09 20:31:23 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10 2010/11/19 19:35:58 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -952,6 +952,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                 except condorExe.ExeError,e:
                     log_files.logWarning("condor_submit failed: %s"%e)
                     submit_out=[]
+                    raise
                 
                 
             cluster,count=extractJobId(submit_out)
