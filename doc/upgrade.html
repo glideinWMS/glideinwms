@@ -67,6 +67,7 @@
     <ol>
         <li><a href="#v20">Upgrade from v2.x</a></li>
         <li><a href="#v16">Upgrade from v1.6</a></li>
+        <li><a href="#factory_upgrade">Upgrade from v1.6</a></li>
     </ol>
     </div>
     <div class="related">
@@ -79,7 +80,7 @@
     </div>
 <div class="section">
     <a name="v20" />
-    <h3>Upgrading from Version 2.x</h3>
+    <h3>Upgrading frontend from Version 2.x</h3>
     <p> 
         These instructions assume that you are only upgrading the frontend.
         If you need to upgrade more components, it may involve additional
@@ -103,10 +104,32 @@ For v2.4 to v2.4.x, there are not many changes to frontend.xml.
 </p>
 </div>
 <div class="section">
+    <a name="factory_upgrade" />
     <h3>Upgrading from Version 1.6 and older</h3>
 
     No upgrading instructions exist for this version.  You will need to re-install glideinWMS and transfer your configuration specific changes over into the new installation.
 
+</div>
+<div class="section">
+
+<h3><a name="upgrade"></a>Upgrading a factory to a new version of glideinWMS</h3>
+<p>
+Upgrading a factory configuration tree to a new version of glideinWMS can be done in two ways:
+</p><ul>
+<li>Installing the new glideinWMS code in a separate directory, and create a new configuration
+    tree as explained <a href="#create_entry">above</a>.<br>
+
+    The configuration file (glieinWMS.xml) of the existing configuration tree can be used as a
+    base for the new one; only the <i>glidein_ name</i> needs to be changed.
+    See the <a href="entry.html">configuration page</a> for more defaults.
+</li><li>Overwrite the glideinWMS installation and <a href="#run_daemon">reconfig</a>.<br>
+    If getting the code from CVS, a cvs update -r <i>version</i> will update the code.<br>
+
+    <b>Warining:</b> Check the revision history before doing this. Not all versions are compatible.
+</li></ul>
+<p></p>
+<p>
+Which option you choose is really up to you; the second one is easier, but the first one is cleaner and easier to revert back.
 </div>
 <div class="footer">
 Banner image by
@@ -116,5 +139,6 @@ Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
 einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
 glideinWMS email support: glideinwms-support at fnal.gov
 </div>
+
 </body>
 </html>

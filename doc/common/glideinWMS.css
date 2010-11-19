@@ -330,6 +330,8 @@ border: 1px solid black;
 }
 div.jump ol { margin-left: 10px; }
 div.jump ol li a { text-decoration: none; color: #339;}
+div.jump ol ol {margin: 0px;list-style-type: lower-alpha}
+
 
 div.related {
 float: left;

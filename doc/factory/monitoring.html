@@ -65,6 +65,7 @@
 <div class="jump">
 <u>Jump to:</u>
 <ol>
+        <li><a href="#monitoring_logs">Log files</a></li>
         <li><a href="#monitoring_web">Using the Web monitoring</a></li>
         <li><a href="#monitoring_tools">Using the WMS tools</a></li>
         <li><a href="#monitoring_logs">Looking at the glidein factory log files</a></li>
@@ -82,7 +83,84 @@ Related Links: <br/>
 
     <h2><a name="monitoring">Glidein Factory monitoring</a></h2>
 
-    <p>There are several ways to monitor the entry points of the glidein factory:</p>
+    <p>
+Monitoring is an essential part of any service. One has to monitor to both maintain the health of the system and to tune the system for anticipated growth. The various ways you can monitor a Glidein Factory are described below. </p>
+
+<h3><a name="monitoring_logs"></a>Log files</h3>
+<p>Both the Factory Daemon, the Entry Daemons, Condor-G and the Glideins write
+extensive log files. The logs are kept for a week and then deleted.</p>
+<p>
+<b><u>Log file locations in glideinWMS v2.3.x and earlier:</u></b>
+</p>
+<p>The Glidein Factory Daemon log files are located in</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/log/factory_info.&lt;date&gt;.log<br>
+
+    &lt;glidein directory&gt;/log/factory_err.&lt;date&gt;.log
+</blockquote>
+
+<p>Each Entry Daemon has its log files in</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry 
+    name&gt;/log/factory_info.&lt;date&gt;.log<br>
+
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/factory_err.&lt;date&gt;.log
+
+</blockquote>
+
+<p>For each client an Entry Daemon is serving, one Condor-G job log is used</p>
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/condor_activity_&lt;date&gt;_&lt;client-name&gt;.log
+
+</blockquote>
+
+<p>Each Glidein also writes a couple of log files, that get transfered back to 
+   the factory node after the glidein terminates. The log files are named:</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/job.&lt;condor-g job nr&gt;.out<br>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/job.&lt;condor-g job nr&gt;.err
+
+</blockquote>
+
+<p>The Glidein .out files are readable using any text editor, while the .err files
+   contain the compressed logs of the condor daemons.<br>
+   Use the following commands to extract that information in simple text format</p>
+<blockquote>
+      glideinWMS/factory/tools/cat_MasterLog.py &lt;err_fname&gt;<br>
+      glideinWMS/factory/tools/cat_StartdLog.py &lt;err_fname&gt;<br>
+      glideinWMS/factory/tools/cat_StarterLog.py &lt;err_fname&gt;
+
+</blockquote>
+
+<p>Note: If you need Condor log files from a still running glidein, use the following 
+   <a href="http://www.cs.wisc.edu/condor/manual/v7.2/condor_fetchlog.html">Condor command</a></p>
+<blockquote>
+      &lt;condor dir&gt;/sbin/condor_fetchlog -pool &lt;pool collector&gt; &lt;glidein slot name&gt; -startd MASTER|STARTD|STARTER
+</blockquote>
+
+<p>The Entry Daemons also summarize the information about completed glideins into</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/completed_jobs_&lt;date&gt;.log
+</blockquote>
+
+<p>
+<b><u>Log file locations in glideinWMS v2.4 and later:</u></b>
+</p><p>
+
+With the introduction of privilage separation in glideinWMS, location for log files have changed, altough a link to log directory is still maintained from the  &lt;glidein directory&gt;. Location for the log files is controlled through configuration.
+
+glideinWMS uses condor_switchboard to control the access to the log directories. This makes the deployment more secure.
+
+</p>
 
     <h3><a name="monitoring_web">Glidein factory entry Web monitoring</a></h3>
 
@@ -102,6 +180,13 @@ Related Links: <br/>
     </p>
 
     <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</blockquote>
+
+<h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
+<p>The Entry Point Daemons will also create <a href="http://oss.oetiker.ch/rrdtool/">RRD
+databases</a> and associated graphs for a period of up to one year.
+This way, one can easily monitor the evolution of the system. 
+</p>
+
 
     <h3><a name="monitoring_tools">Glidein factory monitoring via WMS tools</a></h3>
 
@@ -155,19 +240,22 @@ Related Links: <br/>
 </div>
 
 <div class="section">
-<h2><a name="textmon"></a>glideinWMS text monitoring</h2>
-<p>A system administrator can also monitor the glideinWMS status
-using text tools. 
-</p>
-<p>Move into 
-</p>
-<pre>glideinWMS/tools</pre><p>
-and run either 
-</p>
-<pre>./wmsXMLView.py</pre><p>
-or 
-</p>
-<pre>./wmsTxtView.py [Entries|Sites|Gatekeepers]</pre><p>
+<h3><a name="monitoring_classads"></a>Looking at ClassAds</h3>
+<p>As explained in the <a href="../index.html#classads">Data exchange
+overview</a>, the Entry Point Daemons expose a lot of monitoring
+information in the ClassAds sent to the WMS collector. While this may
+not be the most user friendly interface, most of the monitoring
+information you'll ever need is present there.</p>
+
+<p>On top of the <a href="http://www.cs.wisc.edu/condor/manual/v7.2/condor_status.html">Condor provided tools</a>,
+the factory provides two tools to look at the ClassAds; the first one returns a human readable, but limited text, 
+while the other provides a complete XML-formated output</p>
+<blockquote>
+
+      glideinWMS/tools/wmsTxtView.py [Entries|Sites|Gatekeepers]<br>
+
+      glideinWMS/tools/wmsXMLView.py
+</blockquote>
 
 </p></div>
 

@@ -68,10 +68,10 @@
     <li><a href="#description">Description</a></li>
     <li><a href="#hardware">Hardware requirements</a></li>
     <li><a href="#software">Needed software</a></li>
-    <li><a href="#system">System services</a></li>
     <li><a href="#before_install">Before you begin...</a></li>
     <li><a href="#condor">WMSCollector installation</a></li>
     <li><a href="#factory">Factory installation</a></li>
+    <li><a href="#management">Factory management</a></li>
     <li><a href="#verification">Verification</a></li>
 </ol>
 </div>
@@ -973,39 +973,122 @@ Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
         <b>/home/gfactory/glideinsubmit/glidein_v1_0.cfg/glideinWMS.xml</b>. Edit this file to suit your needs and than create the factory 
         instance as described in the Manual configuration section below.
     </p>
-    
-    <p>At this point you can start the factory with</p>
+   
+    <p>At this point, your factory installation is complete and you can
+    start the factory.   See the following section for how to do this.
+    </p>
+    </div>
+    <div class="section">
+    <a name="management" />
+    <h2>7. Factory Management Commands</h2>
 
-    <blockquote><i>&lt;install dir&gt;/</i>factory_startup start</blockquote>
+    <h3><a name="starting">7.1 Starting and Stopping</a></h3>
+    <p>The glidein factory comes with a init.d style startup script.</p>
+    <p>Glidein factory starting and stopping is handled by </p>
+    <blockquote>&lt;glidein directory&gt;/factory_startup
+    start|stop|restart</blockquote>
+<p>You can check that the factory is actually running with
+</p>
+    <blockquote>
+    &lt;glidein directory&gt;/factory_startup
+    status
+    </blockquote>
+    <p><u>Getting configuration information</u></p>
+<p>To get the list of entries defined in the factory, use</p>
+    <blockquote>
+    &lt;glidein directory&gt;/factory_startup
+    info -entries -CE
+    </blockquote>
+<p>To see which entries are currently active, use</p>
+    <blockquote>
 
-    <p>where the <i>&lt;install dir&gt;</i> is the one written out by the installation script.</p>
+    &lt;glidein directory&gt;/factory_startup
+    statusdown entries
+    </blockquote>
 
-    <p>To stop the factory the factory, use</p>
-
-    <blockquote><i>&lt;install dir&gt;</i>/factory_startup stop</blockquote>
-
-    <h3><a name="factory_manual">6.1 Manual configuration</a></h3>
+<p>PS: Make sure the whole factory is not disabled, by using</p>
+    <blockquote>
+    &lt;glidein directory&gt;/factory_startup
+    statusdown factory 
+    </blockquote>
+<p>
+See the <a href="#monitoring">monitoring section</a> on how to check other info.
+</p>
+    <h3><a name="factory_manual">7.2 Manual configuration</a></h3>
 
     <p>
         The glidein factory can also be configured manually.
-
-        The complete guide can be found in the <a href="../factory/configuration.html">glideinWMS documentation</a>.
     </p>
 
-    <p>Once a configuration file is ready, you can create the glidein Factory by executing</p>
+    <p>To create an entry point you need:</p>
+    <ul>
+        <li>the name of the Gatekeeper(s), </li>
+        <li>the configuration details of the Grid pool(s), </li>
+        <li>the location of the submit point, and </li>
+        <li>the loction of the Web server data directory.  </li>
+    </ul>
+
+    Once a configuration file is ready, you can create the glidein Factory 
+    by executing</p>
 
     <blockquote>cd glideinWMS/creation<br> ./create_glidein <i>&lt;config file&gt;</i></blockquote>
 
     <p>The startup procedure is the same as described above.</p>
 
-    <h3><a name="factory_update">6.2 Changing the factory configuration</a></h3>
+    <p>
+        <b>Warning: Never change the files in an entry point by hand after it has been created!</b>.<br>
+       Use the <a href="#factory_update">reconfig tools described below</a> instead.
+    </p>
+
+
+    <h3><a name="factory_update">7.3 Changing the factory configuration</a></h3>
 
     <p>
-        Occasionally, you may need to change the glidein Factory configuration.  This is done by updating the configuration file and 
-        reconfiguring.<br>
-        <b>Warning:</b> Never update the <i>&lt;install dir&gt;</i>/glideinWMS.xml file! Either use the configuration file you used to
-        install it, or make a copy of the glideinWMS.xml file and modify that one.
-    </p>
+
+The files in an entry point must <b>never be changed by hand</b>, after the directory structure has been created.
+<br>
+
+<p>The reason why manual changes are so problematic are two fold:</p>
+
+<ul>
+    <li>The first problem are signatures. Any change requires the
+    change of the signature file, that in turn gets a new signature.
+    Since the signature file signature is one of the parameters of the
+    startup script, all glideins already in the queue will fail. </li>
+    <li>The second problem is caching. For performance reasons,
+    most Web caches don't check too often if the original document has
+    been changed; a glidein could thus get an old copy of a file and
+    fail the signature check. 
+    </li>
+</ul>
+<p>There is only one file that is neither signed nor cached and can
+be thus modified; the blacklisting file called <tt><b>nodes.blacklist</b></tt>.
+This one can be used to temporarily blacklist malfunctioning nodes
+that would pass regular sanity checks (for example: memory corruption
+or I/O errors), while waiting for the Grid site admin to take action.
+</p>
+<p>
+The proper procedure to update an entry point is 
+to make a copy of the official configuration file (i.e. <i>glideinWMS.xml</i>)
+and run
+
+</p><blockquote>
+
+    &lt;glidein directory&gt;/factory_startup
+    reconfig <i>config_copy_fname</i>
+</blockquote>
+<p></p>
+<p>
+This will update the directory tree and restart the factory and entry dameons.
+</p>
+<p>
+Please notice that if you make any errors in the new configuration file, the reconfig 
+script will throw an error and do nothing. So you should never need to worry about
+corrupting the installation tree using this tool.
+</p><p>
+<b>NOTE</b>: The reconfig tool does not kill the factory in case of errors.
+Hence is recommended that you disable any entry points that will not be used.
+</p>
 
     <p>Once you are done editing the work config file, reconfigure the factory with</p>
 
@@ -1013,11 +1096,88 @@ Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
 
     <p>If the factory was running, the procedure will stop the factory before reconfiguring it, and restart it afterwards.</p>
 
+
+<h3><a name="downtimes"></a>7.4 Downtime handling</h3>
+<p>Starting with v1_3, the glidein factory supports the dynamic
+handling of downtimes.<br>Downtimes can be handled both at the
+factory and at the entry level.</p>
+
+<p>Downtimes are useful when one or more Grid sites are known to have
+issues (can be anything from scheduled maintenance to a storage
+element corrupting user files).<br>In this case the factory
+administrator can temporarily stop submitting glideins to the
+affected sites, without stopping the factory as a whole.
+The list of current downtimes are listed in the factory 
+file in <tt>glideinWMS.downtimes</tt>
+</p>
+<p>Downtimes are handled with </p>
+
+    <blockquote>
+    &lt;glidein directory&gt;/factory_startup
+    up|down -entry 'factory'|&lt;entry name&gt; [-delay &lt;delay&gt;]
+    </blockquote>
+
+<p>
+<b>Caution</b>: An admin can handle downtimes both at the entry and at
+the factory level. <br>
+Please be aware that both will be used.
+</p>
+
+<p>More advanced configuration can be done with the following script:
+</p>
+    <blockquote>
+      glideinWMS/factory/manageFactoryDowntimes.py
+        <b>-dir</b> factory_dir 
+        <b>-entry</b> ['all'|'factory'|'entries'|entry_name] 
+        <b>-cmd</b> [command]
+        [options]
+    </blockquote>
+    You must specify the above options for the factory directory, the entry
+    you wish to disable/enable, and the command to run.  The valid commands
+    are:
+    <ul>
+        <li> add           - Add a scheduled downtime period
+        <li> down          - Put the factory down now(+delay)
+        <li> up            - Get the factory back up now(+delay)
+        <li> check         - Report if the factory is in downtime now(+delay)
+        <li> vacuum        - Remove all expired downtime info
+    </ul>
+    Additional options that can be given based on the command above are:
+    <ul>
+        <li> -start [[[YYYY-]MM-]DD-]HH:MM[:SS] 
+                (start time for adding a downtime)
+        <li> -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)
+        <li> -delay [HHh][MMm][SS[s]]           
+            (delay a downtime for down, up, and check cmds)
+        <li> -security SECURITY_CLASS  
+            (restricts a downtime to users of that security class)<br/>
+            (If not specified, the downtime is for all users.)
+        <li> -comment "Comment here"   
+            (user comment for the downtime. Not used by WMS.)
+    </ul>
+     <p>
+     This script can allow you to have more control over managing downtimes,
+     by allowing you to make downtimes specific to security classes, 
+    and adding comments to the downtimes file.  
+    </p>
+
+<h3><a name="localtest"></a>7.5 Testing with a local glidein</h3>
+
+<p>In case of problems, you may want to test a glidein by hand. 
+</p>
+<p>Move to the glidein directory and run</p>
+<blockquote>
+    ./local_start.sh <i>entry_name</i> fast -- GLIDEIN_Collector 
+    <i>yourhost</i>.dot,<i>your</i>.dot,<i>domain</i>
+</blockquote>
+<p>
+. This will start a glidein on the local machine and pointing to the
+<i>yourhost.your.domain</i> collector.</p>
+<p>Please make sure you have a valid Grid environment set up,
+including a valid proxy, as the glidein needs it in order to work.</p>
     </div>
-
-
     <div class="section">
-        <h2> <a name="verification">7. Verification</a></h2>
+        <h2> <a name="verification">8. Verification</a></h2>
         <p>
             One can save troubleshooting and verification until the installation is complete.
             At this point, however, you should be able be to query the WMS collector.
