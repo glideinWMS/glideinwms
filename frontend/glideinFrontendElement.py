@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.4.6.3 2010/11/19 23:14:13 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.4.6.4 2010/11/19 23:42:47 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -66,7 +66,7 @@ def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_a
     else:
         down_str="Up  "
 
-    glideinFrontendLib.log_files.logActivity(("%s(%s %s) %s(%s) | %s %s %s | %s %s "%tuple(form_arr))+
+    glideinFrontendLib.log_files.logActivity(("%s(%s %s) %s(%s %s) | %s %s %s | %s %s "%tuple(form_arr))+
                                              ("%s %s"%(down_str,factory)))
 
     new_arr=[]
@@ -76,13 +76,13 @@ def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_a
 
 def init_factory_stats_arr():
     new_arr=[]
-    for i in range(10):
+    for i in range(11):
         new_arr.append(0)
     return new_arr
 
 def log_factory_header():
-    glideinFrontendLib.log_files.logActivity("     Jobs in schedd queues      |      Glideins     |   Request   ")
-    glideinFrontendLib.log_files.logActivity("Idle ( eff   old )  Run ( max ) | Total Idle   Run  | Idle MaxRun Down Factory")
+    glideinFrontendLib.log_files.logActivity("        Jobs in schedd queues         |      Glideins     |   Request   ")
+    glideinFrontendLib.log_files.logActivity("Idle ( eff   old )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
 
 ############################################################
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
@@ -326,7 +326,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
-        this_stats_arr=(count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],max_running,
+        this_stats_arr=(count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],count_real[glideid],max_running,
                         count_status['Total'],count_status['Idle'],count_status['Running'],
                         glidein_min_idle,glidein_max_run)
 
