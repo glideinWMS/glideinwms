@@ -724,7 +724,7 @@ source %s/condor.sh
     print "Please list all additional glidein entry points,"
     while 1:
       print
-      entry_name=raw_input("Entry name (leave empty when finished): ")
+      entry_name = raw_input("Entry name (leave empty when finished): ")
       if entry_name == "":
         if len(self.config_entries_list.keys()) < 1:
           print "You must instert at least one entry point"
@@ -735,8 +735,13 @@ source %s/condor.sh
         print "You already inserted '%s'!" % entry_name
         continue
       gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name)
+      if gatekeeper_name == "":
+        print "Gatekeeper cannot be empty!"
+        continue
       rsl_name        = raw_input("RSL for '%s': " % entry_name)
-      work_dir        = raw_input("Work dir for '%s': " % entry_name)
+      work_dir        = raw_input("Work dir for '%s': [.] " % entry_name)
+      if work_dir == "":
+        work_dir = "."
       site_name       = raw_input("Site name for '%s': [%s] " % (entry_name,entry_name))
       if site_name == "":
         site_name = entry_name
