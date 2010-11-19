@@ -300,8 +300,9 @@ def main(argv):
       except common.WMSerror:
         raise
       except:
-        if len(services) <> installed_services:
-          common.ask_continue("... continue with next service")
+        raise
+      if len(services) <> installed_services:
+        common.ask_continue("... continue with next service")
   
     common.logit("... requested action completed")
 
@@ -315,9 +316,17 @@ def main(argv):
   except EOFError, e:
     print;print "Termminating at your request";return 1
   except ConfigurationError, e:
-    print;print "ConfigurationError ERROR(should not get these): %s"%e;return 1
+    print;print "ConfigurationError ERROR(should not get these): %s"%e
+    print traceback.print_exc()
+    return 1
   except common.WMSerror:
-    print;return 1
+#    print "WMS ERROR: uncaught execption. Contact support"
+#    print traceback.print_exc()
+    return 1
+  except:
+    print "PROGRAM ERROR: uncaught execption. Contact support"
+    print traceback.print_exc()
+    return 1
   return 0
 
 
