@@ -108,27 +108,29 @@ def appendRealRunning(condorq_dict, status_dict):
 
         for jid in condorq:
             found = False
-            remote_host = condorq[jid]['RemoteHost']
+  
+            if condorq[jid].has_key('RemoteHost'):
+                remote_host = condorq[jid]['RemoteHost']
 
-            for collector_name in status_dict:
-                condor_status = status_dict[collector_name].fetchStored()
-                if remote_host in condor_status:
-                    # there is currently no way to get the factory collector from
-                    #   condor status so this hack grabs the hostname of the schedd
-                    schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
-                    if len(schedd) < 2:
-                      break
+                for collector_name in status_dict:
+                    condor_status = status_dict[collector_name].fetchStored()
+                    if remote_host in condor_status:
+                        # there is currently no way to get the factory collector from
+                        #   condor status so this hack grabs the hostname of the schedd
+                        schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
+                        if len(schedd) < 2:
+                          break
 
-                    # split by : to remove port number if there
-                    fact_pool = schedd[1].split(':')[0]
+                        # split by : to remove port number if there
+                        fact_pool = schedd[1].split(':')[0]
 
-                    condorq[jid]['RunningOn'] = "%s@%s@%s@%s" % (
-                        condor_status[remote_host]['GLIDEIN_Entry_Name'],
-                        condor_status[remote_host]['GLIDEIN_Name'],
-                        condor_status[remote_host]['GLIDEIN_Factory'],
-                        fact_pool)
-                    found = True
-                    break
+                        condorq[jid]['RunningOn'] = "%s@%s@%s@%s" % (
+                            condor_status[remote_host]['GLIDEIN_Entry_Name'],
+                            condor_status[remote_host]['GLIDEIN_Name'],
+                            condor_status[remote_host]['GLIDEIN_Factory'],
+                            fact_pool)
+                        found = True
+                        break
 
             if not found:
                 condorq[jid]['RunningOn'] = 'UNKNOWN'
