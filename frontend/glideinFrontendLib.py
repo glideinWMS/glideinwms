@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.1.8.2 2010/08/31 18:49:17 parag Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.1.8.2.6.1 2010/11/19 19:54:29 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -77,7 +77,7 @@ log_files=None
 #
 def getCondorQ(schedd_names,constraint=None,format_list=None):
     if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i')])
+        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i'),('RemoteHost','s')])
     return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
 
 #
@@ -108,6 +108,37 @@ def getRunningCondorQ(condorq_dict):
         out[schedd_name]=sq
     return out
 
+def appendRealRunning(condorq_dict, status_dict):
+    for schedd_name in condorq_dict:
+        condorq = condorq_dict[schedd_name].fetchStored()
+
+        for jid in condorq:
+            found = False
+            remote_host = condorq[jid]['RemoteHost']
+
+            for collector_name in status_dict:
+                condor_status = status_dict[collector_name].fetchStored()
+                if remote_host in condor_status:
+                    # there is currently no way to get the factory collector from
+                    #   condor status so this hack grabs the hostname of the schedd
+                    schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
+                    if len(schedd) < 2:
+                      break
+
+                    # split by : to remove port number if there
+                    fact_pool = schedd[1].split(':')[0]
+
+                    condorq[jid]['RunningOn'] = "%s@%s@%s@%s" % (
+                        condor_status[remote_host]['GLIDEIN_Entry_Name'],
+                        condor_status[remote_host]['GLIDEIN_Name'],
+                        condor_status[remote_host]['GLIDEIN_Factory'],
+                        fact_pool)
+                    found = True
+                    break
+
+            if not found:
+                condorq[jid]['RunningOn'] = 'UNKNOWN'
+        
 #
 # Return a dictionary of schedds containing old jobs
 # Each element is a condorQ
@@ -177,6 +208,27 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         pass
     return out_glidein_counts
 
+def countRealRunning(match_obj,condorq_dict,glidein_dict):
+    out_glidein_counts={}
+    for glidename in glidein_dict:
+        # split by : to remove port number if there
+        glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
+        glidein=glidein_dict[glidename]
+        glidein_count=0
+        for schedd in condorq_dict.keys():
+            condorq=condorq_dict[schedd]
+            condorq_data=condorq.fetchStored()
+            schedd_count=0
+            for jid in condorq_data.keys():
+                job=condorq_data[jid]
+                if eval(match_obj) and job['RunningOn'] == glide_str:
+                    schedd_count+=1
+                pass
+            glidein_count+=schedd_count
+            pass
+        out_glidein_counts[glidename]=glidein_count
+        pass
+    return out_glidein_counts
 
 #
 # Convert frontend param expression in a value
@@ -199,7 +251,7 @@ def evalParamExpr(expr_obj,frontend,glidein):
 #
 def getCondorStatus(collector_names,constraint=None,format_list=None):
     if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s')])
+        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s'),('GLIDEIN_Schedd','s')])
     return getCondorStatusConstrained(collector_names,'(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)',constraint,format_list)
 
 #

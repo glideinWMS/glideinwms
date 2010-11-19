@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.24.1 2010/08/31 18:49:17 parag Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.24.1.6.1 2010/11/19 19:54:30 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -52,7 +52,10 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 ###########################################################
 
 status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
-                   'Slots':("Idle","Running","Total")}
+                   'Glideins':("Idle","Running","Total"),
+                   'MatchedJobs':("Idle","EffIdle","OldIdle","Running","RunningHere"),
+                   'MatchedGlideins':("Total","Idle","Running"),
+                   'Requested':("Idle","MaxRun")}
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
@@ -60,9 +63,10 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
 def aggregateStatus():
     global monitorAggregatorConfig
 
-    type_strings={'Jobs':'Jobs','Slots':'Slots'}
-    global_total={'Jobs':None,'Slots':None}
-    status={'groups':{},'total':copy.deepcopy(global_total)}
+    type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                  'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+    global_total={'Jobs':None,'Glideins':None,'MatchedJobs':None,'Requested':None,'MatchedGlideins':None}
+    status={'groups':{},'total':global_total}
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
@@ -87,31 +91,38 @@ def aggregateStatus():
         except IOError:
             continue # file not found, ignore
 
-        nr_groups+=1
-        status['groups'][group]={}
+        # update group 
+        status['groups'][group]={'factories':group_data['factories']}
 
-        for w in global_total.keys():
-            tel=global_total[w]
-            if not group_data.has_key(w):
-                continue
-            status['groups'][group][w]=group_data[w]
-            el=group_data[w]
-            if tel==None:
-                # new one, just copy over
-                global_total[w]={}
-                tel=global_total[w]
-                for a in el.keys():
-                    tel[a]=int(el[a]) #coming from XML, everything is a string
-            else:                
-                # successive, sum 
-                for a in el.keys():
-                    if tel.has_key(a):
-                        tel[a]+=int(el[a])
-                            
-                # if any attribute from prev. frontends are not in the current one, remove from total
-                for a in tel.keys():
-                    if not el.has_key(a):
-                        del tel[a]
+        #nr_groups+=1
+        #status['groups'][group]={}
+
+        if group_data.has_key('total'):
+          nr_groups+=1
+          status['groups'][group]['total']=group_data['total']
+
+          for w in global_total.keys():
+              tel=global_total[w]
+              if not group_data['total'].has_key(w):
+                  continue
+              #status['groups'][group][w]=group_data[w]
+              el=group_data['total'][w]
+              if tel==None:
+                  # new one, just copy over
+                  global_total[w]={}
+                  tel=global_total[w]
+                  for a in el.keys():
+                      tel[a]=int(el[a]) #coming from XML, everything is a string
+              else:                
+                  # successive, sum 
+                  for a in el.keys():
+                      if tel.has_key(a):
+                          tel[a]+=int(el[a])
+                              
+                  # if any attribute from prev. factories are not in the current one, remove from total
+                  for a in tel.keys():
+                      if not el.has_key(a):
+                          del tel[a]
         
     for w in global_total.keys():
         if global_total[w]==None:
@@ -123,7 +134,9 @@ def aggregateStatus():
              '<VOFrontendStats>\n'+
              get_xml_updated(updated,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.dict2string(status["groups"],dict_name="groups",el_name="group",
-                                   subtypes_params={"class":{}},
+                                   subtypes_params={"class":{"dicts_params":{"factories":{"el_name":"factory",
+                                                                                          "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
+                                                                                                                                                                                    "subtypes_params":{"class":{}}}}}}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</VOFrontendStats>\n")
