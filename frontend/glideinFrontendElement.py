@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.4.6.4 2010/11/19 23:42:47 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.5.2.4.6.5 2010/11/21 18:31:57 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -360,6 +360,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         glidein_monitors={}
         for t in count_jobs.keys():
             glidein_monitors[t]=count_jobs[t]
+        
+        glidein_monitors['RunningHere'] = count_real[glideid]
+        
         for t in count_status.keys():
             glidein_monitors['Glideins%s'%t]=count_status[t]
         if descript_obj.need_encryption():
