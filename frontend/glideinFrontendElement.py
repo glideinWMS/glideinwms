@@ -354,6 +354,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         glidein_monitors={}
         for t in count_jobs.keys():
             glidein_monitors[t]=count_jobs[t]
+        
+        glidein_monitors['RunningHere'] = count_real[glideid]
+        
         for t in count_status.keys():
             glidein_monitors['Glideins%s'%t]=count_status[t]
         if descript_obj.need_encryption():
