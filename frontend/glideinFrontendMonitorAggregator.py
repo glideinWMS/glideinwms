@@ -85,8 +85,12 @@ def aggregateStatus():
         except IOError:
             continue # file not found, ignore
 
-        # update group 
-        status['groups'][group]={'factories':group_data['factories']}
+        # update group
+        try:
+          status['groups'][group]={'factories':group_data['factories']}
+        except KeyError, e:
+          # first time after upgrade factories may not be defined
+          status['groups'][group]={'factories':{}}
 
         #nr_groups+=1
         #status['groups'][group]={}
