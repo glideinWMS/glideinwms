@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.11 2010/11/22 18:03:06 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.12 2010/11/22 19:13:38 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -300,9 +300,9 @@ class condorQStats:
             if client_monitor.has_key(ck):
                 el[ek]=client_monitor[ck]
             elif ck=='RunningHere':
-                # for compatibility, if RunningHere not defined, use Running
-                if client_monitor.has_key('Running'):
-                    el[ek]=client_monitor['Running']
+                # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
+                if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
+                    el[ek]=min(client_monitor['Running'],client_monitor['GlideinsRunning'])
 
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
