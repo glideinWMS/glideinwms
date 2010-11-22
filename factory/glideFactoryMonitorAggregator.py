@@ -48,7 +48,7 @@ monitorAggregatorConfig=MonitorAggregatorConfig()
 
 status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                    'Requested':("Idle","MaxRun"),
-                   'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
+                   'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file

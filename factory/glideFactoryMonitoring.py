@@ -195,7 +195,7 @@ class condorQStats:
         self.files_updated=None
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
-                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
+                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
 
 
     def logSchedd(self,client_name,qc_status):
@@ -255,6 +255,7 @@ class condorQStats:
         At the moment, it looks only for
           'Idle'
           'Running'
+          'RunningHere'
           'GlideinsIdle'
           'GlideinsRunning'
           'GlideinsTotal'
@@ -269,10 +270,14 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
+        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('RunningHere','JobsRunHere'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
             if client_monitor.has_key(ck):
                 el[ek]=client_monitor[ck]
+            elif ck=='RunningHere':
+                # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
+                if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
+                    el[ek]=min(client_monitor['Running'],client_monitor['GlideinsRunning'])
 
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
