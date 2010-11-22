@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.7 2010/10/19 19:39:21 weigand Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.8 2010/11/22 19:15:19 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -59,7 +59,7 @@ def rrd_site(name):
 
 status_attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                    'Requested':("Idle","MaxRun"),
-                   'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
+                   'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
 
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
