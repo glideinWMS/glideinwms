@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.10 2010/11/02 22:31:17 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.3.2.2.6.11 2010/11/22 18:03:06 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -218,7 +218,7 @@ class condorQStats:
         self.files_updated=None
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
-                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
+                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
 
@@ -280,6 +280,7 @@ class condorQStats:
         At the moment, it looks only for
           'Idle'
           'Running'
+          'RunningHere'
           'GlideinsIdle'
           'GlideinsRunning'
           'GlideinsTotal'
@@ -294,10 +295,14 @@ class condorQStats:
         el={}
         t_el['ClientMonitor']=el
 
-        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
+        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('RunningHere','JobsRunHere'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
             if client_monitor.has_key(ck):
                 el[ek]=client_monitor[ck]
+            elif ck=='RunningHere':
+                # for compatibility, if RunningHere not defined, use Running
+                if client_monitor.has_key('Running'):
+                    el[ek]=client_monitor['Running']
 
         if client_internals.has_key('LastHeardFrom'):
             el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
