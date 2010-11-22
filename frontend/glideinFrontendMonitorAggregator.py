@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.24.1.6.1 2010/11/19 19:54:30 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.24.1.6.2 2010/11/22 16:57:39 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -91,8 +91,12 @@ def aggregateStatus():
         except IOError:
             continue # file not found, ignore
 
-        # update group 
-        status['groups'][group]={'factories':group_data['factories']}
+        # update group
+        try:
+          status['groups'][group]={'factories':group_data['factories']}
+        except KeyError, e:
+          # first time after upgrade factories may not be defined
+          status['groups'][group]={'factories':{}}
 
         #nr_groups+=1
         #status['groups'][group]={}
