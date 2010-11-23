@@ -996,8 +996,8 @@ function loadFrontEnd(name)
 		preFrontEndName = "Total"; 
 		totalEntries = totalEntriesMaster; 
 		total = totalMaster;
-		//totalEntriesP = totalEntriesPMaster; 
-		//totalP = totalPMaster;
+		totalEntriesP = totalEntriesPMaster; 
+		totalP = totalPMaster;
 		numberRows = totalEntries.length;
  		makeTable(); 
 		frontEnd = 0;
@@ -1129,8 +1129,8 @@ function loadFrontEnd(name)
 		/* Reset everything before we find the frontends we are looking for. */
 		totalEntries = totalEntriesMaster; 
 		total = totalMaster; 
-		//totalEntriesP = totalEntriesPMaster; 
-		//totalP = totalPMaster; 
+		totalEntriesP = totalEntriesPMaster; 
+		totalP = totalPMaster; 
 		tableMade = 0;   
 		if(name == "Any")
 		{
@@ -1143,8 +1143,8 @@ function loadFrontEnd(name)
 					{
 						feEntries.push(totalEntries[i]); 
 						feTotal.push(total[i]);
-						//feEntriesP.push(totalEntriesP[i]); 
-						//feTotalP.push(totalP[i]); 
+						feEntriesP.push(totalEntriesP[i]); 
+						feTotalP.push(totalP[i]); 
 					}
 				}
 			}			
@@ -1162,8 +1162,8 @@ function loadFrontEnd(name)
 							childView = j; 
 							feEntries.push(totalEntries[i]); 
 							feTotal.push(totalEntries[i].childNodes[feChild].childNodes[j]); 
-							//feEntriesP.push(totalEntriesP[i]);
-							//feTotalP.push(totalEntriesP[i].childNodes[3].childNodes[j]);
+							feEntriesP.push(totalEntriesP[i]);
+							feTotalP.push(totalEntriesP[i].childNodes[3].childNodes[j]);
 						}
 					}
 				}
@@ -1445,14 +1445,13 @@ function loadXML2()
 	{
 		if(xmlhttp.readyState==4) //If 4 it it is ready. 
     	{
-			//totalEntriesPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
-			//totalPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
-			//frontEndsP = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
-			//totalEntriesP = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
-			//totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total"); 
+			totalEntriesPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			totalPMaster = xmlhttp.responseXML.documentElement.getElementsByTagName("total");     
+			frontEndsP = xmlhttp.responseXML.documentElement.getElementsByTagName("frontend"); 
+			totalEntriesP = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
+			totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total"); 
 			loadXMLDoc(); 
 			
-			return; 
 			/* Find all the corresponding attributes. */
 			for(i = 0; i < totalEntriesP.length; i++)
 			{	
@@ -1502,11 +1501,10 @@ function loadXMLDoc()
 		{
 			document.getElementById("troubleshoot").checked = false; /* Reset troubleshoot box. */
 		}
-	    //if(!periodV)
-		//{
-		//	document.getElementById("period").checked = false; /* Reset active check box. */
-		//}
-	
+		if(!periodV)
+		{
+			document.getElementById("period").checked = false; /* Reset active check box. */
+		}
 		
 		if(xmlhttp.readyState==4) //If 4 it it is ready. 
     	{
@@ -2297,8 +2295,8 @@ function sortTableDescending(column)
 			   newTotal.push(total[i]); 
 			   newEntries.push(totalEntries[i]); 
 			  
-			  // newTotalP.push(totalP[i]); 
-			  // newEntriesP.push(totalEntriesP[i]); 
+			   newTotalP.push(totalP[i]); 
+			   newEntriesP.push(totalEntriesP[i]); 
 		   }	
 		}
 	}
@@ -2317,12 +2315,12 @@ function sortTableDescending(column)
 				newEntries[i] = newEntries[j];
     	       	newEntries[j] = temp;
 				
-				/*temp = newTotalP[i];              // swap
+				temp = newTotalP[i];              // swap
 				newTotalP[i] = newTotalP[j];
         	    newTotalP[j] = temp;
 				temp = newEntriesP[i];            // swap
 				newEntriesP[i] = newEntriesP[j];
-    	       	newEntriesP[j] = temp;*/
+    	       	newEntriesP[j] = temp;
         	}
 		}
 	}
@@ -2337,8 +2335,8 @@ function sortTableDescending(column)
 				newTotal.push(total[i]); 
 				newEntries.push(totalEntries[i]); 
 				
-				/*newTotalP.push(totalP[i]); 
-				newEntriesP.push(totalEntriesP[i]);*/
+				newTotalP.push(totalP[i]); 
+				newEntriesP.push(totalEntriesP[i]);
 			}
 		}
 	}
@@ -2351,8 +2349,8 @@ function sortTableDescending(column)
 			newTotal.push(total[i]); 
 			newEntries.push(totalEntries[i]); 
 			
-			/*newTotalP.push(totalP[i]); 
-			newEntriesP.push(totalEntriesP[i]);*/ 		
+			newTotalP.push(totalP[i]); 
+			newEntriesP.push(totalEntriesP[i]); 		
 		}
 	}
 	
@@ -2374,12 +2372,12 @@ function sortTableDescending(column)
 
 	currentSort = "descending";
 	newTotal.push(1);
-	//newTotalP.push(1);
+	newTotalP.push(1);
 	previousSort = column; 
 	total = newTotal; 
 	totalEntries = newEntries;
-	//totalP = newTotalP; 
-	//totalEntriesP = newEntriesP;
+	totalP = newTotalP; 
+	totalEntriesP = newEntriesP;
 	sorted = 1; 
 	fillIn();
 	if(periodV){fillInPeriod();}
@@ -2580,9 +2578,9 @@ function selectActive()
 			if(periodV){period(); periodV = 1; }
 			
 			totalEntries = feEntries;
-			//totalEntriesP = feEntriesP;
+			totalEntriesP = feEntriesP;
 			total = feTotal;
-			//totalP = feTotalP;
+			totalP = feTotalP;
 			tableMade = 0; 
 			numberRows = totalEntries.length;		
 			fillIn(); 
@@ -2734,8 +2732,8 @@ function selectActive()
 				{
 					activeEntries.push(totalEntries[i]);
 					activeTotal.push(total[i]);
-					//activeEntriesP.push(totalEntriesP[i]);
-					//activeTotalP.push(totalP[i]);
+					activeEntriesP.push(totalEntriesP[i]);
+					activeTotalP.push(totalP[i]);
 					found = 1; 
 					break;
 				}
@@ -2760,8 +2758,8 @@ function selectActive()
 				{
 					activeEntries.push(totalEntries[i]);
 					activeTotal.push(total[i]);
-					//activeEntriesP.push(totalEntriesP[i]);
-					//activeTotalP.push(totalP[i]);
+					activeEntriesP.push(totalEntriesP[i]);
+					activeTotalP.push(totalP[i]);
 					found = 1; 
 					break;
 				}
@@ -2786,8 +2784,8 @@ function selectActive()
 				{
 					activeEntries.push(totalEntries[i]);
 					activeTotal.push(total[i]);
-					//activeEntriesP.push(totalEntriesP[i]);
-					//activeTotalP.push(totalP[i]);
+					activeEntriesP.push(totalEntriesP[i]);
+					activeTotalP.push(totalP[i]);
 					break;
 				}
 			}
@@ -2796,11 +2794,11 @@ function selectActive()
 	
 	active = 1;
 	activeTotal.push(1);
-	//activeTotalP.push(1);
+	activeTotalP.push(1);
 	total = activeTotal; 
 	totalEntries = activeEntries;
-	//totalP = activeTotalP; 
-	//totalEntriesP = activeEntriesP;
+	totalP = activeTotalP; 
+	totalEntriesP = activeEntriesP;
 	numberRows = totalEntries.length;	
 	
 	/* Take period table off so total table can be updated. */
@@ -2871,7 +2869,7 @@ function troubleshooting()
 	hrefs = new Array(); 
 	if(troubleshoot == 0)
 	{
-		//document.getElementById("period").style.visibility = "Hidden";
+		document.getElementById("period").style.visibility = "Hidden";
 		if(!diffSorted && sorted && sortedColumn != "statusRunning" && sortedColumn != "cmGlideinTotal" && sortedColumn != "statusIdle" && sortedColumn != "requestIdle" && 
 		sortedColumn != "cmGlideinJobsIdle")
 		{
@@ -3110,7 +3108,7 @@ function troubleshooting()
 	else
 	{
 		/* Reset everything. */
-		//document.getElementById("period").style.visibility = "Visible";
+		document.getElementById("period").style.visibility = "Visible";
 		troubleshoot = 0; 
 		diffSorted = 0; 
 		trSortAsc = 0; 
@@ -4012,7 +4010,7 @@ td
 
 <div id = "select">Select a view: <input type="checkbox" id = "active" name="option1" value="active" onclick= "selectActive()" >Active only
 <input type="checkbox" id = "troubleshoot" name="option2" value="troubleshoot" onclick= "troubleshooting()" > Troubleshoot
-</div> 
+<input type="checkbox" id = "period" name="option3" value="troubleshoot" onclick= "period()" > Period <br /> </div> 
 
 <div id = "tempList"></div>
                       
