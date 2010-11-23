@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.6 2010/11/19 23:32:44 sfiligoi Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.4.4.1 2010/11/23 19:43:17 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
