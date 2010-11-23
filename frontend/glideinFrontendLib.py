@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.4.4.1 2010/11/23 19:43:17 sfiligoi Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.4.4.2 2010/11/23 20:23:44 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -188,13 +188,24 @@ def getCondorQUsers(condorq_dict):
 # glidein_dict = output of interface.findGlideins
 #
 # Returns:
-#  dictionary of glidein name
-#   where elements are number of idle jobs matching
+#  tuple of 3 elements, where each is a
+#    dictionary of glidein name where elements are number of jobs matching
+#  The first  one is a straight match
+#  The second one is the entry proportion based on unique subsets
+#  The third  one contains only elements that can only run on this site 
+
 def countMatch(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
+    #new_out_counts: keys are site indexes(numbers), 
+    #elements will be the number of real
+    #idle jobs associated with each site
+    new_out_counts={}
+    glideindex=0
+    list_of_all_jobs=[]
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
         glidein_count=0
+        jobs=sets.Set()
         for schedd in condorq_dict.keys():
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
@@ -202,13 +213,54 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
             for jid in condorq_data.keys():
                 job=condorq_data[jid]
                 if eval(match_obj):
+                    t=(schedd,jid)
+                    jobs.add(t)
                     schedd_count+=1
                 pass
             glidein_count+=schedd_count
-            pass
+            pass    
+        list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
         pass
-    return out_glidein_counts
+    (outvals,range) = uniqueSets(list_of_all_jobs)
+    #unique_to_site: keys are sites, elements are num of unique jobs
+    unique_to_site = {}
+    #each tuple contains ([list of site_indexes],jobs associated with those sites)
+    #this loop necessary to avoid key error
+    for tuple in outvals:
+        for site_index in tuple[0]:
+            new_out_counts[site_index]=0
+            unique_to_site[site_index]=0
+    #for every tuple of([site_index],jobs), cycle through each site index
+    #new_out_counts[site_index] is the number of jobs over the number
+    #of indexes, rounded up.
+    for tuple in outvals:
+        for site_index in tuple[0]:
+            new_out_counts[site_index]=new_out_counts[site_index]+(len(tuple[1])/len(tuple[0]))+(len(tuple[1])%len(tuple[0]))
+        #if the site has jobs unique to it
+        if len(tuple[0])==1:
+            temp_sites=tuple[0]
+            unique_to_site[temp_sites.pop()]=len(tuple[1])
+    #create a list of all sites, list_of_sites[site_index]=site
+    list_of_sites=[]
+    i=0
+    for glidename in glidein_dict:
+        list_of_sites.append(0)
+        list_of_sites[i]=glidename
+        i=i+1
+    final_out_counts={}
+    final_unique={}
+    # new_out_counts to final_out_counts
+    # unique_to_site to final_unique
+    # keys go from site indexes to sites
+    for glidename in glidein_dict:
+        final_out_counts[glidename]=0
+        final_unique[glidename]=0
+    for site_index in new_out_counts:
+        site=list_of_sites[site_index]
+        final_out_counts[site]=new_out_counts[site_index]
+        final_unique[site]=unique_to_site[site_index]
+    return (out_glidein_counts,final_out_counts,final_unique)
 
 def countRealRunning(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
@@ -443,6 +495,7 @@ def uniqueSets(in_sets):
     sum_set = sets.Set()
     for s in sorted_sets:
         sum_set = sum_set | s
+
 
     sorted_sets.append(sum_set)
 
