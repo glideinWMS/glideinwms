@@ -52,7 +52,26 @@ var feChild; var feStatChild; var feReqChild; var feCMChild; var totChild; var t
 
 var headColArry = new Array("Running", "Idle", "Waiting", "Pending", "Staging in", "Staging out", "Unknown", "Held",
 							"Max run", "Idle", 
-							"Claimed", "User running", "Unmatched", "User idle", "Registered", "Info age"); 
+							"Claimed", "User running", "Unmatched", "User idle", "Registered", "Info age");  
+							
+var xmlAttPeriodArry = new Array( "StatusRunning", "StatusIdle", "StatusWait", "StatusPending", "StatusStageIn", "StatusStageOut","StatusIdleOther", "StatusHeld", 
+								  "ReqMaxRun", "ReqIdle",
+								  "ClientGlideRunning", "ClientJobsRunning", "ClientGlideIdle", "ClientJobsIdle", "ClientGlideTotal",  "ClientInfoAge"); 	
+								 
+								   
+								 					
+var xmlAttStatusArry = new Array("Running", "Idle", "Wait", "Pending", "StageIn", "StageOut", "IdleOther", "Held");
+var xmlAttReqArry = new Array("MaxRun", "Idle"); 
+var xmlAttCMArry = new Array("GlideRunning", "JobsRunning", "GlideIdle", "JobsIdle", "GlideTotal", "InfoAge");
+var xmlAttStatNumArry = new Array(); 
+var xmlAttReqNumArry = new Array(); 
+var xmlAttCMNumArry = new Array(); 
+var FExmlAttStatNumArry = new Array(); 
+var FExmlAttReqNumArry = new Array(); 
+var FExmlAttCMNumArry = new Array();
+var xmlAttPeriodNumArry = new Array();
+var xmlAttTotalNumArry = new Array(); 
+ 
 
 var columnArray = new Array("statusRunning", "statusIdle", "statusWait", "statusPending", "statusStageIn", "statusStageOut", "statusOther", "statusHeld",
 							"requestMax", "requestIdle", 
@@ -275,8 +294,7 @@ function showPopUp(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 7)
 				{
-					var attArry = new Array(4,1,7,3,5,6,2,0);
-					txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[attArry[column - 1]].nodeValue);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttStatusArry[column - 1]].nodeValue);
 				}
 				else
 				{
@@ -287,8 +305,7 @@ function showPopUp(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 5)
 				{
-					var attArry = new Array(1,0);
-					txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[attArry[column - 9]].nodeValue);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttReqArry[column - 9]].nodeValue);
 				}
 				else
 				{
@@ -299,8 +316,7 @@ function showPopUp(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 3)
 				{
-					var attArry = new Array(1,5,0,4,2,3);
-					txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[attArry[column - 11]].nodeValue);
+					txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttCMArry[column - 11]].nodeValue);
 				}
 				else
 				{
@@ -332,14 +348,10 @@ function showPopUp(hoveritem)
 	else hover.style.top = head.offsetTop + hoveritem.offsetTop - 20 - (25 * x) - scrollDiv.scrollTop + "px";	
 	hover.style.visibility = "Visible";	
 	if(diffSorted && troubleshoot){totalEntries = friend;}
-
 }
 /* Shows pop ups for period table. */
 function showPopUpPeriod(hoveritem)
 { 
-	trStatArry = new Array(13,10,16,12,14,15,11,9); 
-	trReqArry = new Array(8,7);
-	trCMArry = new Array(2,6,1,5,3,4); 
     prFEChild = 0; 
 	child1 = 0; 
 	child2 = 0; 
@@ -495,10 +507,9 @@ function showPopUpPeriod(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 7)				 
 				{
-					attArry = new Array(4,1,7,3,5,6,2,0);
-					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[attArry[column]].nodeValue);}
+					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feStatChild].attributes[xmlAttStatusArry[column]].nodeValue);}
 					else{txt2 = document.createTextNode(Math.round(totalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[trStatArry[column]].nodeValue * 100)/100);}
+					attributes[xmlAttPeriodArry[column]].nodeValue * 100)/100);}
 				}
 				else
 					txt2 = document.createTextNode(0);
@@ -507,10 +518,9 @@ function showPopUpPeriod(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 5)
 				{
-					attArry = new Array(1,0);
-					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[attArry[column - 8]].nodeValue);}
+					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feReqChild].attributes[xmlAttReqArry[column - 8]].nodeValue);}
 					else{txt2 = document.createTextNode(Math.round(totalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[trReqArry[column - 8]].nodeValue * 100)/100);}
+					attributes[xmlAttPeriodArry[column]].nodeValue * 100)/100);}
 				}
 				else
 					txt2 = document.createTextNode(0);
@@ -519,10 +529,9 @@ function showPopUpPeriod(hoveritem)
 			{
 				if(sortedFE[i].childNodes.length >= 3)
 				{
-					attArry = new Array(1,5,0,4,2,3);
-					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[attArry[column - 10]].nodeValue);}
+					if(!pr){txt2 = document.createTextNode(sortedFE[i].childNodes[feCMChild].attributes[xmlAttCMArry[column - 10]].nodeValue);}
 					else{txt2 = document.createTextNode(Math.round(totalEntriesP[row].childNodes[3].childNodes[prFEChild].childNodes[1].childNodes[pr].
-					attributes[trCMArry[column - 10]].nodeValue * 100)/100);}
+					attributes[xmlAttPeriodArry[column]].nodeValue * 100)/100);}
 				}
 				else
 					txt2 = document.createTextNode(0);
@@ -1359,8 +1368,6 @@ function fillIn()
 	/* 
 	 * Fill in status fields.  
 	 */
-	var attArry = new Array(4,1,7,3,5,6,2,0); 
-	attCount = 0;
 	for(var counter = 1; counter<= 8; counter++)
 	{
 		for(var i = 0; i< totalEntries.length; i++)
@@ -1369,10 +1376,10 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feStatChild].attributes[attArry[attCount]].nodeValue;
+					var item = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 1]].nodeValue;
 				}
 				else
-					var item = total[i].childNodes[totStatChild].attributes[attArry[attCount]].nodeValue;
+					var item = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 1]].nodeValue;
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 			else
@@ -1380,38 +1387,32 @@ function fillIn()
 				table.rows[i].cells[counter].innerHTML = 0; 
 			}
 		}	
-		attCount++; 
  	}
 	
 	
 	/*
 	 * Fill in requested fields. 
 	 */
-	var attArry = new Array(1,0); 
-	var attCount = 0; 
 	for(var counter = 9; counter <= 10; counter++)
 	{
 		for(var i = 0; i< totalEntries.length; i++)
 		{
 			if(total[i].childNodes.length >= 5 && total[i].childNodes.length != 0)
 			{
-				if(frontEnd)
+				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					var item = total[i].childNodes[feReqChild].attributes[attArry[attCount]].nodeValue; 
+					var item = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 9]].nodeValue; 
 				}
 				else
-					var item = total[i].childNodes[totReqChild].attributes[attArry[attCount]].nodeValue; 
+					var item = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 9]].nodeValue; 
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
-		attCount++; 	
 	}
 	
 	/* 
      * Fill in client monitor fields 
  	 */
-	var attArry = new Array(1,5,0,4,2,3); 
-	attCount = 0; 
 	for(var counter = 11; counter <= 16; counter++)
 	{
 		for(i = 0; i< totalEntries.length; i++)
@@ -1420,14 +1421,13 @@ function fillIn()
 			{
 				if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 				{
-					item = total[i].childNodes[feCMChild].attributes[attArry[attCount]].nodeValue;
+					item = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 11]].nodeValue;
 				}
 				else
-					item = total[i].childNodes[totCMChild].attributes[attArry[attCount]].nodeValue;
+					item = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 11]].nodeValue;
 				table.rows[i].cells[counter].innerHTML = item; 
 			}
 		}
-		attCount++; 
 	}
 }
 function loadXML2()
@@ -1451,6 +1451,28 @@ function loadXML2()
 			totalEntriesP = xmlhttp.responseXML.documentElement.getElementsByTagName("entry");
 			totalP = xmlhttp.responseXML.documentElement.getElementsByTagName("total"); 
 			loadXMLDoc(); 
+			
+			/* Find all the corresponding attributes. */
+			for(i = 0; i < totalEntriesP.length; i++)
+			{	
+				if(totalP[i].childNodes[1].childNodes[1].attributes.length > 1)
+				{
+					for(j = 0; j < xmlAttPeriodArry.length; j++)
+					{
+						/*
+						 * Find corresponding attributes. 
+						 */
+						for(z = 0; z < totalP[i].childNodes[1].childNodes[1].attributes.length; z++)
+						{
+							if(xmlAttPeriodArry[j] == totalP[i].childNodes[1].childNodes[1].attributes[z].nodeName)
+							{
+								xmlAttPeriodNumArry.push(z); break;  	
+							}
+						}	
+					}
+					break; 
+				}
+			}
 		}
 	}
 	xmlhttp.open("GET", "rrd_Status_Attributes.xml",true);
@@ -1568,6 +1590,55 @@ function loadXMLDoc()
 					break; 
 				}	
 			}
+			
+			/* Find all the corresponding attributes. */
+			for(i = 0; i < totalEntries.length; i++)
+			{	
+				if(total[i].childNodes.length != 0)
+				{
+					for(j = 0; j < xmlAttStatusArry.length; j++)
+					{
+						/*
+						 * Find corresponding STATUS attributes. 
+						 */
+						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
+						{
+							if(xmlAttStatusArry[j] == total[i].childNodes[totStatChild].attributes[z].nodeName)
+							{
+								xmlAttStatNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+							}
+						}	
+					}
+					for(j = 0; j < xmlAttReqArry.length; j++)
+					{
+						/*
+						 * Find corresponding Req attributes. 
+						 */
+						for(z = 0; z < total[i].childNodes[totStatChild].attributes.length; z++)
+						{
+							if(xmlAttReqArry[j] == total[i].childNodes[totReqChild].attributes[z].nodeName)
+							{
+								xmlAttReqNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+							}
+						}
+					}
+					for(j = 0; j < xmlAttCMArry.length; j++)
+					{
+						/*
+						 * Find corresponding Req attributes. 
+						 */
+						for(z = 0; z < total[i].childNodes[totCMChild].attributes.length; z++)
+						{
+							if(xmlAttCMArry[j] == total[i].childNodes[totCMChild].attributes[z].nodeName)
+							{
+								xmlAttCMNumArry.push(z); xmlAttTotalNumArry.push(z); break;  	
+							}
+						}
+					}
+					break; 
+				}
+			}
+			
 			if(updating == 1)
 			{
 				if(troubleshoot)
@@ -2178,7 +2249,6 @@ function sortTableDescending(column)
 	
 	sortedColumn = column; 
 	lengthArry = new Array(7,7,7,7,7,7,7,7,5,5,3,3,3,3,3,3); 
-	attArry = new Array(4,1,7,3,5,6,2,0,1,0,1,5,0,4,2,3);
 	trSortColArry = new Array(1,4,0,0,0,0,0,0,0,5,0,0,0,7,2,0); 
 	feChildArry = new Array(feStatChild, feReqChild, feCMChild); 
 	totChildArry = new Array(totStatChild, totReqChild, totCMChild); 
@@ -2204,7 +2274,7 @@ function sortTableDescending(column)
 	{
 		if(column == columnArray[i])
 		{
-			length = lengthArry[i]; att = attArry[i]; index = i; trSortCol = trSortColArry[i]; sortSignal();
+			length = lengthArry[i]; att = xmlAttTotalNumArry[i]; index = i; trSortCol = trSortColArry[i]; sortSignal();
 			if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 			{
 				if(i < 8){child = feChildArry[0];}else if(i < 10){child = feChildArry[1];}else{child = feChildArry[2];}
@@ -2654,7 +2724,7 @@ function selectActive()
 				currChild = totCMChild; 
 			for(j = 0; j < total[i].childNodes[currChild].attributes.length; j++)
 			{
-				if(j == 3)
+				if(total[i].childNodes[currChild].attributes[j].nodeName == "InfoAge")
 				{
 					continue; 	
 				}
@@ -2680,7 +2750,7 @@ function selectActive()
 				currChild = totReqChild;
 			for(k = 0; k < total[i].childNodes[currChild].attributes.length; k++)
 			{
-				if(k == 1)
+				if(total[i].childNodes[currChild].attributes[k].nodeName == "MaxRun")
 				{
 					continue; 	
 				}
@@ -3676,10 +3746,10 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feStatChild].attributes[attArry2[attCount2]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feStatChild].attributes[xmlAttStatusArry[counter - 2]].nodeValue;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totStatChild].attributes[attArry2[attCount2]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totStatChild].attributes[xmlAttStatusArry[counter - 2]].nodeValue;
 					}
 					else
 					{
@@ -3690,7 +3760,7 @@ function fillInPeriod()
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[attArry[attCount]].nodeValue; 
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 2]].nodeValue; 
 					x = Math.round(x * 100)/100; 
 				   	tableP.rows[count].cells[counter - 1].innerHTML = x; 
 					attCount++; 
@@ -3730,10 +3800,10 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feReqChild].attributes[attArry2[attCount2]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feReqChild].attributes[xmlAttReqArry[counter - 10]].nodeValue;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totReqChild].attributes[attArry2[attCount2]].nodeValue;					
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totReqChild].attributes[xmlAttReqArry[counter - 10]].nodeValue;					
 					}
 					else
 					{
@@ -3744,7 +3814,7 @@ function fillInPeriod()
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[attArry[attCount]].nodeValue;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 2]].nodeValue;
 					x = Math.round(x * 100)/100; 
 					tableP.rows[count].cells[counter - 1].innerHTML = x; 
 					attCount++; 
@@ -3785,10 +3855,10 @@ function fillInPeriod()
 					{
 						if(frontEnd && frontEndName != "Any" && frontEndName != "Total")
 						{	
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feCMChild].attributes[attArry2[attCount2]].nodeValue;
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[feCMChild].attributes[xmlAttCMArry[counter - 12]].nodeValue;
 						}
 						else
-							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totCMChild].attributes[attArry2[attCount2]].nodeValue;					
+							tableP.rows[count].cells[counter].innerHTML = total[i].childNodes[totCMChild].attributes[xmlAttCMArry[counter - 12]].nodeValue;					
 					}
 					else
 					{
@@ -3799,7 +3869,7 @@ function fillInPeriod()
 				}
 				try
 				{
-					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[attArry[attCount]].nodeValue;
+					x = totalP[i].childNodes[1].childNodes[childArry[j]].attributes[xmlAttPeriodNumArry[counter - 2]].nodeValue;
 					x = Math.round(x * 100)/100; 
 					tableP.rows[count].cells[counter - 1].innerHTML = x; 
 					attCount++;
