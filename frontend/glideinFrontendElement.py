@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.4.2 2010/11/23 20:24:28 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.4.3 2010/11/23 21:05:53 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -77,7 +77,7 @@ def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_a
 
 def init_factory_stats_arr():
     new_arr=[]
-    for i in range(11):
+    for i in range(13):
         new_arr.append(0)
     return new_arr
 
