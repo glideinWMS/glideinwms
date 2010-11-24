@@ -31,6 +31,7 @@ valid_options = [ "node",
 "condor_admin_email", 
 "split_condor_config", 
 "number_of_schedds",
+"glidein_install_dir",
 "install_vdt_client",
 "vdt_location",
 "pacman_location",
@@ -119,7 +120,7 @@ class WMSCollector(Condor):
     common.logit("")
     common.logit("You will need to have the WMS Collector running if you intend\nto install the other glideinWMS components.")
     yn = common.ask_yn("... would you like to start it now")
-    cmd ="./manage-glideins  --start wmscollector --ini %s" % (self.inifile)
+    cmd ="%s/manage-glideins  --start wmscollector --ini %s" % (self.glidein_install_dir(),self.inifile)
     if yn == "y":
       common.run_script(cmd)
     else:
