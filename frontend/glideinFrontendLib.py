@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.1.8.2.6.2 2010/11/19 23:32:03 sfiligoi Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.1.8.2.6.3 2010/11/24 20:36:23 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -188,13 +188,37 @@ def getCondorQUsers(condorq_dict):
 # glidein_dict = output of interface.findGlideins
 #
 # Returns:
-#  dictionary of glidein name
-#   where elements are number of idle jobs matching
+#  tuple of 3 elements, where each is a
+#    dictionary of glidein name where elements are number of jobs matching
+#  The first  one is a straight match
+#  The second one is the entry proportion based on unique subsets
+#  The third  one contains only elements that can only run on this site 
+#
+#  A special "glidein name" of (None, None, None) is used for jobs 
+#   that don't match any "real glidein name"
+
 def countMatch(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
+    #new_out_counts: keys are site indexes(numbers), 
+    #elements will be the number of real
+    #idle jobs associated with each site
+    new_out_counts={}
+    glideindex=0
+
+    cq_jobs=sets.Set()
+    for schedd in condorq_dict.keys():
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+            t=(schedd,jid)
+            cq_jobs.add(t)
+
+    list_of_all_jobs=[]
+
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
         glidein_count=0
+        jobs=sets.Set()
         for schedd in condorq_dict.keys():
             condorq=condorq_dict[schedd]
             condorq_data=condorq.fetchStored()
@@ -202,13 +226,60 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
             for jid in condorq_data.keys():
                 job=condorq_data[jid]
                 if eval(match_obj):
+                    t=(schedd,jid)
+                    jobs.add(t)
                     schedd_count+=1
                 pass
             glidein_count+=schedd_count
-            pass
+            pass    
+        list_of_all_jobs.append(jobs)
         out_glidein_counts[glidename]=glidein_count
         pass
-    return out_glidein_counts
+    (outvals,range) = uniqueSets(list_of_all_jobs)
+    count_unmatched=len(cq_jobs-range)
+
+    #unique_to_site: keys are sites, elements are num of unique jobs
+    unique_to_site = {}
+    #each tuple contains ([list of site_indexes],jobs associated with those sites)
+    #this loop necessary to avoid key error
+    for tuple in outvals:
+        for site_index in tuple[0]:
+            new_out_counts[site_index]=0
+            unique_to_site[site_index]=0
+    #for every tuple of([site_index],jobs), cycle through each site index
+    #new_out_counts[site_index] is the number of jobs over the number
+    #of indexes, rounded up.
+    for tuple in outvals:
+        for site_index in tuple[0]:
+            new_out_counts[site_index]=new_out_counts[site_index]+(len(tuple[1])/len(tuple[0]))+(len(tuple[1])%len(tuple[0]))
+        #if the site has jobs unique to it
+        if len(tuple[0])==1:
+            temp_sites=tuple[0]
+            unique_to_site[temp_sites.pop()]=len(tuple[1])
+    #create a list of all sites, list_of_sites[site_index]=site
+    list_of_sites=[]
+    i=0
+    for glidename in glidein_dict:
+        list_of_sites.append(0)
+        list_of_sites[i]=glidename
+        i=i+1
+    final_out_counts={}
+    final_unique={}
+    # new_out_counts to final_out_counts
+    # unique_to_site to final_unique
+    # keys go from site indexes to sites
+    for glidename in glidein_dict:
+        final_out_counts[glidename]=0
+        final_unique[glidename]=0
+    for site_index in new_out_counts:
+        site=list_of_sites[site_index]
+        final_out_counts[site]=new_out_counts[site_index]
+        final_unique[site]=unique_to_site[site_index]
+
+    out_glidein_counts[(None,None,None)]=count_unmatched
+    final_out_counts[(None,None,None)]=count_unmatched
+    final_unique[(None,None,None)]=count_unmatched
+    return (out_glidein_counts,final_out_counts,final_unique)
 
 def countRealRunning(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
@@ -377,3 +448,91 @@ def getCondorStatusConstrained(collector_names,type_constraint,constraint=None,f
             out_status_dict[collector]=status
     return out_status_dict
 
+#############################################
+#
+# Extract unique subsets from a list of sets
+# by Benjamin Hass @ UCSD (working under Igor Sfiligoi)
+#
+# Input: list of sets
+# Output: list of (index set, value subset) pairs + a set that is the union of all input sets
+#
+# Example in:
+#   [Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]), Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10]),
+#    Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#         21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]),
+#    Set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30])]
+# Example out:
+#   ([(Set([2]), Set([32, 33, 34, 35, 31])),
+#     (Set([0, 1, 2]), Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])),
+#     (Set([2, 3]), Set([11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#                        21, 22, 23, 24, 25, 26, 27, 28, 29, 30]))],
+#    Set([1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20,
+#         21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35]))
+#
+def uniqueSets(in_sets):
+    #sets is a list of sets
+    sorted_sets=[]
+    for i in in_sets:
+        common_list = []
+        common = sets.Set()
+        new_unique = sets.Set()
+        old_unique_list = []
+        old_unique = sets.Set()
+        new = []
+        #make a list of the elements common to i
+        #(current iteration of sets) and the existing
+        #sorted sets
+        for k in sorted_sets:
+            #for now, old unique is a set with all elements of
+            #sorted_sets
+            old_unique = old_unique | k
+            common = k&i
+            if common:
+                common_list.append(common)
+            else:
+                pass
+        #figure out which elements in i
+        # and which elements in old_uniques are unique
+        for j in common_list:
+            i = i - j
+            old_unique = old_unique - j
+        #make a list of all the unique elements in sorted_sets
+        for k in sorted_sets:
+            old_unique_list.append(k&old_unique)
+        new_unique=i
+        if new_unique:
+            new.append(new_unique)
+        for o in old_unique_list:
+            if o:
+                new.append(o)
+        for c in common_list:
+            if c:
+                new.append(c)
+        sorted_sets=new
+
+    # set with all unique elements
+    sum_set = sets.Set()
+    for s in sorted_sets:
+        sum_set = sum_set | s
+
+
+    sorted_sets.append(sum_set)
+
+    # index_list is a list of lists. Each list corresponds to 
+    # an element in sorted_sets, and contains the indexes of 
+    # that elements shared elements in the initial list of sets
+    index_list = []
+    for s in sorted_sets:
+        indexes = []
+        temp_sets = in_sets[:]
+        for t in temp_sets:
+            if s & t:
+                indexes.append(temp_sets.index(t))
+                temp_sets[temp_sets.index(t)]=sets.Set()
+        index_list.append(indexes)	
+
+    # create output
+    outvals=[]
+    for i in range(len(index_list)-1): # last one contains all the values
+        outvals.append((sets.Set(index_list[i]),sorted_sets[i]))
+    return (outvals,sorted_sets[-1])
