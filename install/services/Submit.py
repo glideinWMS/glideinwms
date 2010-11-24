@@ -34,8 +34,10 @@ valid_options = [ "node",
 
 class Submit(Condor):
 
-  def __init__(self,inifile):
+  def __init__(self,inifile,options=None):
     global valid_options
+    if options <> None:
+       valid_options = options
     self.inifile = inifile
     self.ini_section = "Submit"
     Condor.__init__(self,self.inifile,self.ini_section,valid_options)
@@ -80,7 +82,7 @@ class Submit(Condor):
     common.logit("")
     common.logit("You will need to have the Submit node schedds running if you intend\nto install the other glideinWMS components.")
     yn = common.ask_yn("... would you like to start it now")
-    cmd ="./manage-glideins  --start submit --ini %s" % (self.inifile)
+    cmd = "%s/manage-glideins  --start submit --ini %s" % (self.glidein_install_dir(),self.inifile)
     if yn == "y":
       common.run_script(cmd)
     else:
