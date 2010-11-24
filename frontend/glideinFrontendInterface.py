@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.9.4.1 2010/11/24 15:53:02 sfiligoi Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.9.4.2 2010/11/24 16:38:28 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -366,8 +366,8 @@ class AdvertizeParams:
         self.max_run_glideins=max_run_glideins
         if remove_excess_str==None:
             remove_excess_str="NO"
-        elif not (remove_excess_str in ("NO","ALL","IDLE","UNREG")):
-            raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","ALL","IDLE","UNREG"'%remove_excess_str
+        elif not (remove_excess_str in ("NO","WAIT","IDLE","ALL","UNREG")):
+            raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"'%remove_excess_str
         self.remove_excess_str=remove_excess_str
         self.glidein_params=glidein_params
         self.glidein_monitors=glidein_monitors
