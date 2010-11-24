@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.1 2010/11/24 03:27:24 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.2 2010/11/24 16:48:42 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -134,11 +134,16 @@ def perform_work(entry_name,
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
         
 
+    remove_excess_wait=False
     remove_excess_idle=False
     remove_excess_run=False
-    if remove_excess=='IDLE':
+    if remove_excess=='WAIT':
+        remove_excess_wait=True
+    elif remove_excess=='IDLE':
+        remove_excess_wait=True
         remove_excess_idle=True
     elif remove_excess=='ALL':
+        remove_excess_wait=True
         remove_excess_idle=True
         remove_excess_run=True
     elif remove_excess=='UNREG':
@@ -159,10 +164,14 @@ def perform_work(entry_name,
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
-                                                       in_downtime,remove_excess_idle,
+                                                       in_downtime,remove_excess_wait,remove_excess_idle,
                                                        idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
+    #
+    #  remove_excess_run not implemented
+    #  TO DO
+    
     if nr_submitted>0:
         #glideFactoryLib.log_files.logActivity("Submitted")
         return 1 # we submitted something, return immediately
