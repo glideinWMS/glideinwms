@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27 2010/11/18 20:42:55 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.1 2010/11/24 03:27:24 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -68,6 +68,7 @@ def check_parent(parent_pid,glideinDescript,jobDescript):
 def perform_work(entry_name,
                  schedd_name,
                  client_name,client_int_name,client_int_req,
+                 in_downtime,remove_excess,
                  idle_glideins,max_running,max_held,
                  jobDescript,
                  x509_proxy_fnames,x509_proxy_usernames,
@@ -133,6 +134,18 @@ def perform_work(entry_name,
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
         
 
+    remove_excess_idle=False
+    remove_excess_run=False
+    if remove_excess=='IDLE':
+        remove_excess_idle=True
+    elif remove_excess=='ALL':
+        remove_excess_idle=True
+        remove_excess_run=True
+    elif remove_excess=='UNREG':
+        # remove nothing for now... should do better than this
+        pass
+    # else: # default, including 'NO', remove nothing
+
     submit_attrs=[]
 
     # use the extended params for submission
@@ -146,6 +159,7 @@ def perform_work(entry_name,
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
+                                                       in_downtime,remove_excess_idle,
                                                        idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
@@ -359,7 +373,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
             continue #skip request
 
-
+        if work[work_key]['requests'].has_key('RemoveExcess'):
+            remove_excess=work[work_key]['requests']['RemoveExcess']
+        else:
+            remove_excess='NO'            
 
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
@@ -372,12 +389,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     max_running=factory_max_running
             else:
                 max_running=factory_max_running
-
-            if in_downtime:
-                # we are in downtime... no new submissions
-                idle_glideins=0
-                max_running=0
-            
 
             if work[work_key]['web'].has_key('URL'):
                 try:
@@ -411,6 +422,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
             done_something+=perform_work(entry_name,schedd_name,
                                          work_key,client_int_name,client_int_req,
+                                         in_downtime,remove_excess,
                                          idle_glideins,max_running,factory_max_held,
                                          jobDescript,x509_proxy_fnames,x509_proxy_usernames,
                                          client_web,params)

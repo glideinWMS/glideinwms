@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10 2010/11/19 19:35:58 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.1 2010/11/24 03:27:24 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -436,6 +436,7 @@ class ClientWeb(ClientWebNoGroup):
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,client_int_name,
+                     in_downtime,remove_excess_idle,
                      min_nr_idle,max_nr_running,max_held,submit_attrs,
                      x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,
                      client_web, # None means client did not pass one, backwards compatibility
@@ -475,9 +476,10 @@ def keepIdleGlideins(client_condorq,client_int_name,
     else:
         running_glideins=0
 
-    if ((idle_glideins<min_nr_idle) and
+    if ((not in_downtime) and (idle_glideins<min_nr_idle) and
         ((max_nr_running==None) or  #no max
          ((running_glideins+idle_glideins)<max_nr_running))):
+        # need more glideins, submit
         stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
@@ -487,7 +489,35 @@ def keepIdleGlideins(client_condorq,client_int_name,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
         return min_nr_idle-idle_glideins # exit, some submitted
+    elif (remove_excess_idle and
+          (idle_glideins>min_nr_idle)):
+        # too many glideins, remove
+        stat_str="min_idle=%i, idle=%i"%(min_nr_idle,idle_glideins)
+        log_files.logActivity("Too many glideins: %s"%stat_str)
+        if min_nr_idle==0:
+            # remove non-running
+            idle_list=extractIdleSimple(condorq)
+            removeGlideins(condorq.schedd_name,idle_list)
+            return 0 # exit, even if no submitted
+        else:
+            # need to remove only a subset
+            remove_nr=idle_glideins-min_nr_idle
+            # remove unsubmitted first
+            idle_list=extractIdleUnsubmitted(condorq)
+            if len(idle_list)>remove_nr:                
+                idle_list=idle_list[:remove_nr] #shorten
+            remove_nr-=len(idle_list)
+            removeGlideins(condorq.schedd_name,idle_list)
+            if remove_nr==0:
+                # enough removed
+                return 0 # exit, even if no submitted
+            # go for all the others now
+            idle_list=extractIdleQueued(condorq)
+            idle_list=idle_list[:remove_nr] #shorten
+            removeGlideins(condorq.schedd_name,idle_list)
+            return 0 # exit, even if no submitted
 
+        
     # We have enough glideins in the queue
     # Now check we don't have problems
 
@@ -595,8 +625,12 @@ def logStats(condorq,condorstatus,client_int_name):
 
 def logWorkRequests(work):
     for work_key in work.keys():
-        if work[work_key]['requests'].has_key('IdleGlideins'):
-            log_files.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
+        if work[work_key]['requests'].has_key('RemoveExcess'):
+            remove_excess=work[work_key]['requests']['RemoveExcess']
+        else:
+            remove_excess='NO'
+        if work[work_key]['requests'].has_key('IdleGlideins'): # minimum sanity check
+            log_files.logActivity("Client '%s', requesting %i glideins, remove excess '%s'"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins'],remove_excess))
             log_files.logActivity("  Params: %s"%work[work_key]['params'])
             log_files.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
             factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
@@ -786,6 +820,30 @@ def extractHeldSimple(q):
     qheld=q.fetchStored(lambda el:el["JobStatus"]==5)
     qheld_list=qheld.keys()
     return qheld_list
+
+def extractIdleSimple(q):
+    #  Idle==1
+    qidle=q.fetchStored(lambda el:el["JobStatus"]==1)
+    qidle_list=qidle.keys()
+    return qidle_list
+
+def extractIdleUnsubmitted(q):
+    #  1001 == Unsubmitted
+    qidle=q.fetchStored(lambda el:hash_status(el)==1001)
+    qidle_list=qidle.keys()
+    return qidle_list
+
+def extractIdleQueued(q):
+    #  All 1xxx but 1001
+    qidle=q.fetchStored(lambda el:(hash_status(el) in (1002,1010,1100)))
+    qidle_list=qidle.keys()
+    return qidle_list
+
+def extractNonRunSimple(q):
+    #  Run==2
+    qnrun=q.fetchStored(lambda el:el["JobStatus"]!=2)
+    qnrun_list=qnrun.keys()
+    return qnrun_list
 
 def extractRunStale(q):
     # first find out the stale running jids
