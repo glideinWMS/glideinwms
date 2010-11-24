@@ -1,0 +1,69 @@
+#!/bin/sh
+# $Rev: 45452 $
+# This script will be executed *after* all the other init scripts.
+# You can put your own initialization stuff in here if you don't
+# want to do the full Sys V style init stuff.
+echo "-----VERSION : ""\$Rev: 45452 $""-----"
+# Stuff we want to do once at launch and never again:
+if [ -f "/root/firstrun" ]; then
+    echo "-----FIRST RUN-----"| logger -s -t "ec2"
+    echo "-----GET LATEST AMI TOOLS-----"| logger -s -t "ec2"
+    # Update AMI tools to the latest version:
+    [ -x "/usr/sbin/update-tools.sh" ] && /usr/sbin/update-tools.sh
+
+    echo "-----FIND MATCHING MODULES-----"| logger -s -t "ec2"
+    # Try to find kernel modules matching current kernel:
+    [ -x "/usr/sbin/update-modules.sh" ] && /usr/sbin/update-modules.sh
+
+    # Some kernels use xvc0 as their serial console device:
+    if [ -c /dev/xvc0 ]; then
+        if ! grep -q 'co:2345:respawn:/sbin/agetty xvc0 9600' /etc/inittab; then
+                echo 'co:2345:respawn:/sbin/agetty xvc0 9600 vt100' >> /etc/inittab
+                echo 'xvc0' >> /etc/securetty
+                kill -1 1
+        fi
+    fi
+
+    # Ensure devpts is mounted to prevent ssh hang-ups
+    mount | grep devpts > /dev/null 2>&1
+    if [ $? -ne 0 ] ; then
+        devpts="none   /dev/pts   devpts  gid=5,mode=620 0 0"
+        ( grep -v "\#" /etc/fstab | grep devpts > /dev/null 2>&1 ) || echo $devpts >> /etc/fstab
+        mount -a >/dev/null 2>&1
+    fi
+
+    # Randomise the root password as the last operation
+    # We ideally have some more entropy at this stage
+
+    echo "-----RANDOMISING ROOT PASSWORD-----" |logger -s -t "ec2"
+    dd if=/dev/urandom count=128 2>/dev/null|md5sum|passwd --stdin root >/dev/null 2>&1
+    rm -f /root/firstrun
+
+    # Regenerate the host keys at this stage
+    # Having more entropy to work with
+    echo "-----TRIGGERING HOST KEYS REGENERATION-----"|logger -s -t "ec2"
+    echo "Removing existing keys"|logger -s -t "ec2"
+    rm -f /etc/ssh/ssh_host_key.pub /etc/ssh/ssh_host_rsa_key.pub /etc/ssh/ssh_host_dsa_key.pub \
+           /etc/ssh/ssh_host_key /etc/ssh/ssh_host_rsa_key /etc/ssh/ssh_host_dsa_key
+    echo "Bouncing sshd to force regeneration"|logger -s -t "ec2"
+    /sbin/service sshd restart
+    echo "Setting sshd to start as a service"|logger -s -t "ec2"
+    /sbin/chkconfig --level 2345 sshd on
+
+fi
+
+touch /var/lock/subsys/local
+# Get your chosen keypair credentials
+/usr/sbin/get-credentials.sh
+
+
+# =*Output ssh host keys to console*=
+[ -f /etc/ssh/ssh_host_key ] || (ssh-keygen -f /etc/ssh/ssh_host_key -t rsa1 -C 'host' -N '' | logger -s -t "ec2")
+[ -f /etc/ssh/ssh_host_rsa_key ] || (ssh-keygen -f /etc/ssh/ssh_host_rsa_key -t rsa  -C 'host' -N '' | logger -s -t "ec2")
+[ -f /etc/ssh/ssh_host_dsa_key ] || (ssh-keygen -f /etc/ssh/ssh_host_dsa_key -t dsa  -C 'host' -N '' | logger -s -t "ec2")
+
+echo "-----BEGIN SSH HOST KEY FINGERPRINTS-----" |logger -s -t "ec2"
+ssh-keygen -l -f /etc/ssh/ssh_host_key.pub |logger -s -t "ec2"
+ssh-keygen -l -f /etc/ssh/ssh_host_rsa_key.pub |logger -s -t "ec2"
+ssh-keygen -l -f /etc/ssh/ssh_host_dsa_key.pub |logger -s -t "ec2"
+echo "-----END SSH HOST KEY FINGERPRINTS-----"   |logger -s -t "ec2"
