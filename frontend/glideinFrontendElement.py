@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.4.5 2010/11/24 01:29:46 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.4.6 2010/11/24 20:04:25 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -275,6 +275,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     glideid_list=condorq_dict_types['Idle']['count'].keys()
     glideid_list.sort() # sort for the sake of monitoring
     for glideid in glideid_list:
+        if glideid==(None,None,None):
+            continue # This is the special "Unmatched" entry
         factory_pool_node=glideid[0]
         request_name=glideid[1]
         my_identity=str(glideid[2]) # get rid of unicode
@@ -399,6 +401,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     log_factory_header()
     log_and_sum_factory_line('Sum of useful factories',False,tuple(total_up_stats_arr),total_down_stats_arr)
     log_and_sum_factory_line('Sum of down factories',True,tuple(total_down_stats_arr),total_up_stats_arr)
+
+    # Print unmatched... Ignore the resulting sum
+    unmatched_idle=condorq_dict_types['Idle']['count'][(None,None,None)]
+    unmatched_oldidle=condorq_dict_types['OldIdle']['count'][(None,None,None)]
+    unmatched_running=condorq_dict_types['Running']['count'][(None,None,None)]
+    this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
+                    0,0,0, # glideins... none, since no matching
+                    0,0)   # requested... none, since not matching
+    log_and_sum_factory_line('Unmatched',True,this_stats_arr,total_down_stats_arr)
         
     try:
         glideinFrontendLib.log_files.logActivity("Advertizing %i requests"%advertizer.get_queue_len())

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.4.4.2 2010/11/23 20:23:44 sfiligoi Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.4.4.3 2010/11/24 20:04:25 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -193,6 +193,9 @@ def getCondorQUsers(condorq_dict):
 #  The first  one is a straight match
 #  The second one is the entry proportion based on unique subsets
 #  The third  one contains only elements that can only run on this site 
+#
+#  A special "glidein name" of (None, None, None) is used for jobs 
+#   that don't match any "real glidein name"
 
 def countMatch(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
@@ -201,7 +204,17 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     #idle jobs associated with each site
     new_out_counts={}
     glideindex=0
+
+    cq_jobs=sets.Set()
+    for schedd in condorq_dict.keys():
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+            t=(schedd,jid)
+            cq_jobs.add(t)
+
     list_of_all_jobs=[]
+
     for glidename in glidein_dict:
         glidein=glidein_dict[glidename]
         glidein_count=0
@@ -223,6 +236,8 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         out_glidein_counts[glidename]=glidein_count
         pass
     (outvals,range) = uniqueSets(list_of_all_jobs)
+    count_unmatched=len(cq_jobs-range)
+
     #unique_to_site: keys are sites, elements are num of unique jobs
     unique_to_site = {}
     #each tuple contains ([list of site_indexes],jobs associated with those sites)
@@ -260,6 +275,10 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         site=list_of_sites[site_index]
         final_out_counts[site]=new_out_counts[site_index]
         final_unique[site]=unique_to_site[site_index]
+
+    out_glidein_counts[(None,None,None)]=count_unmatched
+    final_out_counts[(None,None,None)]=count_unmatched
+    final_unique[(None,None,None)]=count_unmatched
     return (out_glidein_counts,final_out_counts,final_unique)
 
 def countRealRunning(match_obj,condorq_dict,glidein_dict):
