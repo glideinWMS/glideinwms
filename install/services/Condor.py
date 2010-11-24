@@ -53,6 +53,9 @@ class Condor(Configuration):
   def install_location(self):
     return self.option_value(self.ini_section,"install_location")
   #----------------------------------
+  def glidein_install_dir(self):
+    return self.option_value(self.ini_section,"glidein_install_dir")
+  #----------------------------------
   def vdt_location(self):
     return self.option_value(self.ini_section,"vdt_location")
   #----------------------------------
