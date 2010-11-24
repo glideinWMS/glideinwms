@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.4.4 2010/11/24 00:59:33 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.4.5 2010/11/24 01:29:46 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -83,7 +83,7 @@ def init_factory_stats_arr():
 
 def log_factory_header():
     glideinFrontendLib.log_files.logActivity("                  Jobs in schedd queues                       |      Glideins     |   Request   ")
-    glideinFrontendLib.log_files.logActivity("Idle ( prop  eff  ceff   old  cold  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
+    glideinFrontendLib.log_files.logActivity("Idle (match  eff  ceff   old  cold  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
 
 ############################################################
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
@@ -272,7 +272,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
     total_down_stats_arr=init_factory_stats_arr()
-    for glideid in condorq_dict_types['Idle']['count'].keys():
+    glideid_list=condorq_dict_types['Idle']['count'].keys()
+    glideid_list.sort() # sort for the sake of monitoring
+    for glideid in glideid_list:
         factory_pool_node=glideid[0]
         request_name=glideid[1]
         my_identity=str(glideid[2]) # get rid of unicode
@@ -335,12 +337,12 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             glidein_min_idle=0 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         glidein_max_run=int((prop_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
-        this_stats_arr=(count_jobs['Idle'],prop_jobs['Idle'],effective_idle,ceffective_idle,prop_jobs['OldIdle'],count_jobs['OldIdle'],hereonly_jobs['Idle'],count_jobs['Running'],count_real[glideid],max_running,
+        this_stats_arr=(prop_jobs['Idle'],count_jobs['Idle'],effective_idle,ceffective_idle,prop_jobs['OldIdle'],count_jobs['OldIdle'],hereonly_jobs['Idle'],count_jobs['Running'],count_real[glideid],max_running,
                         count_status['Total'],count_status['Idle'],count_status['Running'],
                         glidein_min_idle,glidein_max_run)
 
         stats['group'].logMatchedJobs(
-            glideid_str, count_jobs['Idle'],effective_idle, count_jobs['OldIdle'],
+            glideid_str, prop_jobs['Idle'],effective_idle, prop_jobs['OldIdle'],
             count_jobs['Running'], count_real[glideid])
 
         stats['group'].logMatchedGlideins(
