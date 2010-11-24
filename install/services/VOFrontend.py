@@ -167,7 +167,10 @@ class VOFrontend(Condor):
   def glidein_proxies_dns(self):
     dns = self.option_value(self.ini_section,"glidein_proxies_dns")
     dn_list = string.split(dns,";")
-    return dn_list
+    list = []
+    for dn in dn_list:
+      list.append(dn.strip())
+    return list
     
 
   #--------------------------------
