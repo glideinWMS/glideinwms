@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10.4.1 2010/11/24 03:27:24 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.2 2010/11/24 14:41:58 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -492,30 +492,27 @@ def keepIdleGlideins(client_condorq,client_int_name,
     elif (remove_excess_idle and
           (idle_glideins>min_nr_idle)):
         # too many glideins, remove
-        stat_str="min_idle=%i, idle=%i"%(min_nr_idle,idle_glideins)
+        remove_nr=idle_glideins-min_nr_idle
+        idle_list=extractIdleUnsubmitted(condorq)
+
+        stat_str="min_idle=%i, idle=%i, unsubmitted=%i"%(min_nr_idle,idle_glideins, len(idle_list))
         log_files.logActivity("Too many glideins: %s"%stat_str)
-        if min_nr_idle==0:
-            # remove non-running
-            idle_list=extractIdleSimple(condorq)
-            removeGlideins(condorq.schedd_name,idle_list)
-            return 0 # exit, even if no submitted
-        else:
-            # need to remove only a subset
-            remove_nr=idle_glideins-min_nr_idle
-            # remove unsubmitted first
-            idle_list=extractIdleUnsubmitted(condorq)
+
+        if len(idle_list)>0:
+            # remove unsubmitted first, if any
             if len(idle_list)>remove_nr:                
                 idle_list=idle_list[:remove_nr] #shorten
-            remove_nr-=len(idle_list)
+            log_files.logActivity("Removing %i unsubmitted idle glidein"%len(idle_list))
             removeGlideins(condorq.schedd_name,idle_list)
-            if remove_nr==0:
-                # enough removed
-                return 0 # exit, even if no submitted
-            # go for all the others now
-            idle_list=extractIdleQueued(condorq)
+            return 0 # stop here... the others will be retried in next round, if needed
+
+        # no unsubmitted, go for all the others now
+        idle_list=extractIdleQueued(condorq)
+        if len(idle_list)>remove_nr:                
             idle_list=idle_list[:remove_nr] #shorten
-            removeGlideins(condorq.schedd_name,idle_list)
-            return 0 # exit, even if no submitted
+        log_files.logActivity("Removing %i idle glidein"%len(idle_list))
+        removeGlideins(condorq.schedd_name,idle_list)
+        return 0 # exit, even if no submitted
 
         
     # We have enough glideins in the queue
