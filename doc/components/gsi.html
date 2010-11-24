@@ -71,6 +71,10 @@
 <p>
 glideinWMS uses GSI for authentication/authorization of services and clients.
 The table below acts as a quick reference guide for configuring GSI in glideinWMS.
+</p>
+<p>
+<u>NOTE</u>: Newer version of glideinWMS does not require factory to have proxy. Glideins can run using credentials supplied by frontend (prefered mode) but can also be configured to run with factory credentials. If the factory is configured to not use any gsi credentials, exclude factory from the list of condor_config and GSI_DAEMON_NAME in the table below.
+
 </p>  
 <table class="requirements">
   <tbody><tr class="head">
@@ -86,23 +90,14 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
            </li>
            <li>Condor Mapfile should contain DNs of WMS Collector, Glidein Frontend, Glidein Factory.
            </li>
-
-           <li>DN of glideinWMS Collector should be in GSI_DAEMON_NAME in condor_config of 
-               glideinWMS Collector and condor mapfile of glideinWMS Collector.
-           </li>
          </ul>
        </td>
      </tr>
      <tr>
-       <td>Glidein Factory</td>
+       <td>Glidein (Through Glidein Factory)</td>
        <td>
          <ul>
-
-           <li>condor mapfile to be used by glidein startd should contain DN of user schedds and Glidein Pool
-               Collector.
-           </li>
-           <li>DN of Glidein Factory should be in condor mapfile of glideinWMS Collector,
-               glidein Pool collector and user schedds.           
+           <li><u>condor mapfile to be used by glidein startd</u> should contain DN of user schedds and Glidein Pool Collector. This condor mapfile is not used by the factory itself but passed over to the glidein via staging area.
            </li>
          </ul>
        </td>
@@ -112,14 +107,9 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
 
        <td>
          <ul>
-           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, 
-               User Schedd Nodes, Glidein Factory (glidein startd).
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd.
            </li>
-           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes,
-               Glidein Factory (glidein startd).
-           </li>
-           <li>DN of Glidein Pool Collector should be in gridmap file of User Schedd Nodes and 
-               glidein startd that will run on worker node.
+           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd, Glidein Frontend
            </li>
          </ul>
        </td>
@@ -127,9 +117,10 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
      </tr>
      <tr>
        <td>Glidein Frontend</td>
+
        <td>
          <ul>
-           <li>DN of Glidein Frontend should be in the gridmapfile of glideinWMS Collector.
+           <li>DN of Glidein Frontend should be in the gridmapfile of glideinWMS Collector, Glidein Pool Collector and User Schedd.
            </li>
          </ul>
        </td>
@@ -139,15 +130,9 @@ The table below acts as a quick reference guide for configuring GSI in glideinWM
        <td>User Schedd</td>
        <td>
          <ul>
-           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, 
-               User Schedd Node itself, Glidein Factory (glidein startd).
+           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Node itself, Glidein Frontend, glidein startd
            </li>
-           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, 
-               Glidein Factory (glidein startd).
-           </li>
-
-           <li>DN of User Schedd should be in the GSI_DAEMON_NAME of its own condor_config file and 
-               in the condor mapfile used by the glidein startd that will run on worker node.
+           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, Glidein Frontend, glidein startd.
            </li>
          </ul>
        </td>
