@@ -186,22 +186,20 @@ def validate_install_location(dir):
 #--------------------------------
 def ask_yn(question):
   while 1:
-    yn = "n"
-    yn = raw_input("%s? (y/n) [%s]: " % (question,yn))
-    if yn == "y" or yn == "n":
+    yn = raw_input("%s? (y/n): " % (question))
+    if yn.strip() == "y" or yn.strip() == "n":
       break
     logit("... just 'y' or 'n' please")
-  return yn
+  return yn.strip()
 
 #--------------------------------
 def ask_continue(question):
   while 1:
-    yn = "n"
-    yn = raw_input("%s? (y/n) [%s]: " % (question,yn))
-    if yn == "y" or yn == "n":
+    yn = raw_input("%s? (y/n): " % (question))
+    if yn.strip() == "y" or yn.strip() == "n":
       break
-    logit("\nWARNING: just 'y' or 'n' please")
-  if yn == "n":
+    logit("... just 'y' or 'n' please")
+  if yn.strip() == "n":
     raise KeyboardInterrupt
 
 #--------------------------------
@@ -306,6 +304,9 @@ def indent(level):
 #######################################
 if __name__ == '__main__':
   print "Starting some tests"
+  #ans = ask_continue("kldsjfklj")
+  #print ans
+  #sys.exit(0)
   try:
     print "Testing make_directory"
     owner = pwd.getpwuid(os.getuid())[0]
