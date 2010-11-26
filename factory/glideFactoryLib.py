@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.11 2010/11/26 16:52:02 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.12 2010/11/26 17:10:13 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -487,11 +487,18 @@ def keepIdleGlideins(client_condorq,client_int_name,
             ((running_glideins+idle_glideins+add_glideins)>max_nr_running)):
             # never exceed max_nr_running
             add_glideins=max_nr_running-(running_glideins+idle_glideins)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       client_int_name,add_glideins,submit_attrs,
-                       x509_proxy_identifier,x509_proxy_fname,
-                       client_web,params)
-        return add_glideins # exit, some submitted
+        try:
+            submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
+                           client_int_name,add_glideins,submit_attrs,
+                           x509_proxy_identifier,x509_proxy_fname,
+                           client_web,params)
+            return add_glideins # exit, some submitted
+        except RuntimeError, e:
+            log_files.logWarning("%s"%e)
+            return 0 # something is wrong... assume 0 and exit
+        except:
+            log_files.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
+            return 0 # something is wrong... assume 0 and exit
 
     # We have enough glideins in the queue
     # Now check we don't have problems
@@ -943,21 +950,21 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                                                      ['--']+params_arr,
                                                      exe_env)
                 except condorPrivsep.ExeError, e:
-                    log_files.logWarning("condor_submit failed (user %s): %s"%(username,e))
                     submit_out=[]
-                    raise
+                    raise RuntimeError, "condor_submit failed (user %s): %s"%(username,e)
                 except:
-                    log_files.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
                     submit_out=[]
-                    raise
+                    raise RuntimeError, "condor_submit failed (user %s): Unknown privsep error"%username
             else:
                 # avoid using privsep, if possible
                 try:
                     submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
-                    log_files.logWarning("condor_submit failed: %s"%e)
                     submit_out=[]
-                    raise
+                    raise RuntimeError, "condor_submit failed: %s"%e
+                except:
+                    submit_out=[]
+                    raise RuntimeError, "condor_submit failed: Unknown error"
                 
                 
             cluster,count=extractJobId(submit_out)
