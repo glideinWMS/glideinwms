@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.2 2010/11/24 16:48:42 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.3 2010/11/26 18:09:47 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -164,13 +164,10 @@ def perform_work(entry_name,
     nr_submitted=0
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
-                                                       in_downtime,remove_excess_wait,remove_excess_idle,
+                                                       in_downtime,remove_excess_wait,remove_excess_idle,remove_excess_run,
                                                        idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
                                                        client_web,params)
-    #
-    #  remove_excess_run not implemented
-    #  TO DO
     
     if nr_submitted>0:
         #glideFactoryLib.log_files.logActivity("Submitted")

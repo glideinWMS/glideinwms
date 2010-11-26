@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10.4.4 2010/11/26 17:19:17 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.5 2010/11/26 18:09:47 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -436,7 +436,7 @@ class ClientWeb(ClientWebNoGroup):
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,client_int_name,
-                     in_downtime,remove_excess_wait,remove_excess_idle,
+                     in_downtime,remove_excess_wait,remove_excess_idle,remove_excess_running,
                      min_nr_idle,max_nr_running,max_held,submit_attrs,
                      x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,
                      client_web, # None means client did not pass one, backwards compatibility
@@ -501,10 +501,21 @@ def keepIdleGlideins(client_condorq,client_int_name,
         except:
             log_files.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
             return 0 # something is wrong... assume 0 and exit
-    elif ((remove_excess_wait or remove_excess_idle) and
-          (idle_glideins>min_nr_idle)):
+    elif (((remove_excess_wait or remove_excess_idle) and
+           (idle_glideins>min_nr_idle)) or
+          (remove_excess_running and 
+           ((max_nr_running!=None) and  #make sure there is a max
+            ((running_glideins+idle_glideins)>max_nr_running)))):
         # too many glideins, remove
         remove_nr=idle_glideins-min_nr_idle
+        if (remove_excess_running and 
+            ((max_nr_running!=None) and  #make sure there is a max
+             ((running_glideins+idle_glideins)>max_nr_running))):
+            remove_all_nr=max_nr_running-(running_glideins+idle_glideins)
+            if remove_all_nr>remove_nr:
+                # if we are past max_run, then min_idle does not make sense to start with
+                remove_nr=remove_all_nr
+            
         idle_list=extractIdleUnsubmitted(condorq)
 
         if remove_excess_wait and (len(idle_list)>0):
@@ -515,19 +526,53 @@ def keepIdleGlideins(client_condorq,client_int_name,
             log_files.logActivity("Too many glideins: %s"%stat_str)
             log_files.logActivity("Removing %i unsubmitted idle glideins"%len(idle_list))
             removeGlideins(condorq.schedd_name,idle_list)
-            return 0 # stop here... the others will be retried in next round, if needed
+            return 1 # stop here... the others will be retried in next round, if needed
 
-        if remove_excess_idle:
+        idle_list=extractIdleQueued(condorq)
+        if remove_excess_idle and (len(idle_list)>0):
             # no unsubmitted, go for all the others now
-            idle_list=extractIdleQueued(condorq)
             if len(idle_list)>remove_nr:                
                 idle_list=idle_list[:remove_nr] #shorten
             stat_str="min_idle=%i, idle=%i, unsubmitted=%i"%(min_nr_idle,idle_glideins, 0)
             log_files.logActivity("Too many glideins: %s"%stat_str)
             log_files.logActivity("Removing %i idle glideins"%len(idle_list))
             removeGlideins(condorq.schedd_name,idle_list)
-            return 0 # exit, even if no submitted
+            return 1 # exit, even if no submitted
 
+        if remove_excess_running:
+            # no idle left, remove anything you can
+
+            stat_str="idle=%i, running=%i, max_running=%i"%(idle_glideins,running_glideins,max_nr_running)
+            log_files.logActivity("Too many glideins: %s"%stat_str)
+
+            run_list=extractRunSimple(condorq)
+            if len(run_list)>remove_nr:                
+                run_list=run_list[:remove_nr] #shorten
+            log_files.logActivity("Removing %i running glideins"%len(run_list))
+            removeGlideins(condorq.schedd_name,run_list)
+
+            rm_list=run_list
+
+            #
+            # Remove Held as well
+            # No reason to keep them alive if we are about to kill running glideins anyhow
+            #
+
+            # Check if there are held glideins that are not recoverable
+            unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
+            if len(unrecoverable_held_list)>0:
+                log_files.logActivity("Removing %i unrecoverable held glideins"%len(unrecoverable_held_list))
+                rm_list+=unrecoverable_held_list
+
+            # Check if there are held glideins
+            held_list=extractRecoverableHeldSimple(condorq)
+            if len(held_list)>0:
+                log_files.logActivity("Removing %i held glideins"%len(held_list))
+                rm_list+=held_list
+
+            removeGlideins(condorq.schedd_name,rm_list)
+            return 1 # exit, even if no submitted
+            
         
     # We have enough glideins in the queue
     # Now check we don't have problems
@@ -855,6 +900,12 @@ def extractNonRunSimple(q):
     qnrun=q.fetchStored(lambda el:el["JobStatus"]!=2)
     qnrun_list=qnrun.keys()
     return qnrun_list
+
+def extractRunSimple(q):
+    #  Run==2
+    qrun=q.fetchStored(lambda el:el["JobStatus"]==2)
+    qrun_list=qrun.keys()
+    return qrun_list
 
 def extractRunStale(q):
     # first find out the stale running jids
