@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10.4.5 2010/11/26 18:09:47 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.6 2010/11/26 18:17:08 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -461,10 +461,9 @@ def keepIdleGlideins(client_condorq,client_int_name,
     qc_status=getQStatus(condorq)
 
     #   Held==JobStatus(5)
+    held_glideins=0
     if qc_status.has_key(5):
         held_glideins=qc_status[5]
-        if held_glideins>max_held:
-            return 0 # too many held glideins, stop submitting new jobs
 
     #   Idle==Jobstatus(1)
     sum_idle_count(qc_status)
@@ -476,7 +475,7 @@ def keepIdleGlideins(client_condorq,client_int_name,
     else:
         running_glideins=0
 
-    if ((not in_downtime) and (idle_glideins<min_nr_idle) and
+    if ((idle_glideins<min_nr_idle) and
         ((max_nr_running==None) or  #no max
          ((running_glideins+idle_glideins)<max_nr_running))):
         # need more glideins, submit
@@ -484,6 +483,13 @@ def keepIdleGlideins(client_condorq,client_int_name,
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
+        if in_downtime:
+            log_files.logActivity("In downtime, not submitting")
+            return 0
+        if held_glideins>max_held:
+            log_files.logActivity("Too many held (%s>%s), not submitting"%(held_glideins,max_held))
+            return 0
+
         add_glideins=min_nr_idle-idle_glideins
         if ((max_nr_running!=None) and
             ((running_glideins+idle_glideins+add_glideins)>max_nr_running)):
