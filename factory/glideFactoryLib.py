@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10 2010/11/19 19:35:58 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.11 2010/11/26 16:52:02 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -482,11 +482,16 @@ def keepIdleGlideins(client_condorq,client_int_name,
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
+        add_glideins=min_nr_idle-idle_glideins
+        if ((max_nr_running!=None) and
+            ((running_glideins+idle_glideins+add_glideins)>max_nr_running)):
+            # never exceed max_nr_running
+            add_glideins=max_nr_running-(running_glideins+idle_glideins)
         submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       client_int_name,min_nr_idle-idle_glideins,submit_attrs,
+                       client_int_name,add_glideins,submit_attrs,
                        x509_proxy_identifier,x509_proxy_fname,
                        client_web,params)
-        return min_nr_idle-idle_glideins # exit, some submitted
+        return add_glideins # exit, some submitted
 
     # We have enough glideins in the queue
     # Now check we don't have problems
