@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10.4.6 2010/11/26 18:17:08 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.7 2010/11/26 18:26:31 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -580,24 +580,6 @@ def keepIdleGlideins(client_condorq,client_int_name,
             return 1 # exit, even if no submitted
             
         
-    # We have enough glideins in the queue
-    # Now check we don't have problems
-
-    # Check if we have stale idle glideins
-    qc_stale=getQStatusStale(condorq)
-
-    # Check if there are stuck running glideins
-    #   Running==Jobstatus(2), Stale==1
-    if qc_stale.has_key(2) and qc_stale[2].has_key(1):
-        runstale_glideins=qc_stale[2][1]
-    else:
-        runstale_glideins=0
-    if runstale_glideins>0:
-        # remove the held glideins
-        runstale_list=extractRunStale(condorq)
-        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
-        removeGlideins(condorq.schedd_name,runstale_list)
-
     return 0
 
 #
@@ -613,6 +595,12 @@ def sanitizeGlideins(condorq,status):
     if len(stale_list)>0:
         log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
+
+    # Check if some glideins have been in running state for too long
+    runstale_list=extractRunStale(condorq)
+    if len(runstale_list)>0:
+        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name,runstale_list)
 
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list=extractUnrecoverableHeld(condorq,status)
@@ -650,6 +638,12 @@ def sanitizeGlideinsSimple(condorq):
     if len(stale_list)>0:
         log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
+
+    # Check if some glideins have been in running state for too long
+    runstale_list=extractRunStale(condorq)
+    if len(runstale_list)>0:
+        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name,runstale_list)
 
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
