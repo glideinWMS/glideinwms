@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10.4.8 2010/11/27 02:57:15 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.9 2010/11/27 03:00:24 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -564,6 +564,7 @@ def keepIdleGlideins(client_condorq,client_int_name,
             # No reason to keep them alive if we are about to kill running glideins anyhow
             #
 
+            log_files.logActivity("No glideins requested.")
             # Check if there are held glideins that are not recoverable
             unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
             if len(unrecoverable_held_list)>0:
