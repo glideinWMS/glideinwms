@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13 2010/11/26 18:23:04 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.1 2010/11/27 17:36:37 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -579,7 +579,7 @@ def sanitizeGlideinsSimple(condorq):
 
     return
 
-def logStats(condorq,condorstatus,client_int_name):
+def logStats(condorq,condorstatus,client_int_name, security_name):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -589,24 +589,24 @@ def logStats(condorq,condorstatus,client_int_name):
     qc_status=getQStatus(condorq)
     sum_idle_count(qc_status)
     if condorstatus!=None:
-        s_running=len(condorstatus.fetchStored().keys())
+        s_running_str=" collector running %s"%len(condorstatus.fetchStored().keys())
     else:
-        s_running="?" # temporary glitch
+        s_running_str="" # not monitored
     
-    log_files.logActivity("Client '%s', schedd status %s, collector running %s"%(client_int_name,qc_status,s_running))
+    log_files.logActivity("Client %s (secid: %s) schedd status %s%s"%(client_int_name,security_name,qc_status,s_running_str))
     if factoryConfig.qc_stats!=None:
-        factoryConfig.qc_stats.logSchedd(client_int_name,qc_status)
+        factoryConfig.qc_stats.logSchedd(security_name,qc_status)
     
     return
 
-def logWorkRequests(work):
-    for work_key in work.keys():
-        if work[work_key]['requests'].has_key('IdleGlideins'):
-            log_files.logActivity("Client '%s', requesting %i glideins"%(work[work_key]['internals']["ClientName"],work[work_key]['requests']['IdleGlideins']))
-            log_files.logActivity("  Params: %s"%work[work_key]['params'])
-            log_files.logActivity("  Decrypted Param Names: %s"%work[work_key]['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
-            factoryConfig.qc_stats.logRequest(work[work_key]['internals']["ClientName"],work[work_key]['requests'],work[work_key]['params'])
-            factoryConfig.qc_stats.logClientMonitor(work[work_key]['internals']["ClientName"],work[work_key]['monitor'],work[work_key]['internals'])
+def logWorkRequest(client_int_name, security_name,
+                   req_idle, req_max_run,
+                   work_el):
+    log_files.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i"%(client_int_name,security_name,req_idle,req_max_run))
+    log_files.logActivity("  Params: %s"%work_el['params'])
+    log_files.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
+    factoryConfig.qc_stats.logRequest(security_name,work_el['requests'],work_el['params'])
+    factoryConfig.qc_stats.logClientMonitor(security_name,work_el['monitor'],work_el['internals'])
 
 
 ############################################################

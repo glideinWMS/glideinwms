@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27 2010/11/18 20:42:55 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.1 2010/11/27 17:36:37 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -67,7 +67,7 @@ def check_parent(parent_pid,glideinDescript,jobDescript):
 ############################################################
 def perform_work(entry_name,
                  schedd_name,
-                 client_name,client_int_name,client_int_req,
+                 client_name,client_int_name,client_security_name,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
                  x509_proxy_fnames,x509_proxy_usernames,
@@ -76,7 +76,7 @@ def perform_work(entry_name,
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
 
     try:
-        glideFactoryLib.factoryConfig.rrd_stats.getData(client_name)
+        glideFactoryLib.factoryConfig.rrd_stats.getData(client_security_name)
     except glideFactoryLib.condorExe.ExeError,e:
         glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
 
@@ -129,8 +129,8 @@ def perform_work(entry_name,
         # should not need privsep for reading logs
         log_stats[username].load()
 
-    glideFactoryLib.logStats(condorQ,condorStatus,client_int_name)
-    glideFactoryLib.factoryConfig.log_stats.logSummary(client_int_name,log_stats)
+    glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name)
+    glideFactoryLib.factoryConfig.log_stats.logSummary(client_security_name,log_stats)
         
 
     submit_attrs=[]
@@ -190,7 +190,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
                                           pub_key_obj,allowed_proxy_source)
-    glideFactoryLib.logWorkRequests(work)
     
     if len(work.keys())==0:
         return 0 # nothing to be done
@@ -359,8 +358,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
             continue #skip request
 
-
-
         if work[work_key]['requests'].has_key('IdleGlideins'):
             idle_glideins=work[work_key]['requests']['IdleGlideins']
             if idle_glideins>factory_max_idle:
@@ -373,6 +370,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             else:
                 max_running=factory_max_running
 
+            logWorkRequest(client_int_name,client_security_name,
+                           idle_glideins, max_running,
+                           work[work_key])
+            
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins=0
@@ -410,7 +411,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 client_web=None
 
             done_something+=perform_work(entry_name,schedd_name,
-                                         work_key,client_int_name,client_int_req,
+                                         work_key,client_int_name,client_security_name,client_int_req,
                                          idle_glideins,max_running,factory_max_held,
                                          jobDescript,x509_proxy_fnames,x509_proxy_usernames,
                                          client_web,params)
