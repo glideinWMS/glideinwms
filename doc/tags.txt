@@ -11,6 +11,9 @@ vNext	Installer can now install gridFTP and VOMS certs needed by CREAM
 	Add XML monitoring files of RRD files on both factory and frontend
 	Add JobsRunningHere attribute - CANNOT SIMPLY UPGRADE, NEEDS NEW INSTANCE
 	                                FOR BOTH FACTORY AND FRONTEND
+	Factory now can remove excessive glideins
+		New ClassAd attribute - RemoveExcess
+	Frontend will request removal of glideins when no user jobs in queue
 
 v2_4_2	Fixed the incompatibility introduced in v2_4_1 in monitoring components.
 
