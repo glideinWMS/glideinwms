@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.16.4.2 2010/11/27 02:01:44 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.16.4.3 2010/11/27 02:38:29 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -325,8 +325,13 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
+
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
-        glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
+        if (count_jobs['Idle']+count_jobs['Running'])>0:
+            glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
+        else:
+            # the above calculation is always >0, but should be 0 if nothing in the user queue
+            glidein_max_run=0
 
         remove_excess_wait=False # do not remove excessive glideins by default
         # keep track of how often idle was 0
