@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.3 2010/11/26 18:09:47 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.4 2010/11/27 01:22:31 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -137,7 +137,9 @@ def perform_work(entry_name,
     remove_excess_wait=False
     remove_excess_idle=False
     remove_excess_run=False
-    if remove_excess=='WAIT':
+    if remove_excess=='NO':
+        pass # nothing to do
+    elif remove_excess=='WAIT':
         remove_excess_wait=True
     elif remove_excess=='IDLE':
         remove_excess_wait=True
@@ -146,10 +148,9 @@ def perform_work(entry_name,
         remove_excess_wait=True
         remove_excess_idle=True
         remove_excess_run=True
-    elif remove_excess=='UNREG':
-        # remove nothing for now... should do better than this
-        pass
-    # else: # default, including 'NO', remove nothing
+    else:
+        glideFactoryLib.log_files.logActivity("Unknown RemoveExcess '%s', assuming 'NO'"%remove_excess)
+        pass # nothing to do
 
     submit_attrs=[]
 
