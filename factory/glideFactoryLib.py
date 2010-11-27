@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10.4.7 2010/11/26 18:26:31 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.4.8 2010/11/27 02:57:15 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -578,7 +578,25 @@ def keepIdleGlideins(client_condorq,client_int_name,
 
             removeGlideins(condorq.schedd_name,rm_list)
             return 1 # exit, even if no submitted
-            
+    elif remove_excess_running and (max_nr_running==0) and (held_glideins>0):
+        # no glideins desired, remove all held
+        # (only held should be left at this point... idle and running addressed above)
+
+        # Check if there are held glideins that are not recoverable
+        unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
+        if len(unrecoverable_held_list)>0:
+            log_files.logActivity("Removing %i unrecoverable held glideins"%len(unrecoverable_held_list))
+            rm_list+=unrecoverable_held_list
+
+        # Check if there are held glideins
+        held_list=extractRecoverableHeldSimple(condorq)
+        if len(held_list)>0:
+            log_files.logActivity("Removing %i held glideins"%len(held_list))
+            rm_list+=held_list
+
+        removeGlideins(condorq.schedd_name,unrecoverable_held_list+held_list)
+        return 1 # exit, even if no submitted
+        
         
     return 0
 
