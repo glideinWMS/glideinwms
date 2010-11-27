@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.16.4.1 2010/11/24 20:55:29 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.16.4.2 2010/11/27 02:01:44 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -336,6 +336,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if not history_idle0.has_key(glideid):
             history_idle0[glideid]=0
         if count_jobs['Idle']==0:
+            # no idle jobs in the queue left
             # consider asking for unsubmitted idle glideins to be removed
             history_idle0[glideid]+=1
             if history_idle0[glideid]>5:
@@ -347,20 +348,23 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         remove_excess_idle=False # do not remove excessive glideins by default
 
         # keep track of how often glideidle was 0
-        if not history_obj.has_key('glideidle0'):
-            history_obj['glideidle0']={}
-        history_glideidle0=history_obj['glideidle0']
-        if not history_glideidle0.has_key(glideid):
-            history_glideidle0[glideid]=0
-        if count_status['Idle']==0:
+        if not history_obj.has_key('glideempty'):
+            history_obj['glideempty']={}
+        history_glideempty=history_obj['glideempty']
+        if not history_glideempty.has_key(glideid):
+            history_glideempty[glideid]=0
+        if count_status['Idle']>=count_status['Total']:
+            # no glideins being used
             # consider asking for all idle glideins to be removed
-            history_glideidle0[glideid]+=1
-            if remove_excess_wait and (history_glideidle0[glideid]>10):
+            history_glideempty[glideid]+=1
+            if remove_excess_wait and (history_glideempty[glideid]>10):
                 # no requests and no glideins being used
                 # no harm getting rid of everything
                 remove_excess_idle=True
         else:
-            history_glideidle0[glideid]=0
+            history_glideempty[glideid]=0
+
+        remove_excess_running=False # do not remove excessive glideins by default
 
         # keep track of how often glidetotal was 0
         if not history_obj.has_key('glidetotal0'):
@@ -369,16 +373,19 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if not history_glidetotal0.has_key(glideid):
             history_glidetotal0[glideid]=0
         if count_status['Total']==0:
+            # no glideins registered
             # consider asking for all idle glideins to be removed
             history_glidetotal0[glideid]+=1
-            if remove_excess_wait and (history_glidetotal0[glideid]>5):
-                # no requests and no glidein running
+            if remove_excess_wait and (history_glidetotal0[glideid]>10):
+                # no requests and no glidein registered
                 # no harm getting rid of everything
-                remove_excess_idle=True
+                remove_excess_running=True
         else:
             history_glidetotal0[glideid]=0
 
-        if remove_excess_idle:
+        if remove_excess_running:
+            remove_excess_str="ALL"
+        elif remove_excess_idle:
             remove_excess_str="IDLE"
         elif remove_excess_wait:
             remove_excess_str="WAIT"
