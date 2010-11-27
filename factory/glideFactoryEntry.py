@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.1 2010/11/27 17:36:37 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.2 2010/11/27 17:48:33 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -25,7 +25,7 @@ import os,os.path,sys,fcntl
 import traceback
 import time,string,math
 import copy,random
-import threading
+import sets
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import glideFactoryPidLib
@@ -74,11 +74,6 @@ def perform_work(entry_name,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
-
-    try:
-        glideFactoryLib.factoryConfig.rrd_stats.getData(client_security_name)
-    except glideFactoryLib.condorExe.ExeError,e:
-        glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
 
     if params.has_key("GLIDEIN_Collector"):
         condor_pool=params["GLIDEIN_Collector"]
@@ -200,6 +195,8 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
+
+    all_security_names=sets.Set()
 
     done_something=0
     for work_key in work.keys():
@@ -370,9 +367,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             else:
                 max_running=factory_max_running
 
-            logWorkRequest(client_int_name,client_security_name,
-                           idle_glideins, max_running,
-                           work[work_key])
+            glideFactoryLib.logWorkRequest(client_int_name,client_security_name,
+                                           idle_glideins, max_running,
+                                           work[work_key])
+            all_security_names.add(client_security_name)
             
             if in_downtime:
                 # we are in downtime... no new submissions
@@ -416,6 +414,15 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                                          jobDescript,x509_proxy_fnames,x509_proxy_usernames,
                                          client_web,params)
         #else, it is malformed and should be skipped
+
+    for client_security_name in all_security_names:
+        try:
+            glideFactoryLib.factoryConfig.rrd_stats.getData(client_security_name)
+        except glideFactoryLib.condorExe.ExeError,e:
+            glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
+        except:
+            glideFactoryLib.log_files.logWarning("get_RRD_data failed: error unknown")
+        
 
     return done_something
 
