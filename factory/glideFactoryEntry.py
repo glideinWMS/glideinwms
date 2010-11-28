@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.5 2010/11/28 01:34:49 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.4.6 2010/11/28 01:39:17 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -400,7 +400,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins=0
-                max_running=0
             
 
             if work[work_key]['web'].has_key('URL'):
