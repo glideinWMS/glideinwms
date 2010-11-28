@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13.2.1 2010/11/27 17:36:37 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.2 2010/11/28 05:34:41 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -579,7 +579,7 @@ def sanitizeGlideinsSimple(condorq):
 
     return
 
-def logStats(condorq,condorstatus,client_int_name, security_name):
+def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_security_class):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
@@ -593,20 +593,23 @@ def logStats(condorq,condorstatus,client_int_name, security_name):
     else:
         s_running_str="" # not monitored
     
-    log_files.logActivity("Client %s (secid: %s) schedd status %s%s"%(client_int_name,security_name,qc_status,s_running_str))
+    log_files.logActivity("Client %s (secid: %s_%s) schedd status %s%s"%(client_int_name,client_security_name,proxy_security_class,qc_status,s_running_str))
     if factoryConfig.qc_stats!=None:
-        factoryConfig.qc_stats.logSchedd(security_name,qc_status)
+        client_log_name="%s_%s"%(client_security_name,proxy_security_class)
+        factoryConfig.qc_stats.logSchedd(client_log_name,qc_status)
     
     return
 
-def logWorkRequest(client_int_name, security_name,
+def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
                    req_idle, req_max_run,
                    work_el):
-    log_files.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i"%(client_int_name,security_name,req_idle,req_max_run))
+    log_files.logActivity("Client %s (secid: %s_%s) requesting %i glideins, max running %i"%(client_int_name,client_security_name,proxy_security_class,req_idle,req_max_run))
     log_files.logActivity("  Params: %s"%work_el['params'])
     log_files.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
-    factoryConfig.qc_stats.logRequest(security_name,work_el['requests'],work_el['params'])
-    factoryConfig.qc_stats.logClientMonitor(security_name,work_el['monitor'],work_el['internals'])
+
+    client_log_name="%s_%s"%(client_security_name,proxy_security_class)
+    factoryConfig.qc_stats.logRequest(client_log_name,work_el['requests'],work_el['params'])
+    factoryConfig.qc_stats.logClientMonitor(client_log_name,work_el['monitor'],work_el['internals'])
 
 
 ############################################################

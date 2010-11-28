@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.3 2010/11/28 04:47:54 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.4 2010/11/28 05:34:41 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -67,7 +67,7 @@ def check_parent(parent_pid,glideinDescript,jobDescript):
 ############################################################
 def perform_work(entry_name,
                  schedd_name,
-                 client_name,client_int_name,client_security_name,client_int_req,
+                 client_name,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
                  x509_proxy_fnames,x509_proxy_username,
@@ -82,6 +82,9 @@ def perform_work(entry_name,
     
     #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
     try:
+        #
+        # TO DO: Account for the x509_proxy_security_class/x509_proxy_username
+        #
         condorQ=glideFactoryLib.getCondorQData(entry_name,client_int_name,schedd_name)
     except glideFactoryLib.condorExe.ExeError,e:
         glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
@@ -118,8 +121,9 @@ def perform_work(entry_name,
     # should not need privsep for reading logs
     log_stats[x509_proxy_username].load()
 
-    glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name)
-    glideFactoryLib.factoryConfig.log_stats.logSummary(client_security_name,log_stats)
+    glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
+    client_log_name="%s_%s"%(client_security_name,x509_proxy_security_class)
+    glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
         
 
     submit_attrs=[]
@@ -386,14 +390,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             else:
                 max_running=factory_max_running
 
-            #
-            # move it
-            #
-            glideFactoryLib.logWorkRequest(client_int_name,client_security_name,
-                                           idle_glideins, max_running,
-                                           work[work_key])
-            all_security_names.add(client_security_name)
-            
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins=0
@@ -446,20 +442,28 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 # Should log here or in perform_work
                 #
 
+                glideFactoryLib.logWorkRequest(client_int_name,client_security_name,x509_proxy_security_class,
+                                               idle_glideins, max_running,
+                                               work[work_key])
+            
+                all_security_names.add((client_security_name,x509_proxy_security_class))
+
                 done_something+=perform_work(entry_name,schedd_name,
-                                             work_key,client_int_name,client_security_name,client_int_req,
+                                             work_key,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                                              idle_glideins_pc,max_running_pc,factory_max_held,
                                              jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
                                              client_web,params)
         #else, it is malformed and should be skipped
 
-    for client_security_name in all_security_names:
+    for sec_el in all_security_names:
         try:
-            glideFactoryLib.factoryConfig.rrd_stats.getData(client_security_name)
+            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s"%sec_el)
         except glideFactoryLib.condorExe.ExeError,e:
             glideFactoryLib.log_files.logWarning("get_RRD_data failed: %s"%e)
+            pass # never fail for monitoring... just log
         except:
             glideFactoryLib.log_files.logWarning("get_RRD_data failed: error unknown")
+            pass # never fail for monitoring... just log
         
 
     return done_something
