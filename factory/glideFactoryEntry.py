@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.2 2010/11/27 17:48:33 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.3 2010/11/28 04:47:54 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -70,7 +70,7 @@ def perform_work(entry_name,
                  client_name,client_int_name,client_security_name,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
-                 x509_proxy_fnames,x509_proxy_usernames,
+                 x509_proxy_fnames,x509_proxy_username,
                  client_web,
                  params):
     glideFactoryLib.factoryConfig.client_internals[client_int_name]={"CompleteName":client_name,"ReqName":client_int_req}
@@ -111,18 +111,12 @@ def perform_work(entry_name,
     random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another
 
     # find out the users it is using
-    usernames={}
-    for x509_proxy_id in x509_proxy_keys:
-        username=x509_proxy_usernames[x509_proxy_id]
-        usernames[username]=True
-
     log_stats={}
-    for username in usernames.keys():
-        log_stats[username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,username),
-                                                                       glideFactoryLib.log_files.log_dir,
-                                                                       client_int_name,username)
-        # should not need privsep for reading logs
-        log_stats[username].load()
+    log_stats[x509_proxy_username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
+                                                                              glideFactoryLib.log_files.log_dir,
+                                                                              client_int_name,x509_proxy_username)
+    # should not need privsep for reading logs
+    log_stats[x509_proxy_username].load()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_security_name,log_stats)
@@ -142,7 +136,7 @@ def perform_work(entry_name,
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
                                                        idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
-                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_usernames[x509_proxy_id],
+                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_username,
                                                        client_web,params)
     if nr_submitted>0:
         #glideFactoryLib.log_files.logActivity("Submitted")
@@ -159,6 +153,33 @@ def perform_work(entry_name,
     
 
 ############################################################
+class X509Proxies:
+    def __init__(self,frontendDescript,client_security_name):
+        self.frontendDescript=frontendDescript
+        self.client_security_name=client_security_name
+        self.usernames={}
+        self.fnames={}
+        self.count_fnames=0 # len of sum(fnames)
+        return
+
+    # Return None, if cannot convert
+    def get_username(self, x509_proxy_security_class):
+        if not self.usernames.has_key(x509_proxy_security_class):
+            # lookup only the first time
+            x509_proxy_username=self.frontendDescript.get_username(self.client_security_name,x509_proxy_security_class)
+            if x509_proxy_username==None:
+                # but don't cache misses
+                return None
+            self.usernames[x509_proxy_security_class]=x509_proxy_username
+        return self.usernames[x509_proxy_security_class][:]
+
+    def add_fname(self,x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname):
+        if not self.fnames.has_key(x509_proxy_security_class):
+            self.fnames[x509_proxy_security_class]={}
+        self.fnames[x509_proxy_security_class][x509_proxy_identifier]=x509_proxy_fname
+        self.count_fnames+=1
+
+###############
 def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
@@ -248,8 +269,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 glideFactoryLib.log_files.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
                 continue #skip request
 
-        x509_proxy_fnames={}
-        x509_proxy_usernames={}
+        x509_proxies=X509Proxies(frontendDescript,client_security_name)
         if decrypted_params.has_key('x509_proxy'):
             if decrypted_params['x509_proxy']==None:
                 glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy for %s, skipping request"%client_int_name)
@@ -258,7 +278,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             # This old style protocol does not support SecurityName, use default
             x509_proxy_security_class="none"
             
-            x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+            x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
             if x509_proxy_username==None:
                 glideFactoryLib.log_files.logWarning("No mapping for security class %s of x509_proxy for %s, skipping and trying the others"%(x509_proxy_security_class,client_int_name))
                 continue # cannot map, skip proxy
@@ -269,8 +289,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 glideFactoryLib.log_files.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
                 continue # skip request
             
-            x509_proxy_fnames['main']=x509_proxy_fname
-            x509_proxy_usernames['main']=x509_proxy_username
+            x509_proxies.add_fname(x509_proxy_security_class,'main',x509_proxy_fname)
         elif decrypted_params.has_key('x509_proxy_0'):
             if not decrypted_params.has_key('nr_x509_proxies'):
                 glideFactoryLib.log_files.logWarning("Could not determine number of proxies for %s, skipping request"%client_int_name)
@@ -304,7 +323,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 #                else:
 #                    glideFactoryLib.log_files.logWarning("Security test passed for : %s %s "%(client_authenticated_identity,x509_proxy_security_class))
 
-                x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+                x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
                 if x509_proxy_username==None:
                     glideFactoryLib.log_files.logWarning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others"%(x509_proxy_security_class,i,client_int_name,client_security_name))
                     continue # cannot map, skip proxy
@@ -322,23 +341,22 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                     glideFactoryLib.log_files.logDebug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s"%(i,x509_proxy_username,client_int_name,string.join(tb,'')))
                     continue # skip request
                 
-                x509_proxy_fnames[x509_proxy_identifier]=x509_proxy_fname
-                x509_proxy_usernames[x509_proxy_identifier]=x509_proxy_username
+                x509_proxies.add_fname(x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname)
 
-            if len(x509_proxy_fnames.keys())<1:
+            if x509_proxies.count_fnames<1:
                 glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
                 continue #skip request
         else:
             # no proxy passed, use factory one
             x509_proxy_security_class="factory"
             
-            x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
+            x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
             if x509_proxy_username==None:
                 glideFactoryLib.log_files.logWarning("No mapping for security class %s for %s (secid: %s), skipping frontend"%(x509_proxy_security_class,client_int_name,client_security_name))
                 continue # cannot map, frontend
 
-            x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY'] # use the factory one
-            x509_proxy_usernames['factory']=x509_proxy_username
+            x509_proxies.add_fname(x509_proxy_security_class,'factory',
+                                   os.environ['X509_USER_PROXY']) # use the factory one
         
         # Check if this entry point has a whitelist
         # If it does, then make sure that this frontend is in it.
@@ -356,6 +374,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             continue #skip request
 
         if work[work_key]['requests'].has_key('IdleGlideins'):
+            # malformed, if no IdleGlideins
             idle_glideins=work[work_key]['requests']['IdleGlideins']
             if idle_glideins>factory_max_idle:
                 idle_glideins=factory_max_idle
@@ -367,6 +386,9 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             else:
                 max_running=factory_max_running
 
+            #
+            # move it
+            #
             glideFactoryLib.logWorkRequest(client_int_name,client_security_name,
                                            idle_glideins, max_running,
                                            work[work_key])
@@ -375,7 +397,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins=0
-                max_running=0
             
 
             if work[work_key]['web'].has_key('URL'):
@@ -402,17 +423,34 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                                                                     client_descript,client_sign)
                 except:
                     # malformed classad, skip
-                    glideFactoryLib.log_files.logWarning("Malformed classad '%s', skipping"%work_key)
+                    glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
                     continue
             else:
                 # old style
                 client_web=None
 
-            done_something+=perform_work(entry_name,schedd_name,
-                                         work_key,client_int_name,client_security_name,client_int_req,
-                                         idle_glideins,max_running,factory_max_held,
-                                         jobDescript,x509_proxy_fnames,x509_proxy_usernames,
-                                         client_web,params)
+            x509_proxy_security_classes=x509_proxies.fnames.keys()
+            x509_proxy_security_classes.sort() # sort to have consistent logging
+            for x509_proxy_security_class in x509_proxy_security_classes:
+                # submit each security class independently
+                # split the request proportionally between them
+
+                x509_proxy_frac=1.0*len(x509_proxies.fnames[x509_proxy_security_class])/x509_proxies.count_fnames
+
+                # round up... if a client requests a non splittable number, worse for him
+                # expect to not be a problem in real world
+                idle_glideins_pc=math.ceil(idle_glideins*x509_proxy_frac)
+                max_running_pc=math.ceil(max_running*x509_proxy_frac)
+
+                #
+                # Should log here or in perform_work
+                #
+
+                done_something+=perform_work(entry_name,schedd_name,
+                                             work_key,client_int_name,client_security_name,client_int_req,
+                                             idle_glideins_pc,max_running_pc,factory_max_held,
+                                             jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
+                                             client_web,params)
         #else, it is malformed and should be skipped
 
     for client_security_name in all_security_names:
