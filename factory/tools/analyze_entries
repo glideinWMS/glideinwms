@@ -141,6 +141,7 @@ Glidein log analysis for frontend %s - %s
 
         period = int(period)
         period_data[period] = {}
+        period_data[period]['total_time'] = 0
         frontend_data[period] = {}
         entry_data[period] = {}
         entry_data_all_frontends[period] = {}
@@ -149,6 +150,7 @@ Glidein log analysis for frontend %s - %s
 
             fglideins, fjobs, fused, fwaste, fvalidation, fidle, fbadput = 0,0,0,0,0,0,0
             frontend_data[period][frontend] = {}
+            frontend_data[period][frontend]['total_time'] = 0
             entry_data[period][frontend] = {}
 
             for entry, elements in entries.iteritems():
@@ -189,7 +191,10 @@ Glidein log analysis for frontend %s - %s
 
                 ewaste = data[period][frontend][entry]["Lasted"] - data[period][frontend][entry]["JobsLasted"]
                 ebadput = data[period][frontend][entry]["Lasted"] - data[period][frontend][entry]["JobsGoodput"]
- 
+
+                period_data[period]['total_time'] += data[period][frontend][entry]["Lasted"]
+                frontend_data[period][frontend]['total_time'] += data[period][frontend][entry]["Lasted"]
+
                 for name, value in {'glideins': eglideins, 
                          'jobs': ejobs,
                          'used': eused,
@@ -262,19 +267,33 @@ Glidein log analysis for frontend %s - %s
 Total Glideins: %s
 Total Jobs: %d (Average jobs/glidein: %.2f) 
 
-Total CPU time used: %d s (%.1f hours)
-Total CPU time wasted: %d s (%.1f hours)
-Time used/time wasted: %.2f
-CPU time efficiency: %.2f
+Total time: %d s (%d hours - %.1f slots)
+Total time used: %d s (%d hours - %.1f slots)
+Total time in validation: %d s (%d hours - %.1f slots)
+Total time idle: %d s (%d hours- %.1f slots)
+Total time wasted: %d s (%d hours - %.1f slots)
+Time used/time wasted: %.1f
+Time efficiency: %.2f
 """
      % (title, 
        period_data[period]['glideins'], 
        period_data[period]['jobs'], 
        float(period_data[period]['jobs'])/float(period_data[period]['glideins']),
+       period_data[period]['total_time'],
+       period_data[period]['total_time']/3600,
+       float(period_data[period]['total_time'])/float(period),
        period_data[period]['used'],
        period_data[period]['used']/3600, 
+       float(period_data[period]['used'])/float(period),
+       period_data[period]['validation'],
+       period_data[period]['validation']/3600, 
+       float(period_data[period]['validation'])/float(period),
+       period_data[period]['idle'],
+       period_data[period]['idle']/3600, 
+       float(period_data[period]['idle'])/float(period),
        period_data[period]['waste'],
        period_data[period]['waste']/3600, 
+       float(period_data[period]['waste'])/float(period),
        float(period_data[period]['used'])/float(period_data[period]['waste']),
        float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
 
@@ -297,8 +316,8 @@ CPU time efficiency: %.2f
 Per Entry (all frontends) stats for the past %s hours.\n""" % x
 
 
-        print("%-40s %4s %6s %7s %7s %7s %7s %8s" % ( 
-                  "", "start","val","0job","badp","waste","time","total"))
+        print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % ( 
+                  "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
 
         to_be_printed = {}  # dict of paired entry data with wastetime for sorting
 
@@ -311,13 +330,16 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
                 entry['validation'] = 1
             
                            
-            to_be_printed[int(entry['waste'])] = ("%-40s %4d%%  %4d%%  %5d%%  %5d%%  %6.1f  %6.1f  %1s %4d" 
+            to_be_printed[int(entry['waste'])] = ("%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
                  % (entry_name.lstrip("entry_"),
                     (float(entry['FailedNr'])/float(entry['glideins']))*100,
                     (float(entry['validation_All'])/float(entry['Lasted']))*100,
                     (float(entry['JobsNr_None'])/float(entry['glideins']))*100,
-                    (float(entry['badput'])/float(entry['Lasted']))*100,
                     #(float(entry['badput_All'])/float(entry['Lasted']))*100,
+                    (float(entry['validation'])/float(entry['Lasted']))*100,
+                    (float(entry['idle'])/float(entry['Lasted']))*100,
+                    (float(entry['waste'])/float(entry['Lasted']))*100,
+                    (float(entry['badput'])/float(entry['Lasted']))*100,
                     entry['waste']/3600.0,
                     #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
                     entry['Lasted']/3600.0,
@@ -362,24 +384,44 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
 Glideins: %s - %.1f%% of total
 Jobs: %s (Average jobs/glidein: %.2f)
 
-Total CPU time used: %s s (%.1f hours)
-Total CPU time wasted: %s s (%.1f hours)
+Total time: %s s (%d hours - %.1f slots)
+Total time used: %s s (%d hours - %.1f slots)
+Total time in validation: %s s (%d hours - %.1f slots)
+Total time idle: %s s (%d hours - %.1f slots)
+Total time wasted: %s s (%d hours - %.1f slots)
 Time used/time wasted: %.2f
-CPU time efficiency: %.2f
+Time efficiency: %.2f
 """ % ( "Frontend: "+frontend, 
         frontend_data[period][frontend]['glideins'], 
         float(frontend_data[period][frontend]['glideins'])/float(period_data[period]['glideins'])*100, 
         frontend_data[period][frontend]['jobs'], 
         float(frontend_data[period][frontend]['jobs'])/float(frontend_data[period][frontend]['glideins']), 
+
+        frontend_data[period][frontend]['total_time'],
+        frontend_data[period][frontend]['total_time']/3600,
+        float(frontend_data[period][frontend]['total_time'])/float(x*3600), 
+
         frontend_data[period][frontend]['used'], 
         frontend_data[period][frontend]['used']/3600, 
+        float(frontend_data[period][frontend]['used'])/float(x*3600), 
+
+        frontend_data[period][frontend]['validation'], 
+        frontend_data[period][frontend]['validation']/3600, 
+        float(frontend_data[period][frontend]['validation'])/float(x*3600), 
+
+        frontend_data[period][frontend]['idle'], 
+        frontend_data[period][frontend]['idle']/3600,
+        float(frontend_data[period][frontend]['idle'])/float(x*3600), 
+
         frontend_data[period][frontend]['waste'], 
-        frontend_data[period][frontend]['waste']/3600, 
+        frontend_data[period][frontend]['waste']/3600,
+        float(frontend_data[period][frontend]['waste'])/float(x*3600), 
+
         float(frontend_data[period][frontend]['used'])/float(frontend_data[period][frontend]['waste']),
         float(frontend_data[period][frontend]['used'])/(float(frontend_data[period][frontend]['waste'])+float(frontend_data[period][frontend]['used'])))) 
             
-        print("%-40s %4s %6s %7s %7s %7s %7s %8s" % ( 
-                  "", "start","val","0job","badp","waste","time","total"))
+        print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % (
+                  "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
 
         to_be_printed = {}  # dict of paired entry data with wastetime for sorting
 
@@ -394,13 +436,16 @@ CPU time efficiency: %.2f
                 entry_data[period][frontend][entry]['validation'] = 1
             
                            
-            to_be_printed[int(entry_data[period][frontend][entry]['waste'])] = ("%-40s %4d%%  %4d%%  %5d%%  %5d%%  %6.1f  %6.1f  %1s %4d" 
+            to_be_printed[int(entry_data[period][frontend][entry]['waste'])] = ("%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
                      % (entry.lstrip("entry_"),
                         (float(e['FailedNr'])/float(entry_data[period][frontend][entry]['glideins']))*100,
                         (float(e['validation_All'])/float(e['Lasted']))*100,
                         (float(e['JobsNr_None'])/float(entry_data[period][frontend][entry]['glideins']))*100,
-                        (float(entry_data[period][frontend][entry]['badput'])/float(e['Lasted']))*100,
                         #(float(e['badput_All'])/float(e['Lasted']))*100,
+                        (float(entry_data[period][frontend][entry]['validation'])/float(e['Lasted']))*100,
+                        (float(entry_data[period][frontend][entry]['idle'])/float(e['Lasted']))*100,
+                        (float(entry_data[period][frontend][entry]['waste'])/float(e['Lasted']))*100,
+                        (float(entry_data[period][frontend][entry]['badput'])/float(e['Lasted']))*100,
                         entry_data[period][frontend][entry]['waste']/3600.0,
                         #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
                         e['Lasted']/3600.0,
@@ -425,15 +470,20 @@ CPU time efficiency: %.2f
 
 
     print("""\n-----------------------------------
-KEY:
+LEGEND:
 
-start = condor failed to start
-val = failed to validate (hit 1000s limit)
-0jobs = 0 jobs/glidein
-badput = badput (Lasted - JobsGoodput)
-wasted = wallclock time wasted (hours) (Lasted - JobsLasted)
-time = total wallclock time (hours)
-total = total number of glideins
+strt - % of jobs where condor failed to start
+fval - % of glideins that failed to validate (hit 1000s limit)
+0job - %  0 jobs/glidein
+----------
+val - % of time used for validation
+idle - % of time spend idle
+wst - % of time wasted (Lasted - JobsLasted) 
+badp - % of badput (Lasted - JobsGoodput)
+----------
+waste - wallclock time wasted (hours) (Lasted - JobsLasted)
+time - total wallclock time (hours) (Lasted)
+total - total number of glideins
 -------------------------------------
         \n""")
 
