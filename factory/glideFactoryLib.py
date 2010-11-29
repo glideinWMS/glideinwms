@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13.2.3 2010/11/29 03:06:13 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.4 2010/11/29 05:08:27 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -630,7 +630,11 @@ def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
     log_files.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
 
     client_log_name="%s_%s"%(client_security_name,proxy_security_class)
-    factoryConfig.qc_stats.logRequest(client_log_name,work_el['requests'],work_el['params'])
+    reqs={'IdleGlideins':req_idle,'MaxRunningGlideins':req_max_run}
+    factoryConfig.qc_stats.logRequest(client_log_name,reqs)
+
+    # TO DO
+    # Not sure how to handle this... but it is mostly likely wrong this way
     factoryConfig.qc_stats.logClientMonitor(client_log_name,work_el['monitor'],work_el['internals'])
 
 
