@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.5 2010/11/28 16:00:18 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.6 2010/11/29 03:06:13 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -66,7 +66,7 @@ def check_parent(parent_pid,glideinDescript,jobDescript):
 
 ############################################################
 def perform_work(entry_name,
-                 schedd_name,
+                 condorQ,
                  client_name,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                  idle_glideins,max_running,max_held,
                  jobDescript,
@@ -80,24 +80,6 @@ def perform_work(entry_name,
     else:
         condor_pool=None
     
-    #glideFactoryLib.log_files.logActivity("QueryQ (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
-    try:
-        #
-        # TO DO: Account for the x509_proxy_security_class/x509_proxy_username
-        #
-        condorQ=glideFactoryLib.getCondorQData(entry_name,client_int_name,schedd_name)
-    except glideFactoryLib.condorExe.ExeError,e:
-        glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
-        glideFactoryLib.log_files.logWarning("getCondorQData failed: %s"%e)
-        # protect and skip
-        return 0
-    except:
-        glideFactoryLib.log_files.logActivity("Client '%s', schedd not responding, skipping"%client_int_name)
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        glideFactoryLib.log_files.logWarning("getCondorQData failed, traceback: %s"%string.join(tb,''))
-        # protect and skip
-        return 0
 
     #glideFactoryLib.log_files.logActivity("QueryS (%s,%s,%s,%s,%s)"%(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,client_name,schedd_name))
 
@@ -140,7 +122,7 @@ def perform_work(entry_name,
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
                                                        idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
-                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_username,
+                                                       x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_username,x509_proxy_security_class,
                                                        client_web,params)
     if nr_submitted>0:
         #glideFactoryLib.log_files.logActivity("Submitted")
@@ -228,6 +210,21 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
     factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
+
+    try:
+        condorQ=glideFactoryLib.getCondorQData(entry_name,None,schedd_name)
+    except glideFactoryLib.condorExe.ExeError,e:
+        glideFactoryLib.log_files.logActivity("Schedd %s not responding, skipping"%schedd_name)
+        glideFactoryLib.log_files.logWarning("getCondorQData failed: %s"%e)
+        # protect and exit
+        return 0
+    except:
+        glideFactoryLib.log_files.logActivity("Schedd %s not responding, skipping"%schedd_name)
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logWarning("getCondorQData failed, traceback: %s"%string.join(tb,''))
+        # protect and exit
+        return 0
 
     all_security_names=sets.Set()
 
@@ -465,7 +462,8 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 x509_proxy_frac=1.0*len(x509_proxies.fnames[x509_proxy_security_class])/x509_proxies.count_fnames
 
                 # round up... if a client requests a non splittable number, worse for him
-                # expect to not be a problem in real world
+                # expect to not be a problem in real world as
+                # the most reasonable use case has a single proxy_class per client name
                 idle_glideins_pc=math.ceil(idle_glideins*x509_proxy_frac)
                 max_running_pc=math.ceil(max_running*x509_proxy_frac)
 
@@ -479,7 +477,8 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             
                 all_security_names.add((client_security_name,x509_proxy_security_class))
 
-                done_something+=perform_work(entry_name,schedd_name,
+                entry_condorQ=glideFactoryLib.getQProxSecClass(condorQ,client_int_name,x509_proxy_security_class)
+                done_something+=perform_work(entry_name,entry_condorQ,
                                              work_key,client_int_name,client_security_name,x509_proxy_security_class,client_int_req,
                                              idle_glideins_pc,max_running_pc,factory_max_held,
                                              jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
