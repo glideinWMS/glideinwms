@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12 2010/11/22 19:15:19 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.1 2010/11/29 05:07:50 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -231,19 +231,23 @@ class condorQStats:
             t_el={}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['Status']=el
+        if t_el.has_key('Status'):
+            el=t_el['Status']
+        else:
+            el={}
+            t_el['Status']=el
 
         status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1010,"StageIn"),(1100,"IdleOther"),(4010,"StageOut"))
         for p in status_pairs:
             nr,str=p
-            if qc_status.has_key(nr):
-                el[str]=qc_status[nr]
-            else:
+            if not el.has_key(str):
                 el[str]=0
+            if qc_status.has_key(nr):
+                el[str]+=qc_status[nr]
+
         self.updated=time.time()
 
-    def logRequest(self,client_name,requests,params):
+    def logRequest(self,client_name,requests):
         """
         requests is a dictinary of requests
         params is a dictinary of parameters
@@ -256,18 +260,27 @@ class condorQStats:
             t_el=self.data[client_name]
         else:
             t_el={}
+            t_el['Downtime'] = {'status':self.downtime}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['Requested']=el
-        t_el['Downtime'] = {'status':self.downtime}
+        if t_el.has_key('Requested'):
+            el=t_el['Requested']
+        else:
+            el={}
+            t_el['Requested']=el
 
-        if requests.has_key('IdleGlideins'):
-            el['Idle']=requests['IdleGlideins']
-        if requests.has_key('MaxRunningGlideins'):
-            el['MaxRun']=requests['MaxRunningGlideins']
+        for reqpair in  (('IdleGlideins','Idle'),('MaxRunningGlideins','MaxRun')):
+            org,new=reqpair
+            if not el.has_key(new):
+                el[new]=0
+            if requests.has_key(org):
+                el[new]+=requests[org]
 
-        el['Parameters']=copy.deepcopy(params)
+        # Had to get rid of this
+        # Does not make sense when one aggregates
+        #el['Parameters']=copy.deepcopy(params)
+        # Replacing with an empty list
+        el['Parameters']={}
 
         self.updated=time.time()
 
@@ -291,21 +304,31 @@ class condorQStats:
             t_el={}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['ClientMonitor']=el
+        if t_el.has_key('ClientMonitor'):
+            el=t_el['ClientMonitor']
+        else:
+            el={}
+            t_el['ClientMonitor']=el
 
         for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('RunningHere','JobsRunHere'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
+            if not el.has_key(ek):
+                el[ek]=0
             if client_monitor.has_key(ck):
-                el[ek]=client_monitor[ck]
+                el[ek]+=client_monitor[ck]
             elif ck=='RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
                 if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
-                    el[ek]=min(client_monitor['Running'],client_monitor['GlideinsRunning'])
+                    el[ek]+=min(client_monitor['Running'],client_monitor['GlideinsRunning'])
+
+        if not el.has_key('InfoAge'):
+            el['InfoAge']=0
+            el['InfoAgeAvgCounter']=0 # used for totals since we need an avg in totals, not absnum 
+
 
         if client_internals.has_key('LastHeardFrom'):
-            el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
-            el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
+            el['InfoAge']+=int(time.time()-long(client_internals['LastHeardFrom']))
+            el['InfoAgeAvgCounter']+=1
 
         self.updated=time.time()
 
