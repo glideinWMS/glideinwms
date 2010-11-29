@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.1 2010/11/29 05:07:50 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.2 2010/11/29 23:39:26 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -493,7 +493,8 @@ class condorLogSummary:
         self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
-        self.current_stats_data={}     # will contain dictionary client->username->dirSummary.data
+        self.current_stats_data={}     # will contain dictionary client->username->dirSummary
+        self.old_stats_data={}
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
         self.job_statuses_short=('Running','Idle','Wait','Held') #const
@@ -507,7 +508,8 @@ class condorLogSummary:
             # but carry over all the users... should not change that often
             new_stats_data[c]=self.current_stats_data[c]
 
-        self.current_stats_data=new_stats_data
+        self.old_stats_data=new_stats_data
+        self.current_stats_data={}
 
         # and flush out the differences
         self.stats_diff={}
@@ -543,18 +545,26 @@ class condorLogSummary:
         """
          stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
-        self.stats_diff[client_name]={}
-        if self.current_stats_data.has_key(client_name):
-            for username in stats.keys():
-                if self.current_stats_data[client_name].has_key(username):
-                    self.stats_diff[client_name][username]=stats[username].diff(self.current_stats_data[client_name][username])
-
-        self.current_stats_data[client_name]={}
+        if not self.current_stats_data.has_key(client_name):
+            self.current_stats_data[client_name]={}
+            
         for username in stats.keys():
-            self.current_stats_data[client_name][username]=stats[username].data
+            if not self.current_stats_data[client_name].has_name(username):
+                self.current_stats_data[client_name][username]=copy.deepcopy(stats[username])
+            else:
+                self.current_stats_data[client_name][username].add(stats[username])
         
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
+
+    def computeDiff(self):
+        for client_name in self.current_stats_data.keys():
+            self.stats_diff[client_name]={}
+            if self.old_stats_data.has_key(client_name):
+                stats=self.current_stats_data[client_name]
+                for username in stats.keys():
+                    if self.old_stats_data[client_name].has_key(username):
+                        self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
     def get_stats_data_summary(self):
         stats_data={}
@@ -564,7 +574,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=0
                     for username in self.current_stats_data[client_name].keys():
-                        client_el=self.current_stats_data[client_name][username]
+                        client_el=self.current_stats_data[client_name][username].data
                         if ((client_el!=None) and (s in client_el.keys())):
                             count+=len(client_el[s])
 
@@ -774,7 +784,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=0
                     for username in self.current_stats_data[client_name].keys():
-                        stats_el=self.current_stats_data[client_name][username]
+                        stats_el=self.current_stats_data[client_name][username].data
 
                         if ((stats_el!=None) and (s in stats_el.keys())):
                             count+=len(stats_el[s])
@@ -802,7 +812,7 @@ class condorLogSummary:
             tdata=[]
             for client_name in self.current_stats_data.keys():
                 for username in self.current_stats_data[client_name]:
-                    sdata=self.current_stats_data[client_name][username]
+                    sdata=self.current_stats_data[client_name][username].data
                     if ((sdata!=None) and (k in sdata.keys())):
                         tdata=tdata+sdata[k]
             total[k]=tdata
