@@ -4,6 +4,7 @@ import common
 #-----
 import re
 import os
+import string
 import sys
 import time
 import traceback
