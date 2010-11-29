@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: local_start.sh,v 1.4.10.2 2010/09/08 03:30:00 parag Exp $
+#   $Id: local_start.sh,v 1.4.10.2.12.1 2010/11/29 02:48:28 sfiligoi Exp $
 #
 
 export GLIDEIN_USER=`id -u -n`
@@ -33,6 +33,10 @@ while [ $# -ge 2 ]; do
  shift
  shift
 done
+
+export GLIDEIN_CLIENT="test"
+export GLIDEIN_X509_SEC_CLASS="test"
+export GLIDEIN_X509_ID="test"
 
 GLIDEIN_FACTORY=`grep "^FactoryName " glidein.descript | awk '{print $2}'`
 GLIDEIN_NAME=`grep "^GlideinName " glidein.descript | awk '{print $2}'`

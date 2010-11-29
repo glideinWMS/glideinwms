@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.8 2010/11/18 20:42:54 dstrain Exp $
+#   $Id: cgWCreate.py,v 1.49.2.8.6.1 2010/11/29 02:48:28 sfiligoi Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -86,6 +86,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinEntryName','"%s"'%entry_name)
         self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinX509Identifier','"$ENV(GLIDEIN_X509_ID)"')
+        self.add('+GlideinX509SecurityClass','"$ENV(GLIDEIN_X509_SEC_CLASS)"')
         self.add('+GlideinWebBase','"%s"'%web_base)
         if proxy_url!=None:
             self.add('+GlideinProxyURL','"%s"'%proxy_url)
