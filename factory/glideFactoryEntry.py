@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.6 2010/11/29 03:06:13 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.7 2010/11/29 23:39:57 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -502,6 +502,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 def write_stats():
     global log_rrd_thread,qc_rrd_thread
     
+    glideFactoryLib.factoryConfig.log_stats.computeDiff()
     glideFactoryLib.factoryConfig.log_stats.write_file()
     glideFactoryLib.log_files.logActivity("log_stats written")
     glideFactoryLib.factoryConfig.qc_stats.write_file()
