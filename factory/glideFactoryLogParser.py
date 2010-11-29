@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.3 2010/09/08 03:22:59 parag Exp $
+#   $Id: glideFactoryLogParser.py,v 1.15.12.3.12.1 2010/11/29 23:36:50 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -15,6 +15,7 @@
 
 
 import os, os.path,time,stat,sets
+import copy
 import mmap,re
 import condorLogParser
 
@@ -22,6 +23,7 @@ rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
 
 # this class declares a job complete only after the output file has been received, too
+# the format is slightly different than the one of logSummaryTimings; we add the dirname in the job id
 # when a output file is found, it adds a 4th parameter to the completed jobs
 # see extractLogData below for more details
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
@@ -75,6 +77,34 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 
         self.data['CompletedNoOut']=new_waitout
         self.data['Completed']=new_completed
+
+        # augment the job id with the dirname
+        for k in self.data.keys():
+            new_karr=[]
+            for el in self.data[k]:
+                new_el=[(el[0][0]+el[0][1]+self.dirname)]+el[1:]
+                new_karr.append(new_el)
+            self.data[k]=new_karr
+
+        return
+
+    # add other to self
+    def add(self,other):
+        if other==None:
+            return # nothing to do
+
+        if self.data==None:
+            # I have nothing yet, so it is equivalent to 0
+            # adding == assigning
+            self.data=copy.deepcopy(other.data)
+            return
+        
+        
+        for k in self.data.keys():
+            if other.data.has_key(k):
+                self.data[k]+=other.data[k]
+            # else, nothing to add
+
         return
 
     # diff self data with other info
@@ -128,7 +158,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                         if sel_e[0] in entered_set:
                             if s=="Completed":
                                 job_id=rawJobId2Nr(sel_e[0])
-                                job_fname='job.%i.%i.out'%job_id
+                                job_fname='job.%i.%i.out'%(job_id[0],job_id[1])
                                 job_fullname=os.path.join(self.dirname,job_fname)
                                 
                                 try:
