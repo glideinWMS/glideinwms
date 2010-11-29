@@ -167,19 +167,19 @@ Glidein log analysis for frontend %s - %s
                         if multiplier == "All": multiplier = 1000
                         if multiplier == "Most": multiplier = 750 # approximation
                         if multiplier == "None": multiplier = 0
-                        ewaste += value*(int(multiplier)/1000)
+                        ewaste += value*(int(multiplier)*1.0e-3)
                     if 'validation' in name:
                         multiplier = re.findall('validation_(.*)', name)[0].rstrip('m')
                         if multiplier == "All": multiplier = 1000
                         if multiplier == "Most": multiplier = 750 # approximation
                         if multiplier == "None": multiplier = 0
-                        evalidation += value*(int(multiplier)/1000)
+                        evalidation += value*(int(multiplier)*1.0e-3)
                     if 'idle' in name:
                         multiplier = re.findall('idle_(.*)', name)[0].rstrip('m')
                         if multiplier == "All": multiplier = 1000
                         if multiplier == "Most": multiplier = 750 # approximation
                         if multiplier == "None": multiplier = 0
-                        eidle += value*(int(multiplier)/1000)
+                        eidle += value*(int(multiplier)*1.0e-3)
                 
                 if entry not in entry_data_all_frontends[period]:
                     entry_data_all_frontends[period][entry] = {} 
