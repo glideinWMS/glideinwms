@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.4 2010/11/30 19:21:37 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.5 2010/11/30 19:37:36 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -561,7 +561,7 @@ class condorLogSummary:
             self.current_stats_data[client_name]={}
             
         for username in stats.keys():
-            if not self.current_stats_data[client_name].has_name(username):
+            if not self.current_stats_data[client_name].has_key(username):
                 self.current_stats_data[client_name][username]=copy.deepcopy(stats[username])
             else:
                 self.current_stats_data[client_name][username].add(stats[username])
