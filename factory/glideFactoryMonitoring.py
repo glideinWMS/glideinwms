@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.2 2010/11/29 23:39:26 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.3 2010/11/30 16:18:18 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -284,7 +284,8 @@ class condorQStats:
 
         self.updated=time.time()
 
-    def logClientMonitor(self,client_name,client_monitor,client_internals):
+    def logClientMonitor(self,client_name,client_monitor,client_internals,
+                         fraction=1.0): # if specified, will be used to extract partial info
         """
         client_monitor is a dictinary of monitoring info
         client_internals is a dictinary of internals
@@ -315,11 +316,11 @@ class condorQStats:
             if not el.has_key(ek):
                 el[ek]=0
             if client_monitor.has_key(ck):
-                el[ek]+=client_monitor[ck]
+                el[ek]+=(client_monitor[ck]*fraction)
             elif ck=='RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
                 if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
-                    el[ek]+=min(client_monitor['Running'],client_monitor['GlideinsRunning'])
+                    el[ek]+=(min(client_monitor['Running'],client_monitor['GlideinsRunning'])*fraction)
 
         if not el.has_key('InfoAge'):
             el['InfoAge']=0
@@ -327,10 +328,21 @@ class condorQStats:
 
 
         if client_internals.has_key('LastHeardFrom'):
-            el['InfoAge']+=int(time.time()-long(client_internals['LastHeardFrom']))
-            el['InfoAgeAvgCounter']+=1
+            el['InfoAge']+=(int(time.time()-long(client_internals['LastHeardFrom']))*fraction)
+            el['InfoAgeAvgCounter']+=fraction
 
         self.updated=time.time()
+
+    # call this after the last logClientMonitor
+    def finalizeClientMonitor(self):
+        # convert all ClinetMonitor numbers in integers
+        # needed due to fraction calculations
+        for client_name in self.data.keys():
+            if self.data[client_name].has_key('ClientMonitor'):
+                el=self.data[client_name]['ClientMonitor']
+                for k in el.keys():
+                    el[k]=round(el[k])
+        return
 
     def get_data(self):
         data1=copy.deepcopy(self.data)

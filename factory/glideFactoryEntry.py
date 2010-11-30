@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.8 2010/11/30 15:57:35 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.9 2010/11/30 16:18:17 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -104,7 +104,7 @@ def perform_work(entry_name,
     log_stats[x509_proxy_username].load()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
-    client_log_name="%s_%s"%(client_security_name,x509_proxy_security_class)
+    client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
         
 
@@ -474,7 +474,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
                 glideFactoryLib.logWorkRequest(client_int_name,client_security_name,x509_proxy_security_class,
                                                idle_glideins, max_running,
-                                               work[work_key])
+                                               work[work_key],x509_proxy_frac)
             
                 all_security_names.add((client_security_name,x509_proxy_security_class))
 
@@ -506,6 +506,7 @@ def write_stats():
     glideFactoryLib.factoryConfig.log_stats.computeDiff()
     glideFactoryLib.factoryConfig.log_stats.write_file()
     glideFactoryLib.log_files.logActivity("log_stats written")
+    glideFactoryLib.factoryConfig.qc_stats.finalizeClientMonitor()
     glideFactoryLib.factoryConfig.qc_stats.write_file()
     glideFactoryLib.log_files.logActivity("qc_stats written")
     glideFactoryLib.factoryConfig.rrd_stats.writeFiles()
@@ -541,6 +542,8 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     entry_name=jobDescript.data['EntryName']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj=glideinDescript.data['PubKeyObj']
+
+    glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor()
 
     current_qc_total=glideFactoryLib.factoryConfig.client_stats.get_total()
 

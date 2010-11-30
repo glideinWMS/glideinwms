@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13.2.5 2010/11/30 15:57:35 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.6 2010/11/30 16:18:18 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -129,7 +129,7 @@ factoryConfig=FactoryConfig()
 
 ############################################################
 #
-def secClass2QCName(client_security_name,proxy_security_class):
+def secClass2Name(client_security_name,proxy_security_class):
     return "%s_%s"%(client_security_name,proxy_security_class)
 
 ############################################################
@@ -631,7 +631,7 @@ def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_se
 
 def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
                    req_idle, req_max_run,
-                   work_el):
+                   work_el, fraction=1.0):
     client_log_name=secClass2Name(client_security_name,proxy_security_class)
 
     log_files.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i"%(client_int_name,client_log_name,req_idle,req_max_run))
@@ -642,10 +642,8 @@ def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
     factoryConfig.client_stats.logRequest(client_int_name,reqs)
     factoryConfig.qc_stats.logRequest(client_log_name,reqs)
 
-    # TO DO
-    # Not sure how to handle this... but it is mostly likely wrong this way
-    factoryConfig.client_stats.logClientMonitor(client_int_name,work_el['monitor'],work_el['internals'])
-    factoryConfig.qc_stats.logClientMonitor(client_log_name,work_el['monitor'],work_el['internals'])
+    factoryConfig.client_stats.logClientMonitor(client_int_name,work_el['monitor'],work_el['internals'],fraction)
+    factoryConfig.qc_stats.logClientMonitor(client_log_name,work_el['monitor'],work_el['internals'],fraction)
 
 
 ############################################################
