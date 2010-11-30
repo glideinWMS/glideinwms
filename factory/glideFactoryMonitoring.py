@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.3 2010/11/30 16:18:18 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.4 2010/11/30 19:21:37 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -341,7 +341,7 @@ class condorQStats:
             if self.data[client_name].has_key('ClientMonitor'):
                 el=self.data[client_name]['ClientMonitor']
                 for k in el.keys():
-                    el[k]=round(el[k])
+                    el[k]=int(round(el[k]))
         return
 
     def get_data(self):
