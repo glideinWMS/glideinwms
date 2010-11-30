@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.7 2010/11/29 23:39:57 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.6.8 2010/11/30 15:57:35 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -194,6 +194,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 security_list[entry_part[0]]=[entry_part[1]];
    
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
+    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime)
     glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
     
     #glideFactoryLib.log_files.logActivity("Find work")
@@ -541,7 +542,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
-    current_qc_total=glideFactoryLib.factoryConfig.qc_stats.get_total()
+    current_qc_total=glideFactoryLib.factoryConfig.client_stats.get_total()
 
     glidein_monitors={}
     for w in current_qc_total.keys():
@@ -561,7 +562,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                                                            jobAttributes.data.copy())
 
-    current_qc_data=glideFactoryLib.factoryConfig.qc_stats.get_data()
+    current_qc_data=glideFactoryLib.factoryConfig.client_stats.get_data()
     for client_name in current_qc_data.keys():
         client_qc_data=current_qc_data[client_name]
         if not glideFactoryLib.factoryConfig.client_internals.has_key(client_name):
@@ -629,6 +630,9 @@ def iterate(parent_pid,sleep_time,advertize_rate,
             glideFactoryLib.log_files.logActivity("Iteration at %s" % time.ctime())
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
+            # This one is used for stats advertized in the ClassAd
+            glideFactoryLib.factoryConfig.client_stats=glideFactoryMonitoring.condorQStats()
+            # These two are used to write the history to disk
             glideFactoryLib.factoryConfig.qc_stats=glideFactoryMonitoring.condorQStats()
             glideFactoryLib.factoryConfig.client_internals = {}
 

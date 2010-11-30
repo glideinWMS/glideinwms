@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13.2.4 2010/11/29 05:08:27 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.5 2010/11/30 15:57:35 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -78,7 +78,8 @@ class FactoryConfig:
         # monitoring objects
         # create them for the logging to occur
         self.client_internals = None
-        self.qc_stats = None
+        self.client_stats = None # this one is indexed by client name
+        self.qc_stats = None     # this one is indexed by security class
         self.log_stats = None
         self.rrd_stats = None
 
@@ -125,6 +126,11 @@ class FactoryConfig:
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
+
+############################################################
+#
+def secClass2QCName(client_security_name,proxy_security_class):
+    return "%s_%s"%(client_security_name,proxy_security_class)
 
 ############################################################
 #
@@ -617,7 +623,8 @@ def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_se
     
     log_files.logActivity("Client %s (secid: %s_%s) schedd status %s%s"%(client_int_name,client_security_name,proxy_security_class,qc_status,s_running_str))
     if factoryConfig.qc_stats!=None:
-        client_log_name="%s_%s"%(client_security_name,proxy_security_class)
+        client_log_name=secClass2Name(client_security_name,proxy_security_class)
+        factoryConfig.client_stats.logSchedd(client_int_name,qc_status)
         factoryConfig.qc_stats.logSchedd(client_log_name,qc_status)
     
     return
@@ -625,16 +632,19 @@ def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_se
 def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
                    req_idle, req_max_run,
                    work_el):
-    log_files.logActivity("Client %s (secid: %s_%s) requesting %i glideins, max running %i"%(client_int_name,client_security_name,proxy_security_class,req_idle,req_max_run))
+    client_log_name=secClass2Name(client_security_name,proxy_security_class)
+
+    log_files.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i"%(client_int_name,client_log_name,req_idle,req_max_run))
     log_files.logActivity("  Params: %s"%work_el['params'])
     log_files.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
 
-    client_log_name="%s_%s"%(client_security_name,proxy_security_class)
     reqs={'IdleGlideins':req_idle,'MaxRunningGlideins':req_max_run}
+    factoryConfig.client_stats.logRequest(client_int_name,reqs)
     factoryConfig.qc_stats.logRequest(client_log_name,reqs)
 
     # TO DO
     # Not sure how to handle this... but it is mostly likely wrong this way
+    factoryConfig.client_stats.logClientMonitor(client_int_name,work_el['monitor'],work_el['internals'])
     factoryConfig.qc_stats.logClientMonitor(client_log_name,work_el['monitor'],work_el['internals'])
 
 
