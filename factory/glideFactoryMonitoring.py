@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.5 2010/11/30 19:37:36 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.6.6 2010/12/01 01:59:22 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -505,7 +505,7 @@ class condorLogSummary:
         self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
-        self.current_stats_data={}     # will contain dictionary client->username->dirSummary
+        self.current_stats_data={}     # will contain dictionary client->username->dirSummarySimple
         self.old_stats_data={}
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
@@ -562,9 +562,9 @@ class condorLogSummary:
             
         for username in stats.keys():
             if not self.current_stats_data[client_name].has_key(username):
-                self.current_stats_data[client_name][username]=copy.deepcopy(stats[username])
+                self.current_stats_data[client_name][username]=stats[username].get_simple()
             else:
-                self.current_stats_data[client_name][username].add(stats[username])
+                self.current_stats_data[client_name][username].merge(stats[username])
         
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
