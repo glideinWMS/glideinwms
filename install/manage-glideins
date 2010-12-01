@@ -20,18 +20,15 @@ from Configuration import ConfigurationError
 
 global gProgramName
 global gAction
-global gDEBUG
 
 #--------------------------------
 def run_command(service,user,node,command):
   global gAction
-  global gDEBUG
   hdr = "%s %s user(%s) node(%s)" %(gAction,service,user,node) 
   common.logit("\n############################################################")
   common.logit("## %s " % hdr)
   cmd = """ssh -l %s %s "%s" """ % (user,node,command)
-  if gDEBUG:
-    common.logit("Commands: %s" % cmd)
+  common.logit("Commands: %s" % cmd)
   os.system(cmd)
   common.logit("## %s " % hdr)
   common.logit("############################################################\n")
@@ -180,13 +177,11 @@ def usage(services):
   for service in services:
     valid_services = valid_services + " " + service 
   msg = """
-Usage: %(program)s --<action> <service>  --ini <ini_file>  <--debug>
+Usage: %(program)s --<action> <service>  --ini <ini_file> 
 
   action: install, start, stop, status 
   services: %(services)s  
             all - can only be used with start/stop/status actions
-  --debug:  When used with start/stop/status actions, it will
-            display the series of commands used.
 
 This process can be used to install, start, stop or check the status of 
 the glidein services based on the configuration in the specified ini file.
@@ -222,12 +217,10 @@ def main(argv):
   try:
     global gProgramName
     global gAction
-    global gDEBUG
     gProgramName = argv[0]
     gAction = None
-    gDEBUG = False
     inifile = ""
-    arglist = [ "help", "debug", "start=", "stop=", "status=", "install=","ini=","create-entries","install-node" ]
+    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries","install-node" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
     stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
@@ -239,10 +232,6 @@ def main(argv):
       if o in ("--help"):
         usage(services)
         return 1
-
-      if o in ("--debug"):
-        gDEBUG = True
-        continue
 
       if o in ("--ini"):
         inifile = a
