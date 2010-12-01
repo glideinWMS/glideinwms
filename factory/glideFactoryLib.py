@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13.2.7 2010/11/30 19:34:35 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.8 2010/12/01 01:58:14 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -305,6 +305,11 @@ def getQProxSecClass(condorq,
 
     entry_condorQ=condorMonitor.SubQuery(condorq,lambda d:(d.has_key(csa_str) and (d[csa_str]==client_name) and
                                                            d.has_key(xsa_str) and (d[xsa_str]==proxy_security_class)))
+    entry_condorQ.schedd_name=condorq.schedd_name
+    entry_condorQ.factory_name=condorq.factory_name
+    entry_condorQ.glidein_name=condorq.glidein_name
+    entry_condorQ.entry_name=condorq.entry_name
+    entry_condorQ.client_name=condorq.client_name
     entry_condorQ.load()
     return entry_condorQ
 
