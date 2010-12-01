@@ -4,7 +4,7 @@ import traceback
 import sys,os,os.path,string,time
 import getopt
 
-STARTUP_DIR=sys.path[0]
+STARTUP_DIR=os.path.abspath(sys.path[0])
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"./services"))
 
