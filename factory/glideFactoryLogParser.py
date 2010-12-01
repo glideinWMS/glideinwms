@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.3.12.1 2010/11/29 23:36:50 sfiligoi Exp $
+#   $Id: glideFactoryLogParser.py,v 1.15.12.3.12.2 2010/12/01 01:59:01 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -88,25 +88,6 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
         return
 
-    # add other to self
-    def add(self,other):
-        if other==None:
-            return # nothing to do
-
-        if self.data==None:
-            # I have nothing yet, so it is equivalent to 0
-            # adding == assigning
-            self.data=copy.deepcopy(other.data)
-            return
-        
-        
-        for k in self.data.keys():
-            if other.data.has_key(k):
-                self.data[k]+=other.data[k]
-            # else, nothing to add
-
-        return
-
     # diff self data with other info
     # add glidein log data to Entered/Completed
     # return data[status]['Entered'|'Exited'] - list of jobs
@@ -159,7 +140,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                             if s=="Completed":
                                 job_id=rawJobId2Nr(sel_e[0])
                                 job_fname='job.%i.%i.out'%(job_id[0],job_id[1])
-                                job_fullname=os.path.join(self.dirname,job_fname)
+                                job_fullname=os.path.join(job_id[2],job_fname)
                                 
                                 try:
                                     fdata=extractLogData(job_fullname)
@@ -186,16 +167,39 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 # for now it is just a constructor wrapper
 # Further on it will need to implement glidein exit code checks
 
+class dirSummarySimple:
+    def __init__(self,obj):
+        self.data=copy.deepcopy(obj.data)
+        self.logClass=obj.logClass
+
+    # diff self data with other info
+    def diff(self,other):
+        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data=self.data # a little rough but works
+        return  dummyobj.diff(other.data) 
+
+    # merge other into myself
+    def merge(self,other):
+        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data=self.data # a little rough but works
+        dummyobj.merge(copy.deepcopy(other.data))
+        self.data=dummyobj.data
+
 # One client_name
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     def __init__(self,dirname,cache_dir,client_name,user_name,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,user_name),dirname,"condor_activity_","_%s.log"%client_name,".%s.cifpk"%user_name,inactive_files,inactive_timeout,cache_dir)
+
+    def get_simple(self):
+        return dirSummarySimple(self)
 
 # All clients
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
     def __init__(self,dirname,cache_dir,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,"all"),dirname,"condor_activity_",".log",".all.cifpk",inactive_files,inactive_timeout,cache_dir)
 
+    def get_simple(self):
+        return dirSummarySimple(self)
 
 #########################################################
 #     P R I V A T E
