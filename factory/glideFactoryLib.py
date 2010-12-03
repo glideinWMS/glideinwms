@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.10 2010/11/19 19:35:58 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.10.2.1 2010/12/03 17:54:57 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -482,29 +482,23 @@ def keepIdleGlideins(client_condorq,client_int_name,
         if max_nr_running!=None:
             stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
         log_files.logActivity("Need more glideins: %s"%stat_str)
-        submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                       client_int_name,min_nr_idle-idle_glideins,submit_attrs,
-                       x509_proxy_identifier,x509_proxy_fname,
-                       client_web,params)
-        return min_nr_idle-idle_glideins # exit, some submitted
-
-    # We have enough glideins in the queue
-    # Now check we don't have problems
-
-    # Check if we have stale idle glideins
-    qc_stale=getQStatusStale(condorq)
-
-    # Check if there are stuck running glideins
-    #   Running==Jobstatus(2), Stale==1
-    if qc_stale.has_key(2) and qc_stale[2].has_key(1):
-        runstale_glideins=qc_stale[2][1]
-    else:
-        runstale_glideins=0
-    if runstale_glideins>0:
-        # remove the held glideins
-        runstale_list=extractRunStale(condorq)
-        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
-        removeGlideins(condorq.schedd_name,runstale_list)
+        add_glideins=min_nr_idle-idle_glideins
+        if ((max_nr_running!=None) and
+            ((running_glideins+idle_glideins+add_glideins)>max_nr_running)):
+            # never exceed max_nr_running
+            add_glideins=max_nr_running-(running_glideins+idle_glideins)
+        try:
+            submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
+                           client_int_name,add_glideins,submit_attrs,
+                           x509_proxy_identifier,x509_proxy_fname,
+                           client_web,params)
+            return add_glideins # exit, some submitted
+        except RuntimeError, e:
+            log_files.logWarning("%s"%e)
+            return 0 # something is wrong... assume 0 and exit
+        except:
+            log_files.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
+            return 0 # something is wrong... assume 0 and exit
 
     return 0
 
@@ -521,6 +515,12 @@ def sanitizeGlideins(condorq,status):
     if len(stale_list)>0:
         log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
+
+    # Check if some glideins have been in running state for too long
+    runstale_list=extractRunStale(condorq)
+    if len(runstale_list)>0:
+        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name,runstale_list)
 
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list=extractUnrecoverableHeld(condorq,status)
@@ -558,6 +558,12 @@ def sanitizeGlideinsSimple(condorq):
     if len(stale_list)>0:
         log_files.logWarning("Found %i stale glideins"%len(stale_list))
         removeGlideins(condorq.schedd_name,stale_list)
+
+    # Check if some glideins have been in running state for too long
+    runstale_list=extractRunStale(condorq)
+    if len(runstale_list)>0:
+        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name,runstale_list)
 
     # Check if there are held glideins that are not recoverable
     unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
@@ -938,21 +944,21 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                                                      ['--']+params_arr,
                                                      exe_env)
                 except condorPrivsep.ExeError, e:
-                    log_files.logWarning("condor_submit failed (user %s): %s"%(username,e))
                     submit_out=[]
-                    raise
+                    raise RuntimeError, "condor_submit failed (user %s): %s"%(username,e)
                 except:
-                    log_files.logWarning("condor_submit failed (user %s): Unknown privsep error"%username)
                     submit_out=[]
-                    raise
+                    raise RuntimeError, "condor_submit failed (user %s): Unknown privsep error"%username
             else:
                 # avoid using privsep, if possible
                 try:
                     submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
-                    log_files.logWarning("condor_submit failed: %s"%e)
                     submit_out=[]
-                    raise
+                    raise RuntimeError, "condor_submit failed: %s"%e
+                except:
+                    submit_out=[]
+                    raise RuntimeError, "condor_submit failed: Unknown error"
                 
                 
             cluster,count=extractJobId(submit_out)

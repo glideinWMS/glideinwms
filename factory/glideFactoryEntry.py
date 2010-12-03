@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.27 2010/11/18 20:42:55 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.27.2.1 2010/12/03 17:54:57 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -164,6 +164,14 @@ def perform_work(entry_name,
     
 
 ############################################################
+# only allow simple strings
+def is_str_safe(s):
+    for c in s:
+        if not c in ('._-@'+string.ascii_letters+string.digits):
+            return False
+    return True
+
+###
 def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
@@ -204,6 +212,11 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
     done_something=0
     for work_key in work.keys():
+        if not is_str_safe(work_key):
+            # may be used to write files... make sure it is reasonable
+            glideFactoryLib.log_files.logWarning("Request name '%s' not safe. Skipping request"%work_key)
+            continue #skip request
+
         # merge work and default params
         params=work[work_key]['params']
         decrypted_params=work[work_key]['params_decrypted']
@@ -219,6 +232,11 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
         except:
             client_int_name="DummyName"
             client_int_req="DummyReq"
+
+        if not is_str_safe(client_int_name):
+            # may be used to write files... make sure it is reasonable
+            glideFactoryLib.log_files.logWarning("Client name '%s' not safe. Skipping request"%client_int_name)
+            continue #skip request
 
         # Check whether the frontend is on the whitelist for the 
         # Entry point.
@@ -295,6 +313,11 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 x509_proxy=decrypted_params['x509_proxy_%i'%i]
                 x509_proxy_identifier=decrypted_params['x509_proxy_%i_identifier'%i]
 
+                if not is_str_safe(x509_proxy_identifier):
+                    # may be used to write files... make sure it is reasonable
+                    glideFactoryLib.log_files.logWarning("Identifier for x509_proxy_%i for %s is not safe ('%s), skipping and trying the others"%(i,client_int_name,x509_proxy_identifier))
+                    continue #skip proxy
+
                 if decrypted_params.has_key('x509_proxy_%i_security_class'%i):
                     x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
                 else:
@@ -362,12 +385,20 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
 
         if work[work_key]['requests'].has_key('IdleGlideins'):
-            idle_glideins=work[work_key]['requests']['IdleGlideins']
+            try:
+                idle_glideins=int(work[work_key]['requests']['IdleGlideins'])
+            except ValueError, e:
+                glideFactoryLib.log_files.logWarning("Client %s provided an invalid ReqIdleGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['IdleGlideins']))
+                continue #skip request
             if idle_glideins>factory_max_idle:
                 idle_glideins=factory_max_idle
             
             if work[work_key]['requests'].has_key('MaxRunningGlideins'):
-                max_running=work[work_key]['requests']['MaxRunningGlideins']
+                try:
+                    max_running=int(work[work_key]['requests']['MaxRunningGlideins'])
+                except ValueError, e:
+                    glideFactoryLib.log_files.logWarning("Client %s provided an invalid ReqMaxRunningGlideins: '%s' not a number. Skipping request"%(client_int_name,work[work_key]['requests']['MaxRunningGlideins']))
+                    continue #skip request
                 if max_running>factory_max_running:
                     max_running=factory_max_running
             else:
