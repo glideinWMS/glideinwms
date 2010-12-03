@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.28 2010/11/28 15:39:39 sfiligoi Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.29 2010/12/03 22:40:43 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -237,7 +237,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             # may be used to write files... make sure it is reasonable
             glideFactoryLib.log_files.logWarning("Client name '%s' not safe. Skipping request"%client_int_name)
             continue #skip request
-
+            
         # Check whether the frontend is on the whitelist for the 
         # Entry point.
         if decrypted_params.has_key('SecurityName'):
@@ -245,6 +245,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
         else:
                 # backwards compatibility
                 client_security_name=client_int_name
+
+        if ((frontend_whitelist == "On") and (not security_list.has_key(client_security_name))):
+            glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Skipping request from %s "% (client_security_name,client_int_name))
+            continue
 
         # Check if proxy passing is compatible with allowed_proxy_source
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
@@ -291,6 +295,13 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 glideFactoryLib.log_files.logWarning("Failed to update x509_proxy using usename %s for client %s, skipping request"%(x509_proxy_username,client_int_name))
                 continue # skip request
             
+            # Check if this entry point has a whitelist
+            # If it does, then make sure that this frontend is in it.
+            if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
+                glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping security class %s "%(client_security_name,x509_proxy_security_class))
+                continue #skip request
+
+            
             x509_proxy_fnames['main']=x509_proxy_fname
             x509_proxy_usernames['main']=x509_proxy_username
         elif decrypted_params.has_key('x509_proxy_0'):
@@ -326,10 +337,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 # Deny Frontend from entering glideins if the whitelist
                 # does not have its security class (or "All" for everyone)
                 if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
-                    glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_authenticated_identity,x509_proxy_security_class))
+                    glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
                     continue # skip request
 #                else:
-#                    glideFactoryLib.log_files.logWarning("Security test passed for : %s %s "%(client_authenticated_identity,x509_proxy_security_class))
+#                    glideFactoryLib.log_files.logDebug("Security test passed for : %s %s "%(jobDescript.data['EntryName'],x509_proxy_security_class))
 
                 x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
                 if x509_proxy_username==None:
@@ -367,20 +378,21 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             x509_proxy_fnames['factory']=os.environ['X509_USER_PROXY'] # use the factory one
             x509_proxy_usernames['factory']=x509_proxy_username
         
-        # Check if this entry point has a whitelist
-        # If it does, then make sure that this frontend is in it.
-        if (frontend_whitelist == "On")and(not security_list.has_key(x509_proxy_security_class)):
-            glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping security class %s "%(client_int_name,x509_proxy_security_class))
-            continue #skip request
+            # Check if this entry point has a whitelist
+            # If it does, then make sure that this frontend is in it.
+            if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
+                glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping security class %s "%(client_security_name,x509_proxy_security_class))
+                continue #skip request
 
         #Check security class for downtime
         factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
-        glideFactoryLib.log_files.logActivity("Checking downtime for security class: %s (entry %s)."%(x509_proxy_security_class,jobDescript.data['EntryName']))
+        glideFactoryLib.log_files.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,jobDescript.data['EntryName']))
 
         in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],security_class=x509_proxy_security_class))
         if (in_sec_downtime):
             glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
-            continue #skip request
+            idle_glideins=0
+            max_running=0
 
 
 
