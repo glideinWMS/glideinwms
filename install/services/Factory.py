@@ -17,7 +17,7 @@ import optparse
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 os.environ["PYTHONPATH"] = ""
 
-valid_options = [ "node", 
+factory_options = [ "node", 
 "unix_acct", 
 "service_name", 
 "install_location", 
@@ -49,21 +49,38 @@ valid_options = [ "node",
 "pacman_location",
 ]
 
+wmscollector_options = [ "node", 
+"unix_acct", 
+"privilege_separation",
+"condor_location",
+"frontend_users",
+]
+
+#frontend_options = [ "node", 
+#"unix_acct", 
+#]
+
+valid_options = { "Factory"       : factory_options,
+                  "WMSCollector"  : wmscollector_options,
+}
+#                  "VOFrontend"    : frontend_options,
+
 
 class Factory(Configuration):
+
   def __init__(self,inifile,options=None):
     global valid_options
-    if options <> None:
-       valid_options = options
     self.inifile = inifile
     self.ini_section = "Factory"
+    if options == None:
+      options = valid_options[self.ini_section]
     Configuration.__init__(self,inifile)
-    self.validate_section(self.ini_section,valid_options)
-    self.wms = WMSCollector.WMSCollector(self.inifile)
-    frontend1 = VOFrontend.VOFrontend(self.inifile) 
-    self.frontends = [ frontend1,]    # list of VOFrontends
+    self.validate_section(self.ini_section,options)
+    self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+    #frontend1 = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"]) 
+    #self.frontends = [ frontend1,]    # list of VOFrontends
 
-    self.glidein = Glidein(self.inifile,self.ini_section,valid_options)
+    self.glidein = Glidein(self.inifile,self.ini_section,valid_options["Factory"])
 
     self.config_entries_list = {} # Config file entries elements
 
@@ -130,8 +147,9 @@ class Factory(Configuration):
     self.create_config()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
-    self.start()
-
+    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
+      common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile)
+ 
   #-----------------------
   def validate_install(self):
     common.logit( "\nDependency and validation checking starting\n")
@@ -169,16 +187,6 @@ class Factory(Configuration):
     common.logit("Creating client proxies directory: %s" % self.client_proxies())
     common.make_directory(self.client_proxies(),owner,perm,empty_required=True)
 
-
-  #-----------------------
-  def start(self):
-    cmd1 = "source %s" % self.env_script()
-    cmd2 = "cd %s;./factory_startup start" % (self.glidein_dir())
-    common.logit("\nTo start the glideins you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
-    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
-      yn=raw_input("Do you want to start the glideins now? (y/n) [n]: ")
-      if yn=='y':
-        common.run_script("%s;%s" % (cmd1,cmd2))
 
   #-----------------------
   def create_env_script(self):
@@ -828,11 +836,24 @@ specified.
     common.logit("Using ini file: %s" % options.inifile)
     return options
 
+#-------------------------
+def create_template():
+  global valid_options
+  print "; ------------------------------------------"
+  print "; Factory minimal ini options template"
+  for section in valid_options.keys():
+    print "; ------------------------------------------"
+    print "[%s]" % section
+    for option in valid_options[section]:
+      print "%-25s =" % option
+    print#-------------------------
+
 ##################################################
 def main(argv):
   try:
-    options = validate_args(argv)
-    factory = Factory(options.inifile)
+    create_template()
+    #options = validate_args(argv)
+    #factory = Factory(options.inifile)
     #factory.get_new_config_entries()
     #factory.install()
     #factory.install()

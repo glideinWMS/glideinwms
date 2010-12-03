@@ -19,7 +19,7 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-valid_options = [ "node", 
+frontend_options = [ "node", 
 "unix_acct", 
 "service_name", 
 "frontend_identity",
@@ -53,33 +53,55 @@ valid_options = [ "node",
 "pacman_location",
 ]
 
-wmscollector_options = [ "node",
+wmscollector_options = [ 
+"node",
+"service_name",
 "gsi_dn",
 ]
-factory_options = [ "node",
+
+factory_options = [ 
 "unix_acct",
 ]
-usercollector_options = [ "node",
-"install_location",
-"collector_port"
+
+submit_options = [ 
+"node",
+"service_name",
+"condor_location",
 "gsi_dn"
 ]
+
+usercollector_options = [ 
+"node",
+"service_name",
+"gsi_dn",
+"condor_location",
+"collector_port",
+"number_of_secondary_collectors",
+]
+
+valid_options = { 
+"VOFrontend"    : frontend_options,
+"UserCollector" : usercollector_options,
+"WMSCollector"  : wmscollector_options,
+"Factory"       : factory_options,
+"Submit"        : submit_options,
+}
+
 
 
 class VOFrontend(Condor):
 
   def __init__(self,inifile,options=None):
     global valid_options
-    if options <> None:
-       valid_options = options
     self.inifile = inifile
     self.ini_section = "VOFrontend"
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options)
+    if options == None:
+      options = valid_options[self.ini_section]
+    Condor.__init__(self,self.inifile,self.ini_section,options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
     self.daemon_list = "" 
-
-    self.glidein = Glidein(self.inifile,self.ini_section,valid_options)
+    self.glidein = Glidein(self.inifile,self.ini_section,options)
     #-- instances of other services ---
     self.wms           = None
     self.factory       = None
@@ -90,16 +112,20 @@ class VOFrontend(Condor):
   #-- get service instances --------
   def get_wms(self):
     if self.wms == None:
-      self.wms = WMSCollector.WMSCollector(self.inifile,wmscollector_options)
+      self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+  #--------------------------------
   def get_factory(self):
     if self.factory == None:
-      self.factory = Factory.Factory(self.inifile,factory_options)
+      self.factory = Factory.Factory(self.inifile,valid_options["Factory"])
+  #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile)
+      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options["UserCollector"])
+  #--------------------------------
   def get_submit(self):
     if self.submit == None:
-      self.submit = Submit.Submit(self.inifile)
+      self.submit = Submit.Submit(self.inifile,valid_options["Submit"])
+
   #--------------------------------
   def WMSCollector(self):
     return self.option_value("WMSCollector","node")
@@ -197,7 +223,7 @@ class VOFrontend(Condor):
 
   #-----------------------------
   def determine_co_located_services(self):
-    """ The VOfrontend service can share the same instance of Condor with
+    """ The VOFrontend service can share the same instance of Condor with
         the UserCollector and/or Schedd services.  
         So we want to check and see if this is the case.  
         We will skip the installation of Condor and just perform the 
@@ -215,7 +241,7 @@ the same node and can share the same Condor instance, as well as certificates
 and VDT client instances.""")
     #--- Condor ---
     common.logit("...... VOFrontend Condor: %s" % self.condor_location())
-    common.logit(".......... Submit Condor: %s" % self.condor_location())
+    common.logit(".......... Submit Condor: %s" % self.submit.condor_location())
     common.logit("... UserCollector Condor: %s" % self.usercollector.condor_location())
     if self.condor_location() == self.usercollector.condor_location():
       self.colocated_services.append("usercollector")
@@ -226,7 +252,6 @@ Do you really want to keep them separate?
 If not, stop and fix your ini file condor_location.
 Do you want to continue""")
 
-    common.logit(".......... Submit Condor: %s" % self.condor_location())
     if self.condor_location() == self.submit.condor_location():
       self.colocated_services.append("submit")
     else:
@@ -258,11 +283,36 @@ Do you want to continue""")
   def validate_frontend(self):
     common.logit( "\nVOFrontend dependency and validation checking starting\n")
     ##  self.glidein.__install_vdt_client__()
+    self.validate_glidein_proxies()
     self.validate_glexec_use()
     self.glidein.validate_install()
     self.validate_logs_location()
     self.glidein.create_web_directories()
     common.logit( "\nVOFrontend dependency and validation checking complete")
+
+  #---------------------------------
+  def validate_glidein_proxies(self):
+    common.logit("... validating glidein_proxies")
+    proxies = self.glidein_proxies().split(" ")
+    if len(self.glidein_proxies_dns()) <> len(proxies):
+      common.logerr("""The number of glidein_proxies (%(proxy)s) must match the number of glidein_proxies_dns (%(dns)s).""" % \
+          { "proxy" : len(proxies),
+            "dns"   : len(self.glidein_proxies_dns()),
+          })
+    proxy_dns = self.glidein_proxies_dns()
+    cnt = 0
+    for proxy in proxies:
+      common.logit("""    glidein_proxies[%(position)s]: %(proxy)s
+glidein_proxies_dns[%(position)i]: %(option_dn)s """ % \
+            { "position"   : cnt,
+              "option_dn"  : proxy_dns[cnt],
+              "proxy"      : proxy, })
+      dn_in_file = common.get_gsi_dn("proxy",proxy)
+      if dn_in_file <> proxy_dns[cnt]:
+        common.logerr("""The DN in glidein_proxies_dns is incorrect.
+Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
+      cnt = cnt + 1 
+      common.logit("")
 
   #---------------------------------
   def validate_glexec_use(self):
@@ -353,15 +403,8 @@ The following DNs are in your grid_mapfile:"""
   #-----------------------
   def start(self):
     startup_file = "%s/frontend_startup" % (self.frontend_dir())
-    cmd1 = "source %s" % self.env_script()
-    cmd2 = "cd %s;./frontend_startup start" % (self.frontend_dir())
-    common.logit("\nTo start the frontend you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
-    if os.path.isfile(startup_file):
-      yn = "n"
-      yn = raw_input("\nDo you want to start the frontend now? (y/n) [%s]: " % yn)
-      if yn == "y":
-        common.run_script("%s;%s" % (cmd1,cmd2))
-      
+    if os.path.isfile(startup_file): # indicates frontend has been created
+      common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile) 
 
   #-----------------------
   def create_env_script(self):
@@ -812,17 +855,12 @@ please verify and correct if needed.
       return
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.cert_proxy_location())
     #--- create condor_mapfile entries ---
-    condor_mapfile = """\
-GSI "^%s$" %s
-GSI "^%s$" %s
-GSI "^%s$" %s
-GSI "^%s$" %s""" % \
-          (re.escape(self.gsi_dn()),         self.service_name(),
-       re.escape(self.wms.gsi_dn()),     self.wms.service_name(),
-    re.escape(self.submit.gsi_dn()),  self.submit.service_name(),
-  re.escape(self.usercollector.gsi_dn()),self.usercollector.service_name())
-
-    self.__create_condor_mapfile__(condor_mapfile)
+    condor_entries = ""
+    condor_entries += common.mapfile_entry(self.gsi_dn(),               self.service_name())
+    condor_entries += common.mapfile_entry(self.wms.gsi_dn(),           self.wms.service_name())
+    condor_entries += common.mapfile_entry(self.submit.gsi_dn(),        self.submit.service_name())
+    condor_entries += common.mapfile_entry(self.usercollector.gsi_dn(), self.usercollector.service_name())
+    self.__create_condor_mapfile__(condor_entries)
 
 #    NOT REALLY NEEDED AS THERE ARE NO DAEMONS ASSOCIATED WITH THIS SERVICE
 #    #-- create the condor config file entries ---
@@ -869,14 +907,28 @@ specified.
     common.logit("Using ini file: %s" % options.inifile)
     return options
 
+#-------------------------
+def create_template():
+  global valid_options
+  print "; ------------------------------------------"
+  print "; Submit minimal ini options template"
+  for section in valid_options.keys():
+    print "; ------------------------------------------"
+    print "[%s]" % section
+    for option in valid_options[section]:
+      print "%-25s =" % option
+    print
+
 ##########################################
 def main(argv):
   try:
+    #create_template()
     options = validate_args(argv)
     vo = VOFrontend(options.inifile)
+    vo.validate_glidein_proxies()
     #vo.install()
-    vo.get_usercollector()
-    print vo.config_collectors_data()
+    #vo.get_usercollector()
+    #print vo.config_collectors_data()
     #vo.configure_gsi_security()
   except KeyboardInterrupt, e:
     common.logit("\n... looks like you aborted this script... bye.")

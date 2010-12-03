@@ -16,7 +16,7 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-valid_options = [ "node", 
+wmscollector_options = [ "node", 
 "unix_acct", 
 "service_name", 
 "condor_location", 
@@ -38,24 +38,36 @@ valid_options = [ "node",
 ]
 
 frontend_options = [ "gsi_dn",
-"frontend_identity",
+"service_name",
 ]
-factory_options = [ "gsi_dn",
+
+factory_options = [ "node",
+"unix_acct",
 ]
+
 usercollector_options = [ "node",
-"collector_port"
-"secondary_collectors"
+"collector_port",
+"number_of_secondary_collectors",
 ]
+
+valid_options = { "WMSCollector"  : wmscollector_options,
+                  "Factory"       : factory_options,
+                  "UserCollector" : usercollector_options,
+                  "VOFrontend"    : frontend_options,
+}
+
+
+
 
 class WMSCollector(Condor):
 
   def __init__(self,inifile,options=None):
     global valid_options
-    if options <> None:
-       valid_options = options
     self.inifile = inifile
     self.ini_section = "WMSCollector"
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options)
+    if options == None:
+      options = valid_options[self.ini_section]
+    Condor.__init__(self,self.inifile,self.ini_section,options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
     #self.certificates = None
     self.schedd_name_suffix = "glideins"
@@ -69,15 +81,15 @@ class WMSCollector(Condor):
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile)
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
   #--------------------------------
   def get_factory(self):
     if self.factory == None:
-      self.factory = Factory.Factory(self.inifile)
+      self.factory = Factory.Factory(self.inifile,valid_options["Factory"])
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile)
+      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options["UserCollector"])
   #--------------------------------
   def get_privsep(self):
     if self.privilege_separation() == "y":
@@ -116,15 +128,7 @@ class WMSCollector(Condor):
     if self.privsep <> None:
       self.privsep.update()
     common.logit("======== %s install complete ==========" % self.ini_section)
-    os.system("sleep 3")
-    common.logit("")
-    common.logit("You will need to have the WMS Collector running if you intend\nto install the other glideinWMS components.")
-    yn = common.ask_yn("... would you like to start it now")
-    cmd ="%s/manage-glideins  --start wmscollector --ini %s" % (self.glidein_install_dir(),self.inifile)
-    if yn == "y":
-      common.run_script(cmd)
-    else:
-      common.logit("\nTo start the WMS Collector, you can run:\n %s" % cmd)
+    common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile) 
 
   #-----------------------------
   def validate_install_location(self):
@@ -141,20 +145,11 @@ class WMSCollector(Condor):
   def configure_gsi_security(self):
     common.logit("\nConfiguring GSI security")
     common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
-    #--- create condor_mapfile entries ---
-    condor_entries = """\
-GSI "^%s$" %s
-GSI "^%s$" %s""" % \
-       (re.escape(self.gsi_dn()),         self.unix_acct(),
-        re.escape(self.factory.gsi_dn()), self.factory.unix_acct())
+    condor_entries = ""
     #-- frontends ---
-    # These unix account are local to the wmscollector/factory node
-    condor_entries = condor_entries + """
-GSI "^%(frontend_gsi_dn)s$" %(frontend_service)s""" % \
-        { "frontend_gsi_dn"  : re.escape(self.frontend.gsi_dn()),
-          "frontend_service" : self.frontend.service_name(),
-        }
-
+    condor_entries += common.mapfile_entry(self.frontend.gsi_dn(), self.frontend.service_name())
+    #--- wms entry ---
+    condor_entries += common.mapfile_entry(self.gsi_dn(), self.unix_acct())
     self.__create_condor_mapfile__(condor_entries) 
 
     #-- update the condor config file entries ---
@@ -167,7 +162,7 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 """ % (       self.unix_acct(),        self.gsi_dn(),
       self.factory.unix_acct(),        self.factory.gsi_dn(),
-     self.frontend.frontend_identity(),self.frontend.gsi_dn())
+     self.frontend.service_name(),     self.frontend.gsi_dn())
     self.__update_gsi_daemon_names__(gsi_daemon_entries) 
 
 
@@ -205,15 +200,26 @@ specified.
     common.logit("Using ini file: %s" % options.inifile)
     return options
 
+#-------------------------
+def create_template():
+  global valid_options
+  print "; ------------------------------------------"
+  print "; WMSCollector minimal ini options template"
+  for section in valid_options.keys():
+    print "; ------------------------------------------"
+    print "[%s]" % section
+    for option in valid_options[section]:
+      print "%-25s =" % option
+    print
+
+
 ##########################################
 def main(argv):
   try:
-    print """This will install a WMS collector service for glideinWMS using 
-the ini file specified.
-"""
-    options = validate_args(argv)
-    wms = WMSCollector(options.inifile)
-    wms.install()
+    create_template()
+    #options = validate_args(argv)
+    #wms = WMSCollector(options.inifile)
+    #wms.install()
     #wms.__validate_collector_port__()
     #wms.__create_initd_script__()
     #wms.configure_gsi_security()

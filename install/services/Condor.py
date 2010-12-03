@@ -431,11 +431,10 @@ setenv CONDOR_CONFIG %s
     filename = self.condor_mapfile()
     common.logit("... creating Condor mapfile: %s" % filename)
     common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0755,empty_required=False)
-    entries = """%s
-GSI (.*) anonymous
+    mapfile_entries += """GSI (.*) anonymous
 FS (.*) \\1
-""" % mapfile_entries
-    common.write_file("w",0644,filename,entries)
+""" 
+    common.write_file("w",0644,filename,mapfile_entries)
     common.logit("... condor mapfile entries:")
     common.logit(os.system("cat %s" % filename))
     common.logit("... creating Condor mapfile complete.\n")
@@ -497,7 +496,7 @@ LOCAL_CONFIG_FILE =
 #####################################
 %s
 """ % (gsi_dns)
-    self.__append_to_condor_config__(data,"GSI_DEAMON_NAME")
+    self.__append_to_condor_config__(data,"GSI_DAEMON_NAME")
 
 
   #--------------------------------

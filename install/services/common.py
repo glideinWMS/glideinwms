@@ -3,6 +3,7 @@
 import sys,os.path,string,time,stat,shutil, getpass
 import pwd
 import socket
+import re
 
 #--------------------------
 class WMSerror(Exception):
@@ -269,6 +270,13 @@ def get_gsi_dn(type,filename):
   return my_dn
 
 #----------------------------
+def mapfile_entry(dn,name):
+  if len(dn) == 0 or len(name) == 0:
+    return ""
+  return """GSI "^%(dn)s$" %(name)s
+""" % { "dn" : re.escape(dn), "name" : name,}
+
+#----------------------------
 def not_an_integer(value):
   try:
     nbr = int(value)
@@ -299,7 +307,33 @@ def indent(level):
     indent = indent + "  "
   return indent
 
-
+#------------------
+def start_service(glidein_src, service, inifile):
+  """ Generic method for asking if service is to be started and 
+      starting it if requested. 
+  """
+  argDict = { "WMSCollector"   : "wmscollector",
+              "Factory"        : "factory",
+              "UserCollector"  : "usercollector",
+              "Submit"         : "submit",
+              "VOFrontend"     : "vofrontend",
+            }
+  cmd ="%(glidein_src)s/install/manage-glideins --start %(service)s --ini %(inifile)s" % \
+           { "inifile" : inifile,
+             "service" : argDict[service],
+             "glidein_src" : glidein_src, 
+           }
+  os.system("sleep 3")
+  logit("")
+  logit("You will need to have the %(service)s service running if you intend\nto install the other glideinWMS components." % { "service" : service })
+  yn = ask_yn("... would you like to start it now")
+  if yn == "y":
+     run_script(cmd)
+  else:
+    logit("\nTo start the %(service)s you can run:\n %(cmd)s" % \
+           { "cmd"     : cmd,
+             "service" : service,
+           })
 
 #######################################
 if __name__ == '__main__':
