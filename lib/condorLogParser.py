@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorLogParser.py,v 1.22.8.8 2010/09/24 16:40:54 sfiligoi Exp $
+#   $Id: condorLogParser.py,v 1.22.8.8.8.1 2010/12/03 18:36:47 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes and functions to parse
@@ -85,6 +85,9 @@ class cachedLogClass:
         self.data=loadCache(self.cachename)
         return
 
+    def loadFromLog(self):
+        raise RuntimeError('loadFromLog not implemented!')
+    
     ####### PRIVATE ###########
     def saveCache(self):
         saveCache(self.cachename,self.data)

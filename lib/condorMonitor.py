@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorMonitor.py,v 1.10.8.4 2010/09/22 03:06:09 sfiligoi Exp $
+#   $Id: condorMonitor.py,v 1.10.8.4.8.1 2010/12/03 18:36:47 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to query the condor daemons
@@ -37,20 +37,22 @@ def set_path(new_condor_bin_path):
 class AbstractQuery: # pure virtual, just to have a minimum set of methods defined
     # returns the data, will not modify self
     def fetch(self,constraint=None,format_list=None):
-        raise RuntimeError,"Fetch not implemented"
+        raise NotImplementedError,"Fetch not implemented"
 
     # will fetch in self.stored_data
     def load(self,constraint=None,format_list=None):
-        raise RuntimeError,"Load not implemented"
+        raise NotImplementedError,"Load not implemented"
 
     # constraint_func is a boolean function, with only one argument (data el)
     # same output as fetch, but limited to constraint_func(el)==True
     #
     # if constraint_func==None, return all the data
     def fetchStored(self,constraint_func=None):
-        raise RuntimeError,"fetchStored not implemented"
+        raise NotImplementedError,"fetchStored not implemented"
 
 class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
+    stored_data = {}
+    
     def fetchStored(self,constraint_func=None):
         return applyConstraint(self.stored_data,constraint_func)
 
@@ -304,7 +306,7 @@ class SummarizeMulti:
     def __init__(self,queries,hash_func=lambda x:1):
         self.counts=[]
         for query in queries:
-            self.counts.append(Count(query,hash_func))
+            self.counts.append(self.count(query,hash_func))
         self.hash_func=hash_func
 
     # see Count for description
