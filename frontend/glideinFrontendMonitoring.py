@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitoring.py,v 1.8.8.2 2010/11/19 20:05:11 sfiligoi Exp $
+#   $Id: glideinFrontendMonitoring.py,v 1.8.8.2.2.1 2010/12/03 19:13:45 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -211,7 +211,7 @@ class groupStats:
         #return xmlFormat.class2string(self.data,'<VOFrontendGroupStats>',
         #                             indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -491,7 +491,7 @@ class factoryStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):

@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.4 2010/11/18 20:42:55 dstrain Exp $
+#   $Id: manageFactoryDowntimes.py,v 1.39.2.4.2.1 2010/12/03 19:18:16 sfiligoi Exp $
 #
 # Description:
 #  This program allows to add announced downtimes
@@ -129,7 +129,7 @@ def add(entry_name,opt_dict):
     start_time=str2time(opt_dict["start"])
     end_time=str2time(opt_dict["end"])
     sec_name=opt_dict["sec"]
-    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,security_name=sec_name,comment=opt_dict["comment"])
+    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,security_class=sec_name,comment=opt_dict["comment"])
     return 0
 
 # [HHh][MMm][SS[s]]

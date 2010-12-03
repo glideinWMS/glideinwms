@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cWDictFile.py,v 1.26.2.4 2010/09/08 03:29:59 parag Exp $
+#   $Id: cWDictFile.py,v 1.26.2.4.8.1 2010/12/03 19:22:03 sfiligoi Exp $
 #
 # Description:
 #   Classes needed to handle dictionary files
@@ -218,7 +218,7 @@ class DictFile:
         try:
             self.load_from_fd(fd,erase_first,set_not_changed)
         except RuntimeError, e:
-            raise RuntimeError, "Memory buffer: %s"%(filepath,str(e))
+            raise RuntimeError, "Memory buffer: %s"%(str(e))
         fd.close()
         return        
         
@@ -797,7 +797,7 @@ class ExeFile(SimpleFile):
             self.save_into_fd(fd,sort_keys,set_readonly,reset_changed,want_comments)
         finally:
             fd.close()
-        fd.chmod(filepath,0755)
+        os.chmod(filepath,0755)
 
         return
 
@@ -1008,6 +1008,10 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
                  workdir_name,
                  simple_work_dir=False,     # if True, do not create the lib and lock work_dir subdirs
                  log_dir=None):             # used only if simple_work_dir=False
+
+        self.active_sub_list = []
+        self.monitor_dir = ''
+        
         fileCommonDicts.__init__(self)
         dirsSupport.__init__(self)
 
@@ -1039,6 +1043,9 @@ class fileMainDicts(fileCommonDicts,dirsSupport):
     def erase(self):
         self.dicts=self.get_main_dicts()
 
+    def populate(self, params=None):
+        raise NotImplementedError, "populate() not implemented in child!"
+    
     # child must overwrite this
     def load(self):
         raise RuntimeError, "Undefined"
@@ -1144,7 +1151,7 @@ class fileSubDicts(fileCommonDicts,dirsSupport):
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         if self.work_dir!=other.work_dir:
-            raise RuntimeError,"Cannot change sub %s base_dir! '%s'!='%s'"%(self.wordir_name,self.work_dir,other.work_dir)
+            raise RuntimeError,"Cannot change sub %s base_dir! '%s'!='%s'"%(self.workdir_name,self.work_dir,other.work_dir)
         if self.stage_dir!=other.stage_dir:
             raise RuntimeError,"Cannot change sub stage base_dir! '%s'!='%s'"%(self.stage_dir,other.stage_dir)
 
@@ -1228,7 +1235,6 @@ class fileDicts:
                     self.sub_list.append(sub_name)
                 self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
                 self.sub_dicts[sub_name].load()
-
 
 
     def save(self,set_readonly=True):
@@ -1329,6 +1335,17 @@ class MonitorFileDicts:
             self.sub_dicts[sub_name]=self.new_SubDicts(sub_name)
         return
 
+    def new_MainDicts(self):
+        raise NotImplementedError, "new_MainDicts() not implemented in child!"
+
+    def new_SubDicts(self, sub_name):
+        raise NotImplementedError, "new_SubDicts() not implemented in child!"
+
+    def get_sub_name_from_sub_stage_dir(self, sign_key):
+        raise NotImplementedError, "get_sub_name_from_sub_stage_dir() not implemented in child!"
+
+
+    
     def set_readonly(self,readonly=True):
         self.main_dicts.set_readonly(readonly)
         for el in self.sub_dicts.values():

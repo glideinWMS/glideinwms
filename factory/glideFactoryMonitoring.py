@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.12 2010/11/22 19:15:19 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.12.2.1 2010/12/03 19:18:16 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -381,7 +381,7 @@ class condorQStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -856,7 +856,7 @@ class condorLogSummary:
                                       subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
