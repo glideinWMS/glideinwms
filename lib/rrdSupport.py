@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: rrdSupport.py,v 1.8.10.3 2010/09/13 21:06:57 sfiligoi Exp $
+#   $Id: rrdSupport.py,v 1.8.10.4 2010/12/03 18:30:15 burt Exp $
 #
 # Description:
 #   This module implements the basic functions needed
@@ -511,7 +511,7 @@ class rrdtool_exe:
         return
 
     ##########################################
-    def iexe_cmd(cmd):
+    def iexe_cmd(self, cmd):
         child=self.popen2_obj.Popen3(cmd,True)
         child.tochild.close()
         tempOut = child.fromchild.readlines()

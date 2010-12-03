@@ -149,7 +149,7 @@ def find_services(inifile):
        common.logerr("ini file section(%s) does not contain a node option(%s)" % (section,"node"))
 
    if len(services) == 0:
-       common.logerr("The ini file shows no services for this node: %s" % os.unmae()[1])
+       common.logerr("The ini file shows no services for this node: %s" % os.uname()[1])
 
    common.ask_continue("The following services will be processed on this node:\n   %s\n... do you want to continue" % services)
    return services
