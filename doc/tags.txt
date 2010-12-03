@@ -1,3 +1,7 @@
+vNext	Factory now can remove excessive glideins
+	        New ClassAd attribute - RemoveExcess
+	Frontend will request removal of glideins when no user jobs in queue
+
 vNext	Installer can now install gridFTP and VOMS certs needed by CREAM
         Improvements to documentaion
 	Bug Fix: Correctly interpret DN from a voms proxy generated from a 

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.9 2010/11/09 17:43:40 parag Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.9.2.1 2010/12/03 18:25:09 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -358,11 +358,17 @@ class AdvertizeParams:
                  min_nr_glideins,max_run_glideins,
                  glidein_params={},glidein_monitors={},
                  glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
-                 security_name=None):             # needs key_obj
+                 security_name=None,              # needs key_obj
+                 remove_excess_str=None):
         self.request_name=request_name
         self.glidein_name=glidein_name
         self.min_nr_glideins=min_nr_glideins
         self.max_run_glideins=max_run_glideins
+        if remove_excess_str==None:
+            remove_excess_str="NO"
+        elif not (remove_excess_str in ("NO","WAIT","IDLE","ALL","UNREG")):
+            raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"'%remove_excess_str
+        self.remove_excess_str=remove_excess_str
         self.glidein_params=glidein_params
         self.glidein_monitors=glidein_monitors
         self.glidein_params_to_encrypt=glidein_params_to_encrypt
@@ -426,7 +432,8 @@ def createAdvertizeWorkFile(fname,
                         
             fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
-
+            fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+                     
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,params_obj.glidein_params),
                                   (frontendConfig.glidein_monitor_prefix,params_obj.glidein_monitors),
@@ -538,11 +545,13 @@ def advertizeWork(factory_pool,
                   glidein_params={},glidein_monitors={},
                   key_obj=None,                     # must be of type FactoryKeys4Advertize
                   glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
-                  security_name=None):              # needs key_obj
+                  security_name=None,               # needs key_obj
+                  remove_excess_str=None):
     params_obj=AdvertizeParams(request_name,glidein_name,
                                min_nr_glideins,max_run_glideins,
                                glidein_params,glidein_monitors,
-                               glidein_params_to_encrypt,security_name)
+                               glidein_params_to_encrypt,security_name,
+                               remove_excess_str)
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
@@ -564,11 +573,13 @@ class MultiAdvertizeWork:
             glidein_params={},glidein_monitors={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
-            security_name=None):              # needs key_obj
+            security_name=None,               # needs key_obj
+            remove_excess_str=None):
         params_obj=AdvertizeParams(request_name,glidein_name,
                                    min_nr_glideins,max_run_glideins,
                                    glidein_params,glidein_monitors,
-                                   glidein_params_to_encrypt,security_name)
+                                   glidein_params_to_encrypt,security_name,
+                                   remove_excess_str)
         if not self.factory_queue.has_key(factory_pool):
             self.factory_queue[factory_pool]=[]
         self.factory_queue[factory_pool].append((params_obj,key_obj))
