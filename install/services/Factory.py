@@ -21,7 +21,8 @@ factory_options = [ "hostname",
 "username", 
 "service_name", 
 "install_location", 
-"client_files", 
+"client_log_dir", 
+"client_proxy_dir", 
 "instance_name",
 "gsi_credential_type", 
 "cert_proxy_location", 
@@ -105,20 +106,14 @@ class Factory(Configuration):
   def service_name(self):
     return self.glidein.service_name()
   #---------------------
-#  def factory_files(self):
-#    return "%s" % (self.option_value(self.ini_section,"install_location"))
-  #---------------------
   def factory_logs(self):
     return "%s/logs" % (self.install_location())
   #---------------------
-  def client_files(self):
-    return "%s/%s" % (self.option_value(self.ini_section,"client_files"),"clients")
+  def client_log_dir(self):
+    return self.option_value(self.ini_section,"client_log_dir")
   #---------------------
-  def client_logs(self):
-    return "%s/logs" % self.client_files()
-  #---------------------
-  def client_proxies(self):
-    return "%s/proxies" % self.client_files()
+  def client_proxy_dir(self):
+    return self.option_value(self.ini_section,"client_proxy_dir")
 
   #----------------------------
   def get_new_config_entries(self):
@@ -152,10 +147,6 @@ class Factory(Configuration):
       common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.username())
     # check to see if there will be a problem with client files during the
     # create factory step.
-#JGW NOT COMPLETE HERE AS I CANNOT FIGURE OUT WHAT NEEDS TO BE DELETED
-    #if wms.privsep <> None:
-    #  if len(os.listdir(self.client_logs()) <> 0:
-    #  if len(os.listdir(self.client_proxies()) <> 0:
     self.glidein.validate_install()
     self.glidein.__install_vdt_client__()
     self.glidein.create_web_directories()
@@ -175,12 +166,10 @@ class Factory(Configuration):
     common.make_directory(self.factory_logs(),owner,perm,empty_required=True)
   #--------------------------------
   def create_factory_client_dirs(self,owner,perm):
-    common.logit("Creating client files directory: %s" % self.client_files())
-    common.make_directory(self.client_files(),owner,perm,empty_required=False)
-    common.logit("Creating client logs directory: %s" % self.client_logs())
-    common.make_directory(self.client_logs(),owner,perm,empty_required=True)
-    common.logit("Creating client proxies directory: %s" % self.client_proxies())
-    common.make_directory(self.client_proxies(),owner,perm,empty_required=True)
+    common.logit("Creating client logs directory: %s" % self.client_log_dir())
+    common.make_directory(self.client_log_dir(),owner,perm,empty_required=True)
+    common.logit("Creating client proxies directory: %s" % self.client_proxy_dir())
+    common.make_directory(self.client_proxy_dir(),owner,perm,empty_required=True)
 
 
   #-----------------------
@@ -270,12 +259,12 @@ source %s/condor.sh
   #---------------
   def config_submit_data(self): 
     return """
-%(indent1)s<submit base_dir="%(install_location)s" base_log_dir="%(factory_logs)s" base_client_log_dir="%(client_logs)s" base_client_proxies_dir="%(client_proxies)s"/> """ % \
+%(indent1)s<submit base_dir="%(install_location)s" base_log_dir="%(factory_logs)s" base_client_log_dir="%(client_log_dir)s" base_client_proxies_dir="%(client_proxy_dir)s"/> """ % \
 { "indent1"          : common.indent(1),
   "install_location" : self.install_location(),
   "factory_logs"     : self.factory_logs(),
-  "client_logs"      : self.client_logs(),
-  "client_proxies"   : self.client_proxies(),
+  "client_log_dir"   : self.client_log_dir(),
+  "client_proxy_dir" : self.client_proxy_dir(),
 }
   #---------------
   def config_stage_data(self): 
