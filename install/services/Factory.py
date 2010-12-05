@@ -17,47 +17,42 @@ import optparse
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 os.environ["PYTHONPATH"] = ""
 
-factory_options = [ "node", 
-"unix_acct", 
+factory_options = [ "hostname", 
+"username", 
 "service_name", 
 "install_location", 
 "client_files", 
 "instance_name",
-"gsi_authentication", 
+"gsi_credential_type", 
 "cert_proxy_location", 
 "gsi_dn", 
 "use_vofrontend_proxy", 
 "use_glexec", 
 "use_ccb", 
-"gcb_list", 
 "ress_host",
 "bdii_host",
 "entry_vos",
 "entry_filters",
 "web_location",
 "web_url",
-"javascriptrrd",
-"flot",
-"m2crypto",
-"javascriptrrd_tarball",
-"flot_tarball",
-"m2crypto_tarball",
+"javascriptrrd_location",
+"m2crypto_location",
 "match_authentication",
 "install_vdt_client",
-"glidein_install_dir",
+"glideinwms_location",
 "vdt_location",
 "pacman_location",
 ]
 
-wmscollector_options = [ "node", 
-"unix_acct", 
+wmscollector_options = [ "hostname", 
+"username", 
 "privilege_separation",
 "condor_location",
 "frontend_users",
 ]
 
-#frontend_options = [ "node", 
-#"unix_acct", 
+#frontend_options = [ "hostname", 
+#"username", 
 #]
 
 valid_options = { "Factory"       : factory_options,
@@ -85,8 +80,8 @@ class Factory(Configuration):
     self.config_entries_list = {} # Config file entries elements
 
   #---------------------
-  def glidein_install_dir(self):
-    return self.glidein.glidein_install_dir()
+  def glideinwms_location(self):
+    return self.glidein.glideinwms_location()
   #---------------------
   def install_location(self):
     return self.glidein.install_location()
@@ -95,11 +90,11 @@ class Factory(Configuration):
     # this directory is hardcoded in the createglidein script
     return "%s/glidein_%s" % (self.glidein.install_location(),self.glidein.instance_name())
   #---------------------
-  def unix_acct(self):
-    return self.glidein.unix_acct()
+  def username(self):
+    return self.glidein.username()
   #---------------------
-  def node(self):
-    return self.glidein.node()
+  def hostname(self):
+    return self.glidein.hostname()
   #---------------------
   def gsi_dn(self):
     return self.glidein.gsi_dn()
@@ -148,13 +143,13 @@ class Factory(Configuration):
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
     if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
-      common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile)
+      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
  
   #-----------------------
   def validate_install(self):
     common.logit( "\nDependency and validation checking starting\n")
-    if os.getuid() <> pwd.getpwnam(self.unix_acct())[2]:
-      common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.unix_acct())
+    if os.getuid() <> pwd.getpwnam(self.username())[2]:
+      common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.username())
     # check to see if there will be a problem with client files during the
     # create factory step.
 #JGW NOT COMPLETE HERE AS I CANNOT FIGURE OUT WHAT NEEDS TO BE DELETED
@@ -164,11 +159,11 @@ class Factory(Configuration):
     self.glidein.validate_install()
     self.glidein.__install_vdt_client__()
     self.glidein.create_web_directories()
-    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
-    self.create_factory_dirs(self.unix_acct(),0755)
+    common.make_directory(self.install_location(),self.username(),0755,empty_required=True)
+    self.create_factory_dirs(self.username(),0755)
     if self.wms.privilege_separation() <> "y":
       #-- done in WMS collector install if privilege separation is used --
-      self.create_factory_client_dirs(self.unix_acct(),0755)
+      self.create_factory_client_dirs(self.username(),0755)
     common.logit( "\nDependency and validation checking complete\n")
       
 
@@ -204,7 +199,7 @@ source %s/condor.sh
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = "source %s" % self.env_script()
-    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glidein_install_dir(),self.glidein.config_file())
+    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.glidein.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
     else:
@@ -212,18 +207,18 @@ source %s/condor.sh
 
   #-----------------------
   def schedds(self):
-    collector_node = self.wms.node()
+    collector_hostname = self.wms.hostname()
     schedd_list = []
     for filename in os.listdir(self.wms.condor_local()):
       if filename[0:6] == "schedd":
-        schedd_list.append("%s@%s" % (filename,collector_node))
+        schedd_list.append("%s@%s" % (filename,collector_hostname))
     return schedd_list
 
   #-------------------------
   def create_config(self):
     config_xml = self.config_data()
     common.logit("\nCreating configuration file: %s" % self.glidein.config_file())
-    common.make_directory(self.glidein.config_dir(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.glidein.config_dir(),self.username(),0755,empty_required=True)
     common.write_file("w",0644,self.glidein.config_file(),config_xml)
 
   #-------------------------
@@ -323,7 +318,7 @@ source %s/condor.sh
     frontend_users_dict =  self.wms.frontend_users()
     for frontend in frontend_users_dict.keys():
       data = data + """
-%(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(node)s">
+%(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(hostname)s">
 %(indent4)s<security_classes>
 %(indent5)s<security_class name="frontend" username="%(user)s"/>
 %(indent4)s</security_classes>
@@ -332,7 +327,7 @@ source %s/condor.sh
   "indent4" : common.indent(4),
   "indent5" : common.indent(5),
   "frontend": frontend,
-  "node"    : self.node(),
+  "hostname"    : self.hostname(),
   "user"    : frontend_users_dict[frontend],
 }
     data = data + """

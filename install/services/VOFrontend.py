@@ -19,19 +19,19 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-frontend_options = [ "node", 
-"unix_acct", 
+frontend_options = [ "hostname", 
+"username", 
 "service_name", 
 "frontend_identity",
 "condor_location", 
 "install_location", 
-"logs_location", 
+"logs_dir", 
 "instance_name", 
-"gsi_authentication", 
+"gsi_credential_type", 
 "cert_proxy_location", 
 "gsi_dn", 
-"glidein_proxies", 
-"glidein_proxies_dns", 
+"glidein_proxy_files", 
+"glidein_proxy_dns", 
 "condor_tarball", 
 "condor_admin_email", 
 "split_condor_config", 
@@ -40,38 +40,34 @@ frontend_options = [ "node",
 "match_string",
 "web_location",
 "web_url",
-"javascriptrrd",
-"flot",
-"m2crypto",
-"javascriptrrd_tarball",
-"flot_tarball",
-"m2crypto_tarball",
+"javascriptrrd_location",
+"m2crypto_location",
 "match_authentication",
 "expose_grid_env",
-"glidein_install_dir",
+"glideinwms_location",
 "vdt_location",
 "pacman_location",
 ]
 
 wmscollector_options = [ 
-"node",
+"hostname",
 "service_name",
 "gsi_dn",
 ]
 
 factory_options = [ 
-"unix_acct",
+"username",
 ]
 
 submit_options = [ 
-"node",
+"hostname",
 "service_name",
 "condor_location",
 "gsi_dn"
 ]
 
 usercollector_options = [ 
-"node",
+"hostname",
 "service_name",
 "gsi_dn",
 "condor_location",
@@ -128,13 +124,13 @@ class VOFrontend(Condor):
 
   #--------------------------------
   def WMSCollector(self):
-    return self.option_value("WMSCollector","node")
+    return self.option_value("WMSCollector","hostname")
   #--------------------------------
-  def WMSCollector_unix_acct(self):
-    return self.option_value("Factory","unix_acct")
+  def WMSCollector_username(self):
+    return self.option_value("Factory","username")
   #--------------------------------
   def UserCollector(self):
-    return self.option_value("UserCollector","node")
+    return self.option_value("UserCollector","hostname")
   #--------------------------------
   def SubmitDN(self):
     return self.option_value("Submit","gsi_dn")
@@ -163,8 +159,8 @@ class VOFrontend(Condor):
   def env_script(self):
     return "%s/frontend.sh"  % (self.glidein.install_location())
   #--------------------------------
-  def logs_location(self):
-    return self.option_value(self.ini_section,"logs_location")
+  def logs_dir(self):
+    return self.option_value(self.ini_section,"logs_dir")
   #--------------------------------
   def match_string(self):
     return self.option_value(self.ini_section,"match_string")
@@ -187,11 +183,11 @@ class VOFrontend(Condor):
   def glexec_use(self):
     return string.upper(self.option_value(self.ini_section,"glexec_use"))
   #--------------------------------
-  def glidein_proxies(self):
-    return   self.option_value(self.ini_section,"glidein_proxies")
+  def glidein_proxy_files(self):
+    return   self.option_value(self.ini_section,"glidein_proxy_files")
   #--------------------------------
-  def glidein_proxies_dns(self):
-    dns = self.option_value(self.ini_section,"glidein_proxies_dns")
+  def glidein_proxy_dns(self):
+    dns = self.option_value(self.ini_section,"glidein_proxy_dns")
     dn_list = string.split(dns,";")
     list = []
     for dn in dn_list:
@@ -231,13 +227,13 @@ class VOFrontend(Condor):
     """
     common.logit("\nChecking for co-located services")
     # -- if not on same node, we don't have any co-located
-    if self.node() <> self.usercollector.node() and \
-       self.node() <> self.submit.node():
-      common.logit("... no services are co-located on this node")
+    if self.hostname() <> self.usercollector.hostname() and \
+       self.hostname() <> self.submit.hostname():
+      common.logit("... no services are co-located on this host")
       return
     common.logit("""
 The VOFrontend, Submit and/or the User Collector service are being installed on 
-the same node and can share the same Condor instance, as well as certificates 
+the same host and can share the same Condor instance, as well as certificates 
 and VDT client instances.""")
     #--- Condor ---
     common.logit("...... VOFrontend Condor: %s" % self.condor_location())
@@ -286,30 +282,30 @@ Do you want to continue""")
     self.validate_glidein_proxies()
     self.validate_glexec_use()
     self.glidein.validate_install()
-    self.validate_logs_location()
+    self.validate_logs_dir()
     self.glidein.create_web_directories()
     common.logit( "\nVOFrontend dependency and validation checking complete")
 
   #---------------------------------
   def validate_glidein_proxies(self):
     common.logit("... validating glidein_proxies")
-    proxies = self.glidein_proxies().split(" ")
-    if len(self.glidein_proxies_dns()) <> len(proxies):
-      common.logerr("""The number of glidein_proxies (%(proxy)s) must match the number of glidein_proxies_dns (%(dns)s).""" % \
+    proxies = self.glidein_proxy_files().split(" ")
+    if len(self.glidein_proxy_dns()) <> len(proxies):
+      common.logerr("""The number of glidein_proxy_files (%(proxy)s) must match the number of glidein_proxy_dns (%(dns)s).""" % \
           { "proxy" : len(proxies),
-            "dns"   : len(self.glidein_proxies_dns()),
+            "dns"   : len(self.glidein_proxy_dns()),
           })
-    proxy_dns = self.glidein_proxies_dns()
+    proxy_dns = self.glidein_proxy_dns()
     cnt = 0
     for proxy in proxies:
-      common.logit("""    glidein_proxies[%(position)s]: %(proxy)s
-glidein_proxies_dns[%(position)i]: %(option_dn)s """ % \
+      common.logit("""    glidein_proxy_files[%(position)s]: %(proxy)s
+glidein_proxy_dns[%(position)i]: %(option_dn)s """ % \
             { "position"   : cnt,
               "option_dn"  : proxy_dns[cnt],
               "proxy"      : proxy, })
       dn_in_file = common.get_gsi_dn("proxy",proxy)
       if dn_in_file <> proxy_dns[cnt]:
-        common.logerr("""The DN in glidein_proxies_dns is incorrect.
+        common.logerr("""The DN in glidein_proxy_dns is incorrect.
 Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
       cnt = cnt + 1 
       common.logit("")
@@ -322,9 +318,9 @@ Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
       common.logerr("The glexec_use value specified (%s) in the ini file is invalid.\n      Valid values are: %s" % (self.glexec_use(),valid_glexec_use_values))
 
   #---------------------------------
-  def validate_logs_location(self):
-    common.logit("... validating logs_location: %s" % self.logs_location())
-    common.make_directory(self.logs_location(),self.unix_acct(),0755,empty_required=True)
+  def validate_logs_dir(self):
+    common.logit("... validating logs_dir: %s" % self.logs_dir())
+    common.make_directory(self.logs_dir(),self.username(),0755,empty_required=True)
 
   #---------------------------------
   def get_config_data(self):
@@ -347,7 +343,7 @@ Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
       dns[self.UserCollector_service_name()] = self.UserCollectorDN()
       dns[self.Submit_service_name()]        = self.SubmitDN()
       print """
-The frontend proxy, user pool collector and submit node DNs are required in
+The frontend proxy, user pool collector and submit host DNs are required in
 your grid_mapfile.
 
 If there are other DNs needed in the glidein grid_mapfile, please add all 
@@ -389,7 +385,7 @@ The following DNs are in your grid_mapfile:"""
   def create_config(self,config_xml):
     common.logit("\nCreating configuration files")
     common.logit("... %s" % self.config_file())
-    common.make_directory(self.config_dir(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.config_dir(),self.username(),0755,empty_required=True)
     common.write_file("w",0644,self.config_file(),config_xml)
     #common.logit("Creating: %s" % self.grid_mapfile())
     #gridmap_fd = open(self.grid_mapfile(),"w")
@@ -404,7 +400,7 @@ The following DNs are in your grid_mapfile:"""
   def start(self):
     startup_file = "%s/frontend_startup" % (self.frontend_dir())
     if os.path.isfile(startup_file): # indicates frontend has been created
-      common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile) 
+      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
 
   #-----------------------
   def create_env_script(self):
@@ -422,7 +418,7 @@ source %s/condor.sh
   def create_frontend(self):
     yn=raw_input("Do you want to create the frontend now? (y/n) [n]: ")
     cmd1 = "source %s" % self.env_script()
-    cmd2 = "%s/creation/create_frontend %s" % (self.glidein.glidein_install_dir(),self.config_file())
+    cmd2 = "%s/creation/create_frontend %s" % (self.glidein.glideinwms_location(),self.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
     else:
@@ -430,7 +426,7 @@ source %s/condor.sh
 
   #----------------------------
   def get_user_schedds(self):
-    common.logit("\n... checking user and submit nodes for schedds")
+    common.logit("\n... checking user and submit hosts for schedds")
     cmd1 = "source %s/condor.sh" % self.condor_location()
     cmd2 = "condor_status -schedd -format '%s\n' Name "
     fd = os.popen("%s;%s" % (cmd1,cmd2))
@@ -438,9 +434,9 @@ source %s/condor.sh
     err = fd.close()
     if err != None: # collector not accessible
         common.logit("%s" % lines)
-        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your user pool collector and submit node condor need to be running.")
+        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your user pool collector and submit host condor need to be running.")
     if len(lines) == 0: # submit schedds not accessible
-        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your submit node condor needs to be running.")
+        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your submit host condor needs to be running.")
 
     default_schedds=[]
     for line in lines:
@@ -449,7 +445,7 @@ source %s/condor.sh
             default_schedds.append(line)
 
     if len(default_schedds) == 0:
-        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your collector and submit node condor need to be running.\n       or you have not defined any schedds on the submit node.")
+        common.logerr("Failed to fetch list of schedds running condor_status -schedd\n       Your collector and submit host's condor need to be running.\n       or you have not defined any schedds on the submit host.")
 
     while 1:
       common.logit("\nThe following schedds have been found:")
@@ -659,10 +655,10 @@ please verify and correct if needed.
   #---------------------------
   def config_work_data(self):
     return """
-%(indent1)s<work base_dir="%(install_location)s" base_log_dir="%(logs_location)s"/>""" % \
+%(indent1)s<work base_dir="%(install_location)s" base_log_dir="%(logs_dir)s"/>""" % \
 { "indent1" : common.indent(1),
   "install_location" : self.glidein.install_location(),
-  "logs_location" : self.logs_location(),
+  "logs_dir" : self.logs_dir(),
 }
   #---------------------------
   def config_stage_data(self):
@@ -689,7 +685,7 @@ please verify and correct if needed.
 %(indent2)s<collector node="%(usercollector_node)s:%(usercollector_port)s" DN="%(usercollector_gsi_dn)s" secondary="False"/>""" %\
 { "indent1" : common.indent(1),
   "indent2" : common.indent(2),
-  "usercollector_node"   : self.usercollector.node(),
+  "usercollector_node"   : self.usercollector.hostname(),
   "usercollector_port"   : self.usercollector.collector_port(),
   "usercollector_gsi_dn" : self.usercollector.gsi_dn(),
 }
@@ -701,7 +697,7 @@ please verify and correct if needed.
       port_range = "%s-%s" % (first_port,last_port)
       data = data + """%s<collector node="%s:%s" DN="%s" secondary="True"/>""" %\
           (common.indent(2),
-           self.usercollector.node(),
+           self.usercollector.hostname(),
            port_range,
            self.usercollector.gsi_dn())
     data = data + """%s</collectors>""" % common.indent(1)
@@ -717,7 +713,7 @@ please verify and correct if needed.
   "cert_proxy_location" : self.cert_proxy_location(), 
   "gsi_dn"              : self.gsi_dn(),
 }
-    proxies = self.glidein_proxies()
+    proxies = self.glidein_proxy_files()
     for proxy in proxies.split(" "):
       data = data + """
 %(indent3)s<proxy security_class="frontend" absfname="%(proxy)s"/>""" % \
@@ -738,7 +734,7 @@ please verify and correct if needed.
 %(indent1)s<match>
 %(indent2)s<factory>
 %(indent3)s<collectors>
-%(indent4)s<collector node="%(wms_node)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_unix_acct)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
+%(indent4)s<collector node="%(wms_node)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_username)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
 %(indent3)s</collectors>
 %(indent2)s</factory>
 %(indent2)s<job query_expr=%(job_constraints)s  comment="Define job constraint and schedds globally for simplicity">
@@ -747,9 +743,9 @@ please verify and correct if needed.
   "indent2"           : common.indent(2), 
   "indent3"           : common.indent(3), 
   "indent4"           : common.indent(4), 
-  "wms_node"          : self.wms.node(),
+  "wms_node"          : self.wms.hostname(),
   "wms_gsi_gn"        : self.wms.gsi_dn(),
-  "factory_unix_acct" : self.factory.unix_acct(),
+  "factory_username" : self.factory.username(),
   "frontend_identity" : self.service_name(),
   "job_constraints"   : xmlFormat.xml_quoteattr(job_constraints),
 }
@@ -853,7 +849,7 @@ please verify and correct if needed.
       common.logit("... VOFrontend  service colocated with UserCollector and/or Submit/schedd")
       common.logit("... no updates to condor mapfile required")
       return
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.cert_proxy_location())
+    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.cert_proxy_location())
     #--- create condor_mapfile entries ---
     condor_entries = ""
     condor_entries += common.mapfile_entry(self.gsi_dn(),               self.service_name())

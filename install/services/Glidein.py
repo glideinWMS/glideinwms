@@ -26,8 +26,8 @@ class Glidein(Configuration):
   def vdt_location(self):
     return self.vdt.vdt_location()
   #---------------------
-  def glidein_install_dir(self):
-    return self.option_value(self.ini_section,"glidein_install_dir")
+  def glideinwms_location(self):
+    return self.option_value(self.ini_section,"glideinwms_location")
   #---------------------
   def install_vdt_client(self):
     return self.option_value(self.ini_section,"install_vdt_client")
@@ -35,8 +35,8 @@ class Glidein(Configuration):
   def install_location(self):
     return self.option_value(self.ini_section,"install_location")
   #---------------------
-  def unix_acct(self):
-    return self.option_value(self.ini_section,"unix_acct")
+  def username(self):
+    return self.option_value(self.ini_section,"username")
   #---------------------
   def service_name(self):
     return self.option_value(self.ini_section,"service_name")
@@ -53,11 +53,11 @@ class Glidein(Configuration):
   def config_file(self):
     return "%s/factory.xml" % (self.config_dir())
   #---------------------
-  def node(self):
-    return self.option_value(self.ini_section,"node")
+  def hostname(self):
+    return self.option_value(self.ini_section,"hostname")
   #---------------------
-  def gsi_authentication(self):
-    return self.option_value(self.ini_section,"gsi_authentication")
+  def gsi_credential_type(self):
+    return self.option_value(self.ini_section,"gsi_credential_type")
   #---------------------
   def gsi_location(self):
     return self.option_value(self.ini_section,"cert_proxy_location")
@@ -121,22 +121,13 @@ class Glidein(Configuration):
     return self.option_value(self.ini_section,"web_url")
   #---------------------
   def javascriptrrd(self):
-    return self.option_value(self.ini_section,"javascriptrrd")
+    return self.option_value(self.ini_section,"javascriptrrd_location")
   #---------------------
   def flot(self):
-    return self.option_value(self.ini_section,"flot")
+    return os.path.join(self.javascriptrrd(),"flot")
   #---------------------
   def m2crypto(self):
-    return self.option_value(self.ini_section,"m2crypto")
-  #---------------------
-  def javascriptrrd_tarball(self):
-    return self.option_value(self.ini_section,"javascriptrrd_tarball")
-  #---------------------
-  def flot_tarball(self):
-    return self.option_value(self.ini_section,"flot_tarball")
-  #---------------------
-  def m2crypto_tarball(self):
-    return self.option_value(self.ini_section,"m2crypto_tarball")
+    return self.option_value(self.ini_section,"m2crypto_location")
   #---------------------
   def match_authentication(self):
     return self.option_value(self.ini_section,"match_authentication")
@@ -150,11 +141,11 @@ class Glidein(Configuration):
 
   #---------------------
   def validate_install(self):
-    common.validate_node(self.node())
-    common.validate_user(self.unix_acct())
-    common.validate_installer_user(self.unix_acct())
+    common.validate_hostname(self.hostname())
+    common.validate_user(self.username())
+    common.validate_installer_user(self.username())
     self.validate_web_location()
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
+    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     self.preinstallation_software_check()
     common.validate_install_location(self.install_location())
 
@@ -163,9 +154,9 @@ class Glidein(Configuration):
     dir = self.web_location()
     common.logit("... validating web_location: %s" % dir)
     if not os.path.isdir(dir):
-      common.logerr("web location (%s) does not exist.\n       It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
+      common.logerr("web location (%s) does not exist.\n       It needs to be owned and writable by user(%s)" % (dir,self.username()))
     if common.not_writeable(dir):
-      common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.unix_acct()))
+      common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.username()))
 
   #---------------------
   def preinstallation_software_check(self):
@@ -205,7 +196,7 @@ class Glidein(Configuration):
     else:
       errors = errors + 1
       msg = "ERROR: not installed: %s not found" % filename
-    common.logit("... validating javascriptrrd: %s" % msg)
+    common.logit("... validating javascriptrrd_location: %s" % msg)
 
     ##-- flot --
     msg = ""
@@ -223,55 +214,12 @@ class Glidein(Configuration):
     return 
 
   #---------------------
-  def install_javascriptrrd(self):
-    common.logit("... installing javascriptrrd")
-    dir = (os.path.dirname(self.javascriptrrd()))
-    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
-    tarball = self.javascriptrrd_tarball()
-    if not os.path.exists(tarball):
-      common.logerr("javascriptrrd tarball does not exist: %s" % tarball)
-    common.logit("... using tarball: %s" % tarball)
-    os.system("cd %s;tar zxf %s" % (dir,tarball))
-    common.logit("... javascriptrrd installed")
-    common.logit("")
-
-  #---------------------
-  def install_flot(self):
-    common.logit("... installing flot")
-    dir = (os.path.dirname(self.flot()))
-    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
-    tarball = self.flot_tarball()
-    if not os.path.exists(tarball):
-      common.logerr("flot tarball does not exist: %s" % tarball)
-    common.logit("... using tarball: %s" % tarball)
-    os.system("cd %s;tar zxf %s" % (dir,tarball))
-    common.logit("... flot installed")
-    common.logit("")
-
-  #---------------------
-  def install_m2crypto(self):
-    common.logit("... installing M2Crypto")
-    dir = (os.path.dirname(self.m2crypto()))
-    common.make_directory(dir,self.unix_acct(),0755,empty_required=True)
-    tarball = self.m2crypto_tarball()
-    if not os.path.exists(tarball):
-      common.logerr("M2Crypto tarball does not exist: %s" % tarball)
-    common.logit("... using tarball: %s" % tarball)
-    os.system("cd %s;tar zxf %s" % (dir,tarball))
-    common.logit("... compiling M2Crypto")
-    os.system("cd M2C*;python setup.py build")
-    common.logit("... installing M2Crypto")
-    os.system("cd %s*;python setup.py install --root %s" % (self.m2crypto(),self.m2crypto()))
-    common.logit("... M2Crypto installed")
-    common.logit("")
-
-  #---------------------
   def create_web_directories(self):
     common.logit("\nCreating monitoring web directories in %s" % self.web_location())
     for sdir_name in ("stage","monitor"):
       sdir_fullpath=os.path.join(self.web_location(),sdir_name)
       common.logit("... checking: %s" % sdir_fullpath)
-      common.make_directory(sdir_fullpath,self.unix_acct(),0755,empty_required=True)
+      common.make_directory(sdir_fullpath,self.username(),0755,empty_required=True)
     common.logit("Creating monitoring web directories completed\n")
 
 #---------------------------
@@ -303,17 +251,10 @@ specified.
 def main(argv):
   try:
     options = validate_args(argv)
-    valid_options = ["javascriptrrd",
-"flot",
-"m2crypto",
-"javascriptrrd_tarball",
-"flot_tarball",
-"m2crypto_tarball",
+    valid_options = ["javascriptrrd_location",
+"m2crypto_location",
 ]
     glidein = Glidein(options.inifile,"Factory",valid_options)
-    #glidein.install_javascriptrrd()
-    #glidein.install_flot()
-    glidein.install_m2crypto()
   except KeyboardInterrupt:
     common.logit("\n... looks like you aborted this script... bye.");
     return 1

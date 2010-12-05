@@ -53,8 +53,8 @@ class Condor(Configuration):
   def install_location(self):
     return self.option_value(self.ini_section,"install_location")
   #----------------------------------
-  def glidein_install_dir(self):
-    return self.option_value(self.ini_section,"glidein_install_dir")
+  def glideinwms_location(self):
+    return self.option_value(self.ini_section,"glideinwms_location")
   #----------------------------------
   def vdt_location(self):
     return self.option_value(self.ini_section,"vdt_location")
@@ -62,14 +62,14 @@ class Condor(Configuration):
   def gsi_dn(self):
     return self.option_value(self.ini_section,"gsi_dn")
   #---------------------
-  def unix_acct(self):
-    return self.option_value(self.ini_section,"unix_acct")
+  def username(self):
+    return self.option_value(self.ini_section,"username")
   #---------------------
   def service_name(self):
     return self.option_value(self.ini_section,"service_name")
   #---------------------
-  def node(self):
-    return self.option_value(self.ini_section,"node")
+  def hostname(self):
+    return self.option_value(self.ini_section,"hostname")
   #---------------------
   def condor_tarball(self):
     return self.option_value(self.ini_section,"condor_tarball")
@@ -83,8 +83,8 @@ class Condor(Configuration):
   def gsi_location(self):
     return  self.option_value(self.ini_section,"cert_proxy_location")
   #---------------------
-  def gsi_authentication(self):
-    return self.option_value(self.ini_section,"gsi_authentication")
+  def gsi_credential_type(self):
+    return self.option_value(self.ini_section,"gsi_credential_type")
   #---------------------
   def condor_config(self):
     return "%s/etc/condor_config" % self.condor_location()
@@ -148,21 +148,21 @@ class Condor(Configuration):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to stop.")
     else: 
-      common.logit( "... stopping condor as user %s" % self.unix_acct())
+      common.logit( "... stopping condor as user %s" % self.username())
       common.run_script("%s stop" % self.initd_script())
   #--------------------------------
   def start_condor(self):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to start.")
     else:
-      common.logit( "... starting condor as user %s" % self.unix_acct())
+      common.logit( "... starting condor as user %s" % self.username())
       common.run_script("%s start" % self.initd_script())
   #--------------------------------
   def restart_condor(self):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to restart.")
     else:
-      common.logit( "... restarting condor as user %s" % self.unix_acct())
+      common.logit( "... restarting condor as user %s" % self.username())
       common.run_script("%s restart" % self.initd_script())
    
   #--------------------------------
@@ -221,10 +221,10 @@ class Condor(Configuration):
   #--------------------------------
   def validate_condor_install(self):
     common.logit( "\nVerifying Condor installation")
-    common.validate_node(self.node())
-    common.validate_user(self.unix_acct())
+    common.validate_hostname(self.hostname())
+    common.validate_user(self.username())
     common.validate_email(self.admin_email())
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
+    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     self.__validate_collector_port__()
     self.__validate_secondary_collectors__()
     self.__validate_schedds__()
@@ -328,7 +328,7 @@ setenv CONDOR_CONFIG %s
          "condor_local": self.condor_local(), }
 
         if os.getuid() == 0:
-            cmdline="%s  --owner=%s" % (cmdline,self.unix_acct())
+            cmdline="%s  --owner=%s" % (cmdline,self.username())
         common.run_script(cmdline)
     except Exception,e:
         shutil.rmtree(self.condor_location())
@@ -538,7 +538,7 @@ RESERVED_SWAP = 0
 ####################################
 CONDOR_HOST = %(host)s
 COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
-""" % { "host" : self.option_value("UserCollector","node"),
+""" % { "host" : self.option_value("UserCollector","hostname"),
         "port" : self.option_value("UserCollector","collector_port"),
       }
     self.__append_to_condor_config__(data,"COLLECTOR")
@@ -588,7 +588,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
     for i in range(schedds):
       schedd_name = "%s%i" % (self.schedd_name_suffix,i+1)
       #-- run the init script --
-      user = pwd.getpwnam(self.unix_acct())
+      user = pwd.getpwnam(self.username())
       condor_ids = "%s.%s" % (user[2],user[3])
       common.run_script("export CONDOR_IDS=%s;%s/%s %s" % (condor_ids,self.condor_location(),self.schedd_init_file,schedd_name))
       #-- add the start script to the condor initd function --
@@ -801,7 +801,7 @@ SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI
 GSI_DAEMON_TRUSTED_CA_DIR=%s
 """ % (self.certificates)
 
-    if self.gsi_authentication() == "proxy":
+    if self.gsi_credential_type() == "proxy":
       data = data + """
 ############################
 # Credentials

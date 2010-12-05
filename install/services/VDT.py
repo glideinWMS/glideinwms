@@ -25,7 +25,7 @@ class VDT(Configuration):
   def vdt_cache(self):
     return "http://vdt.cs.wisc.edu/vdt_200_cache"
   #-------------------------
-  def unix_acct(self):
+  def username(self):
     return pwd.getpwuid(os.getuid())[0]
   #-------------------------
   def vdt_location(self):
@@ -65,7 +65,7 @@ class VDT(Configuration):
 #    if self.vdt_exists():
 #      common.logerr("... VDT pacman installation already exists: %s" % self.vdt_location())
     self.__install_pacman__()
-    common.make_directory(self.vdt_location(),self.unix_acct(),0755,empty_required=False)
+    common.make_directory(self.vdt_location(),self.username(),0755,empty_required=False)
     #-- pacman get ---
     common.logit("... installing VDT client packages now")
     common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; source %s/setup.sh && cd %s && pacman -trust-all-caches -get %s" % (self.pacman_location(),self.vdt_location(),packages))
@@ -88,7 +88,7 @@ class VDT(Configuration):
     if not common.wget_is_valid(pacman_urlfile):
       common.logerr("The version of pacman requested does not appear to exist here:\n  %s" % pacman_urlfile)
 
-    common.make_directory(self.pacman_parent(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.pacman_parent(),self.username(),0755,empty_required=True)
     common.logit("Installing pacman: %s" % (self.pacman_version()))
     common.run_script("cd %s && wget %s && tar --no-same-owner -xzvf %s.tar.gz && rm -f  %s.tar.gz" %
       (self.pacman_parent(),pacman_urlfile,self.pacman_version(),self.pacman_version()))

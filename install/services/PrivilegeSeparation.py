@@ -26,7 +26,7 @@ class PrivilegeSeparation:
     # -- condor switchboard that must have setuid ----
     self.switchboard_bin = os.path.join(self.condor_location,'sbin/condor_root_switchboard')
     # -- users and groups ----
-    self.factory_user    = self.factory.unix_acct()
+    self.factory_user    = self.factory.username()
     self.factory_groups  = None
     self.frontend_groups = {}
     self.frontend_users  = []
@@ -170,7 +170,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
     os.chmod(self.switchboard_bin,04755)
     #-- create factory directories ---
     #-- factory dirs done in Factory install --
-    # self.factory.create_factory_dirs(self.factory.unix_acct(),0755)
+    # self.factory.create_factory_dirs(self.factory.username(),0755)
     self.factory.create_factory_client_dirs('root',0755)
     common.logit("--- End of updates for Privilege Separation.--- ")
 

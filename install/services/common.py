@@ -204,10 +204,10 @@ def ask_continue(question):
     raise KeyboardInterrupt
 
 #--------------------------------
-def validate_node(node):
-  logit("... validating node: %s" % node)
+def validate_hostname(node):
+  logit("... validating hostname: %s" % node)
   if node <> os.uname()[1]:
-    logerr("Node option (%s) shows different host. This is %s" % (node,os.uname()[1]))
+    logerr("hostname option (%s) shows different host. This is %s" % (node,os.uname()[1]))
 
 #--------------------------------
 def validate_user(user):
@@ -226,7 +226,7 @@ def validate_installer_user(user):
 
 #--------------------------------
 def validate_gsi(dn_to_validate,type,location):
-  logit("... validating gsi_authentication: %s" % type)
+  logit("... validating gsi_credential_type: %s" % type)
   logit("... validating gsi_location: %s" % location)
   logit("... validating gsi_dn: %s" % dn_to_validate)
   dn_in_file = get_gsi_dn(type,location)

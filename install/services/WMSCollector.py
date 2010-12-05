@@ -16,22 +16,22 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-wmscollector_options = [ "node", 
-"unix_acct", 
+wmscollector_options = [ "hostname", 
+"username", 
 "service_name", 
 "condor_location", 
 "collector_port", 
 "certificates",
 "privilege_separation",
 "frontend_users",
-"gsi_authentication", 
+"gsi_credential_type", 
 "cert_proxy_location", 
 "gsi_dn", 
 "condor_tarball", 
 "condor_admin_email", 
 "split_condor_config", 
 "number_of_schedds",
-"glidein_install_dir",
+"glideinwms_location",
 "install_vdt_client",
 "vdt_location",
 "pacman_location",
@@ -41,11 +41,11 @@ frontend_options = [ "gsi_dn",
 "service_name",
 ]
 
-factory_options = [ "node",
-"unix_acct",
+factory_options = [ "hostname",
+"username",
 ]
 
-usercollector_options = [ "node",
+usercollector_options = [ "hostname",
 "collector_port",
 "number_of_secondary_collectors",
 ]
@@ -109,7 +109,7 @@ class WMSCollector(Condor):
     else:
       self.get_factory()
       self.get_frontend()
-      mydict[self.frontend.service_name()] = self.factory.unix_acct()
+      mydict[self.frontend.service_name()] = self.factory.username()
     return mydict
   #--------------------------------
   def install(self):
@@ -128,7 +128,7 @@ class WMSCollector(Condor):
     if self.privsep <> None:
       self.privsep.update()
     common.logit("======== %s install complete ==========" % self.ini_section)
-    common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile) 
+    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
 
   #-----------------------------
   def validate_install_location(self):
@@ -144,12 +144,12 @@ class WMSCollector(Condor):
   #--------------------------------
   def configure_gsi_security(self):
     common.logit("\nConfiguring GSI security")
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
+    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     condor_entries = ""
     #-- frontends ---
     condor_entries += common.mapfile_entry(self.frontend.gsi_dn(), self.frontend.service_name())
     #--- wms entry ---
-    condor_entries += common.mapfile_entry(self.gsi_dn(), self.unix_acct())
+    condor_entries += common.mapfile_entry(self.gsi_dn(), self.username())
     self.__create_condor_mapfile__(condor_entries) 
 
     #-- update the condor config file entries ---
@@ -160,8 +160,8 @@ GSI_DAEMON_NAME=%s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 # --- VOFrontend user: %s ---
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % (       self.unix_acct(),        self.gsi_dn(),
-      self.factory.unix_acct(),        self.factory.gsi_dn(),
+""" % (       self.username(),        self.gsi_dn(),
+      self.factory.username(),        self.factory.gsi_dn(),
      self.frontend.service_name(),     self.frontend.gsi_dn())
     self.__update_gsi_daemon_names__(gsi_daemon_entries) 
 
@@ -169,7 +169,7 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
   #--------------------------------
   def verify_no_conflicts(self):
     self.get_usercollector()
-    if self.node() <> self.usercollector.node():
+    if self.hostname() <> self.usercollector.hostname():
       return  # -- no problem, on separate nodes --
     if self.collector_port() == self.usercollector.collector_port():
       common.logerr("The WMS collector and User collector are being installed \non the same node. They both are trying to use the same port: %s." % self.collector_port())

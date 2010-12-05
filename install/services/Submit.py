@@ -14,12 +14,12 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-submit_options = [ "node", 
-"unix_acct",
+submit_options = [ "hostname", 
+"username",
 "service_name", 
 "condor_location", 
 "certificates",
-"gsi_authentication", 
+"gsi_credential_type", 
 "cert_proxy_location", 
 "gsi_dn", 
 "match_authentication", 
@@ -32,13 +32,13 @@ submit_options = [ "node",
 "pacman_location",
 ]
 
-usercollector_options = [ "node", 
+usercollector_options = [ "hostname", 
 "service_name", 
 "gsi_dn",
 "condor_location",
 ]
 
-frontend_options = [ "node", 
+frontend_options = [ "hostname", 
 "service_name", 
 "gsi_dn",
 ]
@@ -90,7 +90,7 @@ class Submit(Condor):
       self.install_condor()
     self.configure_condor()
     common.logit ("======== %s install complete ==========" % self.ini_section)
-    common.start_service(self.glidein_install_dir(),self.ini_section,self.inifile) 
+    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
 
   #-----------------------------
   def determine_co_located_services(self):
@@ -100,13 +100,13 @@ class Submit(Condor):
         perform the configuration of the condor_config file.
     """
     common.logit("\nChecking for co-located services")
-    # -- if not on same node, we don't have any co-located
-    if self.node() <> self.usercollector.node():
-      common.logit("... no services are co-located on this node")
+    # -- if not on same host, we don't have any co-located
+    if self.hostname() <> self.usercollector.hostname():
+      common.logit("... no services are co-located on this host")
       return 
     common.logit("""
 The Submit service and the User Collector service are being installed on the
-same node and can share the same Condor instance, as well as certificates and
+same host and can share the same Condor instance, as well as certificates and
 VDT client instances.""")
     #--- Condor ---
     common.logit(".......... Submit Condor: %s" % self.condor_location())
@@ -150,7 +150,7 @@ Do you want to continue""")
       common.logit("... submit/schedd service colocated with UserCollector")
       common.logit("... no updates to condor mapfile required")
       return
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
+    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     common.logit("... updating condor_mapfile")
     #--- create condor_mapfile entries ---
     condor_entries = ""
@@ -168,7 +168,7 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 # --- Frontend user: %s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 """ % \
-                 (self.unix_acct(),               self.gsi_dn(),
+                 (self.username(),               self.gsi_dn(),
     self.usercollector.service_name(), self.usercollector.gsi_dn(),
          self.frontend.service_name(),      self.frontend.gsi_dn())
 

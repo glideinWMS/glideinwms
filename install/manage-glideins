@@ -55,7 +55,7 @@ def apache(action):
 #--------------------------------
 def wmscollector(service,action,inifile):
   obj = WMSCollector.WMSCollector(inifile)
-  user = obj.unix_acct()
+  user = obj.username()
   if obj.privilege_separation() == "y":
     user = 'root'
   cmd = "source %s/condor.sh" % obj.condor_location()
@@ -69,7 +69,7 @@ def wmscollector(service,action,inifile):
   if action == "status":
     cmd += "; condor_status -any || (echo;echo 'Not running';echo) "
     cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
-  run_command(service,user,obj.node(),cmd)
+  run_command(service,user,obj.hostname(),cmd)
 
 #--------------------------------
 def usercollector(service,action,inifile):
@@ -84,7 +84,7 @@ def usercollector(service,action,inifile):
     cmd += "; %s %s" % (obj.initd_script(),action)
   if action == "status":
     cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
-  run_command(service,obj.unix_acct(),obj.node(),cmd)
+  run_command(service,obj.username(),obj.hostname(),cmd)
 
 #--------------------------------
 def submit(service,action,inifile):
@@ -100,7 +100,7 @@ def submit(service,action,inifile):
   if action == "status":
     cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
     cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
-  run_command(service,obj.unix_acct(),obj.node(),cmd)
+  run_command(service,obj.username(),obj.hostname(),cmd)
 
 #--------------------------------
 def vofrontend(service,action,inifile):
@@ -115,7 +115,7 @@ def vofrontend(service,action,inifile):
     cmd += "; ./frontend_startup %s"  % action
   if action == "status":
     cmd += """; echo;./frontend_startup %s;echo"""  % (action)
-  run_command(service,obj.unix_acct(),obj.node(),cmd)
+  run_command(service,obj.username(),obj.hostname(),cmd)
 
 #--------------------------------
 def factory(service,action,inifile):
@@ -133,7 +133,7 @@ def factory(service,action,inifile):
     cmd += "; ./factory_startup %s"  % action
   if action == "status":
     cmd += """; echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)"""  % (action, obj.glidein_install_dir())
-  run_command(service,obj.unix_acct(),obj.node(),cmd)
+  run_command(service,obj.username(),obj.hostname(),cmd)
 
 #----------------
 def find_services(inifile):
@@ -142,14 +142,14 @@ def find_services(inifile):
    cfg = Configuration.Configuration(inifile)
    sections = [ "WMSCollector", "Factory", "UserCollector", "Submit", "VOFrontend", ]
    for section in sections:
-     if cfg.has_option(section,"node"):
-       if cfg.option_value(section,"node") == os.uname()[1]:
+     if cfg.has_option(section,"hostname"):
+       if cfg.option_value(section,"hostname") == os.uname()[1]:
          services.append(section.lower())
      else:
-       common.logerr("ini file section(%s) does not contain a node option(%s)" % (section,"node"))
+       common.logerr("ini file section(%s) does not contain a hostname option(%s)" % (section,"hostname"))
 
    if len(services) == 0:
-       common.logerr("The ini file shows no services for this node: %s" % os.uname()[1])
+       common.logerr("The ini file shows no services for this hostname: %s" % os.uname()[1])
 
    common.ask_continue("The following services will be processed on this node:\n   %s\n... do you want to continue" % services)
    return services
