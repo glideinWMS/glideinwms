@@ -734,7 +734,7 @@ please verify and correct if needed.
 %(indent1)s<match>
 %(indent2)s<factory>
 %(indent3)s<collectors>
-%(indent4)s<collector node="%(wms_node)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_username)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
+%(indent4)s<collector node="%(wms_node)s:%(wms_collector_port)s" DN="%(wms_gsi_gn)s" factory_identity="%(factory_username)s@%(wms_node)s" my_identity="%(frontend_identity)s@%(wms_node)s" comment="Define factory collectors globally for simplicity"/>
 %(indent3)s</collectors>
 %(indent2)s</factory>
 %(indent2)s<job query_expr=%(job_constraints)s  comment="Define job constraint and schedds globally for simplicity">
@@ -744,6 +744,7 @@ please verify and correct if needed.
   "indent3"           : common.indent(3), 
   "indent4"           : common.indent(4), 
   "wms_node"          : self.wms.hostname(),
+  "wms_collector_port": self.wms.collector_port(),
   "wms_gsi_gn"        : self.wms.gsi_dn(),
   "factory_username" : self.factory.username(),
   "frontend_identity" : self.service_name(),
