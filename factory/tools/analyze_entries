@@ -399,23 +399,23 @@ Time efficiency: %.2f
 
         frontend_data[period][frontend]['total_time'],
         frontend_data[period][frontend]['total_time']/3600,
-        float(frontend_data[period][frontend]['total_time'])/float(x*3600), 
+        float(frontend_data[period][frontend]['total_time'])/float(period), 
 
         frontend_data[period][frontend]['used'], 
         frontend_data[period][frontend]['used']/3600, 
-        float(frontend_data[period][frontend]['used'])/float(x*3600), 
+        float(frontend_data[period][frontend]['used'])/float(period), 
 
         frontend_data[period][frontend]['validation'], 
         frontend_data[period][frontend]['validation']/3600, 
-        float(frontend_data[period][frontend]['validation'])/float(x*3600), 
+        float(frontend_data[period][frontend]['validation'])/float(period),
 
         frontend_data[period][frontend]['idle'], 
         frontend_data[period][frontend]['idle']/3600,
-        float(frontend_data[period][frontend]['idle'])/float(x*3600), 
+        float(frontend_data[period][frontend]['idle'])/float(period), 
 
         frontend_data[period][frontend]['waste'], 
         frontend_data[period][frontend]['waste']/3600,
-        float(frontend_data[period][frontend]['waste'])/float(x*3600), 
+        float(frontend_data[period][frontend]['waste'])/float(period), 
 
         float(frontend_data[period][frontend]['used'])/float(frontend_data[period][frontend]['waste']),
         float(frontend_data[period][frontend]['used'])/(float(frontend_data[period][frontend]['waste'])+float(frontend_data[period][frontend]['used'])))) 
