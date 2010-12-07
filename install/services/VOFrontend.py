@@ -575,7 +575,7 @@ please verify and correct if needed.
   "group_name"         : group_name,
   "match_str"          : xmlFormat.xml_quoteattr(match_str),
   "factory_attributes" : self.factory_data(factory_attributes),
-  "job_attributes"     : self.factory_data(job_attributes),
+  "job_attributes"     : self.job_date(job_attributes),
 }
     return data 
 
