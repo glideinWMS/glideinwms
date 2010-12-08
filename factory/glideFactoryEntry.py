@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.29 2010/12/03 22:40:43 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.30 2010/12/08 20:31:46 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -247,9 +247,8 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 client_security_name=client_int_name
 
         if ((frontend_whitelist == "On") and (not security_list.has_key(client_security_name))):
-            glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Skipping request from %s "% (client_security_name,client_int_name))
-            continue
-
+            glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
+            in_downtime=True
         # Check if proxy passing is compatible with allowed_proxy_source
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
             if not ('frontend' in allowed_proxy_source):
@@ -297,10 +296,9 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             
             # Check if this entry point has a whitelist
             # If it does, then make sure that this frontend is in it.
-            if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
+            if (frontend_whitelist == "On") and (security_list.has_key(client_security_name)) and (not x509_proxy_security_class in security_list[client_security_name]) and (not "All" in security_list[client_security_name]):
                 glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping security class %s "%(client_security_name,x509_proxy_security_class))
-                continue #skip request
-
+                in_downtime=True
             
             x509_proxy_fnames['main']=x509_proxy_fname
             x509_proxy_usernames['main']=x509_proxy_username
@@ -313,7 +311,10 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             except:
                 glideFactoryLib.log_files.logWarning("Invalid number of proxies for %s, skipping request"%client_int_name)
                 continue # skip request
-
+            # If the whitelist mode is on, then set downtime to true
+            # We will set it to false in the loop if a security class passes the test
+            if (frontend_whitelist=="On"):
+                in_downtime=True
             for i in range(nr_x509_proxies):
                 if decrypted_params['x509_proxy_%i'%i]==None:
                     glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
@@ -336,11 +337,12 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
                 # Deny Frontend from entering glideins if the whitelist
                 # does not have its security class (or "All" for everyone)
-                if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
-                    glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
-                    continue # skip request
-#                else:
-#                    glideFactoryLib.log_files.logDebug("Security test passed for : %s %s "%(jobDescript.data['EntryName'],x509_proxy_security_class))
+                if (frontend_whitelist == "On") and (security_list.has_key(client_security_name)):
+                    if ((x509_proxy_security_class in security_list[client_security_name])or ("All" in security_list[client_security_name])):
+                        in_downtime=False
+                        glideFactoryLib.log_files.logDebug("Security test passed for : %s %s "%(jobDescript.data['EntryName'],x509_proxy_security_class))
+                    else:
+                        glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
 
                 x509_proxy_username=frontendDescript.get_username(client_security_name,x509_proxy_security_class)
                 if x509_proxy_username==None:
@@ -380,9 +382,9 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
         
             # Check if this entry point has a whitelist
             # If it does, then make sure that this frontend is in it.
-            if (frontend_whitelist == "On")and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
-                glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Skipping security class %s "%(client_security_name,x509_proxy_security_class))
-                continue #skip request
+            if (frontend_whitelist == "On")and (security_list.has_key(client_security_name))and(not x509_proxy_security_class in security_list[client_security_name])and (not "All" in security_list[client_security_name]):
+                glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Marking as in downtime (security class %s) "%(client_security_name,x509_proxy_security_class))
+                in_downtime=True
 
         #Check security class for downtime
         factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
@@ -393,6 +395,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
             idle_glideins=0
             max_running=0
+            in_downtime=True
 
 
 
