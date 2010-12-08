@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.30 2010/12/08 20:31:46 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.31 2010/12/08 21:56:42 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -314,6 +314,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             # If the whitelist mode is on, then set downtime to true
             # We will set it to false in the loop if a security class passes the test
             if (frontend_whitelist=="On"):
+                prev_downtime=in_downtime
                 in_downtime=True
             for i in range(nr_x509_proxies):
                 if decrypted_params['x509_proxy_%i'%i]==None:
@@ -339,7 +340,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 # does not have its security class (or "All" for everyone)
                 if (frontend_whitelist == "On") and (security_list.has_key(client_security_name)):
                     if ((x509_proxy_security_class in security_list[client_security_name])or ("All" in security_list[client_security_name])):
-                        in_downtime=False
+                        in_downtime=prev_downtime
                         glideFactoryLib.log_files.logDebug("Security test passed for : %s %s "%(jobDescript.data['EntryName'],x509_proxy_security_class))
                     else:
                         glideFactoryLib.log_files.logWarning("Security class not in whitelist, skipping (%s %s) "%(client_security_name,x509_proxy_security_class))
@@ -393,8 +394,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
         in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],security_class=x509_proxy_security_class))
         if (in_sec_downtime):
             glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
-            idle_glideins=0
-            max_running=0
             in_downtime=True
 
 
