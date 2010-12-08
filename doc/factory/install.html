@@ -156,7 +156,8 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)
                 <p>
 
                     It must must be on the <b>public internet</b>, with <b>at least one port open to the world</b>;
-                    all worker nodes will load data from this node trough HTTP.
+                    all worker nodes will load data from this node trough HTTP. Note that <b>worker nodes</b> will
+                    also need outbound access in order to access this HTTP port.
                 </p>
 
     </div>
@@ -205,7 +206,8 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)
             <a target="_blank" href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.
         </td>
 
-        <td>This should be installed prior to glideinWMS (see <a href="#software_httpd">below</a>)</td>
+        <td>This should be installed prior to glideinWMS (see <a href="#software_httpd">below</a>).
+            This port will need open access to the internet, so worker nodes can download data from this service.</td>
         <td class="checked"> X </td>
     </tr>
     <tr>
@@ -261,7 +263,9 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)
         <a target="_blank" href="http://www.stllinux.org/meeting_notes/2001/0719/tux/intro.html">TUX</a>.  The server should be installed on 
         the same node, but a different node can be used as long as the web area is writable from this one. Servers often come 
         pre-installed with HTTP server software, so if you have one running, just reuse it.  Otherwise, the installer can help 
-        you install one (as root).  (See <a href="components/prerequisites.html#system_httpd">GlideinWMS Component Install</a>) 
+        you install one (as root).  This will need to be installed on a port with access to the internet, 
+        so worker nodes can download data from this service.
+        (See <a href="components/prerequisites.html#system_httpd">GlideinWMS Component Install</a>) 
     </p>
     
     <h3><a name="software_rrdtool">3.3 RRDTool</a></h3>
