@@ -674,9 +674,8 @@ elif [ -f /etc/rc.d/init.d/functions ] ; then
 else
   exit 0
 fi
-"""
-    data = data + """
-CONDOR_LOCATION=%s
+
+CONDOR_LOCATION=%(condor_location)s
 if [ ! -d "$CONDOR_LOCATION" ];then
   failure
   exit 1
@@ -690,26 +689,52 @@ if [ ! -f "$CONDOR_CONFIG" ];then
   echo "ERROR: CONDOR_CONFIG not found: $CONDOR_CONFIG"
   exit 1
 fi
-""" % (self.condor_location())
 
-    data = data + """
+#---- verify correct user is starting/stopping condor --
+validate_user () {
+  config_vals="GSI_DAEMON_CERT GSI_DAEMON_KEY GSI_DAEMON_PROXY"
+  good="no"
+  for gsi_type in $config_vals
+  do
+    file="$(condor_config_val $gsi_type 2>/dev/null)"
+    if [ ! -z "$file" ];then
+      if [ -r "$file" ];then
+        owner=$(ls -l $file | cut -d' ' -f4)
+        me="$(/usr/bin/whoami)"
+        if [ "$me" = "$owner" ];then
+          good="yes"
+          break
+        fi
+      fi
+    fi
+  done
+  if [ $good = "no" ];then
+    echo "ERROR: GSI self authentication will fail." 
+    echo "Check these Condor attributes and verify ownership."
+    echo "    $config_vals"
+    echo "Or you may be starting/stopping Condor as the wrong user."
+    exit 1
+  fi
+}
+
 #---- secondary schedd start function ---
 start_secondary_schedds () {
-%s
+%(schedds)s
 }
-""" % (self.schedd_initd_function)
 
-    data = data + """
-#----
+#-- start --
 start () { 
+   validate_user 
    echo -n "Starting condor: "
    $CONDOR_LOCATION/sbin/condor_master 2>/dev/null 1>&2 && success || failure
    RETVAL=$?
    start_secondary_schedds
    echo
 }
-#----
+
+#-- stop --
 stop () { 
+   validate_user 
    echo -n "Shutting down condor: "
    killall -q -9 condor_master condor_schedd condor_shadow condor_collector condor_negotiator condor_procd condor_gridmanager gahp_server 2>/dev/null 1>&2
    sleep 1
@@ -718,9 +743,17 @@ stop () {
    RETVAL=$?
    echo
 }
-#----
-restart () { stop; start
+#-- restart --
+restart () { 
+   stop
+   start
 }
+
+#-- status --
+condor_status () { 
+   status $CONDOR_LOCATION/sbin/condor_master 
+}
+
 #--------
 prog=$(basename $0)
 
@@ -728,11 +761,13 @@ case $1 in
    start  ) start ;;
    stop   ) stop ;;
    restart) restart ;;
-   status ) status $CONDOR_LOCATION/sbin/condor_master ;;
+   status ) condor_status ;;
         * ) echo "Usage: $prog {start|stop|restart|status}"; exit 1 ;;
 esac
 exit $RETVAL
-""" 
+""" % { "condor_location" : self.condor_location(),
+        "schedds" : self.schedd_initd_function,
+      }
     return data
 
   #-----------------------------
