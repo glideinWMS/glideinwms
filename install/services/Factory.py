@@ -37,7 +37,6 @@ factory_options = [ "hostname",
 "web_location",
 "web_url",
 "javascriptrrd_location",
-"m2crypto_location",
 "match_authentication",
 "install_vdt_client",
 "glideinwms_location",
@@ -176,10 +175,10 @@ class Factory(Configuration):
   def create_env_script(self):
     common.logit("Creating environment script...")
     data = """#!/bin/bash
-source %s/setup.sh
-export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
-source %s/condor.sh
-""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.wms.condor_location())
+source %(vdt_location)s/setup.sh
+source %(condor_location)s/condor.sh
+""" % { "vdt_location"    : self.glidein.vdt_location(),
+        "condor_location" : self.wms.condor_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 

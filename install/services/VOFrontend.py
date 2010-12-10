@@ -41,7 +41,6 @@ frontend_options = [ "hostname",
 "web_location",
 "web_url",
 "javascriptrrd_location",
-"m2crypto_location",
 "match_authentication",
 "expose_grid_env",
 "glideinwms_location",
@@ -406,10 +405,10 @@ The following DNs are in your grid_mapfile:"""
   def create_env_script(self):
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
-source %s/setup.sh
-export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
-source %s/condor.sh
-""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.condor_location())
+source %(vdt_location)s/setup.sh
+source %(condor_location)s/condor.sh
+""" % { "vdt_location"    : self.glidein.vdt_location(),
+        "condor_location" : self.condor_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 
@@ -575,7 +574,7 @@ please verify and correct if needed.
   "group_name"         : group_name,
   "match_str"          : xmlFormat.xml_quoteattr(match_str),
   "factory_attributes" : self.factory_data(factory_attributes),
-  "job_attributes"     : self.job_date(job_attributes),
+  "job_attributes"     : self.job_data(job_attributes),
 }
     return data 
 

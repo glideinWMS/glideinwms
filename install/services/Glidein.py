@@ -126,9 +126,6 @@ class Glidein(Configuration):
   def flot(self):
     return os.path.join(self.javascriptrrd(),"flot")
   #---------------------
-  def m2crypto(self):
-    return self.option_value(self.ini_section,"m2crypto_location")
-  #---------------------
   def match_authentication(self):
     return self.option_value(self.ini_section,"match_authentication")
 
@@ -179,13 +176,12 @@ class Glidein(Configuration):
 
     ##-- M2Crypto --
     msg = ""
-    os.environ["PYTHONPATH"] = "%s:%s/%s" % (os.environ["PYTHONPATH"],self.m2crypto(),"usr/lib/python2.3/site-packages/")
     module = "M2Crypto"
     if common.module_exists(module):
       msg = "available"
     else:
       errors = errors + 1
-      msg = "ERROR: %s not installed or not in PYTHONPATH: %s" % (module,self.m2crypto())
+      msg = "ERROR: This python module is required and not available."
     common.logit("... validating M2Crypto: %s" % msg)
 
     ##-- javascriptrrd --
@@ -251,9 +247,7 @@ specified.
 def main(argv):
   try:
     options = validate_args(argv)
-    valid_options = ["javascriptrrd_location",
-"m2crypto_location",
-]
+    valid_options = ["javascriptrrd_location", ]
     glidein = Glidein(options.inifile,"Factory",valid_options)
   except KeyboardInterrupt:
     common.logit("\n... looks like you aborted this script... bye.");
