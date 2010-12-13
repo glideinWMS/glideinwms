@@ -158,9 +158,14 @@ or contact glidein support.
         only configurations with the WMS collector and factory on the 
         same node are supported.  Also note that worker nodes must be
         able to access the web server on the factory node in order to
-        download neccessary files.<br/>
-    Several possible configurations are below.</p>
-    
+        download neccessary files.
+    It should be noted that it is possible to install the glideinWMS
+    across administrative boundaries (i.e. you will only install part
+    of the glideinWMS infrastructure).  See the OSG section below for
+    an example.</p>
+    <p>
+    Several possible configurations are below:  
+    </p> 
     <p><b>Two Server configuration</b> (recommended minimum):
 <ul>
   <li><a href="factory/install.html">The glidein WMS Collector and collocated
@@ -177,8 +182,7 @@ or contact glidein support.
 <ul>
   <li><a href="factory/install.html">The glidein WMS Collector and collocated
     glidein Factory node</a> </li>
-  <li>A node containing the <a href="components/collector_install.html">glidein pool
-    Collector</a> together with the <a href="frontend/install.html">VO
+  <li>A node containing the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="frontend/install.html">VO
     Frontend</a> </li>
   <li>A node containing the <a href="components/pool_install.html">scheduler for user
     submissions</a> </li>
@@ -195,8 +199,24 @@ or contact glidein support.
     With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
     when running commands.
    </li>
-
 </ul>
+<p><b>OSG Factory configuration</b></p>
+<p>
+    Members of the Open Science Grid can use the OSG factory at UCSD.  
+    In this case, only the following installation is necessary:
+    <ul>
+    <li><a href="components/collector_install.html">
+            glidein pool Collector
+    </a></li> 
+    <li><a href="components/pool_install.html">
+        scheduler for user submissions
+    </a></li> 
+    <li><a href="frontend/install.html">Glidein Frontend</a></li>
+    </ul>
+</p>
+<p>
+    See <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> for more details on how to use this setup.
+</p>
 </p>
 
 
