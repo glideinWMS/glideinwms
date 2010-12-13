@@ -157,17 +157,22 @@ Glidein log analysis for frontend %s - %s
                 eglideins, ejobs, eused, ewaste, evalidation, eidle, ebadput = 0,0,0,0,0,0,0
                 entry_data[period][frontend][entry] = {}  
 
+                # If no data is found, set all attributes to 0
+                if len(elements) == 0:
+                    entry_data[period][frontend][entry] = {'glideins':0,'jobs':0,'used':0,'waste':0,'validation':0,'badput':0,'idle':0}
+                    continue
+
                 eglideins = elements["Glideins"]
                 ejobs = elements["JobsNr"]
-                eused = elements["JobsGoodput"]
+                eused = elements["JobsLasted"]
 
                 for name, value in elements.iteritems():
-                    if 'badput' in name:
-                        multiplier = re.findall('badput_(.*)', name)[0].rstrip('m')
-                        if multiplier == "All": multiplier = 1000
-                        if multiplier == "Most": multiplier = 750 # approximation
-                        if multiplier == "None": multiplier = 0
-                        ewaste += value*(int(multiplier)*1.0e-3)
+                    #if 'badput' in name:
+                    #    multiplier = re.findall('badput_(.*)', name)[0].rstrip('m')
+                    #    if multiplier == "All": multiplier = 1000
+                    #    if multiplier == "Most": multiplier = 750 # approximation
+                    #    if multiplier == "None": multiplier = 0
+                    #    ewaste += value*(int(multiplier)*1.0e-3)
                     if 'validation' in name:
                         multiplier = re.findall('validation_(.*)', name)[0].rstrip('m')
                         if multiplier == "All": multiplier = 1000
