@@ -31,7 +31,6 @@ factory_options = [ "hostname",
 "use_glexec", 
 "use_ccb", 
 "ress_host",
-"bdii_host",
 "entry_vos",
 "entry_filters",
 "web_location",
@@ -43,6 +42,7 @@ factory_options = [ "hostname",
 "vdt_location",
 "pacman_location",
 ]
+## "bdii_host",
 
 wmscollector_options = [ "hostname", 
 "username", 
@@ -450,11 +450,12 @@ source %(condor_location)s/condor.sh
         ress_data     = self.get_ress_data()
         filtered_data = self.apply_filters_to_ress(ress_data)
         self.ask_user(filtered_data)
-      yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
-      if yn == 'y':
-        bdii_data     = self.get_bdii_data()
-        filtered_data = self.apply_filters_to_bdii(bdii_data)
-        self.ask_user(filtered_data)
+      ## - tmp/permanent removal of BDII query as too may results occur 12/14/10 -
+      ## yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
+      ## if yn == 'y':
+      ##   bdii_data     = self.get_bdii_data()
+      ##   filtered_data = self.apply_filters_to_bdii(bdii_data)
+      ##   self.ask_user(filtered_data)
       yn=raw_input("Do you want to add manual entries?: (y/n) [n] ")
       if yn == 'y':
         self.additional_entry_points()
