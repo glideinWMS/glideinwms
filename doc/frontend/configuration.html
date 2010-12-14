@@ -163,9 +163,9 @@ Click on any piece for a more detailed description.
                 </blockquote>
                 <a href="#group_job">&lt;/job&gt;</a><br/>
             </blockquote>
-            <a href="#">&lt;security&gt;</a><br/>
+            <a href="#group_security_proxies">&lt;security&gt;</a><br/>
                 <blockquote>
-                    <a href="#">&lt;proxies /&gt;</a><br/>
+                    <a href="#group_security_proxies">&lt;proxies /&gt;</a><br/>
                 </blockquote>
             <a href="#">&lt;/security&gt;</a><br/>
             <a href="#">&lt;attrs /&gt;</a><br/>
@@ -295,7 +295,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         </div>
     The location of the proxy the Glidein Frontend forwards to the factory for
     use in submitting glideins. You can have multiple proxy entries
-    listed here. 
+    listed here and they are used by all groups.
     </P></li>
     <LI><P>
         <a name="stage" />
@@ -470,7 +470,8 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
 <P>The following group parameters are used to configure multiple
 frontends. If only one group is specified, they apply to all
 frontends. The objects specified are used for creating and monitoring
-glideins.</P>
+glideins.  Groups are used to group users with similar requirements, such as proxies, criteria for matching job requirements with sites, and configuration of glideins.
+</P>
 <UL>
     <LI><P>
         <a name="group" />
@@ -538,6 +539,16 @@ glideins.</P>
 
         </div>
         A list of job attributes used in the factory match expression. 
+    </P></li>
+    <LI><P>
+        <a name="group_security_proxies" />
+        <div class="xml">
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;security&gt;&lt;proxies&gt;&lt;proxy
+        absfname=&quot;<I>proxy</I>&quot;
+        security_class=&quot;<I>classname</I>&quot; &gt;
+
+        </div>
+        Group-specific proxies for submitting glideins can be defined that will be passed to the factory in addition to any globally defined proxies.
     </P></li>
     <LI><P>
         <a name="collectors" />
