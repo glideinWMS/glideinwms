@@ -675,18 +675,26 @@ else
   exit 0
 fi
 
+#-- Condor settings --
 CONDOR_LOCATION=%(condor_location)s
 if [ ! -d "$CONDOR_LOCATION" ];then
+  echo "ERROR: CONDOR_LOCATION does not exist: $CONDOR_LOCATION"
   failure
   exit 1
 fi
-#-- Condor settings --
 if [ ! `echo ${PATH} | grep -q $CONDOR_LOCATION/bin` ]; then
   PATH=${PATH}:$CONDOR_LOCATION/bin
 fi
 export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config
 if [ ! -f "$CONDOR_CONFIG" ];then
   echo "ERROR: CONDOR_CONFIG not found: $CONDOR_CONFIG"
+  failure
+  exit 1
+fi
+CONDOR_MASTER=$CONDOR_LOCATION/sbin/condor_master
+if [ ! -f "$CONDOR_MASTER" ];then
+  echo "ERROR: cannot find $CONDOR_MASTER"
+  failure
   exit 1
 fi
 
@@ -724,24 +732,40 @@ start_secondary_schedds () {
 
 #-- start --
 start () { 
-   validate_user 
+   validate_user
+   condor_status
+   [ "$RETVAL" = "0" ] && { echo "Condor is already running";return
+}
    echo -n "Starting condor: "
-   $CONDOR_LOCATION/sbin/condor_master 2>/dev/null 1>&2 && success || failure
+   $CONDOR_MASTER 2>/dev/null 1>&2 && success || failure
    RETVAL=$?
    start_secondary_schedds
    echo
+   sleep 3
+   condor_status
+   [ "$RETVAL" != "0" ] && { echo "ERROR: Condor did not start correctly"
+}
 }
 
 #-- stop --
 stop () { 
-   validate_user 
+   validate_user
+   condor_status
+   [ "$RETVAL" != "0" ] && { return
+}
    echo -n "Shutting down condor: "
-   killall -q -9 condor_master condor_schedd condor_shadow condor_collector condor_negotiator condor_procd condor_gridmanager gahp_server 2>/dev/null 1>&2
-   sleep 1
+   killall -q -15 -exact $CONDOR_MASTER && success || failure
+   sleep 3
+   condor_status
+   [ "$RETVAL" != "0" ] && { return  # the stop worked
+}
+   echo -n "Shutting down condor with SIGKILL: "
    # If a master is still alive, we have a problem
-   killall condor_master 2>/dev/null 1>&2 && failure || success
+   killall -q -9 -exact $CONDOR_MASTER && success || failure
+   condor_status
    RETVAL=$?
-   echo
+   [ "$RETVAL" != "0" ] && { return  # the stop worked
+}
 }
 #-- restart --
 restart () { 
@@ -751,7 +775,17 @@ restart () {
 
 #-- status --
 condor_status () { 
-   status $CONDOR_LOCATION/sbin/condor_master 
+   pids="$(ps -ef |grep $CONDOR_MASTER |egrep -v grep | awk '{printf "%(format)s ", $2}')"
+   echo
+   if [ -z "$pids" ];then
+     echo "$CONDOR_MASTER not running"
+     RETVAL=1
+   else
+   echo "$CONDOR_MASTER running...
+pids ($pids)"
+     RETVAL=0
+   fi
+   echo
 }
 
 #--------
@@ -767,6 +801,7 @@ esac
 exit $RETVAL
 """ % { "condor_location" : self.condor_location(),
         "schedds" : self.schedd_initd_function,
+        "format" : "%s",
       }
     return data
 
@@ -1065,7 +1100,7 @@ GRIDMANAGER_MAX_PENDING_REQUESTS=500
 
 def main(argv):
   try:
-    condor = Condor("/home/weigand/myinstall/glideinWMS.ini")
+    condor = Condor("/home/weigand/glidein-ini/glidein-all-xen21-doug.ini")
     condor.install_condor()
   except ConfigurationError, e:
     print "ERROR: %s" % e;return 1
