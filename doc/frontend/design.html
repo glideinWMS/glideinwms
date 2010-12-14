@@ -72,6 +72,9 @@
 Related Information:
 <ul>
     <li><a href="../factory/design.html">Factory design</a></li>
+    <li> <a href="../factory/design_data_exchange.html">
+           Factory/Frontend Data Exchange
+    </a></li>
 </ul>
 </div>
 <div class="section">
@@ -112,7 +115,7 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
 (job[&quot;Arch&quot;] == glidein[&quot;Arch&quot;]) and (job[&quot;gccVersion&quot;]==glidein[&quot;attrs&quot;][&quot;gccVersion&quot;])</PRE><P>
 
 Finally, the advertise procedure loops over the counts and converts
-them into appropriate <A HREF="../index.html#frontend_classads">Condor
+them into appropriate <A HREF="../factory/design_data_exchange.html#frontend_classads">Condor
 Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
 input parameters, loading the configuration values and loop over the
 above steps.</P>
