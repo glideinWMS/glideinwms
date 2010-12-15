@@ -8,6 +8,20 @@ sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
 
 import xmlParse
 
+# Convert particularly large numbers 
+#    into kilo/megaseconds
+def kmseconds(z):
+    x = int(z)
+    w = z*1.0e-3
+    v = z*1.0e-6
+    if len(str(x)) > 4:
+        if len(str(x)) < 7:
+            return "%.1f Ks" % w
+        if len(str(x)) >= 7:
+            return "%.1f Ms" % v
+        else:
+            return "%s s" % x
+
 def main():
 
     usage="""
@@ -112,9 +126,12 @@ USAGE:
                     data[int(period)][frontend][entry] = {}
 
                 for x_data in [c_data, j_data, w_data]:
-                    for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
-                        data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
-
+                    try:
+                       for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
+                            data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
+                    except:
+                        print "\nEntry %s in one of the RRDs is missing frontend %s; exiting\n" % (entry, frontend)
+                        return
     
 
 ######################################################################
@@ -258,6 +275,10 @@ Glidein log analysis for frontend %s - %s
 
     for period in period_list:
         
+        #if period not in data:
+        #    print "Interval",x,"does not exist in data.\n"# Choices are:",c_data['total']['period'].keys(),"\n"
+        #    return
+
         title = ("Past %.1f hours" % (float(period)/3600))
 
         if period_data[period]['glideins'] == 0:
@@ -272,40 +293,42 @@ Glidein log analysis for frontend %s - %s
 Total Glideins: %s
 Total Jobs: %d (Average jobs/glidein: %.2f) 
 
-Total time: %d s (%d hours - %.1f slots)
-Total time used: %d s (%d hours - %.1f slots)
-Total time in validation: %d s (%d hours - %.1f slots)
-Total time idle: %d s (%d hours- %.1f slots)
-Total time wasted: %d s (%d hours - %.1f slots)
+Total time:            %s (%d hours - %.1f slots)
+Total time used:       %s (%d hours - %.1f slots)
+Total time validating: %s (%d hours - %.1f slots)
+Total time idle:       %s (%d hours - %.1f slots)
+Total time wasted:     %s (%d hours - %.1f slots)
 Time used/time wasted: %.1f
 Time efficiency: %.2f
 """
-     % (title, 
-       period_data[period]['glideins'], 
-       period_data[period]['jobs'], 
-       float(period_data[period]['jobs'])/float(period_data[period]['glideins']),
-       period_data[period]['total_time'],
-       period_data[period]['total_time']/3600,
-       float(period_data[period]['total_time'])/float(period),
-       period_data[period]['used'],
-       period_data[period]['used']/3600, 
-       float(period_data[period]['used'])/float(period),
-       period_data[period]['validation'],
-       period_data[period]['validation']/3600, 
-       float(period_data[period]['validation'])/float(period),
-       period_data[period]['idle'],
-       period_data[period]['idle']/3600, 
-       float(period_data[period]['idle'])/float(period),
-       period_data[period]['waste'],
-       period_data[period]['waste']/3600, 
-       float(period_data[period]['waste'])/float(period),
-       float(period_data[period]['used'])/float(period_data[period]['waste']),
-       float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
+      % (title, 
+        period_data[period]['glideins'], 
+        period_data[period]['jobs'], 
+        float(period_data[period]['jobs'])/float(period_data[period]['glideins']),
 
+        kmseconds(period_data[period]['total_time']),
+        period_data[period]['total_time']/3600,
+        float(period_data[period]['total_time'])/float(period),
 
-    if period not in data:
-        print "Interval",x,"does not exist in data.\n"# Choices are:",c_data['total']['period'].keys(),"\n"
-        return
+        kmseconds(period_data[period]['used']),
+        period_data[period]['used']/3600, 
+        float(period_data[period]['used'])/float(period),
+
+        kmseconds(period_data[period]['validation']),
+        period_data[period]['validation']/3600, 
+        float(period_data[period]['validation'])/float(period),
+
+        kmseconds(period_data[period]['idle']),
+        period_data[period]['idle']/3600, 
+        float(period_data[period]['idle'])/float(period),
+
+        kmseconds(period_data[period]['waste']),
+        period_data[period]['waste']/3600, 
+        float(period_data[period]['waste'])/float(period),
+
+        float(period_data[period]['used'])/float(period_data[period]['waste']),
+        float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
+
 
 ################################################################################
 #    Print per entry stats (all frontends)
@@ -389,11 +412,11 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
 Glideins: %s - %.1f%% of total
 Jobs: %s (Average jobs/glidein: %.2f)
 
-Total time: %s s (%d hours - %.1f slots)
-Total time used: %s s (%d hours - %.1f slots)
-Total time in validation: %s s (%d hours - %.1f slots)
-Total time idle: %s s (%d hours - %.1f slots)
-Total time wasted: %s s (%d hours - %.1f slots)
+Total time:            %s (%d hours - %.1f slots)
+Total time used:       %s (%d hours - %.1f slots)
+Total time validating: %s (%d hours - %.1f slots)
+Total time idle:       %s (%d hours - %.1f slots)
+Total time wasted:     %s (%d hours - %.1f slots)
 Time used/time wasted: %.2f
 Time efficiency: %.2f
 """ % ( "Frontend: "+frontend, 
@@ -402,23 +425,23 @@ Time efficiency: %.2f
         frontend_data[period][frontend]['jobs'], 
         float(frontend_data[period][frontend]['jobs'])/float(frontend_data[period][frontend]['glideins']), 
 
-        frontend_data[period][frontend]['total_time'],
+        kmseconds(frontend_data[period][frontend]['total_time']),
         frontend_data[period][frontend]['total_time']/3600,
         float(frontend_data[period][frontend]['total_time'])/float(period), 
 
-        frontend_data[period][frontend]['used'], 
+        kmseconds(frontend_data[period][frontend]['used']), 
         frontend_data[period][frontend]['used']/3600, 
         float(frontend_data[period][frontend]['used'])/float(period), 
 
-        frontend_data[period][frontend]['validation'], 
+        kmseconds(frontend_data[period][frontend]['validation']), 
         frontend_data[period][frontend]['validation']/3600, 
         float(frontend_data[period][frontend]['validation'])/float(period),
 
-        frontend_data[period][frontend]['idle'], 
+        kmseconds(frontend_data[period][frontend]['idle']), 
         frontend_data[period][frontend]['idle']/3600,
         float(frontend_data[period][frontend]['idle'])/float(period), 
 
-        frontend_data[period][frontend]['waste'], 
+        kmseconds(frontend_data[period][frontend]['waste']), 
         frontend_data[period][frontend]['waste']/3600,
         float(frontend_data[period][frontend]['waste'])/float(period), 
 
@@ -476,6 +499,9 @@ Time efficiency: %.2f
 
     print("""\n-----------------------------------
 LEGEND:
+
+Ks - kilseconds (*1,000 seconds)
+Ms - megaseconds (*1,000,000 seconds)
 
 strt - % of jobs where condor failed to start
 fval - % of glideins that failed to validate (hit 1000s limit)
