@@ -258,6 +258,10 @@ Glidein log analysis for frontend %s - %s
 
     for period in period_list:
         
+        #if period not in data:
+        #    print "Interval",x,"does not exist in data.\n"# Choices are:",c_data['total']['period'].keys(),"\n"
+        #    return
+
         title = ("Past %.1f hours" % (float(period)/3600))
 
         if period_data[period]['glideins'] == 0:
@@ -272,40 +276,36 @@ Glidein log analysis for frontend %s - %s
 Total Glideins: %s
 Total Jobs: %d (Average jobs/glidein: %.2f) 
 
-Total time: %d s (%d hours - %.1f slots)
-Total time used: %d s (%d hours - %.1f slots)
-Total time in validation: %d s (%d hours - %.1f slots)
-Total time idle: %d s (%d hours- %.1f slots)
-Total time wasted: %d s (%d hours - %.1f slots)
+Total time:            %d s (%d hours - %.1f slots)
+Total time used:       %d s (%d hours - %.1f slots)
+Total time validating: %d s (%d hours - %.1f slots)
+Total time idle:       %d s (%d hours - %.1f slots)
+Total time wasted:     %d s (%d hours - %.1f slots)
 Time used/time wasted: %.1f
 Time efficiency: %.2f
 """
-     % (title, 
-       period_data[period]['glideins'], 
-       period_data[period]['jobs'], 
-       float(period_data[period]['jobs'])/float(period_data[period]['glideins']),
-       period_data[period]['total_time'],
-       period_data[period]['total_time']/3600,
-       float(period_data[period]['total_time'])/float(period),
-       period_data[period]['used'],
-       period_data[period]['used']/3600, 
-       float(period_data[period]['used'])/float(period),
-       period_data[period]['validation'],
-       period_data[period]['validation']/3600, 
-       float(period_data[period]['validation'])/float(period),
-       period_data[period]['idle'],
-       period_data[period]['idle']/3600, 
-       float(period_data[period]['idle'])/float(period),
-       period_data[period]['waste'],
-       period_data[period]['waste']/3600, 
-       float(period_data[period]['waste'])/float(period),
-       float(period_data[period]['used'])/float(period_data[period]['waste']),
-       float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
+      % (title, 
+        period_data[period]['glideins'], 
+        period_data[period]['jobs'], 
+        float(period_data[period]['jobs'])/float(period_data[period]['glideins']),
+        period_data[period]['total_time'],
+        period_data[period]['total_time']/3600,
+        float(period_data[period]['total_time'])/float(period),
+        period_data[period]['used'],
+        period_data[period]['used']/3600, 
+        float(period_data[period]['used'])/float(period),
+        period_data[period]['validation'],
+        period_data[period]['validation']/3600, 
+        float(period_data[period]['validation'])/float(period),
+        period_data[period]['idle'],
+        period_data[period]['idle']/3600, 
+        float(period_data[period]['idle'])/float(period),
+        period_data[period]['waste'],
+        period_data[period]['waste']/3600, 
+        float(period_data[period]['waste'])/float(period),
+        float(period_data[period]['used'])/float(period_data[period]['waste']),
+        float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
 
-
-    if period not in data:
-        print "Interval",x,"does not exist in data.\n"# Choices are:",c_data['total']['period'].keys(),"\n"
-        return
 
 ################################################################################
 #    Print per entry stats (all frontends)
@@ -389,11 +389,11 @@ Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
 Glideins: %s - %.1f%% of total
 Jobs: %s (Average jobs/glidein: %.2f)
 
-Total time: %s s (%d hours - %.1f slots)
-Total time used: %s s (%d hours - %.1f slots)
-Total time in validation: %s s (%d hours - %.1f slots)
-Total time idle: %s s (%d hours - %.1f slots)
-Total time wasted: %s s (%d hours - %.1f slots)
+Total time:            %d s (%d hours - %.1f slots)
+Total time used:       %d s (%d hours - %.1f slots)
+Total time validating: %d s (%d hours - %.1f slots)
+Total time idle:       %d s (%d hours - %.1f slots)
+Total time wasted:     %d s (%d hours - %.1f slots)
 Time used/time wasted: %.2f
 Time efficiency: %.2f
 """ % ( "Frontend: "+frontend, 
