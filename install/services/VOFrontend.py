@@ -147,7 +147,7 @@ class VOFrontend(Condor):
     return "%s/instance_%s.cfg" % (self.glidein.install_location(),self.glidein.instance_name())
   #--------------------------------
   def config_file(self):
-    return "%s/glidein.xml" % (self.config_dir())
+    return "%s/frontend.xml" % (self.config_dir())
   #--------------------------------
   def grid_mapfile(self):
     return "%s/grid_mapfile" % (self.config_dir())
