@@ -27,6 +27,7 @@ frontend_options = [ "hostname",
 "install_location", 
 "logs_dir", 
 "instance_name", 
+"x509_cert_dir",
 "gsi_credential_type", 
 "cert_proxy_location", 
 "gsi_dn", 
@@ -93,7 +94,6 @@ class VOFrontend(Condor):
     if options == None:
       options = valid_options[self.ini_section]
     Condor.__init__(self,self.inifile,self.ini_section,options)
-    #self.certificates = self.option_value(self.ini_section,"certificates")
     self.certificates = None
     self.daemon_list = "" 
     self.glidein = Glidein(self.inifile,self.ini_section,options)
