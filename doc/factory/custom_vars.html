@@ -105,7 +105,7 @@ and represent just the default shipped by the software!</B>
 </P>
 <P>A glideinWMS administrator can change the values of the predefined
 variables (with some exceptions, see <A HREF="#dyn_vars">below</A>),
-and define new ones using the <A HREF="entry.html#args">Glidein
+and define new ones using the <A HREF="configuration.html#args">Glidein
 Factory configuration</A> file.</P>
 
 </div>
@@ -256,7 +256,7 @@ by the VO factory clients.</P>
         <td>Exp (Int)</td>
         <TD>1</TD>
         <TD ROWSPAN=2>
-                <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A>.<BR>They
+                <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
                 are summed together, and the user job with the largest rank will run
                 first.</P>
 
@@ -296,7 +296,6 @@ by the VO factory clients.</P>
     <TR>
         <td> <b>GLIDEIN_Retire_Time</b> </td>
         <TD> Int </TD>
-
         <TD> 21600 <br/>(6 hours) </TD>
         <TD ROWSPAN=2>
             <P>How long should the condor_startd be running before entering
