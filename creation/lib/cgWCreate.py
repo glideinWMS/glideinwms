@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.8 2010/11/18 20:42:54 dstrain Exp $
+#   $Id: cgWCreate.py,v 1.49.2.9 2010/12/17 19:24:37 dstrain Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -261,7 +261,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("	  ;;\n")
         fd.write("	  statusdown)\n")
         fd.write('            if [ -z "$2" ]; then\n')
-        fd.write('              echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
+        fd.write('              echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [delay]"\n')
         fd.write('              exit 1\n')
         fd.write('            fi\n')
         fd.write('            "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -dir "$factory_dir" -entry $2 -cmd check -delay $3\n')
