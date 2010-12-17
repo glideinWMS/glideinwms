@@ -260,8 +260,8 @@ See below for the ini file attributes that installing/running WMS collector requ
         </tr>
         <tr>
         <td>frontend_users </td>
-        <td>user1 : user2 </td>
-        <td>A comma separated list mapping the vofrontend's service name to the UNIX account that has been created for it.  The format for each frontend is:
+        <td>frontend_service_name : unix_account </td>
+        <td>The vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install.  The format is:
 <b>service_name : unix account </b></td>
         </tr>
         <tr>
