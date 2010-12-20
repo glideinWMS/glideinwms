@@ -268,7 +268,9 @@ See below for the ini file attributes that installing/running WMS collector requ
         <td>x509_cert_dir</td>
         <td>/path/to/certificates-location </td>
         <td>The directory where the CA certificates are maintained. 
-            Often, this will be within the VDT installation.
+            If the CAs are installed from the VDT distribution, this will be
+            the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
+            validate for the precesence of *.0 and *.r0 files.
         </td>
         </tr>
         <tr>
@@ -538,7 +540,11 @@ ires:<br/><br/>
             </tr><tr>
             <td>x509_cert_dir    </td>
             <td>/path/to/cert/dir   </td>
-            <td>The directory where the CA certificates are maintained.</td>
+            <td>The directory where the CA certificates are maintained.
+            If the CAs are installed from the VDT distribution, this will be
+            the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
+            validate for the precesence of *.0 and *.r0 files.
+            </td>
             </tr><tr>
             <td>gsi_credential_type  </td>
             <td>cert    </td>
@@ -629,7 +635,11 @@ requires:
         </tr><tr>
         <td>x509_cert_dir    </td>
         <td>/path/to/vdt/certs   </td>
-        <td>The directory where the CA certificates are maintained.    </td>
+        <td>The directory where the CA certificates are maintained.
+            If the CAs are installed from the VDT distribution, this will be
+            the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
+            validate for the precesence of *.0 and *.r0 files.
+       </td>
         </tr><tr>
         <td>gsi_credential_type  </td>
         <td>cert    </td>
@@ -779,7 +789,11 @@ glideinWMS frontend requires:<br/><br/>
         </tr><tr>
         <td>x509_cert_dir    </td>
         <td>/path/to/vdt/certs   </td>
-        <td>The directory where the CA certificates are maintained.   </td>
+        <td>The directory where the CA certificates are maintained.
+            If the CAs are installed from the VDT distribution, this will be
+            the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
+            validate for the precesence of *.0 and *.r0 files.
+        </td>
         <td> </td>
         </tr><tr>
         <td>gsi_authentication_type  </td>
