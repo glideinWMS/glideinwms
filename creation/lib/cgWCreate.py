@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.9 2010/12/17 19:24:37 dstrain Exp $
+#   $Id: cgWCreate.py,v 1.49.2.10 2010/12/21 19:09:40 dstrain Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -213,7 +213,7 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
 
         fd.write('downtime() {\n')
         fd.write('       if [ -z "$3" ]; then\n')
-        fd.write('           echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-security sec_class|\'All\'] [-comment comment]"\n')
+        fd.write('           echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"\n')
         fd.write('           exit 1\n')
         fd.write('       fi\n\n')
         fd.write('	 if [ "$1" == "down" ]; then\n')
@@ -261,10 +261,10 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("	  ;;\n")
         fd.write("	  statusdown)\n")
         fd.write('            if [ -z "$2" ]; then\n')
-        fd.write('              echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [delay]"\n')
+        fd.write('              echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay]"\n')
         fd.write('              exit 1\n')
         fd.write('            fi\n')
-        fd.write('            "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -dir "$factory_dir" -entry $2 -cmd check -delay $3\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd check -dir "$factory_dir" "$@"\n')
         fd.write('            RETVAL=$?\n')
         fd.write("	  ;;\n")
         fd.write("        *)\n")
