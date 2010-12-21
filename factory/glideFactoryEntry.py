@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.31 2010/12/08 21:56:42 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.32 2010/12/21 19:08:42 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -391,7 +391,7 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
         factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
         glideFactoryLib.log_files.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,jobDescript.data['EntryName']))
 
-        in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],security_class=x509_proxy_security_class))
+        in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",frontend=client_security_name,security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],frontend=client_security_name,security_class=x509_proxy_security_class))
         if (in_sec_downtime):
             glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
             in_downtime=True

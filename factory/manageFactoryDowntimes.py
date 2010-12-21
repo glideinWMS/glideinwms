@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.5 2010/12/03 18:30:15 burt Exp $
+#   $Id: manageFactoryDowntimes.py,v 1.39.2.6 2010/12/21 19:08:42 dstrain Exp $
 #
 # Description:
 #  This program allows to add announced downtimes
@@ -42,6 +42,7 @@ def usage():
     print "  -ISinfo 'CEStatus'        (attribute used in ress/bdii for creating downtimes)"
     print "  -security SECURITY_CLASS  (restricts a downtime to users of that security class)"
     print "                            (If not specified, the downtime is for all users.)"
+    print "  -frontend SECURITY_NAME   (Limits a downtime to one frontend)"
     print "  -comment \"Comment here\"   (user comment for the downtime. Not used by WMS.)"
     print
 
@@ -76,10 +77,13 @@ def strtxt2time(timeStr):
 # or
 # unix_time
 def str2time(timeStr):
+    #if (timeStr==None) or (timeStr=="None") or (timeStr==""):
+    #    return time.localtime(time.time())
     if len(timeStr.split(':',1))>1:
         # has a :, so it must be a text representation
         return strtxt2time(timeStr)
     else:
+        print timeStr
         # should be a simple number
         return long(timeStr)
 
@@ -91,6 +95,19 @@ def get_security_classes(factory_dir):
         for sec_class in frontendDescript.data[fe]['usermap']:
             sec_array.append(sec_class);
     return sec_array;
+
+# Create an array for each frontend in the frontend descript file
+def get_frontends(factory_dir):
+    fe_array=[];
+    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
+    return frontendDescript.data.keys();
+
+# Create an array for each entry in the glidein descript file
+def get_entries(factory_dir):
+    fe_array=[];
+    glideinDescript=glideFactoryConfig.GlideinDescript()
+    #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
+    return string.split(glideinDescript.data['Entries'],',');
 #
 #
 def get_downtime_fd(entry_name,cmdname):
@@ -129,7 +146,8 @@ def add(entry_name,opt_dict):
     start_time=str2time(opt_dict["start"])
     end_time=str2time(opt_dict["end"])
     sec_name=opt_dict["sec"]
-    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,security_class=sec_name,comment=opt_dict["comment"])
+    frontend=opt_dict["frontend"]
+    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,frontend=frontend,security_class=sec_name,comment=opt_dict["comment"])
     return 0
 
 # [HHh][MMm][SS[s]]
@@ -156,20 +174,26 @@ def delay2time(delayStr):
 def down(entry_name,opt_dict):
     down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
     when=delay2time(opt_dict["delay"])+long(time.time())
+    frontend=opt_dict["frontend"]
     sec_name=opt_dict["sec"]
-    if not down_fd.checkDowntime(entry=entry_name, security_class=sec_name, check_time=when): 
-        #only add a new line if not in downtimeat that time
-        down_fd.startDowntime(start_time=when,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
+    if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
+        #only add a new line if not in downtime at that time
+        down_fd.startDowntime(start_time=when,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
     return 0
 
 def up(entry_name,opt_dict):
     down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
     when=delay2time(opt_dict["delay"])
     sec_name=opt_dict["sec"]
+    frontend=opt_dict["frontend"]
+    comment=opt_dict["comment"]
     when+=long(time.time())
-    if (down_fd.checkDowntime(entry=entry_name, security_class=sec_name, check_time=when)or (sec_name=="All")): 
-        #only terminate downtime if there was an open period
-        down_fd.endDowntime(end_time=when,entry=entry_name,security_class=sec_name)
+    # commenting this check out since we could be in a downtime
+    # for certain security_classes/frontend, but if we specify
+    # -cmd up and -security All, etc, it should clear out all downtimes
+    #if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")): 
+
+    down_fd.endDowntime(end_time=when,entry=entry_name,frontend=frontend,security_class=sec_name,comment=comment)
     return 0
 
 # This function replaces "check", which does not take into account
@@ -346,7 +370,7 @@ def infosys_based(entry_name,opt_dict,infosys_types):
 def get_args(argv):
     #defaults
     opt_dict={"comment":"","sec":"All","delay":"0",\
-            "end":"None","start":"None"};
+            "end":"None","start":"None","frontend":"All"}
     index=0
     for arg in argv:
         if (arg == "-cmd"):
@@ -367,6 +391,8 @@ def get_args(argv):
             opt_dict["ISinfo"]=argv[index+1]
         if (arg == "-security"):
             opt_dict["sec"]=argv[index+1]
+        if (arg == "-frontend"):
+            opt_dict["frontend"]=argv[index+1]
         index=index+1
     return opt_dict;
 
@@ -399,6 +425,14 @@ def main(argv):
             for sec_class in get_security_classes(factory_dir):
                 print sec_class
             return 1
+    if (opt_dict["frontend"]!="All"):
+        if (not (opt_dict["frontend"] in get_frontends(factory_dir))):
+            print "Invalid frontend identity:";
+            print "Valid frontends are: ";
+            for fe in get_frontends(factory_dir):
+                print fe
+            return 1
+
     try:
         os.chdir(factory_dir)
     except OSError, e:
@@ -406,6 +440,15 @@ def main(argv):
         print "Failed to locate factory %s"%factory_dir
         print "%s"%e
         return 1
+
+    #Verify Entry is an actual entry
+    if (opt_dict["entry"]!="All"):
+        if (not (opt_dict["entry"] in get_entries(factory_dir))):
+            print "Invalid entry name";
+            print "Valid entries are:";
+            for entry in get_entries(factory_dir):
+                print entry
+            return 1
 
 
     if cmd=='add':

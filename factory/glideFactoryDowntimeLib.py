@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.3 2010/11/18 20:42:55 dstrain Exp $
+#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.4 2010/12/21 19:08:42 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to
@@ -40,24 +40,24 @@ class DowntimeFile:
         return printDowntime(self.fname,entry,check_time)
 
     # if check_time==None, use current time
-    def checkDowntime(self,entry="Any",security_class="Any",check_time=None):
-        return checkDowntime(self.fname,entry,security_class,check_time)
+    def checkDowntime(self,entry="Any",frontend="Any",security_class="Any",check_time=None):
+        return checkDowntime(self.fname,entry,frontend,security_class,check_time)
 
     # add a scheduled downtime
-    def addPeriod(self,start_time,end_time,entry="All",security_class="All",comment="",create_if_empty=True):
-        return addPeriod(self.fname,start_time,end_time,entry,security_class, comment,create_if_empty)
+    def addPeriod(self,start_time,end_time,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
+        return addPeriod(self.fname,start_time,end_time,entry,frontend,security_class, comment,create_if_empty)
 
     # start a downtime that we don't know when it will end
     # if start_time==None, use current time
-    def startDowntime(self,start_time=None,entry="All",security_class="All",comment="",create_if_empty=True):
+    def startDowntime(self,start_time=None,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         if start_time==None:
             start_time=long(time.time())
-        return self.addPeriod(start_time,None,entry,security_class, comment,create_if_empty)
+        return self.addPeriod(start_time,None,entry,frontend, security_class, comment,create_if_empty)
 
     # end a downtime (not a scheduled one)
     # if end_time==None, use current time
-    def endDowntime(self,end_time=None,entry="All",security_class="All"):
-        return endDowntime(self.fname,end_time,entry,security_class)
+    def endDowntime(self,end_time=None,entry="All",frontend="All",security_class="All", comment=""):
+        return endDowntime(self.fname,end_time,entry,frontend, security_class,comment)
 
     # if cut time<0, use current_time-abs(cut_time)
     def purgeOldPeriods(self,cut_time=None, raise_on_error=False):
@@ -123,21 +123,25 @@ def read(fname, raise_on_error=False):
 
 
             # Addition.  If more arguments exists, parse
-            # Entry, Security_Class, Comment
+            # Entry, Frontend, Security_Class, Comment
             if (len(arr)>=3):
                 entry=arr[2]
             else:
                 entry="factory"
             if (len(arr)>=3):
-                security_class=arr[3]
+                frontend=arr[3]
+            else:
+                frontend="All"
+            if (len(arr)>=4):
+                security_class=arr[4]
             else:
                 security_class="All"
-            if (len(arr)>=4):
-                comment=arr[4:]
+            if (len(arr)>=5):
+                comment=arr[5:]
             else:
                 comment=""
 
-            out.append((start_time,end_time,entry,security_class,comment))
+            out.append((start_time,end_time,entry,frontend, security_class,comment))
             # end for long_line in lines:
             
         return out
@@ -153,9 +157,9 @@ def printDowntime(fname,entry="Any",check_time=None):
             if (time_tuple[1]!=None)and (check_time>time_tuple[1]):
                 continue
             if (downtime_keys.has_key(time_tuple[2])):
-                downtime_keys[time_tuple[2]]+=","+time_tuple[3];
+                downtime_keys[time_tuple[2]]+=","+time_tuple[3]+":"+time_tuple[4]
             else:
-                downtime_keys[time_tuple[2]]=time_tuple[3];
+                downtime_keys[time_tuple[2]]=time_tuple[3]+":"+time_tuple[4]
         
         if entry=="Any":
             for e in downtime_keys:
@@ -169,7 +173,7 @@ def printDowntime(fname,entry="Any",check_time=None):
 
 
 # if check_time==None, use current time
-def checkDowntime(fname,entry="Any",security_class="Any",check_time=None):
+def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_time=None):
         if check_time==None:
             check_time=long(time.time())
         time_list=read(fname)
@@ -181,7 +185,9 @@ def checkDowntime(fname,entry="Any",security_class="Any",check_time=None):
             #If the security class does not match the downtime entry, 
             #   this is not a relevant downtime
             #   UNLESS the downtime says All
-            if ((time_tuple[3]!="All") and (security_class!=time_tuple[3])):
+            if ((time_tuple[3]!="All") and (frontend!=time_tuple[3])):
+                continue
+            if ((time_tuple[4]!="All") and (security_class!=time_tuple[4])):
                 continue
             if check_time<time_tuple[0]:
                 continue # check_time before start
@@ -192,7 +198,7 @@ def checkDowntime(fname,entry="Any",security_class="Any",check_time=None):
 
         return False # not found a downtime window
         
-def addPeriod(fname,start_time,end_time,entry="All",security_class="All",comment="",create_if_empty=True):
+def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_class="All",comment="",create_if_empty=True):
         exists=os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
             raise IOError, "[Errno 2] No such file or directory: '%s'"%fname
@@ -201,11 +207,11 @@ def addPeriod(fname,start_time,end_time,entry="All",security_class="All",comment
         try:
             fcntl.flock(fd,fcntl.LOCK_EX)
             if not exists: # new file, create header
-                fd.write("#%-29s %-30s %-20s %-20s # %s\n"%("Start","End","Entry","Sec_Class","Comment"))
+                fd.write("#%-29s %-30s %-20s %-30s %-20s # %s\n"%("Start","End","Entry","Frontend","Sec_Class","Comment"))
             if end_time!=None:
-                fd.write("%-30s %-20s%-20s %-20s # %-20s\n"%(timeConversion.getISO8601_Local(start_time),timeConversion.getISO8601_Local(end_time),entry,security_class,comment))
+                fd.write("%-30s %-20s %-20s %-30s %-20s # %-20s\n"%(timeConversion.getISO8601_Local(start_time),timeConversion.getISO8601_Local(end_time),entry,frontend,security_class,comment))
             else:
-                fd.write("%-30s %-30s %-20s %-20s # %s\n"%(timeConversion.getISO8601_Local(start_time),"None",entry,security_class,comment))
+                fd.write("%-30s %-30s %-20s %-30s %-20s # %s\n"%(timeConversion.getISO8601_Local(start_time),"None",entry,frontend,security_class,comment))
         finally:
             fd.close()
 
@@ -285,7 +291,8 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
 
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
-def endDowntime(fname,end_time=None,entry="All",security_class="All"):
+def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="All",comment=""):
+        print frontend
         if end_time==None:
             end_time=long(time.time())
     
@@ -316,12 +323,14 @@ def endDowntime(fname,end_time=None,entry="All",security_class="All"):
                     outlines.append(long_line)
                     continue # pass on malformed lines
                 #make sure this is for the right entry
-                if ((entry!="All")and(len(arr)>2)and(arr[2]!="All")and(entry!=arr[2])):
+                if ((entry!="All")and(len(arr)>2)and(entry!=arr[2])):
+                    outlines.append(long_line)
+                    continue
+                if ((frontend!="All")and(len(arr)>3)and(frontend!=arr[3])):
                     outlines.append(long_line)
                     continue
                 #make sure that this time tuple applies to this security_class
-                if ((security_class!="All")and(len(arr)>3)and(arr[3]!="All")and(security_class!=arr[3])):
-                    print security_class;
+                if ((security_class!="All")and(len(arr)>4)and(security_class!=arr[4])):
                     outlines.append(long_line)
                     continue
 
@@ -332,11 +341,13 @@ def endDowntime(fname,end_time=None,entry="All",security_class="All"):
                         sep=" ";
                         t=2
                         for param in arr[2:]:
-                            if t<4:
+                            if t<5:
                                 outlines.append("%s%-20s" % (sep,param));
                             else:
                                 outlines.append("%s%s" % (sep,param));
                             t=t+1
+                    if (comment!=""):
+                        outlines.append("; %s" % (comment));
                     outlines.append("\n");
                     closed_nr+=1
                 else:
