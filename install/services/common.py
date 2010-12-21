@@ -206,12 +206,12 @@ def ask_continue(question):
 #--------------------------------
 def validate_hostname(node):
   logit("... validating hostname: %s" % node)
-  if node <> os.uname()[1]:
-    logerr("hostname option (%s) shows different host. This is %s" % (node,os.uname()[1]))
+  if node <> socket.getfqdn():
+    logerr("hostname option (%s) shows different host. This is %s" % (node,socket.getfqdn()))
 
 #--------------------------------
 def validate_user(user):
-  logit("... validating user: %s" % user)
+  logit("... validating username: %s" % user)
   try:
     x = pwd.getpwnam(user)
   except:
