@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.1.8.2.6.1 2010/09/08 20:19:27 sfiligoi Exp $
+#   $Id: cgWCreate.py,v 1.49.2.1.8.2.6.2 2010/12/22 23:46:52 sfiligoi Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -38,7 +38,8 @@ def create_condor_tar_fd(condor_base_dir):
         for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper',
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
                   'libexec/condor_glexec_run','libexec/condor_glexec_setup',
-                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
+                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template',
+                  'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class','lib/scimark2lib.jar']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         

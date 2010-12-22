@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.5.8.3.6.2 2010/10/08 23:59:23 sfiligoi Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.5.8.3.6.3 2010/12/22 23:46:52 sfiligoi Exp $
 #
 # Description:
 #   Glidein creation module
@@ -97,7 +97,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['untar_cfg'].add(condor_fname,cgWConsts.CONDOR_DIR)
 
         # add additional system scripts
-        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
+        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
