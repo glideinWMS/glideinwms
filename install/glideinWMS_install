@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.28 2010/10/07 21:44:19 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.29 2010/12/22 22:39:07 sfiligoi Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -2536,8 +2536,12 @@ def install_condor():
 
         try:
             try:
-                first_dir=fd.getnames()[0]
-                if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
+                first_entry=fd.getnames()[0]
+                if (len(first_entry.split('/'))<2):
+                    print "File '%s' is not a condor tarball! (found '%s', expected a subdirectory'"%(condor_tarball,first_entry)
+                    continue
+                first_dir=first_entry.split('/')[0]+'/'
+                if (first_dir[:7]!="condor-"):
                     print "File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(condor_tarball,first_dir)
                     continue
                 condor_version=first_dir[7:-1]
