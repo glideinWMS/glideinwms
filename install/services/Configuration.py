@@ -57,7 +57,7 @@ class Configuration:
     for section in self.sections():
       result.append('[%s]' % section)
       for option in self.options(section):
-        value = self.cp.get(section, option)
+        value = self.option_value(section, option)
         result.append('    %-25s %s' % (option, value))
     return '\n'.join(result)
 
@@ -132,7 +132,15 @@ class Configuration:
 
   #----------------
   def option_value(self,section,option):
-    return self.cp.get(section,option)
+    """ Due they way python os.path.basename/dirname work, we cannot let a
+        pathname end in a '/' or we may see inconsistent results.  So we
+        are stripping all option values of trailing '/'s.
+    """
+    value = self.cp.get(section,option)
+    #-- cannot let paths end in a '/' --
+    while len(value) > 0 and value[len(value)-1] == "/":
+      value = value[0:len(value)-1].strip()
+    return value
 
   #----------------
   def has_section(self, section):
