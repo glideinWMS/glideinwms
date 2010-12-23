@@ -224,12 +224,13 @@ See below for the ini file attributes that installing/running WMS collector requ
         <td>condor (or whatever non-root user you decide on) </td>
         <td>UNIX user account that this services will run under. DO NOT use "root". </td>
         <td>
-            For security purposes, this value should always be a non-root user.
-            However, if using privilege separation, the manage-glideins script
-            itself will be need to be run as root (see above), since
+            For security purposes, this value should always be a non-root user.<br/>
+            <b>However</b>, if privilege separation is used 
+            (see the <b>privilege_separation</b> option), the manage-glideins 
+            script itself will be need to be run as root (see above), since
             the Condor switchboard requires some files to be 
             owned by root and some files to
-            be owned by the non-superuser unix_acct for privilege separation
+            be owned by the non-superuser <b>username</b> for privilege separation
             to work correctly.
         </td>
         </tr>
@@ -272,10 +273,8 @@ See below for the ini file attributes that installing/running WMS collector requ
         <td>/path/to/certificates-location </td>
         <td>The directory where the CA certificates are maintained. 
             If the CAs are installed from the VDT distribution, this will be
-            the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
-            validate for the precesence of *.0 and *.r0 files.
-        </td>
-        <td>.</td>
+            the VDT_LOCATION/globus/TRUSTED_CA directory.</td>
+        <td>The installer will validate for the precesence of *.0 and *.r0 files.</td>
         </tr>
         <tr>
         <td>gsi_credential_type </td>
@@ -294,13 +293,14 @@ See below for the ini file attributes that installing/running WMS collector requ
             /path-to-cert/key.pm<br/>
             /path-to-proxy/x509_proxyfile
          </td>
-        <td>The location of the certificate or proxy (depending of the gsi_authentication value). </td>
-        <td>If a certificate, x509_cert and x509_key are required.  If a proxy, then x509_proxy is required. </td>
+         <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
+         <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
+             If a <b>proxy</b>, then x509_proxy is required. </td>
         </tr>
         <tr>
         <td>gsi_dn</td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
-        <td>If the gsi_authentication is:<br/>
+        <td>If the <b>gsi_credential_type</b> option is:<br/>
             * cert, the subject of the certificate<br/>
             * proxy, the issuer of the proxy 
         </td>
@@ -421,15 +421,16 @@ requires:<br/><br/>
             /path-to-cert/key.pm<br/>
             /path-to-proxy/x509_proxyfile
          </td>
-        <td>The location of the certificate or proxy (depending of the gsi_authentication value). </td>
-        <td>If a certificate, x509_cert and x509_key are required.  If a proxy, then x509_proxy is required. </td>
+        <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
+        <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
+            If a <b>proxy</b>, then x509_proxy is required. </td>
         </tr>
 
         </tr><tr>
             <td>gsi_dn</td>
             <td>  /DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name
             </td>
-            <td>  If the gsi_authentication is:<br/>
+            <td>  If the  <b>gsi_credential_type</b> option is:<br/>
                 * cert, the subject of the certificate<br/>
                 * proxy, the issuer of the proxy</td>
             <td>    openssl x509 -issuer -subject -noout -in [cert_proxy_location]</td>
@@ -505,17 +506,13 @@ The only validation performed is to verify if that server exists.   </td>
             <td>web_url</td>
             <td>http://%(node)s</td>
             <td>Identifies the url used by the glidein pilots to download necessary software and to record monitoring data.</td>
+            <td>.</td>
         </tr><tr>
             <td>javascriptrrd_location</td>
             <td>/path/to/javascriptrrd-0.5.0</td>
             <td>Identifies the location of the javascript rrd software. </td>
             <td>.</td>
         </tr><tr>
-            <td>javascriptrrd_tarball</td>
-            <td>/path/to/tarballs/javascriptrrd-0.5.0.tgz</td>
-            <td> Identifies the location of a zipped tarball that can be used to install the javascriptrrd software.</td>
-            <td>Only required if javascriptrrd is not already installed.</td>
-            <td>.</td>
         </tr>
     </tbody></table>
 </div>
@@ -540,9 +537,10 @@ ires:<br/><br/>
             <td>hostname</td>
             <td>usercollector.domain.name</td>
             <td>hostname for User Collector.    </td>
+            <td>.</td>
             </tr><tr>
             <td>username</td>
-            <td>collector (non-root account)<td>
+            <td>collector (non-root account)</td>
             <td>UNIX user account that this services will run under. DO NOT use "root".</td>
             <td> For security purposes, this value should always be a non-root user.</td>
             </tr><tr>
@@ -554,6 +552,7 @@ ires:<br/><br/>
             <td>condor_location     </td>
             <td>/path/to/condor-userpool   </td>
             <td>Directory in which the condor software will be installed.    </td>
+            <td>.</td>
             </tr><tr>
             <td>collector_port  </td>
             <td>9618 (condor default)   </td>
@@ -567,12 +566,14 @@ ires:<br/><br/>
             the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
             validate for the precesence of *.0 and *.r0 files.
             </td>
+            <td>.</td>
             </tr><tr>
             <td>gsi_credential_type  </td>
             <td>cert    </td>
             <td>Used to identify the User Collector to the other glidein services.  Valid values:<br/>
             * cert - certificate used<br/>
             * proxy - proxy used     </td>
+            <td>.</td>
             </tr><tr>
             <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
             <td>
@@ -580,12 +581,13 @@ ires:<br/><br/>
             /path-to-cert/key.pm<br/>
             /path-to-proxy/x509_proxyfile
             </td>
-            <td>The location of the certificate or proxy (depending of the gsi_authentication value). </td>
-            <td>If a certificate, x509_cert and x509_key are required.  If a proxy, then x509_proxy is required. </td>
+            <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
+            <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
+                If a <b>proxy</b>, then x509_proxy is required. </td>
             </tr><tr>
             <td>gsi_dn  </td>
             <td>/DC=org/DC=doegrids/OU=Services/CN=usercollector.fnal.gov</td>
-            <td>If the gsi_authentication is:<br/>
+            <td>If the <b>gsi_credential_type</b> option is:<br/>
                 * cert, the subject of the certificate<br/>
                 * proxy, the issuer of the proxy <br/>   </td>
             <td>openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/><br/>
@@ -594,14 +596,17 @@ ires:<br/><br/>
             <td>condor_tarball  </td>
             <td>/path-to/condor/tarball/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz  </td>
             <td>Location of the condor tarball. It must be a zipped tarball.    The installation script will perform the installation of condor.</td>
+            <td>.</td>
             </tr><tr>
             <td>condor_admin_email  </td>
-            <td>whomever@fnal.gov   </td>
+            <td>whomever@email.com   </td>
             <td>Used in the condor_config.local only.   </td> 
+            <td>.</td>
             </tr><tr>
             <td>number_of_secondary_collectors  </td>
             <td>5   </td>
             <td>The desired number of secondary collectors to be used.   </td>
+            <td>.</td>
             </tr><tr>
             <td>install_vdt_client  </td>
             <td>y   </td>
@@ -640,6 +645,7 @@ requires:
         <td>hostname</td>
         <td>submitnode.domain.name      </td>
         <td>hostname for Submit node     </td>
+        <td>.</td>
         </tr><tr>
         <td>unix_acct   </td>
         <td>condor (non-root account)     </td>
@@ -649,11 +655,12 @@ requires:
         <td>service_name    </td>
         <td>submit  </td>
         <td>Used as the 'nickname' for the GSI DN in the condor_mapfile of other services.   </td>
-        <td></td>
+        <td>.</td>
         </tr><tr>
         <td>condor_location     </td>
         <td>/path/to/condor-submit     </td>
         <td>Directory in which the condor software will be installed.    </td>
+        <td>.</td>
         </tr><tr>
         <td>x509_cert_dir    </td>
         <td>/path/to/vdt/certs   </td>
@@ -662,6 +669,7 @@ requires:
             the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
             validate for the precesence of *.0 and *.r0 files.
        </td>
+        <td>.</td>
         </tr><tr>
         <td>gsi_credential_type  </td>
         <td>cert    </td>
@@ -669,6 +677,7 @@ requires:
 Valid values:<br/>
             * cert - certificate used<br/>
             * proxy - proxy used     </td>
+        <td>.</td>
         </tr><tr>
             <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
             <td>
@@ -676,14 +685,15 @@ Valid values:<br/>
             /path-to-cert/key.pm<br/>
             /path-to-proxy/x509_proxyfile
             </td>
-            <td>The location of the certificate or proxy (depending of the gsi_a
+            <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
+            <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
+                If a <b>proxy</b>, then x509_proxy is required. </td>
 uthentication value). </td>
-            <td>If a certificate, x509_cert and x509_key are required.  If a pro
 xy, then x509_proxy is required. </td>
         </tr><tr>
         <td>gsi_dn  </td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=submitnode.domain.com</td>
-        <td>If the gsi_authentication is:<br/>
+        <td>If the <b>gsi_credential_type</b> option is:<br/>
             * cert, the subject of the certificate<br/>
             * proxy, the issuer of the proxy    </td>
         <td>openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/><br/>
@@ -692,10 +702,12 @@ xy, then x509_proxy is required. </td>
         <td>condor_tarball  </td>
         <td>/path-to/condor/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz </td>
         <td> Location of the condor tarball. It must be a zipped tarball.    The installation script will perform the installation of condor.</td>
+        <td>.</td>
         </tr><tr>
         <td>condor_admin_email  </td>
-        <td>whomever@fnal.gov   </td>
+        <td>whomever@email.com</td>
         <td>Used in the condor_config.local only.    </td>
+        <td>.</td>
         </tr><tr>
         <td>split_condor_config     </td>
         <td>y   </td>
@@ -707,6 +719,7 @@ xy, then x509_proxy is required. </td>
         <td>number_of_schedds   </td>
         <td>5   </td>
         <td>The desired number of schedds to be used.    
+        <td>.</td>
         </tr><tr>
         <td>match_authentication    </td>
         <td>y</td>
@@ -799,15 +812,16 @@ glideinWMS frontend requires:<br/><br/>
         <td>The installation script will perform the installation of condor.</td>
         </tr><tr>
         <td>condor_admin_email  </td>
-        <td>whomever@fnal.gov   </td>
+        <td>whomever@email.com</td>
         <td>Used in the condor_config.local only.    </td>
+        <td>.</td>
         </tr><tr>
         <td>split_condor_config     </td>
         <td>y   </td>
         <td>Valid values:<br/>
             * y - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
             * n - will append to the CONDOR_LOCATION/etc/condor_config  </td>
-        <td>   </td>
+        <td>.</td>
         </tr><tr>
         <td>x509_cert_dir    </td>
         <td>/path/to/vdt/certs   </td>
@@ -818,7 +832,7 @@ glideinWMS frontend requires:<br/><br/>
         </td>
         <td> </td>
         </tr><tr>
-        <td>gsi_authentication_type  </td>
+        <td>gsi_credential_type</td>
         <td>proxy   </td>
         <td>Valid values: proxy     </td>
         <td>This must always be a proxy for the VO Frontend to communicate with the Factory.</td>
@@ -829,8 +843,9 @@ glideinWMS frontend requires:<br/><br/>
             /path-to-cert/key.pm<br/>
             /path-to-proxy/x509_proxyfile
             </td>
-            <td>The location of the certificate or proxy (depending of the gsi_authentication value). </td>
-            <td>If a certificate, x509_cert and x509_key are required.  If a proxy, then x509_proxy is required. </td>
+            <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
+            <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
+                If a <b>proxy</b>, then x509_proxy is required. </td>
         </tr><tr>
         <td>gsi_dn  </td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=vofrontend.domain.name   </td>
@@ -846,8 +861,8 @@ When specifying multiple proxies, whitespace is the delimiter.  These will be th
         </tr><tr>
         <td>glidein_proxy_dns</td>
         <td> /DC=org/DC=doegrids/OU=Services/CN=proxy1/vofrontend.domain.name;/DC=org/DC=doegrids/OU=Services/CN=proxy2/vofrontend.domain.name   </td>
-        <td>Identifies the issuer(s) of the glidein_proxies being used</td>
-        <td>This is a semicolon separated list for each proxy identified in the glidein_proxies attribute.   </td>
+        <td>Identifies the issuer(s) of the glidein_proxy_files option being used</td>
+        <td>This is a semicolon separated list for each proxy identified in the glidein_proxy_files option attribute. Validation is performed based on the relative position of each entry in those options.</td>
         </tr><tr>
         <td>glexec_use</td>
         <td>  required    </td>
@@ -855,12 +870,14 @@ When specifying multiple proxies, whitespace is the delimiter.  These will be th
             * required - will only request glidein pilots to entry points that use glexec<br/>
             * optional - will request glidein pilots regardless of glexec use<br/>
             * never - will never request glidein pilots for entry points using glexec    <br/></td>
+        <td>.</td>
         </tr><tr>
         <td>expose_grid_env</td>
         <td>True</td>
         <td>Valid values:<br/> 
             * True- jobs will export shell variables to the user job running.<br/>
             * False - no shell variables will be exported.</td>
+        <td>.</td>
         </tr><tr>
         <td>match_authentication</td>
         <td>    y</td>
@@ -883,28 +900,27 @@ match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",
         <td>Valid values:<br/>
                 * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
                 * n - will not attempt to install the VDT client    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+        <td>.</td>
         </tr><tr>
-        <td>glidein_install_dir     </td>
-        <td>/path/to/glideinWMS    </td>
+        <td>glideinwms_location</td>
+        <td>/path/to/glideinWMS_code</td>
         <td>Directory of the glideinWMS software.   </td>
         <td>The glideinWMS software is used for both the installation of the various services and during the actual running of the glidein services.</td>
         </tr><tr>
         <td>web_location    </td>
         <td>/var/www/html/cms_frontend  </td>
         <td>Specifies the location for the monitoring and staging accessible by web services.   This should be created before installing the Frontend as the Frontend user and the web server user are generally different and this script will not be able to create this directory with proper ownership.</td>
+        <td>.</td>
         </tr><tr>
         <td>web_url     </td>
         <td>http://%(node)s     </td>
         <td>Identifies the url used by the glidein pilots to download necessary software and to record monitoring data.      </tD>
+        <td>.</td>
         </tr><tr>
         <td>javascriptrrd_location   </td>
         <td>/path/to/javascriptrrd-0.4.2     </td>
         <td>Identifies the location of the javascript rrd software.   </td>   
-        </tr><tr>
-        <td>javascriptrrd_tarball   </td>
-        <td>/path/to/tarballs/javascriptrrd-0.4.2.tgz  </td>
-        <td>Identifies the location of a zipped tarball that can be used to install the javascript rrd software.    </td>
-        <td>Only required if javascript rrd is not already installed.</td>
+        <td>.</td>
         </tr>
 </tbody></table>
 </div>
