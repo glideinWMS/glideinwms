@@ -21,6 +21,7 @@ factory_options = [ "hostname",
 "username", 
 "service_name", 
 "install_location", 
+"logs_dir",
 "client_log_dir", 
 "client_proxy_dir", 
 "instance_name",
@@ -86,6 +87,9 @@ class Factory(Configuration):
   def install_location(self):
     return self.glidein.install_location()
   #---------------------
+  def logs_dir(self):
+     return self.option_value(self.ini_section,"logs_dir")
+  #---------------------
   def glidein_dir(self):
     # this directory is hardcoded in the createglidein script
     return "%s/glidein_%s" % (self.glidein.install_location(),self.glidein.instance_name())
@@ -104,9 +108,6 @@ class Factory(Configuration):
   #---------------------
   def service_name(self):
     return self.glidein.service_name()
-  #---------------------
-  def factory_logs(self):
-    return "%s/logs" % (self.install_location())
   #---------------------
   def client_log_dir(self):
     return self.option_value(self.ini_section,"client_log_dir")
@@ -147,6 +148,7 @@ class Factory(Configuration):
     # check to see if there will be a problem with client files during the
     # create factory step.
     self.glidein.validate_install()
+    self.validate_logs_dir()
     self.glidein.__install_vdt_client__()
     self.glidein.create_web_directories()
     common.make_directory(self.install_location(),self.username(),0755,empty_required=True)
@@ -156,13 +158,18 @@ class Factory(Configuration):
       self.create_factory_client_dirs(self.username(),0755)
     common.logit( "\nDependency and validation checking complete\n")
       
+  #---------------------------------
+  def validate_logs_dir(self):
+    common.logit("... validating logs_dir: %s" % self.logs_dir())
+    common.make_directory(self.logs_dir(),self.username(),0755,empty_required=True)
 
   #--------------------------------
   def create_factory_dirs(self,owner,perm):
     common.logit("Creating factory directory: %s" % self.install_location())
     common.make_directory(self.install_location(),owner,perm,empty_required=True)
-    common.logit("Creating factory log directory: %s" % self.factory_logs())
-    common.make_directory(self.factory_logs(),owner,perm,empty_required=True)
+    common.logit("Creating factory log directory: %s" % self.logs_dir())
+    common.make_directory(self.logs_dir(),owner,perm,empty_required=True)
+
   #--------------------------------
   def create_factory_client_dirs(self,owner,perm):
     common.logit("Creating client logs directory: %s" % self.client_log_dir())
@@ -261,7 +268,7 @@ source %(condor_location)s/condor.sh
 %(indent1)s<submit base_dir="%(install_location)s" base_log_dir="%(factory_logs)s" base_client_log_dir="%(client_log_dir)s" base_client_proxies_dir="%(client_proxy_dir)s"/> """ % \
 { "indent1"          : common.indent(1),
   "install_location" : self.install_location(),
-  "factory_logs"     : self.factory_logs(),
+  "factory_logs"     : self.logs_dir(),
   "client_log_dir"   : self.client_log_dir(),
   "client_proxy_dir" : self.client_proxy_dir(),
 }
