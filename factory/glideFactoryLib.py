@@ -176,7 +176,7 @@ class LogFiles:
             # silently ignore
             pass
         if log_in_activity:
-            self.logActivity("WARNING: %s" % msg)
+            self.logActivity("WARNING: %s" % str)
 
     def logDebug(self,str):
         try:

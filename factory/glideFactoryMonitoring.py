@@ -357,7 +357,7 @@ class condorQStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -833,7 +833,7 @@ class condorLogSummary:
                                       subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):

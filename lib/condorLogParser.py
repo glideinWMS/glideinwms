@@ -83,6 +83,9 @@ class cachedLogClass:
         self.data = loadCache(self.cachename)
         return
 
+    def loadFromLog(self):
+        raise RuntimeError('loadFromLog not implemented!')
+    
     ####### PRIVATE ###########
     def saveCache(self):
         saveCache(self.cachename, self.data)

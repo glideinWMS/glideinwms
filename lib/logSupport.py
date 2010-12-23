@@ -27,13 +27,13 @@ class DayLogFile:
         try:
             fd = open(fname, "a")
         except:
-            self.write_on_exception("Cannot open %s for writing: %s" % (fname, msg))
+            self.write_on_exception("Cannot open %s for writing: %s" % fname, msg)
             raise
         try:
             try:
                 fd.write(self.format_msg(now, msg) + "\n")
             except:
-                self.write_on_exception("Cannot open %s for writing: %s" % (fname, msg))
+                self.write_on_exception("Cannot open %s for writing: %s" % fname, msg)
                 raise
         finally:
             fd.close()

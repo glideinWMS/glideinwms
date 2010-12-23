@@ -46,6 +46,8 @@ class AbstractQuery: # pure virtual, just to have a minimum set of methods defin
         raise RuntimeError, "fetchStored not implemented"
 
 class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
+    stored_data = {}
+    
     def fetchStored(self, constraint_func=None):
         return applyConstraint(self.stored_data, constraint_func)
 
@@ -303,7 +305,7 @@ class SummarizeMulti:
     def __init__(self, queries, hash_func=lambda x:1):
         self.counts = []
         for query in queries:
-            self.counts.append(Count(query, hash_func))
+            self.counts.append(self.count(query, hash_func))
         self.hash_func = hash_func
 
     # see Count for description
