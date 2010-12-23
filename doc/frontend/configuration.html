@@ -129,8 +129,8 @@ Click on any piece for a more detailed description.
     <a href="#work">&lt;work base_dir="/opt/vofrontend" base_log_dir="/opt/vofrontend/logs"&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
-        <a href="#attrs">&lt;attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1"&gt;</a><br/>
-        <a href="#attrs">&lt;attr  name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
+        <a href="#attr_entry">&lt;attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1"&gt;</a><br/>
+        <a href="#attr_entry_start">&lt;attr  name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"&gt;</a><br/>
         <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
@@ -391,7 +391,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         factory to submit jobs to sites that have GLEXEC configured.
         </P></li>
         <LI><P>
-        <a name="attr_glexec" />
+        <a name="attr_entry" />
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_Entry_Rank&quot; &gt;
             </div>
@@ -400,7 +400,7 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
 
         </P></li>
         <LI><P>
-        <a name="attr_glexec" />
+        <a name="attr_entry_start" />
             <div class="xml">
             &lt;attr name=&quot;GLIDEIN_Entry_Start&quot; &gt;
             </div>
