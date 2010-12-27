@@ -11,6 +11,7 @@ import tarfile
 import shutil
 import pwd
 import stat
+import traceback
 
 
 class Condor(Configuration):
@@ -399,24 +400,32 @@ setenv CONDOR_CONFIG %s
 
   #--------------------------------
   def __validate_tarball__(self,tarball):
+    """ Attempts to verify that this is a valid Condor tarball.
+        - the first level of the directory structure is the
+          Condor release with a format 'condor-*'.
+        - the tarball contains the condor-*/configure_condor script.
+    """
     common.logit("... validating condor tarball: %s" % tarball)
     if not os.path.isfile(tarball):
       common.logerr("File (%s) not found" % (tarball))
     try:
-      fd=tarfile.open(tarball,"r:gz")
+      fd = tarfile.open(tarball,"r:gz")
     except:
       common.logerr("File (%s) not a valid tar.gz file" % (tarball))
     try:
         try:
-            first_dir=fd.next().name
-            if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
-              common.logerr("File (%s) is not a condor tarball! (found (%s), expected 'condor-*/'" %(tarball,first_dir))
-            self.condor_version=first_dir[7:-1]
-            common.logit( "... condor version %s" % (self.condor_version))
+            first_entry = fd.next().name
+            if ( len(first_entry.split('/')) < 2 ):
+              common.logerr("File (%s) is not a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
+            first_dir = first_entry.split('/')[0]+'/'
+            if ( first_dir[:7] != "condor-"):
+              common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (condor_tarball, first_dir))
+            self.condor_version = first_dir[7:-1]
+            common.logit( "... condor version: %s" % (self.condor_version))
             try:
-                fd.getmember(first_dir+"condor_configure")
+                fd.getmember(first_dir + "condor_configure")
             except:
-                common.logerr("Condor tarball (%s) missing %s" % (tarball,first_dir+"condor_configure"))
+                common.logerr("Condor tarball (%s) missing %s" % (tarball, first_dir + "condor_configure"))
         except Exception,e:
             common.logerr("Condor tarball file is corrupted: %s" % (tarball))
     finally:
@@ -1100,14 +1109,19 @@ GRIDMANAGER_MAX_PENDING_REQUESTS=500
 
 def main(argv):
   try:
-    condor = Condor("/home/weigand/glidein-ini/glidein-all-xen21-doug.ini")
-    condor.install_condor()
+    print argv
+    inifile = "/home/weigand/glidein-ini/glidein-all-xen21-doug.ini"
+    section = "WMSCollector"
+    options = {}
+    condor = Condor(inifile,section,options)
+    #condor.install_condor()
+    condor.__validate_tarball__("/usr/local/tarballs/" + argv[1])
   except ConfigurationError, e:
     print "ERROR: %s" % e;return 1
   except common.WMSerror, e:
     print "WMSError";return 1
   except Exception, e:
-    print "ERROR: %s - %s" % (show_line(),e);return 1
+    print traceback.print_exc()
   return 0
 
 
