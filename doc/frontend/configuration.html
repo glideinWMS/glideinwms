@@ -68,6 +68,7 @@
         <li><a href="#example">Example Configuration</a> </li>
         <li><a href="#management">Frontend Configuration</a> </li>
         <li><a href="#custom_code">Customizing the glidein Startup</a> </li>
+        <li><a href="#multiple_proxy">Using multiple proxies</a> </li>
         <LI><A HREF="#run_daemon">Starting the Daemon</A> </li>
 </ol>
 </div>
@@ -623,6 +624,74 @@ job["DESIRED_Sites"].split(",")'&gt;<br/>
         </div>
  
 
+</p>
+</div>
+<div class="section">
+<a name="multiple_proxy" />
+<h2>Using Multiple Proxies</h2>
+
+<p>
+<b>
+    Why would you want to use a pool of pilot proxies 
+    instead of a single one?
+</b>
+</p>
+
+<p>
+If your VO maps to a single group account at the remote grid sites, you
+wouldn't.  A pool of pilot proxies (try saying that 5 times fast) does
+not gain you anything.  
+If your VO maps to a pool of accounts at remote grid sites, you should
+consider using a pool of proxies equivalent to the number of users you
+have.  Why?</p>
+
+<p>
+Consider the following scenario: Alice, Bob, and Charlie are all in the
+FUNGUS experiment and form a VO.  They are using glideinWMS.  Alice
+sends 1000 jobs to FNAL via their glideinWMS using a single pilot proxy.
+   The pilots map to ther userid fungus01 at FNAL, and in accordance with
+the batch system's fairshare policies, the job priority for user
+fungus01 is decreased significantly.
+</p>
+<p>
+Bob comes along and submits 1000 jobs via glideinWMS, while Charlie
+submits 1000 jobs under his own proxy and not using glideinWMS.  The
+glideinWMS pilots launch for Bob, and map to fungus01. Charlie launches
+his own jobs that get mapped to fungus73.  Relative to fungus02,
+fungus01 priority is terrible, and Bob's jobs sit around waiting for
+Charlie -- even though Bob didn't occupy the FNAL resources, Alice did!
+</p>
+<p>
+The solution: have a pool of pilot proxies.  We then spread the
+fairshare penalty amongst fungus01, fungus02, and fungus03, and Bob now
+can compete on a more equal footing with Charlie.
+</p>
+<p>
+<b>Using multiple proxies</b>
+</p>
+<p>
+Proxies can be specified in the 
+<tt>&lt;security&gt;&lt;proxies&gt;&lt;proxy&gt;</tt> tags.  Multiple proxy tags can be entered, one for each proxy file.  These can found in the security section at the top of the xml, in which case, the proxies are shared for all securitty groups.  They can also be found within <tt>&lt;group&gt;</tt> tags, in which case they are used only by that security group.
+</p>
+<p>
+One example follows:
+<div class="config">
+<blockquote>
+         &lt;security&gt;<br/>
+<blockquote>
+            &lt;proxies&gt;<br/>
+<blockquote>
+               &lt;proxy absfname="/home/frontend/.globus/x509_pilot05_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;proxy absfname="/home/frontend/.globus/x509_pilot06_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;proxy absfname="/home/frontend/.globus/x509_pilot07_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;proxy absfname="/home/frontend/.globus/x509_pilot08_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;proxy absfname="/home/frontend/.globus/x509_pilot09_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+</blockquote>
+            &lt;proxies&gt;<br/>
+</blockquote>
+         &lt;security&gt;<br/>
+</blockquote>
+</div>
 </p>
 </div>
 <div class="section">
