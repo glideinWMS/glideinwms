@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.3.12.2 2010/12/01 01:59:01 sfiligoi Exp $
+#   $Id: glideFactoryLogParser.py,v 1.15.12.3.12.3 2010/12/28 01:26:15 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -82,7 +82,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         for k in self.data.keys():
             new_karr=[]
             for el in self.data[k]:
-                new_el=[(el[0][0]+el[0][1]+self.dirname)]+el[1:]
+                new_el=((el[0][0]+el[0][1]+self.dirname),)+el[1:]
                 new_karr.append(new_el)
             self.data[k]=new_karr
 
