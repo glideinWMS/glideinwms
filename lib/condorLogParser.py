@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorLogParser.py,v 1.22.8.8 2010/09/24 16:40:54 sfiligoi Exp $
+#   $Id: condorLogParser.py,v 1.22.8.8.12.1 2010/12/28 01:24:14 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes and functions to parse
@@ -117,6 +117,8 @@ class logSummary(cachedLogClass):
     def merge(self,other):
         if other==None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data.keys():
                 try:
@@ -209,6 +211,8 @@ class logCompleted(cachedLogClass):
     def merge(self,other):
         if other==None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data['counts'].keys():
                 try:
@@ -296,6 +300,8 @@ class logCounts(cachedLogClass):
     def merge(self,other):
         if other==None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data.keys():
                 try:
@@ -366,6 +372,8 @@ class logSummaryTimings(cachedLogClass):
     def merge(self,other):
         if other==None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data.keys():
                 try:
