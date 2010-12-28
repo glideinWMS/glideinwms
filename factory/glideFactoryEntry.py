@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.32 2010/12/21 19:08:42 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.33 2010/12/28 19:08:40 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -172,7 +172,7 @@ def is_str_safe(s):
     return True
 
 ###
-def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
+def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
@@ -192,7 +192,6 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                 security_list[entry_part[0]]=[entry_part[1]];
    
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
     
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
@@ -393,8 +392,11 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
         in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",frontend=client_security_name,security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],frontend=client_security_name,security_class=x509_proxy_security_class))
         if (in_sec_downtime):
-            glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
+            glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Ignoring request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
             in_downtime=True
+        
+        jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
+        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
 
 
 
@@ -513,7 +515,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
         myJobAttributes=jobAttributes.data.copy()
-        myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
+        #myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
@@ -563,15 +565,17 @@ def iterate_one(do_advertize,in_downtime,
                 glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     
     done_something=0
+    jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
     
     try:
-        done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams)
+        done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
     except:
         glideFactoryLib.log_files.logWarning("Error occurred while trying to find and do work.  ")
         
     if do_advertize or done_something:
         glideFactoryLib.log_files.logActivity("Advertize")
         advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams)
+    del jobAttributes.data['GLIDEIN_In_Downtime']
     
     return done_something
 

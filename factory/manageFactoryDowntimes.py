@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.6 2010/12/21 19:08:42 dstrain Exp $
+#   $Id: manageFactoryDowntimes.py,v 1.39.2.7 2010/12/28 19:08:40 dstrain Exp $
 #
 # Description:
 #  This program allows to add announced downtimes
@@ -111,10 +111,6 @@ def get_entries(factory_dir):
 #
 #
 def get_downtime_fd(entry_name,cmdname):
-    if entry_name in ('entries','all'):
-        print "%s not supported for %s"%(entry_name,cmdname)
-        sys.exit(1)
-
     try:
         # New style has config all in the factory file
         #if entry_name=='factory':
@@ -129,7 +125,7 @@ def get_downtime_fd(entry_name,cmdname):
 
 def get_downtime_fd_dict(entry_or_id,cmdname):
     out_fds={}
-    if entry_or_id in ('entries','all'):
+    if entry_or_id in ('entries','All'):
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
@@ -178,7 +174,7 @@ def down(entry_name,opt_dict):
     sec_name=opt_dict["sec"]
     if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
         #only add a new line if not in downtime at that time
-        down_fd.startDowntime(start_time=when,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
+        return down_fd.startDowntime(start_time=when,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
     return 0
 
 def up(entry_name,opt_dict):
@@ -193,8 +189,11 @@ def up(entry_name,opt_dict):
     # -cmd up and -security All, etc, it should clear out all downtimes
     #if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")): 
 
-    down_fd.endDowntime(end_time=when,entry=entry_name,frontend=frontend,security_class=sec_name,comment=comment)
-    return 0
+    rtn=down_fd.endDowntime(end_time=when,entry=entry_name,frontend=frontend,security_class=sec_name,comment=comment)
+    if (rtn>0):
+        return 0
+    else:
+        return 1
 
 # This function replaces "check", which does not take into account
 # security classes.  This function will read the downtimes file
@@ -203,7 +202,6 @@ def up(entry_name,opt_dict):
 def printtimes(entry_or_id,opt_dict):
     config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"])
     when=delay2time(opt_dict["delay"])+long(time.time())
-
     entry_keys=config_els.keys()
     entry_keys.sort()
     for entry in entry_keys:
@@ -373,6 +371,11 @@ def get_args(argv):
             "end":"None","start":"None","frontend":"All"}
     index=0
     for arg in argv:
+        if (len(argv)<=index+1):
+            continue;
+        #Change lowercase all to All so checks for "All" work
+        if (argv[index+1].lower()=="all"):
+            argv[index+1]="All";
         if (arg == "-cmd"):
             opt_dict["cmd"]=argv[index+1]
         if (arg == "-dir"):
@@ -442,7 +445,10 @@ def main(argv):
         return 1
 
     #Verify Entry is an actual entry
-    if (opt_dict["entry"]!="All"):
+    if (opt_dict["entry"].lower()=="entries"):
+        opt_dict["entry"]="All";
+        entry_name="All";
+    if ((opt_dict["entry"]!="All")and(opt_dict["entry"]!="factory")):
         if (not (opt_dict["entry"] in get_entries(factory_dir))):
             print "Invalid entry name";
             print "Valid entries are:";

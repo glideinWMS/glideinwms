@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.4 2010/12/21 19:08:42 dstrain Exp $
+#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.5 2010/12/28 19:08:40 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to
@@ -160,7 +160,10 @@ def printDowntime(fname,entry="Any",check_time=None):
                 downtime_keys[time_tuple[2]]+=","+time_tuple[3]+":"+time_tuple[4]
             else:
                 downtime_keys[time_tuple[2]]=time_tuple[3]+":"+time_tuple[4]
-        
+        if "All" in downtime_keys:
+            for e in downtime_keys:
+                if e!="All":
+                    downtime_keys[e]+=","+downtime_keys["All"]
         if entry=="Any":
             for e in downtime_keys:
                 print "%-30s Down\t%s"%(e,downtime_keys[e]);
@@ -168,7 +171,10 @@ def printDowntime(fname,entry="Any",check_time=None):
             if entry in downtime_keys:
                 print "%-30s Down\t%s"%(entry,downtime_keys[entry]);
             else:
-                print "%-30s Up  \tAll"%(entry);
+                if "All" in downtime_keys:
+                    print "%-30s Down\t%s"%(entry,downtime_keys["All"]);
+                else:
+                    print "%-30s Up  \tAll:All"%(entry);
 
 
 
@@ -214,6 +220,7 @@ def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_clas
                 fd.write("%-30s %-30s %-20s %-30s %-20s # %s\n"%(timeConversion.getISO8601_Local(start_time),"None",entry,frontend,security_class,comment))
         finally:
             fd.close()
+        return 0;
 
 # if cut_time==None or 0, use current time
 # if cut time<0, use current_time-abs(cut_time)
@@ -292,7 +299,6 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
 def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="All",comment=""):
-        print frontend
         if end_time==None:
             end_time=long(time.time())
     
