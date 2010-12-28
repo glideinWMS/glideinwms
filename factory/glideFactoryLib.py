@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.13.2.8 2010/12/01 01:58:14 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.13.2.9 2010/12/28 03:12:38 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -245,7 +245,8 @@ def getCondorQData(entry_name,
                    factory_schedd_attribute=None,  # if None, use the global one
                    glidein_schedd_attribute=None,  # if None, use the global one
                    entry_schedd_attribute=None,    # if None, use the global one
-                   client_schedd_attribute=None):  # if None, use the global one
+                   client_schedd_attribute=None,   # if None, use the global one
+                   x509secclass_schedd_attribute=None): # if None, use the global one
     global factoryConfig
 
     if factory_schedd_attribute==None:
@@ -268,6 +269,11 @@ def getCondorQData(entry_name,
     else:
         csa_str=client_schedd_attribute
 
+    if x509secclass_schedd_attribute==None:
+        xsa_str=factoryConfig.x509secclass_schedd_attribute
+    else:
+        xsa_str=x509secclass_schedd_attribute
+
     if client_name==None:
         client_constraint=""
     else:
@@ -276,7 +282,7 @@ def getCondorQData(entry_name,
     x509id_str=factoryConfig.x509id_schedd_attribute
 
     q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
-    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s"),("HoldReasonCode","i"), ("HoldReasonSubCode","i")]
+    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s"),("HoldReasonCode","i"), ("HoldReasonSubCode","i"),(csa_str,"s"),(xsa_str,"s")]
 
     q=condorMonitor.CondorQ(schedd_name)
     q.factory_name=factoryConfig.factory_name
