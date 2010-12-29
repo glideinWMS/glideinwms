@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.3 2010/09/08 03:22:59 parag Exp $
+#   $Id: glideFactoryLogParser.py,v 1.15.12.4 2010/12/29 18:40:15 sfiligoi Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -15,6 +15,7 @@
 
 
 import os, os.path,time,stat,sets
+import copy
 import mmap,re
 import condorLogParser
 
@@ -80,7 +81,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
     # diff self data with other info
     # add glidein log data to Entered/Completed
     # return data[status]['Entered'|'Exited'] - list of jobs
-    def diff(self,other):
+    def diff_raw(self,other):
         if other==None:
             outdata={}
             if self.data!=None:
@@ -113,7 +114,6 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
 
                 #################
-                # Need to finish
 
                 outdata_s={'Entered':[],'Exited':[]}
                 outdata[s]=outdata_s
@@ -126,19 +126,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 if self.data.has_key(s):
                     for sel_e in self.data[s]:
                         if sel_e[0] in entered_set:
-                            if s=="Completed":
-                                job_id=rawJobId2Nr(sel_e[0])
-                                job_fname='job.%i.%i.out'%job_id
-                                job_fullname=os.path.join(self.dirname,job_fname)
-                                
-                                try:
-                                    fdata=extractLogData(job_fullname)
-                                except:
-                                    fdata=None # just protect
-                                    
-                                entered.append(sel_e+(fdata,))
-                            else:
-                                entered.append(sel_e)
+                            entered.append(sel_e)
 
                 exited_set=oset.difference(sset)
                 exited=[]
@@ -152,6 +140,29 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 outdata_s['Exited']=exited
             return outdata
 
+
+    # diff self data with other info
+    # add glidein log data to Entered/Completed
+    # return data[status]['Entered'|'Exited'] - list of jobs
+    # completed jobs are augmented with data from the log
+    def diff(self,other):
+        outdata=self.diff_raw(other)
+        if outdata.has_key("Completed"):
+            outdata_s=outdata["Completed"]
+            entered=outdata_s['Entered']
+            for i in range(len(entered)):
+                sel_e=entered[i]
+                job_id=rawJobId2Nr(sel_e[0])
+                job_fname='job.%i.%i.out'%job_id
+                job_fullname=os.path.join(self.dirname,job_fname)
+
+                try:
+                    fdata=extractLogData(job_fullname)
+                except:
+                    fdata=copy.deepcopy(EMPTY_LOG_DATA) # just protect
+                    
+                entered[i]=(sel_e+(fdata,))
+        return outdata
 
 # for now it is just a constructor wrapper
 # Further on it will need to implement glidein exit code checks
@@ -180,6 +191,7 @@ ELD_RC_GLIDEIN_END=re.compile("=== Glidein ending .* with code (?P<code>[0-9]+) 
 
 KNOWN_SLOT_STATS=['Total','goodZ','goodNZ','badSignal','badOther']
 
+EMPTY_LOG_DATA={'condor_started':0,'glidein_duration':0}
 
 # will return a dictionary
 #  glidein_duration - integer, how long did the glidein run
@@ -199,7 +211,7 @@ def extractLogData(fname):
 
     size = os.path.getsize(fname)
     if size<10:
-        return {'condor_started':0,'glidein_duration':0}
+        return copy.deepcopy(EMPTY_LOG_DATA)
     fd=open(fname,'r')
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
