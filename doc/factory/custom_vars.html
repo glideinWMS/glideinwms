@@ -349,7 +349,7 @@ by the VO factory clients.</P>
         <td> None </TD>
         <td>
             <P>If set, Condor will launch all user jobs via <A HREF="http://vdt.cs.wisc.edu/components/glexec.html">glexec</A>,
-            thus <A HREF="entry.html#glexec">running the job under the
+            thus <A HREF="configuration.html#glexec">running the job under the
             appropriate local account</A>. This is important both for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2061">glideinWMS
             security</A> and for <A HREF="http://cd-docdb.fnal.gov/cgi-bin/ShowDocument?docid=2943">accounting
             purposes</A>.<BR>A special value of &quot;OSG&quot; can be used to
@@ -366,7 +366,7 @@ by the VO factory clients.</P>
         <TD> Bool </TD>
         <TD> False </TD>
         <TD>
-            <P>If set to False, the condor_starter is run sharing the <A HREF="entry.html#glexec">same
+            <P>If set to False, the condor_starter is run sharing the <A HREF="configuration.html#glexec">same
             UID as the user job</A>. This has security implications.</P>
             <P>If running Condor 7.1.3 or later, it is recommended to turn
             this on and have the condor_starter be protected from the user
@@ -395,7 +395,7 @@ by the VO factory clients.</P>
         <td> Bool </td>
         <td> False </TD>
         <TD>
-            <P>If True, forces the glidein to use <A HREF="entry.html#tcp">TCP updates</A>.<BR>The collector must be configured in the same way
+            <P>If True, forces the glidein to use <A HREF="configuration.html#tcp">TCP updates</A>.<BR>The collector must be configured in the same way
             for this to work.</P>
 
             <P>Also see the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:UpdateCollectorWithTcp">Condor documentation</A> for implications and side effects.</P>
@@ -443,7 +443,7 @@ by the VO factory clients.</P>
         <TD ROWSPAN=2>
             <P>Security related settings. Please notice that the glideins
             always require GSI authentication.</P>
-            <P>For more details see the <A HREF="entry.html#security">configuration
+            <P>For more details see the <A HREF="configuration.html#security">configuration
             page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html">Condor
             manual</A>.</P>
         </TD>
@@ -463,7 +463,7 @@ by the VO factory clients.</P>
 
             <P>Another security setting.</P>
             <P>If set to True, the schedd and the startd will use a low
-            overhead protocol. See the <A HREF="entry.html#security">configuration
+            overhead protocol. See the <A HREF="configuration.html#security">configuration
             page</A> or the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">Condor
             manual</A>.</P>
         </TD>
@@ -502,7 +502,7 @@ by the VO factory clients.</P>
             <P>Configure <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#SECTION00473000000000000000">GCB</A>.</P>
             <P>GCB is needed to run glideins on worker nodes behind a
             firewall or a NAT.</P>
-            <P>For more information, see the <A HREF="entry.html#gcb">configuration page</A>.</P>
+            <P>For more information, see the <A HREF="../components/condor.html#gcb">configuration page</A>.</P>
 
         </TD>
     </TR>
@@ -895,7 +895,7 @@ startup scripts.</P>
 
         <TD
             <P>If gLExec is used and this is set to True, the condor_starter
-            will be run sharing the <A HREF="entry.html#glexec">same UID as
+            will be run sharing the <A HREF="configuration.html#glexec">same UID as
             the user job</A>.</P>
         </TD>
     </TR>
