@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.14 2011/01/05 23:54:22 sfiligoi Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.15 2011/01/06 18:34:51 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -653,7 +653,7 @@ def hash_status(el):
             grid_status=el["GridJobStatus"]
             if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R"):
                 return 2
-            elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING"):
+            elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING","DONE"):
                 return 4010
             else:
                 return 1100
