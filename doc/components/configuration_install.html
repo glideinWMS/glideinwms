@@ -67,6 +67,8 @@
         Configuration-based installer is an
         alternative to the standard procedure.
     </div>
+
+<!- ----------  Overview ------------ -->
 <div class="section">
 <a name="overview" />
 <h2>Overview</h2>
@@ -209,6 +211,8 @@ may be compatiblity issues between pacman and VDT distributions.</b>
         </tr>
     </tbody></table>
 </div>
+
+<!-- -------------- WMS Collector -------------------- -->
 <div class="section">
 <h3>WMSCollector section</h3>
 
@@ -237,7 +241,7 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td>username</td>
         <td>condor (or whatever non-root user you decide on) </td>
-        <td>UNIX user account that this services will run under. DO NOT use "root". </td>
+        <td>UNIX user account that this services will run under. <b>DO NOT use "root".</b> </td>
         <td>
             For security purposes, this value should always be a non-root user.<br/>
             <b>However</b>, if privilege separation is used 
@@ -270,36 +274,39 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td>privilege_separation</td>
         <td>y</td>
-        <td>Valid values:<br/>
-            * y - privilege separation is used<br/>
-            * n - privilege separation is not used <br/>
-        </td>
         <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor PrivSep Documentation</a> for more information</td>
+        <td>Valid values:<br/>
+            * <b>y</b> - privilege separation is used<br/>
+            * <b>n</b> - privilege separation is not used <br/>
+        </td>
         </tr>
         <tr>
         <td>frontend_users </td>
         <td>frontend_service_name : unix_account </td>
-        <td>The vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install.  The format is:
-<b>service_name : unix account </b></td>
-        <td>.</td>
+        <td>The vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install. 
+        </td>
+        <td>The format is: <b>service_name : unix account </b>
+        </td>
         </tr>
         <tr>
         <td>x509_cert_dir</td>
         <td>/path/to/certificates-location </td>
         <td>The directory where the CA certificates are maintained. 
+        <td>The installer will validate for the precesence of *.0 and *.r0 files.
             If the CAs are installed from the VDT distribution, this will be
             the VDT_LOCATION/globus/TRUSTED_CA directory.</td>
-        <td>The installer will validate for the precesence of *.0 and *.r0 files.</td>
+        </td>
         </tr>
         <tr>
         <td>gsi_credential_type </td>
         <td>cert</td>
         <td>Used to identify the WMS Collector to the other glidein services.
-            Valid values:<br/>
-            * cert - certificate used<br/>
-            * proxy - proxy used 
         </td>
-        <td>.</td>
+        <td>
+            Valid values:<br/>
+            * <b>cert</b> - certificate used<br/>
+            * <b>proxy</b> - proxy used 
+        </td>
         </tr>
         <tr>
         <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
@@ -315,47 +322,52 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td>gsi_dn</td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
-        <td>If the <b>gsi_credential_type</b> option is:<br/>
-            * cert, the subject of the certificate<br/>
-            * proxy, the issuer of the proxy 
+        <td>
+            This is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glidein services.
         </td>
         <td>
             openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/>
-            This is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glidein services.
+            If the <b>gsi_credential_type</b> option is:<br/>
+            * <b>cert</b>, the subject of the certificate<br/>
+            * <b>proxy</b>, the issuer of the proxy 
         </td>
         </tr>
         </tr><tr>
         <td>condor_tarball</td>
         <td>/path/to/condor/tarballs/condor-7.5.0-linux-x86-rhel3-dynamic.tar.gz</td>
-        <td>      Location of the condor tarball. It must be a zipped tarball.    The installation script will perform the installation of condor.</td>
-        <td>.</td>
+        <td>Location of the condor tarball. It must be a zipped tarball.    
+        <td>
+         The installation script will perform the installation of condor using this tarball.</td>
+        </td>
         </tr><tr>
         <td>condor_admin_email</td>
         <td>  whomever@email.com</td>
-        <td>   Used in the condor_config.local only.    </td>
-        <td>.</td>
+        <td>When something goes wrong with condor at your site, who should get the email?
+</td>
+        <td>Used in the condor_config.local only.    </td>
         </tr><tr>
         <td>number_of_schedds</td>
-        <td>   5</td>
+        <td align="center">   5</td>
         <td>The desired number of schedds to be used.    </td>
         <td>.</td>
         </tr><tr>
-        <td> install_vdt_client</td>
-        <td>  y</td>
-        <td>   Valid values:
-* y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.
-* n - will not attempt to install the VDT client    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
-        <td>.</td>
+            <td>install_vdt_client</td>
+            <td align="center">y</td>
+            <td>Indicates if an OSG/VDT client should be installed if it is not already present
+                in the <b>vdt_location</b> option location.  This installer will not attempt to
+                reinstalled this software if it is already present.
+            </td>
+            <td>  Valid values:</br>
+* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and pacman options specified.</br>
+* <b>n</b> - will not attempt to install the VDT client
+            </td>
         </tr><tr>
-        <td>vdt_location</td>
-        <td>    /path/to/glidein/vdt</td>
-        <td>   The location of the OSG/VDT client software.</td>
-        <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation: 1. setup.sh 2. existence of a voms-proxy-init executable.</td>
-        </tr><tr>
-        <td>pacman_location</td>
-        <td>     /path/to/pacman</td>
-        <td>   Parent directory for the pacman software.</td>
-        <td> Pacman is used to install the OSG/VDT client software and the CA certificates if they are not already installed</td>
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.</td>
+            <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation:</br>
+1. setup.sh</br>
+2. existence of a voms-proxy-init executable.</td>
         </tr><tr>
         <td> glideinwms_location</td>
         <td>     /path/to/glideinWMS    </td>
@@ -364,12 +376,14 @@ See below for the ini file attributes that installing/running WMS collector requ
         </tr>
     </tbody></table>
 </div>
+
+<!-- -------------- Factory -------------------- -->
 <div class="section">
 <h2>Factory Section</h2>
 The manage-glideins script should be run as the factory user when installing
-the wms factory (see unix_acct below).
+the WMS Factory (see the <b>username</b> option below).
 <blockquote>
-    ./manage-glideins --install wmsfactory --ini glideinWMS.ini
+    ./manage-glideins --install factory --ini glideinWMS.ini
 </blockquote>
 
 See below for the ini file attributes that installing/running WMS factory 
@@ -384,13 +398,13 @@ requires:<br/><br/>
         </tr><tr>
             <td>hostname</td>
             <td>wmscollector.domain.name</td>
-            <td>      hostname for Factory.</td>
-            <td>       The WMS collector and Factory must be collocated at this time.</td>
+            <td>hostname for Factory.</td>
+            <td>The WMS collector and Factory must be collocated at this time.</td>
         </tr><tr>
             <td>username</td>
-            <td>factoryuser (non-root account)</td>
-            <td>     UNIX user account that this services will run under. DO NOT use "root". </td>
-            <td>    For security purposes, this value should always be a non-root user.  Although the WMS Collector and Factory must be co-located, they can be run as independent users.</td>
+            <td>factory user</br>(non-root account)</td>
+            <td>UNIX user account that this service will run under. <b>DO NOT use "root"</b>. </td>
+            <td>For security purposes, this value should always be a non-root user.  Although the WMS Collector and Factory must be co-located, they can be run as independent users.</td>
         </tr><tr>
             <td>service_name</td>
             <td>factory-wms</td>
@@ -404,34 +418,36 @@ requires:<br/><br/>
         </tr><tr>
             <td>logs_dir</td>
             <td>/path/to/factory/logs  </td>
-            <td>Provides a central location for all factory log files.</td>
-            <td>Beneath this location there will be multiple sets of logs: 
-               <ul><li>for the factory as a whole</li>
-                   <li>for each entry point the factory utilizes </li>
-               </ul>
+            <td>Provides a user settable location for all factory log files.</td>
+            <td>Beneath this location there will be multiple sets of logs:</br> 
+                * for the factory as a whole</li</br>
+                * for each entry point the factory utilizes
             </td>
         </tr><tr>
             <td>client_log_dir<br/>
                 client_proxy_dir</td>
             <td>/path/to/client/log_location<br/>
                 /path/to/client/proxy_location</td>
-            <td>This identifies the location of the client log and proxy files.   </td>
-            <td>  If privilege separation is used, then the entire path (inclusive of this directory) must be root-writable-only (0755 and owned by root).  If privilege separation is not used, then the directory will be created by the install script assuming the factory user has write permissions to the parent directory.</td>
+            <td>Provides a user settable location for all client (VOFrontend) log and proxy files.</td>
+            <td><b>If privilege separation is used</b>, then the entire path (inclusive of this directory) must be root-writable-only (0755 and owned by root).</br>
+                <b>If privilege separation is not used</b>, then the directory will be created by the install script assuming the factory user has write permissions to the parent directory.
+           </td>
         </tr><tr>
             <td>instance_name</td>
-            <td>v2_5</td>
-            <td>Used in naming files and directories.    </td>
+            <td align="center">v2_5</td>
+            <td>Used in naming files and directories.</td>
             <td>.</td>
         </tr><tr>
             <td>gsi_credential_type</td>
-            <td>  cert</td>
+            <td><b>THIS WILL BE ABSOLETE AND IS THE NEXT THING TO CHANGE</b></br>
+                   cert</td>
             <td>    Used to identify the Factory to the other glidein services.</td>
             <td> Valid values:<br/>
-                * cert - certificate used<br/>
-                * proxy - proxy used</td>
+                * <b>cert</b> - certificate used<br/>
+                * <b>proxy</b> - proxy used</td>
         </tr><tr>
         <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
-        <td>
+            <td><b>THIS WILL BE ABSOLETE AND IS THE NEXT THING TO CHANGE</b></br>
             /path-to-cert/cert.pm<br/>
             /path-to-cert/key.pm<br/>
             /path-to-proxy/x509_proxyfile
@@ -443,7 +459,8 @@ requires:<br/><br/>
 
         </tr><tr>
             <td>gsi_dn</td>
-            <td>  /DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name
+            <td><b>THIS WILL BE ABSOLETE AND IS THE NEXT THING TO CHANGE</b></br>
+             /DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name
             </td>
             <td>  If the  <b>gsi_credential_type</b> option is:<br/>
                 * cert, the subject of the certificate<br/>
@@ -451,73 +468,103 @@ requires:<br/><br/>
             <td>    openssl x509 -issuer -subject -noout -in [cert_proxy_location]</td>
         </tr><tr>
             <td>use_vofrontend_proxy</td>
-            <td>    y</td>
-            <td>   Specifies if the VO frontend or factory proxy should be used    'y' should be specified under most circumstances.</td>
-            <td>.</td>
+            <td align="center">y</td>
+            <td>Specifies if the VO Frontend or Factory proxy should be used on the glidein pilot jobs submitted to the entry points.
+            </td>
+            <td>Valid values:</br>
+             * <b>y</b> - only VO Frontend proxies will be used</br>
+             * <b>n</b> - VO Frontend proxies will be used if available otherwise the Factory will provide the proxy. 
+            <br><b>NEED TO DETERMINE IF THIS IS STILL TRUE</b>
+            </td>
         </tr><tr>
             <td> use_glexec</td>
-            <td>  y</td>
-            <td>   Used to specify how user submitted jobs are authorized on the CE/WN node:<br/>
-                * y - downloads and uses gLexec
-                * n - pilot(glidein) proxy is used</td>
-            <td>  With gLexec, the individual users proxy submitted with their job is used to authorize the job and is reflected in the accounting.</td>
+            <td align="center">y</td>
+            <td>Used to specify how user submitted jobs (not glidein pilots) are authorized on the WN nodes for an entry point<br/>
+            </td>
+            <td>  
+                Valid values:</br>
+                * <b>y</b> - downloads and uses gLexec.</br>
+                * <b>n</b> - glidein pilot proxy is used</br>
+                With gLexec, the individual user's proxy submitted with their job is used to authorize the job and is reflected in the accounting.</br>
+                Without gLexec, the glidein pilot job's proxy is used and only that user account is reflected in the accounting.
+            </td>
         </tr><tr>
             <td>use_ccb</td>
-            <td>     n</td>
-            <td>   Valid values:
-* y - uses CCB
-* n - does not use CCB   
-            <td>.</td>
+            <td align="center">n</td>
+            <td>Indicates if CCB should be used or not.</td>
+            <td>Valid values:</br>
+* <b>y</b> - uses CCB</br>
+* <b>n</b> - does not use CCB  </br> 
         </tr><tr>
+
             <td>match_authentication</td>
-            <td>    y</td>
-            <td>   Valid values:<br/>
-                * y - uses it<br/>
-                * n - does not use it
-            </td>
+            <td align="center">y</td>
             <td>
-                Match authentication is more efficient and used in newer versions of Condor. This is recommended unless using an older version of Condor.</td>
-        </tr><tr>
-            <td> ress_host</td>
-            <td>   osg-ress-4.fnal.gov</td>
-            <td>     Identifies the ReSS server to be used to select Entry points (CEs) to submit glidein pilot jobs to.
-The only validation performed is to verify if that server exists.   </td>
-            <td>OSG values:
-            <ul>
-                <li>OSG Production: osg-ress-1.fnal.gov</li>
-                <li>OSG ITB: osg-ress-4.fnal.gov</li>
-            </ul>
+                Match authentication is a more efficient means of matching user jobs to resources (entry points) i
+                and used in newer versions of Condor. 
+                Its use is recommended unless you are using an older version of Condor.</td>
+            <td>   Valid values:<br/>
+                * <b>y</b> - uses it<br/>
+                * <b>n</b> - does not use it
             </td>
-            <td>.</td>
         </tr><tr>
+
+            <td> ress_host</td>
+            <td>osg-ress-4.fnal.gov</td>
+            <td>Identifies the ReSS server to be used to select entry points (CEs) to submit glidein pilot jobs to.
+            <td>
+              The only validation performed is to verify if that server exists.   </br>
+             Valid OSG values:</br>
+              * <b>osg-ress-1.fnal.gov</b> - OSG Production </br>
+              * <b>osg-ress-4.fnal.gov</b> - OSG ITB </br>
+        </tr><tr>
+
             <td>entry_vos</td>
-            <td>   cms, dzero</td>
-            <td>  A comma delimited set of VOs that should be used to select the entry points that glideins can be submitted to.</td>
-            <td>  These are the used as the initial criteria in querying ReSS and/or BDII for glidein entry points.</td>
+            <td align="center">cms, dzero</td>
+            <td>A comma delimited set of VOs used to select the entry points that glideins can be submitted to.</td>
+            <td>These are the used as the initial criteria in querying ReSS for glidein entry points.</td>
         </tr><tr>
+
             <td>entry_filters</td>
-            <td>   (int(GlueCEPolicyMaxCPUTime) &lt;(25*60))</td>
-            <td>     An additional entry point (CE) filter for insuring that specific resources are available.   </td>
-            <td>After the initial set of entry points have been selected using the 'entry_vos' criteria, these filters are applied.  The format is a python expression using Glue schema attributes.</td>
+            <td>(int(GlueCEPolicyMaxCPUTime) &lt;(25*60))</td>
+            <td>An additional entry point (CE) filter for insuring that specific resources are available.   </td>
+            <td>After the initial set of entry points have been selected using the <b>entry_vos</b> criteria, these filters are applied.  The format is a python expression using Glue schema attributes.</td>
         </tr><tr>
+
             <td>install_vdt_client</td>
-            <td>  y</td>
-            <td>   Valid values:
-* y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.
-* n - will not attempt to install the VDT client</td>
-            <td>    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+            <td align="center">y</td>
+            <td>Indicates if an OSG/VDT client should be installed if it is not already present
+                in the <b>vdt_location</b> option location.  This installer will not attempt to
+                reinstalled this software if it is already present.
+            </td>
+            <td>  Valid values:</br>
+* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and pacman options specified.</br>
+* <b>n</b> - will not attempt to install the VDT client
+            </td>
         </tr><tr>
-            <td>glideinwms_location     </td>
-            <td>/path/to/glideinWMS</td>
-            <td>Directory of the glideinWMS software.</td>
-            <td>The glideinWMS software is used for both the installation of the various services and during the actual running of the glidein services.</td>
+
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.</td>
+            <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation:</br>
+1. setup.sh</br>
+2. existence of a voms-proxy-init executable.</td>
+
         </tr><tr>
+        <td> glideinwms_location</td>
+        <td>     /path/to/glideinWMS    </td>
+        <td>Directory of the glideinWMS software.</td>
+        <td>   Since this is a Condor service only, this software is only used during the installation process. </td>
+        </tr><tr>
+
             <td>web_location</td>
             <td>/var/www/html/factory</td>
-            <td>Specifies the location for the monitoring and staging accessible by web services.   </td>
-            <td>This should be created before installing the Factory as the Factory user and the web server user are generally different and this script will not be able to create this directory with proper ownership.</td>
-            <td>.</td>
+            <td>Specifies the location for the monitoring and staging areas accessible by the glidein pilot jobs via web services.</td>
+            <td>This should be created before installing the Factory as the Factory user and the web server user are generally different 
+                and this script will not be able to create this directory with proper ownership.
+            </td>
         </tr><tr>
+
             <td>web_url</td>
             <td>http://%(node)s</td>
             <td>Identifies the url used by the glidein pilots to download necessary software and to record monitoring data.</td>
@@ -531,6 +578,8 @@ The only validation performed is to verify if that server exists.   </td>
         </tr>
     </tbody></table>
 </div>
+
+<!-- -------------- User Collector -------------------- -->
 <div class="section">
 <h2>User Collector Section</h2>
 The pool Collector can be installed either as root or as a non privileged user. Either case, make sure that the user has access to the needed GSI credentials. 
@@ -585,9 +634,9 @@ ires:<br/><br/>
             </tr><tr>
             <td>gsi_credential_type  </td>
             <td>cert    </td>
-            <td>Used to identify the User Collector to the other glidein services.  Valid values:<br/>
-            * cert - certificate used<br/>
-            * proxy - proxy used     </td>
+            <td>Used to identify the User Collector to the other glidein services.</br>  Valid values:<br/>
+            * <b>cert</b> - certificate used<br/>
+            * <b>proxy</b> - proxy used     </td>
             <td>.</td>
             </tr><tr>
             <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
@@ -623,13 +672,23 @@ ires:<br/><br/>
             <td>The desired number of secondary collectors to be used.   </td>
             <td>.</td>
             </tr><tr>
-            <td>install_vdt_client  </td>
-            <td>y   </td>
-            <td>Valid values:<br/>
-                * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
-                * n - will not attempt to install the VDT client    </td>
-             <td>If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
-            </tr><tr>
+
+            <td>install_vdt_client</td>
+            <td align="center">y</td>
+            <td>   Valid values:</br>
+* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and pacman options specified.</br>
+* <b>n</b> - will not attempt to install the VDT client
+            </td>
+            <td>    If 'y' and the client already exists in the <b>vdt_location</b> specified, it will not reinstall it.</td>
+        </tr><tr>
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.</td>
+            <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation:</br>
+1. setup.sh</br>
+2. existence of a voms-proxy-init executable.</td>
+        </tr><tr>
+
             <td>glideinwms_location     </td>
             <td>/path/to/glideinWMS    </td>
             <td>Directory of the glideinWMS software.   </td>
@@ -638,6 +697,7 @@ ires:<br/><br/>
 </tbody></table>
 </div>
 
+<!-- -------------- Submit -------------------- -->
 <div class="section">
 <h2>Submit Section</h2>
 The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious security implications; 
@@ -744,13 +804,23 @@ xy, then x509_proxy is required. </td>
         <td>
                 Match authentication is more efficient and used in newer versions of Condor. This is recommended unless using an older version of Condor.</td>
         </tr><tr>
-        <td>install_vdt_client  </td>
-        <td>y   </td>
-        <td>Valid values:<br/>
-            * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
-            * n - will not attempt to install the VDT client    </td>
-        <td>If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
+
+            <td>install_vdt_client</td>
+            <td align="center">y</td>
+            <td>   Valid values:</br>
+* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and pacman options specified.</br>
+* <b>n</b> - will not attempt to install the VDT client
+            </td>
+            <td>    If 'y' and the client already exists in the <b>vdt_location</b> specified, it will not reinstall it.</td>
         </tr><tr>
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.</td>
+            <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation:</br>
+1. setup.sh</br>
+2. existence of a voms-proxy-init executable.</td>
+        </tr><tr>
+
         <td>glideinwms_location     </td>
         <td>/path/to/glideinWMS    </td>
         <td>Directory of the glideinWMS software.   </td>
@@ -759,6 +829,8 @@ xy, then x509_proxy is required. </td>
 
 </tbody></table>
 </div>
+
+<!-- -------------- Frontend  -------------------- -->
 <div class="section">
 <h2>Glidein Frontend</h2>
 
@@ -910,12 +982,23 @@ When specifying multiple proxies, whitespace is the delimiter.  These will be th
             <i>jobs_constraint = (JobUniverse==5)&&(DESIRED_Sites=!=UNDEFINED)
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",") </i></td>
         </tr><tr>
-        <td>install_vdt_client</td>
-        <td>  y   </td>
-        <td>Valid values:<br/>
-                * y - installer will install a VDT client using the vdt_location and pacman options in the VDT section of the ini file.<br/>
-                * n - will not attempt to install the VDT client    If 'y' and the client already exists in the VDT vdt_location specified, it will not reinstall it.</td>
-        <td>.</td>
+
+            <td>install_vdt_client</td>
+            <td align="center">y</td>
+            <td>   Valid values:</br>
+* <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and pacman options specified.</br>
+* <b>n</b> - will not attempt to install the VDT client
+            </td>
+            <td>    If 'y' and the client already exists in the <b>vdt_location</b> specified, it will not reinstall it.</td>
+        </tr><tr>
+            <td>vdt_location</td>
+            <td>    /path/to/glidein/vdt</td>
+            <td>   The location of the OSG/VDT client software.</td>
+            <td>    The installer looks for the existence of 2 files to verify it this is an OSG/VDT client installation:</br>
+1. setup.sh</br>
+2. existence of a voms-proxy-init executable.</td>
+        </tr><tr>
+
         </tr><tr>
         <td>glideinwms_location</td>
         <td>/path/to/glideinWMS_code</td>
