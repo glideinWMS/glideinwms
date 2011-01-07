@@ -202,6 +202,7 @@ table.attributes td
 {
     padding: 5px 2px 2px 2px;
     border-bottom:  1px solid #000;
+    vertical-align: top;
 }
 table.attributes td:first-child
 {
