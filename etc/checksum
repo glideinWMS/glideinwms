@@ -131,7 +131,6 @@ e1cd01fd54a917b8a81169f30416d2f0  ./lib/condorLogParser.py
 f9c20925273310412be78678255f6785  ./lib/condorMonitor.py
 090f08bdfe960ae1bba1d9bc8cb9e2e6  ./lib/condorPrivsep.py
 5945396e544aee61254b6358dda6cb9e  ./lib/condorSecurity.py
-879ffbb3d92c4d34c7586e0dd14ccb0f  ./lib/glideinWMSVersion.py
 067802486e4ca39f624adc2f42f63655  ./lib/hashCrypto.py
 05f219e869332015bc739d68ea02e230  ./lib/ldapMonitor.py
 63176524e386b84d466b86398542fca6  ./lib/logSupport.py
@@ -142,6 +141,7 @@ d0bf68f9c3aaef93e3ac5538f0475243  ./lib/symCrypto.py
 0409cf3b4312fdb87fb3b8a42ea66764  ./lib/timeConversion.py
 49935d23fcbb0df17696fcb04250bf2f  ./lib/xmlFormat.py
 35029f7bbd81b1f9102330f120873689  ./lib/xmlParse.py
+47409909f027ee2faff4dbec6d277bb6  ./lib/glideinWMSVersion.py
 8e6f3a371febfdfaba8ef6c9be6a95c0  ./tools/glidein_cat.py
 3434c715c5dddeee56502c10ab538536  ./tools/glidein_gdb.py
 11b54e997152f21b60a33e87d33dfbe2  ./tools/glidein_interactive.py
