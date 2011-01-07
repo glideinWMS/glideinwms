@@ -169,9 +169,16 @@ The ini file determines the installation and configuration of the various servic
 
 <h3>Default Section</h3>
 <p>
-The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically in that section.
+The attributes in this section apply to all subsequent sections in the ini file unless they are overridden specifically in that section.  So, if the location/value of any option(s) in this section varies from host to host, you will need to override them in that section of the ini file. The only options in the <i>glideinWMS.ini</i> template will be the pacman options in the next section.
+</p>
+<h4>Pacman options</h4>
+The 2 pacman related attributes are used to bring down the OSG/VDT client software 
+and CA certificates if they are not already installed on the node. 
+If you already have the OSG/VDT client and CA certificates installed on a host, then these options will never if used.
+</p><p>
+<b>These should not be changed unless advised to by glideinwms-support as there 
+may be compatiblity issues between pacman and VDT distributions.</b>
 
-The 2 pacman related attributes are used to bring down the OSG/VDT client software and CA certificates if they are not already installed on the node. These should not be changed. 
 </p>
     <table width="90%" class="attributes">
         <tbody><tr class="head">
@@ -181,16 +188,24 @@ The 2 pacman related attributes are used to bring down the OSG/VDT client softwa
         <td>Comments</td>
         </tr>
         <tr>
-            <td>pacman_version</td>
-            <td>pacman-3.28</td>
-            <td>Version of pacman to use. </td>
-            <td>.</td>
+            <td>pacman_location</td>
+            <td>/path-to-pacman/pacman-3.28</td>
+            <td>This will be the directory in which pacman is installed.</br>
+            </td>
+            <td>
+                The base level (e.g., pacman-3.28) will be used to select the
+                pacman tarball from the pacman_url option.</br>
+                The format is pacman-version.tar.gz.</br>
+                The tarball will be retrieved, extracted and then removed.  
+            </td>
         </tr>
         <tr>
             <td>pacman_url</td>
-            <td>http://physics.bu.edu/pacman/sample_cache/tarballs </td>
-            <td>URL to retrieve pacman. </td>
-            <td>.</td>
+            <td>http://physics.bu.edu/pacman/sample_cache/tarballs</td>
+            <td>URL to retrieve pacman.</br>
+            </td>
+            <td>
+            </td>
         </tr>
     </tbody></table>
 </div>
