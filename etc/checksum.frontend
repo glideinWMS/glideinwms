@@ -45,8 +45,7 @@ ed35ca2289553f4e671d985bedd0ccef  ./creation/web_base/parse_starterlog.awk
 4d78e6a1f1775f6095dc240f7dde0fee  ./frontend/checkFrontend.py
 4a64e7f7a6a24f5ca1beffbbf7bf34b5  ./frontend/glideinFrontend.py
 66040003e303a5314ad76fdd6ecc30d7  ./frontend/glideinFrontendConfig.py
-8dd7f25e13ab998951ce988001ef0de5  ./frontend/glideinFrontendElement.py
-587fa608326e812d6bd9c52d7178963a  ./frontend/glideinFrontendInterface.py
+c1af352c96ebc25ce187f2dbb7795c02  ./frontend/glideinFrontendElement.py
 bea60f2300af0d028494760a1c1a552d  ./frontend/glideinFrontendLib.py
 619181f0d30c37a37c8f2803ba87f91f  ./frontend/glideinFrontendMonitorAggregator.py
 ed5f709e573e5657dbd98aab0329e9c5  ./frontend/glideinFrontendMonitoring.py
@@ -56,6 +55,7 @@ edf9fc6d3dc2821603910abb7f521f9b  ./frontend/glideinFrontendPlugins.py
 0e3b398aa99670cfeb27c7957fc66169  ./frontend/config_examples/test1.cfg
 8812c62ff81a7dcd3db15f3c66d1d6bf  ./frontend/config_examples/test2.cfg
 9d71a554cc2f208f47c7c5a6f3b83c52  ./frontend/config_examples/test3.cfg
+587fa608326e812d6bd9c52d7178963a  ./frontend/glideinFrontendInterface.py
 058473e6cfccb7eb94d947b50efb1e4d  ./install/glidecondor_addDN
 b05d0ccc0300b83172e89fc2401d4dad  ./install/glideinWMS_install
 d917a5b9a6c411f139175c43541a0f0d  ./lib/condorExe.py
