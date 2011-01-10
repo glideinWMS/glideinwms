@@ -204,10 +204,14 @@ def ask_continue(question):
     raise KeyboardInterrupt
 
 #--------------------------------
-def validate_hostname(node):
+def validate_hostname(node,additional_msg=""):
   logit("... validating hostname: %s" % node)
   if node <> socket.getfqdn():
-    logerr("hostname option (%s) shows different host. This is %s" % (node,socket.getfqdn()))
+    logerr("""The hostname option (%(hostname)s) shows a different host. 
+      This is %(thishost)s.
+      %(msg)s """ % { "hostname" : node,
+                      "thishost" : socket.getfqdn(),
+                      "msg"      : additional_msg,})
 
 #--------------------------------
 def validate_user(user):

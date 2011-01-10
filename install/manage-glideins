@@ -25,12 +25,6 @@ global gAction
 global gSSH
 
 #--------------------------------
-def validate_node(node):
-  hostname = socket.gethostname()
-  if node != hostname:
-    common.logerr("This service is on %s. Either login there or use the --ssh option." % hostname)
-
-#--------------------------------
 def run_command(service,user,node,command):
   global gAction
   global gSSH
@@ -38,7 +32,7 @@ def run_command(service,user,node,command):
   if gSSH:
     cmd = """ssh -l %s %s "%s" """ % (user,node,command)
   else:
-    validate_node(node)
+    common.validate_hostname(node,"Either login there or use the --ssh option.")
     cmd = """%s""" % (command)
   hdr = "%s %s user(%s) node(%s)" %(gAction,service,user,node) 
   common.logit("\n############################################################")
