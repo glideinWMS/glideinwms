@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.33 2010/12/28 19:08:40 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.34 2011/01/10 21:11:59 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -707,7 +707,8 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
     
     try:
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0]))).version()
+        dir = os.path.dirname(os.path.dirname(sys.argv[0]))
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.factory')).version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])

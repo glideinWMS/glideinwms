@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.16 2010/11/21 18:33:12 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.17 2011/01/10 21:11:59 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -502,17 +502,13 @@ def main(parent_pid, work_dir, group_name):
     glideinFrontendInterface.frontendConfig.advertise_use_multi=(elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True','1'))
 
     try:
-        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0]))).version()
+        dir = os.path.dirname(os.path.dirname(sys.argv[0]))
+        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.frontend')).version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
         glideinFrontendLib.log_files.logWarning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
         glideinFrontendLib.log_files.logDebug("Exception occurred: %s" % tb)    
-
-
-
-
-
 
     if len(elementDescript.merged_data['Proxies'])>0:
         if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):
