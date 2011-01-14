@@ -6,7 +6,6 @@ import socket
 import getopt
 
 STARTUP_DIR=os.path.abspath(sys.path[0])
-os.chdir(STARTUP_DIR)
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 sys.path.append(os.path.join(STARTUP_DIR,"./services"))
 
