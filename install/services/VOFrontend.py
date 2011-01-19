@@ -38,7 +38,9 @@ frontend_options = [ "hostname",
 "split_condor_config", 
 "install_vdt_client", 
 "glexec_use",
+"group_name",
 "match_string",
+"userjob_constraints",
 "web_location",
 "web_url",
 "javascriptrrd_location",
@@ -102,6 +104,10 @@ class VOFrontend(Condor):
     self.factory       = None
     self.usercollector = None
     self.submit        = None
+    self.get_wms()
+    self.get_factory()
+    self.get_usercollector()
+    self.get_submit()
     self.colocated_services = []
 
   #-- get service instances --------
@@ -161,8 +167,14 @@ class VOFrontend(Condor):
   def logs_dir(self):
     return self.option_value(self.ini_section,"logs_dir")
   #--------------------------------
+  def group_name(self):
+    return self.option_value(self.ini_section,"group_name")
+  #--------------------------------
   def match_string(self):
     return self.option_value(self.ini_section,"match_string")
+  #--------------------------------
+  def userjob_constraints(self):
+    return self.option_value(self.ini_section,"userjob_constraints")
   #--------------------------------
   def cert_proxy_location(self):
     return self.option_value(self.ini_section,"cert_proxy_location")
@@ -193,6 +205,18 @@ class VOFrontend(Condor):
       list.append(dn.strip())
     return list
     
+  #--------------------------------
+  def get_new_config_group(self):
+    """This method is intended to create a new group element after the initial 
+       installation is complete.  It will create a file containing the group
+       and job selection/matchin criteria.  This can then be manually merged 
+       into the existing frontend configuration file.
+    """
+    filename = "%(config_dir)s/%(group)s.%(time)s" % \
+         { "config_dir" : self.config_dir(),
+           "group"      : self.group_name(),
+           "time"       : common.time_suffix(),}
+    common.write_file("w",0644,filename,self.get_match_criteria())
 
   #--------------------------------
   def install(self):
@@ -325,9 +349,8 @@ Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
   def get_config_data(self):
     common.logit("\nCollecting  configuration file data. It will be question/answer time.")
     schedds         = self.get_user_schedds()
-    job_constraints = self.get_job_constraints()
     match_criteria  = self.get_match_criteria()
-    config_xml = self.config_data(schedds,job_constraints,match_criteria)
+    config_xml = self.config_data(schedds,match_criteria)
     common.logit("\nAll configuration file data collected.")
     return config_xml
 
@@ -495,47 +518,16 @@ source %(condor_location)s/condor.sh
       common.logit(" [%i] %s"%(i+1,schedds[i]))
     return schedds
 
-  #----------------------------
-  def get_job_constraints(self):
-    default_job_constraint = "(JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)"
-    job_constraint = raw_input("\nWhat kind of jobs do you want to monitor?: [%s] "%default_job_constraint)
-    if job_constraint == "":
-      job_constraint = default_job_constraint
-    return job_constraint
-                    
-
   #---------------------------------------
   def get_match_criteria(self):
     """ Determine the job constraints/matching criteria for submitting jobs."""
-    #--- define group ---
-    def_group_name="main"
-    group_name = raw_input("\nGive a name to the main group: [%s] " % def_group_name)
-    if group_name == "":
-      group_name=def_group_name
-
-    #-- match criteria ---
-    print """
-What expression do you want to use to match glideins to jobs?
-It is an arbitrary python boolean expression using the dictionaries
-glidein and job.
-
-A simple example expression would be:
-  glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
-
-If you want to match all (OK for simple setups), specify True (the default)
-"""
-    default_match_str="True"
-    match_str = raw_input("Match string: [%s] " % default_match_str)
-    if match_str == "":
-      match_str = default_match_str
-
   #-- factory attributes ----
     print """
 What glidein/factory attributres are you using in the match expression?
 I have computed my best estimate for your match string,
 please verify and correct if needed.
 """
-    default_factory_attributes = string.join(self.extract_factory_attrs(match_str),',')
+    default_factory_attributes = string.join(self.extract_factory_attrs(),',')
     factory_attributes = raw_input("Factory attributes: [%s] "%default_factory_attributes)
     if factory_attributes == "":
         factory_attributes = default_factory_attributes
@@ -550,7 +542,7 @@ What job attributes are you using in the match expression?
 I have computed my best estimate for your match string,
 please verify and correct if needed.
 """
-    default_job_attributes = string.join(self.extract_job_attrs(match_str),',')
+    default_job_attributes = string.join(self.extract_job_attrs(),',')
     job_attributes = raw_input("Job attributes: [%s] " % default_job_attributes)
     if job_attributes == "":
       job_attributes = default_job_attributes
@@ -562,17 +554,17 @@ please verify and correct if needed.
     #--- create xml ----
     data  = """
 %(indent2)s<group name="%(group_name)s" enabled="True">
-%(indent3)s<match match_expr=%(match_str)s>
-%(indent4)s%(factory_attributes)s
-%(indent4)s%(job_attributes)s
+%(indent3)s<match match_expr=%(match_string)s>
+%(factory_attributes)s
+%(job_attributes)s
 %(indent3)s</match>
 %(indent2)s</group>
 """ % \
 { "indent2" : common.indent(2),
   "indent3" : common.indent(3),
   "indent4" : common.indent(4),
-  "group_name"         : group_name,
-  "match_str"          : xmlFormat.xml_quoteattr(match_str),
+  "group_name"         : self.group_name(),
+  "match_string"       : xmlFormat.xml_quoteattr(self.match_string()),
   "factory_attributes" : self.factory_data(factory_attributes),
   "job_attributes"     : self.job_data(job_attributes),
 }
@@ -587,18 +579,23 @@ please verify and correct if needed.
       for attr in attributes:
         attr_query_arr.append("(%s=!=UNDEFINED)" % attr)
       data = data + """\
-        <factory query_expr=%s>
-          <match_attrs>
-""" % xmlFormat.xml_quoteattr(string.join(attr_query_arr," && "))
+%(indent4)s<factory query_expr=%(expr)s>
+%(indent5)s<match_attrs> """ % \
+ { "indent4" : common.indent(4),
+   "indent5" : common.indent(5),
+   "expr"    : xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
 
       for attr in attributes:
-        data = data + """\
-            <match_attr name="%s" type="string"/>
-""" % attr
+        data = data + """
+%(indent6)s<match_attr name="%(attr)s" type="string"/>
+""" % { "indent6" : common.indent(6),
+        "attr"    : attr, }
+
       data = data + """\
-          </match_attrs>
-        </factory>
-"""
+%(indent5)s</match_attrs>
+%(indent4)s</factory>
+""" % { "indent4" : common.indent(4),
+        "indent5" : common.indent(5), }
     return data
 
   #-----------------------
@@ -610,23 +607,28 @@ please verify and correct if needed.
         attr_query_arr.append("(%s=!=UNDEFINED)" % attr)
 
       data = data + """\
-        <job query_expr=%s>
-          <match_attrs>
-""" % xmlFormat.xml_quoteattr(string.join(attr_query_arr," && "))
+%(indent4)s<job query_expr=%(expr)s>
+%(indent5)s<match_attrs> """ % \
+ { "indent4" : common.indent(4),
+   "indent5" : common.indent(5),
+   "expr"    : xmlFormat.xml_quoteattr(string.join(attr_query_arr," && ")),}
 
       for attr in attributes:
-        data = data + """\
-            <match_attr name="%s" type="string"/>
-""" % attr
+        data = data + """
+%(indent6)s<match_attr name="%(attr)s" type="string"/>
+""" % { "indent6" : common.indent(6),
+        "attr"    : attr, }
+
       data = data + """\
-          </match_attrs>
-        </job>
-"""
+%(indent5)s</match_attrs>
+%(indent4)s</job>
+""" % { "indent4" : common.indent(4),
+        "indent5" : common.indent(5), }
     return data
 
 
   #--------------------------------
-  def config_data(self,schedds,job_constraints,match_criteria): 
+  def config_data(self,schedds,match_criteria): 
     data = """<frontend frontend_name="%s-%s">""" %\
               (self.glidein.service_name(),
                self.glidein.instance_name())
@@ -646,7 +648,7 @@ please verify and correct if needed.
        self.config_monitor_data(),
        self.config_collectors_data(),
        self.config_security_data(),
-       self.config_match_data(schedds,job_constraints),
+       self.config_match_data(schedds),
        self.config_attrs_data(), 
        self.config_groups_data(match_criteria),
        self.config_files_data(),)
@@ -728,7 +730,7 @@ please verify and correct if needed.
     return data
 
   #--------------------------
-  def config_match_data(self,schedds,job_constraints):
+  def config_match_data(self,schedds):
     data = """
 %(indent1)s<match>
 %(indent2)s<factory>
@@ -747,7 +749,7 @@ please verify and correct if needed.
   "wms_gsi_gn"        : self.wms.gsi_dn(),
   "factory_username" : self.factory.username(),
   "frontend_identity" : self.service_name(),
-  "job_constraints"   : xmlFormat.xml_quoteattr(job_constraints),
+  "job_constraints"   : xmlFormat.xml_quoteattr(self.userjob_constraints()),
 }
 
     for schedd in schedds:
@@ -812,12 +814,12 @@ please verify and correct if needed.
 }
 
   #---------------------------------
-  def extract_factory_attrs(self,match_str):
+  def extract_factory_attrs(self):
     glidein_attrs = []
     attr_re = re.compile("glidein\[\"attrs\"\]\[['\"](?P<attr>[^'\"]+)['\"]\]")
     idx = 0
     while 1:
-      attr_obj = attr_re.search(match_str,idx)
+      attr_obj = attr_re.search(self.match_string(),idx)
       if attr_obj == None:
         break # not found
       attr_el = attr_obj.group('attr')
@@ -827,12 +829,12 @@ please verify and correct if needed.
     return glidein_attrs
 
   #---------------------------------
-  def extract_job_attrs(self,match_str):
+  def extract_job_attrs(self):
     job_attrs = []
     attr_re = re.compile("job\[['\"](?P<attr>[^'\"]+)['\"]\]")
     idx=0
     while 1:
-      attr_obj = attr_re.search(match_str,idx)
+      attr_obj = attr_re.search(self.match_string(),idx)
       if attr_obj == None:
         break # not found
       attr_el=attr_obj.group('attr')
@@ -921,7 +923,8 @@ def main(argv):
     #create_template()
     options = validate_args(argv)
     vo = VOFrontend(options.inifile)
-    vo.validate_glidein_proxies()
+    vo.get_new_config_group()
+    #vo.validate_glidein_proxies()
     #vo.install()
     #vo.get_usercollector()
     #print vo.config_collectors_data()

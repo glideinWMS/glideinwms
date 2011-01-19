@@ -103,6 +103,9 @@ def vofrontend(service,action,inifile):
   if action == "install":
      obj.install()
      return
+  if action == "create-group":
+     obj.get_new_config_group()
+     return
   if action == "start":
     cmd += "; ./frontend_startup %s"  % action
   if action == "stop":
@@ -192,13 +195,25 @@ service.
 This option  allows you to install all services for the node you are installing
 on.  There are some limitation to this.
 
+Factory only
+------------
  %(program)s --create-entries --ini <ini_file>
 
 This option can be used to select new glidein entry points after the
 initial installation of a factory service.  If will walk you through the same 
-question and answer process querying ReSS and BDII for resources.  It will then
-create a file containing the entry elements for those selected.  This can then 
-be merged with the existing Factory configuration file. 
+question and answer process querying ReSS and BDII for resources.  
+It will then create a file containing the entry elements for those selected.  
+This can then be merged with the existing Factory configuration file. 
+
+VOFrontend only
+---------------
+ %(program)s --create-group --ini <ini_file>
+This option can be used to add a new frontend group after the
+initial installation of a frontend service.  If will walk you through the same 
+question and answer process for selection criteria.  
+It will then create a file containing the necessary group elements.  
+This can then be merged with the existing frontend configuration file. 
+
 """ % \
 { "program"  : os.path.basename(gProgramName),
   "services" : valid_services,
@@ -216,7 +231,7 @@ def main(argv):
     gAction = None
     gSSH    = False
     inifile = ""
-    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries","install-node","ssh" ]
+    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries","create-group","install-node","ssh" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
     stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
@@ -244,6 +259,10 @@ def main(argv):
         continue
 
       if o == "--create-entries":
+        gAction = o[2:]
+        continue
+
+      if o == "--create-group":
         gAction = o[2:]
         continue
 
@@ -284,6 +303,9 @@ def main(argv):
 
     if gAction == "create-entries":
       services = ["factory",]
+
+    if gAction == "create-group":
+      services = ["vofrontend",]
 
     installed_services = 0
     for service in services:        

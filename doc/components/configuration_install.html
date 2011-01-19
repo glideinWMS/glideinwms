@@ -104,63 +104,63 @@ the ini file, it is recommended that you go back and re-install ALL services.
 <a name="manage_script" />
 <h2> manage-glideins script </h2>
 
-The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>.  You must run the script from the directory that it is located in but the ini 
-file may be located anywhere, including a shared file space so you don't need to maintain the file in multiple locations.
+The script used to perform the installations is <i>glideinWMS/install/manage-glideins</i>.  
+<p></p>
 
-<blockquote>
-Usage: ./manage-glideins --ACTION SERVICE --ini  [--debug]<br/>
-Example: cd glideinWMS/install; ./manage-glideins --install service_name --ini inifile_location 
-</blockquote>
-
-ACTION can be one of:
+<b>./manage-glideins --OPTION SERVICE --ini INIFILE [--ssh]  [--debug]</b><br/>
 <ul>
-<li><b>install</b>: Install the service</li>
-<li><b>start</b>: Start the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</li>
-<li><b>stop</b>: Stop the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</li>
-<li><b>status</b>: Return the status of the service</li>
+This usage can be used to install, start, stop or check the status of
+the glidein services based on the configuration in the specified ini file.
+<p> 
+<b>OPTION</b> can be one of:</br>
+ - <b>install</b>: Install the service</br>
+ - <b>start</b>: Start the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</br>
+ - <b>stop</b>: Stop the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</br>
+ - <b>status</b>: Return the status of the service
+</p><p>
+
+<b>SERVICE</b> can be one of:</br>
+ - wmscollector</br>
+ - usercollector</br>
+ - factory</br>
+ - submit</br>
+ - vofrontend</br>
+ - all: can only be used with start/stop/status actions</br>
+</p><p>
+<b>--ssh</b>: allows the start/stop/status actions to be performed 
+remotely providing the user has valid access to the other service's node via 
+'ssh -l' using the service's username.
+</p><p>
+<p>
+<b>--debug</b>: When used with start/stop/status actions, it will
+display the series of commands used.
 </ul>
 
-SERVICE can be one of:
-<ol>
-<li>wmscollector</li>
-<li>usercollector</li>
-<li>factory</li>
-<li>submit</li>
-<li>vofrontend</li>
-<li>all: can only be used with start/stop/status actions</li>
-</ol>
-<p>
---debug: When used with start/stop/status actions, it will
-display the series of commands used.
-</p><p>
-This process can be used to install, start, stop or check the status of
-the glidein services based on the configuration in the specified ini file.
-</p><p>
-
-The start/stop/status actions can be performed remotely providing the user
-has valid access to the other service's node via the .k5login of that user.
-For these actions, this process ssh's into the services node thereby insuring
-a clean environment.
-</p><p>
-The install/install-node/create-entries can only be used on the node for that
-service.
-</p><p>
-<blockquote>
-./manage-glideins --install-node --ini
-</blockquote>
-
-This option allows you to install all services for the node you are installing
+<b>./manage-glideins --install-node --ini INIFILE</b>
+<ul>
+This usage allows you to install all services for the node you are installing
 on. There are some limitation to this.
+</ul>
 
-<blockquote>
-./manage-glideins --create-entries --ini
-</blockquote>
-
-This option can be used to select new glidein entry points after the
+<b>./manage-glideins --create-entries --ini INIFILE</b>
+<ul>
+This usage can be used to select new glidein entry points after the
 initial installation of a factory service. If will walk you through the same
-question and answer process querying ReSS and BDII for resources. It will then
-create a file containing the entry elements for those selected. This can then
-be merged with the existing Factory configuration file. 
+question and answer process querying ReSS and allowing for manual entries.
+It will then create a file containing the entry elements for those selected. 
+This can then be merged with the existing Factory configuration file
+and a reconfiguration performed.. 
+</ul>
+
+<b>./manage-glideins --create-group --ini INIFILE</b>
+<ul>
+This usage can be used to select new group selection criteria after the
+initial installation of a frontend service. If will walk you through the same
+question and answer process as during the installation.
+It will then create a file containing the group element for the criteria selected.
+This can then be merged with the existing frontend configuration file
+and a reconfiguration performed.. 
+</ul>
 </div>
 <div class="section">
 <h2>glideinWMS ini file</h2>
@@ -913,11 +913,12 @@ glideinWMS frontend requires:<br/><br/>
         <td>x509_cert_dir    </td>
         <td>/path/to/vdt/certs   </td>
         <td>The directory where the CA certificates are maintained.
+        </td>
+        <td>
             If the CAs are installed from the VDT distribution, this will be
             the VDT_LOCATION/globus/TRUSTED_CA directory.  The installer will
             validate for the precesence of *.0 and *.r0 files.
         </td>
-        <td> </td>
         </tr><tr>
         <td>gsi_credential_type</td>
         <td>proxy   </td>
@@ -974,15 +975,39 @@ When specifying multiple proxies, whitespace is the delimiter.  These will be th
         </td>
         <td>Match authentication is more efficient and used in newer versions of Condor. This is recommended unless using an older version of Condor.</td>
         </tr><tr>
-        <td>match_string</td>
-        <td>True    </td>
-        <td>This is a python format string for matching glideins to jobs.</td>
-        <td>
-            This must be in python format so using the exact case (True and False must be capitalized) is critical. One example is:<br/>
-            <i>jobs_constraint = (JobUniverse==5)&&(DESIRED_Sites=!=UNDEFINED)
-match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",") </i></td>
+
+        <!-- --- group matching criteria ----------------------- -->
+        <td>group_name</td>
+        <td>main</td>
+        <td>This defines a grouping for user jobs that you wish to monitor using the critera specified 
+            by the <b>match_string</b> and <b>userjob_constraints</b> options that follow.</td>
+        <td>.</td>
         </tr><tr>
 
+        <td>userjob_constraints</td>
+        <td>,</td>
+        <td>This represents the criteria used for matching glideins to jobs.
+        </td>
+        <td> This is a Condor expression.  A simple expression would be:
+        <blockquote>
+          (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+        </blockquote>
+        </td>
+        </tr><tr>
+
+        <td>match_string</td>
+        <td>True</td>
+        <td>This is the selection and matching criteria used for the user jobs.</td>
+        <td>
+            This must be in python format so using the exact case (True and False must be capitalized) is critical. One example is:<br/>
+            <blockquote>
+             glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",") 
+            </blockquote>
+         To select all jobs, just use 'True'.
+        </td>
+        </tr><tr>
+
+        <!-- --------------------------------------------- -->
             <td>install_vdt_client</td>
             <td align="center">y</td>
             <td>   Valid values:</br>
@@ -1000,6 +1025,7 @@ match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",
         </tr><tr>
 
         </tr><tr>
+
         <td>glideinwms_location</td>
         <td>/path/to/glideinWMS_code</td>
         <td>Directory of the glideinWMS software.   </td>
