@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.5 2010/12/28 19:08:40 dstrain Exp $
+#   $Id: glideFactoryDowntimeLib.py,v 1.3.12.6 2011/01/20 22:15:48 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to
@@ -162,7 +162,7 @@ def printDowntime(fname,entry="Any",check_time=None):
                 downtime_keys[time_tuple[2]]=time_tuple[3]+":"+time_tuple[4]
         if "All" in downtime_keys:
             for e in downtime_keys:
-                if e!="All":
+                if (e!="All")and (e!="factory"):
                     downtime_keys[e]+=","+downtime_keys["All"]
         if entry=="Any":
             for e in downtime_keys:
@@ -171,7 +171,7 @@ def printDowntime(fname,entry="Any",check_time=None):
             if entry in downtime_keys:
                 print "%-30s Down\t%s"%(entry,downtime_keys[entry]);
             else:
-                if "All" in downtime_keys:
+                if ("All" in downtime_keys) and (entry!="factory"):
                     print "%-30s Down\t%s"%(entry,downtime_keys["All"]);
                 else:
                     print "%-30s Up  \tAll:All"%(entry);
@@ -186,6 +186,8 @@ def checkDowntime(fname,entry="Any",frontend="Any",security_class="Any",check_ti
         for time_tuple in time_list:
             #make sure this is for the right entry
             if ((time_tuple[2]!="All")and(entry!=time_tuple[2])):
+                continue
+            if ((time_tuple[2]=="All")and(entry=="factory")):
                 continue
             #make sure that this time tuple applies to this security_class
             #If the security class does not match the downtime entry, 
@@ -208,7 +210,9 @@ def addPeriod(fname,start_time,end_time,entry="All",frontend="All",security_clas
         exists=os.path.isfile(fname)
         if (not exists) and (not create_if_empty):
             raise IOError, "[Errno 2] No such file or directory: '%s'"%fname
-        
+       
+        comment=comment.replace("\n", " ");
+        comment=comment.replace("\r", " ");
         fd=open(fname,'a+')
         try:
             fcntl.flock(fd,fcntl.LOCK_EX)
@@ -299,6 +303,8 @@ def purgeOldPeriods(fname,cut_time=None, raise_on_error=False):
 # end a downtime (not a scheduled one)
 # if end_time==None, use current time
 def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="All",comment=""):
+        comment=comment.replace("\r", " ");
+        comment=comment.replace("\n", " ");
         if end_time==None:
             end_time=long(time.time())
     
@@ -330,6 +336,9 @@ def endDowntime(fname,end_time=None,entry="All",frontend="All",security_class="A
                     continue # pass on malformed lines
                 #make sure this is for the right entry
                 if ((entry!="All")and(len(arr)>2)and(entry!=arr[2])):
+                    outlines.append(long_line)
+                    continue
+                if ((entry=="All")and(len(arr)>2)and("factory"==arr[2])):
                     outlines.append(long_line)
                     continue
                 if ((frontend!="All")and(len(arr)>3)and(frontend!=arr[3])):

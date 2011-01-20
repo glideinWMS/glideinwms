@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: manageFactoryDowntimes.py,v 1.39.2.7 2010/12/28 19:08:40 dstrain Exp $
+#   $Id: manageFactoryDowntimes.py,v 1.39.2.8 2011/01/20 22:15:48 dstrain Exp $
 #
 # Description:
 #  This program allows to add announced downtimes
@@ -123,14 +123,14 @@ def get_downtime_fd(entry_name,cmdname):
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
     return fd
 
-def get_downtime_fd_dict(entry_or_id,cmdname):
+def get_downtime_fd_dict(entry_or_id,cmdname,opt_dict):
     out_fds={}
     if entry_or_id in ('entries','All'):
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
             out_fds[entry]=get_downtime_fd(entry,cmdname)
-        if entry_or_id=='all':
+        if (entry_or_id=='All') and (not opt_dict.has_key("entries")):
             out_fds['factory']=get_downtime_fd('factory',cmdname)
     else:
         out_fds[entry_or_id]=get_downtime_fd(entry_or_id,cmdname)
@@ -200,7 +200,7 @@ def up(entry_name,opt_dict):
 # and parse it to determine whether the downtime is relevant to the 
 # security class
 def printtimes(entry_or_id,opt_dict):
-    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"])
+    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
     when=delay2time(opt_dict["delay"])+long(time.time())
     entry_keys=config_els.keys()
     entry_keys.sort()
@@ -212,9 +212,8 @@ def printtimes(entry_or_id,opt_dict):
 # as it does not take into account that an entry can be down for
 # only some security classes.
 def check(entry_or_id,opt_dict):
-    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"])
+    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
     when=0
-    sec_name="All"
     when=delay2time(opt_dict["delay"])
     sec_name=opt_dict["sec"]
     when+=long(time.time())
@@ -232,7 +231,7 @@ def check(entry_or_id,opt_dict):
     return 0
 
 def vacuum(entry_or_id,opt_dict):
-    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"])
+    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
 
     entry_keys=config_els.keys()
     entry_keys.sort()
@@ -371,6 +370,8 @@ def get_args(argv):
             "end":"None","start":"None","frontend":"All"}
     index=0
     for arg in argv:
+        if (arg == "-factory"):
+            opt_dict["entry"]="factory"
         if (len(argv)<=index+1):
             continue;
         #Change lowercase all to All so checks for "All" work
@@ -400,25 +401,31 @@ def get_args(argv):
     return opt_dict;
 
 def main(argv):
-    if len(argv)<4:
+    if len(argv)<3:
         usage()
         return 1
 
     # Get the command line arguments
-    opt_dict=get_args(argv);
+    opt_dict=get_args(argv)
+    mandatory_comments=False
+    if (os.environ.has_key("GLIDEIN_MANDATORY_COMMENTS")):
+        if (os.environ["GLIDEIN_MANDATORY_COMMENTS"].lower() in ("on","true","1")):
+            mandatory_comments=True
+    if (opt_dict["cmd"] in ("check","vacuum")):
+        mandatory_comments=False
 
     try:
         factory_dir=opt_dict["dir"]
         entry_name=opt_dict["entry"]
         cmd=opt_dict["cmd"]
-        if (os.environ.has_key("GLIDEIN_MANDATORY_COMMENTS")):
+        if (mandatory_comments):
             comments=opt_dict["comment"]
             if (comments == ""):
                 raise KeyError
     except KeyError, e:
         usage();
         print "-cmd -dir and -entry arguments are required."
-        if (os.environ.has_key('MANDATORY_COMMENTS')):
+        if (mandatory_comments):
             print "Mandatory comments are enabled.  add -comment."
         return 1;
     if (opt_dict["sec"]!="All"):
@@ -446,6 +453,7 @@ def main(argv):
 
     #Verify Entry is an actual entry
     if (opt_dict["entry"].lower()=="entries"):
+        opt_dict["entries"]="true";
         opt_dict["entry"]="All";
         entry_name="All";
     if ((opt_dict["entry"]!="All")and(opt_dict["entry"]!="factory")):
