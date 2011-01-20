@@ -58,11 +58,13 @@ def wmscollector(service,action,inifile):
      return
   if action == "start":
     cmd += "; %s %s" % (obj.initd_script(),action)
-  if action == "stop":
+  elif action == "stop":
     cmd += "; %s %s" % (obj.initd_script(),action)
-  if action == "status":
+  elif action == "status":
     cmd += "; condor_status -any || (echo;echo 'Not running';echo) "
     cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
+  else:
+    common.logerr("Invalid command line option for this service: %s" % action)
   run_command(service,user,obj.hostname(),cmd)
 
 #--------------------------------
@@ -74,10 +76,12 @@ def usercollector(service,action,inifile):
      return
   if action == "start":
     cmd += "; %s %s" % (obj.initd_script(),action)
-  if action == "stop":
+  elif action == "stop":
     cmd += "; %s %s" % (obj.initd_script(),action)
-  if action == "status":
+  elif action == "status":
     cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
+  else:
+    common.logerr("Invalid command line option for this service: %s" % action)
   run_command(service,obj.username(),obj.hostname(),cmd)
 
 #--------------------------------
@@ -89,11 +93,13 @@ def submit(service,action,inifile):
      return
   if action == "start":
     cmd += "; %s %s" % (obj.initd_script(),action)
-  if action == "stop":
+  elif action == "stop":
     cmd += "; %s %s" % (obj.initd_script(),action)
-  if action == "status":
+  elif action == "status":
     cmd += "; condor_status -any || (echo;echo 'Not running';echo)"
     cmd += "; condor_q &>/dev/null && (echo;condor_q | tail -1;echo)" 
+  else:
+    common.logerr("Invalid command line option for this service: %s" % action)
   run_command(service,obj.username(),obj.hostname(),cmd)
 
 #--------------------------------
@@ -108,10 +114,12 @@ def vofrontend(service,action,inifile):
      return
   if action == "start":
     cmd += "; ./frontend_startup %s"  % action
-  if action == "stop":
+  elif action == "stop":
     cmd += "; ./frontend_startup %s"  % action
-  if action == "status":
+  elif action == "status":
     cmd += """; echo;./frontend_startup %s;echo"""  % (action)
+  else:
+    common.logerr("Invalid command line option for this service: %s" % action)
   run_command(service,obj.username(),obj.hostname(),cmd)
 
 #--------------------------------
@@ -126,10 +134,12 @@ def factory(service,action,inifile):
      return
   if action == "start":
     cmd += "; ./factory_startup %s"  % action
-  if action == "stop":
+  elif action == "stop":
     cmd += "; ./factory_startup %s"  % action
-  if action == "status":
+  elif action == "status":
     cmd += """; echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)"""  % (action, obj.glidein_install_dir())
+  else:
+    common.logerr("Invalid command line option for this service: %s" % action)
   run_command(service,obj.username(),obj.hostname(),cmd)
 
 #----------------
