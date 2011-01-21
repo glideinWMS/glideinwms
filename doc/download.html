@@ -88,14 +88,18 @@ Factory:
         <td><b>Release Type</b></td>
         <td><b>Release Version</b></td>
         <td><b>Release Date</b></td>
-        <td><b>Download Instructions</b></td>
+        <td><b>Download Link</b></td>
       </thead>
 
       <tr>
         <td>Current Stable Series</td>
-        <td>v2_4_3</td>
-        <td>September 30, 2010</td>
-        <td><a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">Download</a></td>
+        <td>v2_5</td>
+        <td>January 25, 2011</td>
+        <td>
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_factory.tgz">Factory</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_frontend.tgz">Frontend</a>]
+          [<a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5.tgz">Full Download</a>]
+        </td>
       </tr>
       <tr>
 
@@ -106,9 +110,8 @@ Factory:
       </tr>
       <tr>
         <td>Previous Stable Series</td>
-
-        <td>v1_6_3</td>
-        <td>April 06, 2010</td>
+        <td>v2_4_3</td>
+        <td>September 30, 2010</td>
         <td><a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">Download</a></td>
       </tr>
       <tr>
@@ -132,37 +135,8 @@ Factory:
     <div style="margin-left: 40px;"><span style="font-family: monospace;">glideinWMS</span></div>
     <br>
     So the complete BASH command would be:
-    <pre>cvs -d :pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only co -r v2_4_3 glideinWMS</pre>
+    <pre>cvs -d :pserver:anonymous@cdcvs.fnal.gov:/cvs/cd_read_only co -r v2_5 glideinWMS</pre>
 
-   <br>
-   The package can also be downloaded as a tarball:
-   <UL>
-     <li>Current Production Series: <a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_4_3.tgz">glideinWMS_v2_4_3.tgz</a></li>
-     <li>Previous Production Series: <a target="_blank" href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v1_6_3.tgz">glideinWMS_v1_6_3.tgz</a></li>
-   </ul>
-    </div>
-
-    <div class="section">
-    <a name="special" />
-    <h2>Special instructions for v1_6_3 and v2_3_2</h2>
-    <p>
-      v1_6_3 and v2_3_2 contain security fixes. These releases fixes the way
-      certificate subjects are mapped in condor_mapfile. If you are upgrading
-      to these releases over the existing releases, you need to manually apply
-      the fix to condor_mapfile used by condor in your installation.
-      <pre> Usage:
- convert_condormap infile outfile
-      </pre>
-    </p>
-    After converting the condor_mapfile, please make sure that all the entries have been written back into the convered mapfile
-    </div>
-
-    <div class="section">
-    <a name="previous" />
-   <h2>Previous releases</h2>
-
-    See the <a href="history.html">History page</a> for previous releases.
- 
 </div>
 <div class="footer">
 Banner image by
