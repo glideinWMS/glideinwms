@@ -156,12 +156,9 @@ class WMSCollector(Condor):
     gsi_daemon_entries = """\
 # --- WMS collector user: %s ---
 GSI_DAEMON_NAME=%s
-# --- Factory user: %s ---
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 # --- VOFrontend user: %s ---
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 """ % (       self.username(),        self.gsi_dn(),
-      self.factory.username(),        self.factory.gsi_dn(),
      self.frontend.service_name(),     self.frontend.gsi_dn())
     self.__update_gsi_daemon_names__(gsi_daemon_entries) 
 

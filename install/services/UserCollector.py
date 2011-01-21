@@ -10,6 +10,7 @@ import common
 #from Certificates  import Certificates  
 from Condor        import Condor  
 import WMSCollector
+import Factory
 import VOFrontend
 import Submit
 from Configuration import ConfigurationError
@@ -38,6 +39,11 @@ wmscollector_options = [ "hostname",
 "collector_port",
 ]
 
+factory_options = [ "use_vofrontend_proxy",
+"x509_gsi_dn",
+"service_name",
+]
+
 submit_options = [ "hostname",
 "service_name",
 "gsi_dn",
@@ -51,6 +57,7 @@ frontend_options = [ "hostname",
 
 valid_options = { "UserCollector" : usercollector_options,
                   "WMSCollector"  : wmscollector_options,
+                  "Factory"       : factory_options,
                   "Submit"        : submit_options,
                   "VOFrontend"    : frontend_options,
 }
@@ -67,7 +74,8 @@ class UserCollector(Condor):
       options = valid_options[self.ini_section]
     Condor.__init__(self,self.inifile,self.ini_section,options)
     #self.certificates = self.option_value(self.ini_section,"certificates")
-    self.wmscollector = None  # User collector object
+    self.wmscollector = None  # WMS collector object
+    self.factory      = None  # Factory object
     self.submit       = None  # submit object
     self.frontend     = None  # VOFrontend object
     self.daemon_list = "COLLECTOR, NEGOTIATOR"
@@ -77,6 +85,10 @@ class UserCollector(Condor):
   def get_wmscollector(self):
     if self.wmscollector == None:
       self.wmscollector = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+  #--------------------------------
+  def get_factory(self):
+    if self.factory == None:
+      self.factory = Factory.Factory(self.inifile,valid_options["Factory"])
   #--------------------------------
   def get_submit(self):
     if self.submit == None:
@@ -89,6 +101,7 @@ class UserCollector(Condor):
   #--------------------------------
   def install(self):
     self.get_wmscollector()
+    self.get_factory()
     self.get_submit()
     self.get_frontend()
     common.logit ("======== %s install starting ==========" % self.ini_section)
@@ -119,6 +132,10 @@ class UserCollector(Condor):
     for service in [self.frontend, self.submit,]:
       if service.hostname() <> self.hostname():
         condor_entries += common.mapfile_entry(service.gsi_dn(),service.service_name())
+    #--- add in factory proxy dn for pilots if needed --
+    if self.factory.use_vofrontend_proxy() == "n":
+      service_name = "%s_pilot" % (self.factory.service_name())
+      condor_entries += common.mapfile_entry(self.factory.x509_gsi_dn(),service_name)
     #--- add in frontend proxy dns for pilots --
     cnt = 0
     for dn in self.frontend.glidein_proxy_dns():
@@ -139,11 +156,18 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
        (self.service_name(),                self.gsi_dn(),
       self.submit.service_name(),    self.submit.gsi_dn(),
     self.frontend.service_name(),  self.frontend.gsi_dn())
+
+    #-- add in the factory glidein pilot proxies if necessary --
+    if self.factory.use_vofrontend_proxy() == "n":
+      gsi_daemon_entries += """
+# --- Factory pilot proxy: %s --
+GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (self.factory.service_name(),self.factory.x509_gsi_dn())
+
     #-- add in the frontend glidein pilot proxies --
     cnt = 0
     for dn in self.frontend.glidein_proxy_dns():
       cnt = cnt + 1
-      gsi_daemon_entries = gsi_daemon_entries + """
+      gsi_daemon_entries += """
 # --- Frontend pilot proxy: %s --
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
 
