@@ -22,7 +22,7 @@
 	        <li> <a href="../index.html">Home</a></li>
 	        <li> <a href="../download.html">Download</a></li>
 	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
-            <li> <a href="../corral.html">Corral Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
 	        <li> <a href="../factory/index.html">WMS Factory</a></li>
 	        <li> <a href="../components/index.html" >Components</a></li>
 	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
@@ -493,39 +493,6 @@ requires:<br/><br/>
             <td>.</td>
         </tr>
 
-            <tr>
-            <td>gsi_credential_type</td>
-            <td><b>THIS WILL BE OBSOLETE AND IS THE NEXT THING TO CHANGE</b></br>
-                   cert</td>
-            <td>Used to identify the this service to the other glideinWMS services.  </td>
-            <td> Valid values:<br/>
-                * <b>cert</b> - certificate used<br/>
-                * <b>proxy</b> - proxy used</td>
-        </tr>
-
-        <tr>
-        <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
-            <td><b>THIS WILL BE OBSOLETE AND IS THE NEXT THING TO CHANGE</b></br>
-            /path-to-cert/cert.pm<br/>
-            /path-to-cert/key.pm<br/>
-            /path-to-proxy/x509_proxyfile
-         </td>
-        <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
-        <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
-            If a <b>proxy</b>, then x509_proxy is required. </td>
-        </tr>
-
-        <tr>
-            <td>gsi_dn</td>
-            <td><b>THIS WILL BE OBSOLETE AND IS THE NEXT THING TO CHANGE</b></br>
-             /DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name
-            </td>
-            <td>  If the  <b>gsi_credential_type</b> option is:<br/>
-                * cert, the subject of the certificate<br/>
-                * proxy, the issuer of the proxy</td>
-            <td>    openssl x509 -issuer -subject -noout -in [cert_proxy_location]</td>
-        </tr>
-
         <tr>
             <td>use_vofrontend_proxy</td>
             <td align="center">y</td>
@@ -533,9 +500,33 @@ requires:<br/><br/>
             </td>
             <td>Valid values:</br>
              * <b>y</b> - only VO Frontend proxies will be used</br>
-             * <b>n</b> - VO Frontend proxies will be used if available otherwise the Factory will provide the proxy. 
-            <br><b>NEED TO DETERMINE IF THIS IS STILL TRUE</b>
+             * <b>n</b> - VO Frontend proxies will be used if available otherwise the Factory 
+                  will provide the proxy. 
+                  An X509_USER_PROXY variable using the <b>x509_proxy</b> option will set be in 
+                  the factory environment script that is created during the installation.
             </td>
+        </tr>
+
+        <tr>
+          <td>x509_proxy</td>
+          <td>/path-to-proxy/x509_proxyfile </td>
+          <td>The location of factory pilot proxy.</td>
+          <td>If the <b>use_vofrontend_proxy</b> option is:</br>
+              * <b>y</b> - this must be empty</br>
+              * <b>n</b> - this must be populated</br>
+          </td>
+        </tr>
+
+        <tr>
+          <td>x509_gsi_dn</td>
+          <td>/DC=org/DC=doegrids/OU=Services/CN=[authorized_user] </td>
+          <td>The issuer of the factory pilot proxy specified by the <b>x509_proxy</b> option</td>
+          <td>If the <b>use_vofrontend_proxy</b> option is:</br>
+              * <b>y</b> - this must be empty</br>
+              * <b>n</b> - this must be populated</br>
+              To obtain the issuer, use:
+              <blockquote>openssl x509 -issuer -noout -in [x509_proxy]</blockquote>
+         </td>
         </tr>
 
         <tr>
