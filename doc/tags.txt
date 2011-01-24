@@ -4,7 +4,9 @@ v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	glideinWMS factory and the Corral frontend can now talk to each other
 	Factory is smarter about handling held glideins
 	Factory can now black/white list VOs on a per-entry basis
-	Version of glideinWMS is now published in the classads
+	Version of glideinWMS is now published in the classads. Scheme can 
+	  detect any changes to any service appropriate files and advertises 
+	  cersion as patched.
 	Frontend should try to recover the crashed group before it gives up and
 	  shutsdown
 	Improvements to the monitoring
