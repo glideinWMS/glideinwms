@@ -224,6 +224,11 @@ question and answer process for selection criteria.
 It will then create a file containing the necessary group elements.  
 This can then be merged with the existing frontend configuration file. 
 
+ini file only
+---------------
+ %(program)s --show-ini <ini_file>
+This option allows you to view the ini file options/values. This is especially useful
+when the DEFAULT section is used to apply values to all sections/services.
 """ % \
 { "program"  : os.path.basename(gProgramName),
   "services" : valid_services,
@@ -241,7 +246,7 @@ def main(argv):
     gAction = None
     gSSH    = False
     inifile = ""
-    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","create-entries","create-group","install-node","ssh" ]
+    arglist = [ "help", "start=", "stop=", "status=", "install=","ini=","show-ini=","create-entries","create-group","install-node","ssh" ]
     services = ["wmscollector","usercollector","factory","submit","vofrontend"]
     stop_order = ["vofrontend","submit","factory","usercollector","wmscollector"]
     opts, args = getopt.getopt(argv[1:], "", arglist)
@@ -255,6 +260,13 @@ def main(argv):
         return 1
 
       if o in ("--ini"):
+        inifile = a
+        if not os.path.isfile(inifile):
+          common.logerr("ini file does not exist: %s" % inifile)
+        continue
+
+      if o in ("--show-ini"):
+        gAction = o[2:]
         inifile = a
         if not os.path.isfile(inifile):
           common.logerr("ini file does not exist: %s" % inifile)
@@ -316,6 +328,11 @@ def main(argv):
 
     if gAction == "create-group":
       services = ["vofrontend",]
+
+    if gAction == "show-ini":
+      services = []  # skips the for loop for service actions
+      ini = Configuration.Configuration(inifile)
+      print ini
 
     installed_services = 0
     for service in services:        
