@@ -395,22 +395,11 @@ source %(condor_location)s/condor.sh
     indent = common.indent(1)
     data = """
 %s<attrs>""" % (indent)
-    gcb_list = self.glidein.gcb_list()
     indent = common.indent(2)
 
     if self.glidein.use_ccb()  == "n":
       data = data + """
 %s<attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>"""  % (indent)
-
-      if len(gcb_list) > 0:  #-- using gcb ---
-        data = data + """
-%s<attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (indent,string.join(gcb_list,','))
-      else:  #-- no gcb used ---
-        data = data + """
-%s<attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
-    else: # no GCB if CCB used
-      data = data + """
-%s<attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
 
     # -- glexec --
     data = data + """
@@ -451,7 +440,7 @@ source %(condor_location)s/condor.sh
 %(indent4)s<attr name="CONDOR_OS"    value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="GLEXEC_BIN"   value="%(glexec_path)s" const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>
-%(ccb_gcb_attr)s
+%(ccb_attr)s
 %(indent3)s</attrs>
 %(indent3)s<files>
 %(indent3)s</files>
@@ -465,7 +454,7 @@ source %(condor_location)s/condor.sh
   "gatekeeper"  : entry_el['gatekeeper'],
   "workdir"     : entry_el['work_dir'],
   "infosys_ref" : self.entry_infosys_ref_data(entry_el['is_ids']),
-  "ccb_gcb_attr": self.entry_ccb_gcb_attrs(),
+  "ccb_attr"    : self.entry_ccb_attrs(),
   "site_name"   : entry_el['site_name'],
   "glexec_path" : entry_el['glexec_path'],
 }
@@ -477,15 +466,11 @@ source %(condor_location)s/condor.sh
     return data
 
    #-----------------
-  def entry_ccb_gcb_attrs(self):
+  def entry_ccb_attrs(self):
     data = ""
     if self.glidein.use_ccb() == "y":
       # Put USE_CCB in the entries so that it is easy to disable it selectively
       data = data + """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
-    else:
-      # Put GCB_ORDER in the entries so that it is easy to disable if selectively
-      if len(self.glidein.gcb_list()) > 0:
-        data = data + """%s<attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
     return data
 
   #-------------
