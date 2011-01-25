@@ -29,7 +29,7 @@ usercollector_options = [ "hostname",
 "x509_cert_dir",
 "gsi_credential_type", 
 "cert_proxy_location", 
-"gsi_dn", 
+"x509_gsi_dn", 
 "install_vdt_client",
 "vdt_location",
 "pacman_location",
@@ -46,12 +46,12 @@ factory_options = [ "use_vofrontend_proxy",
 
 submit_options = [ "hostname",
 "service_name",
-"gsi_dn",
+"x509_gsi_dn",
 ]
 
 frontend_options = [ "hostname",
 "service_name",
-"gsi_dn",
+"x509_gsi_dn",
 "glidein_proxy_dns",
 ]
 
@@ -109,7 +109,7 @@ class UserCollector(Condor):
     self.install_vdtclient()
     self.install_certificates()
     self.validate_condor_install()
-    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
+    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     self.verify_no_conflicts()
     self.validate_install_location()
     self.install_condor()
@@ -131,7 +131,7 @@ class UserCollector(Condor):
     condor_entries = ""
     for service in [self.frontend, self.submit,]:
       if service.hostname() <> self.hostname():
-        condor_entries += common.mapfile_entry(service.gsi_dn(),service.service_name())
+        condor_entries += common.mapfile_entry(service.x509_gsi_dn(),service.service_name())
     #--- add in factory proxy dn for pilots if needed --
     if self.factory.use_vofrontend_proxy() == "n":
       service_name = "%s_pilot" % (self.factory.service_name())
@@ -153,9 +153,9 @@ GSI_DAEMON_NAME=%s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 # --- Frontend user: %s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
-       (self.service_name(),                self.gsi_dn(),
-      self.submit.service_name(),    self.submit.gsi_dn(),
-    self.frontend.service_name(),  self.frontend.gsi_dn())
+       (self.service_name(),                self.x509_gsi_dn(),
+      self.submit.service_name(),    self.submit.x509_gsi_dn(),
+    self.frontend.service_name(),  self.frontend.x509_gsi_dn())
 
     #-- add in the factory glidein pilot proxies if necessary --
     if self.factory.use_vofrontend_proxy() == "n":

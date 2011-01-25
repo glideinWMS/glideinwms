@@ -21,7 +21,7 @@ submit_options = [ "hostname",
 "x509_cert_dir",
 "gsi_credential_type", 
 "cert_proxy_location", 
-"gsi_dn", 
+"x509_gsi_dn", 
 "match_authentication", 
 "condor_tarball", 
 "condor_admin_email", 
@@ -34,13 +34,13 @@ submit_options = [ "hostname",
 
 usercollector_options = [ "hostname", 
 "service_name", 
-"gsi_dn",
+"x509_gsi_dn",
 "condor_location",
 ]
 
 frontend_options = [ "hostname", 
 "service_name", 
-"gsi_dn",
+"x509_gsi_dn",
 ]
 
 valid_options = { "Submit"        : submit_options,
@@ -150,12 +150,12 @@ Do you want to continue""")
       common.logit("... submit/schedd service colocated with UserCollector")
       common.logit("... no updates to condor mapfile required")
       return
-    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
+    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     common.logit("... updating condor_mapfile")
     #--- create condor_mapfile entries ---
     condor_entries = ""
-    condor_entries += common.mapfile_entry(self.usercollector.gsi_dn(), self.usercollector.service_name())
-    condor_entries += common.mapfile_entry( self.frontend.gsi_dn(),     self.frontend.service_name())
+    condor_entries += common.mapfile_entry(self.usercollector.x509_gsi_dn(), self.usercollector.service_name())
+    condor_entries += common.mapfile_entry( self.frontend.x509_gsi_dn(),     self.frontend.service_name())
     self.__create_condor_mapfile__(condor_entries)
 
     #-- create the condor config file entries ---
@@ -168,9 +168,9 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 # --- Frontend user: %s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 """ % \
-                 (self.username(),               self.gsi_dn(),
-    self.usercollector.service_name(), self.usercollector.gsi_dn(),
-         self.frontend.service_name(),      self.frontend.gsi_dn())
+                 (self.username(),               self.x509_gsi_dn(),
+    self.usercollector.service_name(), self.usercollector.x509_gsi_dn(),
+         self.frontend.service_name(),      self.frontend.x509_gsi_dn())
 
     #-- update the condor config file entries ---
     self.__update_gsi_daemon_names__(gsi_daemon_entries)

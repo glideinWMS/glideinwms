@@ -232,7 +232,7 @@ def validate_installer_user(user):
 def validate_gsi(dn_to_validate,type,location):
   logit("... validating gsi_credential_type: %s" % type)
   logit("... validating gsi_location: %s" % location)
-  logit("... validating gsi_dn: %s" % dn_to_validate)
+  logit("... validating x509_gsi_dn: %s" % dn_to_validate)
   dn_in_file = get_gsi_dn(type,location)
   if dn_in_file <> dn_to_validate:
     logerr("The DN of the %s in %s does not match the gsi_dn attribute in your ini file:\n%8s: %s\n     ini: %s\nThis may cause a problem in other services." % (type, location,type,dn_in_file,dn_to_validate))

@@ -62,8 +62,8 @@ class Glidein(Configuration):
   def gsi_location(self):
     return self.option_value(self.ini_section,"cert_proxy_location")
   #---------------------
-  def gsi_dn(self):
-    return self.option_value(self.ini_section,"gsi_dn")
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def use_vofrontend_proxy(self):
     return self.option_value(self.ini_section,"use_vofrontend_proxy")
@@ -73,11 +73,6 @@ class Glidein(Configuration):
   #---------------------
   def use_ccb(self):
     return self.option_value(self.ini_section,"use_ccb")
-  #---------------------
-  def gcb_list(self):
-    if self.option_value(self.ini_section,"gcb_list") == "n":
-      return []
-    return []
   #---------------------
   def ress_host(self):
     return self.option_value(self.ini_section,"ress_host")
@@ -135,16 +130,6 @@ class Glidein(Configuration):
       self.vdt.install()
     else:
       common.logit("... VDT client install not requested.")
-
-  #---------------------
-  def validate_install(self):
-    common.validate_hostname(self.hostname())
-    common.validate_user(self.username())
-    common.validate_installer_user(self.username())
-    self.validate_web_location()
-    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
-    self.preinstallation_software_check()
-    common.validate_install_location(self.install_location())
 
   #---------------------
   def validate_web_location(self):

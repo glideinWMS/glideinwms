@@ -60,8 +60,8 @@ class Condor(Configuration):
   def vdt_location(self):
     return self.option_value(self.ini_section,"vdt_location")
   #----------------------------------
-  def gsi_dn(self):
-    return self.option_value(self.ini_section,"gsi_dn")
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def username(self):
     return self.option_value(self.ini_section,"username")
@@ -225,7 +225,7 @@ class Condor(Configuration):
     common.validate_hostname(self.hostname())
     common.validate_user(self.username())
     common.validate_email(self.admin_email())
-    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
+    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     self.__validate_collector_port__()
     self.__validate_secondary_collectors__()
     self.__validate_schedds__()
@@ -493,10 +493,10 @@ LOCAL_CONFIG_FILE =
     self.__append_to_condor_config__(data,"GSI")
 
   #-----------------------------
-  def __update_gsi_daemon_names__(self,gsi_dns):
+  def __update_gsi_daemon_names__(self,x509_gsi_dns):
     if len(self.colocated_services) > 0:
       return  # we've already updated for these common attributes
-    if len(gsi_dns) == 0:
+    if len(x509_gsi_dns) == 0:
       common.logit("... no GSI_DAEMON_NAMEs to add")
       return
     data =  """
@@ -504,7 +504,7 @@ LOCAL_CONFIG_FILE =
 # Whitelist of condor daemon DNs
 #####################################
 %s
-""" % (gsi_dns)
+""" % (x509_gsi_dns)
     self.__append_to_condor_config__(data,"GSI_DAEMON_NAME")
 
 

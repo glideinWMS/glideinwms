@@ -26,7 +26,7 @@ wmscollector_options = [ "hostname",
 "frontend_users",
 "gsi_credential_type", 
 "cert_proxy_location", 
-"gsi_dn", 
+"x509_gsi_dn", 
 "condor_tarball", 
 "condor_admin_email", 
 "split_condor_config", 
@@ -37,7 +37,7 @@ wmscollector_options = [ "hostname",
 "pacman_location",
 ]
 
-frontend_options = [ "gsi_dn",
+frontend_options = [ "x509_gsi_dn",
 "service_name",
 ]
 
@@ -144,12 +144,12 @@ class WMSCollector(Condor):
   #--------------------------------
   def configure_gsi_security(self):
     common.logit("\nConfiguring GSI security")
-    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.gsi_location())
+    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     condor_entries = ""
     #-- frontends ---
-    condor_entries += common.mapfile_entry(self.frontend.gsi_dn(), self.frontend.service_name())
+    condor_entries += common.mapfile_entry(self.frontend.x509_gsi_dn(), self.frontend.service_name())
     #--- wms entry ---
-    condor_entries += common.mapfile_entry(self.gsi_dn(), self.username())
+    condor_entries += common.mapfile_entry(self.x509_gsi_dn(), self.username())
     self.__create_condor_mapfile__(condor_entries) 
 
     #-- update the condor config file entries ---
@@ -158,8 +158,8 @@ class WMSCollector(Condor):
 GSI_DAEMON_NAME=%s
 # --- VOFrontend user: %s ---
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % (       self.username(),        self.gsi_dn(),
-     self.frontend.service_name(),     self.frontend.gsi_dn())
+""" % (       self.username(),        self.x509_gsi_dn(),
+     self.frontend.service_name(),     self.frontend.x509_gsi_dn())
     self.__update_gsi_daemon_names__(gsi_daemon_entries) 
 
 

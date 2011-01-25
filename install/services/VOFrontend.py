@@ -30,7 +30,7 @@ frontend_options = [ "hostname",
 "x509_cert_dir",
 "gsi_credential_type", 
 "cert_proxy_location", 
-"gsi_dn", 
+"x509_gsi_dn", 
 "glidein_proxy_files", 
 "glidein_proxy_dns", 
 "condor_tarball", 
@@ -54,7 +54,7 @@ frontend_options = [ "hostname",
 wmscollector_options = [ 
 "hostname",
 "service_name",
-"gsi_dn",
+"x509_gsi_dn",
 ]
 
 factory_options = [ 
@@ -65,13 +65,13 @@ submit_options = [
 "hostname",
 "service_name",
 "condor_location",
-"gsi_dn"
+"x509_gsi_dn"
 ]
 
 usercollector_options = [ 
 "hostname",
 "service_name",
-"gsi_dn",
+"x509_gsi_dn",
 "condor_location",
 "collector_port",
 "number_of_secondary_collectors",
@@ -138,10 +138,10 @@ class VOFrontend(Condor):
     return self.option_value("UserCollector","hostname")
   #--------------------------------
   def SubmitDN(self):
-    return self.option_value("Submit","gsi_dn")
+    return self.option_value("Submit","x509_gsi_dn")
   #--------------------------------
   def UserCollectorDN(self):
-    return self.option_value("UserCollector","gsi_dn")
+    return self.option_value("UserCollector","x509_gsi_dn")
   #--------------------------------
   def Submit_service_name(self):
     return self.option_value("Submit","service_name")
@@ -176,11 +176,14 @@ class VOFrontend(Condor):
   def userjob_constraints(self):
     return self.option_value(self.ini_section,"userjob_constraints")
   #--------------------------------
+  def gsi_credential_type(self):
+    return self.option_value(self.ini_section,"gsi_credential_type")
+  #--------------------------------
   def cert_proxy_location(self):
     return self.option_value(self.ini_section,"cert_proxy_location")
   #--------------------------------
-  def gsi_dn(self):
-    return self.option_value(self.ini_section,"gsi_dn")
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #--------------------------------
   def service_name(self):
     return self.option_value(self.ini_section,"service_name")
@@ -286,14 +289,7 @@ Do you want to continue""")
   #---------------------------------
   def configure_frontend(self):
     common.logit ("\nConfiguring VOFrontend started\n")
-    ## JGW need some check of gsi dn's in condor mapfile and condor_config
-    ## for some co-located (or maybe just from ini file) services.
-    ## Not quite sure how yet
-    ## self.verify_condor_gsi_settings()
-    ## see Factory.check_wmspool_gsi method
     config_data  = self.get_config_data()
-    #gridmap_data = self.get_gridmap_data()
-    #self.create_config(config_data,gridmap_data)
     self.create_config(config_data)
     self.create_env_script()
     common.logit ("\nConfiguring VOFrontend complete\n")
@@ -301,12 +297,17 @@ Do you want to continue""")
   #---------------------------------
   def validate_frontend(self):
     common.logit( "\nVOFrontend dependency and validation checking starting\n")
-    ##  self.glidein.__install_vdt_client__()
+    common.validate_hostname(self.hostname())
+    common.validate_user(self.username())
+    common.validate_installer_user(self.username())
+    common.validate_gsi(self.x509_gsi_dn(),"proxy",self.cert_proxy_location())
     self.validate_glidein_proxies()
     self.validate_glexec_use()
-    self.glidein.validate_install()
+    self.glidein.validate_web_location()
+    self.glidein.preinstallation_software_check()
     self.validate_logs_dir()
     self.glidein.create_web_directories()
+    common.validate_install_location(self.install_location())
     common.logit( "\nVOFrontend dependency and validation checking complete")
 
   #---------------------------------
@@ -361,7 +362,7 @@ Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
     os.system("sleep 2")
     while 1:
       dns = {}
-      dns[self.glidein.service_name()]      = self.glidein.gsi_dn()
+      dns[self.glidein.service_name()]      = self.glidein.x509_gsi_dn()
       dns[self.UserCollector_service_name()] = self.UserCollectorDN()
       dns[self.Submit_service_name()]        = self.SubmitDN()
       print """
@@ -688,7 +689,7 @@ please verify and correct if needed.
   "indent2" : common.indent(2),
   "usercollector_node"   : self.usercollector.hostname(),
   "usercollector_port"   : self.usercollector.collector_port(),
-  "usercollector_gsi_dn" : self.usercollector.gsi_dn(),
+  "usercollector_gsi_dn" : self.usercollector.x509_gsi_dn(),
 }
 
     #--- secondary collectors -- 
@@ -700,19 +701,19 @@ please verify and correct if needed.
           (common.indent(2),
            self.usercollector.hostname(),
            port_range,
-           self.usercollector.gsi_dn())
+           self.usercollector.x509_gsi_dn())
     data = data + """%s</collectors>""" % common.indent(1)
     return data
   #--------------------------
   def config_security_data(self):
     data = """
-%(indent1)s<security security_name="%(service_name)s" proxy_selection_plugin="ProxyAll" classad_proxy="%(cert_proxy_location)s" proxy_DN="%(gsi_dn)s">
+%(indent1)s<security security_name="%(service_name)s" proxy_selection_plugin="ProxyAll" classad_proxy="%(x509_proxy)s" proxy_DN="%(x509_gsi_dn)s">
 %(indent2)s<proxies>""" % \
-{ "indent1" : common.indent(1), 
-  "indent2" : common.indent(2), 
-  "service_name"        : self.service_name(), 
-  "cert_proxy_location" : self.cert_proxy_location(), 
-  "gsi_dn"              : self.gsi_dn(),
+{ "indent1"      : common.indent(1), 
+  "indent2"      : common.indent(2), 
+  "service_name" : self.service_name(), 
+  "x509_proxy"   : self.cert_proxy_location(), 
+  "x509_gsi_dn"  : self.x509_gsi_dn(),
 }
     proxies = self.glidein_proxy_files()
     for proxy in proxies.split(" "):
@@ -746,7 +747,7 @@ please verify and correct if needed.
   "indent4"           : common.indent(4), 
   "wms_node"          : self.wms.hostname(),
   "wms_collector_port": self.wms.collector_port(),
-  "wms_gsi_gn"        : self.wms.gsi_dn(),
+  "wms_gsi_gn"        : self.wms.x509_gsi_dn(),
   "factory_username" : self.factory.username(),
   "frontend_identity" : self.service_name(),
   "job_constraints"   : xmlFormat.xml_quoteattr(self.userjob_constraints()),
@@ -757,7 +758,7 @@ please verify and correct if needed.
 %(indent4)s<schedd fullname="%(schedd)s" DN="%(submit_gsi_dn)s"/>""" % \
 { "indent4"        : common.indent(4),
   "schedd"         : schedd,
-  "submit_gsi_dn"  : self.submit.gsi_dn()
+  "submit_gsi_dn"  : self.submit.x509_gsi_dn()
 }
 
     data = data + """
@@ -851,34 +852,14 @@ please verify and correct if needed.
       common.logit("... VOFrontend  service colocated with UserCollector and/or Submit/schedd")
       common.logit("... no updates to condor mapfile required")
       return
-    common.validate_gsi(self.gsi_dn(),self.gsi_credential_type(),self.cert_proxy_location())
+    common.validate_gsi(self.x509_gsi_dn(),"proxy",self.cert_proxy_location())
     #--- create condor_mapfile entries ---
     condor_entries = ""
-    condor_entries += common.mapfile_entry(self.gsi_dn(),               self.service_name())
-    condor_entries += common.mapfile_entry(self.wms.gsi_dn(),           self.wms.service_name())
-    condor_entries += common.mapfile_entry(self.submit.gsi_dn(),        self.submit.service_name())
-    condor_entries += common.mapfile_entry(self.usercollector.gsi_dn(), self.usercollector.service_name())
+    condor_entries += common.mapfile_entry(self.x509_gsi_dn(),   self.service_name())
+    condor_entries += common.mapfile_entry(self.wms.x509_gsi_dn(),    self.wms.service_name())
+    condor_entries += common.mapfile_entry(self.submit.x509_gsi_dn(), self.submit.service_name())
+    condor_entries += common.mapfile_entry(self.usercollector.x509_gsi_dn(), self.usercollector.service_name())
     self.__create_condor_mapfile__(condor_entries)
-
-#    NOT REALLY NEEDED AS THERE ARE NO DAEMONS ASSOCIATED WITH THIS SERVICE
-#    #-- create the condor config file entries ---
-#    gsi_daemon_entries = """\
-## --- Submit user: %s
-#GSI_DAEMON_NAME=%s
-# --- WMS collector user: %s
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Submit user: %s
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Userpool user: %s
-#GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-#""" % \
-#          (self.gsi_dn(),         self.service_name(),
-#       self.wms.gsi_dn(),     self.wms.service_name(),
-#    self.submit.gsi_dn(),  self.submit.service_name(),
-#  self.usercollector.gsi_dn(),self.usercollector.service_name())
-
-#    #-- update the condor config file entries ---
-#    self.__update_gsi_daemon_names__(gsi_daemon_entries)
 
 #---------------------------
 def show_line():

@@ -339,7 +339,7 @@ See below for the ini file attributes that installing/running WMS collector requ
         </tr>
 
         <tr>
-        <td>gsi_dn</td>
+        <td>x509_gsi_dn</td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
         <td>
             This is the identity used by this service to contact the other
@@ -755,7 +755,7 @@ ires:<br/><br/>
             </tr>
 
         <tr>
-        <td>gsi_dn</td>
+        <td>x509_gsi_dn</td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
         <td>
             This is the identity used by this service to contact the other
@@ -908,12 +908,10 @@ requires:
             <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
             <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
                 If a <b>proxy</b>, then x509_proxy is required. </td>
-uthentication value). </td>
-xy, then x509_proxy is required. </td>
         </tr>
 
         <tr>
-        <td>gsi_dn</td>
+        <td>x509_gsi_dn</td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
         <td>
             This is the identity used by this service to contact the other
@@ -1141,17 +1139,6 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>gsi_credential_type </td>
-        <td align="center">proxy</td>
-        <td>Used to identify this service to the other glideinWMS services.</td>
-        <td>
-            This must always be a proxy for the VO Frontend to communicate 
-            with the Factory.<br/>
-            Valid values: <b>proxy</b><br/>
-        </td>
-        </tr>
-
-        <tr>
             <td>x509_proxy </td>
             <td>
             /path-to-proxy/x509_proxyfile
@@ -1163,7 +1150,7 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>gsi_dn</td>
+        <td>x509_gsi_dn</td>
         <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
         <td>
             This is the identity used by this service to contact the other
