@@ -857,7 +857,7 @@ requires:
         </tr>
 
         <tr>
-        <td>unix_acct   </td>
+        <td>username</td>
         <td>condor (non-root account)     </td>
         <td>UNIX user account that this services will run under. DO NOT use "root". </td> 
         <td> For security purposes, this value should always be a non-root user. </td>   
@@ -1013,7 +1013,7 @@ Valid values:</br>
 <h2>Glidein Frontend</h2>
 
 The installation of the frontend should be done as the frontend user
-(see unix_acct below).
+(see username below).
 <blockquote>
     ./manage-glideins --install vofrontend --ini glideinWMS.ini
 </blockquote>
