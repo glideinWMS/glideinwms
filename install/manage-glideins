@@ -137,7 +137,7 @@ def factory(service,action,inifile):
   elif action == "stop":
     cmd += "; ./factory_startup %s"  % action
   elif action == "status":
-    cmd += """; echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)"""  % (action, obj.glidein_install_dir())
+    cmd += """; echo;./factory_startup %s && (cd %s/tools; echo;echo ... Entries;./wmsTxtView.py Entries; echo;echo ... Sites;./wmsTxtView.py Sites; echo;echo ... Gatekeepers;./wmsTxtView.py Gatekeepers;echo)"""  % (action, obj.glideinwms_location())
   else:
     common.logerr("Invalid command line option for this service: %s" % action)
   run_command(service,obj.username(),obj.hostname(),cmd)
