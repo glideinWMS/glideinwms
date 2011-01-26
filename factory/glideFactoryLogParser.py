@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.4 2010/12/29 18:40:15 sfiligoi Exp $
+#   $Id: glideFactoryLogParser.py,v 1.15.12.5 2011/01/26 20:15:17 parag Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -23,6 +23,7 @@ rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
 
 # this class declares a job complete only after the output file has been received, too
+# the format is slightly different than the one of logSummaryTimings; we add the dirname in the job id
 # when a output file is found, it adds a 4th parameter to the completed jobs
 # see extractLogData below for more details
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
@@ -76,6 +77,18 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 
         self.data['CompletedNoOut']=new_waitout
         self.data['Completed']=new_completed
+
+        # append log name prefix
+        for k in self.data.keys():
+            new_karr=[]
+            for el in self.data[k]:
+                job_id=rawJobId2Nr(el[0])
+                job_fname='job.%i.%i'%(job_id[0],job_id[1])
+                job_fullname=os.path.join(self.dirname,job_fname)
+                new_el=el+(job_fullname,)
+                new_karr.append(new_el)
+            self.data[k]=new_karr
+
         return
 
     # diff self data with other info
@@ -152,31 +165,52 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
             entered=outdata_s['Entered']
             for i in range(len(entered)):
                 sel_e=entered[i]
-                job_id=rawJobId2Nr(sel_e[0])
-                job_fname='job.%i.%i.out'%job_id
-                job_fullname=os.path.join(self.dirname,job_fname)
+                job_fullname=sel_e[-1]+'.out'
 
                 try:
                     fdata=extractLogData(job_fullname)
                 except:
                     fdata=copy.deepcopy(EMPTY_LOG_DATA) # just protect
                     
-                entered[i]=(sel_e+(fdata,))
+                entered[i]=(sel_e[:-1]+(fdata,sel_e[-1]))
         return outdata
 
 # for now it is just a constructor wrapper
 # Further on it will need to implement glidein exit code checks
+
+class dirSummarySimple:
+    def __init__(self,obj):
+        self.data=copy.deepcopy(obj.data)
+        self.logClass=obj.logClass
+
+    # diff self data with other info
+    def diff(self,other):
+        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data=self.data # a little rough but works
+        return  dummyobj.diff(other.data) 
+
+    # merge other into myself
+    def merge(self,other):
+        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data=self.data # a little rough but works
+        dummyobj.merge(copy.deepcopy(other.data))
+        self.data=dummyobj.data
 
 # One client_name
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     def __init__(self,dirname,cache_dir,client_name,user_name,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,user_name),dirname,"condor_activity_","_%s.log"%client_name,".%s.cifpk"%user_name,inactive_files,inactive_timeout,cache_dir)
 
+    def get_simple(self):
+        return dirSummarySimple(self)
+
 # All clients
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
     def __init__(self,dirname,cache_dir,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,"all"),dirname,"condor_activity_",".log",".all.cifpk",inactive_files,inactive_timeout,cache_dir)
 
+    def get_simple(self):
+        return dirSummarySimple(self)
 
 #########################################################
 #     P R I V A T E
