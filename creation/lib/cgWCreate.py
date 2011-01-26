@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.10 2010/12/21 19:09:40 dstrain Exp $
+#   $Id: cgWCreate.py,v 1.49.2.11 2011/01/26 19:03:32 parag Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -39,7 +39,8 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
                   'libexec/condor_glexec_run','libexec/condor_glexec_setup',
                   'sbin/condor_fetchlog',
-                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
+                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template',
+                  'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class','lib/scimark2lib.jar']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         
@@ -86,6 +87,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinEntryName','"%s"'%entry_name)
         self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinX509Identifier','"$ENV(GLIDEIN_X509_ID)"')
+        self.add('+GlideinX509SecurityClass','"$ENV(GLIDEIN_X509_SEC_CLASS)"')
         self.add('+GlideinWebBase','"%s"'%web_base)
         if proxy_url!=None:
             self.add('+GlideinProxyURL','"%s"'%proxy_url)
