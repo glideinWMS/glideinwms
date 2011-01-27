@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.35 2011/01/26 20:15:17 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.36 2011/01/27 19:39:32 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -195,7 +195,7 @@ class X509Proxies:
         self.count_fnames+=1
 
 ###
-def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobParams):
+def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
