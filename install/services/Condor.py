@@ -716,7 +716,7 @@ validate_user () {
     file="$(condor_config_val $gsi_type 2>/dev/null)"
     if [ ! -z "$file" ];then
       if [ -r "$file" ];then
-        owner=$(ls -l $file | cut -d' ' -f4)
+        owner=$(ls -l $file | awk '{print $3}')
         me="$(/usr/bin/whoami)"
         if [ "$me" = "$owner" ];then
           good="yes"
@@ -730,6 +730,10 @@ validate_user () {
     echo "Check these Condor attributes and verify ownership."
     echo "    $config_vals"
     echo "Or you may be starting/stopping Condor as the wrong user."
+    if [ -n "$owner" ];then
+      echo "You should be starting  as user: $owner"
+      echo "You are trying to start as user: $me"
+    fi
     exit 1
   fi
 }
