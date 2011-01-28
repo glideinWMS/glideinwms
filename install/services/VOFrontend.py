@@ -312,27 +312,49 @@ Do you want to continue""")
 
   #---------------------------------
   def validate_glidein_proxies(self):
-    common.logit("... validating glidein_proxies")
+    common.logit("... validating glidein_proxy_files and glidein_proxy_dns")
+    reinstall_msg = """You will need to reinstall the UserCollector so these pilot dns are used for
+authentification/authorizaton of the glidein pilots""" 
+    reinstall_msg = """You will need to reinstall the UserCollector so these pilot dns are used for
+authentification/authorizaton of the glidein pilots.""" 
+
+    if self.factory.use_vofrontend_proxy() == "y" and \
+       len(self.glidein_proxy_files()) == 0:
+      common.logerr("""The Factory use_vofrontend_proxy option (%(use_vofrontend)s) requires that you 
+provide proxies using the VOFrontend glidein_proxy_files and
+glidein_proxy_dns option.  These are not populated.
+%(reinstall)s.""" % \
+          { "use_vofrontend" : self.factory.use_vofrontend_proxy(), 
+            "reinstall"      : reinstall_msg, })
     proxies = self.glidein_proxy_files().split(" ")
     if len(self.glidein_proxy_dns()) <> len(proxies):
-      common.logerr("""The number of glidein_proxy_files (%(proxy)s) must match the number of glidein_proxy_dns (%(dns)s).""" % \
+      common.logerr("""The number of glidein_proxy_files (%(proxy)s) must match the number of glidein_proxy_dns (%(dns)s).
+%(reinstall)s.""" % \
           { "proxy" : len(proxies),
             "dns"   : len(self.glidein_proxy_dns()),
-          })
+            "reinstall"      : reinstall_msg, })
     proxy_dns = self.glidein_proxy_dns()
     cnt = 0
     for proxy in proxies:
+      if len(proxy) == 0:
+        break
       common.logit("""    glidein_proxy_files[%(position)s]: %(proxy)s
-glidein_proxy_dns[%(position)i]: %(option_dn)s """ % \
+    glidein_proxy_dns[%(position)i]: %(option_dn)s.""" % \
             { "position"   : cnt,
               "option_dn"  : proxy_dns[cnt],
               "proxy"      : proxy, })
       dn_in_file = common.get_gsi_dn("proxy",proxy)
       if dn_in_file <> proxy_dns[cnt]:
         common.logerr("""The DN in glidein_proxy_dns is incorrect.
-Should be: %(dn_in_file)s""" % { "dn_in_file" : dn_in_file, })
+option: %(option_dn)s
+  file: %(dn_in_file)s
+%(reinstall)s.""" % \
+             { "dn_in_file" : dn_in_file, 
+               "option_dn"  : proxy_dns[cnt],
+               "reinstall"  : reinstall_msg, 
+             })
       cnt = cnt + 1 
-      common.logit("")
+    common.logit("")
 
   #---------------------------------
   def validate_glexec_use(self):

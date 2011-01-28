@@ -345,6 +345,11 @@ individual entry point configuration.
     (<EM>&quot;factory&quot;</EM>), or if both methods are supported
     (<EM>&quot;frontend,factory&quot;</EM>).</P>
     </li>
+    <P>
+      <b>Important:</b> If you configure to use a factory proxy (even optionally), you will need to export
+         the X509_USER_PROXY variable with the location of the proxy file
+         prior to starting the Factory service.
+    </P>
     <LI>
         <a name="security_frontend" />
         <div class="xml">
@@ -368,10 +373,19 @@ individual entry point configuration.
         &lt;glidein&gt;&lt;security&gt;&lt;frontends&gt;&lt;frontend&gt;&lt;security_classes&gt;&lt;security_class
         name=&quot;<I>frontend</I>&quot;
         username=&quot;<I>>username_usedby_factory</I>&quot;/&gt;
-
         </div>
-    <p><b>Recommended</b> (Required for privilege separation) 
-    Tells the class and user name for this frontend.</P>
+
+    <p><b>Required</b> Tells the class and user name the factory uses for this frontend.<br/></p>
+    <ul>
+    If the <b>allow_proxy</b> attribute of the <b>security</b> element contains <i>&quot;frontend&quot;</i>, you must have
+        <div class="xml">-  <b>&lt;security_class name=&quot;frontend&quot; username=&quot;<I>username_usedby_factory</I>&quot;/&gt;</b></div>
+
+    If the <b>allow_proxy</b> attribute of the <b>security</b> element contains <i>&quot;factory&quot;</i>, you must have
+       <div class="xml">-  <b>&lt;security_class name=&quot;factory&quot; username=&quot;<I>factory_username</I>&quot;/&gt;</b></div>
+
+    If the <b>allow_proxy</b> attribute of the <b>security</b> element specifies <i>&quot;factory,frontend&quot;</i>,<br/>
+    you must have both.
+       </ul> 
     </li>
     <LI>
         <a name="attrs" />

@@ -290,9 +290,9 @@ See below for the ini file attributes that installing/running WMS collector requ
         </tr>
 
         <tr>
-        <td>privilege_separation</td>
-        <td>y</td>
-        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor PrivSep Documentation</a> for more information</td>
+        <td> <a name="privilege_separation"/> privilege_separation</td>
+        <td align="center">y</td>
+        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor Privilege Seperation  Documentation</a> for more information</td>
         <td>Valid values:<br/>
             * <b>y</b> - privilege separation is used<br/>
             * <b>n</b> - privilege separation is not used <br/>
@@ -487,8 +487,8 @@ requires:<br/><br/>
                 /path/to/client/proxy_location</td>
             <td>User settable location for all client (VOFrontend) log and 
                 proxy files.</td>
-            <td><b>If privilege separation is used</b>, then the entire path (inclusive of this directory) must be root-writable-only (0755 and owned by root).</br>
-                <b>If privilege separation is not used</b>, then the directory will be created by the install script assuming the factory user has write permissions to the parent directory.
+            <td><b><a href="#privilege_separation">If privilege separation is used</a>, then the entire path (inclusive of this directory) must be root-writable-only (0755 and owned by root).</br>
+                <a href="#privilege_separation">If privilege separation is not used</a>, then the directory will be created by the install script assuming the factory user has write permissions to the parent directory.
            </td>
         </tr>
 
@@ -500,7 +500,7 @@ requires:<br/><br/>
         </tr>
 
         <tr>
-            <td>use_vofrontend_proxy</td>
+            <td> <a name="use_vofrontend_proxy"/a> use_vofrontend_proxy</td>
             <td align="center">y</td>
             <td>Specifies if the VO Frontend or Factory proxy should be used on the glidein pilot jobs submitted to the entry points.
             </td>
@@ -508,8 +508,6 @@ requires:<br/><br/>
              * <b>y</b> - only VO Frontend proxies will be used</br>
              * <b>n</b> - VO Frontend proxies will be used if available otherwise the Factory 
                   will provide the proxy. 
-                  An X509_USER_PROXY variable using the <b>x509_proxy</b> option will set be in 
-                  the factory environment script that is created during the installation.
             </td>
         </tr>
 
@@ -517,21 +515,28 @@ requires:<br/><br/>
           <td>x509_proxy</td>
           <td>/path-to-proxy/x509_proxyfile </td>
           <td>The location of factory pilot proxy.</td>
-          <td>If the <b>use_vofrontend_proxy</b> option is:</br>
+          <td>If the Factory <b>use_vofrontend_proxy</b> option is:</br>
               * <b>y</b> - this must be empty</br>
               * <b>n</b> - this must be populated</br>
+             An X509_USER_PROXY variable using this value 
+             will set be in the factory environment script that is created 
+             during the installation.
           </td>
         </tr>
 
         <tr>
           <td>x509_gsi_dn</td>
           <td>/DC=org/DC=doegrids/OU=Services/CN=[authorized_user] </td>
-          <td>The issuer of the factory pilot proxy specified by the <b>x509_proxy</b> option</td>
-          <td>If the <b>use_vofrontend_proxy</b> option is:</br>
+          <td>The issuer of the Factory pilot proxy specified by the 
+              Factory <b>x509_proxy</b> option</td>
+          <td>If the Factory <b>use_vofrontend_proxy</b> option is:</br>
               * <b>y</b> - this must be empty</br>
               * <b>n</b> - this must be populated</br>
               To obtain the issuer, use:
               <blockquote>openssl x509 -issuer -noout -in [x509_proxy]</blockquote>
+              This is used in the UserCollector condor_mapfile and 
+              condor_config.local so the glidein pilot can communicate with the 
+              UserCollector.
          </td>
         </tr>
 
@@ -931,7 +936,9 @@ requires:
             <blockquote>
             openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/>
             </blockquote>
-            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
+            It is used to populate the condor_config file GSI_DAEMON_NAME and 
+            condor_mapfile entries of this and the other glideinWMS services 
+            as needed.
         </td>
         </td>
         </tr>
@@ -1164,11 +1171,11 @@ It must be a zipped tarball with a *.tg.tz name.
             This is the identity used by this service to contact the other
             Condor based glideinWMS services.
         <td>
-            This is the issuer of the proxy.
-            <blockquote>
-            openssl x509 -issuer -noout -in [x509_proxy]<br/>
-            </blockquote>
-            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
+          This is the issuer of the proxy.
+          <blockquote>openssl x509 -issuer -noout -in [x509_proxy]</blockquote>
+          It is used to populate the condor_config file GSI_DAEMON_NAME and 
+          condor_mapfile entries of this and the other glideinWMS services 
+          as needed.
         </td>
         </td>
         </tr>
@@ -1179,15 +1186,27 @@ It must be a zipped tarball with a *.tg.tz name.
         <td>Identifies the proxy(s) to be used to submit the glidein pilot jobs.
         </td>
         <td>
-When specifying multiple proxies, whitespace is the delimiter.  These will be the proxies used by the glidein pilot jobs if you have specified that Frontend proxies are to be used in the Factory section of this ini file.</td>
+        If the Factory (<a href="#use_vofrontend_proxy">use_vofrontend_proxy</a>
+        option) is expecting the VOFrontend to provide the glidein pilot
+        proxies, at least one proxy must be specified.<br/>
+        If not, then this should be empty.<br/><br/>
+        When specifying multiple proxies, whitespace is the delimiter.  
         </tr>
 
         <tr>
         <td>glidein_proxy_dns</td>
         <td> /DC=org/DC=doegrids/OU=Services/CN=proxy1/vofrontend.domain.name
         </td>
-        <td>Identifies the issuer(s) of the glidein_proxy_files option being used</td>
-        <td>This is a semicolon separated list for each proxy identified in the glidein_proxy_files option attribute. Validation is performed based on the relative position of each entry in those options.</td>
+        <td>Identifies the issuer(s) of each proxy specified in the 
+            <b>glidein_proxy_files</b> option.
+        </td>
+        <td>
+        Validation is performed based on the relative position of each 
+        entry in those options.</br>
+        This is used in the UserCollector condor_mapfile and condor_config.local        so the glidein pilot can communicate with the UserCollector. 
+        <br/><br/>
+        When mulitple proxies are specified, a semicolon is the delimiter.
+        </td>
         </tr>
 
         <tr>

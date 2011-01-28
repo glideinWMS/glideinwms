@@ -51,14 +51,15 @@ wmscollector_options = [ "hostname",
 "frontend_users",
 ]
 
-#frontend_options = [ "hostname", 
-#"username", 
-#]
+frontend_options = [ 
+"glidein_proxy_files", 
+"glidein_proxy_dns", 
+]
 
 valid_options = { "Factory"       : factory_options,
                   "WMSCollector"  : wmscollector_options,
+                  "VOFrontend"    : frontend_options,
 }
-#                  "VOFrontend"    : frontend_options,
 
 
 class Factory(Configuration):
@@ -71,13 +72,19 @@ class Factory(Configuration):
       options = valid_options[self.ini_section]
     Configuration.__init__(self,inifile)
     self.validate_section(self.ini_section,options)
-    self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
-    #frontend1 = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"]) 
-    #self.frontends = [ frontend1,]    # list of VOFrontends
-
     self.glidein = Glidein(self.inifile,self.ini_section,valid_options["Factory"])
-
     self.config_entries_list = {} # Config file entries elements
+    self.wms      = None
+    self.frontend = None
+
+  #-- get service instances --------
+  def get_wms(self):
+    if self.wms == None:
+      self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+  #--------------------------------
+  def get_frontend(self):
+    if self.frontend == None:
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
 
   #---------------------
   def glideinwms_location(self):
@@ -135,6 +142,8 @@ class Factory(Configuration):
   #---------------------
   def install(self):
     common.logit ("======== %s install starting ==========\n" % self.ini_section)
+    self.get_wms()
+    self.get_frontend()
     common.ask_continue("Continue")
     self.validate_install()
     self.get_config_entries_data()
@@ -180,7 +189,12 @@ class Factory(Configuration):
          len(self.x509_gsi_dn()) > 0:
         common.logerr("""You have said you want to use the Frontend proxies only.
 The x509_proxy and x509_gsi_dn option must be empty.""")
-    else:
+      if len(self.frontend.glidein_proxy_files())  == 0 or \
+         len(self.frontend.glidein_proxy_dns()[0]) == 0:
+        common.logerr("""You have said you want to use the Frontend proxies only.
+The VOFrontend glidein_proxy_files & glidein_proxy_dns are not fully populated.""")
+      
+    else:  # use factory proxy if no vofrontend proxy provided
       self.validate_factory_proxy()
 
   #---------------------------------
@@ -364,23 +378,22 @@ source %(condor_location)s/condor.sh
   "allow_proxy": allow_proxy,
 }
 
-##JGW not sure what to do if Priv Sep not involved
-##    for frontend in self.frontends:
-
     frontend_users_dict =  self.wms.frontend_users()
     for frontend in frontend_users_dict.keys():
       data = data + """
 %(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(hostname)s">
 %(indent4)s<security_classes>
-%(indent5)s<security_class name="frontend" username="%(user)s"/>
+%(indent5)s<security_class name="frontend" username="%(frontend_user)s"/>
+%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
 %(indent4)s</security_classes>
 %(indent3)s</frontend>""" %  \
 { "indent3" : common.indent(3),
   "indent4" : common.indent(4),
   "indent5" : common.indent(5),
   "frontend": frontend,
-  "hostname"    : self.hostname(),
-  "user"    : frontend_users_dict[frontend],
+  "hostname"      : self.hostname(),
+  "frontend_user" : frontend_users_dict[frontend],
+  "factory_user"  : self.username(),
 }
     data = data + """
 %(indent2)s</frontends>
