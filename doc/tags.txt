@@ -1,3 +1,13 @@
+vNext	Factory now can remove excessive glideins
+	  New ClassAd attribute - RemoveExcess
+	Frontend will request removal of glideins when no user jobs in queue
+	Improved idle counting by the frontend when jobs match many factory
+	  entries.
+	Improved frontend logging.
+	Add Java support in the glideins.
+	Changed factory monitoring. It is now based on security names and not 
+	  plain frontend names
+
 v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	glideinWMS release is now available in 3 different tarballs, frontend
 	  only, factory only and a complete tarball.
