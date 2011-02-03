@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.31 2011/02/03 16:44:20 sfiligoi Exp $
+#   $Id: glideinWMS_install,v 1.265.2.32 2011/02/03 16:45:22 sfiligoi Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -2562,7 +2562,7 @@ def install_condor():
         print
         print "You will now need the Condor tarball"
         print "You can find it on http://www.cs.wisc.edu/condor/"
-        print "Versions v7.2.2 and 7.3.1 have been tested, but you"
+        print "Versions v7.4.4 and 7.5.4 have been tested, but you"
         print "should always use the latest one"
         print
         condor_tarball=raw_input("Where do you have the Condor tarball? ")
