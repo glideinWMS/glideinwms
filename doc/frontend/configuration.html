@@ -130,8 +130,8 @@ Click on any piece for a more detailed description.
     <a href="#work">&lt;work base_dir="/opt/vofrontend" base_log_dir="/opt/vofrontend/logs"&gt;</a><br/>
     <a href="#attrs">&lt;attrs&gt;</a><br/>
     <blockquote>
-        <a href="#attr_entry">&lt;attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1"&gt;</a><br/>
-        <a href="#attr_entry_start">&lt;attr  name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
+        <a href="#attr_client_rank">&lt;attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False " parameter="True" type="string" value="1"&gt;</a><br/>
+        <a href="#attr_client_start">&lt;attr  name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
         <a href="#attr_expose">&lt;attr  name="GLIDEIN_Expose_Grid_Env" glidein_publish="True" job_publish="True" parameter="False" type="string" value="True"&gt;</a><br/>
         <a href="#attr_glexec">&lt;attr name="GLIDEIN_Glexec_Use" glidein_publish="True" job_publish="True" parameter="False" type="string" value="OPTIONAL"&gt;</a><br/>
         <a href="#attr_match">&lt;attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"&gt;</a><br/>
@@ -392,18 +392,18 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
         factory to submit jobs to sites that have GLEXEC configured.
         </P></li>
         <LI><P>
-        <a name="attr_entry" />
+        <a name="attr_client_rank" />
             <div class="xml">
-            &lt;attr name=&quot;GLIDEIN_Entry_Rank&quot; &gt;
+            &lt;attr name=&quot;GLIDECLIENT_Rank&quot; &gt;
             </div>
         This is a condor expression that allows the ranking and prioritization
-        of jobs.  This attribute is propagated to condor_vars.lst.entry.
+        of jobs.  This attribute is propagated to condor_vars.lst.
 
         </P></li>
         <LI><P>
-        <a name="attr_entry_start" />
+        <a name="attr_client_start" />
             <div class="xml">
-            &lt;attr name=&quot;GLIDEIN_Entry_Start&quot; &gt;
+            &lt;attr name=&quot;GLIDECLIENT_Start&quot; &gt;
             </div>
             This is a condor expression that determines whether a glidein job
             will start on a resource.  It is used for resource management by

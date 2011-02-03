@@ -236,19 +236,19 @@ by the VO factory clients.</P>
         <td> <b>GLIDEIN_Start</b> </td>
         <TD> Exp (Bool)</td>
 
-        <TD> 1 </TD>
+        <TD> True </TD>
         <TD ROWSPAN=2>
             <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
-            to use in the glideins. Both must be true for a
+            to use in the glideins. All must be true for a
             user job to start.</P>
-                                <P>PS: The idea of having two variables is meant to help setting global and entry-specific requirements.</P>
+                                <P>PS: The idea of having several variables is meant to help setting global and entry-specific, as well as frontend-specific requirements.</P>
         </TD>
 
     </TR>
     <TR>
         <td> <b>GLIDEIN_Entry_Start</b> </td>
         <TD> Exp (Bool)</td>
-        <TD>1 </TD>
+        <TD>True </TD>
     </TR>
 
     <TR>
@@ -267,20 +267,6 @@ by the VO factory clients.</P>
         <td> Exp (Int) </TD>
         <TD> 1 </TD>
 
-    </TR>
-    <TR>
-        <td> <b>GLIDEIN_Expose_Grid_Env</b> </td>
-        <td> Exp (Bool) </TD>
-        <TD> False </TD>
-
-        <TD>
-            <P>If False, the user job environment will contain only glidein
-            factory provided variables.</P>
-            <P>If True, the user job environment will also contain the
-            environment variables defined at glidein startup. 
-            </P>
-            <P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
-        </TD>
     </TR>
 
     <TR>
@@ -711,6 +697,52 @@ described below ar the most often used.</P>
         </TD>
 
     </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Start</b> </td>
+        <TD> Exp (Bool)</td>
+
+        <TD ROWSPAN=2>
+            <P>Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_5Policy_Configuration.html#SECTION00452000000000000000">START expression</A> 
+            to use in the glideins. All must be true for a
+            user job to start.</P>
+                                <P>PS: The idea of having several variables is meant to help setting factory and frontend-specific requirements.</P>
+        </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Group_Start</b> </td>
+        <TD> Exp (Bool)</td>
+    </TR>
+
+    <TR>
+        <td> <b>GLIDECLIENT_Rank</b> </td>
+        <td>Exp (Int)</td>
+        <TD ROWSPAN=2>
+                <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
+                are summed together, and the user job with the largest rank will run
+                first.</P>
+
+        </TD>
+    </TR>
+    <TR>
+        <td> <b>GLIDECLIENT_Group_Rank</b> </td>
+        <td> Exp (Int) </TD>
+
+    </TR>
+    <TR>
+        <td> <b>GLIDEIN_Expose_Grid_Env</b> </td>
+        <td> Exp (Bool) </TD>
+
+        <TD>
+            <P>If False, the user job environment will contain only glidein
+            factory provided variables.</P>
+            <P>If True, the user job environment will also contain the
+            environment variables defined at glidein startup. 
+            </P>
+            <P>See <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:JobInheritsStarterEnvironment">JOB_INHERITS_STARTER_ENVIRONMENT documentation</A> for more details.</P>
+        </TD>
+    </TR>
+
 </TABLE>
 </div>
 
