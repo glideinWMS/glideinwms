@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.29 2010/12/22 22:39:07 sfiligoi Exp $
+#   $Id: glideinWMS_install,v 1.265.2.30 2011/02/03 16:38:54 sfiligoi Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -1761,8 +1761,8 @@ def vofrontend_install():
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             # the following are just so admins know they exist
             # we put in the default values
-            fd.write('      <attr name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
-            fd.write('      <attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
+            fd.write('      <attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            fd.write('      <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
