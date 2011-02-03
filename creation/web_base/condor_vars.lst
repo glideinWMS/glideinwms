@@ -29,6 +29,10 @@ GLIDECLIENT_Group	S	-		+				N	Y	@
 GLIDECLIENT_Signature	S	-		+				N	Y	@
 GLIDECLIENT_Group_Signature	S	-	+				N	Y	@
 GLIDEIN_Collector	C	-		HEAD_NODE			Y	N	-
+GLIDECLIENT_Start	C	True		+				N	N	-
+GLIDECLIENT_Group_Start	C	True		+				N	N	-
+GLIDECLIENT_Rank	C	1		+				N	N	-
+GLIDECLIENT_Group_Rank	C	1		+				N	N	-
 
 # Factory provided
 GLIDEIN_Factory		S	-		+				Y	Y	@
