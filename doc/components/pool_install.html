@@ -253,7 +253,7 @@ What do you want to install?
     </td>
     </tr>
     <tr>
-    <td>GSI Security</td>
+    <td rowspan=3>GSI Security</td>
     <td><i>Where can I find the directory with the trusted CAs? </i></td>
 
     <td>
@@ -263,22 +263,20 @@ What do you want to install?
     </td>
     </tr>
     <tr>
-    <td>PrivSep</td>
     <td><i>Please insert all such DNs, together with a user nickname.</i></td>
 
     <td>
         You will need to provide the DN of the pool collector and the DN of the glidein factory.
-        This will populate the condor_mapfile with the dns and nicknames.  This must be mapped
-        to local users for privilege separation to work.  
+        This will populate the condor_mapfile with the dns and nicknames.
         See <a href="../components/gsi.html">GSI Reference</a> for more information.
     </td>
     </tr>
     <tr>
-    <td>Quill</td>
-    <td><i>Do you want to Use Quill (works for 6.8.X only)?</i></td>
-
+    <td><i>Do you want to enable Match authentication?</i></td>
     <td>
-        ***
+        This changes the Condor security model to rely more on the Collector.
+        If you do not enable this, you will need to list the DNs of all the glideins both in the Collector and in the Schedd. If enabled, only the Colelctor needs to know them.<br>
+	Technically, this turns on the <a href="http://www.cs.wisc.edu/condor/manual/v7.4/3_3Configuration.html#param:SecEnableMatchPasswordAuthentication">SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION</a>.
     </td>
     </tr>
     <tr>
@@ -303,7 +301,16 @@ What do you want to install?
     </td>
     </tr>
     <tr>
-    <td>Tuning</td>
+    <td rowspan=2>Tuning</td>
+    <td><i>Do you want to enable the shared_port_daemon?: (y/n)</i><br>
+        <i>What port should it use?: [9615]</i></td>
+    <td>
+	The shared port daemon drastically reduces the number of ports used.<br>
+        <br>
+        Recommended for Condor versions 7.5.4 and above. (<b>Does not work with older versions of condor</b>)
+    </td>
+    </tr>
+    <tr>
     <td><i>How many secondary schedds do you want?</i></td>
     <td>
 
@@ -347,12 +354,12 @@ Installing condor
 
 You will now need the Condor tarball
 You can find it on http://www.cs.wisc.edu/condor/
-Versions v7.2.2 and 7.3.1 have been tested, but you
+Versions v7.4.4 and 7.5.3 have been tested, but you
 should always use the latest one
 
-Where do you have the Condor tarball? <b>/root/condor-7.4.2-linux-x86_64-rhel5-dynamic.tar.gz</b>
+Where do you have the Condor tarball? <b>/root/condor-7.4.4-linux-x86_64-rhel5-dynamic.tar.gz</b>
 Checking...
-Seems condor version 7.4.2
+Seems condor version 7.4.4
 
 Where do you want to install it?: [/opt/glidecondor] <b>/opt/glidecondor</b>
 Directory '/opt/glidecondor' does not exist, should I create it?: (y/n) <b>y</b>
@@ -361,7 +368,7 @@ Installing condor in '/opt/glidecondor'
 If something goes wrong with Condor, who should get email about it?: <b>admin@my.org</b>
 Extracting from tarball
 Running condor_configure
-Installing Condor from /opt/glidecondor/tar/condor-7.4.2 to /opt/glidecondor
+Installing Condor from /opt/glidecondor/tar/condor-7.4.4 to /opt/glidecondor
 
 Condor has been installed into:
     /opt/glidecondor
@@ -409,7 +416,24 @@ nickname: [condor002] <b>pilot</b>
 
 Is this a trusted Condor daemon?: (y/n) <b>y</b>
 DN: <i>enter</i>
-Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n] <b>n</b>
+
+Condor supports a more efficient Match authentication that is also more secure.
+Newer versions of the VO Frontend will not work if you don't enable it,
+but you may still be able to use this schedd for other purposes.
+Do you want to enable Match authentication?: (y/n) <b>y</b>
+
+Make sure you use Match authentication in the glideins, too
+
+
+Condor 7.5.3 and up support the use of a shared_port_daemon
+that drastically reduces the number of ports used
+and thus also improves the pool scalability.
+
+Do you want to enable the shadred_port_daemon?: (y/n) <b>y</b>
+What port should it use?: [9615]  <i>enter</i>
+
+Make sure you use Condor 7.5.3 and up in glideins, too
+
 What node is the collector running (i.e. CONDOR_HOST)?: <b>collector1.my.org</b>
 Please list all the GCB servers you will be using
 Leave an empty line when finished
