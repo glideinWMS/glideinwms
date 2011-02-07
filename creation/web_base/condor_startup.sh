@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.48.2.7 2010/11/09 18:49:41 klarson1 Exp $
+#   $Id: condor_startup.sh,v 1.48.2.8 2011/02/07 16:43:20 dstrain Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -15,6 +15,10 @@ function on_die {
 echo "Condor startup received kill signal... shutting down condor processes"
 $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
 ON_DIE=1
+}
+
+function ignore_signal {
+        echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
 
@@ -429,9 +433,10 @@ fi
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
+trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$retire_time / 60 - 1"
+let "retmins=$retire_time / 60 + 1"
 
 
 #### STARTS CONDOR ####
