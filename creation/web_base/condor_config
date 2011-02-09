@@ -87,9 +87,9 @@ DENY_NEGOTIATOR = anonymous@*
 
 LOCAL_CONFIG_FILE       = 
 
-GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start))
+GLIDEIN_START_CONDITION = ($(GLIDEIN_Start)) && ($(GLIDEIN_Entry_Start)) && ($(GLIDECLIENT_Start)) && ($(GLIDECLIENT_Group_Start))
 
-RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank))
+RANK = ($(GLIDEIN_Rank)) + ($(GLIDEIN_Entry_Rank)) + ($(GLIDECLIENT_Rank)) + ($(GLIDECLIENT_Group_Rank))
 
 # randomize update interval to minimize packet loss
 UPDATE_INTERVAL = $RANDOM_INTEGER(270, 370, 1)
