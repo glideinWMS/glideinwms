@@ -1,10 +1,15 @@
-#######################################################
 #
-# Frontend creation module
-# Classes and functions needed to handle dictionary files
-# created out of the parameter object
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cvWParamDict.py,v 1.51 2011/02/10 21:35:30 parag Exp $
+#
+# Description: 
+#   Frontend creation module
+#   Classes and functions needed to handle dictionary files
+#   created out of the parameter object
+#
 
 import os,os.path,shutil,string
 import cWParams
@@ -421,6 +426,10 @@ def populate_frontend_descript(work_dir,
 
         frontend_dict.add('LoopDelay',params.loop_delay)
         frontend_dict.add('AdvertiseDelay',params.advertise_delay)
+        frontend_dict.add('RestartAttempts',params.restart_attempts)
+        frontend_dict.add('RestartInterval',params.restart_interval)
+        frontend_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
+        frontend_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
 
         frontend_dict.add('CondorConfig',os.path.join(work_dir,cvWConsts.FRONTEND_CONDOR_CONFIG_FILE))
 

@@ -1,10 +1,15 @@
-#######################################################
 #
-# Glidein creation module
-# Classes and functions needed to handle dictionary files
-# created out of the parameter object
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cgWParamDict.py,v 1.129 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   Glidein creation module
+#   Classes and functions needed to handle dictionary files
+#   created out of the parameter object
+#
 
 import os,os.path,shutil,string
 import cWParams
@@ -93,7 +98,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['untar_cfg'].add(condor_fname,cgWConsts.CONDOR_DIR)
 
         # add additional system scripts
-        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
+        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
@@ -253,7 +258,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
     def populate(self,params=None):
         if params==None:
             params=self.params
-
         sub_params=params.entries[self.sub_name]
 
         # put default files in place first
@@ -525,7 +529,7 @@ def populate_factory_descript(work_dir,
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
         if down_fname==None:
-            down_fname=os.path.join(work_dir,'factory.downtimes')
+            down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)
@@ -538,6 +542,10 @@ def populate_factory_descript(work_dir,
                 active_sub_list.append(sub)
 
         glidein_dict.add('Entries',string.join(active_sub_list,','))
+        glidein_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
+        glidein_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
+        glidein_dict.add('AdvertiseWithTCP',params.advertise_with_tcp)
+        glidein_dict.add('AdvertiseWithMultiple',params.advertise_with_multiple)
         glidein_dict.add('LoopDelay',params.loop_delay)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
         glidein_dict.add('RestartAttempts',params.restart_attempts)

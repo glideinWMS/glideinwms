@@ -1,9 +1,14 @@
-#######################################################
 #
-# Glidein creation module
-# Classes and functions needed to handle dictionary files
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cgWDictFile.py,v 1.107 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   Glidein creation module Classes and functions needed to
+#   handle dictionary files
+#
 
 import os,os.path,string,copy
 import cgWConsts,cWConsts

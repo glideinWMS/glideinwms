@@ -1,9 +1,13 @@
-##########################################
 #
-# This module defines classes to perform
-# public key cryptography
+# Project:
+#   glideinWMS
 #
-##########################################
+# File Version: 
+#   $Id: pubCrypto.py,v 1.9 2011/02/10 21:35:31 parag Exp $
+#
+# Description:
+#   This module defines classes to perform public key cryptography
+#
 
 import M2Crypto
 import os

@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactory.py,v 1.93 2011/02/10 21:35:30 parag Exp $
+#
 # Description:
 #   This is the main of the glideinFactory
 #
@@ -29,16 +35,67 @@ sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import glideFactoryPidLib
 import glideFactoryConfig
 import glideFactoryLib
+import glideFactoryInterface
 import glideFactoryMonitorAggregator
+import glideFactoryMonitoring
+import glideFactoryDowntimeLib
 
 ############################################################
-def aggregate_stats():
-    global rrd_thread
+def aggregate_stats(in_downtime):
+    try:
+        status=glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
+    except:
+        # protect and report
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logDebug("aggregateStatus failed: %s" % string.join(tb,''))
     
-    status=glideFactoryMonitorAggregator.aggregateStatus()
-    status=glideFactoryMonitorAggregator.aggregateLogSummary()
-
+    try:
+        status=glideFactoryMonitorAggregator.aggregateLogSummary()
+    except:
+        # protect and report
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logDebug("aggregateLogStatus failed: %s" % string.join(tb,''))
+    
+    try:
+        status=glideFactoryMonitorAggregator.aggregateRRDStats()
+    except:
+        # protect and report
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logDebug("aggregateRRDStats failed: %s" % string.join(tb,''))
+    
     return
+
+# added by C.W. Murphy to make descript.xml
+def write_descript(glideinDescript,frontendDescript,monitor_dir):
+    glidein_data = copy.deepcopy(glideinDescript.data)
+    frontend_data = copy.deepcopy(frontendDescript.data)
+    entry_data = {}
+    for entry in glidein_data['Entries'].split(","):
+        entry_data[entry] = {}
+
+        entryDescript = glideFactoryConfig.JobDescript(entry)
+        entry_data[entry]['descript'] = entryDescript.data
+
+        entryAttributes = glideFactoryConfig.JobAttributes(entry)
+        entry_data[entry]['attributes'] = entryAttributes.data
+
+        entryParams = glideFactoryConfig.JobParams(entry)
+        entry_data[entry]['params'] = entryParams.data
+
+    descript2XML = glideFactoryMonitoring.Descript2XML()
+    xml_str = (descript2XML.glideinDescript(glidein_data) +
+               descript2XML.frontendDescript(frontend_data) +
+               descript2XML.entryDescript(entry_data))
+
+    try:
+       descript2XML.writeFile(monitor_dir, xml_str)
+    except IOError:
+        glideFactoryLib.log_files.logDebug("IOError in writeFile in descript2XML")
+    # end add
+
 
 ############################################################
 def is_crashing_often(startup_time, restart_interval, restart_attempts):
@@ -59,6 +116,68 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
     return crashing_often
 
 ############################################################
+def clean_exit(childs):
+    count=100000000 # set it high, so it is triggered at the first iteration
+    sleep_time=0.1 # start with very little sleep
+    while len(childs.keys())>0:
+        count+=1
+        if count>4:
+            # Send a term signal to the childs
+            # May need to do it several times, in case there are in the middle of something
+            count=0
+            entries=childs.keys()
+            entries.sort()
+            glideFactoryLib.log_files.logActivity("Killing entries %s"%entries)
+            for entry_name in childs.keys():
+                try:
+                    os.kill(childs[entry_name].pid,signal.SIGTERM)
+                except OSError:
+                    glideFactoryLib.log_files.logActivity("Entry %s already dead"%entry_name)
+                    del childs[entry_name] # already dead
+            
+        glideFactoryLib.log_files.logActivity("Sleep")
+        time.sleep(sleep_time)
+        # exponentially increase, up to 5 secs
+        sleep_time=sleep_time*2
+        if sleep_time>5:
+            sleep_time=5
+        
+        entries=childs.keys()
+        entries.sort()
+        
+        glideFactoryLib.log_files.logActivity("Checking dying entries %s"%entries)
+        dead_entries=[]
+        for entry_name in childs.keys():
+            child=childs[entry_name]
+
+            # empty stdout and stderr
+            try:
+                tempOut = child.fromchild.read()
+                if len(tempOut)!=0:
+                    glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(child, tempOut))
+            except IOError:
+                pass # ignore
+            try:
+                tempErr = child.childerr.read()
+                if len(tempErr)!=0:
+                    glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(child, tempErr))
+            except IOError:
+                pass # ignore
+
+            # look for exited child
+            if child.poll()!=-1:
+                # the child exited
+                dead_entries.append(entry_name)
+                del childs[entry_name]
+                tempOut = child.fromchild.readlines()
+                tempErr = child.childerr.readlines()
+        if len(dead_entries)>0:
+            glideFactoryLib.log_files.logActivity("These entries died: %s"%dead_entries)
+
+    glideFactoryLib.log_files.logActivity("All entries dead")
+
+
+############################################################
 def spawn(sleep_time,advertize_rate,startup_dir,
           glideinDescript,entries,restart_attempts,restart_interval):
 
@@ -69,6 +188,8 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     # Allow max 3 restarts every 30 min before giving up
     #restart_attempts = 3
     #restart_interval = 1800
+
+    factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
     glideFactoryLib.log_files.logActivity("Starting entries %s"%entries)
     try:
@@ -132,7 +253,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                         glideFactoryLib.log_files.logWarning("Entry startup/restart times: %s"%childs_uptime)
 
             glideFactoryLib.log_files.logActivity("Aggregate monitoring data")
-            aggregate_stats()
+            aggregate_stats(factory_downtimes.checkDowntime())
             
             # do it just before the sleep
             glideFactoryLib.log_files.cleanup()
@@ -142,16 +263,37 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     finally:        
         # cleanup at exit
         glideFactoryLib.log_files.logActivity("Received signal...exit")
-        for entry_name in childs.keys():
+        try:
             try:
-                os.kill(childs[entry_name].pid,signal.SIGTERM)
-            except OSError:
-                pass # ignore failed kills of non-existent processes
+                clean_exit(childs)
+            except:
+                # if anything goes wrong, hardkill the rest
+                for entry_name in childs.keys():
+                    glideFactoryLib.log_files.logActivity("Hard killing entry %s"%entry_name)
+                    try:
+                        os.kill(childs[entry_name].pid,signal.SIGKILL)
+                    except OSError:
+                        pass # ignore dead clients
+        finally:
+            glideFactoryLib.log_files.logActivity("Deadvertize myself")
+            try:
+                glideFactoryInterface.deadvertizeFactory(glideinDescript.data['FactoryName'],
+                                                         glideinDescript.data['GlideinName'])
+            except:
+                glideFactoryLib.log_files.logWarning("Factory deadvertize failed!")
+                pass # just warn
+            try:
+                glideFactoryInterface.deadvertizeFactoryClientMonitoring(glideinDescript.data['FactoryName'],
+                                                                         glideinDescript.data['GlideinName'])
+            except:
+                glideFactoryLib.log_files.logWarning("Factory Monitoring deadvertize failed!")
+                pass # just warn
         glideFactoryLib.log_files.logActivity("All entries should be terminated")
         
         
 ############################################################
 def main(startup_dir):
+    
     startup_time=time.time()
 
     # force integrity checks on all the operations
@@ -163,6 +305,9 @@ def main(startup_dir):
 
     glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
     glideinDescript=glideFactoryConfig.GlideinDescript()
+    frontendDescript = glideFactoryConfig.FrontendDescript()
+
+    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
 
     # the log dir is shared between the factory main and the entries, so use a subdir
     log_dir=os.path.join(glideinDescript.data['LogDir'],"factory")
@@ -173,6 +318,15 @@ def main(startup_dir):
                                                        float(glideinDescript.data['LogRetentionMinDays']),
                                                        float(glideinDescript.data['LogRetentionMaxMBs']))
     
+
+    try:
+        os.chdir(startup_dir)
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideFactoryLib.log_files.logWarning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        raise
+
     try:
         os.chdir(startup_dir)
     except:
@@ -198,6 +352,9 @@ def main(startup_dir):
                 raise RuntimeError, "Factory is supposed to allow provide a proxy. Need X509_USER_PROXY to work!"
             
 
+
+        glideFactoryInterface.factoryConfig.advertise_use_tcp=(glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
+        glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
         sleep_time=int(glideinDescript.data['LoopDelay'])
         advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
         restart_attempts=int(glideinDescript.data['RestartAttempts'])

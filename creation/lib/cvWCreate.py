@@ -1,11 +1,15 @@
-####################################
 #
-# Functions needed to create files
-# used by the VO Frontend 
+# Project:
+#   glideinWMS
+#
+# File Version:
+#   $Id: cvWCreate.py,v 1.11 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   Functions needed to create files used by the VO Frontend
 #
 # Author: Igor Sfiligoi
 #
-####################################
 
 import os,os.path
 import stat
@@ -63,6 +67,9 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         
         fd.write("restart() {\n")
         fd.write("        stop\n")
+        fd.write("        if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("          exit $RETVAL\n")
+        fd.write("        fi\n")
         fd.write("        start\n")
         fd.write("}\n\n")
 
@@ -78,6 +85,9 @@ def create_initd_startup(startup_fname,frontend_dir,glideinWMS_dir):
         fd.write("        notrun=$?\n")
         fd.write("        if [ $notrun -eq 0 ]; then\n")
         fd.write("          stop\n")
+        fd.write("          if [ $RETVAL -ne 0 ]; then\n")
+        fd.write("            exit $RETVAL\n")
+        fd.write("          fi\n")
         fd.write("        fi\n")
         fd.write('        "$glideinWMS_dir/creation/reconfig_frontend" -force_name "$frontend_name" $1\n')
         fd.write('	  RETVAL=$?\n')
@@ -217,7 +227,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("\n###########################\n")
         fd.write("# Pool collector(s)\n")
         fd.write("###########################\n")
-        fd.write("CONDOR_HOST = %s\n"%string.join(collector_nodes,","))
+        fd.write("COLLECTOR_HOST = %s\n"%string.join(collector_nodes,","))
 
         fd.write("\n###########################\n")
         fd.write("# Authentication settings\n")
@@ -254,6 +264,7 @@ def create_client_condor_config(config_fname,mapfile_fname,collector_nodes):
         fd.write("######################################################\n")
         fd.write("DAEMON_LIST=MASTER\n")
         fd.write("DAEMON_SHUTDOWN=True\n")
+
 
         fd.write("\n######################################################\n")
         fd.write("## If condor is allowed to use VOMS attributes, it will\n")

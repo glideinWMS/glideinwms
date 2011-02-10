@@ -1,8 +1,13 @@
 #!/usr/bin/env python
 #
-# cat_logs.py
+# Project:
+#   glideinWMS
 #
-# Print out the logs for a certain date
+# File Version: 
+#   $Id: cat_logs.py,v 1.4 2011/02/10 21:35:31 parag Exp $
+#
+# Description:
+#   Print out the logs for a certain date
 #
 # Usage: cat_logs.py <factory> YY/MM/DD [hh:mm:ss]
 #

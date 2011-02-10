@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: rrdSupport.py,v 1.12 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements the basic functions needed
 #   to interface to rrdtool
@@ -125,7 +131,7 @@ class BaseRRDSupport:
 
         lck = self.get_disk_lock(rrdfname)
         try:
-            self.rrd_obj.update(str(rrdfname), '%li:%s' % (time, val))
+            self.rrd_obj.update(str(rrdfname),'%li:%s'%(time,val))
         finally:
             lck.close()
 
@@ -153,8 +159,8 @@ class BaseRRDSupport:
         ds_names_real = []
         ds_vals = []
         for ds_name in ds_names:
-            if val_dict[ds_name] != None:
-                ds_vals.append("%s" % val_dict[ds_name])
+            if val_dict[ds_name]!=None:
+                ds_vals.append("%s"%val_dict[ds_name])
                 ds_names_real.append(ds_name)
 
         if len(ds_names_real) == 0:
@@ -437,6 +443,55 @@ class BaseRRDSupport:
         
         
 
+    ###################################################
+    def fetch_rrd(self, filename, CF, resolution = None, start = None,
+                  end = None, daemon = None):
+        """
+        Fetch will analyze the RRD and try to retrieve the data in the
+        resolution requested.
+
+        Arguments:
+          filename      -the name of the RRD you want to fetch data from
+          CF            -the consolidation function that is applied to the data
+                         you want to fetch (AVERAGE, MIN, MAX, LAST)
+          resolution    -the interval you want your values to have
+                         (default 300 sec)
+          start         -start of the time series (default end - 1day)
+          end           -end of the time series (default now)
+          daemon        -Address of the rrdcached daemon. If specified, a flush
+                         command is sent to the server before reading the RRD
+                         files. This allows rrdtool to return fresh data even
+                         if the daemon is configured to cache values for a long
+                         time.
+
+        For more details see
+          http://oss.oetiker.ch/rrdtool/doc/rrdcreate.en.html
+        """
+        if None == self.rrd_obj:
+            return # nothing to do in this case
+
+        if CF in ('AVERAGE', 'MIN', 'MAX', 'LAST'):
+            consolFunc = str(CF)
+        else:
+            raise RuntimeError,"Invalid consolidation function %s"%CF
+        args = [str(filename), consolFunc]
+        if not (resolution == None):
+            args.append('-r')
+            args.append(str(resolution))
+        if not (end == None):
+            args.append('-e')
+            args.append(str(end))
+        if not (start == None):
+            args.append('-s')
+            args.append(str(start))
+        if not (daemon == None):
+            args.append('--daemon')
+            args.append(str(daemon))
+
+        return self.rrd_obj.fetch(*args)
+        
+        
+
 # This class uses the rrdtool module for rrd_obj
 class ModuleRRDSupport(BaseRRDSupport):
     def __init__(self):
@@ -512,7 +567,7 @@ class rrdtool_exe:
 
     ##########################################
     def iexe_cmd(self, cmd):
-        child = self.popen2_obj.Popen3(cmd, True)
+        child=self.popen2_obj.Popen3(cmd,True)
         child.tochild.close()
         tempOut = child.fromchild.readlines()
         child.fromchild.close()

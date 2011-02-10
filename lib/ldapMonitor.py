@@ -1,4 +1,10 @@
-
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: ldapMonitor.py,v 1.4 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements classes to query the ldap server
 #   and manipulate the result

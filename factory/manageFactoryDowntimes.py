@@ -1,14 +1,22 @@
 #!/usr/bin/env python
 
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: manageFactoryDowntimes.py,v 1.41 2011/02/10 21:35:30 parag Exp $
+#
 # Description:
 #  This program allows to add announced downtimes
 #  as well as handle unexpected downtimes
 #
 
 import os.path
+import os
 import time,string
 import sys
+import re
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 import glideFactoryConfig
@@ -17,26 +25,25 @@ sys.path.append(os.path.join(STARTUP_DIR,"../creation/lib"))
 
 def usage():
     print "Usage:"
-    print "  manageFactoryDowntimes.py factory_dir ['all'|'factory'|'entries'|entry_name] [command]"
+    print "  manageFactoryDowntimes.py -dir factory_dir -entry ['all'|'factory'|'entries'|entry_name] -cmd [command] [options]"
     print "where command is one of:"
-    print "  add start_time end_time - Add a scheduled downtime period"
-    print "  down [delay]            - Put the factory down now(+delay)" 
-    print "  up [delay]              - Get the factory back up now(+delay)"
-    print "  ress [ISinfo]           - Set the up/down based on RESS status"
-    print "  bdii [ISinfo]           - Set the up/down based on bdii status"
-    print "  ress+bdii [ISinfo]      - Set the up/down based both on RESS and bdii status"
-    print "  check [delay]           - Report if the factory is in downtime now(+delay)"
-    #print "  export filename         - Export downtimes into a standardized XML file"
-    print "the following commands can be used with factory turned off:"
-    print "  vacuum                  - Remove all expired downtime info"
-    #print "  import filename [wipe]  - Import the downtimes from a standardized XML file"
-    print "where *_time is in one of the two formats:"
-    print "  [[[YYYY-]MM-]DD-]HH:MM[:SS]"
-    print "  unix_time"
-    print "delay is of the format:"
-    print "  [HHh][MMm][SS[s]]"
-    print "and ISinfo is:"
-    print "  'CEStatus' (others will follow in the future)"
+    print "  add           - Add a scheduled downtime period"
+    print "  down          - Put the factory down now(+delay)" 
+    print "  up            - Get the factory back up now(+delay)"
+    print "  ress          - Set the up/down based on RESS status"
+    print "  bdii          - Set the up/down based on bdii status"
+    print "  ress+bdii     - Set the up/down based both on RESS and bdii status"
+    print "  check         - Report if the factory is in downtime now(+delay)"
+    print "  vacuum        - Remove all expired downtime info"
+    print "Other options:"
+    print "  -start [[[YYYY-]MM-]DD-]HH:MM[:SS] (start time for adding a downtime)"
+    print "  -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)"
+    print "  -delay [HHh][MMm][SS[s]]           (delay a downtime for down, up, and check cmds)"
+    print "  -ISinfo 'CEStatus'        (attribute used in ress/bdii for creating downtimes)"
+    print "  -security SECURITY_CLASS  (restricts a downtime to users of that security class)"
+    print "                            (If not specified, the downtime is for all users.)"
+    print "  -frontend SECURITY_NAME   (Limits a downtime to one frontend)"
+    print "  -comment \"Comment here\"   (user comment for the downtime. Not used by WMS.)"
     print
 
 # [[[YYYY-]MM-]DD-]HH:MM[:SS]
@@ -70,50 +77,73 @@ def strtxt2time(timeStr):
 # or
 # unix_time
 def str2time(timeStr):
+    #if (timeStr==None) or (timeStr=="None") or (timeStr==""):
+    #    return time.localtime(time.time())
     if len(timeStr.split(':',1))>1:
         # has a :, so it must be a text representation
         return strtxt2time(timeStr)
     else:
+        print timeStr
         # should be a simple number
         return long(timeStr)
 
+# Create an array for each value in the frontend descript file
+def get_security_classes(factory_dir):
+    sec_array=[];
+    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
+    for fe in frontendDescript.data.keys():
+        for sec_class in frontendDescript.data[fe]['usermap']:
+            sec_array.append(sec_class);
+    return sec_array;
+
+# Create an array for each frontend in the frontend descript file
+def get_frontends(factory_dir):
+    fe_array=[];
+    frontendDescript=glideFactoryConfig.ConfigFile(factory_dir+"/frontend.descript",lambda s:s)
+    return frontendDescript.data.keys();
+
+# Create an array for each entry in the glidein descript file
+def get_entries(factory_dir):
+    fe_array=[];
+    glideinDescript=glideFactoryConfig.GlideinDescript()
+    #glideinDescript=glideFactoryConfig.ConfigFile(factory_dir+"/glidein.descript",lambda s:s)
+    return string.split(glideinDescript.data['Entries'],',');
 #
 #
 def get_downtime_fd(entry_name,cmdname):
-    if entry_name in ('entries','all'):
-        print "%s not supported for %s"%(entry_name,cmdname)
-        sys.exit(1)
-
     try:
-        if entry_name=='factory':
-            config=glideFactoryConfig.GlideinDescript()
-        else:
-            config=glideFactoryConfig.JobDescript(entry_name)
+        # New style has config all in the factory file
+        #if entry_name=='factory':
+        config=glideFactoryConfig.GlideinDescript()
+        #else:
+        #    config=glideFactoryConfig.JobDescript(entry_name)
     except IOError, e:
         raise RuntimeError, "Failed to load config for %s"%entry_name
 
     fd=glideFactoryDowntimeLib.DowntimeFile(config.data['DowntimesFile'])
     return fd
 
-def get_downtime_fd_dict(entry_or_id,cmdname):
+def get_downtime_fd_dict(entry_or_id,cmdname,opt_dict):
     out_fds={}
-    if entry_or_id in ('entries','all'):
+    if entry_or_id in ('entries','All'):
         glideinDescript=glideFactoryConfig.GlideinDescript()
         entries=string.split(glideinDescript.data['Entries'],',')
         for entry in entries:
             out_fds[entry]=get_downtime_fd(entry,cmdname)
-        if entry_or_id=='all':
+        if (entry_or_id=='All') and (not opt_dict.has_key("entries")):
             out_fds['factory']=get_downtime_fd('factory',cmdname)
     else:
         out_fds[entry_or_id]=get_downtime_fd(entry_or_id,cmdname)
 
     return out_fds
 
-def add(entry_name,argv):
-    down_fd=get_downtime_fd(entry_name,argv[0])
-    start_time=str2time(argv[1])
-    end_time=str2time(argv[2])
-    down_fd.addPeriod(start_time,end_time)
+def add(entry_name,opt_dict):
+    down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
+    start_time=str2time(opt_dict["start"])
+    end_time=str2time(opt_dict["end"])
+    sec_name=opt_dict["sec"]
+    frontend=opt_dict["frontend"]
+    down_fd.addPeriod(start_time=start_time,end_time=end_time,entry=entry_name,frontend=frontend,security_class=sec_name,comment=opt_dict["comment"])
     return 0
 
 # [HHh][MMm][SS[s]]
@@ -136,44 +166,63 @@ def delay2time(delayStr):
     
     return seconds+60*(minutes+60*hours)
 
-def down(entry_name,argv):
-    down_fd=get_downtime_fd(entry_name,argv[0])
-    when=0
-    if len(argv)>1:
-        when=delay2time(argv[1])
 
-    when+=long(time.time())
-
-    if not down_fd.checkDowntime(when): #only add a new line if not in downtimeat that time
-        down_fd.startDowntime(when)
+def down(entry_name,opt_dict):
+    down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
+    when=delay2time(opt_dict["delay"])+long(time.time())
+    frontend=opt_dict["frontend"]
+    sec_name=opt_dict["sec"]
+    if not down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when): 
+        #only add a new line if not in downtime at that time
+        return down_fd.startDowntime(start_time=when,frontend=frontend,security_class=sec_name,entry=entry_name,comment=opt_dict["comment"])
     return 0
 
-def up(entry_name,argv):
-    down_fd=get_downtime_fd(entry_name,argv[0])
-    when=0
-    if len(argv)>1:
-        when=delay2time(argv[1])
-
+def up(entry_name,opt_dict):
+    down_fd=get_downtime_fd(entry_name,opt_dict["dir"])
+    when=delay2time(opt_dict["delay"])
+    sec_name=opt_dict["sec"]
+    frontend=opt_dict["frontend"]
+    comment=opt_dict["comment"]
     when+=long(time.time())
+    # commenting this check out since we could be in a downtime
+    # for certain security_classes/frontend, but if we specify
+    # -cmd up and -security All, etc, it should clear out all downtimes
+    #if (down_fd.checkDowntime(entry=entry_name, frontend=frontend, security_class=sec_name, check_time=when)or (sec_name=="All")): 
 
-    if down_fd.checkDowntime(when): #only terminate downtime if there was an open period
-        down_fd.endDowntime(when)
-    return 0
+    rtn=down_fd.endDowntime(end_time=when,entry=entry_name,frontend=frontend,security_class=sec_name,comment=comment)
+    if (rtn>0):
+        return 0
+    else:
+        return 1
 
-def check(entry_or_id,argv):
-    config_els=get_downtime_fd_dict(entry_or_id,argv)
+# This function replaces "check", which does not take into account
+# security classes.  This function will read the downtimes file
+# and parse it to determine whether the downtime is relevant to the 
+# security class
+def printtimes(entry_or_id,opt_dict):
+    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
+    when=delay2time(opt_dict["delay"])+long(time.time())
+    entry_keys=config_els.keys()
+    entry_keys.sort()
+    for entry in entry_keys:
+        down_fd=config_els[entry]
+        down_fd.printDowntime(entry=entry, check_time=when)
 
+# This function is now deprecated, replaced by printtimes
+# as it does not take into account that an entry can be down for
+# only some security classes.
+def check(entry_or_id,opt_dict):
+    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
     when=0
-    if len(argv)>1:
-        when=delay2time(argv[1])
-
+    when=delay2time(opt_dict["delay"])
+    sec_name=opt_dict["sec"]
     when+=long(time.time())
 
     entry_keys=config_els.keys()
     entry_keys.sort()
     for entry in entry_keys:
         down_fd=config_els[entry]
-        in_downtime=down_fd.checkDowntime(when)
+        in_downtime=down_fd.checkDowntime(entry=entry, security_class=sec_name, check_time=when)
         if in_downtime:
             print "%s\tDown"%entry
         else:
@@ -181,8 +230,8 @@ def check(entry_or_id,argv):
 
     return 0
 
-def vacuum(entry_or_id,argv):
-    config_els=get_downtime_fd_dict(entry_or_id,argv)
+def vacuum(entry_or_id,opt_dict):
+    config_els=get_downtime_fd_dict(entry_or_id,opt_dict["dir"],opt_dict)
 
     entry_keys=config_els.keys()
     entry_keys.sort()
@@ -227,7 +276,7 @@ def get_production_bdii_entries(server,ref_dict_list):
     
     return production_entries
 
-def infosys_based(entry_name,argv,infosys_types):
+def infosys_based(entry_name,opt_dict,infosys_types):
     # find out which entries I need to look at
     # gather downtime fds for them
     config_els={}
@@ -315,13 +364,85 @@ def infosys_based(entry_name,argv,infosys_types):
     
     return 0
 
+def get_args(argv):
+    #defaults
+    opt_dict={"comment":"","sec":"All","delay":"0",\
+            "end":"None","start":"None","frontend":"All"}
+    index=0
+    for arg in argv:
+        if (arg == "-factory"):
+            opt_dict["entry"]="factory"
+        if (len(argv)<=index+1):
+            continue;
+        #Change lowercase all to All so checks for "All" work
+        if (argv[index+1].lower()=="all"):
+            argv[index+1]="All";
+        if (arg == "-cmd"):
+            opt_dict["cmd"]=argv[index+1]
+        if (arg == "-dir"):
+            opt_dict["dir"]=argv[index+1]
+        if (arg == "-entry"):
+            opt_dict["entry"]=argv[index+1]
+        if (arg == "-comment"):
+            opt_dict["comment"]=argv[index+1]
+        if (arg == "-start"):
+            opt_dict["start"]=argv[index+1]
+        if (arg == "-end"):
+            opt_dict["end"]=argv[index+1]
+        if (arg == "-delay"):
+            opt_dict["end"]=argv[index+1]
+        if (arg == "-ISinfo"):
+            opt_dict["ISinfo"]=argv[index+1]
+        if (arg == "-security"):
+            opt_dict["sec"]=argv[index+1]
+        if (arg == "-frontend"):
+            opt_dict["frontend"]=argv[index+1]
+        index=index+1
+    return opt_dict;
+
 def main(argv):
-    if len(argv)<4:
+    if len(argv)<3:
         usage()
         return 1
 
-    # get the downtime file from config
-    factory_dir=argv[1]
+    # Get the command line arguments
+    opt_dict=get_args(argv)
+    mandatory_comments=False
+    if (os.environ.has_key("GLIDEIN_MANDATORY_COMMENTS")):
+        if (os.environ["GLIDEIN_MANDATORY_COMMENTS"].lower() in ("on","true","1")):
+            mandatory_comments=True
+    if (opt_dict["cmd"] in ("check","vacuum")):
+        mandatory_comments=False
+
+    try:
+        factory_dir=opt_dict["dir"]
+        entry_name=opt_dict["entry"]
+        cmd=opt_dict["cmd"]
+        if (mandatory_comments):
+            comments=opt_dict["comment"]
+            if (comments == ""):
+                raise KeyError
+    except KeyError, e:
+        usage();
+        print "-cmd -dir and -entry arguments are required."
+        if (mandatory_comments):
+            print "Mandatory comments are enabled.  add -comment."
+        return 1;
+    if (opt_dict["sec"]!="All"):
+        if (not (opt_dict["sec"] in get_security_classes(factory_dir))):
+            print "Invalid security class";
+            print "Valid security classes are: ";
+            for sec_class in get_security_classes(factory_dir):
+                print sec_class
+            return 1
+    if (opt_dict["frontend"]!="All"):
+        if (not (opt_dict["frontend"] in get_frontends(factory_dir))):
+            print "Invalid frontend identity:";
+            print "Valid frontends are: ";
+            for fe in get_frontends(factory_dir):
+                print fe
+            return 1
+
     try:
         os.chdir(factory_dir)
     except OSError, e:
@@ -330,25 +451,36 @@ def main(argv):
         print "%s"%e
         return 1
 
-    entry_name=argv[2]
-    cmd=argv[3]
+    #Verify Entry is an actual entry
+    if (opt_dict["entry"].lower()=="entries"):
+        opt_dict["entries"]="true";
+        opt_dict["entry"]="All";
+        entry_name="All";
+    if ((opt_dict["entry"]!="All")and(opt_dict["entry"]!="factory")):
+        if (not (opt_dict["entry"] in get_entries(factory_dir))):
+            print "Invalid entry name";
+            print "Valid entries are:";
+            for entry in get_entries(factory_dir):
+                print entry
+            return 1
+
 
     if cmd=='add':
-        return add(entry_name,argv[3:])
+        return add(entry_name,opt_dict)
     elif cmd=='down':
-        return down(entry_name,argv[3:])
+        return down(entry_name,opt_dict)
     elif cmd=='up':
-        return up(entry_name,argv[3:])
+        return up(entry_name,opt_dict)
     elif cmd=='check':
-        return check(entry_name,argv[3:])
+        return printtimes(entry_name,opt_dict)
     elif cmd=='ress':
-        return infosys_based(entry_name,argv[3:],['RESS'])
+        return infosys_based(entry_name,opt_dict,['RESS'])
     elif cmd=='bdii':
-        return infosys_based(entry_name,argv[3:],['BDII'])
+        return infosys_based(entry_name,opt_dict,['BDII'])
     elif cmd=='ress+bdii':
-        return infosys_based(entry_name,argv[3:],['RESS','BDII'])
+        return infosys_based(entry_name,opt_dict,['RESS','BDII'])
     elif cmd=='vacuum':
-        return vacuum(entry_name,argv[3:])
+        return vacuum(entry_name,opt_dict)
     else:
         usage()
         print "Invalid command %s"%cmd

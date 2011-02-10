@@ -1,6 +1,12 @@
 #!/usr/bin/env python
 
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: create_frontend,v 1.6 2011/02/10 21:35:30 parag Exp $
+#
 # Description:
 #  This program creates a frontend directory structure
 #  based on a configuration file

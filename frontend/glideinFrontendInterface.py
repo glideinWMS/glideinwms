@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontendInterface.py,v 1.51 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements the functions needed to advertize
 #   and get resources from the Collector
@@ -9,6 +15,7 @@
 
 import condorExe
 import condorMonitor
+import condorManager
 import os,os.path
 import copy
 import time
@@ -30,6 +37,9 @@ class FrontendConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
+        
+        #Default the glideinWMS version string
+        self.glideinwms_version = "glideinWMS UNKNOWN"
 
         # String to prefix for the attributes
         self.glidein_attr_prefix = ""
@@ -47,6 +57,11 @@ class FrontendConfig:
         # The name of the signtype
         self.factory_signtype_id = "SupportedSignTypes"
 
+
+        # Should we use TCP for condor_advertise?
+        self.advertise_use_tcp=False
+        # Should we use the new -multiple for condor_advertise?
+        self.advertise_use_multi=False
 
         self.condor_reserved_names=("MyType","TargetType","GlideinMyType","MyAddress",'UpdatesHistory','UpdatesTotal','UpdatesLost','UpdatesSequenced','UpdateSequenceNumber','DaemonStartTime')
 
@@ -343,11 +358,17 @@ class AdvertizeParams:
                  min_nr_glideins,max_run_glideins,
                  glidein_params={},glidein_monitors={},
                  glidein_params_to_encrypt=None,  # params_to_encrypt needs key_obj
-                 security_name=None):             # needs key_obj
+                 security_name=None,              # needs key_obj
+                 remove_excess_str=None):
         self.request_name=request_name
         self.glidein_name=glidein_name
         self.min_nr_glideins=min_nr_glideins
         self.max_run_glideins=max_run_glideins
+        if remove_excess_str==None:
+            remove_excess_str="NO"
+        elif not (remove_excess_str in ("NO","WAIT","IDLE","ALL","UNREG")):
+            raise RuntimeError, 'Invalid remove_excess_str(%s), valid values are "NO","WAIT","IDLE","ALL","UNREG"'%remove_excess_str
+        self.remove_excess_str=remove_excess_str
         self.glidein_params=glidein_params
         self.glidein_monitors=glidein_monitors
         self.glidein_params_to_encrypt=glidein_params_to_encrypt
@@ -357,16 +378,23 @@ class AdvertizeParams:
 def createAdvertizeWorkFile(fname,
                             descript_obj,            # must be of type FrontendDescriptNoGroup (or child)
                             params_obj,              # must be of type AdvertizeParams
-                            key_obj=None):           # must be of type FactoryKeys4Advertize
+                            key_obj=None,            # must be of type FactoryKeys4Advertize
+                            do_append=False):
     global frontendConfig
 
-    fd=file(fname,"w")
+    if do_append:
+        open_type="a"
+    else:
+        open_type="w"
+        
+    fd=file(fname,open_type)
     try:
         try:
             classad_name="%s@%s"%(params_obj.request_name,descript_obj.my_name)
             
             fd.write('MyType = "%s"\n'%frontendConfig.client_id)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_id)
+            fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
             fd.write('Name = "%s"\n'%classad_name)
             fd.write(string.join(descript_obj.get_id_attrs(),'\n')+"\n")
             fd.write('ReqName = "%s"\n'%params_obj.request_name)
@@ -404,7 +432,8 @@ def createAdvertizeWorkFile(fname,
                         
             fd.write('ReqIdleGlideins = %i\n'%params_obj.min_nr_glideins)
             fd.write('ReqMaxRunningGlideins = %i\n'%params_obj.max_run_glideins)
-
+            fd.write('ReqRemoveExcess = "%s"\n'%params_obj.remove_excess_str)
+                     
             # write out both the params and monitors
             for (prefix,data) in ((frontendConfig.glidein_param_prefix,params_obj.glidein_params),
                                   (frontendConfig.glidein_monitor_prefix,params_obj.glidein_monitors),
@@ -417,6 +446,8 @@ def createAdvertizeWorkFile(fname,
                     else:
                         escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
                         fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
+            # add a final empty line... useful when appending
+            fd.write('\n')
         finally:
             fd.close()
     except:
@@ -428,9 +459,10 @@ def createAdvertizeWorkFile(fname,
 # Can throw a CondorExe/ExeError exception
 def advertizeWorkFromFile(factory_pool,
                           fname,
-                          remove_file=True):
+                          remove_file=True,
+                          is_multi=False):
     try:
-        condorExe.exe_cmd("../sbin/condor_advertise","UPDATE_MASTER_AD %s %s"%(pool2str(factory_pool),fname))
+        exe_condor_advertise(fname,"UPDATE_MASTER_AD",factory_pool,is_multi=is_multi)
     finally:
         if remove_file:
             os.remove(fname)
@@ -444,7 +476,8 @@ def advertizeWorkOnce(factory_pool,
                       key_obj=None,            # must be of type FactoryKeys4Advertize
                       remove_file=True):
     createAdvertizeWorkFile(tmpnam,
-                            descript_obj,params_obj,key_obj)
+                            descript_obj,params_obj,key_obj,
+                            do_append=False)
     advertizeWorkFromFile(factory_pool, tmpnam, remove_file)
 
 # As above, but combine many together
@@ -453,17 +486,49 @@ def advertizeWorkMulti(factory_pool,
                        tmpnam,                 # what fname should should I use
                        descript_obj,           # must be of type FrontendDescriptNoGroup (or child)
                        paramkey_list):         # list of tuple (params_obj,key_obj)
+    if frontendConfig.advertise_use_multi:
+        return advertizeWorkMulti_multi(factory_pool,tmpnam,descript_obj,paramkey_list)
+    else:
+        return advertizeWorkMulti_iterate(factory_pool,tmpnam,descript_obj,paramkey_list)
+
+# INTERNAL2
+def advertizeWorkMulti_iterate(factory_pool,
+                               tmpnam,
+                               descript_obj,
+                               paramkey_list):
     error_arr=[]
     for el in paramkey_list:
         params_obj,key_obj=el
         createAdvertizeWorkFile(tmpnam,
-                                descript_obj,params_obj,key_obj)
+                                descript_obj,params_obj,key_obj,
+                                do_append=False)
         try:
             advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True)
         except condorExe.ExeError, e:
             error_arr.append(e)
     if len(error_arr)>0:
         raise MultiExeError, error_arr
+
+# INTERNAL2
+def advertizeWorkMulti_multi(factory_pool,
+                             tmpnam,
+                             descript_obj,
+                             paramkey_list):
+    ap=False
+    for el in paramkey_list:
+        params_obj,key_obj=el
+        createAdvertizeWorkFile(tmpnam,
+                                descript_obj,params_obj,key_obj,
+                                do_append=ap)
+        ap=True # Append from here on
+    
+    if ap: # if true, there is at least one el -> file has been created
+        try:
+            advertizeWorkFromFile(factory_pool, tmpnam, remove_file=True,is_multi=True)
+        except condorExe.ExeError, e:
+            # the parent expects a MultiError
+            raise MultiExeError,[e]
+
 
 # END INTERNAL
 ########################################
@@ -480,11 +545,13 @@ def advertizeWork(factory_pool,
                   glidein_params={},glidein_monitors={},
                   key_obj=None,                     # must be of type FactoryKeys4Advertize
                   glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
-                  security_name=None):              # needs key_obj
+                  security_name=None,               # needs key_obj
+                  remove_excess_str=None):
     params_obj=AdvertizeParams(request_name,glidein_name,
                                min_nr_glideins,max_run_glideins,
                                glidein_params,glidein_monitors,
-                               glidein_params_to_encrypt,security_name)
+                               glidein_params_to_encrypt,security_name,
+                               remove_excess_str)
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9
@@ -506,11 +573,13 @@ class MultiAdvertizeWork:
             glidein_params={},glidein_monitors={},
             key_obj=None,                     # must be of type FactoryKeys4Advertize
             glidein_params_to_encrypt=None,   # params_to_encrypt needs key_obj
-            security_name=None):              # needs key_obj
+            security_name=None,               # needs key_obj
+            remove_excess_str=None):
         params_obj=AdvertizeParams(request_name,glidein_name,
                                    min_nr_glideins,max_run_glideins,
                                    glidein_params,glidein_monitors,
-                                   glidein_params_to_encrypt,security_name)
+                                   glidein_params_to_encrypt,security_name,
+                                   remove_excess_str)
         if not self.factory_queue.has_key(factory_pool):
             self.factory_queue[factory_pool]=[]
         self.factory_queue[factory_pool].append((params_obj,key_obj))
@@ -562,7 +631,7 @@ def deadvertizeWork(factory_pool,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s %s"%(pool2str(factory_pool),tmpnam))
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS",factory_pool)
     finally:
         os.remove(tmpnam)
 
@@ -583,7 +652,7 @@ def deadvertizeAllWork(factory_pool,
         finally:
             fd.close()
 
-        condorExe.exe_cmd("../sbin/condor_advertise","INVALIDATE_MASTER_ADS %s %s"%(pool2str(factory_pool),tmpnam))
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS",factory_pool)
     finally:
         os.remove(tmpnam)
 
@@ -593,9 +662,9 @@ def deadvertizeAllWork(factory_pool,
 #
 ############################################################
 
-def pool2str(pool_name):
-    if pool_name==None:
-        return ""
-    else:
-        return "-pool %s"%pool_name
+def exe_condor_advertise(fname,command,
+                         factory_pool,
+                         is_multi=False):
+    return condorManager.condorAdvertise(fname,command,frontendConfig.advertise_use_tcp,is_multi,factory_pool)
 
+    

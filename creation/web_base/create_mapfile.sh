@@ -1,6 +1,13 @@
 #
-# This is an include file for glidein_startup.sh
-# It has the routins to create grid and condor mapfiles
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: create_mapfile.sh,v 1.3 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   This is an include file for glidein_startup.sh
+#   It has the routins to create grid and condor mapfiles
 #
 
 # add the current DN to the list of allowed DNs

@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: checkFactory.py,v 1.6 2011/02/10 21:35:30 parag Exp $
+#
 # Description:
 #   Check if a glideinFactory is running
 # 

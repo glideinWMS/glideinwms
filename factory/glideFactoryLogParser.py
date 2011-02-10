@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactoryLogParser.py,v 1.18 2011/02/10 21:35:30 parag Exp $
+#
 # Description:
 #   This module implements classes to track
 #   changes in glidein status logs
@@ -9,6 +15,7 @@
 
 
 import os, os.path,time,stat,sets
+import copy
 import mmap,re
 import condorLogParser
 
@@ -16,6 +23,7 @@ rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
 
 # this class declares a job complete only after the output file has been received, too
+# the format is slightly different than the one of logSummaryTimings; we add the dirname in the job id
 # when a output file is found, it adds a 4th parameter to the completed jobs
 # see extractLogData below for more details
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
@@ -69,12 +77,24 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 
         self.data['CompletedNoOut']=new_waitout
         self.data['Completed']=new_completed
+
+        # append log name prefix
+        for k in self.data.keys():
+            new_karr=[]
+            for el in self.data[k]:
+                job_id=rawJobId2Nr(el[0])
+                job_fname='job.%i.%i'%(job_id[0],job_id[1])
+                job_fullname=os.path.join(self.dirname,job_fname)
+                new_el=el+(job_fullname,)
+                new_karr.append(new_el)
+            self.data[k]=new_karr
+
         return
 
     # diff self data with other info
     # add glidein log data to Entered/Completed
     # return data[status]['Entered'|'Exited'] - list of jobs
-    def diff(self,other):
+    def diff_raw(self,other):
         if other==None:
             outdata={}
             if self.data!=None:
@@ -107,7 +127,6 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
 
                 #################
-                # Need to finish
 
                 outdata_s={'Entered':[],'Exited':[]}
                 outdata[s]=outdata_s
@@ -120,19 +139,7 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 if self.data.has_key(s):
                     for sel_e in self.data[s]:
                         if sel_e[0] in entered_set:
-                            if s=="Completed":
-                                job_id=rawJobId2Nr(sel_e[0])
-                                job_fname='job.%i.%i.out'%job_id
-                                job_fullname=os.path.join(self.dirname,job_fname)
-                                
-                                try:
-                                    fdata=extractLogData(job_fullname)
-                                except:
-                                    fdata=None # just protect
-                                    
-                                entered.append(sel_e+(fdata,))
-                            else:
-                                entered.append(sel_e)
+                            entered.append(sel_e)
 
                 exited_set=oset.difference(sset)
                 exited=[]
@@ -147,19 +154,63 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
             return outdata
 
 
+    # diff self data with other info
+    # add glidein log data to Entered/Completed
+    # return data[status]['Entered'|'Exited'] - list of jobs
+    # completed jobs are augmented with data from the log
+    def diff(self,other):
+        outdata=self.diff_raw(other)
+        if outdata.has_key("Completed"):
+            outdata_s=outdata["Completed"]
+            entered=outdata_s['Entered']
+            for i in range(len(entered)):
+                sel_e=entered[i]
+                job_fullname=sel_e[-1]+'.out'
+
+                try:
+                    fdata=extractLogData(job_fullname)
+                except:
+                    fdata=copy.deepcopy(EMPTY_LOG_DATA) # just protect
+                    
+                entered[i]=(sel_e[:-1]+(fdata,sel_e[-1]))
+        return outdata
+
 # for now it is just a constructor wrapper
 # Further on it will need to implement glidein exit code checks
+
+class dirSummarySimple:
+    def __init__(self,obj):
+        self.data=copy.deepcopy(obj.data)
+        self.logClass=obj.logClass
+
+    # diff self data with other info
+    def diff(self,other):
+        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data=self.data # a little rough but works
+        return  dummyobj.diff(other.data) 
+
+    # merge other into myself
+    def merge(self,other):
+        dummyobj=self.logClass(os.path.join('/tmp','dummy.txt'),'/tmp')
+        dummyobj.data=self.data # a little rough but works
+        dummyobj.merge(copy.deepcopy(other.data))
+        self.data=dummyobj.data
 
 # One client_name
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
     def __init__(self,dirname,cache_dir,client_name,user_name,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,user_name),dirname,"condor_activity_","_%s.log"%client_name,".%s.cifpk"%user_name,inactive_files,inactive_timeout,cache_dir)
 
+    def get_simple(self):
+        return dirSummarySimple(self)
+
 # All clients
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
     def __init__(self,dirname,cache_dir,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,"all"),dirname,"condor_activity_",".log",".all.cifpk",inactive_files,inactive_timeout,cache_dir)
 
+    def get_simple(self):
+        return dirSummarySimple(self)
 
 #########################################################
 #     P R I V A T E
@@ -174,6 +225,7 @@ ELD_RC_GLIDEIN_END=re.compile("=== Glidein ending .* with code (?P<code>[0-9]+) 
 
 KNOWN_SLOT_STATS=['Total','goodZ','goodNZ','badSignal','badOther']
 
+EMPTY_LOG_DATA={'condor_started':0,'glidein_duration':0}
 
 # will return a dictionary
 #  glidein_duration - integer, how long did the glidein run
@@ -193,7 +245,7 @@ def extractLogData(fname):
 
     size = os.path.getsize(fname)
     if size<10:
-        return {'condor_started':0,'glidein_duration':0}
+        return copy.deepcopy(EMPTY_LOG_DATA)
     fd=open(fname,'r')
     try:
         buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)

@@ -1,10 +1,26 @@
 #!/bin/bash
 
-############################################################
 #
-# This script will setup the gLExec parameters
+# Project:
+#   glideinWMS
 #
-############################################################
+# File Version:
+#   $Id: glexec_setup.sh,v 1.19 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   This script will setup the gLExec parameters
+#
+
+# Configuration in case GLEXEC should not be used
+function no_use_glexec_config {
+    echo "Not using glexec"
+    # still explicitly disable it in the config
+    add_config_line "GLEXEC_STARTER" "False"
+    add_config_line "GLEXEC_JOB" "False"
+    add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
+    add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
+    exit 0
+}
 
 # Configuration in case GLEXEC should not be used
 function no_use_glexec_config {

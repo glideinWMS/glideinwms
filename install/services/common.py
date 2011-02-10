@@ -3,6 +3,7 @@
 import sys,os.path,string,time,stat,shutil, getpass
 import pwd
 import socket
+import re
 
 #--------------------------
 class WMSerror(Exception):
@@ -39,6 +40,7 @@ def write_file(mode,perm,filename,data):
 
 #--------------------------
 def make_directory(dirname,owner,perm,empty_required=True):
+  ## logit("... checking directory: %s" % dirname)
   if os.path.isdir(dirname):
     if not_writeable(dirname):
       logerr("Directory (%s) exists but is not writable by user %s" % (dirname,owner))
@@ -50,12 +52,15 @@ def make_directory(dirname,owner,perm,empty_required=True):
 
     if ask_yn( "... directory (%s) already exists and must be empty.\n... can the contents be removed (y/n>" % dirname) == "n":
       logerr("Terminating at your request")
-    if not_writeable(os.path.dirname(dirname)):
+    #if not_writeable(os.path.dirname(dirname)): #not removing in case correct
+    if not_writeable(dirname):
       logerr("Cannot empty %s because of permissions/ownership of parent dir" % dirname)
     remove_dir_contents(dirname)
     return  # we done.. all is ok
 
   #-- create it but check entire path ---
+  ## ask_continue("... directory does not exist. Is it OK to create it")
+  logit("... creating directory: %s" % dirname)
   dirs = [dirname,]  # directories we need to create
   dir = dirname
   while dir <> "/":
@@ -182,33 +187,35 @@ def validate_install_location(dir):
 #--------------------------------
 def ask_yn(question):
   while 1:
-    yn = "n"
-    yn = raw_input("%s? (y/n) [%s]: " % (question,yn))
-    if yn == "y" or yn == "n":
+    yn = raw_input("%s? (y/n): " % (question))
+    if yn.strip() == "y" or yn.strip() == "n":
       break
     logit("... just 'y' or 'n' please")
-  return yn
+  return yn.strip()
 
 #--------------------------------
 def ask_continue(question):
   while 1:
-    yn = "n"
-    yn = raw_input("%s? (y/n) [%s]: " % (question,yn))
-    if yn == "y" or yn == "n":
+    yn = raw_input("%s? (y/n): " % (question))
+    if yn.strip() == "y" or yn.strip() == "n":
       break
-    logit("\nWARNING: just 'y' or 'n' please")
-  if yn == "n":
+    logit("... just 'y' or 'n' please")
+  if yn.strip() == "n":
     raise KeyboardInterrupt
 
 #--------------------------------
-def validate_node(node):
-  logit("... validating node: %s" % node)
-  if node <> os.uname()[1]:
-    logerr("Node option (%s) shows different host. This is %s" % (node,os.uname()[1]))
+def validate_hostname(node,additional_msg=""):
+  logit("... validating hostname: %s" % node)
+  if node <> socket.getfqdn():
+    logerr("""The hostname option (%(hostname)s) shows a different host. 
+      This is %(thishost)s.
+      %(msg)s """ % { "hostname" : node,
+                      "thishost" : socket.getfqdn(),
+                      "msg"      : additional_msg,})
 
 #--------------------------------
 def validate_user(user):
-  logit("... validating user: %s" % user)
+  logit("... validating username: %s" % user)
   try:
     x = pwd.getpwnam(user)
   except:
@@ -223,9 +230,9 @@ def validate_installer_user(user):
 
 #--------------------------------
 def validate_gsi(dn_to_validate,type,location):
-  logit("... validating gsi_dn: %s" % dn_to_validate)
-  logit("... validating gsi_authentication: %s" % type)
+  logit("... validating gsi_credential_type: %s" % type)
   logit("... validating gsi_location: %s" % location)
+  logit("... validating x509_gsi_dn: %s" % dn_to_validate)
   dn_in_file = get_gsi_dn(type,location)
   if dn_in_file <> dn_to_validate:
     logerr("The DN of the %s in %s does not match the gsi_dn attribute in your ini file:\n%8s: %s\n     ini: %s\nThis may cause a problem in other services." % (type, location,type,dn_in_file,dn_to_validate))
@@ -267,6 +274,21 @@ def get_gsi_dn(type,filename):
   return my_dn
 
 #----------------------------
+def mapfile_entry(dn,name):
+  if len(dn) == 0 or len(name) == 0:
+    return ""
+  return """GSI "^%(dn)s$" %(name)s
+""" % { "dn" : re.escape(dn), "name" : name,}
+
+#----------------------------
+def not_an_integer(value):
+  try:
+    nbr = int(value)
+  except:
+    return True
+  return False
+
+#----------------------------
 def url_is_valid(url):
   try:
     ress_ip=socket.gethostbyname(url)
@@ -287,13 +309,42 @@ def indent(level):
   indent = ""
   while len(indent) < (level * 2):
     indent = indent + "  "
-  return "\n" + indent
+  return indent
 
-
+#------------------
+def start_service(glidein_src, service, inifile):
+  """ Generic method for asking if service is to be started and 
+      starting it if requested. 
+  """
+  argDict = { "WMSCollector"   : "wmscollector",
+              "Factory"        : "factory",
+              "UserCollector"  : "usercollector",
+              "Submit"         : "submit",
+              "VOFrontend"     : "vofrontend",
+            }
+  cmd ="%(glidein_src)s/install/manage-glideins --start %(service)s --ini %(inifile)s" % \
+           { "inifile" : inifile,
+             "service" : argDict[service],
+             "glidein_src" : glidein_src, 
+           }
+  os.system("sleep 3")
+  logit("")
+  logit("You will need to have the %(service)s service running if you intend\nto install the other glideinWMS components." % { "service" : service })
+  yn = ask_yn("... would you like to start it now")
+  if yn == "y":
+     run_script(cmd)
+  else:
+    logit("\nTo start the %(service)s you can run:\n %(cmd)s" % \
+           { "cmd"     : cmd,
+             "service" : service,
+           })
 
 #######################################
 if __name__ == '__main__':
   print "Starting some tests"
+  #ans = ask_continue("kldsjfklj")
+  #print ans
+  #sys.exit(0)
   try:
     print "Testing make_directory"
     owner = pwd.getpwuid(os.getuid())[0]

@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condorSecurity.py,v 1.3 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements classes that will setup
 #   the Condor security as needed
@@ -288,4 +294,3 @@ class GSIRequest(ProtoRequest):
     def enforce_requests(self):
         ProtoRequest.enforce_requests(self)
         os.environ['X509_USER_PROXY']=self.x509_proxy
-

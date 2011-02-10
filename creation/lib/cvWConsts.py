@@ -1,12 +1,15 @@
-####################################
 #
-# Keep all the constants used to
-# create frontend entries in this
-# module
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cvWConsts.py,v 1.5 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   Keep all the constants used to create frontend entries in this module
 #
 # Author: Igor Sfiligoi
 #
-####################################
 
 import os.path
 import cWConsts

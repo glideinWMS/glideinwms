@@ -1,4 +1,13 @@
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: test_cm.py,v 1.2 2011/02/10 21:35:30 parag Exp $
+#
+
 import condorMonitor
+
 condorMonitor.set_path("/home/sfiligoi/condor/dist/bin")
 c=condorMonitor.CondorQ(schedd_name="schedd_glideins@cms-xen6.fnal.gov")
 c.load()

@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condorLogParser.py,v 1.29 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements classes and functions to parse
 #   the condor log files.
@@ -29,12 +35,12 @@ class cachedLogClass:
     # also loadFromLog, merge and isActive need to be implemented
 
     # init method to be used by real constructors
-    def clInit(self, logname, cache_dir, cache_ext):
-        self.logname = logname
-        if cache_dir == None:
-            self.cachename = logname + cache_ext
+    def clInit(self,logname,cache_dir,cache_ext):
+        self.logname=logname
+        if cache_dir==None:
+            self.cachename=logname+cache_ext
         else:
-            self.cachename = os.path.join(cache_dir, os.path.basename(logname) + cache_ext)
+            self.cachename=os.path.join(cache_dir,os.path.basename(logname)+cache_ext)
 
     # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
@@ -97,8 +103,8 @@ class cachedLogClass:
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummary(cachedLogClass):
-    def __init__(self, logname, cache_dir):
-        self.clInit(logname, cache_dir, ".cstpk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".cstpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -118,6 +124,8 @@ class logSummary(cachedLogClass):
     def merge(self, other):
         if other == None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data.keys():
                 try:
@@ -176,8 +184,8 @@ class logSummary(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'completed_jobs':['123.002','555.001'],'counts':{'Idle': 1145, 'Completed': 2}}
 class logCompleted(cachedLogClass):
-    def __init__(self, logname, cache_dir):
-        self.clInit(logname, cache_dir, ".clspk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".clspk")
 
     def loadFromLog(self):
         tmpdata = {}
@@ -210,6 +218,8 @@ class logCompleted(cachedLogClass):
     def merge(self, other):
         if other == None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data['counts'].keys():
                 try:
@@ -277,8 +287,8 @@ class logCompleted(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'Idle': 1145, 'Completed': 2}
 class logCounts(cachedLogClass):
-    def __init__(self, logname, cache_dir):
-        self.clInit(logname, cache_dir, ".clcpk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".clcpk")
 
     def loadFromLog(self):
         jobs = parseSubmitLogFastRaw(self.logname)
@@ -300,6 +310,8 @@ class logCounts(cachedLogClass):
     def merge(self, other):
         if other == None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data.keys():
                 try:
@@ -348,8 +360,8 @@ class logCounts(cachedLogClass):
 # These data is available in self.data dictionary
 # for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummaryTimings(cachedLogClass):
-    def __init__(self, logname, cache_dir):
-        self.clInit(logname, cache_dir, ".ctstpk")
+    def __init__(self,logname,cache_dir):
+        self.clInit(logname,cache_dir,".ctstpk")
 
     def loadFromLog(self):
         jobs, self.startTime, self.endTime = parseSubmitLogFastRawTimings(self.logname)
@@ -370,6 +382,8 @@ class logSummaryTimings(cachedLogClass):
     def merge(self, other):
         if other == None:
             return self.data
+        elif self.data==None:
+            return other
         else:
             for k in self.data.keys():
                 try:
@@ -448,25 +462,25 @@ class cacheDirClass:
     def __init__(self, logClass,
                  dirname, log_prefix, log_suffix=".log", cache_ext=".cifpk",
                  inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout = 24*3600,   # how much time must elapse before a file can be declared inactive
+                 inactive_timeout=24*3600,   # how much time must elapse before a file can be declared inactive
                  cache_dir=None):            # if None, use dirname
-        self.cdInit(logClass, dirname, log_prefix, log_suffix, cache_ext, inactive_files, inactive_timeout, cache_dir)
+        self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
     def cdInit(self, logClass,
                dirname, log_prefix, log_suffix=".log", cache_ext=".cifpk",
                inactive_files=None,         # if ==None, will be reloaded from cache
                inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
                cache_dir=None):             # if None, use dirname
-        self.logClass = logClass # this is an actual class, not an object
-        self.dirname = dirname
-        if cache_dir == None:
-            cache_dir = dirname
-        self.cache_dir = cache_dir
-        self.log_prefix = log_prefix
-        self.log_suffix = log_suffix
-        self.inactive_timeout = inactive_timeout
-        self.inactive_files_cache = os.path.join(cache_dir, log_prefix+log_suffix+cache_ext)
-        if inactive_files == None:
+        self.logClass=logClass # this is an actual class, not an object
+        self.dirname=dirname
+        if cache_dir==None:
+            cache_dir=dirname
+        self.cache_dir=cache_dir
+        self.log_prefix=log_prefix
+        self.log_suffix=log_suffix
+        self.inactive_timeout=inactive_timeout
+        self.inactive_files_cache=os.path.join(cache_dir,log_prefix+log_suffix+cache_ext)
+        if inactive_files==None:
             if os.path.isfile(self.inactive_files_cache):
                 self.inactive_files = loadCache(self.inactive_files_cache)
             else:
@@ -495,8 +509,8 @@ class cacheDirClass:
         ch = False
         fnames = self.getFileList(active_only=True)
         for fname in fnames:
-            obj = self.logClass(os.path.join(self.dirname,fname), self.cache_dir)
-            ch = (ch or obj.has_changed()) # it is enough that one changes
+            obj=self.logClass(os.path.join(self.dirname,fname),self.cache_dir)
+            ch=(ch or obj.has_changed()) # it is enough that one changes
         return ch
 
     
@@ -510,11 +524,11 @@ class cacheDirClass:
         now = time.time()
         # load and merge data
         for fname in fnames:
-            absfname = os.path.join(self.dirname, fname)
+            absfname=os.path.join(self.dirname,fname)
             if os.path.getsize(absfname)<1:
                 continue # skip empty files
-            last_mod = os.path.getmtime(absfname)
-            obj = self.logClass(absfname, self.cache_dir)
+            last_mod=os.path.getmtime(absfname)
+            obj=self.logClass(absfname,self.cache_dir)
             obj.load()
             mydata = obj.merge(mydata)
             if ( ((now-last_mod) > self.inactive_timeout) and 
@@ -535,8 +549,8 @@ class cacheDirClass:
 
     # diff self data with other info
     def diff(self,other):
-        dummyobj = self.logClass(os.path.join(self.dirname,'dummy.txt'), self.cache_dir)
-        dummyobj.data = self.data # a little rough but works
+        dummyobj=self.logClass(os.path.join(self.dirname,'dummy.txt'),self.cache_dir)
+        dummyobj.data=self.data # a little rough but works
         return  dummyobj.diff(other) 
         
 # this class will keep track of:
@@ -720,10 +734,10 @@ def parseSubmitLogFastRawTimings(fname):
     size = os.path.getsize(fname)
     if size==0:
         # nothing to read, if empty
-        return jobs, first_time, last_time
+        return jobs,first_time,last_time
     
-    fd = open(fname, "r")
-    buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -777,8 +791,8 @@ def parseSubmitLogFastRawCallback(fname, callback):
         # nothing to read, if empty
         return
 
-    fd = open(fname, "r")
-    buf = mmap.mmap(fd.fileno(), size, access=mmap.ACCESS_READ)
+    fd=open(fname,"r")
+    buf=mmap.mmap(fd.fileno(),size,access=mmap.ACCESS_READ)
 
     idx = 0
 
@@ -803,8 +817,8 @@ def parseSubmitLogFastRawCallback(fname, callback):
             old_status=jobs[jobid]
             new_status = get_new_status(old_status, status)
             if new_status != old_status:
-                callback(new_status, line_time, jobid)
-                if new_status in ('005', '009'):
+                callback(new_status,line_time,jobid)
+                if new_status in ('005','009'):
                     del jobs[jobid] #end of live, don't need it anymore
                 else:
                     jobs[jobid] = new_status

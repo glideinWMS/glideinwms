@@ -1,4 +1,12 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: local_start.sh,v 1.6 2011/02/10 21:35:30 parag Exp $
+#
+
 export GLIDEIN_USER=`id -u -n`
 
 if [ $# -lt 2 ]; then
@@ -25,6 +33,10 @@ while [ $# -ge 2 ]; do
  shift
  shift
 done
+
+export GLIDEIN_CLIENT="test"
+export GLIDEIN_X509_SEC_CLASS="test"
+export GLIDEIN_X509_ID="test"
 
 GLIDEIN_FACTORY=`grep "^FactoryName " glidein.descript | awk '{print $2}'`
 GLIDEIN_NAME=`grep "^GlideinName " glidein.descript | awk '{print $2}'`

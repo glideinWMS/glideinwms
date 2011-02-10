@@ -26,7 +26,7 @@ class PrivilegeSeparation:
     # -- condor switchboard that must have setuid ----
     self.switchboard_bin = os.path.join(self.condor_location,'sbin/condor_root_switchboard')
     # -- users and groups ----
-    self.factory_user    = self.factory.unix_acct()
+    self.factory_user    = self.factory.username()
     self.factory_groups  = None
     self.frontend_groups = {}
     self.frontend_users  = []
@@ -45,44 +45,48 @@ class PrivilegeSeparation:
 
   #--------------------------------
   def validate_client_files(self):
-    common.logit("... privilege separation requires root-only write permissions (drwxr-xr-x) for full path to client files: %s" % os.path.dirname(self.factory.client_files()))
-    dir = self.factory.client_files()
-    while dir <> "/":
-      common.logit("... validating %s" % dir)
-      if not os.path.exists(dir):
+    common.logit("""Privilege separation requires root-only write permissions (drwxr-xr-x) for 
+full path to client files: """)
+    dirs = [ self.factory.client_log_dir(), self.factory.client_proxy_dir(), ]
+    for dir in dirs:
+      common.logit("client directory: %s" % dir)
+      while dir <> "/":
+        common.logit("   validating %s" % dir)
+        if not os.path.exists(dir):
+          dir = os.path.dirname(dir)
+          continue
+        if not os.path.isdir(dir):
+          common.logerr("This is not a directory: %s" % dir)
+        if os.stat(dir)[4] <> 0:
+          common.logerr("Group is not root: %s" % dir)
+        if os.stat(dir)[5] <> 0:
+          common.logerr("Owner is not root: %s" % dir)
+        if not common.has_permissions(dir,"USR",["R","W","X",]):
+          common.logerr("Incorrect 'owner' permissions: %s" % dir)
+        if not common.has_permissions(dir,"GRP",["R","X",]) or common.has_permissions(dir,"GRP",["W",]):
+          common.logerr("Incorrect 'group' permissions: %s" % dir)
+        if not common.has_permissions(dir,"OTH",["R","X",]) or common.has_permissions(dir,"OTH",["W",]):
+          common.logerr("Incorrect 'other' permissions: %s" % dir)
         dir = os.path.dirname(dir)
-        continue
-      if not os.path.isdir(dir):
-        common.logerr("This is not a directory: %s" % dir)
-      if os.stat(dir)[4] <> 0:
-        common.logerr("Group is not root: %s" % dir)
-      if os.stat(dir)[5] <> 0:
-        common.logerr("Owner is not root: %s" % dir)
-      if not common.has_permissions(dir,"USR",["R","W","X",]):
-        common.logerr("Incorrect 'owner' permissions: %s" % dir)
-      if not common.has_permissions(dir,"GRP",["R","X",]) or common.has_permissions(dir,"GRP",["W",]):
-        common.logerr("Incorrect 'group' permissions: %s" % dir)
-      if not common.has_permissions(dir,"OTH",["R","X",]) or common.has_permissions(dir,"OTH",["W",]):
-        common.logerr("Incorrect 'other' permissions: %s" % dir)
-      dir = os.path.dirname(dir)
 
   #--------------------------------
   def config_data(self):
     data = """
-valid-caller-uids = %s 
-valid-caller-gids = %s 
-valid-target-uids = %s 
-valid-target-gids = %s 
-valid-dirs = %s 
-valid-dirs = %s 
-procd-executable = %s
-""" % (self.factory_user,
-       self.factory_groups,
-       string.join(self.frontend_users," : "),
-       string.join(self.frontend_groups.keys()," : "),
-       self.factory.client_logs(),
-       self.factory.client_proxies(),
-       os.path.join(self.condor_location,'sbin/condor_procd'))
+valid-caller-uids = %(factory_user)s 
+valid-caller-gids = %(factory_groups)s 
+valid-target-uids = %(client_uids)s 
+valid-target-gids = %(client_gids)s 
+valid-dirs = %(client_log_dir)s 
+valid-dirs = %(client_proxy_dir)s 
+procd-executable = %(procd)s
+""" % { "factory_user"     : self.factory_user,
+        "factory_groups"   : self.factory_groups,
+        "client_uids"      : string.join(self.frontend_users," : "),
+        "client_gids"      : string.join(self.frontend_groups.keys()," : "),
+        "client_log_dir"   : self.factory.client_log_dir(),
+        "client_proxy_dir" : self.factory.client_proxy_dir(),
+        "procd"    : os.path.join(self.condor_location,'sbin/condor_procd'),
+       }
     return data
 
   #--------------------------------
@@ -170,7 +174,7 @@ those in your frontend_users attribute of the WMSCollector ini file:
     os.chmod(self.switchboard_bin,04755)
     #-- create factory directories ---
     #-- factory dirs done in Factory install --
-    # self.factory.create_factory_dirs(self.factory.unix_acct(),0755)
+    # self.factory.create_factory_dirs(self.factory.username(),0755)
     self.factory.create_factory_client_dirs('root',0755)
     common.logit("--- End of updates for Privilege Separation.--- ")
 

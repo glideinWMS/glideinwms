@@ -1,6 +1,13 @@
 #
-# This is an include file for glidein_startup.sh
-# It has the routins to setup the X509 environment
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: setup_x509.sh,v 1.13 2011/02/10 21:35:30 parag Exp $
+#
+# Description;
+#   This is an include file for glidein_startup.sh
+#   It has the routins to setup the X509 environment
 #
 
 # check that x509 certificates exist and set the env variable if needed

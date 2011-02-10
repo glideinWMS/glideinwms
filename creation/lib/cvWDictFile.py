@@ -1,9 +1,14 @@
-#######################################################
 #
-# VO Frontend creation module
-# Classes and functions needed to handle dictionary files
+# Project:
+#   glideinWMS
 #
-#######################################################
+# File Version: 
+#   $Id: cvWDictFile.py,v 1.18 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   VO Frontend creation module
+#   Classes and functions needed to handle dictionary files
+#
 
 import os,os.path,shutil,string,copy
 import cvWConsts,cWConsts

@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: timeConversion.py,v 1.8 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements time2string functions
 #

@@ -1,7 +1,27 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condor_startup.sh,v 1.50 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+# This script starts the condor daemons expects a config file as a parameter
+#
 
-# This script starts the condor daemons
-# expects a config file as a parameter
+#function to handle passing signals to the child processes
+function on_die {
+echo "Condor startup received kill signal... shutting down condor processes"
+$CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
+ON_DIE=1
+}
+
+function ignore_signal {
+        echo "Condor startup received SIGHUP signal, ignoring..."
+}
+
+
 
 #function to handle passing signals to the child processes
 function on_die {
@@ -217,16 +237,26 @@ done < condor_vars.lst.tmp
 
 #let "max_job_time=$job_max_hours * 3600"
 
+# calculate retire time if wall time is defined (undefined=-1)
+if [ -z "$GLIDEIN_Max_Walltime" ]; then
+  retire_time=$GLIDEIN_Retire_Time
+  echo "used param defined retire time, $retire_time" 1>&2
+else
+  echo "max wall time, $GLIDEIN_Max_Walltime" 1>&2
+  retire_time=$(($GLIDEIN_Max_Walltime - $GLIDEIN_Job_Max_Time))
+  GLIDEIN_Retire_Time=$retire_time
+  echo "calculated retire time, $retire_time" 1>&2
+fi
+org_GLIDEIN_Retire_Time=$retire_time
 # randomize the retire time, to smooth starts and terminations
-org_GLIDEIN_Retire_Time=$GLIDEIN_Retire_Time
 let "random100=$RANDOM%100"
-let "GLIDEIN_Retire_Time=$GLIDEIN_Retire_Time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
+let "retire_time=$retire_time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
 
 # but protect from going too low
-if [ "$GLIDEIN_Retire_Time" -lt "600" ]; then
-  GLIDEIN_Retire_Time=600
+if [ "$retire_time" -lt "600" ]; then
+  retire_time=600
 fi
-echo "Retire time set to $GLIDEIN_Retire_Time" 1>&2
+echo "Retire time set to $retire_time" 1>&2
 
 now=`date +%s`
 let "x509_duration=$X509_EXPIRE - $now - 1"
@@ -238,7 +268,7 @@ let "x509_duration=$X509_EXPIRE - $now - 1"
 #    let "glidein_expire=$now + $max_job_time"
 #fi
 
-let "glidein_toretire=$now + $GLIDEIN_Retire_Time"
+let "glidein_toretire=$now + $retire_time"
 
 # put some safety margin
 let "session_duration=$x509_duration + 300"
@@ -309,23 +339,25 @@ if [ "$use_multi_monitor" -eq 1 ]; then
     fi
 else
     condor_config_main_include="${main_stage_dir}/`grep -i '^condor_config_main_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
-    condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
     echo "# ---- start of include part ----" >> "$CONDOR_CONFIG"
 
     # using two different configs... one for monitor and one for main
-    condor_config_monitor=${CONDOR_CONFIG}.monitor
-    cp "$CONDOR_CONFIG" "$condor_config_monitor"
-    if [ $? -ne 0 ]; then
-	echo "Error copying condor_config into condor_config.monitor" 1>&2
-	exit 1
-    fi
-    cat "$condor_config_monitor_include" >> "$condor_config_monitor"
-    if [ $? -ne 0 ]; then
-	echo "Error appending monitor_include to condor_config.monitor" 1>&2
-	exit 1
-    fi
+    # don't create the monitoring configs and dirs if monitoring is disabled
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      condor_config_monitor_include="${main_stage_dir}/`grep -i '^condor_config_monitor_include ' ${main_stage_dir}/${description_file} | awk '{print $2}'`"
+      condor_config_monitor=${CONDOR_CONFIG}.monitor
+      cp "$CONDOR_CONFIG" "$condor_config_monitor"
+      if [ $? -ne 0 ]; then
+	  echo "Error copying condor_config into condor_config.monitor" 1>&2
+	  exit 1
+      fi
+      cat "$condor_config_monitor_include" >> "$condor_config_monitor"
+      if [ $? -ne 0 ]; then
+	  echo "Error appending monitor_include to condor_config.monitor" 1>&2
+	  exit 1
+      fi
 
-    cat >> "$condor_config_monitor" <<EOF
+      cat >> "$condor_config_monitor" <<EOF
 # use a different name for monitor
 MASTER_NAME = monitor_$$
 STARTD_NAME = monitor_$$
@@ -333,23 +365,26 @@ STARTD_NAME = monitor_$$
 # use plural names, since there may be more than one if multiple job VMs
 Monitored_Names = "glidein_$$@\$(FULL_HOSTNAME)"
 EOF
-
+    fi
+    
     cat $condor_config_main_include >> "$CONDOR_CONFIG"
     if [ $? -ne 0 ]; then
 	echo "Error appending main_include to condor_config" 1>&2
 	exit 1
     fi
 
-    cat >> "$CONDOR_CONFIG" <<EOF
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      cat >> "$CONDOR_CONFIG" <<EOF
 
 Monitoring_Name = "monitor_$$@\$(FULL_HOSTNAME)"
 EOF
 
-    # also needs to create "monitor" dir for log and execute dirs
-    mkdir monitor monitor/log monitor/execute 
-    if [ $? -ne 0 ]; then
-	echo "Error creating monitor dirs" 1>&2
-	exit 1
+      # also needs to create "monitor" dir for log and execute dirs
+      mkdir monitor monitor/log monitor/execute 
+      if [ $? -ne 0 ]; then
+	  echo "Error creating monitor dirs" 1>&2
+	  exit 1
+      fi
     fi
 fi
 
@@ -374,28 +409,31 @@ fi
 
 ##	start the condor master
 if [ "$use_multi_monitor" -ne 1 ]; then
-    # start monitoring startd
-    # use the appropriate configuration file
-    tmp_condor_config=$CONDOR_CONFIG
-    export CONDOR_CONFIG=$condor_config_monitor
+    # don't start if monitoring is disabled
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      # start monitoring startd
+      # use the appropriate configuration file
+      tmp_condor_config=$CONDOR_CONFIG
+      export CONDOR_CONFIG=$condor_config_monitor
 
-    monitor_start_time=`date +%s`
-    echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
+      monitor_start_time=`date +%s`
+      echo "Starting monitoring condor at `date` (`date +%s`)" 1>&2
 
-    # set the worst case limit
-    # should never hit it, but let's be safe and shutdown automatically at some point
-    let "monretmins=( $GLIDEIN_Retire_Time + $GLIDEIN_Job_Max_Time ) / 60 - 1"
-    $CONDOR_DIR/sbin/condor_master -f -r $monretmins -pidfile $PWD/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
-    ret=$?
-    if [ "$ret" -ne 0 ]; then
-	echo 'Failed to start monitoring condor... still going ahead' 1>&2
+      # set the worst case limit
+      # should never hit it, but let's be safe and shutdown automatically at some point
+      let "monretmins=( $retire_time + $GLIDEIN_Job_Max_Time ) / 60 - 1"
+      $CONDOR_DIR/sbin/condor_master -f -r $monretmins -pidfile $PWD/monitor/condor_master.pid  >/dev/null 2>&1 </dev/null &
+      ret=$?
+      if [ "$ret" -ne 0 ]; then
+	  echo 'Failed to start monitoring condor... still going ahead' 1>&2
+      fi
+
+      # clean back
+      export CONDOR_CONFIG=$tmp_condor_config
+
+      monitor_starter_log='monitor/log/StarterLog'
     fi
-
-    # clean back
-    export CONDOR_CONFIG=$tmp_condor_config
-
-    main_starter_log='log/StarterLog'
-    monitor_starter_log='monitor/log/StarterLog'
+      main_starter_log='log/StarterLog'
 else
     main_starter_log='log/StarterLog.vm2'
     monitor_starter_log='log/StarterLog.vm1'
@@ -404,9 +442,10 @@ fi
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
+trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$GLIDEIN_Retire_Time / 60 - 1"
+let "retmins=$retire_time / 60 + 1"
 
 
 #### STARTS CONDOR ####
@@ -414,13 +453,13 @@ if [ "$operation_mode" == "2" ]; then
 	echo "=== Condor started in test mode ==="
 	$CONDOR_DIR/sbin/condor_master -r $retmins -pidfile $PWD/condor_master.pid
 else
-	$CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/monitor/condor_master2.pid &
+	$CONDOR_DIR/sbin/condor_master -f -r $retmins -pidfile $PWD/condor_master2.pid &
 	# Wait for a few seconds to make sure the pid file is created, 
 	# then wait on it for completion
 	sleep 5
-	if [ -e "$PWD/monitor/condor_master2.pid" ]; then
-		echo "=== Condor started in background, now waiting on process `cat $PWD/monitor/condor_master2.pid` ==="
-		wait `cat $PWD/monitor/condor_master2.pid`
+	if [ -e "$PWD/condor_master2.pid" ]; then
+		echo "=== Condor started in background, now waiting on process `cat $PWD/condor_master2.pid` ==="
+		wait `cat $PWD/condor_master2.pid`
 	fi
 fi
 
@@ -496,39 +535,46 @@ if [ "$operation_mode" == "0" ] || [ "$operation_mode" == "1" ] || [ "$operation
     cond_print_log StartdLog log/StartdLog
     cond_print_log StarterLog ${main_starter_log}
     if [ "$use_multi_monitor" -ne 1 ]; then
+      if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then 
 	    cond_print_log MasterLog.monitor monitor/log/MasterLog
 	    cond_print_log StartdLog.monitor monitor/log/StartdLog
+        cond_print_log StarterLog.monitor ${monitor_starter_log}
+	  fi
+	else
+      cond_print_log StarterLog.monitor ${monitor_starter_log}
     fi
-    cond_print_log StarterLog.monitor ${monitor_starter_log}
 fi
 
 ## kill the master (which will kill the startd)
 if [ "$use_multi_monitor" -ne 1 ]; then
     # terminate monitoring startd
-    # use the appropriate configuration file
-    tmp_condor_config=$CONDOR_CONFIG
-    export CONDOR_CONFIG=$condor_config_monitor
+    if [ "$GLIDEIN_Monitoring_Enabled" == "True" ]; then
+      # use the appropriate configuration file
+      tmp_condor_config=$CONDOR_CONFIG
+      export CONDOR_CONFIG=$condor_config_monitor
 
-    monitor_start_time=`date +%s`
-    echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
+      monitor_start_time=`date +%s`
+      echo "Terminating monitoring condor at `date` (`date +%s`)" 1>&2
 
-    #### KILL CONDOR ####
-    $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid 
-    ####
+		#### KILL CONDOR ####
+      $CONDOR_DIR/sbin/condor_master -k $PWD/monitor/condor_master.pid 
+		####
 
-    ret=$?
-    if [ "$ret" -ne 0 ]; then
-        echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
+      ret=$?
+      if [ "$ret" -ne 0 ]; then
+			echo 'Failed to terminate monitoring condor... still going ahead' 1>&2
+      fi
+
+      # clean back
+      export CONDOR_CONFIG=$tmp_condor_config
     fi
-
-    # clean back
-    export CONDOR_CONFIG=$tmp_condor_config
 fi
 
 if [ "$ON_DIE" -eq 1 ]; then
-    #If we are explicitly killed, do not wait required time
-    echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
-    exit 0;
+	
+	#If we are explicitly killed, do not wait required time
+	echo "Explicitly killed, exiting with return code 0 instead of $condor_ret";
+	exit 0;
 fi
 
 ##

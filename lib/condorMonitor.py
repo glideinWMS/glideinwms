@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condorMonitor.py,v 1.14 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements classes to query the condor daemons
 #   and manipulate the results
@@ -31,25 +37,25 @@ def set_path(new_condor_bin_path):
 # Generic, you most probably don't want to use these
 class AbstractQuery: # pure virtual, just to have a minimum set of methods defined
     # returns the data, will not modify self
-    def fetch(self, constraint=None, format_list=None):
-        raise RuntimeError, "Fetch not implemented"
+    def fetch(self,constraint=None,format_list=None):
+        raise NotImplementedError,"Fetch not implemented"
 
     # will fetch in self.stored_data
-    def load(self, constraint=None, format_list=None):
-        raise RuntimeError, "Load not implemented"
+    def load(self,constraint=None,format_list=None):
+        raise NotImplementedError,"Load not implemented"
 
     # constraint_func is a boolean function, with only one argument (data el)
     # same output as fetch, but limited to constraint_func(el)==True
     #
     # if constraint_func==None, return all the data
-    def fetchStored(self, constraint_func=None):
-        raise RuntimeError, "fetchStored not implemented"
+    def fetchStored(self,constraint_func=None):
+        raise NotImplementedError,"fetchStored not implemented"
 
 class StoredQuery(AbstractQuery): # still virtual, only fetchStored defined
     stored_data = {}
     
-    def fetchStored(self, constraint_func=None):
-        return applyConstraint(self.stored_data, constraint_func)
+    def fetchStored(self,constraint_func=None):
+        return applyConstraint(self.stored_data,constraint_func)
 
 #
 # format_list is a list of
@@ -114,25 +120,21 @@ class QueryExe(StoredQuery): # first fully implemented one, execute commands
             return None
         return (condor_val=='REQUIRED')
 
-    def fetch(self, constraint=None, format_list=None):
-        if constraint == None:
-            constraint_str = ""
+    def fetch(self,constraint=None,format_list=None):
+        if constraint==None:
+            constraint_str=""
         else:
-            constraint_str = "-constraint '%s'" % constraint
+            constraint_str="-constraint '%s'"%constraint
 
-        full_xml = (format_list == None)
-        if format_list != None:
-            #clusterid is always there, so this will always be printed out
-            format_arr = ["-format '<c>' ClusterId"]
+        full_xml=(format_list==None)
+        if format_list!=None:
+            format_arr=["-format '<c>' ClusterId"] #clusterid is always there, so this will always be printed out
             for format_el in format_list:
-                attr_name, attr_type = format_el
-                attr_format = {'s':'%s', 'i':'%i', 'r':'%f', 'b':'%i'}[attr_type]
-                format_arr.append('-format \'<a n="%s"><%s>%s</%s></a>\' %s' % (attr_name, attr_type, attr_format, attr_type, attr_name))
-
-            #clusterid is always there, so this will always be printed out
-            format_arr.append("-format '</c>' ClusterId")
-
-            format_str = string.join(format_arr, " ")
+                attr_name,attr_type=format_el
+                attr_format={'s':'%s','i':'%i','r':'%f','b':'%i'}[attr_type]
+                format_arr.append('-format \'<a n="%s"><%s>%s</%s></a>\' %s'%(attr_name,attr_type,attr_format,attr_type,attr_name))
+            format_arr.append("-format '</c>' ClusterId") #clusterid is always there, so this will always be printed out
+            format_str=string.join(format_arr," ")
 
         # set environment for security settings
         self.security_obj.save_state()
@@ -290,9 +292,9 @@ class Summarize:
 
     # Use data pre-stored in query
     # Same output as list
-    def listStored(self, constraint_func=None, hash_func=None):
-        data = self.query.fetchStored(constraint_func)
-        return fetch2count(data, self.getHash(hash_func))
+    def listStored(self,constraint_func=None,hash_func=None):
+        data=self.query.fetchStored(constraint_func)
+        return fetch2list(data,self.getHash(hash_func))
 
     ### Internal
     def getHash(self, hash_func):
@@ -305,8 +307,8 @@ class SummarizeMulti:
     def __init__(self, queries, hash_func=lambda x:1):
         self.counts = []
         for query in queries:
-            self.counts.append(self.count(query, hash_func))
-        self.hash_func = hash_func
+            self.counts.append(self.count(query,hash_func))
+        self.hash_func=hash_func
 
     # see Count for description
     def count(self, constraint=None, hash_func=None):
@@ -466,8 +468,13 @@ def xml2list(xml_data):
             found_xml = line
             break
 
-    if found_xml >= 0:
-        p.Parse(string.join(xml_data[found_xml:]), 1)
+    if found_xml>=0:
+      try:
+        p.Parse(string.join(xml_data[found_xml:]),1)
+      except TypeError, e:
+        raise RuntimeError, "Failed to parse XML data, TypeError: %s"%e
+      except:
+        raise RuntimeError, "Failed to parse XML data, generic error"
     # else no xml, so return an empty list
     
     return xml2list_data

@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactoryMonitoring.py,v 1.310 2011/02/10 21:35:30 parag Exp $
+#
 # Description:
 #   This module implements the functions needed
 #   to monitor the glidein factory
@@ -14,6 +20,9 @@ import rrdSupport
 
 import logSupport
 import glideFactoryLib
+
+# list of rrd files that each site has
+rrd_list = ('Status_Attributes.rrd', 'Log_Completed.rrd', 'Log_Completed_Stats.rrd', 'Log_Completed_WasteTime.rrd', 'Log_Counts.rrd')
 
 ############################################################
 #
@@ -179,6 +188,19 @@ class MonitoringConfig:
         return
     
 
+####################################
+def time2xml(the_time,outer_tag,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
+    xml_data={"UTC":{"unixtime":timeConversion.getSeconds(the_time),
+                     "ISO8601":timeConversion.getISO8601_UTC(the_time),
+                     "RFC2822":timeConversion.getRFC2822_UTC(the_time)},
+              "Local":{"ISO8601":timeConversion.getISO8601_Local(the_time),
+                       "RFC2822":timeConversion.getRFC2822_Local(the_time),
+                       "human":timeConversion.getHuman(the_time)}}
+    return xmlFormat.dict2string(xml_data,
+                                 dict_name=outer_tag,el_name="timezone",
+                                 subtypes_params={"class":{}},
+                                 indent_tab=indent_tab,leading_tab=leading_tab)
+
 #########################################################################################################################################
 #
 #  condorQStats
@@ -196,7 +218,8 @@ class condorQStats:
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
                          'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
-
+        # create a global downtime field since we want to propagate it in various places
+        self.downtime = 'True'
 
     def logSchedd(self,client_name,qc_status):
         """
@@ -208,19 +231,23 @@ class condorQStats:
             t_el={}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['Status']=el
+        if t_el.has_key('Status'):
+            el=t_el['Status']
+        else:
+            el={}
+            t_el['Status']=el
 
         status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1010,"StageIn"),(1100,"IdleOther"),(4010,"StageOut"))
         for p in status_pairs:
             nr,str=p
-            if qc_status.has_key(nr):
-                el[str]=qc_status[nr]
-            else:
+            if not el.has_key(str):
                 el[str]=0
+            if qc_status.has_key(nr):
+                el[str]+=qc_status[nr]
+
         self.updated=time.time()
 
-    def logRequest(self,client_name,requests,params):
+    def logRequest(self,client_name,requests):
         """
         requests is a dictinary of requests
         params is a dictinary of parameters
@@ -233,21 +260,32 @@ class condorQStats:
             t_el=self.data[client_name]
         else:
             t_el={}
+            t_el['Downtime'] = {'status':self.downtime}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['Requested']=el
+        if t_el.has_key('Requested'):
+            el=t_el['Requested']
+        else:
+            el={}
+            t_el['Requested']=el
 
-        if requests.has_key('IdleGlideins'):
-            el['Idle']=requests['IdleGlideins']
-        if requests.has_key('MaxRunningGlideins'):
-            el['MaxRun']=requests['MaxRunningGlideins']
+        for reqpair in  (('IdleGlideins','Idle'),('MaxRunningGlideins','MaxRun')):
+            org,new=reqpair
+            if not el.has_key(new):
+                el[new]=0
+            if requests.has_key(org):
+                el[new]+=requests[org]
 
-        el['Parameters']=copy.deepcopy(params)
+        # Had to get rid of this
+        # Does not make sense when one aggregates
+        #el['Parameters']=copy.deepcopy(params)
+        # Replacing with an empty list
+        el['Parameters']={}
 
         self.updated=time.time()
 
-    def logClientMonitor(self,client_name,client_monitor,client_internals):
+    def logClientMonitor(self,client_name,client_monitor,client_internals,
+                         fraction=1.0): # if specified, will be used to extract partial info
         """
         client_monitor is a dictinary of monitoring info
         client_internals is a dictinary of internals
@@ -267,23 +305,44 @@ class condorQStats:
             t_el={}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['ClientMonitor']=el
+        if t_el.has_key('ClientMonitor'):
+            el=t_el['ClientMonitor']
+        else:
+            el={}
+            t_el['ClientMonitor']=el
 
         for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('RunningHere','JobsRunHere'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
+            if not el.has_key(ek):
+                el[ek]=0
             if client_monitor.has_key(ck):
-                el[ek]=client_monitor[ck]
+                el[ek]+=(client_monitor[ck]*fraction)
             elif ck=='RunningHere':
                 # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
                 if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
-                    el[ek]=min(client_monitor['Running'],client_monitor['GlideinsRunning'])
+                    el[ek]+=(min(client_monitor['Running'],client_monitor['GlideinsRunning'])*fraction)
+
+        if not el.has_key('InfoAge'):
+            el['InfoAge']=0
+            el['InfoAgeAvgCounter']=0 # used for totals since we need an avg in totals, not absnum 
+
 
         if client_internals.has_key('LastHeardFrom'):
-            el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
-            el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
+            el['InfoAge']+=(int(time.time()-long(client_internals['LastHeardFrom']))*fraction)
+            el['InfoAgeAvgCounter']+=fraction
 
         self.updated=time.time()
+
+    # call this after the last logClientMonitor
+    def finalizeClientMonitor(self):
+        # convert all ClinetMonitor numbers in integers
+        # needed due to fraction calculations
+        for client_name in self.data.keys():
+            if self.data[client_name].has_key('ClientMonitor'):
+                el=self.data[client_name]['ClientMonitor']
+                for k in el.keys():
+                    el[k]=int(round(el[k]))
+        return
 
     def get_data(self):
         data1=copy.deepcopy(self.data)
@@ -361,17 +420,15 @@ class condorQStats:
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
+        return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
+    def set_downtime(self, in_downtime):
+        self.downtime = str(in_downtime)
+        return
+
+    def get_xml_downtime(self, leading_tab = xmlFormat.DEFAULT_TAB):
+        xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':self.downtime}, leading_tab = leading_tab)
+        return xml_downtime
 
     def write_file(self):
         global monitoringConfig
@@ -385,6 +442,7 @@ class condorQStats:
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
                  '<glideFactoryEntryQStats>\n'+
                  self.get_xml_updated(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+                 self.get_xml_downtime(leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_data(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  self.get_xml_total(indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
                  "</glideFactoryEntryQStats>\n")
@@ -447,7 +505,8 @@ class condorLogSummary:
         self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
-        self.current_stats_data={}     # will contain dictionary client->username->dirSummary.data
+        self.current_stats_data={}     # will contain dictionary client->username->dirSummarySimple
+        self.old_stats_data={}
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
         self.job_statuses_short=('Running','Idle','Wait','Held') #const
@@ -461,7 +520,8 @@ class condorLogSummary:
             # but carry over all the users... should not change that often
             new_stats_data[c]=self.current_stats_data[c]
 
-        self.current_stats_data=new_stats_data
+        self.old_stats_data=new_stats_data
+        self.current_stats_data={}
 
         # and flush out the differences
         self.stats_diff={}
@@ -497,18 +557,26 @@ class condorLogSummary:
         """
          stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
-        self.stats_diff[client_name]={}
-        if self.current_stats_data.has_key(client_name):
-            for username in stats.keys():
-                if self.current_stats_data[client_name].has_key(username):
-                    self.stats_diff[client_name][username]=stats[username].diff(self.current_stats_data[client_name][username])
-
-        self.current_stats_data[client_name]={}
+        if not self.current_stats_data.has_key(client_name):
+            self.current_stats_data[client_name]={}
+            
         for username in stats.keys():
-            self.current_stats_data[client_name][username]=stats[username].data
+            if not self.current_stats_data[client_name].has_key(username):
+                self.current_stats_data[client_name][username]=stats[username].get_simple()
+            else:
+                self.current_stats_data[client_name][username].merge(stats[username])
         
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
+
+    def computeDiff(self):
+        for client_name in self.current_stats_data.keys():
+            self.stats_diff[client_name]={}
+            if self.old_stats_data.has_key(client_name):
+                stats=self.current_stats_data[client_name]
+                for username in stats.keys():
+                    if self.old_stats_data[client_name].has_key(username):
+                        self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
     def get_stats_data_summary(self):
         stats_data={}
@@ -518,7 +586,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=0
                     for username in self.current_stats_data[client_name].keys():
-                        client_el=self.current_stats_data[client_name][username]
+                        client_el=self.current_stats_data[client_name][username].data
                         if ((client_el!=None) and (s in client_el.keys())):
                             count+=len(client_el[s])
 
@@ -728,7 +796,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=0
                     for username in self.current_stats_data[client_name].keys():
-                        stats_el=self.current_stats_data[client_name][username]
+                        stats_el=self.current_stats_data[client_name][username].data
 
                         if ((stats_el!=None) and (s in stats_el.keys())):
                             count+=len(stats_el[s])
@@ -756,7 +824,7 @@ class condorLogSummary:
             tdata=[]
             for client_name in self.current_stats_data.keys():
                 for username in self.current_stats_data[client_name]:
-                    sdata=self.current_stats_data[client_name][username]
+                    sdata=self.current_stats_data[client_name][username].data
                     if ((sdata!=None) and (k in sdata.keys())):
                         tdata=tdata+sdata[k]
             total[k]=tdata
@@ -837,16 +905,7 @@ class condorLogSummary:
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
-        xml_updated={"UTC":{"unixtime":timeConversion.getSeconds(self.updated),
-                            "ISO8601":timeConversion.getISO8601_UTC(self.updated),
-                            "RFC2822":timeConversion.getRFC2822_UTC(self.updated)},
-                     "Local":{"ISO8601":timeConversion.getISO8601_Local(self.updated),
-                              "RFC2822":timeConversion.getRFC2822_Local(self.updated),
-                              "human":timeConversion.getHuman(self.updated)}}
-        return xmlFormat.dict2string(xml_updated,
-                                     dict_name="updated",el_name="timezone",
-                                     subtypes_params={"class":{}},
-                                     indent_tab=indent_tab,leading_tab=leading_tab)
+        return time2xml(self.updated,"updated",indent_tab,leading_tab)
 
     def write_file(self):
         global monitoringConfig
@@ -958,6 +1017,263 @@ class condorLogSummary:
 
 
         self.files_updated=self.updated
+        return
+
+    
+###############################################################################
+#
+# factoryStatusData
+# added by C.W. Murphy starting on 08/09/10
+# this class handles the data obtained from the rrd files
+#
+###############################################################################
+
+class FactoryStatusData:
+    """documentation"""
+    def __init__(self):
+        self.data = {}
+        for rrd in rrd_list:
+            self.data[rrd] = {}
+        self.updated = time.time()
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.resolution = (7200, 86400, 604800) # 2hr, 1 day, 1 week
+        self.total = "total/"
+        self.frontends = []
+        self.base_dir = monitoringConfig.monitor_dir
+
+    def getUpdated(self):
+        """returns the time of last update"""
+        return time2xml(self.updated,"updated",indent_tab=self.tab,leading_tab=self.tab)
+
+    def fetchData(self, file, pathway, res, start, end):
+        """Uses rrdtool to fetch data from the clients.  Returns a dictionary of lists of data.  There is a list for each element.
+
+        rrdtool fetch returns 3 tuples: a[0], a[1], & a[2].
+        [0] lists the resolution, start and end time, which can be specified as arugments of fetchData.
+        [1] returns the names of the datasets.  These names are listed in the key.
+        [2] is a list of tuples. each tuple contains data from every dataset.  There is a tuple for each time data was collected."""
+
+        #use rrdtool to fetch data
+        baseRRDSupport = rrdSupport.rrdSupport()
+        try:
+            fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
+        except:
+            # probably not created yet
+            glideFactoryLib.log_files.logDebug("Failed to load %s"%(pathway + file))
+            return {}
+
+        #converts fetched from tuples to lists
+        fetched_names = list(fetched[1])
+        
+        fetched_data_raw = fetched[2][:-1] # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
+        fetched_data = []
+        for data in fetched_data_raw:
+            fetched_data.append(list(data))
+
+        #creates a dictionary to be filled with lists of data
+        data_sets = {}
+        for name in fetched_names:
+            data_sets[name] = []
+
+        #check to make sure the data exists
+        all_empty=True
+        for data_set in data_sets:
+            index = fetched_names.index(data_set)	
+            for data in fetched_data:
+                if isinstance(data[index], (int, float)):
+                    data_sets[data_set].append(data[index])
+                    all_empty=False
+
+        if all_empty:
+            # probably not updated recently
+            return {}
+        else:
+            return data_sets
+
+    def average(self, list):
+        try:
+            if len(list) > 0:
+                avg_list = sum(list) / len(list)
+            else:
+                avg_list = 0
+            return avg_list
+        except TypeError:
+            glideFactoryLib.log_files.logDebug("average: TypeError")
+            return
+
+    def getData(self, input):
+        """returns the data fetched by rrdtool in a xml readable format"""
+        global monitoringConfig
+        
+        folder = str(input)
+        if folder == self.total:
+            client = folder
+        else:
+            folder_name = folder.split('@')[-1]
+            client = folder_name.join(["frontend_","/"])
+            if client not in self.frontends:
+                self.frontends.append(client)
+        
+        for rrd in rrd_list:
+            self.data[rrd][client] = {}
+            for res_raw in self.resolution:
+                # calculate the best resolution
+                res_idx=0
+                rrd_res=monitoringConfig.rrd_archives[res_idx][2]*monitoringConfig.rrd_step
+                period_mul=int(res_raw/rrd_res)
+                while (period_mul>=monitoringConfig.rrd_archives[res_idx][3]):
+                    # not all elements in the higher bucket, get next lower resolution
+                    res_idx+=1
+                    rrd_res=monitoringConfig.rrd_archives[res_idx][2]*monitoringConfig.rrd_step
+                    period_mul=int(res_raw/rrd_res)
+
+                period=period_mul*rrd_res
+            
+                self.data[rrd][client][period] = {}
+                end = (int(time.time()/rrd_res)-1)*rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
+                start = end - period
+                try:
+                    fetched_data = self.fetchData(file = rrd, pathway = self.base_dir + "/" + client,
+                                                  start = start, end = end, res = rrd_res)
+                    for data_set in fetched_data:
+                        self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
+                except TypeError:
+                    glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
+
+        return self.data
+
+    def getXMLData(self, rrd):
+        "writes an xml file for the data fetched from a given site."
+
+        # create a string containing the total data
+        total_xml_str = self.tab + '<total>\n'
+        get_data_total = self.getData(self.total)
+        try:
+            total_data = self.data[rrd][self.total]
+            total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 2 * self.tab) + "\n")
+        except NameError, UnboundLocalError:
+            glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
+        total_xml_str += self.tab + '</total>\n'
+
+        # create a string containing the frontend data
+        frontend_xml_str = (self.tab + '<frontends>\n')
+        for frontend in self.frontends:
+            fe_name = frontend.split("/")[0]
+            frontend_xml_str += (2 * self.tab +
+                                 '<frontend name=\"' + fe_name + '\">\n')
+            try:
+                frontend_data = self.data[rrd][frontend]
+                frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
+            except NameError, UnboundLocalError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
+            frontend_xml_str += 2 * self.tab + '</frontend>'
+        frontend_xml_str += self.tab + '</frontends>\n'
+                  
+        data_str =  total_xml_str + frontend_xml_str
+        return data_str
+    
+    def writeFiles(self):
+        for rrd in rrd_list:
+            file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
+            xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                       '<glideFactoryEntryRRDStats>\n' +
+                       self.getUpdated() + "\n" +
+                       self.getXMLData(rrd) +
+                       '</glideFactoryEntryRRDStats>')
+            try:
+                monitoringConfig.write_file(file_name, xml_str)
+            except IOError:
+                glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
+        return
+    
+##############################################################################
+#
+#  create an XML file out of glidein.descript, frontend.descript,
+#    entry.descript, attributes.cfg, and params.cfg
+#
+#############################################################################
+
+class Descript2XML:
+    def __init__(self):
+        self.tab = xmlFormat.DEFAULT_TAB
+        self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
+                                         'Schedd')
+        self.frontend_blacklist = ('usermap', )
+        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource',
+                                  'FactoryName', 'GlideinName', 'LoopDelay',
+                                  'PubKeyType', 'WebURL')
+
+    def frontendDescript(self, dict):
+        for key in self.frontend_blacklist:
+            try:
+                for frontend in dict:
+                    try:
+                        del dict[frontend][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in frontendDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "frontends", el_name = "frontend", subtypes_params = {"class":{}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in frontendDescript")
+            return
+
+    def entryDescript(self, dict):
+        for key in self.entry_descript_blacklist:
+            try:
+                for entry in dict:
+                    try:
+                        del dict[entry]['descript'][key]
+                    except KeyError:
+                        continue
+            except RuntimeError:
+                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+        try:
+            str = xmlFormat.dict2string(dict, dict_name = "entries", el_name = "entry", subtypes_params = {"class":{'subclass_params':{}}}, leading_tab = self.tab)
+            return str + "\n"
+        except RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in entryDescript")
+            return
+
+    def glideinDescript(self, dict):
+        w_dict = {}
+        for key in self.glidein_whitelist:
+            try:
+                w_dict[key] = dict[key]
+            except KeyError:
+                continue
+        try:
+            a = xmlFormat.dict2string({'':w_dict}, dict_name="glideins", el_name="factory", subtypes_params={"class":{}})
+            b = a.split("\n")[1]
+            c = b.split('name="" ')
+            str = "".join(c)
+            return str + "\n"            
+        except SyntaxError, RuntimeError:
+            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
+            return
+
+    def getUpdated(self):
+        """returns the time of last update"""
+        return time2xml(time.time(),"updated",indent_tab=self.tab,leading_tab=self.tab)
+
+    def writeFile(self, path, str, singleEntry = False):
+        if singleEntry:
+            root_el = 'glideFactoryEntryDescript'
+        else:
+            root_el = 'glideFactoryDescript'
+        xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
+                   '<' + root_el + '>\n' + self.getUpdated() + "\n" + str +
+                   '</' + root_el + '>')
+        fname = path + 'descript.xml'
+        f = open(fname + '.tmp', 'wb')
+        try:
+            f.write(xml_str)
+        finally:
+            f.close()
+
+        tmp2final(fname)
         return
 
     

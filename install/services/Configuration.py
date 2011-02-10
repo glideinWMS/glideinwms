@@ -4,6 +4,7 @@ import common
 #-----
 import re
 import os
+import string
 import sys
 import time
 import traceback
@@ -16,43 +17,38 @@ import inspect
 class Configuration:
 
   def __init__ (self, fileName):
+    self.cp       = None 
+    self.inifile = fileName 
+
+    #-- check for duplicate sections in config file --
+    self.check_for_duplicate_sections()
+
     try:
-      self.cp       = None
-      self.inifile = fileName
-
-      #-- check for duplicate sections in config file --
-      self.check_for_duplicate_sections()
-
       #-- check version of parser to use ---
       if sys.version_info[0] >= 2 and sys.version_info[1] >= 3:
         self.cp = ConfigParser.SafeConfigParser()
       else:
         self.cp = ConfigParser.ConfigParser()
-
       #-- read the ini file ---
       real_fp = open(self.inifile, 'r')
       string_fp = StringIO.StringIO(real_fp.read())
       self.cp.readfp(string_fp,self.inifile)
-
-      #-- check for syntax errors --
-      self.syntax_check()
-
     except Exception, e:
       common.logerr("%s" % e)
+
+    #-- additional check for syntax errors --
+    self.syntax_check()
+
 
   #----------------
   def syntax_check(self):
     """ Checks for some syntax errors in ini config file. """
-    try:
-      for section in self.sections():
-        for option in self.options(section):
-          value = self.option_value(section,option)
-          if "\n" in value:
-            line = string.split(value,"\n")
-            common.logerr("Section(%s): this line starts with whitespace ( %s)\n       Please remove the leading space or comment (;) the line." % (section,line[1]))
-    except Exception, e:
-      common.logerr("Section(%s) option(%s) ini syntax error: %s" % (section,option,e))
-
+    for section in self.sections():
+      for option in self.options(section):
+        value = self.option_value(section,option)
+        if "\n" in value:
+          line = string.split(value,"\n")
+          common.logerr("Section [%s]: this line starts with whitespace ( %s)\n       Please remove the leading space or comment (;) the line." % (section,line[1]))
 
   #----------------
   def __str__ (self):
@@ -61,22 +57,35 @@ class Configuration:
     for section in self.sections():
       result.append('[%s]' % section)
       for option in self.options(section):
-        value = self.cp.get(section, option)
+        value = self.option_value(section, option)
         result.append('    %-25s %s' % (option, value))
     return '\n'.join(result)
 
   #----------------
   def check_for_duplicate_sections(self):
-    """ Check for duplicate sections in a config file. """
+    """ Check for duplicate sections in a config file ignoring commented ones. 
+        In addition, checks to verify there is no whitespace preceding or
+        appending the section name in brackets as the ini parser does not
+        validate for this.
+    """
     if (self.inifile == "") or (self.inifile is None):
       common.logerr("System error: config file name is empty")
-    fp = open(self.inifile, 'r')
+    try:
+      fp = open(self.inifile, 'r')
+    except:
+      common.logerr("Problem reading ini file: %s" % sys.exc_info()[1])
     sections = {}    # used to keep track of sections
     duplicates = []  # used to identify duplicates
     for line in fp.readlines():
-      match = re.search('\[(.*)\]', line)
+      newline = line.strip()
+      if len(newline) == 0:
+        continue
+      if newline[0] != "[":
+        continue
+      #--- see if it is a section ---
+      match = re.search('\[(.*)\]', newline)
       if match:
-        section = match.group(1).lower()
+        section = match.group(1).lower().strip()
         if section in sections:
           duplicates.append(section)
           continue
@@ -87,7 +96,7 @@ class Configuration:
   #----------------
   def validate_section(self,section,valid_option_list):
     if not self.has_section(section):
-      common.logerr("Section (%s) does not exist in ini file (%s)" % (self,self.inifile))
+      common.logerr("Section (%s) does not exist in ini file (%s)" % (section,self.inifile))
     errors = [] 
     for option in valid_option_list:
       if self.has_option(section,option):
@@ -123,7 +132,15 @@ class Configuration:
 
   #----------------
   def option_value(self,section,option):
-    return self.cp.get(section,option)
+    """ Due they way python os.path.basename/dirname work, we cannot let a
+        pathname end in a '/' or we may see inconsistent results.  So we
+        are stripping all option values of trailing '/'s.
+    """
+    value = self.cp.get(section,option)
+    #-- cannot let paths end in a '/' --
+    while len(value) > 0 and value[len(value)-1] == "/":
+      value = value[0:len(value)-1].strip()
+    return value
 
   #----------------
   def has_section(self, section):
@@ -206,7 +223,6 @@ def compare_options(ini1,ini2):
 def usage(pgm):
   print
   print "Usage: " + pgm + " --compare file1 file2"
-  print "       " + pgm + " --compare-no-local file1 file2"
   print "       " + pgm + " --show-options file"
   print "       " + pgm + " --show-values file"
   print "       " + pgm + " --validate file"
@@ -216,11 +232,9 @@ def usage(pgm):
                       section/objects (not values) of the 2 ini files
                         returns 0 if identical
                         returns 1 if any differences
-   compare-no-local .. Same as compare except the Local Settings section is
-                       excluded from the comparison
    show-options ...... Shows the section/objects for the ini file
    show-values ....... Shows the section/objects/values for the ini file
-   validate .......... Verifies the ini file has no synatax errors
+   validate .......... Verifies the ini file has no syntax errors
 
    Full path to the files must be specified unless this is executed
    in the directory in which they reside.

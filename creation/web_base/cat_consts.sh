@@ -1,4 +1,11 @@
 #!/bin/bash
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cat_consts.sh,v 1.10 2011/02/10 21:35:30 parag Exp $
+#
 
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp

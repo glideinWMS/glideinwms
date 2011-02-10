@@ -14,6 +14,7 @@ WANT_VACATE		C	False		+				N	N	-
 GLIDEIN_Expose_Grid_Env	C	True		JOB_INHERITS_STARTER_ENVIRONMENT	N	Y	+
 GLIDEIN_Glexec_Use	S	REQUIRED	+				N	Y	+
 GLEXEC_BIN		C	-		GLEXEC				N	N	-
+GLIDEIN_Monitoring_Enabled	C	True		+				N	Y	+
 # this will be used for MaxJobRetirementTime of the main startd
 PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
 

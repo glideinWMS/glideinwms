@@ -1,5 +1,15 @@
 #!/usr/bin/env python
 
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinWMS_install,v 1.279 2011/02/10 21:35:31 parag Exp $
+#
+# Description:
+#   glideinWMS Installer
+
 import sys,os,os.path,string,time
 import pwd,grp
 import shutil
@@ -38,6 +48,7 @@ CONDOR_UPD_CONFIG_FILE=None
 VDT_BASE_PATH=None
 # voms_proxy_info location (if false, the user already said it does not have one installed)
 VOMS_PROXY_INFO_BIN=None
+VOMS_CERTS_DIR=None
 # where are the certificates
 GSI_TRUSTED_CA_DIR=None
 # Has the GSI securtiy been configured
@@ -253,6 +264,50 @@ def schedd_node_install():
             config_fd.write("# Enable match authentication\n")
             config_fd.write("#####################################\n")
             config_fd.write("SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=TRUE\n")
+        finally:
+            config_fd.close()
+
+    # USE SHARED PORT
+    print
+    print "Condor 7.5.3 and up support the use of a shared_port_daemon"
+    print "that drastically reduces the number of ports used"
+    print "and thus also improves the pool scalability."
+    while 1:
+        print ""
+        sport_yn=raw_input("Do you want to enable the shadred_port_daemon?: (y/n) ")
+        if sport_yn=="":
+            sport_yn="y"
+        if (sport_yn!="y") and (sport_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    if sport_yn=='y':
+        default_sport_nr=9615
+        while 1:
+            sport_nr_str=raw_input("What port should it use?: [%i] "%default_sport_nr)
+            if sport_nr_str=="":
+                sport_nr=default_sport_nr
+                break
+            try:
+                sport_nr=int(sport_nr_str)
+                break
+            except:
+                print "%s not a number, please correct"
+                continue
+            
+
+        print
+        print "Make sure you use Condor 7.5.3 and up in glideins, too"
+        print
+        
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        try:
+            config_fd.write("\n#####################################\n")
+            config_fd.write("# Enable shared_port_daemon \n")
+            config_fd.write("#####################################\n")
+            config_fd.write("USE_SHARED_PORT = True\n")
+            config_fd.write("SHARED_PORT_ARGS = -p %i\n"%sport_nr)
+            config_fd.write("DAEMON_LIST = $(DAEMON_LIST) SHARED_PORT\n")
         finally:
             config_fd.close()
 
@@ -1750,8 +1805,8 @@ def vofrontend_install():
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             # the following are just so admins know they exist
             # we put in the default values
-            fd.write('      <attr name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
-            fd.write('      <attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
+            fd.write('      <attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            fd.write('      <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
@@ -2013,8 +2068,15 @@ def query_vdt():
               break
 
     GSI_TRUSTED_CA_DIR="%s/globus/TRUSTED_CA"%VDT_BASE_PATH
-    if os.path.isfile("%s/globus/bin/voms-proxy-info"%VDT_BASE_PATH):
-        VOMS_PROXY_INFO_BIN="source %s/setup.sh;voms-proxy-info"%VDT_BASE_PATH
+
+    ###################################
+    # find out where is voms-proxy-info
+    fd=os.popen("source %s/setup.sh;which voms-proxy-info"%VDT_BASE_PATH)
+    lines=fd.readlines()
+    err=fd.close()
+    if err==None: # found
+        VOMS_PROXY_INFO_BIN=lines[0][:-1]
+
     return
 
 # add a bunch of lines to crontab
@@ -2040,6 +2102,8 @@ MINIMAL_VDT_PACKAGES=['PPDG-Cert-Scripts','Globus-Client','VOMS-Client','MyProxy
 
 def install_vdt(minimal):
     global VDT_BASE_PATH
+    global VOMS_CERTS_DIR
+    
     if os.getuid()==0:
         def_vdt_base_path="/opt/vdt"
     else:
@@ -2223,11 +2287,12 @@ def install_vdt(minimal):
     VDT_BASE_PATH=user_dir
 
     # get VOMS CAs
-    print
-    print "Some non-OSG sites need VOMS certificates."
-    yn=raw_input("Do you want to install them?: (y/n) [n] ")
-    if yn=='y':
-        install_vomscerts()
+    if VOMS_CERTS_DIR==None:
+        print
+        print "Some non-OSG sites need VOMS certificates."
+        yn=raw_input("Do you want to install them?: (y/n) [n] ")
+        if yn=='y':
+            install_vomscerts()
     
     return
 
@@ -2256,9 +2321,13 @@ def extract_vdt_data():
 # install the VOMS certs
 def install_vomscerts():
     global VDT_BASE_PATH
+    global VOMS_CERTS_DIR
 
     if VDT_BASE_PATH==None:
         query_vdt()
+
+    if VOMS_CERTS_DIR!=None:
+        return
 
     print
     print "VOMS certs installation"
@@ -2294,6 +2363,8 @@ def install_vomscerts():
     print
     print "VOMS certs installed"
     print
+
+    VOMS_CERTS_DIR=os.path.join(VDT_BASE_PATH,'glite/vomsdir')
 
     return
 
@@ -2491,7 +2562,7 @@ def install_condor():
         print
         print "You will now need the Condor tarball"
         print "You can find it on http://www.cs.wisc.edu/condor/"
-        print "Versions v7.2.2 and 7.3.1 have been tested, but you"
+        print "Versions v7.4.4 and 7.5.4 have been tested, but you"
         print "should always use the latest one"
         print
         condor_tarball=raw_input("Where do you have the Condor tarball? ")
@@ -2509,8 +2580,12 @@ def install_condor():
 
         try:
             try:
-                first_dir=fd.getnames()[0]
-                if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
+                first_entry=fd.getnames()[0]
+                if (len(first_entry.split('/'))<2):
+                    print "File '%s' is not a condor tarball! (found '%s', expected a subdirectory'"%(condor_tarball,first_entry)
+                    continue
+                first_dir=first_entry.split('/')[0]+'/'
+                if (first_dir[:7]!="condor-"):
                     print "File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(condor_tarball,first_dir)
                     continue
                 condor_version=first_dir[7:-1]
@@ -2957,6 +3032,7 @@ def configure_gsi_security(gsi_setup=None):
     global GSI_TRUSTED_CA_DIR
     global GSI_SECURITY_CONFIGURED
     global CONDOR_UPD_CONFIG_FILE
+    global VOMS_CERTS_DIR
 
     print "Configuring GSI security"
     print
@@ -3146,6 +3222,21 @@ def configure_gsi_security(gsi_setup=None):
     finally:
         config_fd.close()
 
+
+    if VOMS_CERTS_DIR!=None:
+        # insert the VOMS attribute values into the startup script
+        # Condor daemons need them for CREAM
+        # assume it uses the VDT structure
+        fd=open("%s/start_condor.sh"%CONDOR_BASE_PATH,"r+")
+        try:
+            lines=fd.readlines()
+            lines=lines[0:1]+['export X509_VOMS_DIR=%s\n'%VOMS_CERTS_DIR,
+                              'export VOMS_USERCONF=%s\n'%os.path.abspath("%s/../etc/vomses"%VOMS_CERTS_DIR),
+                              'export VOMS_LOCATION=%s\n'%os.path.abspath("%s/.."%VOMS_CERTS_DIR)]+lines[1:]
+            fd.seek(0)
+            fd.writelines(lines)
+        finally:
+            fd.close()
 
     #################################
     #GSI security configured

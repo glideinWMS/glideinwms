@@ -1,4 +1,10 @@
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: condorExe.py,v 1.9 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This module implements the functions to execute condor commands
 #
@@ -24,9 +30,11 @@ class ExeError(RuntimeError):
 #
 
 # Set path to condor binaries, if needed
-def set_path(new_condor_bin_path):
-    global condor_bin_path
-    condor_bin_path = new_condor_bin_path
+def set_path(new_condor_bin_path,new_condor_sbin_path=None):
+    global condor_bin_path,condor_sbin_path
+    condor_bin_path=new_condor_bin_path
+    if new_condor_sbin_path!=None:
+        condor_sbin_path=new_condor_sbin_path
 
 
 #
@@ -36,7 +44,7 @@ def set_path(new_condor_bin_path):
 #
 
 # can throw UnconfigError or ExeError
-def exe_cmd(condor_exe, args, stdin_data=None):
+def exe_cmd(condor_exe,args,stdin_data=None):
     global condor_bin_path
 
     if condor_bin_path == None:
@@ -45,7 +53,18 @@ def exe_cmd(condor_exe, args, stdin_data=None):
 
     cmd = "%s %s" % (condor_exe_path, args)
 
-    return iexe_cmd(cmd, stdin_data)
+    return iexe_cmd(cmd,stdin_data)
+
+def exe_cmd_sbin(condor_exe,args,stdin_data=None):
+    global condor_sbin_path
+
+    if condor_sbin_path==None:
+        raise UnconfigError, "condor_sbin_path is undefined!"
+    condor_exe_path=os.path.join(condor_sbin_path,condor_exe)
+
+    cmd="%s %s" % (condor_exe_path,args)
+
+    return iexe_cmd(cmd,stdin_data)
 
 ############################################################
 #
@@ -54,8 +73,8 @@ def exe_cmd(condor_exe, args, stdin_data=None):
 ############################################################
 
 # can throw ExeError
-def iexe_cmd(cmd, stdin_data=None):
-    child = popen2.Popen3(cmd, True)
+def iexe_cmd(cmd,stdin_data=None):
+    child=popen2.Popen3(cmd,True)
     if stdin_data!=None:
         child.tochild.write(stdin_data)
     child.tochild.close()
@@ -80,7 +99,7 @@ def iexe_cmd(cmd, stdin_data=None):
 # Set condor_bin_path
 #
 
-def init():
+def init1():
     global condor_bin_path
     # try using condor commands to find it out
     try:
@@ -115,7 +134,50 @@ def init():
                     except ExeError:
                         pass # don't know what else to try
 
+#
+# Set condor_sbin_path
+#
+
+def init2():
+    global condor_sbin_path
+    # try using condor commands to find it out
+    try:
+        condor_sbin_path=iexe_cmd("condor_config_val SBIN")[0][:-1] # remove trailing newline
+    except ExeError,e:
+        # try to find the RELEASE_DIR, and append bin
+        try:
+            release_path=iexe_cmd("condor_config_val RELEASE_DIR")
+            condor_sbin_path=os.path.join(release_path[0][:-1],"sbin")
+        except ExeError,e:
+            # try condor_q in the path
+            try:
+                condora_sbin_path=iexe_cmd("which condor_advertise")
+                condor_sbin_path=os.path.dirname(condora_sbin_path[0][:-1])
+            except ExeError,e:
+                # look for condor_config in /etc
+                if os.environ.has_key("CONDOR_CONFIG"):
+                    condor_config=os.environ["CONDOR_CONFIG"]
+                else:
+                    condor_config="/etc/condor/condor_config"
+                
+                try:
+                    # BIN = <path>
+                    bin_def=iexe_cmd('grep "^ *SBIN" %s'%condor_config)
+                    condor_sbin_path=string.split(bin_def[0][:-1])[2]
+                except ExeError, e:
+                    try:
+                        # RELEASE_DIR = <path>
+                        release_def=iexe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
+                        condor_sbin_path=os.path.join(string.split(release_def[0][:-1])[2],"sbin")
+                    except ExeError, e:
+                        pass # don't know what else to try
+
+def init():
+    init1()
+    init2()
+
 # This way we know that it is undefined
-condor_bin_path = None
+condor_bin_path=None
+condor_sbin_path=None
 
 init()

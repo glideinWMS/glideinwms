@@ -1,6 +1,10 @@
 #!/usr/bin/env python
+ 
+# Project:
+#   glideinWMS
 #
-# glidein_cat.py
+# File Version: 
+#   $Id: glidein_cat.py,v 1.4 2011/02/10 21:35:31 parag Exp $
 #
 # Description:
 #   Execute a cat command on a condor job working directory

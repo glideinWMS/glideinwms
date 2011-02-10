@@ -1,4 +1,9 @@
-###########################################################
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: cgWParams.py,v 1.66 2011/02/10 21:35:30 parag Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -6,7 +11,6 @@
 # Author:
 #   Igor Sfiligoi
 #
-##########################################################
 
 import os
 import copy
@@ -113,6 +117,8 @@ class GlideinParams(cWParams.CommonParams):
         log_retention_defaults["logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["job_logs"]["min_days"][0]="2.0"
+        self.defaults['advertise_with_tcp']=('False','Bool', 'Should condor_advertise use TCP connections?',None)
+        self.defaults['advertise_with_multiple']=('False','Bool', 'Should condor_advertise use -multiple?',None)
         log_retention_defaults["summary_logs"]=copy.deepcopy(one_log_retention_defaults)
         log_retention_defaults["summary_logs"]["max_days"][0]="31.0"
         log_retention_defaults["condor_logs"]=copy.deepcopy(one_log_retention_defaults)
@@ -160,7 +166,6 @@ class GlideinParams(cWParams.CommonParams):
         self.defaults["condor_tarballs"]=([],'List of condor tarballs',"Each entry contains",condor_defaults)
 
         self.defaults["downtimes"]=self.downtimes_defaults
-
         self.defaults["attrs"]=sub_defaults['attrs']
         self.defaults["files"]=copy.deepcopy(sub_defaults['files'])
         # ordering is specific to global section of factory

@@ -1,6 +1,14 @@
-import sys
+#
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideFactoryConfig.py,v 1.24 2011/02/10 21:35:30 parag Exp $
+#
+
 import string
 import os.path
+import sys
 
 ############################################################
 #

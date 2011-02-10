@@ -1,5 +1,11 @@
 #!/usr/bin/env python
 #
+# Project:
+#   glideinWMS
+#
+# File Version: 
+#   $Id: glideinFrontend.py,v 1.80 2011/02/10 21:35:31 parag Exp $
+#
 # Description:
 #   This is the main of the glideinFrontend
 #
@@ -40,15 +46,41 @@ def aggregate_stats():
     return
 
 ############################################################
+def is_crashing_often(startup_time, restart_interval, restart_attempts):
+    crashing_often = True
+
+    if (len(startup_time) < restart_attempts):
+        # We haven't exhausted restart attempts
+        crashing_often = False
+    else:
+        # Check if the service has been restarted often
+        if restart_attempts == 1:
+            crashing_often = True
+        elif (time.time() - startup_time[0]) >= restart_interval:
+            crashing_often = False
+        else:
+            crashing_often = True
+
+    return crashing_often
+
+############################################################
 def spawn(sleep_time,advertize_rate,work_dir,
-          glideinDescript,groups):
+          frontendDescript,groups,restart_attempts,restart_interval):
 
     global STARTUP_DIR
     childs={}
+    childs_uptime={}
+    # By default allow max 3 restarts every 30 min before giving up
+
     glideinFrontendLib.log_files.logActivity("Starting groups %s"%groups)
     try:
         for group_name in groups:
             childs[group_name]=popen2.Popen3("%s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),os.getpid(),work_dir,group_name),True)
+            # Get the startup time. Used to check if the group is crashing
+            # periodically and needs to be restarted.
+            childs_uptime[group_name]=list()
+            childs_uptime[group_name].insert(0,time.time())
+        glideinFrontendLib.log_files.logActivity("Group startup times: %s"%childs_uptime)
 
         for group_name in childs.keys():
             childs[group_name].tochild.close()
@@ -57,8 +89,6 @@ def spawn(sleep_time,advertize_rate,work_dir,
             for fd  in (childs[group_name].fromchild.fileno(),childs[group_name].childerr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-
-
 
         while 1:
             glideinFrontendLib.log_files.logActivity("Checking groups %s"%groups)
@@ -79,14 +109,29 @@ def spawn(sleep_time,advertize_rate,work_dir,
                 except IOError:
                     pass # ignore
                 
-                # look for exit childs
+                # look for exited child
                 if child.poll()!=-1:
                     # the child exited
+                    glideinFrontendLib.log_files.logWarning("Child %s exited. Checking if it should be restarted."%(group_name))
                     tempOut = child.fromchild.readlines()
                     tempErr = child.childerr.readlines()
-                    del childs[group_name]
-                    raise RuntimeError,"Group '%s' exited, quit the whole frontend:\n%s\n%s"%(group_name,tempOut,tempErr)
-
+                    if is_crashing_often(childs_uptime[group_name], restart_interval, restart_attempts):
+                        del childs[group_name]
+                        raise RuntimeError,"Group '%s' has been crashing too often, quit the whole frontend:\n%s\n%s"%(group_name,tempOut,tempErr)
+                        #raise RuntimeError,"Group '%s' exited, quit the whole frontend:\n%s\n%s"%(group_name,tempOut,tempErr)
+                    else:
+                        # Restart the group setting its restart time
+                        glideinFrontendLib.log_files.logWarning("Restarting child %s."%(group_name))
+                        del childs[group_name]
+                        childs[group_name]=popen2.Popen3("%s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideinFrontendElement.py"),os.getpid(),work_dir,group_name),True)
+                        if len(childs_uptime[group_name]) == restart_attempts:
+                            childs_uptime[group_name].pop(0)
+                        childs_uptime[group_name].append(time.time())
+                        childs[group_name].tochild.close()
+                        for fd in (childs[group_name].fromchild.fileno(),childs[group_name].childerr.fileno()):
+                            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+                            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+                        glideinFrontendLib.log_files.logWarning("Group's startup/restart times: %s"%childs_uptime)
             glideinFrontendLib.log_files.logActivity("Aggregate monitoring data")
             aggregate_stats()
             
@@ -141,6 +186,8 @@ def main(work_dir):
         
         sleep_time=int(frontendDescript.data['LoopDelay'])
         advertize_rate=int(frontendDescript.data['AdvertiseDelay'])
+        restart_attempts=int(frontendDescript.data['RestartAttempts'])
+        restart_interval=int(frontendDescript.data['RestartInterval'])
         
         groups=string.split(frontendDescript.data['Groups'],',')
         groups.sort()
@@ -149,8 +196,7 @@ def main(work_dir):
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
-        glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
-        print tb
+        glideinFrontendLib.log_files.logWarning("Exception occurred: %s" % tb)
         raise
 
     # create lock file
@@ -161,14 +207,13 @@ def main(work_dir):
     try:
         try:
             spawn(sleep_time,advertize_rate,work_dir,
-                  frontendDescript,groups)
+                  frontendDescript,groups,restart_attempts,restart_interval)
         except KeyboardInterrupt, e:
             glideinFrontendLib.log_files.logActivity("Received signal...exit")
         except:
             tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                             sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception at %s: %s" % (time.ctime(),string.join(tb,'')))
-            print tb
+            glideinFrontendLib.log_files.logWarning("Exception occurred: %s" % tb)
     finally:
         pid_obj.relinquish()
     

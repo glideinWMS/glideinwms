@@ -3,11 +3,16 @@
 import common
 from Configuration import Configuration
 #---------------------
-import sys,os,os.path,pwd,string,time,glob
+import sys
+import os
+import os.path
+import pwd
+import string
+import time
+import glob
 
 valid_options = [ "vdt_location",
 "pacman_location",
-"pacman_version",
 "pacman_url",
 ]
 
@@ -17,6 +22,13 @@ class VDT(Configuration):
     Configuration.__init__(self,inifile)
     self.validate_section(self.section,valid_options)
     self.vdt_services  = ["fetch-crl", "vdt-rotate-logs", "vdt-update-certs",]
+    self.messagesDict = { "pacman_url"      : self.pacman_url(),
+                          "pacman_urlfile"  : self.pacman_urlfile(),
+                          "pacman_location" : self.pacman_location(),
+                          "pacman_parent"   : self.pacman_parent(),
+                          "pacman_tarball"  : self.pacman_tarball(),
+                          "vdt_location"    : self.vdt_location(),
+                          }
 
   #-------------------------
   def osg_cache(self):
@@ -25,23 +37,29 @@ class VDT(Configuration):
   def vdt_cache(self):
     return "http://vdt.cs.wisc.edu/vdt_200_cache"
   #-------------------------
-  def unix_acct(self):
+  def username(self):
     return pwd.getpwuid(os.getuid())[0]
   #-------------------------
   def vdt_location(self):
     return self.option_value(self.section,"vdt_location")
   #-------------------------
-  def pacman_version(self):
-    return self.option_value(self.section,"pacman_version")
-  #-------------------------
   def pacman_url(self):
     return self.option_value(self.section,"pacman_url")
   #-------------------------
-  def pacman_parent(self):
+  def pacman_location(self):
     return self.option_value(self.section,"pacman_location")
   #-------------------------
-  def pacman_location(self):
-    return "%s/%s" % (self.pacman_parent(),self.pacman_version())
+  def pacman_version(self):
+    return os.path.basename(self.pacman_location())
+  #-------------------------
+  def pacman_tarball(self):
+    return "%s.tar.gz" % self.pacman_version()
+  #-------------------------
+  def pacman_urlfile(self):
+    return  "%s/%s" % (self.pacman_url(),self.pacman_tarball())
+  #-------------------------
+  def pacman_parent(self):
+    return os.path.dirname(self.pacman_location())
   #-------------------------
   def pacman_is_installed(self):
     if os.path.isfile("%s/setup.sh" % self.pacman_location()):
@@ -53,58 +71,64 @@ class VDT(Configuration):
       if os.path.isfile("%s/%s" % (self.vdt_location(),"setup.sh")):
         return True
     return False
-  #-------------------
-  def validate_pacman_url(self):
-    #if common.url_is_valid(self.pacman_url()):
-    if common.url_is_valid("http://physics.bu.edu/pacman/sample_cache/tarballs/pacman-3.28"):
-      return
-    common.logerr("Invalid pacman_ url attribute: %s" % self.pacman_url())
 
   #--------------------------
   def install_vdt_package(self,packages):
-#    if self.vdt_exists():
-#      common.logerr("... VDT pacman installation already exists: %s" % self.vdt_location())
-    self.__install_pacman__()
-    common.make_directory(self.vdt_location(),self.unix_acct(),0755,empty_required=False)
-    #-- pacman get ---
-    common.logit("... installing VDT client packages now")
-    common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; source %s/setup.sh && cd %s && pacman -trust-all-caches -get %s" % (self.pacman_location(),self.vdt_location(),packages))
+    """ Installs specified VDT packages. """
+    self.install_pacman()
+    common.make_directory(self.vdt_location(),self.username(),0755,empty_required=False)
+    #-- install vdt packages ---
+    self.messagesDict["packages"] = packages
+    common.logit("... installing VDT client packages")
+    common.run_script("export VDTSETUP_AGREE_TO_LICENSES=y; source %(pacman_location)s/setup.sh && cd %(vdt_location)s && pacman -trust-all-caches -get %(packages)s" % self.messagesDict)
     #--- vdt-post-install --
-    common.run_script("source %s/setup.sh && vdt-post-install" % (self.vdt_location()))
+    common.run_script("source %(vdt_location)s/setup.sh && vdt-post-install" % self.messagesDict)
 
   #-------------------------
-  def __install_pacman__(self):
+  def install_pacman(self):
     """ Installs pacman if not present. """
     if self.pacman_is_installed():
-      common.logit("... %s already installed in %s" % (self.pacman_version(),self.pacman_location()))
+      common.logit("... pacman (pacman_location) is installed in %(pacman_location)s" % self.messagesDict)
+      os.system("sleep 2")
       return #-- no need --
-
-    #-- install it -- 
-    common.ask_continue("""The version of pacman required to install this package cannot be found here: 
-  %s
-... it will now be installed. Continue""" % self.pacman_location())
-    common.logit("======== pacman install starting ==========")
-    pacman_urlfile = "%s/%s.tar.gz" % (self.pacman_url(),self.pacman_version())
-    if not common.wget_is_valid(pacman_urlfile):
-      common.logerr("The version of pacman requested does not appear to exist here:\n  %s" % pacman_urlfile)
-
-    common.make_directory(self.pacman_parent(),self.unix_acct(),0755,empty_required=True)
-    common.logit("Installing pacman: %s" % (self.pacman_version()))
-    common.run_script("cd %s && wget %s && tar --no-same-owner -xzvf %s.tar.gz && rm -f  %s.tar.gz" %
-      (self.pacman_parent(),pacman_urlfile,self.pacman_version(),self.pacman_version()))
+    common.ask_continue("""
+Pacman is required and does not appear to be installed in:
+  %(pacman_location)s
+... continue with pacman installation""" % self.messagesDict )
+    common.logit("""
+======== pacman install starting ==========
+pacman_url....... %(pacman_url)s      
+pacman_location.. %(pacman_location)s
+""" % self.messagesDict )
+    if os.path.exists(self.pacman_location()):
+      common.logerr("""The pacman_location for the pacman installation already exists 
+and should not.  This script was looking for a setup.sh in that directory 
+and it did not exist.  If a valid pacman distribution, it may be corrupt or the 
+pacman_location  is incorrect.  Please verify.""") 
+    common.logit("... retrieving pacman from: %(pacman_urlfile)s" % self.messagesDict)
+    if not common.wget_is_valid(self.pacman_urlfile()):
+      common.logerr("""A pacman tarball of this name does not exist at:
+    %(pacman_urlfile)s
+... please verify.""" %  self.messagesDict)
+    os.system("sleep 2")
+    common.make_directory(self.pacman_parent(),self.username(),0755,empty_required=False)
+    common.run_script("cd %(pacman_parent)s && wget %(pacman_urlfile)s && tar --no-same-owner -xzf %(pacman_tarball)s && rm -f  %(pacman_tarball)s" % self.messagesDict)
     if not self.pacman_is_installed():
-      common.logerr("%s install failed.  No setup.sh file exists" % self.pacman_version)
-    common.run_script("cd %s && source setup.sh" % (self.pacman_location()))
-    common.logit("\n%s install complete in:" % self.pacman_version())
-    common.logit("  %s" % self.pacman_location())
+      common.logerr("Pacman install failed. No setup.sh file exists in: %(pacman_location)s" % self.messagesDict)
+    common.logit("""... pacman requires the setup script to be sourced to initialize 
+    some variables in it for subsequent use.""")
+    common.run_script("cd %(pacman_location)s && source setup.sh" % self.messagesDict)
+    common.logit("\nPacman successfully installed: %(pacman_location)s" % self.messagesDict)
     common.logit("======== pacman install complete ==========\n")
+    os.system("sleep 2")
 
 ##########################################
 def main(argv):
   try:
-    inifile = "/home/weigand/weigand-glidein/glideinWMS.ini"
-    certs = Certificates(inifile,"WMSCollector")
-    certs.install()
+    section = "WMSCollector"
+    inifile = "/home/weigand/glidein-ini/glidein-all-xen21-doug.ini"
+    vdt = VDT(section, inifile)
+    vdt.install_pacman()
   except common.WMSerror:
     return 1
 

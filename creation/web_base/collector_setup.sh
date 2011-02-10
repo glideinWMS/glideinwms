@@ -1,18 +1,23 @@
 #!/bin/bash
 
-############################################################
 #
-# This script will setup the Collector parameters
-# when the frontend provides a list of collectors
-# The glidein will take a random one from the list
+# Project:
+#   glideinWMS
 #
-############################################################
+# File Version: 
+#   $Id: collector_setup.sh,v 1.6 2011/02/10 21:35:30 parag Exp $
+#
+# Description:
+#   This script will setup the Collector parameters
+#   when the frontend provides a list of collectors
+#   The glidein will take a random one from the list
+#
 
 glidein_config=$1
 tmp_fname=${glidein_config}.$$.tmp
 
 function warn {
- echo `date` $@
+ echo `date` $@ 1>&2
 }
 
 # import add_config_line function
