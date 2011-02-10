@@ -384,17 +384,29 @@ source %(condor_location)s/condor.sh
 %(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(hostname)s">
 %(indent4)s<security_classes>
 %(indent5)s<security_class name="frontend" username="%(frontend_user)s"/>
-%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
-%(indent4)s</security_classes>
-%(indent3)s</frontend>""" %  \
+""" %  \
 { "indent3" : common.indent(3),
   "indent4" : common.indent(4),
   "indent5" : common.indent(5),
   "frontend": frontend,
   "hostname"      : self.hostname(),
   "frontend_user" : frontend_users_dict[frontend],
+}
+      if self.use_vofrontend_proxy() == "n":
+        data = data + """\
+%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
+""" % \
+{ "indent5"       : common.indent(5),
   "factory_user"  : self.username(),
 }
+
+      data = data + """
+%(indent4)s</security_classes>
+%(indent3)s</frontend>""" %  \
+{ "indent3" : common.indent(3),
+  "indent4" : common.indent(4),
+}
+
     data = data + """
 %(indent2)s</frontends>
 %(indent1)s</security>""" % \
