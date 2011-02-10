@@ -1,0 +1,1549 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	<li> <a href="../index.html">Home</a></li>
+	<li> <a href="./index.html">WMS Factory</a></li>
+        <li>Configuration</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> Configuration</li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Configuration</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <LI><A HREF="#name">Command Line</A>
+        <LI><A HREF="#args">Configuration File</A>
+        <li><a href="#glexec">glExec</a> </li>
+        <li><a href="#private_net">Private Networks</a> </li>
+        <li><a href="#security">Security</a> </li>
+        <li><a href="#tcp">TCP Updates</a> </li>
+        <li><a href="#multicol">Multiple Collectors</a> </li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+        <LI><A HREF="./custom_scripts.html">Custom Scripts</A></li>
+        <LI><A HREF="./custom_vars.html">Custom Variables</A></li>
+</ul>
+</div>
+<div class="section">
+<h2>Example Configuration</h2>
+Below is an example factory configuration xml file.  Click on any piece
+for a more detailed description.
+<div class="config">
+<a href="#glidein">&lt;glidein advertise_delay="5" factory_name="factory-dstrain" glidein_name="v2_4" loop_delay="60" restart_attempts="3" restart_interval="1800" schedd_name="schedd glideins1@submit.fnal.gov,schedd_glideins2@submit.fnal.gov&gt;</a><br/>
+<blockquote>
+    <a href="install.html#downtimes">&lt;downtimes /&gt;</a><br/>
+    <a href="#">&lt;log_retention &gt;</a><br/>
+    <blockquote>
+        <a href="#">&lt; condor_logs max_days="14.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt; job_logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt; logs max_days="7.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+        <a href="#">&lt; summary_logs max_days="31.0" max_mbytes="100.0" min_days="3.0" /&gt;</a><br/>
+    </blockquote>
+    <a href="#">&lt;/log_retention &gt;</a><br/>
+    <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.5.0/flot" javascriptRRD_dir="/opt/javascriptrrd-0.5.0" jquery_dir="/opt/javascriptrrd-0.5.0/flot" /&gt;</a><br/>
+    <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA"&gt;</a><br/>
+    <blockquote>
+        <a href="#security">&lt;frontends &gt;</a><br/>
+        <blockquote>
+        <a href="#security_frontend">&lt;frontend name="vofrontend" identity="vofrontend@vofrontend.fnal.gov" &gt;</a><br/>
+            <blockquote>
+                <a href="#security_class">&lt;security_classes &gt;</a><br/>
+                <blockquote>
+                    <a href="#security_class">&lt;security_class name="frontend" username="frontend1" &gt;</a><br/>
+                </blockquote>
+                <a href="#security_class">&lt;/security_classes &gt;</a><br/>
+            </blockquote>
+            <a href="#security_frontend">&lt;/frontend &gt;</a><br/>
+        </blockquote>
+        <a href="#security_frontend">&lt;/frontends &gt;</a><br/>
+    </blockquote>
+    <a href="#security">&lt;/security &gt;</a><br/>
+    <a href="#stage">&lt;stage base_dir="/var/www/html/glidefactory/stage" use_symlink="True" web_base_url="http://factory.fnal.gov:9000/glidefactory/stage"/&gt;</a><br/>
+    <a href="#submit">&lt;submit base_client_log_dir="/opt/clientlogs/clients/logs" base_client_proxies_dir="/opt/clientlogs/clients/proxies" base_dir="/opt/wmsfactory/" base_log_dir="/opt/wmsfactory//logs" /&gt;</a><br/>
+    <a href="#attrs">&lt;attrs&gt;</a><br/>
+    <blockquote>
+        <a href="#attrs">&lt;attr name="CONDOR_VERSION" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="GCB_ORDER" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="NONE" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="USE_CCB" const="True" glidein_publish="True" job_publish="False" parameter="True" publish="True" type="string" value="False" /&gt;</a><br/>
+        <a href="#attrs">&lt;attr name="USE_MATCH_AUTH" const="False" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="True" /&gt;</a><br/>
+    </blockquote>
+    <a href="#attrs">&lt;/attrs&gt;</a><br/>
+    <a href="#entry">&lt;entries&gt;</a><br/>
+    <blockquote>
+        <a href="#entry">&lt;entry name="EXAMPLE_ENTRY" enabled="True" gatekeeper="gatewayname.fnal.gov/jobmanager-condor" gridtype="gt2" rsl="(queue=default)(jobtype=single)" schedd_name="wmscollector.fnal.gov" verbosity="std" work_dir="OSG"&gt;</a><br/>
+        <blockquote>
+            <a href="#">&lt;config&gt;</a><br/>
+            <blockquote>
+                <a href="#">&lt;max_jobs held="1000" idle="2000" running="10000"&gt;</a><br/>
+                <a href="#">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
+                <a href="#">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
+                <a href="#">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;</a><br/>
+            </blockquote>
+            <a href="#">&lt;/config&gt;</a><br/>
+            <a href="install.html#downtimes">&lt;downtimes /&gt;</a><br/>
+            <a href="#allow_frontend">&lt;allow_frontends /&gt;</a><br/>
+            <a href="#attrs">&lt;attrs&gt;</a><br/>
+            <blockquote>
+                <a href="#entry_attrs">&lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default"/&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="default" /&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr name="GLEXEC_BIN" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="True" type="string" value="NONE"/&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr name="GLIDEIN_Site" const="True" glidein_publish="True" job_publish="True" parameter="True" publish="True" type="string" value="FNAL_EXAMPLE_SITE"/&gt;</a><br/>
+                <a href="#entry_attrs">&lt;attr /&gt;</a><br/>
+            </blockquote>
+            <a href="#entry_attrs">&lt;/attrs&gt;</a><br/>
+            <a href="#monitorgroups">&lt;monitorgroups/&gt;</a><br/>
+            <a href="#custom_code">&lt;files/&gt;</a><br/>
+            <a href="#infosys">&lt;infosys_refs /&gt;</a><br/>
+        </blockquote>
+        <a href="#entry">&lt;/entry&gt;</a><br/>
+    </blockquote>
+    <a href="#entry">&lt;/entries&gt;</a><br/>
+    <a href="#condor_tarball">&lt;condor_tarballs&gt;</a><br/>
+    <blockquote>
+        <a href="#condor_tarball">&lt;condor_tarball arch="default" base_dir="/opt/wmscollector/" os="default" tar_file="/var/www/html/glidefactory/stage/glidein_v2_4/condor_bin_default-default-default.a83ePm.tgz" version="default"&gt;</a><br/>
+    </blockquote>
+    <a href="#condor_tarball">&lt;/condor_tarballs&gt;</a><br/>
+    <a href="#">&lt;files /&gt;</a><br/>
+</blockquote>
+<a href="#glidein">&lt;/glidein&gt;</a><br/>
+</div>
+
+
+<div class="section">
+ 
+
+<H2 CLASS="western">
+<A NAME="args"></A>The configuration file</H2>
+
+<P>
+    The configuration file is a XML document.
+    It contains both global arguments as well as configuration specific 
+    to each entry point.  At least one entry point must be specified in the
+    configuration file.
+
+</p>
+<p>
+    The tags of the XML configuration file are described below.
+    Each is given a designation:
+    <uL>
+        <li><b>Required</b> You must change or examine this in order for the factory to function correctly.</li>
+        <li><b>Recommended</b> The installer provides a good default, but you should examine this attribute to make sure it is correct for your installation.</li>
+        <li><b>Optional</b> The installer-provided default is likely correct for your installation.  Change this only if your particular configuration requires special treatment or fine-tuning.</li>
+    </ul>
+</p>
+</div>
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="args_global"></A>Global arguments</H3>
+<P>Global arguments are common to  all entry points but can be overridden by 
+individual entry point configuration.
+<UL>
+
+    <LI>
+        <a name="glidein" />
+        <div class="xml">
+        &lt;glidein ... &gt;
+        </div>
+    <p><b>Required</b> The main tag of the factory configuration.  See below for the 
+        paramters for this tag:
+    <ul>
+    <li>
+    <p>
+        <div class="xml">
+        &lt;glidein glidein_name=&quot;<I>your name</I>&quot;&gt;
+        </div>
+        <b>Required</b> The name
+    of the configuration. It will be used to advertise the entry points,
+    will be defined as Condor glidein attribute <tt>GLIDEIN_Name</tt>,
+    and is used also to create the directory names.
+    Choose a short name that describes the set of Grid resources 
+    it represents and append a version number (like 
+    <tt>&quot;fnalcms_1&quot;</tt>).
+    Starting with v2.0 of glideinWMS, you can use the 
+    <A HREF="index.html#reconfig_entry">factory reconfig tool </A>
+    to make changes to the factory configuration. You
+    will only need new configuration for the factories during major
+    upgrade. For more details refer the 
+    <A HREF="index.html#management">Glidein Factory management section</A>
+    </li><LI>
+        <div class="xml">
+        &lt;glidein factory_name=&quot;<I>your name</I>&quot;&gt;
+        </div>
+    <b>Recommended</b>  Changing this value from the name of the 
+       machine allows you to move the factory without disrupting the system.
+    </li><LI>
+        <div class="xml">
+        &lt;glidein
+        schedd_name=&quot;<I>schedd name[,schedd name]*</I>&quot;&gt;
+        </div>
+    <b>Recommended</b> If you want to use multiple Condor schedds or you don't like the
+    default name, you definitely need to set this. If you specify more
+    than a single schedd, the various entries will be equally spread
+    among all the listed schedds.  Possible values include (but are not limited to): <br/>
+    <tt>&quot;myschedd@mymachine.mydomain&quot;</tt><br/>
+    <tt>&quot;myschedd_g1@mymachine.mydomain,myschedd_g2@mymachine.mydomain,myschedd_g3@mymachine.mydomain&quot;</tt><br/>
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein loop_delay=&quot;<I>seconds</I>&quot;
+        advertise_delay=&quot;<I>nr</I>&quot; &gt;
+        </div>
+        <b>Optional</b> Defines how active the glidein factory should be.
+        The glidein factory works in polling mode.
+        <tt><B>loop_delay</B></tt> defines how much time should pass between each polling loop, with
+    the collector being updated every <tt><B>advertise_delay</B></tt> loops.
+<LI>
+        <div class="xml">
+        &lt;glidein restart_attempts=&quot;<I>nr</I>&quot;
+        restart_interval=&quot;<I>seconds</I>&quot; &gt;
+        </div>
+    <b>Optional</b> Defines how many times restart_attempts should be
+    applied within restart_interval seconds for an entry if the entry
+    crashes.
+    </li>
+    <LI>
+    <div class="xml">
+        &lt;glidein advertise_with_tcp=&quot;<I>True|False</I>&quot; &gt;
+    </div>
+        <b>Optional</b> Defines if the factory should use TCP to advertise its classads.
+    </li>
+    <LI>
+    <div class="xml">
+        &lt;glidein advertise_with_multiple=&quot;<I>True|False</I>&quot; &gt;
+    </div>
+        <b>Optional</b> Defines if the factory should use -multiple to advertise its classads (requires Condor 7.5.4+).  
+    </li>
+    </ul>
+    </li>
+    <LI>
+        <a name="condor_tarball" />
+        <div class="xml">
+            &lt;glidein&gt;&lt;condor_tarballs&gt;&lt;condor_tarball
+            os=&quot;<i>os</I>&quot;
+
+            arch=&quot;<I>arch</I>&quot;
+            base_dir=&quot;<I>directory</I>&quot;
+            version=&quot;<I>condor version</I>&quot;/&gt;
+        </div>
+    <p><b>Required</b> Where to find the Condor binaries.
+    You can list as many as you need,
+    but at least one is required. This lets you configure glideins for
+    different sites to use different version of condor binaries based on
+    architecture, os of the worker nodes that could be found on the
+    site.<br/>
+    It is recommended to have one default entry with
+        <b>os=&quot;default&quot; arch=&quot;default&quot;
+        version=&quot;default&quot;</b>.<br/>
+        See <a href="#tarballs">multiple tarballs</a> for more detailed instructions on supporting tarballs for multiple architectures.
+    </p>
+    <LI>
+        <a name="submit" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;submit base_dir=&quot;<I>directory</I>&quot;
+        base_log_dir=&quot;<I>log directory</I>&quot;
+        base_client_log_dir=&quot;<i>client log directory</I>&quot;
+
+        base_client_proxies_dir=&quot;<I>directory where proxies will be stored</I>&quot;/&gt;
+        </div>
+    <p><b>Recommended</b> Where to create the glidein submit directory. 
+    The default is the user home
+    directory. Log directories can be configured independent of the base
+    directory using options mentioned above.</P>
+    <LI>
+        <a name="stage" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;stage base_dir=&quot;<I>web dir</I>&quot;
+
+        web_base_dir=&quot;<I>URL</I>&quot;/&gt;
+        </div>
+    <p><b>Recommended</b> These two define where the Web server directories are located.
+    <BR/>The defaults are reasonable, but you may have different needs. 
+    </P>
+    <LI>
+        <a name="monitor" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;monitor base_dir=&quot;<I>web dir</I>&quot; 
+        javascriptRRD_dir=&quot;<I>web dir</I>&quot; 
+        flot_dir=&quot;<I>web dir</I>&quot; 
+        jquery_dir=&quot;<I>web dir</I>>&quot; &gt;
+
+        </div>
+    <p><b>Recommended</b> The <STRONG>base_dir</STRONG> defines where the monitoring web are
+    is.<BR/>The other entries point to where javascriptRRD, Flot and
+    JQuery libraries are.</P>
+    <LI>
+        <a name="security" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;security 
+        allow_proxy=&quot;<I>frontend[,factory]</I>&quot;
+        pub_key=&quot;<I>RSA</I>&quot;/&gt;
+
+        </div>
+    <p><b>Recommended</b> Enable
+    the proxy passing between <A HREF="../frontend/index.html">frontend</A>
+    and factory. Define if the frontend needs to pass a proxy
+    (<EM>&quot;frontend&quot;</EM>), if it must use the factory one
+    (<EM>&quot;factory&quot;</EM>), or if both methods are supported
+    (<EM>&quot;frontend,factory&quot;</EM>).</P>
+    </li>
+    <P>
+      <b>Important:</b> If you configure to use a factory proxy (even optionally), you will need to export
+         the X509_USER_PROXY variable with the location of the proxy file
+         prior to starting the Factory service.
+    </P>
+    <LI>
+        <a name="security_frontend" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;security&gt;&lt;frontends&gt;&lt;frontend
+        name=&quot;<I>FrontendName</I>&quot;
+        identity=&quot;username_usedby_factory@factory_hostname&quot;
+        /&gt;</div>
+
+    <p><b>Recommended</b> (Required for privilege separation) 
+    This configures a frontend. 
+    <b>Frontend on the frontend hosting machine
+    should have same name as mentioned in the 'name'. </b>Identity tells the
+    factory the username under which the factory should map the given
+    frontend to.
+    <b>If this does not match the frontend configuration, 
+    the factory will drop all requested glideins.</b>
+    </P>
+    <LI>
+        <a name="security_class" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;security&gt;&lt;frontends&gt;&lt;frontend&gt;&lt;security_classes&gt;&lt;security_class
+        name=&quot;<I>frontend</I>&quot;
+        username=&quot;<I>>username_usedby_factory</I>&quot;/&gt;
+        </div>
+
+    <p><b>Required</b> Tells the class and user name the factory uses for this frontend.<br/></p>
+    <ul>
+    If the <b>allow_proxy</b> attribute of the <b>security</b> element contains <i>&quot;frontend&quot;</i>, you must have
+        <div class="xml">-  <b>&lt;security_class name=&quot;frontend&quot; username=&quot;<I>username_usedby_factory</I>&quot;/&gt;</b></div>
+
+    If the <b>allow_proxy</b> attribute of the <b>security</b> element contains <i>&quot;factory&quot;</i>, you must have
+       <div class="xml">-  <b>&lt;security_class name=&quot;factory&quot; username=&quot;<I>factory_username</I>&quot;/&gt;</b></div>
+
+    If the <b>allow_proxy</b> attribute of the <b>security</b> element specifies <i>&quot;factory,frontend&quot;</i>,<br/>
+    you must have both.
+       </ul> 
+    </li>
+    <LI>
+        <a name="attrs" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;attrs&gt;&lt;attr 
+        name=&quot;<I>attr name</I>&quot;
+        value=&quot;<I>value</I>&quot;
+        const=&quot;True&quot;
+
+        parameter=&quot;True&quot; publish=&quot;True&quot;
+        glidein_publish=&quot;True&quot; 
+        comment=&quot;<I>comment</I>&quot; /&gt;
+        </div>
+
+    <p>Attributes you want to publish that 
+    effect all the factory entries</p>
+    <p>To set Attributes specific to an entry point, set them in
+    /glidein/entries/entry/attrs section.</p>
+    <p>Table below describes
+    the &lt;attrs ... &gt; tag. 
+    </P>
+    <table class="requirements">
+        <tr class="head">
+            <td> <P><B>Attribute Name</B></P> </TD>
+
+            <TD> <P><B>Attribute Description</B></P> </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>name</b></P> </TD>
+            <TD>
+                <P>Name of the attribute</P>
+
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>value</b></P> </TD>
+            <TD> <P>Value of the attribute</P> </TD>
+        </TR>
+
+        <TR>
+            <TD> <P><b>const</b></P> </TD>
+            <TD>
+                <P>If this attribute is a constant so that 
+                Glidein Frontend can not change it. If set to const, 
+                the attribute will be available in
+                the constants file created in the staging area. 
+                Used only if parameter is True.
+                </P>
+            </TD>
+        </TR>
+        <TR>
+
+            <TD> <P><b>parameter</b></P> </TD>
+            <TD>
+                <P>Set True if the attribute should be passed 
+                as a parameter.  Always set this to True 
+                unless you know what you are doing.</P>
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>publish</b></P> </TD>
+
+            <TD>
+                <P>If set to True, 
+                the attribute will be published in Factory's
+                classad</P>
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>glidein_publish</b></P> </TD>
+            <TD>
+
+                <P>If set to True, the attribute will be 
+                available in the condor_startd's classad. 
+                Used only if parameter is True.</P>
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>job_publish</b></P> </TD>
+            <TD>
+                <P>If set to True, the attribute will be 
+                available in the user job's environment. 
+                Used only if parameter is True.</P>
+
+            </TD>
+        </TR>
+        <TR>
+            <TD> <P><b>comment</b></P> </TD>
+            <TD>
+                <P>You can specify description 
+                of the attribute here.</P>
+            </TD>
+
+        </TR>
+        <TR>
+            <TD> <P><b>type</b></P> </TD>
+            <TD>
+                <P>Type of the attribute. 
+                Supported types are 'int', 'string' and
+                'expr'. Typeexpr is equivalent to 
+                condor constant/expression in
+                condor_vars.lst</P>
+            </TD>
+        </TR>
+
+    </TABLE>
+    <P><BR>These are used by the <A HREF="../frontend/index.html#match_expr">VO
+    frontend matchmaking</A> and job matchmaking.<BR><BR>Example
+    attributes are:</P>
+    <PRE>&lt;attrs&gt;
+ &lt;attr name=&quot;VOpilot&quot; value=&quot;CMS&quot; 
+    publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”A test attribute”/&gt;
+
+ &lt;attr name=&quot;CondorVersion&quot; value=&quot;v6.9.1&quot; 
+    publish=&quot;True&quot; parameter=&quot;True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
+
+&lt;/attrs&gt;</PRE>
+    </p><p>A list of all the
+    attributes can be found on the 
+    <A HREF="custom_vars.html"> dedicated configuration variables page </A>. 
+    </P>
+</UL>
+<P><BR>The other arguments are for advanced admins only, and are
+explained in a <A HREF="#advanced">dedicated section</A>.</P>
+</div>
+
+<div class="section">
+<H3 CLASS="western"><A NAME="args_entry"></A>Entry point arguments</H3>
+<p>
+The following are arguments that are specific to each entry point.  They 
+override the global arguments if present.
+</p>
+<UL>
+    <LI>
+        <a name="entry" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;
+        </div>
+    <P><b>Required</b>Each entry point will have its own root tag with parameters:</p>
+    <ul>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;
+        </div>
+    <b>Required</b> Specify an easy to remember name that will identify this entry for display purposes and for specifying using command line tools.
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+        gatekeeper=&quot;<I>gatekeeper</I>&quot;&gt;
+        </div>
+    <b>Required</b> The identifier of your Grid resource (like
+    <tt>&quot;cmsitbsrv01.fnal.gov/jobmanager-condor&quot;</tt>).
+    </li>
+    <li>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot; 
+        rsl=&quot;<I>rsl</I>&quot;&gt;
+        </div>
+    <b>Required</b> Please check the Grid site documentation and/or ask the Grid
+    site administrator for the proper rsl and queue name for the site.<br/>
+    (example: '<tt>(condorsubmit=(universe
+    vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>').
+    </li>
+    <li>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+
+        gridtype=&quot;<I>grid type [default: gt2]</I>&quot;&gt;
+        </div>
+    <b>Optional</b> The current implementation has been
+    tested with Globus v2 Gatekeepers only, but this tag can specify 
+    additional Condor Grid types.
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+        work_dir=&quot;<I>WN dir</I>&quot;&gt;
+        </div>
+    <b>Recommended</b> This argument defines where the glidein should run once
+    on the worker node.
+    <i>Note: Most OSG sites are known to crash if you use your
+    starting directory to run. </i>  For those sites, it is good practice to
+    specify <tt>&quot;Condor&quot;</tt> if they are
+    running Condor as the underlying batch system, and
+    <tt>&quot;OSG&quot;</tt>
+    else.  On EGEE sites, &quot;.&quot; is usually fine.
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+        proxy_url=&quot;<I>Proxy URL</I>&quot;&gt;
+        </div>
+    <b>Recommended</b> If you have a Web cache you can use, you set it here (like
+    <tt>&quot;cmsitbsquid002.fnal.gov:3128&quot;</tt>).
+    On OSG resources, you can set it to <tt>&quot;OSG&quot;</tt>,
+    and the default OSG squid will be used.
+    If you cannot use any Web cache server,
+    you can skip this argument (the default is not to
+    use caching).  If defined, the user jobs will be able to use
+    it as <tt>&quot;GLIDEIN_Proxy_URL&quot;</tt> environment variable.
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+        schedd_name=&quot;<I>schedd name</I>&quot;&gt;
+        </div>
+    <b>Optional</b> If you have an entry that needs a dedicated schedd,
+    you can set it here (to something like
+    <tt>&quot;myveryspecialschedd@mymachine.mydomain&quot;)</tt>
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+
+        enabled=&quot;<I>True/False</I>&quot;&gt;
+        </div>
+    <b>Optional</b> You can define an entry point even if you do not plan to use it right
+    away.  The entry point directory will be created independently of
+    the <tt><B>enabled</B></tt> flag, but will only
+    be used by the glidein factory if it is set to
+    <tt><B>True</B></tt>.
+    (Defaults to <tt><B>True</B></tt>).
+    </li>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;
+        verbosity=&quot;<I>std/fast/nodebug</I>&quot;&gt;
+        </div>
+    <b>Optional</b> Specify the verbosity level and
+    termination time in case of validation errors:
+    <UL>
+        <LI><b>std (default)</b> – reasonable
+        verbosity (including the condor log files) and 20min sleep in case
+        of error (to reduce the damage resulting from broken nodes)</li>
+        <LI><b>fast</b> – same verbosity as std,
+        but will only wait 2 mins before terminating in
+        case of error (good for debugging)</li>
+        <LI><b>nodebug</b> – very low verbosity,
+        if you want to save on disk space</li>
+    </UL>
+    </li>
+    </ul>
+    </li>
+        <LI>
+        <a name="entry_attrs" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;&lt;attrs>&gt;&lt;attr
+        name=&quot;<I>attr name</I>&quot;
+
+        value=&quot;<I>value</I>&quot;
+        const=&quot;True&quot;
+        parameter=&quot;True&quot; publish=&quot;True&quot;
+        glidein_publish=&quot;True&quot;
+        comment=&quot;<I>comment</I>&quot;/&gt;
+
+        </div>
+    <p>
+    Attributes you want to publish into the Condor classad.
+    These are used by the
+    <A HREF="../frontend/index.html#match_expr">VO frontend matchmaking</A>
+    and job matchmaking.</p>
+    <p>Example
+    attributes are:</P>
+    <PRE>
+ &lt;attr name=&quot;HasMySoftware&quot; value=&quot;True&quot; publish=&quot;True&quot; parameter=&quot;
+True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My users cannot live without”
+/&gt;
+
+ &lt;attr name=&quot;OS&quot; value=&quot;Linux&quot; publish=&quot;True&quot; parameter=&quot;True&quot;
+ const=&quot;True&quot; glidein_publish=&quot;True&quot;/&gt;
+ </PRE>
+    Other pre-defined attributes are listed below:
+    <ul> 
+    <LI>
+
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;&lt;attrs&gt;&lt;attr
+        name=&quot;GLIDEIN_Site&quot;
+        value=&quot;<I>value</I>&quot;
+        const=&quot;True&quot;
+
+        parameter=&quot;True&quot;
+        publish=&quot;True&quot;/&gt;
+        </div>
+    <b>Recommended</b> This defines the glidein attribute <tt>GLIDEIN_Site</tt>,
+    both for use of the Frontend and for the use of the job
+    negotiation.  Logically defining a site is useful, so that you
+    can change entry points but the user jobs do still known where they
+    are running. If not specified, it defaults to the entry point name
+    in the startd ClassAd. 
+    </li>
+    <li>
+    <div class="xml">
+    &lt;glidein&gt;&lt;entries&gt;&lt;entry 
+    name=<I>entry name</I>&quot;&gt;&lt;attrs&gt;<br/>
+    &nbsp;&nbsp;&lt;attr name=&quot;CONDOR_VERSION&quot;
+    value=&quot;<I>os</I>&quot;
+
+    type=&quot;string&quot;
+    const=&quot;True&quot; parameter=&quot;True&quot;
+    publish=&quot;False&quot; /&gt;<br/>
+
+    &nbsp;&nbsp;&lt;attr name=&quot;CONDOR_ARCH&quot;
+    value=&quot;<I>arch</I>&quot;
+    type=&quot;string&quot;
+    const=&quot;True&quot; parameter=&quot;True&quot;
+
+    publish=&quot;False&quot;/&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;CONDOR_OS&quot;
+    value=&quot;<I>version</I>&quot;
+    type=&quot;string&quot;
+
+    const=&quot;True&quot; parameter=&quot;True&quot; 
+    publish=&quot;False&quot;/&gt;
+    </div>
+    <b>Recommended</b> Select a non-default condor binary.<BR/>
+
+    The entry will default to 
+    <tt><B>CONDOR_OS=&quot;default&quot; CONDOR_ARCH=&quot;default&quot; 
+    CONDOR_VERSION=&quot;default&quot;</B></tt>,
+    if not otherwise defined. 
+    </ul>
+    </li>
+        <li>
+        <a name="allow_frontend" />
+        <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;
+        &lt;allow_frontends&gt;
+        &lt;allow_frontend name="vofrontend_name"
+        security_class="security_class_name"&gt;
+        </div>
+        <p>
+        This argument allows you to create a whitelist of
+        vo frontends that can access this entry point.
+        If this tag is blank or missing, it is assumed that
+        all vo frontends can submit glideins to this entry point.
+        However, if any allow_frontend tags exist, the entry point
+        will <b>only</b> allow those frontends to submit glideins.
+        The name of the frontend must match the name given in
+        the security class above in the configuration.
+        </p>
+        <p>
+        For each frontend, you must tell it which security classes
+        (e.g. proxies) can use the frontend.  The factory will
+        only submit glideins on behalf of these security classes.
+        If you want all security classes to be allowed, you can put
+        "All" in this field.  Otherwise, it must match the security
+        class configuration higher up in the xml.
+        </p>
+    </li>
+    <li>
+    <a name="infosys" />
+    <div class="xml">
+        &lt;glidein&gt;&lt;entries&gt;&lt;entry
+        name=&quot;<I>entry name</I>&quot;&gt;
+        &lt;infosys_refs&gt;&lt;infosys_ref ref="<i>filename</i>" server="<i>SERVER</i>" type="<i>RESS/BDII</i>"&gt;
+    </div>
+    <p>
+    This argument is placed here by the installers based on information from BDII/RESS.  This gives you
+    information on where the server's information was retrieved from.  It can also be used to retrieve
+    downtime information from RESS/BDII.
+    </li>
+</UL>
+</div>
+
+<div class="section">
+<H2 CLASS="western"><A NAME="advanced"></A>Advanced topics</H2>
+<P>While the above is enough for setting up a personal glidein pool
+on the local area network, you will need to do more fine tuning when
+deploying a larger one. In this section, the various advanced aspects
+of glidein pools will be presented. 
+</p>
+</div>
+
+<div class="section">
+<H3 CLASS="western"><A NAME="glexec"></A>Integration with gLExec</H3>
+
+<P>As you may have noticed, all of the glideins are submitted with
+the same service proxy. While this has the advantage of simplifying
+the architecture and improve both efficiency and VO control, it does
+have a few problems:</P>
+<UL>
+    <LI><P STYLE="margin-bottom: 0in">All glidein scripts and Condor
+    daemons, AND user jobs all run under the same Unix UID. So users can
+    interfere with the glidein tasks, possibly hacking the
+    system.&nbsp;<BR>Plus, when several glideins start on the same node
+    (on multi processor/core machines), one user job can interfere with
+    another user job. 
+    </P>
+    <LI><P>The real user is never authenticated against the Grid site
+    authorization infrastructure. This makes it impossible for the sites
+    to enforce their policies, nor can they analyze the usage of their
+    resources; they see only glideins. This makes them very unfriendly
+    toward the glidein based WMS. 
+    </P>
+</UL>
+<P>To solve this problem, some Grid sites are deploying gLExec on the
+worker nodes. gLExec is a service that will take the following:</P>
+<UL>
+    <LI>the user proxy, and </li>
+
+    <LI>the desired command </li>
+</UL>
+    <p>
+    It will contact the local authorization and mapping system, switch to
+    the UID of the user (as opposed to the glidein UID), and execute
+    the provided command as that UID. </p>
+    <p>By using gLExec, a Glidein
+    Factory can get rid of both of the above problems, and still keep
+    all the advantages.</p>
+    <p>To enable gLExec support, you need to
+    specify:
+    </p> 
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
+    &nbsp;&lt;files&gt;<BR/>
+    &nbsp;&nbsp;&lt;file absfname=&quot;web_base/glexec_setup.sh>&quot;
+    executable=&quot;True&quot;/&gt;<BR/>
+
+    &nbsp;&lt;/files&gt;<BR/>
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&lt;attr name=&quot;GLEXEC_BIN&quot;
+    value=&quot;<I>path to glexec</I>&quot; publish=&quot;False&quot;
+
+    parameter=&quot;True&quot;/&gt;
+    </div>
+    <p>
+    For most current gLExec installation this comes down to: 
+    </p>
+    <div class="xml">
+    &lt;attr name=&quot;GLEXEC_BIN&quot;
+
+    value=&quot;OSG&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+    </div>
+    <P>
+
+    More details about scripts in general can be found in the 
+    <A HREF="#custom_code">&quot;custom code&quot;</A> section. 
+    </P>
+    <p>You will also need to properly
+    configure the <B>shadow config files on the submit machine</B>, by
+    adding the following to the condor_config: </p>
+    <blockquote>
+    GLEXEC_STARTER = True<BR/>
+    GLEXEC = /bin/false 
+    </blockquote>
+
+<P>As of version 7.1.3 of Condor, a new, better glexec operation mode
+is supported; in the old operation mode, condor_startd invoked
+condor_starter through glexec. The result was that condor_starter was
+running under the same UID as the user job, leaving it vulnerable to
+attack from a malicious user. The new operating mode solves this by
+having condor_starter run the user jobs via glexec; this adds a
+little more overhead to handle the user jobs, but makes the system
+much more secure.</P>
+<p>
+    To enable the new operation mode,
+    add the following line to your configuration file: 
+</p>
+    <div class="xml">
+    &lt;attr name=&quot;GLEXEC_JOB&quot;
+    value=&quot;True&quot;
+
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+    </div>
+<P>
+Note that you still need to set <tt><B>GLEXEC_BIN</B></tt>,
+too.</p>
+    <p><B>Warning</B>: Use it only if you use Condor 7.1.3 or later,
+as it will not work on any older Condor version!</P>
+
+<H4 CLASS="western"><A NAME="glexec_troubleshooting"></A>Troubleshooting</H4>
+<p>
+    gLExec installations on at least
+    one site had problems with delegated proxies. If in doubt, try to
+    disable the delegation. 
+</p>
+<p>
+    To disable delegation, add the following
+    to <B>the shadow configuration </B>file:
+</p>
+    <blockquote>
+    DELEGATE_JOB_GSI_CREDENTIALS=False<BR/>
+
+    SEC_DEFAULT_ENCRYPTION=PREFERRED
+    </blockquote>
+<p>
+    Then, set the following tags in the glidein creation file: 
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[&lt;entries&gt;&lt;entry&gt;]</i><BR/>
+    &nbsp; &lt;attrs&gt;
+
+    &nbsp;&nbsp;&nbsp;&lt;attr
+    name=&quot;SEC_DEFAULT_ENCRYPTION&quot;
+    value=&quot;REQUIRED&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True>&quot;/&gt;
+
+    </div>
+    <p>Another thing to consider is the startup directory; it must be
+    accessible by both the starting user and the target user(s). The
+    directory you usually start in the Grid is most often not readable
+    by any other user, so you must select something else. 
+    Both <tt>Condor</tt>
+    and <tt>OSG</tt> should be fine, or you can
+    specify any other fixed, WN-local location. 
+    </p>
+</div>
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="private_net"></A>Private networks and firewalls</H3>
+
+<P>Condor daemons need two way communication in order to work
+properly. This clashes with the network policies of most Grid sites,
+that have worker nodes in private networks or implement a restrictive
+firewall. 
+</P>
+<P>Condor provides two mechanisms to address this: 
+</P>
+<UL>
+    <LI><A HREF="#gcb">GCB</A> and </li>
+    <LI><A HREF="#ccb">CCB</A> (since v7.3.0). </li>
+</UL>
+<H4 CLASS="western"><A NAME="gcb"></A>GCB - Generic Connection Broker</H4>
+
+<p>
+    GCB was the first Condor
+    implementation that allowed it to work in restrictive network
+    environments. <BR/>
+    The detailed description of GCB is beyond the
+    scope of this manual and you should refer to the Condor
+    documentation available at
+    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#sec:GCB">http://www.cs.wisc.edu/condor/manual/v7.2/3_7Networking_includes.html#sec:GCB</A>.
+    Here you will find only the parameters needed to enable it in the
+    glideins.
+    </p><p>
+    To use Condor with GCB, you need to specify: 
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
+
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;GCB_LIST&quot;
+    value=&quot;<I>IP[:PORT],IP[:PORT],...</I>&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;<br/>
+
+    &nbsp;&nbps;&lt;attr name=&quot;GCB_ORDER&quot;
+    value=&quot;<I>NONE|RANDOM|GCBLOAD|ROUNDROBIN|SEQUENTIAL</i>&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+
+    </div>
+<P> where:</P>
+<UL>
+    <LI><P><b>NONE</b>: Do
+    not use GCB (a good way to selectively disable it) 
+    </P>
+    <LI><P><b>RANDOM</b>: Randomly distributes between the listed GCBs 
+    </P>
+    <LI><P><b>ROUNDROBIN</b> (or <b>RR</b>): Round robin between them,
+    based on the job submission number. 
+    </P>
+
+    <LI><P><b>SEQUENTIAL</b> (or <b>SEQ</b>): Keep the order.
+    Essentially always tries the first one first (the others will be
+    used only if the first one fails) 
+    </P>
+    <LI><P><b>GCBLOAD</b>i: Order by GCB load.
+    All GCBs must support the <tt>freesockets</tt>
+    query&nbsp;and you must upload the <tt>gcb_broker_query</tt>
+
+    binary, too. See below. 
+    </P>
+</UL>
+<p>
+    If your GCBs support <tt>freesockets</tt>
+    queries (v7.0 and above), you most probably want to protect your
+    glideins from failing due to an overloaded GCB. To do that,
+    <tt>gcb_broker_query</tt> binary needs to be
+    part of the Condor distribution you are using. You also need to
+    decide what is the minimum number of free sockets you are
+    comfortable with: 
+    <div class="xml">
+    &lt;glidein&gt;&lt;attrs&gt;&lt;attr
+    name=&quot;GCB_MIN_FREE&quot;
+
+    value=&quot;<I>number</I>&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+    </div>
+    <p>
+
+    I would suggest you set it to at least 100, possibly more. Most
+    Condor versions use around 5 sockets per VM (depending on
+    configuration).
+    </p><p>You can also specify a default GCB port
+    (defaults to <tt>65432</tt>): 
+    </p>
+    <div class="xml">
+    &lt;glidein&gt;&lt;attrs&gt;&lt;attr
+    name=&quot;GCB_PORT&quot;
+    value=&quot;<I>port</I>&quot;
+
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+    </div>
+    <p>
+    (Note that Condor GCB right now does not support any other port
+    number).
+    </p>
+    <p>Also, for more flexibility, you can let 
+    <A HREF="../frontend/index.html#management">the frontends</A> 
+    to provide their own GCB servers, by setting
+    <tt><B>publish=&quot;True&quot; const=&quot;False&quot;</b></tt>.
+    </p><p>
+
+    If you are more sophisticated, and want to use 
+    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00473500000000000000">GCB routing tables</A> , too, add: 
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
+    &nbsp;&lt;files&gt;<BR/>
+
+    &nbsp;&nbsp;&lt;file absfname=&quot;<I>path to routing file</I>&quot;
+    relfname=&quot;gcb_route.cfg&quot;/&gt;<BR/>
+    &nbsp;&lt;/files&gt;<BR/>
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;GCB_REMAP_ROUTE&quot;
+
+    value=&quot;gcb_route.cfg&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+    </div>
+<P>
+Please be aware that the above will configure the glideins only;
+you still need to properly configure the Collector and the submit
+machines. 
+
+</P>
+<H4 CLASS="western"><A NAME="ccb"></A>CCB - Condor Connection Broker</H4>
+<p>
+    CCB was introduced in Condor v7.3.0
+    to replace GCB in most circumstances. It is much more reliable than
+    GCB and also easier to setup. <BR/>
+    The detailed description of CCB is
+    beyond the scope of this manual and you should refer to the Condor
+    documentation available at
+    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB</A>.
+    Here you will find only the parameters needed to enable it in the
+    glideins.
+    </p><p>To use Condor with CCB, you need to specify: 
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR/>
+
+    &nbsp;&lt;attrs&gt;<BR/>
+    &nbsp;&nbsp;&lt;attr name=&quot;USE_CCB&quot;
+    value=&quot;True&quot;
+    publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;
+
+    </div>
+<P>
+and you are done. Just make sure you follow the <A HREF="http://www.cs.wisc.edu/condor/manual/v7.3/3_7Networking_includes.html#sec:CCB">suggested
+scalability guidelines described in the Condor manual</A>.</P>
+</div>
+
+<div class="section">
+<H3 CLASS="western"><A NAME="security"></A>Security handles</H3>
+<P>As mentioned in the <A HREF="../index.html#pool_glidein">startup
+page</A>, the glidein pool must be properly configured to protect it
+from hackers and malicious users. The same page also describes what
+needs to be done on the collector machine.<BR>The glidein itself can
+also be configured. The default configuration works fine for most
+users, but you may need to change them.<BR><BR>The values are set
+using the <tt><B>&lt;attr /&gt;</B></tt> option,
+and the default values are:</P>
+
+<tt>
+<UL>
+    <LI><B>SEC_DEFAULT_ENCRYPTION</B>=OPTIONAL</li>
+    <LI><B>SEC_DEFAULT_INTEGRITY</B>=REQUIRED</li>
+    <LI><B>DELEGATE_JOB_GSI_CREDENTIALS</B>=False</li>
+</UL>
+</tt>
+<P>As of Condor version 7.1.3 condor also supports a more efficient
+authentication mechanism between the condor_schedd/condor_shadow and
+condor_startd/condor_starter. This method uses the match ClaimId as a
+shared password for authentication between these daemons. Since using
+a shared secret is much cheaper that using GSI authentication, this
+should be used every time it is feasible.</P>
+
+<P>To enable this option, you need to set an attribute using the
+<tt><B>&lt;attr /&gt;</B></tt> option:</P>
+    <blockquote>
+    <B>USE_MATCH_AUTH</B>=True
+    </blockquote>
+<p>
+    You will also need to enable this on the <B>submit machin</B>e, by
+    adding 
+</p>
+
+<p>
+    <blockquote>
+    <b>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION</b> = True
+    </blockquote>
+    to the <B>schedd condor_config</B>. Do not add this option to either
+    the negotiator or collector as it will not work. 
+</p><p>
+    Obviously, this will only work with Condor versions 7.1.3 and above.
+</p>
+</div>
+
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="tcp"></A>Using TCP to send updates to the Collector</H3>
+<p>
+    By default, Condor uses UDP packets
+    to communicate between the glideins and the Collector. While more
+    efficient than TCP, UDP packets are often blocked at the firewall,
+    or lost on the WAN. 
+</p><p>
+    To switch on TCP updates, please
+    specify, with the <tt>&lt;<B>attr</B>/&gt;</tt> option: 
+    <blockquote>
+
+    <B>UPDATE_COLLECTOR_WITH_TCP</B>=True
+    </blockquote>
+<P>
+<BR>Please be aware that this will configure the glideins only; you
+still need to properly configure the Collector machine. See 
+<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_7Networking_includes.html#SECTION00474000000000000000">Condor documentation</A> for more details.</P>
+</div>
+
+<div class="section">
+<H3 CLASS="western"><A NAME="multicol"></A>Multiple Collectors</H3>
+<P>By default, Condor uses only one Collector for the 
+<A HREF="../index.html#pool_glidein">glidein (user) pool</A>.
+However, if the load becomes too high on the collector, you can
+configure multiple collectors in a chain.  
+
+</p><p>
+    You will need a master and a set of slave collectors. 
+    Each slave collector will service a portion of the pool 
+    and will forward communication between the startd daemons 
+    to the master collector.  Machine classads from these startd's
+    will be sent to the master collector.
+    The negotiator and the schedds will talk to the master collector, 
+    and the startds will talk to one of the slave ones.  This will
+    reduce load on the central manager.
+</p><p>
+    To set up slave collector in the 
+    <A HREF="../index.html#pool_glidein">glidein (user) pool</A>, 
+    one way is to set the following env variables before 
+    starting up the condor_master: 
+</P>
+<PRE>COLH=`condor_config_val COLLECTOR_HOST`
+LD=`condor_config_val LOCAL_DIR`
+export _CONDOR_COLLECTOR_HOST=$COLH:
+export _CONDOR_MASTER_NAME=collector_
+export _CONDOR_DAEMON_LIST=&quot;MASTER, COLLECTOR&quot;
+export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_MASTER_NAME
+export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
+# Forward all the traffic to the main collector
+export _CONDOR_CONDOR_VIEW_HOST=$COLH:9618</PRE>
+<p>
+    Once you have the slave collectors set up, you will want to use
+    them. 
+
+</p><p>
+    The <A HREF="../frontend/index.html">VO frontend</A>
+    will have to point the factory to a 
+    <A HREF="../frontend/index.html#management">list of collectors</A>. 
+</p><p>
+    The configuration internally will add a line in the factory 
+    configuration file that will set up the glideins to handle
+    the multiple collectors.  (You should now see a line like:
+    <i>"&lt;file absfname=&quot;web_base/collector_setup.sh&quot;
+    executable=&quot;True&quot;/&gt;"</i> after reconfiguring).
+
+</p>
+</div>
+
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="start_rank"></A>Setting the glidein start and rank&nbsp;condition</H3>
+<P>As with any Condor pool, you may need to set the startd 
+<A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00452000000000000000">start</A>
+and <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00454000000000000000">rank</A>
+conditions. <BR/>
+
+For a glidein, you can set this with the &lt;<B>attr</B>/&gt; options: 
+</P>
+    <blockquote>
+    <B>GLIDEIN_Start</B>=<I>expression</I><br/>
+    <B>GLIDEIN_Rank</B>=<I>expression</I> 
+    </blockquote>
+
+<p> 
+    For example: 
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;<i>[entries&gt;&lt;entry&gt;]</i><BR>
+    &nbsp; &lt;attrs&gt;<BR/>
+    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Start&quot;
+
+    value=&quot;Owner==&amp;quot;sfiligoi&amp;quot;&quot;
+    publish=&quot;False&quot; parameter=&quot;True&quot;/&gt;<BR/>
+    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Rank&quot;
+
+    value=&quot;ImageSize&quot; publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt; 
+    </div>
+</div>
+<div class="section">
+<h3>Internal Configuration</h3>
+The configuration is parsed during the reconfiguration of the factory, and split into a number of files:
+<ul>
+<li>job.descript = is read by the daemon do decide how to work </li>
+<li>attributes.cfg = are fixed values, these are published in the factory classad</li>
+<li>params.cfg = are for values the frontend will change, also published in the factory classad</li>
+</ul>
+For more information, see the <a href="design_entry.html#config">Entry Internals</a> page.
+
+
+</div>
+<div class="section">
+
+    <h3><a name="tarballs">Multiple Condor Tarballs</a></h3>
+    <p>One frequent problem is that one particular condor binary will not run on all compute nodes.  Entry points require different architectures, or have different versions of glibc (ie. SL3 does not have glib2.4). </p>
+<p> 
+    The solution (only available on glideinWMS v2+) is to have multiple condor binaries.  The way to do this is to specify a tarball tag in the factory configuration file.  
+</p>
+<ol>
+    <li>Download the Condor binary from the 
+    <a target="_blank" href="http://www.cs.wisc.edu/condor/downloads-v2/download.pl">University of Wisconsin</a> site.
+    (Alternatively, you can build it from scratch on the architecture, refere to Condor instructions for this).
+    </li>
+    <li> Put it in a directory owned by the wmsfactory and unzip/untar it.
+    </li>
+
+    <li>Add a new tarball tag to the factory tag:<br/>
+        <blockquote>
+        &lt;glidein ... &gt;<br/>
+        ...<br/>
+        &nbsp;&nbsp;&lt;condor_tarballs &gt;<br/>
+        &nbsp;&nbsp;&nbsp;&nbsp;&lt;condor_tarball
+            os="<i>OS</i>"
+            arch="<i>Arch</i>"
+            base_dir="<i>DIR_OF_UNTARRED_BINARY</i>"
+            version="<i>Condor_Version</i>" /&gt;
+
+        </blockquote>
+    </li>
+    <li>Verify your entry point attributes.  Each entry point will have the following attr set up.  Make sure that this matches the above tarball parameters:<br/>
+        <blockquote>
+        &lt;attrs&gt;<br/>
+        &nbsp;&nbsp;&lt;attr name="CONDOR_ARCH" const="True" glidein_publish="False" parameter="True" publish="False" type="string" value="<i>Arch</i>"/&gt;<br/>
+
+            &nbsp;&nbsp;&lt;attr name="CONDOR_OS" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="<i>Condor_Version</i>"/&gt;<br/>
+        &nbsp;&nbsp;&lt;attr name="GLEXEC_JOB" const="True" glidein_publish="False" job_publish="False" parameter="True" publish="False" type="string" value="True"/&gt;<br/>
+        &lt;/attrs&gt;<br/>
+        </blockquote>
+                The CONDOR_OS and the CONDOR_ARCH should match the os and arch defined in the tarball tag.  If set to "auto", the glidein will decide the appropriate tarball to use for that worker node.  
+ 	                 By default, the CONDOR_VERSION will be defined globally in &lt;glidein&gt;&lt;attrs&gt; and should match the version in the tarball tag.  You can overwrite this global version and  
+ 	                 define one locally in the entry if needed.
+    </li>
+    <li>Reconfigure the factory using the command:
+        <blockquote>
+
+        ./factory_startup reconfig ../CONFIG_DIR/glideinWMS.xml
+        </blockquote>
+    </li>
+    <li>
+        After reconfig, you can see the tar_file created from the condor distribution in the tarball line in the configuration.
+    </li>
+</ol>
+</div>
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="time_limit"></A>Limiting time spent on a Grid resource</H3>
+
+<P>The whole concept of gliding into Grid resources is based on the
+idea that you are getting those resources on a <B>temporary basis</B>.
+This implies that you need to leave the slot as soon as possible,
+else your jobs will simply be killed by the annoyed Grid
+administrators.<BR/>
+    On the other hand, submitting new glideins is not
+cost free, so you want to keep the resource for at least some period
+of time.
+</p><p>
+    The glideins have two mechanisms to regulate this:</P>
+<OL>
+    <LI><P>After a specified amount of time,
+    the glidein will enter the 
+    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.0/3_5Startd_Policy.html#SECTION00457400000000000000">RETIRING state</A>. 
+    This means, it will wait for the current job to finish
+    (or kill it if it does not end within a configurable timeout) and
+    exit immediately afterwards. This obviously implies that no new jobs
+    will start after it entered that state.<BR>The two timeouts can be
+    set with the &lt;<B>attr</B> /&gt; options: 
+    </P>
+
+    <blockquote>
+        <B>GLIDEIN_Retire_Time</B>=<I>nr_of_seconds</I><br/>
+        <B>GLIDEIN_Job_Max_Time</B>=<I>nr_of_seconds</I>
+    </blockquote>
+    <P>The two default to 2 and 100 hours.  </P>
+
+    <LI><P>If a glidein is not claimed within
+    a configurable timeout, the glidein will exit.<BR>The timeout can be
+    set qith: 
+    </P>
+    <blockquote>
+        <B>GLIDEIN_Max_Idle</B>=<I>nr_of_seconds</I>
+    </blockquote>
+    <P>The default is 20 minutes.  </P>
+</OL>
+
+<p>
+    An example: 
+</p>
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;[entries&gt;&lt;entry&gt;]<BR>&nbsp;
+    &lt;attrs&gt;<BR/>
+
+    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Max_Idle&quot; 
+    value=&quot;300&quot;
+    type=&quot;int&quot; publish=&quot;False&quot;
+    parameter=&quot;True&quot;/&gt;<BR/>
+
+    &nbsp; &nbsp; &lt; attr name=&quot;GLIDEIN_Retire_Time&quot; 
+    value=&quot;14400&quot;
+    type=&quot;int&quot; publish=&quot;False&quot;
+
+    parameter=&quot;True&quot;/&gt;<BR/>
+    &nbsp; &nbsp; &lt;attr name=&quot;GLIDEIN_Job_Max_Time&quot; 
+    value=&quot;180000&quot;
+    type=&quot;int&quot; publish=&quot;False&quot;
+
+    parameter=&quot;True&quot;/&gt; 
+    </div>
+</div>
+
+<div class="section">
+<H3 CLASS="western">
+<A NAME="multi-monitor"></A>Old-style pseudo-interactive monitoring</H3>
+<P>Since v1_4_1, the pseudo-interactive monitoring uses a dedicated
+startd in the glideins for monitoring purposes. This allows for
+monitoring even when the job starter enters the “<I>Retiring”</I>
+activity.</P>
+
+<P>The side effect is that you do not have anymore the cross-VM
+statistics and the names of the slots is also different.</P>
+<P>To enable the old mode, use:</P>
+    <div class="xml">
+    &lt;attr name=&quot;MONITOR_MODE&quot; const=&quot;True&quot;
+    glidein_publish=&quot;False&quot; job_publish=&quot;False&quot;
+
+    parameter=&quot;True&quot; publish=&quot;False&quot; 
+    type=&quot;string&quot;
+    value=&quot;MULTI&quot;/&gt;
+    </div> 
+
+</div>
+
+<div class="section">
+
+<H3 CLASS="western">
+<A NAME="custom_code"></A>Adding custom code/files to the glideins</H3>
+<P>While provided code should cover most of the general purpose use
+cases, some administrators may have additional needs. For these
+cases, the glidein creation command adds the options listed below.</P>
+<p><b>Note:</b>
+<A NAME="ref"></A>Files and subsystems will be
+downloaded before the scripts. User provided scripts
+will be executed in the specified order, and before the Condor
+daemons are started up.</P>
+<UL>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;<BR/>
+
+        &nbsp;[&lt;entries&gt;&lt;entry&gt;]<BR/>
+        &nbsp;&lt;files&gt;<BR/>
+        &nbsp;&nbsp;&lt;file absfname=&quot;<I>script name</I>&quot; 
+        executable=&quot;True&quot;
+        comment=&quot;<I>comment</I>&quot;/&gt;
+
+        </div>
+    <p> Path to the custom script.   The script will be copied in the
+    Web-accessible area, and when a glidein starts, the glidein
+    startup script will pull it and execute it. If any parameters are
+    needed, they can be specified using <B>&lt;attr /&gt;</B>, or
+    stored in a file (see below).  <br/> For more detailed information,
+    see the page dedicated to 
+    <A HREF="custom_scripts.html">writing custom scripts</A>.</P>
+
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;[entries&gt;&lt;entry&gt;]<BR/>
+    &nbsp;&lt;files&gt;<BR/>
+    &nbsp; &nbsp;&lt;file absfname=&quot;<I>script name</I>&quot; 
+    wrapper=&quot;True&quot;
+
+    comment=&quot;<I>comment</I>&quot;/&gt;
+    </div>
+    <p>Path to the wrapper custom script.
+    The script will be copied in
+    the Web-accessible area, and will be sourced just before a user job
+    starts starts; i.e. it will become part of the 
+    <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#16039">user job wrapper</A>.</P>
+    <LI>
+
+        <div class="xml">
+        &lt;glidein&gt;<BR/>
+        &nbsp;[entries&gt;&lt;entry&gt;]<BR/>
+        &nbsp;&lt;files&gt;<BR/>
+        &nbsp; &nbsp;&lt;file 
+        absfname=&quot;<I>local file name</I>&quot; 
+        relfname=&quot;<I>target file name</I>&quot; 
+        const=&quot;<I>Bool</I>&quot;
+
+        executable=&quot;False&quot;
+        comment=&quot;<I>comment</I>&quot;/&gt;
+        </div>
+    <p>Path to the config file.
+    The file will be copied in the
+    Web-accessible area, and pulled by the glidein startup script when a
+    glidein starts. It can be then used by any script (see above).
+    <br/>
+    <b>Note:</b> Please be cautious in using the <B>const</B> flag; if set to
+    <B>False</B>, the content of the file will not be verified by the
+    glidein startup script and could be tampered in transit by a
+    malicious user. So never put sensitive data (like the switch to
+    disable security checks) in a changeable file. 
+    </P>
+    <LI>
+        <div class="xml">
+        &lt;glidein&gt;<BR/>
+        &nbsp;[entries&gt;&lt;entry&gt;]<BR/>
+
+        &nbsp;&lt;files&gt;<BR/>
+        &nbsp;&nbsp;&lt;file 
+        absfname=&quot;<I>local file name</I>&quot;
+        untar=&quot;True&quot;
+        comment=&quot;<I>comment</I>&quot;&gt;<BR>
+        &nbsp; &nbsp; &lt;untar_options
+        cond_attr=&quot;<I>conf_sw</I>&quot;
+
+        dir=&quot;<I>dir name</I>&quot; 
+        absdir_outattr=&quot;<I>attr name</I>&quot;&gt;
+        </div>
+    <p>Sometimes it is useful to transfer a
+    whole set of files, or even directories, and that is much easier to
+    accomplish by means of a tar-ball. A subsystem is the glidein way to
+    describe a compressed tarball that is delivered to the worker nodes,
+    untarred in a separate directory and advertised to the other
+    scripts.</p>
+    <UL>
+        <LI><B>absfname</B>: 
+        Path to the costum tarball. 
+        (like &quot;/tmp/mytar_v12.5.tgz&quot;) </li>
+        <LI><B>conf_sw</B>: 
+        Name of a configuration switch. 
+        (like &quot;ENABLE_KRB5&quot;)<BR/>
+        The tarball will be unpacked only if that 
+        parameter will be set to 1.
+        Use the&nbsp;<B>&lt;attr /&gt;</B> switch to define the default
+        value.  A special name <B>TRUE</B> can be used to always
+        untar it. </li>
+
+        <LI><B>dir</B>: 
+        Name of the subdirectory to untar it in. 
+        (like &quot;krb5&quot;) </li>
+        <LI><B>absdir_outattr</B>: Name of a
+        variable name. (like &quot;KRB5_SUBSYS_DIR&quot;)<BR/>The
+        variable will be set to the absolute path of the directory where
+        the tarball was unpacked, if and only if the unpacking actually
+        happened else it will not be define.</li>
+    </UL>
+</UL>
+</div>
+
+<div class="section">
+<a name="monitorgroups" />
+<H3 CLASS="western">Grouping glidein Entries for monitoring purposes</H3>
+<P>Certain monitoring graphs are useful when grouped together. You
+can use the “monitorgroups” tag as follows to group the entries
+together.</P>
+<p>
+    For example, below, entry1 and
+    entry2 will be grouped together and the group information can be
+    plotted against individual entry information.
+</p><p>
+    <div class="xml">
+    &lt;glidein&gt;<BR/>
+    &nbsp;&lt;entries&gt;<BR/>
+
+    &nbsp; &lt;entry name=”entry1” ...&gt;<BR/>
+    &nbsp; &nbsp;&lt;monitorgroups&gt;<BR/>
+    &nbsp; &nbsp; &nbsp; &lt;monitorgroup 
+    group_name=&quot;Group1&quot;/&gt;<BR/>
+    &nbsp; &nbsp; &nbsp; &lt;monitorgroup 
+    group_name=&quot;Group2&quot;/&gt;<BR/>
+
+    &nbsp; &nbsp;&lt;/monitorgroups&gt;<BR/>
+    &nbsp; &lt;/entry&gt;<BR>
+    &nbsp; &lt;entry name=”entry2” ...&gt;<BR>
+    &nbsp; &nbsp;&lt;monitorgroups&gt;<BR>
+    &nbsp; &nbsp; &nbsp; &lt;monitorgroup 
+    group_name=&quot;Group1&quot;/&gt;<BR>
+
+    &nbsp; &nbsp; &nbsp; &lt;monitorgroup 
+    group_name=&quot;Group4&quot;/&gt;<BR>
+    &nbsp; &nbsp;&lt;/monitorgroups&gt;<BR>
+    &nbsp; &lt;/entry&gt;<BR>
+    &nbsp;&lt;/entries&gt;<BR>
+
+    &lt;/glidein&gt;
+    </div>
+</p>
+</div></div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
+einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</div>
+</body>
+</html>

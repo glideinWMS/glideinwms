@@ -1,0 +1,390 @@
+/* Remove all default styles so we can apply the exact style we want */
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, 
+blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, 
+img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var,b, u, i, 
+center, dl, dt, dd, ol, ul, li,fieldset, form, label, legend,table, caption, 
+tbody, tfoot, thead, tr, th, td 
+{
+    margin:    0;
+    padding:   0;
+    border:    0;
+    outline:   0;
+    font-size: 100%;
+}
+
+
+/* Now apply the styles we want */
+body 
+{
+    color:              #000; 
+    font-family:        "Liberation Serif","Times New Roman",serif;
+    font-size:          14px;
+    font-size-adjust:   none;
+    font-style:         normal;
+    font-variant:       normal;
+    font-weight:        normal;
+    line-height:        18px;
+    background-color:   #fff;
+    margin-top:         10px;
+    margin-right:       10px;
+    margin-bottom:      10px;
+    margin-left:        10px;
+}
+
+p 
+{ 
+    margin-top:     10px; 
+    margin-bottom:  15px; 
+    margin-left:    10px;
+    text-align:     justify; 
+}
+
+h2, h3, h4, h5, h6 
+{ 
+    margin-top: 0; 
+    margin-right: 0; 
+    margin-bottom: 15px; 
+    margin-left: 0; 
+    padding: 0; 
+    line-height: 1.1em; 
+}
+h1 { 
+    	line-height: 1.1em; 
+	font-size: 32px; text-align:center; 
+	padding: 20px 10px 20px 150px; 
+	border: 1px solid black; background-color: #ccd; 
+	margin: 2px 0px 0px 0px; text-decoration:none;
+	background-image: url('../images/header.jpg');
+	background-repeat: no-repeat;
+}
+
+h1 a { clear:both; text-decoration: none; color: #003;}
+h1 span { 
+	display:block; 
+	padding:0px;
+	margin: 0px;
+	font-size:0.5em; text-decoration: none; color: #003;}
+
+h1 ul.main_links {display: block; width: 100%; }
+h1 ul.main_links li {
+	list-style: none; 
+	float:left; width:25%; 
+	text-align: center; }
+h1 a.main_link {
+	display: block; 
+	font-size: 16px;
+	text-align:left; 
+	color:#000066; }
+h2 { font-size: 24px; display: block;}
+h3 { font-size: 20px; }
+h4 { font-size: 16px; }
+h5 { font-size: 12px; }
+h6 { font-size: 8px; }
+div.heading { text-align: center}
+div.heading h2 
+{ 
+display:block; 
+color:#336;
+font-family: "Georgia", serif;
+font-size:2.0em;
+padding:0px 0px 5px 0px;
+margin:0px;
+}
+
+div.heading h3 
+{ 
+display:block;
+text-align: left;
+text-decoration: underline; 
+font-size:3.2em;
+padding: 15px 0px 10px 0px;}
+
+ul li { margin: 0; }
+ul { margin: 5px 0 15px 10px; padding-left: 20px; }
+ol { margin: 5px 0 15px 10px; padding-left: 20px; }
+
+blockquote
+{
+    background:    #bcd; 
+    padding:       10px 10px;
+    font-size:     100%;
+    border:        1px solid #ddd;
+    margin-left:    0.39in;
+    margin-right:   0.39in; 
+    margin-bottom:  0.2in;
+}
+
+pre
+{
+    border:        1px solid #ddd;
+    padding:       10px 10px;
+    font-size:     100%;
+    margin-left:    0.39in;
+    margin-right:   0.39in; 
+    margin-bottom:  0.2in;
+    background:    #abc; 
+}
+
+div#searchcontent
+{
+	float:left;
+	width:82%;
+	display:none;
+}
+div#searchcontent h2 
+{
+    font-size: 2.2em;
+    text-decoration: underline;
+}   
+
+div.content
+{
+	float:left;
+	width:82%;
+	display:block;
+}
+
+div.section
+{
+	clear:both;
+	padding-top: 30px;
+}
+
+div.clear
+{
+	clear: both;
+	margin:0px; padding:0px;
+}
+
+
+table.requirements, table.attributes
+{
+    border-top:         1px solid #000;
+    border-bottom:      1px solid #000;
+    border-right:       1px solid #000;
+    border-left:        1px solid #000;
+    border-collapse:    collapse;
+    border-spacing:     0px;
+}
+
+table.requirements tr.head
+{
+    font-weight:        bold;
+    font-size:          1.3em;
+    color:              #000; 
+    background-color:   #aaa; 
+    border-bottom:  2px solid #000;
+}
+table.requirements td
+{
+    border-top:     1px solid #000;
+    border-bottom:  1px solid #000;
+    border-right:   1px solid #000;
+    border-left:    1px solid #000;
+    padding:        1px 5px 1px 5px;
+}
+
+table.attributes tr.head td
+{
+    font-weight:        bold;
+    font-size:          1.3em;
+    background-color:   #8be; 
+    padding: 5px;
+    border-bottom:  2px solid #000;
+}
+
+table.attributes
+{
+    background-color: #e6f2ff;
+}
+
+table.attributes td
+{
+    padding: 5px 2px 2px 2px;
+    border-bottom:  1px solid #000;
+    vertical-align: top;
+}
+table.attributes td:first-child
+{
+    background-color: #bdf;
+    text-align: center;
+    font-weight: bold;
+    font-size:1.1em;
+}
+
+
+td.checked
+{
+	text-align:center;
+	background-color: #ccc;
+}
+
+
+ul.breadcrumbs
+{
+	list-style-type: none;
+	display: block;
+	padding: 0px;
+	margin: 0px;
+}
+ul.breadcrumbs li
+{
+	float:left;
+	font-size: 1.2em;
+	margin: 5px 0px 5px 0px;
+}
+ul.breadcrumbs li a
+{
+	text-decoration: none;
+	color: #000;
+	padding: 5px 35px 5px 0px;
+	margin: 0px;
+	background: url('../images/breadcrumbs.png') no-repeat right center;
+}
+
+div.search {
+border: 1px solid black;
+padding: 0px 2px 5px 0px;
+float:left;
+width:90%;
+}
+
+table.gsc-search-box td {
+float:left;
+width: 95%;
+padding: 2px;
+}
+
+
+td.gsc-clear-button, div.gsc-clear-button {
+display:none;
+}
+
+input.gsc-search-button {
+padding: 0px;
+}
+input.gsc-input {
+    padding : 0px;
+}
+
+div.leftmenu {
+float:left;
+width:18%;
+}
+ul.components {
+	list-style-type: none;
+	color: #000;
+	margin: 0px;
+	padding:0px;
+}
+
+ul.components li {
+	float:left;
+	width:90%;
+	text-align: center;
+}
+
+ul.components li a
+{
+    float:left;
+	width:100%;
+#	background-color: #ccd;
+	background-color: #7ad;
+	border: 1px solid #458;
+	margin: 0px 0px 2px 0px;
+	padding: 10px 0px 10px 0px;
+	color: #000;
+	text-decoration: none;
+}
+
+ul.subcomponents 
+{
+display: inline;
+list-style-type: none;
+}
+ul.subcomponents li
+{
+display: inline;
+padding: 0px 3px 0px 0px;
+border-right:1px solid black;
+}
+ul.subcomponents li.last
+{
+border-right:0px solid black;
+}
+
+ul.subcomponents li a
+{
+color: #339;
+text-decoration: none;
+padding: 0px;
+}
+
+
+div.jump {
+float: left;
+text-align: left;
+background: #eee;
+width: 25%;
+padding: 5px 0px 0px 10px;
+border: 1px solid black;
+}
+div.jump ol { margin-left: 10px; }
+div.jump ol li a { text-decoration: none; color: #339;}
+div.jump ol ol {margin: 0px;list-style-type: lower-alpha}
+
+
+div.related {
+float: left;
+width: 25%;
+background: #eee;
+padding: 5px 0px 5px 10px;
+margin-left: 20px;
+border: 1px solid black;
+}
+div.related ul {list-style-type: circle; }
+div.related ul li a {text-decoration:none; color: #339;}
+
+ol {
+margin-left: 40px;
+}
+
+div.xml {
+	font-family: monospace;
+    font-size: 1.1em;
+	font-weight: bold;
+    color: #009;
+}
+div.xml i { font-weight: normal; }
+
+div.config {
+    margin: 15px;
+    background-color: #cdf;
+    padding: 5px;
+}
+
+div.config blockquote {
+    padding: 3px 5px 3px 25px;
+    margin: 0px;
+    border: 0px;
+    background-color: #cdf;
+}
+
+div.config a {
+    text-decoration: none;
+    color: #000;
+    font-family: monospace;
+    font-size: 1.1em;
+}
+div.config blockquote a {color: #003;}
+div.config blockquote blockquote a {color: #003;}
+
+div.footer {
+color: #000;
+border-top: 1px solid black;
+margin-top: 20px;
+font-size: 0.8em;
+}
+
+div.footer a {color:#666}
+

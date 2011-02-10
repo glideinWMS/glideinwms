@@ -1,3 +1,91 @@
+vNext	Factory now can remove excessive glideins
+	  New ClassAd attribute - RemoveExcess
+	Frontend will request removal of glideins when no user jobs in queue
+	Improved idle counting by the frontend when jobs match many factory
+	  entries.
+	Improved frontend logging.
+	Add Java support in the glideins.
+	Changed factory monitoring. It is now based on security names and not 
+	  plain frontend names
+
+v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
+	glideinWMS release is now available in 3 different tarballs, frontend
+	  only, factory only and a complete tarball.
+	glideinWMS factory and the Corral frontend can now talk to each other
+	Factory is smarter about handling held glideins
+	Factory can now black/white list VOs on a per-entry basis
+	Version of glideinWMS is now published in the classads. Scheme can 
+	  detect any changes to any service appropriate files and advertises 
+	  cersion as patched.
+	Frontend should try to recover the crashed group before it gives up and
+	  shutsdown
+	Improvements to the monitoring
+        Improvements to documentaion
+	Add support for use of TCP in condor_advertise
+	Add support for condor_advertise -multiple (requires Condor v7.5.4+)
+	Improved factory stopping procedure
+	Add XML monitoring files of RRD files on both factory and frontend
+	Add JobsRunningHere attribute - CANNOT SIMPLY UPGRADE, NEEDS NEW
+	  INSTANCE FOR BOTH FACTORY AND FRONTEND
+	Graceful shutdown of the glidein by trapping signals in glidein_startup
+	BUG FIX: Fixed a bug where factory would create a malformed 
+	  glideinWMS.xml config file when configured to use a default proxy 
+	  for glideins from the factory.
+	BUG FIX: Factory entry sometimes stops reporting when it gets an 
+	  exception for any reason
+	BUG FIX: Top-level schedd_status.xml malformed Total data
+	BUG FIX: Fixed a bug where the LogCounts.rrd was created with wrong
+	  data types.
+	KNOWN ISSUE: Automatic release of held glideins for CREAM CEs with 
+	  issues could result in factory submitting more than required
+	  glideins to the CE. As a workaround, disable release of held glideins
+	  for CREAM CE.
+
+v2_4_3  Install VOMS Certificates during the install time
+	Entry does not print stacktrace when it fails to submit glidein.
+	  Instead it logs the error message appropriately.
+	Default scripts run on the worker node correctly print errors to
+	  stderr instead of stdout
+	Allow factory to startup from any directory
+	Python scripts get the python from /usr/bin/env python instead of
+	  /bin/env python making them more portable accross different linux
+	  distros
+	Better exception handling and error reporting
+	Fixed how voms_proxy_init is looked for after VDT install
+	BUG FIX: Fixed a bug where Summarize.listStored() in CondorMonitor.py
+	  returned the wrong value
+	BUG FIX: Fixed a bug in factory monitoring that prevented proper
+	  aggregation of sites
+	BUG FIX: Correctly interpret DN from a voms proxy generated from a
+	  service certificate.
+	BUG FIX: Generate frontend's condor_config without empty values for
+	  certain configuration options. Empty values is not the right way to
+	  reset the configuration options.
+
+
+v2_4_2	Fixed the incompatibility introduced in v2_4_1 in monitoring components.
+
+v2_4_1	Add a new configuration option for PREEMPT_GRACE_TIME
+	Move configuration of GLIDEIN_Job_Max_Time from the factory to the
+	  frontend
+	In factory config added checks to make sure Factory configuration is
+	  consistent w.r.t CONDOR_ARCH, CONDOR_VERSION, CONDOR_OS
+	Monitoring enhancement to make selection/deselection of groups/entries
+	  easier
+	Support GLIDEIN_Glexec_Use in frontend config attrs. Frontend can
+	  mandate or make the use of GLEXEC optional. Used in conjunction with
+	  GLEXEC_BIN in factory config. If GLEXEC_BIN in set to NONE for an
+	  entry in factory config, it is assumed that the entry doesn't have
+	  GLEXEC configured on site.
+	Improvements to documentation
+	BUG FIX: Allow the use of the same DN for both the security and the
+	  collector
+	BUG FIX: Returning invalid variable during proxy creation
+	KNOWN ISSUES: Running glideinWMS v2_4_1 with Condor 7.5.3 has not been
+	  tested. Altough, most of the things may work, security changes in
+	  Condor may affect your installation.
+
+
 v2_4	Add proxy security classes to the frontend
 	Add SecurityName to the frontend.
 	Add DNs for frontend proxy and all the daemons the frontend talks to;
@@ -29,6 +117,13 @@ v2_3_2	Fixed a security bug in the way certificate/proxy DN(s) are handled. If
 	  tool available in the glideinWMS/install directory.
 
 v2_3_1	Updated documentation. This is document change only release
+	Introduced monitoringgroups to group sites together for monitoring
+	  purposes in factory.
+	KNOWN ISSUES: Installer is not always able to get the correct 
+	  DN from the certificates/proxies. It does not correctly strip the
+	  CN=<blah> bit of the DN in certain cases. If the DN guessed is not 
+	  correct, make the required changes in the configurations and/or
+	  condor_mapfile.
 
 v2_3	Attempt to restart a crashed entry few times before shutting down the
 	  factory. Restarting is allowed for max restart_attempts in time

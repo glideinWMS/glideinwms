@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+	    <li> <a href="./design.html">Design</a></li>
+        <li>Entry Internals</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a target="_blank" href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+    <h2>WMS Factory Design</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> Design</li>
+	     <li> <a href="./monitoring.html">Monitoring</a></li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Data Exchange</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+    <LI><A HREF="#flow">Program flow</A></li>
+    <LI><A HREF="#flow_work">Find and perform work</A></li>
+    <LI><A HREF="#flow_advertise">Advertise myself</A></li>
+    <LI><A HREF="#flow_stats">Write statistics</A></li>
+    <LI><A HREF="#source">Source code distribution</A></li>
+    <LI><A HREF="#config">Configuration files</A></li>
+</ol>
+</div>
+<div class="related">
+Factory Design Topics: <br/>
+<ul>
+<li> <a href="design_factory.html">Factory Internals</a></li>
+<li> <a href="design_entry.html">Entry Internals</a></li>
+<li> <a href="design_glidein.html">Glidein Internals</a></li>
+<li> Data Exchange</li>
+</ul>
+</div>
+<div class="section">
+
+<h2><a name="classads"></a>Data exchange overview</h2>
+<p>In the previous section we described the general architecture of
+the WMS. Let now have a look at the type of information that the two
+pieces publish.</p>
+<h3><a name="factory_classads"></a>The Glidein&nbsp;Factory Class-Ad</h3>
+<p>A&nbsp;factory publishes one class-ad per glidein entry. The
+class-ad contains 
+</p>
+<ul>
+    <li>the name of the glidein (and the factory),
+    </li><li>the attributes that describe the glidein,
+    </li><li>the list of parameters that the glidein accepts. All the
+    parameters have also default values associated with them, in
+    case a frontend does not redefine them, and
+    </li><li>the (optional) public key algorithm, ID and value, together with the
+        supported symmetric algorithms, that the frontend can use
+            to push back encrypted values.
+    </li><li>Plus a list of monitoring values (like how many glideins are
+    already in the queues, etc.) 
+
+</li></ul>
+<p>Look at the picture below for a generic description.<br><br><img src="../images/factory_publish.png" name="graphics3" align="BOTTOM" border="0"><br><br>Please
+notice that the glidein attributes can be completely arbitrary; the
+only predefined attributes are the glidein and factory name, plus the
+convention that anything that starts with <font face="monospace"><b>GlideinParam</b></font>
+is a parameter and anything that starts with <font face="monospace"><b>GlideinMonitor</b></font>
+is a monitoring attribute.<br><br>Once the&nbsp;factory starts
+serving frontends, it will publish also another ClassAd for every
+frontend served. This ClassAd contains only monitoring information,
+and is not used by the glideinWMS itself.<br>Find below a graphical
+representation of these ClassAds.<br><img src="../images/factory_client_publish.png" name="graphics4" align="BOTTOM" border="0"></p>
+<h3><a name="frontend_classads"></a>The VO Frontend Class-Ad</h3>
+<p>A VO frontend will obtain the list all available glideins and
+select the ones that fit its needs, based on the published
+attributes. For each fitting glidein, a frontend class-ad will be
+published. Such a class-ad will contain 
+</p>
+
+<ul>
+    <li>the name of the frontend and a request ID,
+    </li><li>the desired glidein name,
+    </li><li>the (optional) URL and signatures for the frontend specific scripts and data,
+    </li><li>the desired rate and limits of glidein submissions,
+    </li><li>the glidein parameters (in clear),and
+    </li><li>the (optional) factory public key ID used, together with
+    <ul>
+      <li>the symmetric encryption algorithm and key,
+      </li><li>the encrypted identity, and
+      </li><li>the encrypted parameters.
+    </li></ul>
+    </li><li>Plus a list of monitoring values (like how many jobs are
+    currently running, etc.) 
+</li></ul>
+
+<p>If encryption is used, the the encrypted identity must must match the AuthenticatedIdentity attribute inserted by the condor collector <b>(needs Condor version 7.3.1 or better)</b></p>
+
+<p>Have a look at the picture below for a generic description.<br><img src="../images/frontend_publish.png" name="graphics5" align="BOTTOM" border="0"></p>
+<p>The most important parameters that the VO fronted sends to the factory are:</p>
+<ul>
+      <li>The address of the <a href="../components/collector_install.html">User pool collector(s)</a> - <b>GLIDEIN_Collector</b>.</li>
+
+      <li>The pilot proxies. If present, these are always encrypted. Three types of information are sent:
+    <ul>
+      <li>Number of proxies sent - <b>nr_x509_proxies</b></li>
+      <li>The proxy identifiers; given an identifier, the proxy DN must not change between updates. - <b>x509_proxy_0_identifier</b> ... <b>x509_proxy_N_identifier</b></li>
+      <li>The security classes; proxies within the same class may have access to one another - <b>x509_proxy_0_security_class</b> ... <b>x509_proxy_N_security_class</b></li>
+
+      <li>The proxies themselves - <b>x509_proxy_0</b> ... <b>x509_proxy_N</b></li>
+        </ul></li>
+      <li>The security name associated with the proxies - <b>SecurityName</b>. 
+          The factory uses it for frontend whitelisting.
+          If present, it is always encrypted.</li> 
+</ul>
+<p>The picture below shows this in a graphics format.<br>
+
+   <img src="../images/frontend_publish_params.png" name="graphics5b" align="BOTTOM" border="0"></p>
+<p>In the current implementation, the only glidein rate setting parameters
+supported are <font face="monospace"><b>ReqIdleGlideins</b></font>,
+that tells the factory how many idle glideins to keep in the queue at
+any given time, and <font face="monospace"><b>ReqMaxRunningGlideins</b></font>,
+that tells the factory to stop submitting new glideins when the
+number of running glidiens reaces that level.
+Future versions may contain more sophisticated
+controls, like the maximum number of glideins to keep in the queue or
+the maximum rate at which the glideins should be submitted.</p>
+
+</div>
+</body>
+</html>

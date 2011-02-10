@@ -1,0 +1,273 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS - Factory</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+	    <li> <a href="../index.html">Home</a></li>
+	    <li> <a href="./index.html">WMS Factory</a></li>
+        <li>Monitoring</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="../images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="../frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="../components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="../factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="../corral.html" />
+    </map>
+
+    <h2>WMS Factory</h2>
+	<ul class="subcomponents">
+         <li> <a href="./index.html">Overview</a></li>
+         <li> <a href="./install.html">Install</a></li>
+	     <li> <a href="./configuration.html">Configuration</a></li>
+	     <li> <a href="./design.html">Design</a></li>
+	     <li> Monitoring</li>
+	     <li class="last"> <a href="./troubleshooting.html">Troubleshooting</a></li>
+	</ul>
+        <h3>Monitoring</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+        <li><a href="#monitoring_logs">Log files</a></li>
+        <li><a href="#monitoring_web">Using the Web monitoring</a></li>
+        <li><a href="#monitoring_tools">Using the WMS tools</a></li>
+        <li><a href="#monitoring_logs">Looking at the glidein factory log files</a></li>
+        <li><a href="#monitoring_glideins">Looking at the glidein outputs</a></li>
+        <li><a href="#monitoring_condor">Checking the WMS collector ads</a></li>
+</ol>
+</div>
+<div class="related">
+Related Links: <br/>
+<ul>
+<li><a href="../frontend/monitoring.html">Frontend Monitoring</a></li>
+</ul>
+</div>
+<div class="section">
+
+    <h2><a name="monitoring">Glidein Factory monitoring</a></h2>
+
+    <p>
+Monitoring is an essential part of any service. One has to monitor to both maintain the health of the system and to tune the system for anticipated growth. The various ways you can monitor a Glidein Factory are described below. </p>
+
+<h3><a name="monitoring_logs"></a>Log files</h3>
+<p>Both the Factory Daemon, the Entry Daemons, Condor-G and the Glideins write
+extensive log files. The logs are kept for a week and then deleted.</p>
+<p>
+<b><u>Log file locations in glideinWMS v2.3.x and earlier:</u></b>
+</p>
+<p>The Glidein Factory Daemon log files are located in</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/log/factory_info.&lt;date&gt;.log<br>
+
+    &lt;glidein directory&gt;/log/factory_err.&lt;date&gt;.log
+</blockquote>
+
+<p>Each Entry Daemon has its log files in</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry 
+    name&gt;/log/factory_info.&lt;date&gt;.log<br>
+
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/factory_err.&lt;date&gt;.log
+
+</blockquote>
+
+<p>For each client an Entry Daemon is serving, one Condor-G job log is used</p>
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/condor_activity_&lt;date&gt;_&lt;client-name&gt;.log
+
+</blockquote>
+
+<p>Each Glidein also writes a couple of log files, that get transfered back to 
+   the factory node after the glidein terminates. The log files are named:</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/job.&lt;condor-g job nr&gt;.out<br>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/job.&lt;condor-g job nr&gt;.err
+
+</blockquote>
+
+<p>The Glidein .out files are readable using any text editor, while the .err files
+   contain the compressed logs of the condor daemons.<br>
+   Use the following commands to extract that information in simple text format</p>
+<blockquote>
+      glideinWMS/factory/tools/cat_MasterLog.py &lt;err_fname&gt;<br>
+      glideinWMS/factory/tools/cat_StartdLog.py &lt;err_fname&gt;<br>
+      glideinWMS/factory/tools/cat_StarterLog.py &lt;err_fname&gt;
+
+</blockquote>
+
+<p>Note: If you need Condor log files from a still running glidein, use the following 
+   <a href="http://www.cs.wisc.edu/condor/manual/v7.2/condor_fetchlog.html">Condor command</a></p>
+<blockquote>
+      &lt;condor dir&gt;/sbin/condor_fetchlog -pool &lt;pool collector&gt; &lt;glidein slot name&gt; -startd MASTER|STARTD|STARTER
+</blockquote>
+
+<p>The Entry Daemons also summarize the information about completed glideins into</p>
+
+<blockquote>
+    &lt;glidein directory&gt;/entry_&lt;entry
+    name&gt;/log/completed_jobs_&lt;date&gt;.log
+</blockquote>
+
+<p>
+<b><u>Log file locations in glideinWMS v2.4 and later:</u></b>
+</p><p>
+
+With the introduction of privilage separation in glideinWMS, location for log files have changed, altough a link to log directory is still maintained from the  &lt;glidein directory&gt;. Location for the log files is controlled through configuration.
+
+glideinWMS uses condor_switchboard to control the access to the log directories. This makes the deployment more secure.
+
+</p>
+
+    <h3><a name="monitoring_web">Glidein factory entry Web monitoring</a></h3>
+
+    <p>
+        You can either monitor the factory as a whole, or just a single entry point.<br>
+        <br>
+        The factory monitoring is located at a URL like the one below
+    </p>
+
+    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/</blockquote>
+
+    <p>
+
+        Moreover, each entry point, has its own history on the Web.<br>
+        <br>
+        Assuming you have a SanDiego entry, it can be monitored at
+    </p>
+
+    <blockquote>http://gfactory1.my.org/glidefactory/monitor/glidein_v1_0/entry_SanDiego/</blockquote>
+
+<h3><a name="monitoring_history"></a>Historical Web monitoring</h3>
+<p>The Entry Point Daemons will also create <a href="http://oss.oetiker.ch/rrdtool/">RRD
+databases</a> and associated graphs for a period of up to one year.
+This way, one can easily monitor the evolution of the system. 
+</p>
+
+
+    <h3><a name="monitoring_tools">Glidein factory monitoring via WMS tools</a></h3>
+
+    <p>You can get the equivalent of the Web page snaphot by using</p>
+
+    <blockquote>cd glideinWMS/tools/<br>python wmsXMLView.py</blockquote>
+
+    <h3><a name="monitoring_logs">Glidein factory entry log files</a></h3>
+
+    <p>
+        The glidein factory writes two log files per entry point <b>factory_info.YYYYMMDD.log</b> 
+        and <b>factory_err.YYYYMMDD.log</b>.<br>
+
+        <br>
+        Assuming you have a SanDiego entry, the log files are in
+    </p>
+
+    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+
+    <p>
+        All errors are reported in the <b>factory_err.YYYYMMDD.log</b>. file, while <b>factory_info.YYYYMMDD.log</b>
+
+        contains entries about what the factory is doing.
+    </p>
+
+    <h3><a name="monitoring_glideins">Glidein output</a></h3>
+
+    <p>
+        Each glidein creates 2 files on exit; job.<b>ID</b>.out and job.<b>ID</b>.err.<br>
+
+        <br>
+        Assuming you have a SanDiego entries, the log files are in
+    </p>
+
+    <blockquote>/home/gfactory/glidein_submit/glidein_v1_0/entry_SanDiego/log</blockquote>
+
+    <p>Problems are usually reasonably easy to spot.</p>
+
+    <h3><a name="monitoring_condor">Glidein factory ClassAds in the WMS Collector</a></h3>
+
+    <p>
+        The glidein factory also advertises summary information in the WMS collector.<br>
+        <br>
+        Use <b>condor_status</b>:
+    </p>
+
+    <blockquote>condor_status -any</blockquote>
+
+    <p>and look for <b>glidefactory</b> and <b>glidefactoryclient</b> ads.</p>
+
+</div>
+
+<div class="section">
+<h3><a name="monitoring_classads"></a>Looking at ClassAds</h3>
+<p>As explained in the <a href="../index.html#classads">Data exchange
+overview</a>, the Entry Point Daemons expose a lot of monitoring
+information in the ClassAds sent to the WMS collector. While this may
+not be the most user friendly interface, most of the monitoring
+information you'll ever need is present there.</p>
+
+<p>On top of the <a href="http://www.cs.wisc.edu/condor/manual/v7.2/condor_status.html">Condor provided tools</a>,
+the factory provides two tools to look at the ClassAds; the first one returns a human readable, but limited text, 
+while the other provides a complete XML-formated output</p>
+<blockquote>
+
+      glideinWMS/tools/wmsTxtView.py [Entries|Sites|Gatekeepers]<br>
+
+      glideinWMS/tools/wmsXMLView.py
+</blockquote>
+
+</p></div>
+
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid
+einWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+
+
+</body>
+</html>

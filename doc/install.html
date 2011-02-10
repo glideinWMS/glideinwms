@@ -1,0 +1,239 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS Installation Guide</title>
+  <meta name="CREATED" content="0;0">
+  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <link rel="stylesheet" type="text/css" href="common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="index.html">Home</a></li>
+        <li>Install</li>
+    </ul>
+    <div class="clear" />
+    <div class="leftmenu">
+        <ul class="components">
+	<li> <a href="./index.html">Home</a></li>
+	<li> <a href="./download.html">Download</a></li>
+	<li> <a href="./frontend/index.html">Glidein Frontend</a></li>
+    <li> <a href="./corral.html">Corral Frontend</a></li>
+	<li> <a href="./factory/index.html">WMS Factory</a></li>
+	<li> <a href="./components/index.html" >Components</a></li>
+	<li> <a href="./components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+        <div id="cse-search-form" style="width: 100%;">Loading</div>
+        <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+        <script src="./common/glidein.js" type="text/javascript"></script>
+        <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+    </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+<div class="content">
+    <div class="heading">
+    <img align="right" width="280px" border="0px"
+        src="./images/simple_diagram.png" usemap="#rightimage">
+    <map name="rightimage">
+        <area shape="rect" coords="90,3,177,60" href="frontend/index.html" />
+        <area shape="rect" coords="5,88,118,146" href="components/collector_install.html" />
+        <area shape="rect" coords="134,88,275,146" href="factory/index.html" />
+        <area shape="rect" coords="189,3,274,60" target="_blank" href="./corral.html" />
+    </map>
+
+    <h2>GlideinWMS</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./download.html">Download</a></li>
+	     <li> <a href="./documentation.html">Documentation</a></li>
+	     <li> Install</li>
+	     <li> <a href="./history.html">History</a></li>
+	     <li class="last"> <a href="./license.html">License</a></li>
+	</ul>
+        <h3>Installation</h3>
+	</div>
+<div class="jump">
+<u>Jump to:</u>
+<ol>
+<li> <a href="#process">Installation Process</a></li>
+<li> <a href="#documents">Additional documents</a></li>
+<li> <a href="#configuration">Possible Configurations</a></li>
+<li> <a href="#osg">Connecting to OSG Factory</a></li>
+</ol>
+</div>
+<div class="related">
+Installation at a glance:
+    <ol>
+      <li><a href="./components/prerequisites.html">Pre-requisites</a></li>
+      <li><a href="./factory/install.html">WMS Collector and Factory</a></li>
+      <li><a href="./components/collector_install.html">User Pool Collector</a> </li>
+      <li><a href="./components/pool_install.html">User Pool Schedd</a> </li>
+      <li><a href="./frontend/install.html">Glidein Frontend</a> </li>
+    </ol>
+<!-- Commenting this out as it will not be available until next version.
+    <a href="components/configuration_install.html">Configuration based installer.</a><br/>
+-->
+    <a href="upgrade.html">Upgrade Guide</a><br/>
+</div>
+<div class="section">
+<a name="process" />
+<h3>Installation Process</h3>
+    <p>Installation of glideinWMS is
+        a multi-step process:</p>
+        <ol>
+      <li><a href="components/prerequisites.html">Components and Pre-requisites</a>: 
+        Includes a consolidated table of requirements for each server.
+    </li>
+          <li><a href="factory/install.html">The glidein WMS Collector and
+            collocated glidein Factory node</a> </li>
+
+          <li><a href="components/collector_install.html">The glidein pool Collector
+            node</a> </li>
+          <li><a href="components/pool_install.html">One or more scheduler nodes for
+            user submission</a> </li>
+          <li><a href="frontend/install.html">The Glidein Frontend</a> </li>
+        </ol>
+<p>
+The above process should suffice for typical installs.  More information can be found below.</p>
+<!-- Commenting this section out as it will not be available until the 
+next version
+<h3>Configuration based installer</h3>
+<p>
+Alternatively, you can use the <a href="components/configuration_install.html">Configuration based installer.</a>  This approach requires filling out a
+configuration file (ini file) with all the required fields up front.  Once 
+this is done, you can install each component using the tool and this ini file.
+It prevents the frustration of running the Q&amp;A installer multiple times
+in case of errors.</p>
+<p>
+<b>Important Note:</b> You can only use either the Q&amp;A installer to install all components or the configuration based installer to install all components.  You cannot mix installations by installing partially with the Q&amp;A installer and partially with the configuration installer.  
+Also, note that both installers assume you are performing a full installation of all components.  For upgrades, see the <a href="upgrade.html">upgrade guide</a>
+or contact glidein support.
+</p>
+-->
+</div>
+<div class="section">
+<a name="documents" />
+
+<h3>Additional Documents:</h3>
+<ul>
+  <li><a href="components/prerequisites.html">Component Installation</a>: Installation tips for components needed by glideinWMS, such as HTTP, VDT, JavascriptRRD, etc.</li>
+  <li><a href="components/condor.html#gcb">Installation of a GCB node</a>:  (only if
+            you are gliding into Grid sites with restrictive network policies
+            and cannot use CCB) <br/>
+    <b>NOTE:</b> It is strongly recommended to use CCB over GCB if possible.
+  </li>
+  <li>
+
+    <a href="components/gsi.html">Quick Reference Guide to GSI Authentication Setup in glideinWMS</a>:
+    for information on how to configure the GSI security, and additional GSI configuration.
+  </li>
+  <li>
+    <a href="components/condor.html#schedds">Multiple Schedds</a> for increased scalability.
+  </li>
+
+  <li>
+    <a href="components/condor.html#quill">Quill setup</a> for older condor installs.
+  </li>
+  <li>
+    <a href="frontend/troubleshooting.html">Troubleshooting Frontend</a> installation problems and 
+    <a href="factory/troubleshooting.html">Troubleshooting Factory</a> installation problems.
+  </li>
+  <li>
+    <a href="components/faq.html">Frequently Asked Questions</a> for advanced configuration tips.
+  </li>
+
+</ul>
+</div>
+    <img src="./images/glideinWMS_at_a_glance_medium.png">
+<div class="section">
+<a name="configurations" />
+    <h3>Possible Configurations</h3>
+        <p>While the documents presented here assume you will install each
+        component on a different machine, there is nothing preventing you
+        from installing all of them on fewer machines, or even on one machine
+        only (excluding GCB, but you should not use it anyhow).  Note that
+        only configurations with the WMS collector and factory on the 
+        same node are supported.  Also note that worker nodes must be
+        able to access the web server on the factory node in order to
+        download neccessary files.
+    It should be noted that it is possible to install the glideinWMS
+    across administrative boundaries (i.e. you will only install part
+    of the glideinWMS infrastructure).  See the OSG section below for
+    an example.</p>
+    <p>
+    Several possible configurations are below:  
+    </p> 
+    <p><b>Two Server configuration</b> (recommended minimum):
+<ul>
+  <li><a href="factory/install.html">The glidein WMS Collector and collocated
+    glidein Factory node</a> </li>
+
+  <li>A node containing the <a href="frontend/install.html">Glidein Frontend</a>,
+    the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="components/pool_install.html">scheduler for user submissions</a>
+  </li>
+</ul>
+</p>
+
+<p><b>Three Server configuration</b> (recommended for 1000+ glideins)
+
+<ul>
+  <li><a href="factory/install.html">The glidein WMS Collector and collocated
+    glidein Factory node</a> </li>
+  <li>A node containing the <a href="components/collector_install.html">glidein pool Collector</a> together with the <a href="frontend/install.html">VO
+    Frontend</a> </li>
+  <li>A node containing the <a href="components/pool_install.html">scheduler for user
+    submissions</a> </li>
+
+</ul>
+
+<p><b>One Server configuration</b> (Use only for test installs)
+<ul>
+  <li><a href="factory/install.html">The glidein WMS Collector and collocated
+    glidein Factory node</a>, with the collector running on 8618.
+    <a href="frontend/install.html">Glidein Frontend</a>,
+    the <a href="components/collector_install.html">glidein pool Collector</a> 
+    (running on 9618) together with the <a href="components/pool_install.html">scheduler for user submissions</a>.
+    With this configuration, take special care of the ports assigned and of the condor.sh currently sourced
+    when running commands.
+   </li>
+</ul>
+<p><a name="osg"/><b>OSG Factory configuration</b></p>
+<p>
+    Members of the Open Science Grid can use the OSG factory at UCSD.  
+    In this case, only the following installation is necessary:
+    <ul>
+    <li><a href="components/collector_install.html">
+            glidein pool Collector
+    </a></li> 
+    <li><a href="components/pool_install.html">
+        scheduler for user submissions
+    </a></li> 
+    <li><a href="frontend/install.html">Glidein Frontend</a></li>
+    </ul>
+</p>
+<p>
+    See <a target="_blank" href="http://hepuser.ucsd.edu/twiki2/bin/view/UCSDTier2/OSGgfactory">OSG Glidein Factory</a> for more details on how to use this setup.
+</p>
+</p>
+
+
+
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</body>
+</html>
