@@ -1160,19 +1160,24 @@ It must be a zipped tarball with a *.tg.tz name.
             </td>
             <td>The location of the proxy used to identify this service to the other glideinWMS services. </td>
             <td>
-              .
+             This is the only glideinWMS service that currently requires a proxy
+             to communicate with the other glideinWMS services. 
+             This is <b>NOT</b> the glidein pilot proxy.</br>
+             The <b>x509_gsi_dn</b> option that follows should be
+             populated with the <i>issuer</i> of this proxy.
             </td>
         </tr>
 
         <tr>
         <td>x509_gsi_dn</td>
-        <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
+        <td>/DC=org/DC=doegrids/OU=Services/CN=frontend.domain.name </td>
         <td>
             This is the identity used by this service to contact the other
             Condor based glideinWMS services.
         <td>
-          This is the issuer of the proxy.
-          <blockquote>openssl x509 -issuer -noout -in [x509_proxy]</blockquote>
+          This is the <i>issuer</i> of the proxy identified by the 
+          <b>x509_proxy</b> option above.
+          <blockquote>openssl x509 -issuer -noout -in [<b>x509_proxy</b>]</blockquote>
           It is used to populate the condor_config file GSI_DAEMON_NAME and 
           condor_mapfile entries of this and the other glideinWMS services 
           as needed.
