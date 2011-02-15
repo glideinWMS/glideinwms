@@ -443,16 +443,18 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 
     <p>Before starting the installation of the Glidein Frontend make sure that the WMS Collector is started and running.</p>
 
-    <p>Assuming VDT is installed in $VDT_LOCATION, source VDT's setup as follows</p>
-    <blockquote>source $VDT_LOCATION/setup.sh</blockquote>
+    <p>Note that the OSG client is required, but it is not recommended
+    to actually source the setup.sh before installation.  This can cause
+    problems with conflicting python versions.  VDT sometimes installs 
+    its own version of python which will not have rrdtool.  (The only 
+    environment variable needed is X509_CERT_DIR, and the installer will 
+    set it itself).</p>
 
-    <p>Move into</p>
-    <blockquote>glideinWMS/install</blockquote>
-
-    <p>and execute</p>
-
-    <blockquote>./glideinWMS_install</blockquote>
-
+    <p>To begin the installation procedure: </p>
+    <blockquote>
+        cd glideinWMS/install<br/>
+        ./glideinWMS_install
+    </blockquote>
 
     <p>
         You will be presented with the service selection screen. Follow the instructions.  Further detail and a walk-through is presented below:
