@@ -64,7 +64,8 @@ class Certificates(VDT):
       return
     common.ask_continue("""... CA Certificates (%(option)s) not found: 
   %(dir)s
-This script is checking for the presence of CA (*.0) and CRL (*.r0) files.
+This script is checking for the presence of CA (*.0) and CRL (*.r0) files in
+this location.
 Is it OK to install it in this location""" % \
        { "option" : self.option,
          "dir"    : self.x509_cert_dir(),})
