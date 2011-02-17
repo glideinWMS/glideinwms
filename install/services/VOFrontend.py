@@ -796,8 +796,8 @@ please verify and correct if needed.
 %(indent2)s<attr name="GLIDEIN_Glexec_Use"      value="%(glexec_use)s"      glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="GLIDEIN_Expose_Grid_Env" value="%(expose_grid_env)s" glidein_publish="True"  job_publish="True"  parameter="False" type="string"/>
 %(indent2)s<attr name="USE_MATCH_AUTH"          value="%(use_match_auth)s"  glidein_publish="False" job_publish="False" parameter="True" type="string"/> 
-%(indent2)s<attr name="GLIDEIN_Entry_Start"     value="%(entry_start)s"     glidein_publish="False" job_publish="False" parameter="True" type="string"/>
-%(indent2)s<attr name="GLIDEIN_Entry_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
+%(indent2)s<attr name="GLIDECLIENT_Start"     value="%(entry_start)s"     glidein_publish="False" job_publish="False" parameter="True" type="string"/>
+%(indent2)s<attr name="GLIDECLIENT_Rank"      value="%(entry_rank)s"      glidein_publish="False" job_publish="False" parameter="True" type="string"/>
 %(indent1)s</attrs> 
 """ % \
 { "indent1"          : common.indent(1), 
