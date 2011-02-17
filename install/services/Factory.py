@@ -42,7 +42,6 @@ factory_options = [ "hostname",
 "vdt_location",
 "pacman_location",
 ]
-## "bdii_host",
 
 wmscollector_options = [ "hostname", 
 "username", 
@@ -72,7 +71,7 @@ class Factory(Configuration):
       options = valid_options[self.ini_section]
     Configuration.__init__(self,inifile)
     self.validate_section(self.ini_section,options)
-    self.glidein = Glidein(self.inifile,self.ini_section,valid_options["Factory"])
+    self.glidein = Glidein(self.inifile,self.ini_section,options)
     self.config_entries_list = {} # Config file entries elements
     self.wms      = None
     self.frontend = None

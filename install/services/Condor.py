@@ -59,9 +59,6 @@ class Condor(Configuration):
   #----------------------------------
   def vdt_location(self):
     return self.option_value(self.ini_section,"vdt_location")
-  #----------------------------------
-  def x509_gsi_dn(self):
-    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def username(self):
     return self.option_value(self.ini_section,"username")
@@ -81,11 +78,14 @@ class Condor(Configuration):
   def split_condor_config(self):
     return self.option_value(self.ini_section,"split_condor_config")
   #---------------------
-  def gsi_location(self):
-    return  self.option_value(self.ini_section,"cert_proxy_location")
+  def x509_cert(self):
+    return self.option_value(self.ini_section,"x509_cert")
   #---------------------
-  def gsi_credential_type(self):
-    return self.option_value(self.ini_section,"gsi_credential_type")
+  def x509_key(self):
+    return self.option_value(self.ini_section,"x509_key")
+  #----------------------------------
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def condor_config(self):
     return "%s/etc/condor_config" % self.condor_location()
@@ -225,7 +225,10 @@ class Condor(Configuration):
     common.validate_hostname(self.hostname())
     common.validate_user(self.username())
     common.validate_email(self.admin_email())
-    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
+    if self.ini_section == "VOFrontend":
+      common.validate_gsi_for_proxy(self.x509_gsi_dn(), self.x509_proxy() )
+    else:
+      common.validate_gsi_for_cert(self.x509_gsi_dn(), self.x509_cert(), self.x509_key() )
     self.__validate_collector_port__()
     self.__validate_secondary_collectors__()
     self.__validate_schedds__()
@@ -884,13 +887,13 @@ SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI
 GSI_DAEMON_TRUSTED_CA_DIR=%s
 """ % (self.certificates)
 
-    if self.gsi_credential_type() == "proxy":
+    if self.ini_section == "VOFrontend":
       data = data + """
 ############################
 # Credentials
 ############################
 GSI_DAEMON_PROXY = %s 
-""" % self.gsi_location()
+""" % self.x509_proxy()
     else:
       data = data + """
 ############################
@@ -898,7 +901,7 @@ GSI_DAEMON_PROXY = %s
 ############################
 GSI_DAEMON_CERT = %s
 GSI_DAEMON_KEY  = %s
-""" % (self.gsi_location(),string.replace(self.gsi_location(),"cert.pem","key.pem"))
+""" % (self.x509_cert(),self.x509_key())
 
     if self.condor_version >= "7.4":
       data = data + """

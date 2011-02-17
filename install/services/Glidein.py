@@ -56,12 +56,6 @@ class Glidein(Configuration):
   def hostname(self):
     return self.option_value(self.ini_section,"hostname")
   #---------------------
-  def gsi_credential_type(self):
-    return self.option_value(self.ini_section,"gsi_credential_type")
-  #---------------------
-  def gsi_location(self):
-    return self.option_value(self.ini_section,"cert_proxy_location")
-  #---------------------
   def x509_gsi_dn(self):
     return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------

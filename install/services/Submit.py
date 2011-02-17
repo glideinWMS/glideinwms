@@ -19,8 +19,8 @@ submit_options = [ "hostname",
 "service_name", 
 "condor_location", 
 "x509_cert_dir",
-"gsi_credential_type", 
-"cert_proxy_location", 
+"x509_cert", 
+"x509_key", 
 "x509_gsi_dn", 
 "match_authentication", 
 "condor_tarball", 
@@ -150,7 +150,6 @@ Do you want to continue""")
       common.logit("... submit/schedd service colocated with UserCollector")
       common.logit("... no updates to condor mapfile required")
       return
-    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     common.logit("... updating condor_mapfile")
     #--- create condor_mapfile entries ---
     condor_entries = ""

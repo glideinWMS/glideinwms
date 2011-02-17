@@ -24,8 +24,8 @@ wmscollector_options = [ "hostname",
 "x509_cert_dir",
 "privilege_separation",
 "frontend_users",
-"gsi_credential_type", 
-"cert_proxy_location", 
+"x509_cert", 
+"x509_key", 
 "x509_gsi_dn", 
 "condor_tarball", 
 "condor_admin_email", 
@@ -144,7 +144,6 @@ class WMSCollector(Condor):
   #--------------------------------
   def configure_gsi_security(self):
     common.logit("\nConfiguring GSI security")
-    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     condor_entries = ""
     #-- frontends ---
     condor_entries += common.mapfile_entry(self.frontend.x509_gsi_dn(), self.frontend.service_name())

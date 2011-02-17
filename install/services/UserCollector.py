@@ -27,8 +27,8 @@ usercollector_options = [ "hostname",
 "collector_port", 
 "number_of_secondary_collectors",
 "x509_cert_dir",
-"gsi_credential_type", 
-"cert_proxy_location", 
+"x509_cert", 
+"x509_key", 
 "x509_gsi_dn", 
 "install_vdt_client",
 "vdt_location",
@@ -109,7 +109,6 @@ class UserCollector(Condor):
     self.install_vdtclient()
     self.install_certificates()
     self.validate_condor_install()
-    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
     self.verify_no_conflicts()
     self.validate_install_location()
     self.install_condor()

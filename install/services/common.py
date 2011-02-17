@@ -229,13 +229,57 @@ def validate_installer_user(user):
     logerr("You are installing as user(%s).\n       The ini file says it should be user(%s)." % (install_user,user))
 
 #--------------------------------
-def validate_gsi(dn_to_validate,type,location):
-  logit("... validating gsi_credential_type: %s" % type)
-  logit("... validating gsi_location: %s" % location)
+def validate_gsi_for_proxy(dn_to_validate,proxy):
+  install_user = pwd.getpwuid(os.getuid())[0]
+  #-- check proxy ---
+  logit("... validating x509_proxy: %s" % proxy)
+  if not os.path.isfile(proxy):
+    logerr("""x509_proxy (%(proxy)s)
+not found or has wrong permissions/ownership.""" % \
+  {  "proxy"  :  proxy,
+     "owner" : install_user,})
+  #-- check dn ---
   logit("... validating x509_gsi_dn: %s" % dn_to_validate)
-  dn_in_file = get_gsi_dn(type,location)
+  dn_in_file = get_gsi_dn("proxy",proxy)
   if dn_in_file <> dn_to_validate:
-    logerr("The DN of the %s in %s does not match the gsi_dn attribute in your ini file:\n%8s: %s\n     ini: %s\nThis may cause a problem in other services." % (type, location,type,dn_in_file,dn_to_validate))
+    logerr("""The DN of the x509_proxy option does not match the x509_gsi_dn 
+option value in your ini file:
+  x509_gsi_dn: %(dn_to_validate)s
+x509_proxy DN: %(dn_in_file)s
+This may cause a problem in other services.
+You should reinstall any services already complete.""" % \
+    { "dn_in_file"     : dn_in_file,
+      "dn_to_validate" : dn_to_validate,})
+
+#--------------------------------
+def validate_gsi_for_cert(dn_to_validate,cert,key):
+  install_user = pwd.getpwuid(os.getuid())[0]
+  #-- check cert ---
+  logit("... validating x509_cert: %s" % cert)
+  if not os.path.isfile(cert):
+    logerr("""x509_cert (%(cert)s)
+not found or has wrong permissions/ownership.""" % \
+       {  "cert"  :  cert, 
+          "owner" : install_user,})
+  #-- check key ---
+  logit("... validating x509_key: %s" % key)
+  if not os.path.isfile(key):
+    logerr("""x509_key (%(key)s)
+not found or has wrong permissions/ownership.""" % \
+        {  "key"  :  key, 
+          "owner" : install_user,})
+  #-- check dn ---
+  logit("... validating x509_gsi_dn: %s" % dn_to_validate)
+  dn_in_file = get_gsi_dn("cert",cert)
+  if dn_in_file <> dn_to_validate:
+    logerr("""The DN of the x509_cert option does not match the x509_gsi_dn 
+option value in your ini file:
+  x509_gsi_dn: %(dn_to_validate)s
+ x509_cert DN: %(dn_in_file)s
+This may cause a problem in other services.
+You should reinstall any services already complete.""" % \
+    { "dn_in_file"     : dn_in_file, 
+      "dn_to_validate" : dn_to_validate,})
 
 #--------------------------------
 def get_gsi_dn(type,filename):

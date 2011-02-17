@@ -175,12 +175,6 @@ class VOFrontend(Condor):
   def userjob_constraints(self):
     return self.option_value(self.ini_section,"userjob_constraints")
   #--------------------------------
-  def gsi_credential_type(self):
-    return "proxy"
-  #--------------------------------
-  def gsi_location(self):
-    return self.x509_proxy()
-  #--------------------------------
   def x509_proxy(self):
     return self.option_value(self.ini_section,"x509_proxy")
   #--------------------------------
@@ -302,7 +296,7 @@ Do you want to continue""")
     common.validate_hostname(self.hostname())
     common.validate_user(self.username())
     common.validate_installer_user(self.username())
-    common.validate_gsi(self.x509_gsi_dn(),"proxy",self.x509_proxy())
+    common.validate_gsi_for_proxy(self.x509_gsi_dn(),self.x509_proxy())
     self.validate_glidein_proxies()
     self.validate_glexec_use()
     self.glidein.validate_web_location()
@@ -876,7 +870,6 @@ please verify and correct if needed.
       common.logit("... VOFrontend  service colocated with UserCollector and/or Submit/schedd")
       common.logit("... no updates to condor mapfile required")
       return
-    common.validate_gsi(self.x509_gsi_dn(),"proxy",self.x509_proxy())
     #--- create condor_mapfile entries ---
     condor_entries = ""
     condor_entries += common.mapfile_entry(self.x509_gsi_dn(),   self.service_name())
