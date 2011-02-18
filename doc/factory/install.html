@@ -677,6 +677,17 @@ How many secondary schedds do you want?: [9] <b>9</b>
         is beyond the scope of this document.
     </p>
 
+    <p>Note that the OSG client is may be installed on this node.  Be careful 
+    to have not source the VDT setup script prior to the installation.
+    This can causel problems with conflicting python versions.  
+    VDT sometimes installs its own version of python which will not have 
+    rrdtool or M2Crypto available.  
+    You can determine if this will be a problem by sourcing the VDT setup
+    script and then doing a 'type python' or 'which python' to see
+    which python is being used.
+    </p>
+
+
     <p>
         <b>The glidein factory itself should be installed as a non privileged user</b>. The provided installer can be used to create the configuration
         file, although some manual tunning will probably be needed.
@@ -988,9 +999,14 @@ Configuration files are located in /home/gfactory/glideinsubmit/glidein_v1_0.cfg
 
     <h3><a name="starting">7.1 Starting and Stopping</a></h3>
     <p>The glidein factory comes with a init.d style startup script.</p>
+    <p>Note: you will need to export an X509_CERT_DIR variable pointing
+       to the directory of your installed CA certificates when starting
+       the factory.</p>
     <p>Glidein factory starting and stopping is handled by </p>
-    <blockquote>&lt;glidein directory&gt;/factory_startup
-    start|stop|restart</blockquote>
+    <blockquote>
+      &lt;export X509_CERT_DIR=[CA_CERTIFICATE_DIRECTORY]</br>
+      &lt;glidein directory&gt;/factory_startup start|stop|restart
+      </blockquote>
 <p>You can check that the factory is actually running with
 </p>
     <blockquote>

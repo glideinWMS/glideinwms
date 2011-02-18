@@ -48,6 +48,7 @@ wmscollector_options = [ "hostname",
 "privilege_separation",
 "condor_location",
 "frontend_users",
+"x509_cert_dir",
 ]
 
 frontend_options = [ 
@@ -80,7 +81,7 @@ class Factory(Configuration):
   def get_wms(self):
     if self.wms == None:
       self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
-  #--------------------------------
+
   def get_frontend(self):
     if self.frontend == None:
       self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
@@ -248,11 +249,14 @@ Are you sure this is a proxy and not a certificate?""" % \
 
   #-----------------------
   def create_env_script(self):
+    """This creates an "env" type script that must be used before starting the
+       factory.
+    """
     common.logit("Creating environment script...")
     data = """#!/bin/bash
-source %(vdt_location)s/setup.sh
+export X509_CERT_DIR=%(x509_cert_dir)s
 source %(condor_location)s/condor.sh
-""" % { "vdt_location"    : self.glidein.vdt_location(),
+""" % { "x509_cert_dir"   : self.wms.certificates, 
         "condor_location" : self.wms.condor_location(),}
     if self.use_vofrontend_proxy() == "n":
       data += "export X509_USER_PROXY=%s" % self.x509_proxy()

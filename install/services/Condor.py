@@ -3,7 +3,7 @@
 import common
 from Configuration import Configuration
 from Configuration import ConfigurationError
-from Certificates  import Certificates
+import Certificates  
 import VDTClient
 #---------------------
 import sys,os,os.path,string,time
@@ -31,6 +31,16 @@ class Condor(Configuration):
     self.schedd_init_file    = "init_schedd.sh"
     self.schedd_startup_file = "start_master_schedd.sh"
     self.schedd_initd_function = "return # no secondary schedds"
+
+    #-- classes used ---
+    self.certs = None
+    self.get_cert()
+
+  #--- instantiate objects needed ----
+  def get_cert(self):
+    if self.certs == None:
+      self.certs = Certificates.Certificates(self.inifile,self.ini_section)
+    self.certificates = self.certs.x509_cert_dir()
 
   #----------------------------------
   # methods for returning attributes
@@ -207,9 +217,7 @@ class Condor(Configuration):
   #--------------------------------
   def install_certificates(self):
     """ Certificates are required for Condor GSI authentication. """
-    certs = Certificates(self.inifile,self.ini_section)
-    certs.install()
-    self.certificates = certs.x509_cert_dir()
+    self.certs.install()
 
   #--------------------------------
   def install_vdtclient(self):

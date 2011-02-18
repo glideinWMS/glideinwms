@@ -95,7 +95,6 @@ class VOFrontend(Condor):
     if options == None:
       options = valid_options[self.ini_section]
     Condor.__init__(self,self.inifile,self.ini_section,options)
-    self.certificates = None
     self.daemon_list = "" 
     self.glidein = Glidein(self.inifile,self.ini_section,options)
     #-- instances of other services ---
@@ -447,10 +446,8 @@ The following DNs are in your grid_mapfile:"""
   def create_env_script(self):
     common.logit("\nCreating VO frontend env script.")
     data = """#!/bin/bash
-source %(vdt_location)s/setup.sh
 source %(condor_location)s/condor.sh
-""" % { "vdt_location"    : self.glidein.vdt_location(),
-        "condor_location" : self.condor_location(),}
+""" % { "condor_location" : self.condor_location(),}
     common.write_file("w",0644,self.env_script(),data)
     common.logit("VO frontend env script created: %s" % self.env_script() )
 

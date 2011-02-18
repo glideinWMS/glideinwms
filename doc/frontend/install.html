@@ -446,9 +446,11 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
     <p>Note that the OSG client is required, but it is not recommended
     to actually source the setup.sh before installation.  This can cause
     problems with conflicting python versions.  VDT sometimes installs 
-    its own version of python which will not have rrdtool.  (The only 
-    environment variable needed is X509_CERT_DIR, and the installer will 
-    set it itself).</p>
+    its own version of python which will not have rrdtool or M2Crypto.
+    You can determine if this will be a problem by sourcing the VDT setup
+    script and then doing a 'type python' or 'which python' to see
+    which python is being used.
+    </p>
 
     <p>To begin the installation procedure: </p>
     <blockquote>
