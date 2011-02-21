@@ -57,8 +57,6 @@ class Submit(Condor):
     if options == None:
       options = valid_options[self.ini_section]
     Condor.__init__(self,self.inifile,self.ini_section,options)
-    #self.certificates = self.option_value(self.ini_section,"certificates")
-    self.certificates = None
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "SCHEDD"
     self.frontend      = None     # VOFrontend object
