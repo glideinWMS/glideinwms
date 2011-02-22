@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.48.2.8 2011/02/07 16:43:20 dstrain Exp $
+#   $Id: condor_startup.sh,v 1.48.2.9 2011/02/22 02:48:36 dstrain Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -436,7 +436,7 @@ ON_DIE=0
 trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$retire_time / 60 + 1"
+let "retmins=$retire_time / 60 - 1"
 
 
 #### STARTS CONDOR ####
