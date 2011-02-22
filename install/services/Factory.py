@@ -76,6 +76,7 @@ class Factory(Configuration):
     self.config_entries_list = {} # Config file entries elements
     self.wms      = None
     self.frontend = None
+    self.get_wms()
 
   #-- get service instances --------
   def get_wms(self):
