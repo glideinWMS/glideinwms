@@ -971,6 +971,23 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
+        <td>schedd_shared_port</td>
+        <td align="center">9615</td>
+        <td>
+        Specifies the port number to be used by the shared port daemon
+        for schedds.
+        </td>
+        <td>
+        This is only available in Condor 7.5.3+.</br>
+        This can drastically reduce the number of ports used and thus improves
+        scalability.</br>
+        The default port is 9615.</br>
+        Leave this option blank if you do not wish to utilize this feature or
+        if is is not supported in the version of Condor being used.
+        </td>
+        </tr>
+
+        <tr>
         <td>match_authentication</td>
         <td align="center">y</td>
         <td>

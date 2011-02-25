@@ -127,6 +127,18 @@ class Condor(Configuration):
     if common.not_an_integer(value):
       common.logerr("%s option is not a number: %s" % (option,value))
     return int(value)
+  #---------------------
+  def schedd_shared_port(self):
+    """ Returns the shared port number if specified, else zero."""
+    option = "schedd_shared_port"
+    if not self.has_option(self.ini_section,option):
+      return int(0)
+    value =  self.option_value(self.ini_section,option)
+    if len(value) == 0:
+      return int(0)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #----------------------------------
   def collector_port(self):
     option = "collector_port"
@@ -237,12 +249,14 @@ class Condor(Configuration):
       common.validate_gsi_for_proxy(self.x509_gsi_dn(), self.x509_proxy() )
     else:
       common.validate_gsi_for_cert(self.x509_gsi_dn(), self.x509_cert(), self.x509_key() )
+    if "usercollector" not in self.colocated_services:
+      self.__validate_tarball__(self.condor_tarball())
     self.__validate_collector_port__()
     self.__validate_secondary_collectors__()
     self.__validate_schedds__()
+    self.__validate_schedd_shared_port__()
     self.__validate_condor_config__(self.split_condor_config())
     if "usercollector" not in self.colocated_services:
-      self.__validate_tarball__(self.condor_tarball())
       common.validate_install_location(self.condor_location())
 
   #--------------------------------
@@ -381,28 +395,45 @@ setenv CONDOR_CONFIG %s
   #--------------------------------
   def __validate_collector_port__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
-      common.logit("... no collector")
+      common.logit("... no COLLECTOR daemon")
       return # no collector daemon
     common.logit("... validating collector port: %s" % self.collector_port())
-    port = self.collector_port()
-    collector_port = 0
+    self.__validate_port_value__(self.collector_port(),"collector_port") 
+
+  #--------------------------------
+  def __validate_schedd_shared_port__(self):
+    if self.daemon_list.find("SCHEDD") < 0:
+      common.logit("... no SCHEDD daemon")
+      return # only schedd deamons
+    if self.ini_section != "Submit":
+      return # only submit service 
+    if self.schedd_shared_port() == 0:
+      common.logit("... validating schedd_shared_port: %s" % "not used")
+      return
+    common.logit("... validating schedd_shared_port: %s" % self.schedd_shared_port())
+    if self.condor_version < "7.5.3":
+      common.logerr("the schedd shared port option can only be used in Condor 7.5.3+")
+    self.__validate_port_value__(self.schedd_shared_port(),"schedd_shared_port") 
+  #-------------------------------
+  def __validate_port_value__(self,port,option):
     min = 1
     max = 65535
     root_port = 1024
     if port < min:
-      common.logerr("collector port option is negative: %s" % (port))
+      common.logerr("%s option must be a positive value: %s" % (option,port))
     if port > max:
-      common.logerr("collector port option exceeds maximum allowed value: %s" % (port))
+      common.logerr("%s option exceeds maximum allowed value of %s" % (option,max))
     if port < root_port:
       if os.getuid() == 0:  #-- root user --
-        common.logit("Ports less that %i are generally reserved." % (root_port))
-        common.logit("You have specified port %s for the collector." % (port))
-        yn = raw_input("Do you really want to use privileged port %s? (y/n): "% port)
+        common.logit("Ports less that %i are generally reserved for root." % (root_port))
+        common.logit("You have specified port %s for the %s option." % (port,option))
+        yn = raw_input("Do you really want to use a privileged port %s? (y/n): "% port)
         if yn != 'y':
           common.logerr("... exiting at your request")
       else: #-- non-root user --
-        common.logerr("Collector port (%s) less than %i can only be used by root." % (port,root_port))
- 
+        common.logit("Ports less that %i are generally reserved for root." % (root_port))
+        common.logerr("You have specified a %s option of %s" % (option,port))
+
   #--------------------------------
   def __validate_condor_config__(self,value):
     common.logit("... validating split_condor_config: %s" % value)
@@ -597,7 +628,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
   def configure_secondary_schedds(self):
     common.logit("\nConfiguring secondary schedd support.")
     if self.daemon_list.find("SCHEDD") < 0:
-      common.logit("... no schedds daemons for this condor instance")
+      common.logit("... no SCHEDD daemons for this condor instance")
       return
     if self.number_of_schedds() == 0:
       common.logit("... no secondary schedds to configure")
@@ -635,7 +666,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
 
   #----------------------------------
   def __secondary_schedd_setup_file_data__(self):
-    return """\
+    data = """\
 if [ $# -ne 1 ]
 then
  echo "ERROR: arg1 should be schedd name."
@@ -649,8 +680,18 @@ export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}
 export _CONDOR_DAEMON_LIST="MASTER,SCHEDD"
 export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME
 export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
-unset LD
 """ % (self.condor_local())
+
+    if self.schedd_shared_port() > 0:
+      data += """\
+export _CONDOR_USE_SHARED_PORT=True
+export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad
+export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock
+"""
+    data += """\
+unset LD
+"""
+    return data
 
   #----------------------------------
   def __secondary_schedd_init_file_data__(self):
@@ -1029,6 +1070,15 @@ STARTD_SENDS_ALIVES = True
 #-- Reduce disk IO - paranoid fsyncs are usully not needed
 ENABLE_USERLOG_FSYNC = False
 """
+    
+    if self.condor_version >= "7.5.3" and self.schedd_shared_port() > 0:
+      data += """
+#--  Enable shared_port_daemon 
+USE_SHARED_PORT = True
+SHARED_PORT_ARGS = -p %(port)s
+DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
+""" % { "port" : self.schedd_shared_port(), }
+
     return data
 
   #-----------------------------
