@@ -136,7 +136,10 @@ class Configuration:
         pathname end in a '/' or we may see inconsistent results.  So we
         are stripping all option values of trailing '/'s.
     """
-    value = self.cp.get(section,option)
+    try:
+      value = self.cp.get(section,option)
+    except Exception,e:
+      common.logerr("ini file error: %s" % e.__str__())
     #-- cannot let paths end in a '/' --
     while len(value) > 0 and value[len(value)-1] == "/":
       value = value[0:len(value)-1].strip()
