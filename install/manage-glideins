@@ -161,7 +161,6 @@ def find_services(inifile):
    common.ask_continue("The following services will be processed on this node:\n   %s\n... do you want to continue" % services)
    return services
          
-
 #----------------
 def process_request(service,action,inifile):
   if service == "wmscollector":
@@ -235,6 +234,14 @@ when the DEFAULT section is used to apply values to all sections/services.
 }
   common.logit(msg)
 
+#------------------
+def check_python_version():
+  min_python = "%s.%s.%s" % (2,3,4)
+  this_python= "%s.%s.%s" % (sys.version_info[0],sys.version_info[1],sys.version_info[2])
+  if this_python < min_python:
+    common.logerr("python version must be at least %s. Your python is %s" % \
+      (min_python,this_python)) 
+
 ##########################################
 def main(argv):
   try:
@@ -243,6 +250,7 @@ def main(argv):
     global gSSH
 
     gProgramName = argv[0]
+    check_python_version()
     gAction = None
     gSSH    = False
     inifile = ""
