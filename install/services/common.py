@@ -325,6 +325,11 @@ def mapfile_entry(dn,name):
 """ % { "dn" : re.escape(dn), "name" : name,}
 
 #----------------------------
+def check_for_value(option,value):
+  if len(value) == 0:
+    logerr("""The %s option is not populated and is required to proceed.""" % option)
+
+#----------------------------
 def not_an_integer(value):
   try:
     nbr = int(value)

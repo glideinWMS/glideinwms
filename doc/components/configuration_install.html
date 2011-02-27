@@ -186,7 +186,11 @@ The attributes in this section apply to all subsequent sections in the ini file 
 <h4>Pacman options</h4>
 The 2 pacman related attributes are used to bring down the OSG/VDT client software 
 and CA certificates if they are not already installed on the node. 
-If you already have the OSG/VDT client and CA certificates installed on a host, then these options will never if used.
+If you already have the OSG/VDT client and CA certificates installed on a host
+or you have already installed the CA certificates and are using other non-VDT client software for proxy renewals, then:<br/>
+&nbsp;- these options are still required but may be empty, i.e., contain no value.<br/>
+&nbsp;- the vdt_location option is still required but may be empty.<br/>
+&nbsp;- the install_vdt_client should be set to 'n'.<br/>
 </p><p>
 <b>These should not be changed unless advised to by glideinwms-support as there 
 may be compatiblity issues between pacman and VDT distributions.</b>
