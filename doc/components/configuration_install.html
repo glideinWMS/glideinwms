@@ -196,7 +196,7 @@ or you have already installed the CA certificates and are using other non-VDT cl
 may be compatiblity issues between pacman and VDT distributions.</b>
 
 </p>
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -241,7 +241,7 @@ to be owned by root in order to properly use privilege separation.
 
 See below for the ini file attributes that installing/running WMS collector requires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -264,7 +264,7 @@ See below for the ini file attributes that installing/running WMS collector requ
             For security purposes, this value should always be a non-root user.<br/>
             <b>However</b>, if privilege separation is used 
             (see the <b>privilege_separation</b> option), the manage-glideins 
-            script itself will be need to be run as root (see above), since
+            script itself will need to be run as root (see above), since
             the Condor switchboard requires some files to be 
             owned by root and some files to
             be owned by the non-superuser <b>username</b> for privilege separation
@@ -296,7 +296,7 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td> <a name="privilege_separation"/> privilege_separation</td>
         <td align="center">y</td>
-        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor Privilege Seperation  Documentation</a> for more information</td>
+        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor Privilege Separation  Documentation</a> for more information</td>
         <td>Valid values:<br/>
             * <b>y</b> - privilege separation is used<br/>
             * <b>n</b> - privilege separation is not used <br/>
@@ -306,9 +306,13 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td>frontend_users </td>
         <td>frontend_service_name : unix_account </td>
-        <td>The vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install. 
+        <td>Maps the vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install. 
         </td>
-        <td>The format is: <b>service_name : unix account </b>
+        <td>The format is: <b>service_name : unix account </b><br/>
+        If <b>privilege_separation</b> is specified, this must specify
+        the unique UNIX user account you set up for that frontend service.</br>
+        If <b>privilege_separation</b> is <b>not</b> specified, this must be the
+        factory username.</br>
         </td>
         </tr>
 
@@ -392,20 +396,26 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.  
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
-            <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td>
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>/path/to/glidein/vdt</td>
+            <td>The location of the OSG/VDT client software.</td>
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
+            </td>
         </tr>
 
         <tr>
@@ -429,7 +439,7 @@ the WMS Factory (see the <b>username</b> option below).
 See below for the ini file attributes that installing/running WMS factory 
 requires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -613,20 +623,26 @@ requires:<br/><br/>
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
-            <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>/path/to/glidein/vdt</td>
+            <td>The location of the OSG/VDT client software.</td> 
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
+            </td>
         </tr> 
 
 
@@ -691,7 +707,7 @@ There is no real advantage to install as root, so non-privileged installation is
 See below for the ini file attributes that installing/running user collector requ
 ires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -815,20 +831,25 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
-            <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>/path/to/glidein/vdt</td>
+            <td>The location of the OSG/VDT client software.</td> 
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
         </tr> 
 
         <tr>
@@ -854,7 +875,7 @@ requires:
 
 <br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -1014,10 +1035,11 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
@@ -1025,9 +1047,13 @@ Valid values:</br>
             <td>vdt_location</td>
             <td>    /path/to/glidein/vdt</td>
             <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
         </tr> 
 
         <tr>
@@ -1053,7 +1079,7 @@ The installation of the frontend should be done as the frontend user
 See below for the ini file attributes that installing/running the 
 glideinWMS frontend requires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -1325,10 +1351,11 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
@@ -1336,9 +1363,13 @@ Valid values:</br>
             <td>vdt_location</td>
             <td>    /path/to/glidein/vdt</td>
             <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
         </tr> 
 
 
