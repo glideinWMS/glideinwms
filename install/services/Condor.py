@@ -369,21 +369,21 @@ setenv CONDOR_CONFIG %s
     if self.daemon_list.find("SCHEDD") < 0:
       common.logit("... no schedds")
       return # no schedd daemon
-    common.logit("... validating schedds: %s" % self.number_of_schedds())
+    common.logit("... validating number_of_schedds: %s" % self.number_of_schedds())
     nbr = self.number_of_schedds()
-    min = 0
+    min = 1
     max = 99
     if nbr < min:
-      common.logerr("number of schedds is negative: %s" % (nbr))
+      common.logerr("You must have at least 1 schedd")
     if nbr > max:
-      common.logerr("number of schedds exceeds maximum allowed value: %s" % (nbr))
+      common.logerr("Number of schedds exceeds maximum allowed value: %s" % (nbr))
 
   #--------------------------------
   def __validate_secondary_collectors__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
       common.logit("... no secondary collectors")
       return # no collector daemon
-    common.logit("... validating secondary collectors: %s" % self.secondary_collectors())
+    common.logit("... validating number_of_secondary_collectors: %s" % self.secondary_collectors())
     nbr = self.secondary_collectors()
     min = 0
     max = 399
@@ -630,13 +630,14 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
     if self.daemon_list.find("SCHEDD") < 0:
       common.logit("... no SCHEDD daemons for this condor instance")
       return
-    if self.number_of_schedds() == 0:
+    if self.number_of_schedds() == 1:
       common.logit("... no secondary schedds to configure")
       return
     self.__create_secondary_schedd_support_files__()
     self.schedd_initd_function = ""
-    schedds = int(self.number_of_schedds())
-    for i in range(schedds):
+    secondary_schedds = int(self.number_of_schedds()) - 1
+    common.logit("... setting up %i secondary schedds" % secondary_schedds)
+    for i in range(secondary_schedds):
       schedd_name = "%s%i" % (self.schedd_name_suffix,i+1)
       #-- run the init script --
       user = pwd.getpwnam(self.username())
