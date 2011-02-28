@@ -6,7 +6,7 @@ from Configuration import ConfigurationError
 import Certificates  
 import VDTClient
 #---------------------
-import sys,os,os.path,string,time
+import sys,os,os.path,string,time,re
 import tarfile
 import shutil
 import pwd
@@ -462,7 +462,7 @@ setenv CONDOR_CONFIG %s
             first_dir = first_entry.split('/')[0]+'/'
             if ( first_dir[:7] != "condor-"):
               common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (condor_tarball, first_dir))
-            self.condor_version = first_dir[7:-1]
+            self.condor_version = re.sub("/","",first_entry.split('-')[1])
             common.logit( "... condor version: %s" % (self.condor_version))
             try:
                 fd.getmember(first_dir + "condor_configure")
