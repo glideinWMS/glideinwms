@@ -24,6 +24,7 @@ class Condor(Configuration):
     self.validate_section(ini_section,ini_options)
 
     self.condor_version      = None
+    self.condor_first_dir    = None
     self.certificates        = None
 
     #--- secondary schedd files --
@@ -329,7 +330,8 @@ setenv CONDOR_CONFIG %s
       common.logerr("Condor installation failed. Cannot make %s directory: %s" % (tar_dir,e))
     
     try:
-        common.logit( "... extracting from tarball: %s" % self.condor_tarball())
+        common.logit("... extracting tarball: %s" % self.condor_tarball())
+        common.logit("    into: %s" % tar_dir)
         fd = tarfile.open(self.condor_tarball(),"r:gz")
         #-- first create the regular files --
         for f in fd.getmembers():
@@ -340,18 +342,17 @@ setenv CONDOR_CONFIG %s
           if f.islnk():
             os.link(os.path.join(tar_dir,f.linkname),os.path.join(tar_dir,f.name))
         fd.close()
-
+        
         common.logit( "... running condor_configure")
-        install_str="%s/condor-%s/release.tar" % (tar_dir,self.condor_version)
-        if not os.path.isfile(install_str):
-          # Condor v7 changed the packaging
-          install_str="%s/condor-%s"%(tar_dir,self.condor_version)
-        #if not os.path.isfile(install_str):
-        #    common.logerr(("Cannot find path to condor_configure(%s)" % (install_str))
-        cmdline="cd %(tar_dir)s/condor-%(version)s;./condor_configure --install=%(install_str)s --install-dir=%(condor_location)s --local-dir=%(condor_local)s --install-log=%(tar_dir)s/condor_configure.log" %  \
-          {   "tar_dir": tar_dir,             "version": self.condor_version, 
-          "install_str": install_str, "condor_location": self.condor_location(),
-         "condor_local": self.condor_local(), }
+        install_str="%s/%s" % (tar_dir,self.condor_first_dir)
+        if not os.path.isfile("%s/condor_configure" % install_str):
+          common.logerr("Cannot find path to condor_configure in: %s" % (install_str))
+        cmdline="""%(install_str)s/condor_configure --install=%(install_str)s --install-dir=%(condor_location)s  --local-dir=%(condor_local)s --install-log=%(tar_dir)s/condor_configure.log""" %  \
+          {   "tar_dir"        : tar_dir,     
+              "first_dir"      : self.condor_first_dir, 
+              "install_str"    : install_str, 
+              "condor_location": self.condor_location(),
+              "condor_local"   : self.condor_local(), }
 
         if os.getuid() == 0:
             cmdline="%s  --owner=%s" % (cmdline,self.username())
@@ -459,15 +460,17 @@ setenv CONDOR_CONFIG %s
             first_entry = fd.next().name
             if ( len(first_entry.split('/')) < 2 ):
               common.logerr("File (%s) is not a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
-            first_dir = first_entry.split('/')[0]+'/'
-            if ( first_dir[:7] != "condor-"):
-              common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (condor_tarball, first_dir))
-            self.condor_version = first_dir[7:-1]
+            self.condor_first_dir = first_entry.split('/')[0]+'/'
+            
+            if ( self.condor_first_dir[:7] != "condor-"):
+              common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (condor_tarball, self.condor_first_dir))
+
+            self.condor_version = re.sub("/","",first_entry.split('-')[1])
             common.logit( "... condor version: %s" % (self.condor_version))
             try:
-                fd.getmember(first_dir + "condor_configure")
+                fd.getmember(self.condor_first_dir + "condor_configure")
             except:
-                common.logerr("Condor tarball (%s) missing %s" % (tarball, first_dir + "condor_configure"))
+                common.logerr("Condor tarball (%s) missing %s" % (tarball, self.condor_first_dir + "condor_configure"))
         except Exception,e:
             common.logerr("Condor tarball file is corrupted: %s" % (tarball))
     finally:
