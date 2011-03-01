@@ -1,4 +1,4 @@
-vNext	Factory now can remove excessive glideins
+v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
 	Frontend will request removal of glideins when no user jobs in queue
 	Improved idle counting by the frontend when jobs match many factory
@@ -7,11 +7,20 @@ vNext	Factory now can remove excessive glideins
 	Add Java support in the glideins.
 	Changed factory monitoring. It is now based on security names and not 
 	  plain frontend names
+	Improved installation process using ini based installer.
+	glideinWMS tarball does not include CVS directories and files any more 
+	Added support of shared port configuration for condor daemons
+	SIGHUP signals to glideins are ignored correctly.
+	Improved documentation
+	BUG FIX: Fixed a bug introduced in v2_5 release where reconfiguring the
+	  factory would fail because of monitoring groups
+	BUG FIX: Fixed a typo in one of the links in frontendRRDBrowse.html
 
 v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
 	glideinWMS release is now available in 3 different tarballs, frontend
 	  only, factory only and a complete tarball.
 	glideinWMS factory and the Corral frontend can now talk to each other
+	Corral tarball is now available from the glideinWMS release page
 	Factory is smarter about handling held glideins
 	Factory can now black/white list VOs on a per-entry basis
 	Version of glideinWMS is now published in the classads. Scheme can 
