@@ -84,6 +84,24 @@ Related Pages:
     <h3>Stable Series</h3>
     <ul>
       <li>
+        <b>v2_5_1</b> released on March 02, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_1/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5_1/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5_1.tgz">Tarball</a>)<br>
+        <ul>
+          <li>Factory now can remove excessive glideins. New ClassAd attribute - RemoveExcess
+          <li>Frontend will request removal of glideins when no user jobs in queue
+          <li>Improved idle counting by the frontend when jobs match many factory entries.
+          <li>Improved frontend logging.
+          <li>Add Java support in the glideins.
+          <li>Changed factory monitoring. It is now based on security names and not plain frontend names
+          <li>Improved installation process using ini based installer.
+          <li>glideinWMS tarball does not include CVS directories and files any more
+          <li>Added support of shared port configuration for condor daemons
+          <li>SIGHUP signals to glideins are ignored correctly.
+          <li>Improved documentation
+          <li>BUG FIX: Fixed a bug introduced in v2_5 release where reconfiguring the factory would fail because of monitoring groups
+          <li>BUG FIX: Fixed a typo in one of the links in frontendRRDBrowse.html
+        </ul>
+      </li>
+      <li>
         <b>v2_5</b> released on January 24, 2011 (<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5/index.html">Manual</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2_5/install.html">Installation instructions</a>,<a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/glideinWMS_v2_5.tgz">Tarball</a>)<br>
         <ul>
           <li>Installer can now install gridFTP and VOMS certs needed by CREAM
