@@ -11,6 +11,7 @@ import tarfile
 import shutil
 import pwd
 import stat
+import commands
 import traceback
 
 
@@ -252,6 +253,7 @@ class Condor(Configuration):
       common.validate_gsi_for_cert(self.x509_gsi_dn(), self.x509_cert(), self.x509_key() )
     if "usercollector" not in self.colocated_services:
       self.__validate_tarball__(self.condor_tarball())
+    self.check_condor_version()
     self.__validate_collector_port__()
     self.__validate_secondary_collectors__()
     self.__validate_schedds__()
@@ -259,6 +261,33 @@ class Condor(Configuration):
     self.__validate_condor_config__(self.split_condor_config())
     if "usercollector" not in self.colocated_services:
       common.validate_install_location(self.condor_location())
+
+  #-------------------------------
+  def check_condor_version(self):
+    """ Gets the Condor version from a collocated Condor instance.
+        Normally this would come from the tarball but no reason to use it
+        if services are collocated.
+    """
+    if self.condor_version <> None:
+      return   # we already have it
+    common.logit("... verifying Condor version from collocated service")
+    version_script = "%s/%s" % (self.condor_location(),"bin/condor_version")
+    if not os.path.isfile(version_script):
+      common.logerr("""Unable to determine condor version using: 
+  %s
+This appears to be a collocated service for Condor. 
+Did you install in the correct order.""" % version_script)
+    
+    cmds = "%s| awk '{print $2;exit}'" % version_script
+    (status, self.condor_version) = commands.getstatusoutput(cmds)
+    if status > 0:
+      common.logerr("""Unable to determine Condor version using:
+  %s""" % version_script)
+    if self.condor_version == None:
+      common.logerr("Still unable to determine condor_version")
+    common.logit("... condor version: %s" % self.condor_version)
+
+
 
   #--------------------------------
   def __setup_condor_env__(self):
