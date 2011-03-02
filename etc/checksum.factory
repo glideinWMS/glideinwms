@@ -117,6 +117,6 @@ a877aadbc0126859319e8dc70b266b18  ./install/services/Configuration.py
 71787483ce81ab57c9d342d14f5baa09  ./install/services/VDT.py
 76022c193a652a32a43e847d19ab2061  ./install/services/WMSCollector.py
 0013895629e93fd21cb312410145fc6c  ./install/services/common.py
-c170fa61bcf5b3f719878d0ac5e79928  ./install/services/Condor.py
-4680fa98a1ed15bcf82dfe06dcb233ea  ./install/glideinWMS_install
+84a8a105d84582f3b24e3713d1d5911c  ./install/services/Condor.py
+e0e03c30499a934e0bccb3955bd64ed3  ./install/glideinWMS_install
 058473e6cfccb7eb94d947b50efb1e4d  ./install/glidecondor_addDN
