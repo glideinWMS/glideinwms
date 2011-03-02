@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.32 2011/02/03 16:45:22 sfiligoi Exp $
+#   $Id: glideinWMS_install,v 1.265.2.33 2011/03/02 21:48:49 parag Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -736,14 +736,14 @@ def query_WebLocation(web_subdir):
                     print "Cannot create dir '%s'"%sdir_fullpath
                     continue
 
-                test_fname=os.path.join(sdir_fullpath,"test.txt")
-                try:
-                    fd=open(test_fname,"w")
-                    fd.close()
-                    os.unlink(test_fname)
-                except:
-                    print "Dir '%s' not writable."%sdir_fullpath
-                    continue
+            test_fname=os.path.join(sdir_fullpath,"test.txt")
+            try:
+                fd=open(test_fname,"w")
+                fd.write("Test text file for glideinWMS to download");
+                fd.close()
+            except:
+                print "Dir '%s' not writable."%sdir_fullpath
+                continue
         break # everything worked, go on 
         
 
@@ -817,7 +817,7 @@ def query_WebLocation(web_subdir):
                 else:
                     hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
                 hc.connect()
-                hc.request("GET", "/%sstage/"%web_base_url_path)
+                hc.request("GET", "/%sstage/test.txt"%web_base_url_path)
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:

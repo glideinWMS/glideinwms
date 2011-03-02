@@ -135,6 +135,7 @@ for a more detailed description.
                 <a href="#">&lt;max_jobs held="1000" idle="2000" running="10000"&gt;</a><br/>
                 <a href="#">&lt;release max_per_cycle="20" sleep="0.2"&gt;</a><br/>
                 <a href="#">&lt;remove max_per_cycle="5" sleep="0.2"&gt;</a><br/>
+                <a href="#require_voms">&lt;restrictions require_voms="False"&gt;</a><br/>
                 <a href="#">&lt;submit cluster_size="10" max_per_cycle="100" sleep="0.2"&gt;</a><br/>
             </blockquote>
             <a href="#">&lt;/config&gt;</a><br/>
@@ -366,6 +367,13 @@ individual entry point configuration.
     frontend to.
     <b>If this does not match the frontend configuration, 
     the factory will drop all requested glideins.</b>
+
+    <br/><b>
+    For a visual guide to the configuration options that need to
+    match in the frontend and factory, see this
+    <a href="../factory/troubleshooting.html#colorcoded">color coded chart.</a>
+    </b>
+
     </P>
     <LI>
         <a name="security_class" />
@@ -722,6 +730,24 @@ True&quot; const=&quot;True&quot; glidein_publish=&quot;True&quot; comment=”My
     if not otherwise defined. 
     </ul>
     </li>
+        <li>
+        <a name="allow_frontend" />
+        <div class="xml">
+         &lt;glidein&gt;&lt;entries&gt;&lt;entry
+         name=&quot;<I>entry name</I>&quot;&gt;
+         &lt;config&gt;
+         &lt;restrictions require_voms="<i>True</i>" /&gt;
+        </div>
+        <p>
+            <b>Recommended</b> This value defines whether a VOMS proxy
+            is required to submit and run at this entry point.
+            This attribute will prevent glideins with a VOMS proxy
+            (classad attribute x509userproxyfirstfqan) from being 
+            submitted or running at this entry point.
+            This attribute is usually only needed if glExec is 
+            being utilized.
+        </p>
+        </li>
         <li>
         <a name="allow_frontend" />
         <div class="xml">

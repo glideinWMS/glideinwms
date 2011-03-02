@@ -88,6 +88,7 @@ Factory troubleshooting:
 <li> Jobs don't start</li>
 </ul>
 
+<a href="../frontend/guide.html">Submitting a job</a>
 </div>
 <div class="section">
     <h3>Factory does not submit glideins corresponding to your job</h3>
@@ -139,6 +140,7 @@ the factory config's security_class element name attribute. </li>
     <li>Client provided invalid ReqEncIdentity: (Client X provided invalid ReqEncIdentity ( id1@x.fnal.gov!= id2@x.fnal.gov). Skipping for security reasons. When the VOFrontend contacts the WMS Collector using the frontend configuration file's security element proxy_DN/classad_proxy attribute, the WMS Collector Condor uses the certs/condor_mapfile to map the VOFrontend to a name. This name identifies how the factory knows the VOFrontend on the Factory node. This must match with the factory configuration file's frontend element identity attribute.  <br/>
         Verify that the proxy_dn in the security section of the frontend config matches the condor_mapfile on the WMS collector node.  This identity (with machine name) should map the frontend identity in the factory config.  Also, if you running all services on the same machine, make sure that condor is using GSI authentication and not file system (FS) authentication.</li>
     </ul>
+    <h3>Security Overview</h3>
     <a name="colorcoded" />
     For a visual representation of the configuration that must match, see the below:
     <blockquote>
