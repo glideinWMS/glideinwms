@@ -192,8 +192,11 @@ or you have already installed the CA certificates and are using other non-VDT cl
 &nbsp;- the vdt_location option is still required but may be empty.<br/>
 &nbsp;- the install_vdt_client should be set to 'n'.<br/>
 </p><p>
-<b>These should not be changed unless advised to by glideinwms-support as there 
-may be compatiblity issues between pacman and VDT distributions.</b>
+<b>These are parts of the pacman related options below that should not be 
+changed unless advised to by glideinwms-support as there 
+may be compatiblity issues between pacman and VDT distributions. 
+The comments column will provide the specifics.
+</b>
 
 </p>
     <table class="attributes">
@@ -210,10 +213,16 @@ may be compatiblity issues between pacman and VDT distributions.</b>
             <td>This will be the directory in which pacman is installed.</br>
             </td>
             <td>
-                The base level (e.g., pacman-3.28) will be used to select the
-                pacman tarball from the pacman_url option.</br>
-                The format is pacman-version.tar.gz.</br>
-                The tarball will be retrieved, extracted and then removed.  
+             The base level (e.g., pacman-3.28) will be used to select the
+             pacman tarball from the pacman_url option.</br>
+             The format is pacman-version.tar.gz.</br>
+	     The tarball will be retrieved using the <b>pacman_url</b> option, 
+             extracted and then removed.</br></br>
+             You will need to specify the path to the directory, <b>pacman-3.28</b>.  
+             If you already have pacman-3.28 installed on your node, the installer
+             will not attempt to bring a new pacman down.  You may utitize that 
+             directory.
+                <b>
             </td>
         </tr>
 
@@ -223,6 +232,7 @@ may be compatiblity issues between pacman and VDT distributions.</b>
             <td>URL to retrieve pacman.</br>
             </td>
             <td>
+             <b>This is the one pacman option you should not change.</b>
             </td>
         </tr>
     </tbody></table>
