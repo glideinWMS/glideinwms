@@ -4,14 +4,14 @@
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
   <title>glideinWMS</title>
   <meta name="CREATED" content="0;0">
-  <meta name="CHANGED" content="20100521;20081031;14115200">    
+  <meta name="CHANGED" content="20100521;20081031;14115200">
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
 <body lang="en-US" dir="ltr">
     <h1>
         <a href="index.html">GlideinWMS</a>
-	<span>The Glidein-based Workflow Management System</span>
+    <span>The Glidein-based Workflow Management System</span>
     </h1>
     <ul class="breadcrumbs">
         <li><a href="../index.html">Home</a></li>
@@ -20,13 +20,13 @@
     <div class="clear" />
     <div class="leftmenu">
         <ul class="components">
-	        <li> <a href="../index.html">Home</a></li>
-	        <li> <a href="../download.html">Download</a></li>
-	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../index.html">Home</a></li>
+            <li> <a href="../download.html">Download</a></li>
+            <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
             <li> <a href="../corral.html">Corral Frontend</a></li>
-	        <li> <a href="../factory/index.html">WMS Factory</a></li>
-	        <li> <a href="../components/index.html" >Components</a></li>
-	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+            <li> <a href="../factory/index.html">WMS Factory</a></li>
+            <li> <a href="../components/index.html" >Components</a></li>
+            <li> <a href="../components/faq.html" class="last">FAQ</a></li>
         </ul>
         <div class="search">
             <div id="cse-search-form" style="width: 100%;">Loading</div>
@@ -51,16 +51,16 @@
     </map>
 
     <h2>GlideinWMS</h2>
-	<ul class="subcomponents">
-	     <li> <a href="../index.html">Overview</a></li>
-	     <li> <a href="../download.html">Download</a></li>
-	     <li> <a href="../documentation.html">Documentation</a></li>
+    <ul class="subcomponents">
+         <li> <a href="../index.html">Overview</a></li>
+         <li> <a href="../download.html">Download</a></li>
+         <li> <a href="../documentation.html">Documentation</a></li>
          <li> <a href="../install.html">Install</a></li>
-	     <li> <a href="../history.html">History</a></li>
-	     <li class="last"> <a href="../license.html">License</a></li>
-	</ul>
+         <li> <a href="../history.html">History</a></li>
+         <li class="last"> <a href="../license.html">License</a></li>
+    </ul>
         <h3>FAQ</h3>
-	</div>
+    </div>
 <div class="related">
 Related links:
 <ul>
@@ -97,6 +97,15 @@ Related links:
       <b>NOTE:</b> The coresize for the actual user job will be set to the available
             disk space, not unlimited. Also, you can make this change to global
             parameter or local parameter.
+  </li>
+  <li><b>How to set a custom port for HTTPD on machines with SELinux enabled</b><br/>
+      SELinux, when enabled, restricts the ports that a daemon can open or use.  This interferes with custom ports on the web server for
+      glideinWMS.  To enable the custom port for the web server the folowing command must be run as a privileged user.  The following
+      command uses port 8319 as the custom port.  Change this to the desired custom port.
+      <blockquote>
+        semanage port -a -t http_port_t -p tcp 8319
+      </blockquote>
+
   </li>
 </ul>
 </div>
