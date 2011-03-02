@@ -1763,7 +1763,7 @@ ress_host = osg-ress-4.fnal.gov
 entry_vos = dzero
 entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
 web_location = /var/www/html/glidefactory-v2.5.1
-web_url = http://%(hostname)s:8000/glidefactory-v2.5.1
+web_url = http://%(hostname)s:8000
 javascriptrrd_location = /home/gfactoryuser/javascriptrrd-0.5.0
 x509_proxy =
 x509_gsi_dn =
@@ -1977,7 +1977,7 @@ match_authentication = y
 group_name = main
 userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
-web_url = http://cmssrv99.fnal.gov:8000/vofrontend-v2.5.1
+web_url = http://cmssrv99.fnal.gov:8000
 web_location = /var/www/html/vofrontend-v2.5.1
 javascriptrrd_location = /home/frontenduser/javascriptrrd-0.5.0
 
