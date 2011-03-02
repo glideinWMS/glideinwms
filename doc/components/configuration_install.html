@@ -178,6 +178,19 @@ when the DEFAULT section is used to apply values to all sections/services.
 <p>
 The ini file determines the installation and configuration of the various services.  All ini file attributes are required. However, in several cases the value may be left empty. These should be noted in the comments column of the tables. 
 </p>
+<p><b>
+The configuration based installer <b>requires</b> that the same ini file be used
+for all service installations.  There are several areas where data is required
+from other services.  Since most services can be installed on separate hosts, the
+installer can only valididate data for the node being installed.  So, for example, if
+you get an error installing the VOFrontend, you will need to go back and 
+re-install all the other services with the <i>SAME</i> ini file.  
+At this time, there is no attempt to
+distinguish between the "cross-over" options and others. 
+Plans are to provide a '--validate' option in the future that will allow for going 
+to all nodes and verifying all option values before attempting any installations.
+</p></b>
+
 
 <h3>Default Section</h3>
 <p>
