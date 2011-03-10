@@ -95,13 +95,6 @@ Related Links:
     <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">Condor manual 3.1.2 The Condor Daemons</a></br>
     <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">Condor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
     </p>
-    <p><b>
-Note: If you use the shared port option and your condor_location for the 
-UserCollector and Submit services are shared, you will have to perform 
-some custom post-install configuration to Condor (not described here) for the
-Condor collectors to work correctly.  If the Submit service
-has its own condor_location, the shared port feature will work correctly.
-    </p></b>
     <p>
     If you are using this feature, there are 3 additional variables that must 
     be added to the schedd setup script described in the 
@@ -116,8 +109,8 @@ has its own condor_location, the shared port feature will work correctly.
     for the schedds.
     <blockquote>
          #--  Enable shared_port_daemon<br>
-         USE_SHARED_PORT = True<br>
-         SHARED_PORT_ARGS = -p 9615<br>
+         SCHEDD.USE_SHARED_PORT = True<br>
+         SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
          DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
     </blockquote>
     </p>
