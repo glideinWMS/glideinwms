@@ -1107,6 +1107,7 @@ ENABLE_USERLOG_FSYNC = False
     if self.condor_version >= "7.5.3" and self.schedd_shared_port() > 0:
       data += """
 #--  Enable shared_port_daemon 
+SHADOW.USE_SHARED_PORT = True
 SCHEDD.USE_SHARED_PORT = True
 SCHEDD.SHARED_PORT_ARGS = -p %(port)s
 DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT

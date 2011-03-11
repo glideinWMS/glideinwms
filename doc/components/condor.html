@@ -109,10 +109,12 @@ Related Links:
     for the schedds.
     <blockquote>
          #--  Enable shared_port_daemon<br>
+         SHADOW.USE_SHARED_PORT = True<br>
          SCHEDD.USE_SHARED_PORT = True<br>
          SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
          DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
     </blockquote>
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
     </p>
     <a name="new_schedd_setup"/>
     <h3>Create setup files</h3>
