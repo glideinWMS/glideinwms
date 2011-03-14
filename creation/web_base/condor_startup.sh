@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.50 2011/02/10 21:35:30 parag Exp $
+#   $Id: condor_startup.sh,v 1.51 2011/03/14 18:04:46 sfiligoi Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -238,19 +238,35 @@ done < condor_vars.lst.tmp
 #let "max_job_time=$job_max_hours * 3600"
 
 # calculate retire time if wall time is defined (undefined=-1)
-if [ -z "$GLIDEIN_Max_Walltime" ]; then
-  retire_time=$GLIDEIN_Retire_Time
-  echo "used param defined retire time, $retire_time" 1>&2
+max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
+if [ -z "$max_walltime" ]; then
+  retire_time=`grep -i "^GLIDEIN_Retire_Time " $config_file | awk '{print $2}'`
+  if [ -z "$retire_time" ]; then
+    retire_time=21600
+    echo "used default retire time, $retire_time" 1>&2
+  else
+    echo "used param defined retire time, $retire_time" 1>&2
+  fi
 else
-  echo "max wall time, $GLIDEIN_Max_Walltime" 1>&2
-  retire_time=$(($GLIDEIN_Max_Walltime - $GLIDEIN_Job_Max_Time))
+  echo "max wall time, $max_walltime" 1>&2
+  job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
+  echo "job max time, $job_maxtime" 1>&2
+  let "retire_time=$max_walltime - $job_maxtime"
   GLIDEIN_Retire_Time=$retire_time
   echo "calculated retire time, $retire_time" 1>&2
 fi
 org_GLIDEIN_Retire_Time=$retire_time
 # randomize the retire time, to smooth starts and terminations
+retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
+if [ -z "$retire_spread" ]; then
+  let "retire_spread=$retire_time / 10"
+  echo "using default retire spread, $retire_spread" 1>&2
+else
+  echo "used param retire spead, $retire_spread" 1>&2
+fi
+
 let "random100=$RANDOM%100"
-let "retire_time=$retire_time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
+let "retire_time=$retire_time - $retire_spread * $random100 / 100"
 
 # but protect from going too low
 if [ "$retire_time" -lt "600" ]; then
@@ -445,7 +461,7 @@ ON_DIE=0
 trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
-let "retmins=$retire_time / 60 + 1"
+let "retmins=$retire_time / 60 - 1"
 
 
 #### STARTS CONDOR ####
