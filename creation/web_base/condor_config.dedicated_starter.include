@@ -12,8 +12,8 @@ WORK_DIR=$(LOCAL_DIR)
 JOB_RENICE_INCREMENT = 0
 
 # force a single CPU (the WN could have many)
-NUM_CPUS = 1
-VIRTUAL_MACHINE_TYPE_1 = cpus=1, memory=100%, swap=100%, disk=100%
+NUM_CPUS = $(GLIDEIN_CPUS)
+VIRTUAL_MACHINE_TYPE_1 = cpus=$(GLIDEIN_CPUS), memory=100%, swap=100%, disk=100%
 NUM_VIRTUAL_MACHINES_TYPE_1 = 1
 
 HAS_MONITOR_VM=True
