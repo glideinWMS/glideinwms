@@ -88,34 +88,34 @@ condor_submit job_file.job
 This job file will have the attributes to run your job on the user
 pool.
 <blockquote>
-# requirements is an expression to specify machines that can run jobs
-# You should have Arch be at least "INTEL" and "X86_64"
-# as most machines in the grid are 64-bit.
+# requirements is an expression to specify machines that can run jobs<br/>
+# You should have Arch be at least "INTEL" and "X86_64"<br/>
+# as most machines in the grid are 64-bit.<br/>
 requirements = (Memory >= 1 && OpSys == "LINUX" ) && (Arch == "INTEL" || Arch ==
- "X86_64")
-#universe should generally be vanilla
- universe     = vanilla
-# Specify voms proxy here
- x509userproxy=/tmp/x509up_u507
+ "X86_64")<br/>
+#universe should generally be vanilla<br/>
+ universe     = vanilla<br/>
+# Specify voms proxy here<br/>
+ x509userproxy=/tmp/x509up_u507<br/>
+<br/>
+#Specify the executable file and any arguments<br/>
+ executable   = /home/dstrain/osg-tutorial/myjob.sh<br/>
+ arguments    = 70<br/>
+<br/>
+ notification = Error<br/>
+<br/>
+ #Specify files to place the stdin, stdout stderr, and logs to.<br/>
+ input        =<br/>
+ output       = /home/dstrain/osg-tutorial/output/test_job.output.$(Process)<br/>
+ error       = /home/dstrain/osg-tutorial/output/test_job.error.$(Process)<br/>
+ log          = /home/dstrain/osg-tutorial/output/test_job.log.$(Process)<br/>
 
-#Specify the executable file and any arguments
- executable   = /home/dstrain/osg-tutorial/myjob.sh
- arguments    = 70
-
- notification = Error
-
- #Specify files to place the stdin, stdout stderr, and logs to.
- input        =
- output       = /home/dstrain/osg-tutorial/output/test_job.output.$(Process)
- error       = /home/dstrain/osg-tutorial/output/test_job.error.$(Process)
- log          = /home/dstrain/osg-tutorial/output/test_job.log.$(Process)
-
- # Specify whether condor should transfer files back to the submit node
- should_transfer_files   = YES
- when_to_transfer_output = ON_EXIT
-
- #How many copies should be started and submitted.
- queue 1
+ # Specify whether condor should transfer files back to the submit node<br/>
+ should_transfer_files   = YES<br/>
+ when_to_transfer_output = ON_EXIT<br/>
+<br/>
+ #How many copies should be started and submitted.<br/>
+ queue 1<br/>
 
 </blockquote>
 
