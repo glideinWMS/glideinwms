@@ -102,3 +102,6 @@ GLIDEIN_SCHEDD_NAME = "$(SCHEDD_NAME)@$(FULL_HOSTNAME)"
 ## DISABLE VOMS CHECKING
 USE_VOMS_ATTRIBUTES = False
 
+# Needed to keep using the "VIRTUAL_MACHINE" names in newer version of Condor
+# May want to convert all to the new "SLOT" nomenclature in the future
+ALLOW_VM_CRUFT=True
