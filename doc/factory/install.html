@@ -334,7 +334,7 @@ Install as: <b>root</b>(collector), <b>Factory user</b> (factory)<br><br>
     
     <h3><a name="before_install_certs">4.2 Required Certificates/Proxies</a></h3>
     <p>
-        The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
+        Each service in the GlideinWMS will use a x509 certificate in order to identify itself using GSI authentication (see the <a href="../components/gsi.html">Quick Reference Guide"</a> for an overview.  The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
         created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
         <ul>
             <li>WMS Collector cert/proxy DN</li>

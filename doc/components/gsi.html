@@ -70,79 +70,83 @@
 
 <p>
 glideinWMS uses GSI for authentication/authorization of services and clients.
+Each service requires a certificate (or proxy in some cases) to communicate with 
+each other.  This allows the services to communicate securely with the correct services.
 The table below acts as a quick reference guide for configuring GSI in glideinWMS.
 </p>
 <p>
-<u>NOTE</u>: Newer version of glideinWMS does not require factory to have proxy. Glideins can run using credentials supplied by frontend (prefered mode) but can also be configured to run with factory credentials. If the factory is configured to not use any gsi credentials, exclude factory from the list of condor_config and GSI_DAEMON_NAME in the table below.
 
 </p>  
 <table class="requirements">
   <tbody><tr class="head">
     <td>Service</td>
-    <td>Comments</td>
+    <td>Certs Needed</td>
+    <td>What Installer Configures</td>
 
   </tr>
   <tr>
     <td>glideinWMS Collector</td>
-       <td>
-         <ul>
-           <li>GSI_DAEMON_NAME in condor_config should contain DNs of glideinWMS Collector.
-           </li>
-           <li>Condor Mapfile should contain DNs of WMS Collector, Glidein Frontend, Glidein Factory.
-           </li>
-         </ul>
-       </td>
-     </tr>
-     <tr>
-       <td>Glidein (Through Glidein Factory)</td>
-       <td>
-         <ul>
-           <li><u>condor mapfile to be used by glidein startd</u> should contain DN of user schedds and Glidein Pool Collector. This condor mapfile is not used by the factory itself but passed over to the glidein via staging area.
-           </li>
-         </ul>
+    <td>
+        Server Certificate for WMS Collector services<br/>
+        (not needed if connecting to OSG factory)
+    <td>
+           <b>condor_config</b>: GSI_DAEMON_NAME contains DN of glideinWMS Collector.<br/>
+           <b>condor mapfile</b>: Contains DNs of WMS Collector, Glidein Frontend, Glidein Factory.
        </td>
      </tr>
      <tr>
        <td>Glidein Pool Collector</td>
-
+        <td>Server certificate to run user pool collector services</td>
        <td>
-         <ul>
-           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd.
-           </li>
-           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd, Glidein Frontend
-           </li>
-         </ul>
-       </td>
-
-     </tr>
-     <tr>
-       <td>Glidein Frontend</td>
-
-       <td>
-         <ul>
-           <li>DN of Glidein Frontend should be in the gridmapfile of glideinWMS Collector, Glidein Pool Collector and User Schedd.
-           </li>
-         </ul>
+           <b>condor_config</b>: GSI_DAEMON_NAME contains DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd.<br/>
+           <b>condor mapfile</b>: Contains DNs of Glidein Pool Collector, User Schedd Nodes, glidein startd, Glidein Frontend
        </td>
 
      </tr>
      <tr>
        <td>User Schedd</td>
+        <td>Service certificate for submit node(s)</td>
        <td>
-         <ul>
-           <li>GSI_DAEMON_NAME in condor_config should contain DNs of Glidein Pool Collector, User Schedd Node itself, Glidein Frontend, glidein startd
-           </li>
-           <li>Condor Mapfile should contain DNs of Glidein Pool Collector, User Schedd Nodes, Glidein Frontend, glidein startd.
+           <b>condor_config</b>: GSI_DAEMON_NAME contains DNs of Glidein Pool Collector, User Schedd Node itself, Glidein Frontend, glidein startd.<br/>
+           <b>condor mapfile</b>: Contains DNs of Glidein Pool Collector, User Schedd Nodes, glidein Frontend, glidein startd.
+     </tr>
+     <tr>
+       <td>Glidein Frontend</td>
+        <td>VO frontend certificate to communicate with the glideinWMS collector and user pool components</td>
+       <td>
+           DN of Glidein Frontend should be in the gridmapfile of glideinWMS Collector, Glidein Pool Collector and User Schedd.
+       </td>
+
+     </tr>
+     <tr>
+       <td>Glidein proxy</td>
+       <td>Cert or Proxy for glidein submission.<br/>
+        Should have over 24 hours before expiration and be trusted by grid entry points.
+        For OSG, usually a VO-proxy from voms-proxy-init.</td> 
+       <td>
+           <b>condor mapfile</b> to be used by glidein startd will contain DN of user schedds and Glidein Pool Collector. This condor mapfile is not used by the factory itself but transferred to the glidein via staging area.
            </li>
          </ul>
        </td>
      </tr>
+    <tr>
+        <td>User Job Proxy</td>
+        <td>Proxy for user job</td>
+        <td>If using glExec, then some jobs will require a user proxy.
+        This will be specified in the x509userproxy attribute of your job.</td>
+    </tr>
 </tbody></table> 
+<p>
+<u>NOTE</u>: Newer version of glideinWMS does not require factory to have proxy. Glideins can run using credentials supplied by frontend (prefered mode) but can also be configured to run with factory credentials. If the factory is configured to not use any gsi credentials, exclude factory from the list of condor_config and GSI_DAEMON_NAME in the table above.
+</p>
 <p><b>
 For a visual guide to the configuration options that need to
 match in the frontend and factory, see this 
 <a href="../factory/troubleshooting.html#colorcoded">color coded chart.</a>
 </b></p>
+
+The installer configures the above for you, but the below procedure explains how to configure Condor for GSI authentication by hand.
+
 </div>
 <div class="section">
 <h2><a name="software">2. Required software</a></h2>
