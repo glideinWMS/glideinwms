@@ -114,16 +114,17 @@ Once the factory has submitted the required glideins, you can see them by queeri
         <li>Check for error messages in logs located in GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log</li>
         <li>Look for possible error messages in the glideins queue (condor_schedd). Based on the actual condor scheduler, you can find scheduler logfile, SchedLog, in one of the sub directories of directory listed by “condor_config_val local_dir”</li>
         <li>  Check security settings.  The WMS factory will drop requests from the VO frontends if settings do not match correctly. There will usually be lines in the vofrontend that useful factories exist, but the factory logs will have warnings/errors related to security settings.</li>
-        <li>The first line in frontend.xml must match the name in security-frontends-frontend in the factory's glideinWMS:
+        <li>
+        For errors similar to:
         <blockquote>
-
-        &lt;frontend advertise_delay="5" frontend_name="exampleVO-cms-xen25-v1_0" loop_delay="60"&gt;
+        [2011-03-17T13:54:09-08:00 00000] No mapping for security class factory
+        for frontend-name_v251.main (secid: frontend_id), skipping frontend
         </blockquote>
-        Must match the factory's settings:
-        <blockquote>
-        &lt;frontend name="exampleVO-cms-xen25" identity="vofrontend@cms-xen25.fnal.gov"&gt;
-        </blockquote>
-        Note that the identity line must have the username that the frontend is running as.  The security_class tag in glideinWMS.xml shortly after the above line will map the user to a new local user.  This must match the condor_mapfile.</li>
+        There is a mismatch between the frontend and factory security
+        settings.  See the 
+        <a href="#colorcoded">Color coded security section</a> below
+        for a full listing of the options that need to match up correctly.
+        </li>
         <li>    Make sure to do a reconfig after you modify anything (ie):
         <blockquote>
 
