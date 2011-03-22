@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.61 2011/02/10 21:35:31 parag Exp $
+#   $Id: glideinFrontendElement.py,v 1.62 2011/03/22 20:44:51 burt Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -314,7 +314,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             # enough idle vms, do not ask for more
             glidein_min_idle=0
         elif (effective_idle>0):
-            glidein_min_idle=prop_jobs['Idle']
+            glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
             glidein_idle_reserve=prop_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
