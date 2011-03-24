@@ -254,18 +254,18 @@ by the VO factory clients.</P>
     <TR>
         <td> <b>GLIDEIN_Rank</b> </td>
         <td>Exp (Int)</td>
-        <TD>1</TD>
+        <TD ROWSPAN=2>1</TD>
         <TD ROWSPAN=2>
-                <P>Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A></P><P>They
-                are summed together, and the user job with the largest rank will run
-                first.</P>
+                Used in calculating the Condor <A HREF="http://www.cs.wisc.edu/condor/manual/v7.2/3_3Configuration.html#param:Rank">RANK</A>
+                <br/>
+                <br/>
+                They are summed together, and the user job with the largest rank will run first.
 
         </TD>
     </TR>
     <TR>
         <td> <b>GLIDEIN_Entry_Rank</b> </td>
         <td> Exp (Int) </TD>
-        <TD> 1 </TD>
 
     </TR>
 
@@ -321,6 +321,26 @@ by the VO factory clients.</P>
             If GLIDEIN_Retire_Time is also specified, it will be ignored and only the calculated value is used. </P>
         </TD>
     </TR>
+    <tr>
+        <td> <b>PREEMPT</b></td>
+        <td> Bool </td>
+        <td> False </td>
+        <td>
+        <TD> 1 </TD>
+            Specifies whether preemption is allowed to occur on this glidein.
+        </td>
+    </tr>
+    <tr>
+        <td> <b>PREEMPT_GRACE_TIME</b></td>
+        <td> Int </td>
+        <td> 10000000 </td>
+        <td>
+            This value affects the condor value "MaxJobRetirementtime"
+            and is an integer value representing the number of seconds 
+            a preempted job will be allowed to run before being evicted.
+            This only affects behaviour if PREEMPT=True.
+        </td>
+    </tr>
     <TR>
         <td> <b>GLIDEIN_Monitoring_Enabled</b> </td>
         <TD> Bool </TD>
@@ -949,6 +969,11 @@ startup scripts.</P>
             directory under which all user jobs will be started.</P>
         </TD>
     </TR>
+    <tr>
+        <td><b>GLIDEIN_TORETIRE</b></td>
+        <td>int</td>
+        <td>Epoch time (in seconds, ie "date +%s) when this glidein is expected
+        to retire.  Set to "now" + GLIDEIN_Retire_Time</td>
 </TABLE>
 </div>
 
