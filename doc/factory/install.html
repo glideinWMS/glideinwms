@@ -812,7 +812,10 @@ How many secondary schedds do you want?: [9] <b>9</b>
         will be evaluated that will take these parameters and can perform calculations to
         determine if the site is sufficient.<br/>
         Refer to the Condor manual for condor constraint syntax, and to GLUE schema pages
-        for more information about valid parameters that can be used.
+        for more information about valid parameters that can be used.<br/>
+        Note that you may need to verify entry points after automatically 
+        adding from ReSS or BDII, as many OSG sites will crash if you try
+        to run using the default work_dir="OSG" and require "condor".
     </td>
     </tr>
     <tr>
@@ -1051,6 +1054,7 @@ See the <a href="#monitoring">monitoring section</a> on how to check other info.
         <li>the configuration details of the Grid pool(s), </li>
         <li>the location of the submit point, and </li>
         <li>the loction of the Web server data directory.  </li>
+        <li>the proper work directory to use (ie. work_dir="OSG" or work_dir="Condor")</li>
     </ul>
 
     Once a configuration file is ready, you can create the glidein Factory 
