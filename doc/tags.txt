@@ -1,3 +1,5 @@
+vNext	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
+
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
 	Frontend will request removal of glideins when no user jobs in queue
