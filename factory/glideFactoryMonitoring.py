@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.14 2011/01/26 20:15:17 parag Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.14.4.1 2011/03/28 22:53:31 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -854,12 +854,14 @@ class condorLogSummary:
                 for username in self.stats_diff[client_name].keys():
                     sdiff=self.stats_diff[client_name][username]
                     if ((sdiff!=None) and (k in sdiff.keys())):
+                        if k=='Completed':
+                            # for completed jobs, add the username
+                            # not for the others since there is no adequate place in the object
+                            for sdel in sdiff[k]['Entered']:
+                                sdel[4]['username']=username
+                            
                         for e in tdata.keys():
                             for sdel in sdiff[k][e]:
-                                # for completed jobs, add the username
-                                # not for the others since there is no adequate place in the object
-                                if k=='Completed':
-                                    sdel[4]['username']=username
                                 tdata[e].append(sdel)
             out_data[client_name]=client_el
         return out_data
