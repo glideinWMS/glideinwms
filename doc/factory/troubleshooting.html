@@ -258,15 +258,57 @@ the factory config's security_class element name attribute. </li>
         If the glidein job has completed, you should be able to look for output and error logs for the glidein job in directory  GLIDEINWMS_GFACTORY_HOME/&lt;entry&gt;/log. The files are named are job.&lt;glidein jobid&gt;.out and job.&lt;glidein jobid&gt;.err. Most common cause for the failures is mismatch in the architecture of condor binaries used and that of the worker nodes. Starting in glideinWMS 2.2, you can configure entry points to use different condor binaries.
 In case condor daemons are crashing, you can browse the logs of condor daemons by using tools available in the /glideinWMS/factory/tools
     </p>
-
     <p>
+        Other issues that can cause this symptom:
+    </p>
+    <ul>
+    <li><b>GLIBC incompatibilities</b>:<br/>
         One possible error that can appear at this point is a problem due to the version of GLIBC:
         <blockquote>
         Starting monitoring condor at Fri Jun 18 10:11:27 CDT 2010 (1276873887)<br/>
 /usr/local/osg-ce/OSG.DIRS/wn_tmp/glide_rP2945/main/condor/sbin/condor_master: /lib/tls/i686/nosegneg/libc.so.6: version `GLIBC_2.4' not found (required by /usr/local/osg-ce/OSG.DIRS/wn_tmp/glide_rP2945/main/condor/sbin/condor_master)<br/>
         </blockquote>
         In this case, the version of glibc on the worker node is less than the glibc that condor is using.  For instance, this can happen if the factory is on SL5, but the worker node is SL4.  Condor has special binaries for glib2.3, so you can re-install/re-compile using these binaries.  For advanced users, you can configure multiple tarballs for various architectures in the factory config.
-    </p>
+    </li>
+    <li><b>Collector authentication issues</b>:<br/>
+        Another error that can happen and cause these symptoms is 
+        if authentication is failing.
+        First, verify that the certificates for all services exist 
+        and are owned by the proper users.  In particular, make sure
+        that the user collector certificate is owned by the user 
+        running the user colelctor instance (this can be a non-root user).
+        Another tool to debug errors is to enable the option:
+        <blockquote>
+            CONDOR_DEBUG = D_SECURITY.
+        </blockquote>
+        You should be able to find errors in the User pool collector
+        logs <tt>USER_COLLECTOR/condor_local/log/CollectorLog</tt>
+        For instance,
+        <blockquote>
+         03/25/11 15:36:43 authenticate_self_gss: acquiring self credentials failed. Please check your Condor configuration file if this is a server process. Or the user environment variable if this is a user process. 
+        </blockquote>
+         Or:
+        <blockquote>
+        globus_sysconfig: File is not owned by current user: /etc/grid-security/glideincert.pem is not owned by current user
+        </blockquote>
+   </li>    
+    <li><b>Gridmap issues</b>:<br/>
+        If the problem is not with the user pool resources 
+        (collector and/or schedd),
+        a problem could exist with the gridmap on the glidein itself.
+        Symptoms of this could include errors in the startd logs:
+        <blockquote>
+            03/18 13:06:42 (pid:13094) ZKM: successful mapping to anonymous<br/>
+03/18 13:06:42 (pid:13094) PERMISSION DENIED to anonymous@fnpc3061 from host 131.225.67.70 for command 442 (REQUEST_CLAIM), access level DAEMON: reason: DAEMON authorization policy denies IP address 131.225.67.70<br/>
+03/18 13:07:43 (pid:13094) PERMISSION DENIED to anonymous@fnpc3061 from host 131.225.67.70 for command 442 (REQUEST_CLAIM), access level DAEMON: reason: cached result for DAEMON; see first case for the full reason<br/>
+        </blockquote>
+        If this happens, the gridmap file used by the startd (ie the glidein) 
+        does not contain the DN for either the user collector or the 
+        user submit node.  Make sure the information in the
+        &lt;collectors&gt; tag and the &lt;schedds&gt; tags in the
+        frontend.xml are correct and reconfig.
+    </li>
+    <ul>
    </div>
 
 
