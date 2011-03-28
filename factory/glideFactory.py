@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.10 2010/10/09 20:12:26 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.16.1 2011/03/28 23:23:27 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -154,13 +154,13 @@ def clean_exit(childs):
             try:
                 tempOut = child.fromchild.read()
                 if len(tempOut)!=0:
-                    glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(child, tempOut))
+                    glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(entry_name, tempOut))
             except IOError:
                 pass # ignore
             try:
                 tempErr = child.childerr.read()
                 if len(tempErr)!=0:
-                    glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(child, tempErr))
+                    glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(entry_name, tempErr))
             except IOError:
                 pass # ignore
 
@@ -218,13 +218,13 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                 try:
                     tempOut = child.fromchild.read()
                     if len(tempOut)!=0:
-                        glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(child, tempOut))
+                        glideFactoryLib.log_files.logWarning("Child %s STDOUT: %s"%(entry_name, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.childerr.read()
                     if len(tempErr)!=0:
-                        glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(child, tempErr))
+                        glideFactoryLib.log_files.logWarning("Child %s STDERR: %s"%(entry_name, tempErr))
                 except IOError:
                     pass # ignore
                 
