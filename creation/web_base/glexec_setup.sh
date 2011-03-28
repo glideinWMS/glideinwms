@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glexec_setup.sh,v 1.17.2.3 2011/03/28 16:29:10 parag Exp $
+#   $Id: glexec_setup.sh,v 1.17.2.4 2011/03/28 16:34:19 parag Exp $
 #
 # Description:
 #   This script will setup the gLExec parameters
@@ -121,7 +121,7 @@ fi
 glexec_job=`grep '^GLEXEC_JOB ' $glidein_config | awk '{print $2}'`
 if [ -z "$glexec_job" ]; then
     # default to the new mode
-    glexec_job=True
+    glexec_job="True"
 fi
 
 if [ "$glexec_job" == "True" ]; then
