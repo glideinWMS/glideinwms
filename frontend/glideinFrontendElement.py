@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.1 2011/03/29 23:01:15 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.2 2011/03/29 23:04:46 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -307,6 +307,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if effective_idle<0:
             effective_idle=0
 
+        effective_oldidle=prop_jobs['OldIdle']-count_status['Idle']
+        if effective_oldidle<0:
+            effective_oldidle=0
+
         if total_running>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
@@ -316,7 +320,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         elif (effective_idle>0):
             glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
-            glidein_idle_reserve=prop_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
+            glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
 
