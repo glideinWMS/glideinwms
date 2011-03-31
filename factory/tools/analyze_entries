@@ -10,36 +10,67 @@ import xmlParse
 
 # Convert particularly large numbers 
 #    into kilo/megaseconds
-def kmseconds(z):
+def km(z):
     x = int(z)
     w = z*1.0e-3
     v = z*1.0e-6
-    if len(str(x)) > 4:
-        if len(str(x)) < 7:
-            return "%.1f Ks" % w
-        if len(str(x)) >= 7:
-            return "%.1f Ms" % v
-        else:
-            return "%s s" % x
+    t = z*1.0e-9
+    if x>=1000:
+        if x>=1000 and x<1000000:
+            return "%.1fK" % w
+        if x>=1000000 and x<1000000000:
+            return "%.1fM" % v
+        if x>=1000000000:
+            return "%.1fG" % t
+    if x<100:
+        return "%.2f" %z
+    else: return "%.1f" % z
+
+def frontend_print(frontend, fe_mode, d, div, to_be_printed):
+  
+    to_be_printed.append((int(d['waste']), 
+      "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%9.2f %7.2f" % 
+      (frontend.lstrip("frontend_"), 
+      km(float(d['total_time'])/float(div)), 
+      km(float(d['used'])/float(div)), 
+      (float(d['used'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
+      km(float(d['validation'])/float(div)), 
+      (float(d['validation'])/float(div))/float(d['total_time'])/float(div)*100.0, 
+      km(float(d['idle'])/float(div)), 
+      (float(d['idle'])/float(div))/float(d['total_time'])/float(div)*100.0, 
+      km(float(d['waste'])/float(div)), 
+      (float(d['waste'])/float(div))/float(d['total_time'])/float(div)*100.0, 
+      float(d['used'])/float(d['waste']), 
+      float(d['used'])/float(d['used']+d['waste'])))) 
+    return to_be_printed
 
 def main():
 
     usage="""
 USAGE: 
-    -x [#] : intverval to do verbose stats (default 24)
+    -x [#] : interval to do verbose stats (default 24)
     --source [ABSPATH or http addr] : factory base (default current directory)
     -w : sort by wasted time
     -f [frontend] : filter by a single frontend
          (can omit "frontend_" before name)
+    -p : show all periods (default off - only show 24 hours)
+    -m : frontend mode - emphasize frontend data, no entries shown.
+               (default data - slots).
+    --ms : frontend mode, showing seconds instead of slots.
+    --mh : frontend mode, showing hours instead of slots.
     -h : this usage message
 """
     x = 24
     dir = os.getcwd()
+
+    # flags
     sort_waste = 0
     filter_frontend = 0
+    show_all_periods = 0 
+    frontend_mode = 0
  
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:', ['source='])
+        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:pm', ['source=','ms','mh'])
     except getopt.GetoptError:
         print("\n Option not recognized or missing parameters.")
         print(" Use -h for usage.\n")
@@ -54,11 +85,18 @@ USAGE:
             return
         elif o == "-w":
             sort_waste = 1
+        elif o == "-p":
+            show_all_periods = 1
+        elif o == "-m":
+            frontend_mode = 1
+        elif o == "--ms":
+            frontend_mode = 2
+        elif o == "--mh":
+            frontend_mode = 3
         elif o == "-f":
             filter_frontend = a
             if 'frontend_' not in filter_frontend:
                 filter_frontend = 'frontend_' + filter_frontend
-
 
     data = {}
     rrd_list = {"completed_data": "rrd_Log_Completed.xml", 
@@ -71,7 +109,6 @@ USAGE:
             file_dir = os.path.join(dir, xml)
         else: 
             file_dir = os.path.join(dir, "monitor", xml)
-    
         try:  
             u = urllib.urlopen(file_dir)        
             data[name] = xmlParse.xmlfile2dict(u)
@@ -138,7 +175,6 @@ USAGE:
 # Organize totals/stats for each period, frontend, and entry independantly
 ######################################################################
 
-
     if filter_frontend == 0:
         print("""
 Glidein log analysis for All Entries - %s
@@ -146,7 +182,9 @@ Glidein log analysis for All Entries - %s
     else: print("""
 Glidein log analysis for frontend %s - %s
 """ % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
-          
+
+    attributes = {'glideins':0,'jobs':0,'used':0,'waste':0,
+                  'validation':0,'idle':0,'badput':0,'total_time':0} 
 
     period_data = {}
     frontend_data = {}
@@ -154,138 +192,98 @@ Glidein log analysis for frontend %s - %s
     entry_data_all_frontends = {}
     
     for period, frontends in data.iteritems():
-        glideins, jobs, used, waste, validation, idle, badput = 0,0,0,0,0,0,0
-
         period = int(period)
         period_data[period] = {}
-        period_data[period]['total_time'] = 0
         frontend_data[period] = {}
         entry_data[period] = {}
         entry_data_all_frontends[period] = {}
+        for a in attributes.keys(): period_data[period][a]=0
 
         for frontend, entries in frontends.iteritems(): 
-
-            fglideins, fjobs, fused, fwaste, fvalidation, fidle, fbadput = 0,0,0,0,0,0,0
             frontend_data[period][frontend] = {}
-            frontend_data[period][frontend]['total_time'] = 0
             entry_data[period][frontend] = {}
+            for a in attributes.keys(): frontend_data[period][frontend][a]=0
 
             for entry, elements in entries.iteritems():
-                eglideins, ejobs, eused, ewaste, evalidation, eidle, ebadput = 0,0,0,0,0,0,0
                 entry_data[period][frontend][entry] = {}  
+                for a in attributes.keys(): entry_data[period][frontend][entry][a]=0
 
-                # If no data is found, set all attributes to 0
-                if len(elements) == 0:
-                    entry_data[period][frontend][entry] = {'glideins':0,'jobs':0,'used':0,'waste':0,'validation':0,'badput':0,'idle':0}
-                    continue
+                #may have gotten entry from another frontend
+                if entry not in entry_data_all_frontends[period]:
+                    entry_data_all_frontends[period][entry] = {}
+                    for a in attributes.keys(): entry_data_all_frontends[period][entry][a]=0
 
-                eglideins = elements["Glideins"]
-                ejobs = elements["JobsNr"]
-                eused = elements["JobsLasted"]
+                attributes['glideins'] = elements["Glideins"]
+                attributes['jobs'] = elements["JobsNr"]
+                attributes['used'] = elements["JobsLasted"]
+                attributes['total_time'] = elements["Lasted"]
+                attributes['waste'] = elements["Lasted"] - elements["JobsLasted"]
+                attributes['badput'] = elements["Lasted"] - elements["JobsGoodput"]
+                attributes['validation'] = 0
+                attributes['idle'] = 0 
 
                 for name, value in elements.iteritems():
-                    #if 'badput' in name:
-                    #    multiplier = re.findall('badput_(.*)', name)[0].rstrip('m')
-                    #    if multiplier == "All": multiplier = 1000
-                    #    if multiplier == "Most": multiplier = 750 # approximation
-                    #    if multiplier == "None": multiplier = 0
-                    #    ewaste += value*(int(multiplier)*1.0e-3)
                     if 'validation' in name:
                         multiplier = re.findall('validation_(.*)', name)[0].rstrip('m')
                         if multiplier == "All": multiplier = 1000
                         if multiplier == "Most": multiplier = 750 # approximation
                         if multiplier == "None": multiplier = 0
-                        evalidation += value*(int(multiplier)*1.0e-3)
+                        attributes['validation'] += value*(int(multiplier)*1.0e-3)
                     if 'idle' in name:
                         multiplier = re.findall('idle_(.*)', name)[0].rstrip('m')
                         if multiplier == "All": multiplier = 1000
                         if multiplier == "Most": multiplier = 750 # approximation
                         if multiplier == "None": multiplier = 0
-                        eidle += value*(int(multiplier)*1.0e-3)
-                
-                if entry not in entry_data_all_frontends[period]:
-                    entry_data_all_frontends[period][entry] = {} 
+                        attributes['idle'] += value*(int(multiplier)*1.0e-3)
+
+                for a in attributes.keys():
+                    entry_data[period][frontend][entry][a] += attributes[a]
+                    frontend_data[period][frontend][a] += attributes[a] 
+                    period_data[period][a] += attributes[a] 
+                    entry_data_all_frontends[period][entry][a] += attributes[a]
 
                 for a in ['FailedNr','validation_All','JobsNr_None','badput_All','Lasted']:
                     if a not in entry_data_all_frontends[period][entry]:
                         entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
                     else: entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
 
-                ewaste = data[period][frontend][entry]["Lasted"] - data[period][frontend][entry]["JobsLasted"]
-                ebadput = data[period][frontend][entry]["Lasted"] - data[period][frontend][entry]["JobsGoodput"]
-
-                period_data[period]['total_time'] += data[period][frontend][entry]["Lasted"]
-                frontend_data[period][frontend]['total_time'] += data[period][frontend][entry]["Lasted"]
-
-                for name, value in {'glideins': eglideins, 
-                         'jobs': ejobs,
-                         'used': eused,
-                         'waste': ewaste,
-                         'validation': evalidation,
-                         'badput': ebadput,
-                         'idle': eidle}.iteritems():
-
-                    entry_data[period][frontend][entry][name] = value
-
-                    if name not in entry_data_all_frontends[period][entry]:
-                        entry_data_all_frontends[period][entry][name] = value
-                    else: entry_data_all_frontends[period][entry][name] += value
-
-                fglideins += eglideins
-                fjobs += ejobs
-                fused += eused
-                fwaste += ewaste
-                fvalidation += evalidation
-                fidle += eidle
-                fbadput += ebadput
-
-            for name, value in {'glideins': fglideins, 
-                     'jobs': fjobs,
-                     'used': fused,
-                     'waste': fwaste,
-                     'validation': fvalidation,
-                     'badput': fbadput,
-                     'idle': fidle}.iteritems():
-                frontend_data[period][frontend][name] = value
-
-            glideins += fglideins
-            jobs += fjobs
-            used += fused
-            waste += fwaste
-            validation += fvalidation
-            idle += fidle
-            badput += fbadput
-
-        for name, value in {'glideins': glideins, 
-                     'jobs': jobs,
-                     'used': used,
-                     'waste': waste,
-                     'validation': validation,
-                     'badput': badput,
-                     'idle': idle}.iteritems():
-            period_data[period][name] = value
-
+                
 
 ######################################################################
 #   Print
 ######################################################################
 
+    # sort periods from least to greatest, with 24 hours at the top 
     period_list = period_data.keys()
-    period_list.sort() 
+    period_list.sort()
+    period_list.remove(86400)
+    period_list.insert(0,86400) 
 
-    for period in period_list:
-        
-        #if period not in data:
-        #    print "Interval",x,"does not exist in data.\n"# Choices are:",c_data['total']['period'].keys(),"\n"
-        #    return
+    period = int(x)*3600
 
-        title = ("Past %.1f hours" % (float(period)/3600))
+    # if filtering by period, make sure it's in the data
+    if period not in period_list:
+        print "Interval",x,"does not exist in data.\n Choices are:"
+        for a in period_list:
+           print a/3600
+        print
+        return
 
-        if period_data[period]['glideins'] == 0:
+    # default - show only one period, either user-chosen or default(24)
+    if show_all_periods==0:
+        period_list = [period] 
+
+    for p in period_list:
+        title = ("Past %.1f hours" % (float(p)/3600))
+       
+        # if no glideins, omit this entry
+        if period_data[p]['glideins'] == 0:
             continue        
-        if period_data[period]['waste'] == 0:
-            period_data[period]['waste'] = 1
+        # to avoid division by zero
+        if period_data[p]['waste'] == 0:
+            period_data[p]['waste'] = 1
 
+        d = period_data[p]
         print(
 """----------------------------------------
 %s:
@@ -293,97 +291,96 @@ Glidein log analysis for frontend %s - %s
 Total Glideins: %s
 Total Jobs: %d (Average jobs/glidein: %.2f) 
 
-Total time:            %s (%d hours - %.1f slots)
-Total time used:       %s (%d hours - %.1f slots)
-Total time validating: %s (%d hours - %.1f slots)
-Total time idle:       %s (%d hours - %.1f slots)
-Total time wasted:     %s (%d hours - %.1f slots)
+Total time:            %8ss (%6s hours - %6.1f slots)
+Total time used:       %8ss (%6s hours - %6.1f slots - %2d%%)
+Total time validating: %8ss (%6s hours - %6.1f slots - %2d%%)
+Total time idle:       %8ss (%6s hours - %6.1f slots - %2d%%)
+Total time wasted:     %8ss (%6s hours - %6.1f slots - %2d%%)
 Time used/time wasted: %.1f
 Time efficiency: %.2f
 """
       % (title, 
-        period_data[period]['glideins'], 
-        period_data[period]['jobs'], 
-        float(period_data[period]['jobs'])/float(period_data[period]['glideins']),
+        d['glideins'], 
+        d['jobs'], 
+        float(d['jobs'])/float(d['glideins']),
 
-        kmseconds(period_data[period]['total_time']),
-        period_data[period]['total_time']/3600,
-        float(period_data[period]['total_time'])/float(period),
+        km(d['total_time']),
+        km(d['total_time']/3600),
+        float(d['total_time'])/float(p),
 
-        kmseconds(period_data[period]['used']),
-        period_data[period]['used']/3600, 
-        float(period_data[period]['used'])/float(period),
+        km(d['used']),
+        km(d['used']/3600), 
+        float(d['used'])/float(p),
+        float(d['used'])/float(d['total_time'])*100.0,
 
-        kmseconds(period_data[period]['validation']),
-        period_data[period]['validation']/3600, 
-        float(period_data[period]['validation'])/float(period),
+        km(d['validation']),
+        km(d['validation']/3600), 
+        float(d['validation'])/float(p),
+        float(d['validation'])/float(d['total_time'])*100.0,
 
-        kmseconds(period_data[period]['idle']),
-        period_data[period]['idle']/3600, 
-        float(period_data[period]['idle'])/float(period),
+        km(d['idle']),
+        km(d['idle']/3600), 
+        float(d['idle'])/float(p),
+        float(d['idle'])/float(d['total_time'])*100.0,
 
-        kmseconds(period_data[period]['waste']),
-        period_data[period]['waste']/3600, 
-        float(period_data[period]['waste'])/float(period),
+        km(d['waste']),
+        km(d['waste']/3600), 
+        float(d['waste'])/float(p),
+        float(d['waste'])/float(d['total_time'])*100.0,
 
-        float(period_data[period]['used'])/float(period_data[period]['waste']),
-        float(period_data[period]['used'])/float(period_data[period]['waste']+period_data[period]['used'])))
+        float(d['used'])/float(d['waste']),
+        float(d['used'])/float(d['waste']+d['used'])))
 
 
 ################################################################################
 #    Print per entry stats (all frontends)
 ################################################################################
 
-    period = int(x)*3600
 
-    if filter_frontend == 0:
+    if filter_frontend==0 and frontend_mode==0:
 
         print """
 ---------------------------------------
 ---------------------------------------
 Per Entry (all frontends) stats for the past %s hours.\n""" % x
 
-
         print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % ( 
                   "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
 
-        to_be_printed = {}  # dict of paired entry data with wastetime for sorting
+        to_be_printed = []  # dict of paired entry data with wastetime for sorting
 
         for entry_name, entry in entry_data_all_frontends[period].iteritems():
  
-            if entry['glideins'] == 0 or entry['Lasted'] == 0:
+            if entry['glideins'] == 0 or entry['total_time'] == 0:
                 continue
-
             if entry['validation'] == 0:
                 entry['validation'] = 1
             
-                           
-            to_be_printed[int(entry['waste'])] = ("%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
+            to_be_printed.append((int(entry['waste']), "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
                  % (entry_name.lstrip("entry_"),
                     (float(entry['FailedNr'])/float(entry['glideins']))*100,
-                    (float(entry['validation_All'])/float(entry['Lasted']))*100,
+                    (float(entry['validation_All'])/float(entry['total_time']))*100,
                     (float(entry['JobsNr_None'])/float(entry['glideins']))*100,
-                    #(float(entry['badput_All'])/float(entry['Lasted']))*100,
-                    (float(entry['validation'])/float(entry['Lasted']))*100,
-                    (float(entry['idle'])/float(entry['Lasted']))*100,
-                    (float(entry['waste'])/float(entry['Lasted']))*100,
-                    (float(entry['badput'])/float(entry['Lasted']))*100,
+                    #(float(entry['badput_All'])/float(entry['total_time']))*100,
+                    (float(entry['validation'])/float(entry['total_time']))*100,
+                    (float(entry['idle'])/float(entry['total_time']))*100,
+                    (float(entry['waste'])/float(entry['total_time']))*100,
+                    (float(entry['badput'])/float(entry['total_time']))*100,
                     entry['waste']/3600.0,
                     #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
                     entry['Lasted']/3600.0,
                     "|",
-                    entry['glideins']))
+                    entry['glideins'])))
 
         if sort_waste == 1:
-            wastetimes = to_be_printed.keys()
-            wastetimes.sort()
-            wastetimes.reverse()
-            for a in wastetimes:
-                print to_be_printed[a]
+            to_be_printed.sort()
+            to_be_printed.reverse()
+            for a in to_be_printed:
+                print a[1] 
             print("----------------------------------")
         else: 
             for a in to_be_printed:
-                print to_be_printed[a]
+                print a[1] 
 
 
 ################################################################################
@@ -391,106 +388,131 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
 ################################################################################
 
 
-    print """
+
+    if frontend_mode==0:
+        print """
 ---------------------------------------
 ---------------------------------------
 Per Entry (per frontend) stats for the past %s hours.\n""" % (x)
+    else:
+        units = ["Slots","Seconds","Hours"]
+        print """
+---------------------------------------
+---------------------------------------
+Frontend stats for the past %s hours.\n""" % (x)
+        print("%-25s%7s %7s %3s %7s %3s %7s %3s %7s %3s %11s %4s\n" % (
+              "Units: "+units[frontend_mode-1], "total","used","u%","val","v%","idle","i%","waste","w%","usd/wst","eff"))
+
+    fe_to_be_printed = []
 
     for frontend, entries in data[period].iteritems():
+        d = frontend_data[period][frontend]
+        #print frontend, "\n"
+        #print d, "\n"
 
-        if period_data[period]['glideins'] == 0 or frontend_data[period][frontend]['glideins'] == 0:
+        if period_data[period]['glideins'] == 0 or d['glideins'] == 0:
             continue
-
         # to avoid divisions by zero
-        if frontend_data[period][frontend]['waste'] == 0:
-            frontend_data[period][frontend]['waste'] = 1
+        if d['waste'] == 0:
+            d['waste'] = 1
 
-        if filter_frontend == 0:
+        if frontend_mode == 0:
             print ("""
 \n%s
 
 Glideins: %s - %.1f%% of total
 Jobs: %s (Average jobs/glidein: %.2f)
 
-Total time:            %s (%d hours - %.1f slots)
-Total time used:       %s (%d hours - %.1f slots)
-Total time validating: %s (%d hours - %.1f slots)
-Total time idle:       %s (%d hours - %.1f slots)
-Total time wasted:     %s (%d hours - %.1f slots)
-Time used/time wasted: %.2f
+Total time:            %8ss (%6s hours - %6.1f slots)
+Total time used:       %8ss (%6s hours - %6.1f slots - %2d%%)
+Total time validating: %8ss (%6s hours - %6.1f slots - %2d%%)
+Total time idle:       %8ss (%6s hours - %6.1f slots - %2d%%)
+Total time wasted:     %8ss (%6s hours - %6.1f slots - %2d%%)
+Time used/time wasted: %.1f
 Time efficiency: %.2f
-""" % ( "Frontend: "+frontend, 
-        frontend_data[period][frontend]['glideins'], 
-        float(frontend_data[period][frontend]['glideins'])/float(period_data[period]['glideins'])*100, 
-        frontend_data[period][frontend]['jobs'], 
-        float(frontend_data[period][frontend]['jobs'])/float(frontend_data[period][frontend]['glideins']), 
+""" % ( frontend,
+        d['glideins'], 
+        float(d['glideins'])/float(period_data[period]['glideins'])*100, 
+        d['jobs'], 
+        float(d['jobs'])/float(d['glideins']), 
 
-        kmseconds(frontend_data[period][frontend]['total_time']),
-        frontend_data[period][frontend]['total_time']/3600,
-        float(frontend_data[period][frontend]['total_time'])/float(period), 
+        km(d['total_time']),
+        km(d['total_time']/3600),
+        float(d['total_time'])/float(period), 
 
-        kmseconds(frontend_data[period][frontend]['used']), 
-        frontend_data[period][frontend]['used']/3600, 
-        float(frontend_data[period][frontend]['used'])/float(period), 
+        km(d['used']), 
+        km(d['used']/3600), 
+        float(d['used'])/float(period), 
+        float(d['used'])/float(d['total_time'])*100.0,	
 
-        kmseconds(frontend_data[period][frontend]['validation']), 
-        frontend_data[period][frontend]['validation']/3600, 
-        float(frontend_data[period][frontend]['validation'])/float(period),
+        km(d['validation']), 
+        km(d['validation']/3600), 
+        float(d['validation'])/float(period),
+        float(d['validation'])/float(d['total_time'])*100.0,
 
-        kmseconds(frontend_data[period][frontend]['idle']), 
-        frontend_data[period][frontend]['idle']/3600,
-        float(frontend_data[period][frontend]['idle'])/float(period), 
+        km(d['idle']), 
+        km(d['idle']/3600),
+        float(d['idle'])/float(period), 
+        float(d['idle'])/float(d['total_time'])*100.0,
 
-        kmseconds(frontend_data[period][frontend]['waste']), 
-        frontend_data[period][frontend]['waste']/3600,
-        float(frontend_data[period][frontend]['waste'])/float(period), 
+        km(d['waste']), 
+        km(d['waste']/3600),
+        float(d['waste'])/float(period), 
+        float(d['waste'])/float(d['total_time'])*100.0,
 
-        float(frontend_data[period][frontend]['used'])/float(frontend_data[period][frontend]['waste']),
-        float(frontend_data[period][frontend]['used'])/(float(frontend_data[period][frontend]['waste'])+float(frontend_data[period][frontend]['used'])))) 
+        float(d['used'])/float(d['waste']),
+        float(d['used'])/(float(d['waste'])+float(d['used'])))) 
             
-        print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % (
-                  "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
+            print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % (
+              "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
 
-        to_be_printed = {}  # dict of paired entry data with wastetime for sorting
+            to_be_printed = []  # dict of paired entry data with wastetime for sorting
+            for entry, e in entries.iteritems():
+                en = entry_data[period][frontend][entry] 
+                if en['glideins'] == 0 or e['Lasted'] == 0:
+                    continue
+                if en['validation'] == 0:
+                    en['validation'] = 1
 
-        for entry, e in entries.iteritems():
-
-            # next 2 segments to avoid division by 0...find a better solution later
-
-            if entry_data[period][frontend][entry]['glideins'] == 0 or e['Lasted'] == 0:
-                continue
-
-            if entry_data[period][frontend][entry]['validation'] == 0:
-                entry_data[period][frontend][entry]['validation'] = 1
-            
-                           
-            to_be_printed[int(entry_data[period][frontend][entry]['waste'])] = ("%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
-                     % (entry.lstrip("entry_"),
-                        (float(e['FailedNr'])/float(entry_data[period][frontend][entry]['glideins']))*100,
+                to_be_printed.append((int(entry_data[period][frontend][entry]['waste']), 
+                        "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
+                   % (entry.lstrip("entry_"),
+                        (float(e['FailedNr'])/float(en['glideins']))*100,
                         (float(e['validation_All'])/float(e['Lasted']))*100,
-                        (float(e['JobsNr_None'])/float(entry_data[period][frontend][entry]['glideins']))*100,
-                        #(float(e['badput_All'])/float(e['Lasted']))*100,
-                        (float(entry_data[period][frontend][entry]['validation'])/float(e['Lasted']))*100,
-                        (float(entry_data[period][frontend][entry]['idle'])/float(e['Lasted']))*100,
-                        (float(entry_data[period][frontend][entry]['waste'])/float(e['Lasted']))*100,
-                        (float(entry_data[period][frontend][entry]['badput'])/float(e['Lasted']))*100,
-                        entry_data[period][frontend][entry]['waste']/3600.0,
-                        #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
+                        (float(e['JobsNr_None'])/float(en['glideins']))*100,
+                        (float(en['validation'])/float(e['Lasted']))*100,
+                        (float(en['idle'])/float(e['Lasted']))*100,
+                        (float(en['waste'])/float(e['Lasted']))*100,
+                        (float(en['badput'])/float(e['Lasted']))*100,
+                        en['waste']/3600.0,
                         e['Lasted']/3600.0,
                         "|",
-                        entry_data[period][frontend][entry]['glideins']))
+                        entry_data[period][frontend][entry]['glideins'])))
 
-        if sort_waste == 1:
-            wastetimes = to_be_printed.keys()
-            wastetimes.sort()
-            wastetimes.reverse()
-            for a in wastetimes:
-                print to_be_printed[a]
-            print("----------------------------------")
-        else: 
-            for a in to_be_printed:
-                print to_be_printed[a]
+            if sort_waste == 1:
+                to_be_printed.sort()
+                to_be_printed.reverse()
+                for a in to_be_printed:
+                    print a[1]
+                print("----------------------------------")
+            else: 
+                for a in to_be_printed:
+                    print a[1] 
 
+         
+        else: # print frontend like entries, and omit entries
+            divs = [period,1.0,3600.0]
+            fe_to_be_printed = frontend_print(frontend, frontend_mode,d,divs[frontend_mode-1],fe_to_be_printed)
+            
+    if sort_waste == 1:
+        fe_to_be_printed.sort()
+        fe_to_be_printed.reverse()
+        for a in fe_to_be_printed:
+            print a[1]
+        print("----------------------------------")
+    else: 
+        for a in fe_to_be_printed:
+            print a[1] 
 
 ################################################################################
 #    Print Key
