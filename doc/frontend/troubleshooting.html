@@ -198,13 +198,25 @@ Factory troubleshooting:
 </blockquote>
 <b>Debugging Steps</b>:
 <p>
-    Verify the frontend config:<br/>
+    This happens if a factory is found that does not match the expected
+    identity in the the frontend config.  This is located in the
+    frontend config:<br/><br/>
     &lt;frontend &gt; &lt;collector ... <b>factory_identity="..."</b>&gt;<br/>
-    The frontend config's security element security_name attribute does not match the factory config's frontend element name attribute. 
+    <br/>
+    The frontend config's security element security_name attribute must match
+    what Condor is mapping the factory to.  Verify that this value
+    is correct.  Also, see the
+    <a href="../factory/troubleshooting.html#colorcoded">color coded guide</a>
+    for a full list of settings that must match.
+    <br/>
+    Alternatively, the wms factory itself may be using the wrong identity.  For
+    instance if you start the factory as the wrong user or if your 
+    condor map file is not set up correctly, then the factory may be 
+    running with the wrong identity.
     <br/>
     You can find the authenticated identity by:
     <blockquote>
-        condor_status -collector &gt;WMSCollector_node:port&gt; -long |grep -i AuthenticatedIdentity |sort -u 
+        condor_status <i>[-any]</i> -collector &gt;WMSCollector_node:port&gt; -long |grep -i AuthenticatedIdentity |sort -u 
     </blockquote>
 </p>
 </div>
