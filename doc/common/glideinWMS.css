@@ -204,6 +204,13 @@ table.attributes td
     border-bottom:  1px solid #000;
     vertical-align: top;
 }
+table.attributes td p
+{
+    margin: 1px 1px 5px 1px;
+    padding: 0px;
+    text-align: left;
+}
+
 table.attributes td:first-child
 {
     background-color: #bdf;
