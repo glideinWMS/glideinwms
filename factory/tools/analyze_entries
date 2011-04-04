@@ -35,11 +35,11 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed):
       km(float(d['used'])/float(div)), 
       (float(d['used'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       km(float(d['validation'])/float(div)), 
-      (float(d['validation'])/float(div))/float(d['total_time'])/float(div)*100.0, 
+      (float(d['validation'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       km(float(d['idle'])/float(div)), 
-      (float(d['idle'])/float(div))/float(d['total_time'])/float(div)*100.0, 
+      (float(d['idle'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       km(float(d['waste'])/float(div)), 
-      (float(d['waste'])/float(div))/float(d['total_time'])/float(div)*100.0, 
+      (float(d['waste'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       float(d['used'])/float(d['waste']), 
       float(d['used'])/float(d['used']+d['waste'])))) 
     return to_be_printed
@@ -167,8 +167,7 @@ USAGE:
                        for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
                             data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
                     except:
-                        print "\nEntry %s in one of the RRDs is missing frontend %s; exiting\n" % (entry, frontend)
-                        return
+                        print "\nEntry %s in one of the RRDs is missing %s; continuing\n" % (entry, frontend)
     
 
 ######################################################################
@@ -518,12 +517,12 @@ Time efficiency: %.2f
 #    Print Key
 ################################################################################
 
-
-    print("""\n-----------------------------------
+    if frontend_mode==0:
+        print("""\n-----------------------------------
 LEGEND:
 
-Ks - kilseconds (*1,000 seconds)
-Ms - megaseconds (*1,000,000 seconds)
+K - kilseconds (*1,000 seconds)
+M - megaseconds (*1,000,000 seconds)
 
 strt - % of jobs where condor failed to start
 fval - % of glideins that failed to validate (hit 1000s limit)
@@ -539,6 +538,30 @@ time - total wallclock time (hours) (Lasted)
 total - total number of glideins
 -------------------------------------
         \n""")
+
+    else: #frontend_mode legend
+        print("""\n-----------------------------------
+LEGEND:
+
+K - kilseconds (*1,000 seconds)
+M - megaseconds (*1,000,000 seconds)
+
+total - total number of units (slots, seconds or hours,
+        see units in upper left hand corner of frontend stats.
+----------
+used - time used 
+val  - time spent validating
+idle - time spent idle
+wst  - time wasted (Lasted - JobsLasted) 
+
+u,v,i,w% - percentage of previous corresponding attribute
+           (used, val, idle, waste) over total time
+----------
+usd/wst - ratio of time used to time wasted
+eff     - efficiency - time used over total time 
+-------------------------------------
+        \n""")
+
 
 if __name__ == "__main__":
     main()
