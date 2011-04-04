@@ -290,10 +290,46 @@ be defined:</P>
         security_name=&quot;<I>vofrontend1</I>&quot;&gt;
 
         </div>
-    Grid proxy to use is located in the classad_proxy directory and you must
-    specify the full path to the proxy. security_name signifies the name
-    under which the frontend is registered with the factory. 
-    </P></li>
+        <p>
+        The security section of the configuration determines the proxies
+        that the frontend will use to communicate to the WMS Condor
+        Collector and factory (security parent tag) and which proxies
+        will be used to submit grid jobs to sites (proxy child elements 
+        <i>described below</i>).</p>
+        <p>
+        The <tt>&lt;frontend&gt;&lt;security&gt;</tt> tag determines
+        the proxy and security information used to communicate with
+        the WMS collector and factory in order to submit requests for
+        glideins and find out about useful entry points.  It also
+        determines some default security defaults:
+        </p>
+        <ul>
+            <li>classad_proxy: Location of the proxy to use to 
+            communicate with factory.  You must specify the full path.</li>
+            <li>security_name: signifies the name under which the 
+            frontend is registered with the factory</li>
+            <li>proxy_DN: This is the DN of the proxy used to communicate
+            with the factory.  This must be registered in the condor
+            mapfile of the WMS collector and must match the DN contained
+            in the proxy listed in the classad attribute.</li>
+            <li>proxy_selection_plugin: This determines which proxies listed
+            will be used for jobs.  Possible values are:
+            <ul>
+                    <li>ProxyAll: Returns all proxies (defaults)</li>
+                    <li>ProxyFirst: Always return first proxy</li>
+                    <li>ProxyUserCardinality: Return the first N proxies
+                    where N is the number of users.  Useful if first proxies
+                    are of higher priority</li>
+                    <li>ProxyUserRR:Use proxies in round-robin policy</li>
+                    <li>ProxyUserMapWRecycling: Maps to a pilot proxy not used
+                    in the longest time.  For existing users, re-use existing
+                    mapping unless it has already been reassigned 
+                    due to inactivity.  </li>
+            </ul>
+            </li>
+            <li>sym_key: Type of symetric key system used for secure message passing (default aes_256_cbc).  Currently not used, but there for future functionality.</li>
+        </ul>
+    </li>
     <LI><P>
         <a name="proxies" />
         <div class="xml">
@@ -303,8 +339,11 @@ be defined:</P>
 
         </div>
     The location of the proxy the Glidein Frontend forwards to the factory for
-    use in submitting glideins. You can have multiple proxy entries
-    listed here and they are used by all groups.
+    use in submitting glideins.   You can have multiple proxy entries
+    listed here and they are used by all groups.   The <tt>absfname</tt>
+    attribute references the full path of the proxy, and the security
+    class tells the factory which class of users to use to map this to
+    a username.   
     </P></li>
     <LI><P>
         <a name="stage" />
@@ -562,7 +601,10 @@ glideins.  Groups are used to group users with similar requirements, such as pro
         security_class=&quot;<I>classname</I>&quot; &gt;
 
         </div>
-        Group-specific proxies for submitting glideins can be defined that will be passed to the factory in addition to any globally defined proxies.
+        Group-specific proxies for submitting glideins can be defined that 
+        will be passed to the factory in addition to any globally defined 
+        proxies. <a href="#proxies">See above</a> for more information
+        about the proxy tags.
     </P></li>
     <LI><P>
         <a name="collectors" />
