@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.15.12.5 2011/01/26 20:15:17 parag Exp $
+#   $Id: glideFactoryLogParser.py,v 1.15.12.6 2011/04/05 21:18:17 dstrain Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -308,8 +308,10 @@ def extractLogData(fname):
                     glidein_duration=int(glidein_end_re.group('secs'))
                 except:
                     glidein_duration=None
-                
                 bux_idx=glidein_end_re.end()+1
+            else:
+                glidein_duration=None
+                
         finally:
             buf.close()
     finally:
