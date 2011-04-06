@@ -26,9 +26,22 @@ def km(z):
         return "%.2f" %z
     else: return "%.1f" % z
 
-def frontend_print(frontend, fe_mode, d, div, to_be_printed):
-  
-    to_be_printed.append((int(d['waste']), 
+def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute):
+
+
+    fdiv=1
+    if fe_attr_list[fe_sort_attribute] in ['total_time','val','used','idle','waste']:
+        fdiv=float(div)
+    if fe_sort_attribute in [2,4,6,8]:#['u%','v%','i%','w%']:
+        fdiv=float(div)*(float(d['total_time'])/float(div))
+    elif fe_attr_list[fe_sort_attribute] in ['usd/wst']:
+        fdiv = float(d['waste'])
+    elif fe_attr_list[fe_sort_attribute] in ['eff']:
+        fdiv = float(d['waste']+d['used'])
+
+    sorter = int(100.0*float(d[fe_attr_list[fe_sort_attribute]])/fdiv)
+
+    to_be_printed.append((sorter, 
       "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%9.2f %7.2f" % 
       (frontend.lstrip("frontend_"), 
       km(float(d['total_time'])/float(div)), 
@@ -44,13 +57,89 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed):
       float(d['used'])/float(d['used']+d['waste'])))) 
     return to_be_printed
 
+def printline(x,period,div):
+   if div==1:
+      sp = ""
+   else:
+      sp = " - %2d%%)" % ((float(x)/float(div))*100)
+   return ("%6s (%6s hours - %6s slots%s)"
+      % (km(x),
+         km(float(x)/3600.0),
+         km(float(x)/float(period)),
+         sp))
+
+def blockprint(title,d,p,pd):
+    if pd!=0:
+       s = " - %.1f%% of total" % ((float(d['glideins'])/float(pd['glideins'])*100.0))
+       t = ""
+    else: 
+        s=""
+        t="Total "
+    print(
+"""----------------------------------------
+%s:
+
+%sGlideins: %s%s
+%sJobs: %d (Average jobs/glidein: %.2f) 
+
+%stime:            %s
+%stime used:       %s
+%stime validating: %s
+%stime idle:       %s
+%stime wasted:     %s
+Time used/time wasted: %.1f
+Time efficiency: %.2f
+"""
+      % (title, 
+        t,d['glideins'],s, 
+        t,d['jobs'], 
+        float(d['jobs'])/float(d['glideins']),
+        t,printline(d['total_time'],p,1),
+        t,printline(d['used'],p,d['total_time']),
+        t,printline(d['validation'],p,d['total_time']),
+        t,printline(d['idle'],p,d['total_time']),
+        t,printline(d['waste'],p,d['total_time']),
+        float(d['used'])/float(d['waste']),
+        float(d['used'])/float(d['waste']+d['used'])))
+ 
+def lineprint(entry_name, entry, g_entry,g,to_be_printed, attr_list, sort_attribute):  
+    if g==1:
+       s = 'Lasted'
+    else: s = 'total_time'
+
+    # For Sorting
+    list=dict(entry,**g_entry) #combine the two dictionaries
+    div=1
+    if attr_list[sort_attribute] in ["FailedNr",'JobsNr_None']:
+        div=float(g_entry['glideins'])
+    elif attr_list[sort_attribute] in ['validation_All','validation','idle','wst','badput']:
+        div=float(entry[s]) 
+    if attr_list[sort_attribute]=='wst':
+        sorter = int((float(list['waste'])/div)*100)
+    else: sorter = int((float(list[attr_list[sort_attribute]])/div)*100)
+
+    to_be_printed.append((sorter, "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
+      % (entry_name.lstrip("entry_"),
+        (float(entry['FailedNr'])/float(g_entry['glideins']))*100,
+        (float(entry['validation_All'])/float(entry[s]))*100,
+        (float(entry['JobsNr_None'])/float(g_entry['glideins']))*100,
+        (float(g_entry['validation'])/float(entry[s]))*100,
+        (float(g_entry['idle'])/float(entry[s]))*100,
+        (float(g_entry['waste'])/float(entry[s]))*100,
+        (float(g_entry['badput'])/float(entry[s]))*100,
+        g_entry['waste']/3600.0,
+        entry['Lasted']/3600.0,
+        "|",
+        g_entry['glideins'])))
+
 def main():
 
     usage="""
 USAGE: 
     -x [#] : interval to do verbose stats (default 24)
     --source [ABSPATH or http addr] : factory base (default current directory)
-    -w : sort by wasted time
+    -s [attribute]: sort by attribute 
+              (-s x to see list of choices)
     -f [frontend] : filter by a single frontend
          (can omit "frontend_" before name)
     -p : show all periods (default off - only show 24 hours)
@@ -58,19 +147,24 @@ USAGE:
                (default data - slots).
     --ms : frontend mode, showing seconds instead of slots.
     --mh : frontend mode, showing hours instead of slots.
+    --msort [attribute]: frontend mode, sort by attribute.
+           (--msort x to see list of choices)
     -h : this usage message
 """
-    x = 24
-    dir = os.getcwd()
 
     # flags
-    sort_waste = 0
+    x = 24
+    dir = os.getcwd()
+    sorting = 0
+    fe_sorting = 0
+    sort_attribute = 0
+    fe_sort_attribute = 0
     filter_frontend = 0
     show_all_periods = 0 
     frontend_mode = 0
  
     try:
-        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:pm', ['source=','ms','mh'])
+        opts, args = getopt.getopt(sys.argv[1:], 'x:hwf:pms:', ['source=','ms','mh','msort='])
     except getopt.GetoptError:
         print("\n Option not recognized or missing parameters.")
         print(" Use -h for usage.\n")
@@ -83,8 +177,9 @@ USAGE:
         elif o in ("-h", "-help"):
             print usage
             return
-        elif o == "-w":
-            sort_waste = 1
+        elif o == "-s":
+            sorting = 1
+            sort_attribute=a.lower() 
         elif o == "-p":
             show_all_periods = 1
         elif o == "-m":
@@ -93,10 +188,41 @@ USAGE:
             frontend_mode = 2
         elif o == "--mh":
             frontend_mode = 3
+        elif o == "--msort":
+            fe_sorting = 1
+            fe_sort_attribute = a.lower() 
         elif o == "-f":
             filter_frontend = a
             if 'frontend_' not in filter_frontend:
                 filter_frontend = 'frontend_' + filter_frontend
+
+    
+    attributes = {'glideins':0,'jobs':0,'used':0,'waste':0,
+                  'validation':0,'idle':0,'badput':0,'total_time':0} 
+    sort_attributes = ['strt','fval','0job','val','idle','wst','badp','waste','time','total']
+    attr_list = ['FailedNr','validation_All','JobsNr_None','validation',
+                  'idle','wst','badput','waste','Lasted','glideins']
+
+    if sorting !=0:
+        if sort_attribute not in sort_attributes:
+            print("%s not in list of attributes. Choices are:\n" % sort_attribute)
+            for a in sort_attributes:
+                print a
+            print
+            return
+        sort_attribute = sort_attributes.index(sort_attribute)
+
+    #Frontend Sorting
+    fe_sort_attributes = ['total','used','u%','val','v%','idle','i%','waste','w%','usd/wst','eff']
+    fe_attr_list = ['total_time','used','used','validation','validation','idle','idle','waste','waste','used','used']
+    if fe_sorting !=0:
+        if fe_sort_attribute not in fe_sort_attributes:
+            print("%s not in list of attributes. Choices are:\n" % fe_sort_attribute)
+            for a in fe_sort_attributes:
+                print a
+            print
+            return
+        fe_sort_attribute = fe_sort_attributes.index(fe_sort_attribute)
 
     data = {}
     rrd_list = {"completed_data": "rrd_Log_Completed.xml", 
@@ -116,7 +242,6 @@ USAGE:
             print "\nCannot open", file_dir,"\n\tor",xml,"was not found there.\n"
             raise
         u.close()
-
 
     c_data = data["completed_data"]
     j_data = data["job_dur_data"]
@@ -182,8 +307,6 @@ Glidein log analysis for All Entries - %s
 Glidein log analysis for frontend %s - %s
 """ % (filter_frontend, datetime.datetime.now().strftime("%d-%m-%Y_%H:%M:%S")))
 
-    attributes = {'glideins':0,'jobs':0,'used':0,'waste':0,
-                  'validation':0,'idle':0,'badput':0,'total_time':0} 
 
     period_data = {}
     frontend_data = {}
@@ -246,10 +369,8 @@ Glidein log analysis for frontend %s - %s
                         entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
                     else: entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
 
-                
-
 ######################################################################
-#   Print
+#   Print top block
 ######################################################################
 
     # sort periods from least to greatest, with 24 hours at the top 
@@ -282,54 +403,7 @@ Glidein log analysis for frontend %s - %s
         if period_data[p]['waste'] == 0:
             period_data[p]['waste'] = 1
 
-        d = period_data[p]
-        print(
-"""----------------------------------------
-%s:
-
-Total Glideins: %s
-Total Jobs: %d (Average jobs/glidein: %.2f) 
-
-Total time:            %8ss (%6s hours - %6.1f slots)
-Total time used:       %8ss (%6s hours - %6.1f slots - %2d%%)
-Total time validating: %8ss (%6s hours - %6.1f slots - %2d%%)
-Total time idle:       %8ss (%6s hours - %6.1f slots - %2d%%)
-Total time wasted:     %8ss (%6s hours - %6.1f slots - %2d%%)
-Time used/time wasted: %.1f
-Time efficiency: %.2f
-"""
-      % (title, 
-        d['glideins'], 
-        d['jobs'], 
-        float(d['jobs'])/float(d['glideins']),
-
-        km(d['total_time']),
-        km(d['total_time']/3600),
-        float(d['total_time'])/float(p),
-
-        km(d['used']),
-        km(d['used']/3600), 
-        float(d['used'])/float(p),
-        float(d['used'])/float(d['total_time'])*100.0,
-
-        km(d['validation']),
-        km(d['validation']/3600), 
-        float(d['validation'])/float(p),
-        float(d['validation'])/float(d['total_time'])*100.0,
-
-        km(d['idle']),
-        km(d['idle']/3600), 
-        float(d['idle'])/float(p),
-        float(d['idle'])/float(d['total_time'])*100.0,
-
-        km(d['waste']),
-        km(d['waste']/3600), 
-        float(d['waste'])/float(p),
-        float(d['waste'])/float(d['total_time'])*100.0,
-
-        float(d['used'])/float(d['waste']),
-        float(d['used'])/float(d['waste']+d['used'])))
-
+        blockprint(title, period_data[p], p, 0)
 
 ################################################################################
 #    Print per entry stats (all frontends)
@@ -337,6 +411,7 @@ Time efficiency: %.2f
 
 
     if filter_frontend==0 and frontend_mode==0:
+
 
         print """
 ---------------------------------------
@@ -355,23 +430,9 @@ Per Entry (all frontends) stats for the past %s hours.\n""" % x
             if entry['validation'] == 0:
                 entry['validation'] = 1
             
-            to_be_printed.append((int(entry['waste']), "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
-                 % (entry_name.lstrip("entry_"),
-                    (float(entry['FailedNr'])/float(entry['glideins']))*100,
-                    (float(entry['validation_All'])/float(entry['total_time']))*100,
-                    (float(entry['JobsNr_None'])/float(entry['glideins']))*100,
-                    #(float(entry['badput_All'])/float(entry['total_time']))*100,
-                    (float(entry['validation'])/float(entry['total_time']))*100,
-                    (float(entry['idle'])/float(entry['total_time']))*100,
-                    (float(entry['waste'])/float(entry['total_time']))*100,
-                    (float(entry['badput'])/float(entry['total_time']))*100,
-                    entry['waste']/3600.0,
-                    #(entry_data[period][frontend][entry]['used']+entry_data[period][frontend][entry]['waste'])/3600.0,
-                    entry['Lasted']/3600.0,
-                    "|",
-                    entry['glideins'])))
+            lineprint(entry_name,entry,entry,0,to_be_printed,attr_list,sort_attribute) 
 
-        if sort_waste == 1:
+        if sorting == 1:
             to_be_printed.sort()
             to_be_printed.reverse()
             for a in to_be_printed:
@@ -406,8 +467,6 @@ Frontend stats for the past %s hours.\n""" % (x)
 
     for frontend, entries in data[period].iteritems():
         d = frontend_data[period][frontend]
-        #print frontend, "\n"
-        #print d, "\n"
 
         if period_data[period]['glideins'] == 0 or d['glideins'] == 0:
             continue
@@ -416,51 +475,7 @@ Frontend stats for the past %s hours.\n""" % (x)
             d['waste'] = 1
 
         if frontend_mode == 0:
-            print ("""
-\n%s
-
-Glideins: %s - %.1f%% of total
-Jobs: %s (Average jobs/glidein: %.2f)
-
-Total time:            %8ss (%6s hours - %6.1f slots)
-Total time used:       %8ss (%6s hours - %6.1f slots - %2d%%)
-Total time validating: %8ss (%6s hours - %6.1f slots - %2d%%)
-Total time idle:       %8ss (%6s hours - %6.1f slots - %2d%%)
-Total time wasted:     %8ss (%6s hours - %6.1f slots - %2d%%)
-Time used/time wasted: %.1f
-Time efficiency: %.2f
-""" % ( frontend,
-        d['glideins'], 
-        float(d['glideins'])/float(period_data[period]['glideins'])*100, 
-        d['jobs'], 
-        float(d['jobs'])/float(d['glideins']), 
-
-        km(d['total_time']),
-        km(d['total_time']/3600),
-        float(d['total_time'])/float(period), 
-
-        km(d['used']), 
-        km(d['used']/3600), 
-        float(d['used'])/float(period), 
-        float(d['used'])/float(d['total_time'])*100.0,	
-
-        km(d['validation']), 
-        km(d['validation']/3600), 
-        float(d['validation'])/float(period),
-        float(d['validation'])/float(d['total_time'])*100.0,
-
-        km(d['idle']), 
-        km(d['idle']/3600),
-        float(d['idle'])/float(period), 
-        float(d['idle'])/float(d['total_time'])*100.0,
-
-        km(d['waste']), 
-        km(d['waste']/3600),
-        float(d['waste'])/float(period), 
-        float(d['waste'])/float(d['total_time'])*100.0,
-
-        float(d['used'])/float(d['waste']),
-        float(d['used'])/(float(d['waste'])+float(d['used'])))) 
+            blockprint(frontend,d,period,period_data[period])
             
             print("%-40s%5s %3s %4s | %4s %4s %4s %4s | %6s %7s %7s" % (
               "", "strt","fval","0job","val","idle","wst","badp","waste","time","total"))
@@ -468,27 +483,15 @@ Time efficiency: %.2f
             to_be_printed = []  # dict of paired entry data with wastetime for sorting
             for entry, e in entries.iteritems():
                 en = entry_data[period][frontend][entry] 
+
                 if en['glideins'] == 0 or e['Lasted'] == 0:
                     continue
                 if en['validation'] == 0:
                     en['validation'] = 1
 
-                to_be_printed.append((int(entry_data[period][frontend][entry]['waste']), 
-                        "%-40s %3d%% %3d%% %3d%% | %3d%% %3d%% %3d%% %3d%% | %6d  %6d  %1s %4d" 
-                   % (entry.lstrip("entry_"),
-                        (float(e['FailedNr'])/float(en['glideins']))*100,
-                        (float(e['validation_All'])/float(e['Lasted']))*100,
-                        (float(e['JobsNr_None'])/float(en['glideins']))*100,
-                        (float(en['validation'])/float(e['Lasted']))*100,
-                        (float(en['idle'])/float(e['Lasted']))*100,
-                        (float(en['waste'])/float(e['Lasted']))*100,
-                        (float(en['badput'])/float(e['Lasted']))*100,
-                        en['waste']/3600.0,
-                        e['Lasted']/3600.0,
-                        "|",
-                        entry_data[period][frontend][entry]['glideins'])))
+                lineprint(entry, e, en, 1, to_be_printed,attr_list,sort_attribute) 
 
-            if sort_waste == 1:
+            if sorting == 1:
                 to_be_printed.sort()
                 to_be_printed.reverse()
                 for a in to_be_printed:
@@ -501,9 +504,9 @@ Time efficiency: %.2f
          
         else: # print frontend like entries, and omit entries
             divs = [period,1.0,3600.0]
-            fe_to_be_printed = frontend_print(frontend, frontend_mode,d,divs[frontend_mode-1],fe_to_be_printed)
+            fe_to_be_printed = frontend_print(frontend, frontend_mode,d,divs[frontend_mode-1],fe_to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute)
             
-    if sort_waste == 1:
+    if fe_sorting == 1:
         fe_to_be_printed.sort()
         fe_to_be_printed.reverse()
         for a in fe_to_be_printed:
