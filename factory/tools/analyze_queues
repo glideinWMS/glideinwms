@@ -13,20 +13,25 @@ import xmlParse
 # Convert particularly large numbers 
 #    into kilo/megaseconds
 def km(z):
+
+   if z<0: neg = "-"
+   else: neg = "" 
+   z = abs(z)
+
    x = int(z)
    w = z*1.0e-3
    v = z*1.0e-6
    t = z*1.0e-9
    if x>=1000:
       if x>=1000 and x<1000000:
-         return "%.1fK" % w
+         return "%s%.1fK" % (neg,w)
       if x>=1000000 and x<1000000000:
-         return "%.1fM" % v
+         return "%s%.1fM" % (neg,v)
       if x>=1000000000:
-         return "%.1fG" % t
+         return "%s%.1fG" % (neg,t)
    if x<100:
-      return "%.1f" %z
-   else: return "%.1f" % z
+      return "%s%.1f" % (neg,z)
+   else: return "%s%.1f" % (neg,z)
 
 
 def debug_print_dict(data):
@@ -368,7 +373,8 @@ IdleDiff (Idle-RequestedIdle):      %s
        printline(period_data[period]['ClientGlideIdle'],period_data[period]['ClientGlideTotal'],period),
 
        printline(period_data[period]['ReqIdle'],1,period),
-       printline(period_data[period]['ClientGlideRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period),
+
+       printline(period_data[period]['StatusRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period),
        printline(period_data[period]['StatusIdle']-period_data[period]['ReqIdle'],period_data[period]['StatusRunning'],period)))
 
 
