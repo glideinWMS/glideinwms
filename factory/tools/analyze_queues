@@ -46,8 +46,8 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
    sum2 = 0
 
    for entry_name, entry in entry_data.iteritems():
-      entry['RunDiff'] = abs(entry['StatusRunning']-entry['ClientGlideTotal'])
-      entry['IdleDiff'] = abs(entry['StatusIdle']-entry['ReqIdle'])
+      entry['RunDiff'] = entry['StatusRunning']-entry['ClientGlideTotal']
+      entry['IdleDiff'] = entry['StatusIdle']-entry['ReqIdle']
 
       # avoid division by zero
       unmatched_percent = 0
@@ -104,7 +104,7 @@ def printline(x,div,period):
    if div==1:
       sp = ""
    else: 
-      sp = " - %2d%%)" % ((float(x)/float(div))*100)
+      sp = " - %2d%%" % ((float(x)/float(div))*100)
    return ("%6s (%6s hours - %6s slots%s)"
       % (km(x),
          km(float(x)/3600.0),
@@ -258,7 +258,8 @@ USAGE:
             for a in attributes.keys():
                if a not in data[int(period)][frontend][entry]:
                   data[int(period)][frontend][entry][a] = 0 
-               data[int(period)][frontend][entry][a] += int(float(elements[a])*int(period))
+               try: data[int(period)][frontend][entry][a] += int(float(elements[a])*int(period))
+               except: pass 
 
    # data[period[frontend[entry[element[value]]]]]
    #'data' numbers verified by hand
@@ -347,10 +348,10 @@ Status Held:    %s
 Status Idle:    %s 
 Status Unknown: %s
 
+Registered:     %s
+Claimed:        %s 
 Unmatched :     %s
 
-Claimed:        %s 
-Registered:     %s
 Requested Idle: %s
 
 RunDiff (Running-ClientRegistered): %s
@@ -361,12 +362,14 @@ IdleDiff (Idle-RequestedIdle):      %s
        printline(period_data[period]['StatusHeld'],status_total,period),
        printline(period_data[period]['StatusIdle'],status_total,period),
        printline(period_data[period]['StatusIdleOther'],status_total,period),
-       printline(period_data[period]['ClientGlideIdle'],period_data[period]['ClientGlideTotal'],period),
-       printline(period_data[period]['ClientGlideRunning'],period_data[period]['ClientGlideTotal'],period),
+
        printline(period_data[period]['ClientGlideTotal'],1,period),
+       printline(period_data[period]['ClientGlideRunning'],period_data[period]['ClientGlideTotal'],period),
+       printline(period_data[period]['ClientGlideIdle'],period_data[period]['ClientGlideTotal'],period),
+
        printline(period_data[period]['ReqIdle'],1,period),
-       printline(abs(period_data[period]['ClientGlideRunning']-period_data[period]['ClientGlideTotal']),period_data[period]['StatusRunning'],period),
-       printline(abs(period_data[period]['StatusIdle']-period_data[period]['ReqIdle']),period_data[period]['StatusRunning'],period)))
+       printline(period_data[period]['ClientGlideRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period),
+       printline(period_data[period]['StatusIdle']-period_data[period]['ReqIdle'],period_data[period]['StatusRunning'],period)))
 
 
 ################################################################################

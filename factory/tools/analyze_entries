@@ -287,12 +287,15 @@ USAGE:
                 if entry not in data[int(period)][frontend]:
                     data[int(period)][frontend][entry] = {}
 
+                rrd_name_list = ["Log_Completed.xml","Log_Completed_Stats.xml","Log_Completed_Wastetime.xml"]
+                i = 0
                 for x_data in [c_data, j_data, w_data]:
                     try:
                        for a, b in x_data['entries'][entry]['frontends'][frontend]['periods'][period].iteritems():
                             data[int(period)][frontend][entry][a] = int(float(b)*int(period))   
                     except:
-                        print "\nEntry %s in one of the RRDs is missing %s; continuing\n" % (entry, frontend)
+                        print "\nEntry %s in %s is missing %s; continuing\n" % (entry, rrd_name_list[i], frontend)
+                    i=i+1 
     
 
 ######################################################################
@@ -335,12 +338,20 @@ Glidein log analysis for frontend %s - %s
                     entry_data_all_frontends[period][entry] = {}
                     for a in attributes.keys(): entry_data_all_frontends[period][entry][a]=0
 
-                attributes['glideins'] = elements["Glideins"]
-                attributes['jobs'] = elements["JobsNr"]
-                attributes['used'] = elements["JobsLasted"]
-                attributes['total_time'] = elements["Lasted"]
-                attributes['waste'] = elements["Lasted"] - elements["JobsLasted"]
-                attributes['badput'] = elements["Lasted"] - elements["JobsGoodput"]
+                # try catch all attributes because the xml file
+                #     sometimes loses them at random. Example: <period name="7200"/>  
+                try: attributes['glideins'] = elements["Glideins"] 
+                except: attributes['glideins']=0
+                try: attributes['jobs'] = elements["JobsNr"]
+                except: attributes['jobs']=0
+                try: attributes['used'] = elements["JobsLasted"]
+                except: attributes['used']=0
+                try: attributes['total_time'] = elements["Lasted"]
+                except: attributes['total_time']=0
+                try: attributes['waste'] = elements["Lasted"] - elements["JobsLasted"]
+                except: attributes['waste']=0
+                try: attributes['badput'] = elements["Lasted"] - elements["JobsGoodput"]
+                except: attributes['badput']=0
                 attributes['validation'] = 0
                 attributes['idle'] = 0 
 
@@ -366,8 +377,12 @@ Glidein log analysis for frontend %s - %s
 
                 for a in ['FailedNr','validation_All','JobsNr_None','badput_All','Lasted']:
                     if a not in entry_data_all_frontends[period][entry]:
-                        entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
-                    else: entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
+                        try: entry_data_all_frontends[period][entry][a] = data[period][frontend][entry][a]
+                        except: entry_data_all_frontends[period][entry][a] = 0
+                    else: 
+                        try: entry_data_all_frontends[period][entry][a] += data[period][frontend][entry][a]
+                        except: entry_data_all_frontends[period][entry][a] = 0
+                          
 
 ######################################################################
 #   Print top block
