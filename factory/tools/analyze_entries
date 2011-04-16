@@ -3,28 +3,12 @@
 import os, sys, getopt, re 
 import datetime
 import urllib
+
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
+sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 
-import xmlParse
-
-# Convert particularly large numbers 
-#    into kilo/megaseconds
-def km(z):
-    x = int(z)
-    w = z*1.0e-3
-    v = z*1.0e-6
-    t = z*1.0e-9
-    if x>=1000:
-        if x>=1000 and x<1000000:
-            return "%.1fK" % w
-        if x>=1000000 and x<1000000000:
-            return "%.1fM" % v
-        if x>=1000000000:
-            return "%.1fG" % t
-    if x<100:
-        return "%.2f" %z
-    else: return "%.1f" % z
+import xmlParse, analyze
 
 def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_list,fe_sort_attribute):
 
@@ -44,29 +28,18 @@ def frontend_print(frontend, fe_mode, d, div, to_be_printed,fe_sorting,fe_attr_l
     to_be_printed.append((sorter, 
       "%-25s %6s|%6s %3d%%|%6s %3d%%|%6s %3d%%|%6s %3d%%|%9.2f %7.2f" % 
       (frontend.lstrip("frontend_"), 
-      km(float(d['total_time'])/float(div)), 
-      km(float(d['used'])/float(div)), 
+      analyze.km(float(d['total_time'])/float(div)), 
+      analyze.km(float(d['used'])/float(div)), 
       (float(d['used'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
-      km(float(d['validation'])/float(div)), 
+      analyze.km(float(d['validation'])/float(div)), 
       (float(d['validation'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
-      km(float(d['idle'])/float(div)), 
+      analyze.km(float(d['idle'])/float(div)), 
       (float(d['idle'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
-      km(float(d['waste'])/float(div)), 
+      analyze.km(float(d['waste'])/float(div)), 
       (float(d['waste'])/float(div))/(float(d['total_time'])/float(div))*100.0, 
       float(d['used'])/float(d['waste']), 
       float(d['used'])/float(d['used']+d['waste'])))) 
     return to_be_printed
-
-def printline(x,period,div):
-   if div==1:
-      sp = ""
-   else:
-      sp = " - %2d%%)" % ((float(x)/float(div))*100)
-   return ("%6s (%6s hours - %6s slots%s)"
-      % (km(x),
-         km(float(x)/3600.0),
-         km(float(x)/float(period)),
-         sp))
 
 def blockprint(title,d,p,pd):
     if pd!=0:
@@ -94,11 +67,11 @@ Time efficiency: %.2f
         t,d['glideins'],s, 
         t,d['jobs'], 
         float(d['jobs'])/float(d['glideins']),
-        t,printline(d['total_time'],p,1),
-        t,printline(d['used'],p,d['total_time']),
-        t,printline(d['validation'],p,d['total_time']),
-        t,printline(d['idle'],p,d['total_time']),
-        t,printline(d['waste'],p,d['total_time']),
+        t,analyze.printline(d['total_time'],1,p),
+        t,analyze.printline(d['used'],d['total_time'],p),
+        t,analyze.printline(d['validation'],d['total_time'],p),
+        t,analyze.printline(d['idle'],d['total_time'],p),
+        t,analyze.printline(d['waste'],d['total_time'],p),
         float(d['used'])/float(d['waste']),
         float(d['used'])/float(d['waste']+d['used'])))
  
