@@ -1,49 +1,16 @@
 #!/usr/bin/env python
 # analyze_queues
+# focuses on statuses (less on client stats)
 
 import os, sys, getopt, re 
 import datetime
 import urllib
+ 
 STARTUP_DIR=sys.path[0]
 sys.path.append(os.path.join(STARTUP_DIR,"../../lib"))
-#sys.path.append("home/glideinWMS/factory")
+sys.path.append(os.path.join(STARTUP_DIR,"lib"))
 
-import xmlParse
-
-# Convert particularly large numbers 
-#    into kilo/megaseconds
-def km(z):
-
-   if z<0: neg = "-"
-   else: neg = "" 
-   z = abs(z)
-
-   x = int(z)
-   w = z*1.0e-3
-   v = z*1.0e-6
-   t = z*1.0e-9
-   if x>=1000:
-      if x>=1000 and x<1000000:
-         return "%s%.1fK" % (neg,w)
-      if x>=1000000 and x<1000000000:
-         return "%s%.1fM" % (neg,v)
-      if x>=1000000000:
-         return "%s%.1fG" % (neg,t)
-   if x<100:
-      return "%s%.1f" % (neg,z)
-   else: return "%s%.1f" % (neg,z)
-
-
-def debug_print_dict(data):
-   for period, p in data.iteritems():
-      print period
-      for frontend,f in p.iteritems():
-         print "\t",frontend
-         for entry,e in f.iteritems():
-            print "\t\t", entry
-            for element, value in e.iteritems():   
-               print "\t\t\t", element,":", value
-   return
+import xmlParse, analyze
 
 def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,div):
 
@@ -73,48 +40,43 @@ def list_print(frontend,zero_supp,entry_data,sorting,attr_list,sort_attribute,di
          sum2 += sum
 
       to_be_printed.append((entry[attr_list[sort_attribute]],
-             ("%-40s%7s %7s %7s %7s | %7s %7s %7s | %7s | %3d%% %3d%%"
+             ("%-40s%7s %7s %7s %7s | %7s %7s %7s %7s | %8s %8s %4d%%"
            % (entry_name.lstrip("entry_"),
-             km(float(entry['StatusRunning'])/div),
-             km(float(entry['StatusHeld'])/div),
-             km(float(entry['StatusIdle'])/div),
-             km(float(entry['StatusIdleOther'])/div),
-             km(float(entry['ClientGlideTotal'])/div),
-             km(float(entry['ClientGlideRunning'])/div),
-             km(float(entry['ClientGlideIdle'])/div),
-             km(float(entry['RunDiff'])/div),
-             entry['UM'],
+             analyze.km(float(entry['StatusRunning'])/div),
+             analyze.km(float(entry['StatusHeld'])/div),
+             analyze.km(float(entry['StatusIdle'])/div),
+             analyze.km(float(entry['StatusIdleOther'])/div),
+
+             analyze.km(float(entry['StatusPending'])/div),
+             analyze.km(float(entry['StatusWait'])/div),
+             analyze.km(float(entry['StatusStageIn'])/div),
+             analyze.km(float(entry['StatusStageOut'])/div),
+
+             analyze.km(float(entry['RunDiff'])/div),
+             analyze.km(float(entry['IdleDiff'])/div),
              entry['RD']))))
+
+   columns = ("%-40s%7s %7s %7s %7s | %7s %7s %7s %7s | %8s %8s %5s\n" % (
+         frontend, "Run","Held","Idle","Unknwn","Pending","Wait","StgIn","StgOut","RunDiff","IdleDiff","%RD"))
+
 
    if sorting == 1:
       if zero_supp==1 and sum2==0:
          return 
       to_be_printed.sort()
       to_be_printed.reverse()
-      to_be_printed.insert(0,(0,"%-40s%7s %7s %7s %7s | %7s %7s %7s | %7s | %4s %4s\n" % ( 
-         frontend, "Run","Held","Idle","Unknwn","Regd","Claimd","Unmtchd","RunDiff","%UM","%RD")))
+      to_be_printed.insert(0,(0,columns))
       for a in to_be_printed:
          print a[1]
       print
    else: 
       if zero_supp==1 and sum2==0:
          return 
-      to_be_printed.insert(0,(0,"%-40s%7s %7s %7s %7s | %7s %7s %7s | %7s | %4s %4s\n" % ( 
-         frontend, "Run","Held","Idle","Unknwn","Regd","Claimd","Unmtchd","RunDiff","%UM","%RD")))
+      to_be_printed.insert(0,(0,columns))
       for a in to_be_printed:
          print a[1]
       print
 
-def printline(x,div,period):
-   if div==1:
-      sp = ""
-   else: 
-      sp = " - %2d%%" % ((float(x)/float(div))*100)
-   return ("%6s (%6s hours - %6s slots%s)"
-      % (km(x),
-         km(float(x)/3600.0),
-         km(float(x)/float(period)),
-         sp))
 ##########################################################################
 
 def main():
@@ -181,15 +143,17 @@ USAGE:
                filter_frontend = 'frontend_' + filter_frontend
 
    attributes = {'StatusRunning':0,'StatusHeld':0,'StatusIdle':0, 'StatusIdleOther':0,
-                 'ReqIdle':0,'ClientGlideTotal':0,'ClientGlideIdle':0,'ClientGlideRunning':0}
-
+                 'StatusPending':0,'StatusWait':0,'StatusStageIn':0, 'StatusStageOut':0,
+                 'ReqIdle':0,'ClientGlideTotal':0,'ClientGlideIdle':0, 'ClientGlideRunning':0}
+ 
+   #sort_attributes and attr_list are linked by index number. 
    sort_attributes = ['running','held','idle','unknown',
-                      'rundiff','registered', 'claimed',
-                      'unmatched','%unmatched','%rundiff']
-
+                      'pending','wait','stagein','stageout',
+                      'rundiff','unmatched','idlediff',
+                      '%unmatched','%rundiff']
    attr_list = ['StatusRunning','StatusHeld','StatusIdle','StatusIdleOther',
-                          'RunDiff','ClientGlideTotal','ClientGlideRunning',
-                          'ClientGlideIdle', 'UM','RD']
+                          'StatusPending','StatusWait','StatusStageIn',
+                          'StatusStageOut','RunDiff','ClientGlideIdle','IdleDiff','UM','RD']
 
    if sorting !=0:
       if sort_attribute not in sort_attributes:
@@ -342,40 +306,39 @@ Status Attributes analysis for %s - %s
    for period in period_list:
         
      title = ("Past %.1f hours" % (float(period)/3600))
-     status_total = period_data[period]['StatusRunning'] + period_data[period]['StatusHeld']+period_data[period]['StatusIdle']+period_data[period]['StatusIdleOther']
+     p = period_data[period]
+     status_total = p['StatusRunning'] + p['StatusHeld'] + p['StatusIdle'] + p['StatusIdleOther']+p['StatusPending']+p['StatusWait']+p['StatusStageIn']+p['StatusStageOut']
 
      print(
 """----------------------------------------
 %s:
 
-Status Running: %s 
-Status Held:    %s
-Status Idle:    %s 
-Status Unknown: %s
+Status Running:  %s 
+Status Held:     %s
+Status Idle:     %s 
+Status Unknown:  %s
 
-Registered:     %s
-Claimed:        %s 
-Unmatched :     %s
-
-Requested Idle: %s
+Status Pending:  %s
+Status Wait:     %s
+Status Stage In: %s
+Status Stage Out:%s
 
 RunDiff (Running-ClientRegistered): %s
-IdleDiff (Idle-RequestedIdle):      %s 
+IdleDiff (Idle - RequestedIdle):    %s
 """
      % (title,
-       printline(period_data[period]['StatusRunning'],status_total,period),
-       printline(period_data[period]['StatusHeld'],status_total,period),
-       printline(period_data[period]['StatusIdle'],status_total,period),
-       printline(period_data[period]['StatusIdleOther'],status_total,period),
+       analyze.printline(period_data[period]['StatusRunning'],status_total,period),
+       analyze.printline(period_data[period]['StatusHeld'],status_total,period),
+       analyze.printline(period_data[period]['StatusIdle'],status_total,period),
+       analyze.printline(period_data[period]['StatusIdleOther'],status_total,period),
 
-       printline(period_data[period]['ClientGlideTotal'],1,period),
-       printline(period_data[period]['ClientGlideRunning'],period_data[period]['ClientGlideTotal'],period),
-       printline(period_data[period]['ClientGlideIdle'],period_data[period]['ClientGlideTotal'],period),
+       analyze.printline(period_data[period]['StatusPending'],status_total,period),
+       analyze.printline(period_data[period]['StatusWait'],status_total,period),
+       analyze.printline(period_data[period]['StatusStageIn'],status_total,period),
+       analyze.printline(period_data[period]['StatusStageOut'],status_total,period),
 
-       printline(period_data[period]['ReqIdle'],1,period),
-
-       printline(period_data[period]['StatusRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period),
-       printline(period_data[period]['StatusIdle']-period_data[period]['ReqIdle'],period_data[period]['StatusRunning'],period)))
+       analyze.printline(period_data[period]['ClientGlideRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period),
+       analyze.printline(period_data[period]['StatusIdle']-period_data[period]['ReqIdle'],1,period)));
 
 
 ################################################################################
@@ -422,15 +385,16 @@ LEGEND:
 K = x   1,000
 M = x 100,000
 
-Run - Status Running
-Held - Status Held
-Idle - Status Idle
-Unknwn - Status Unknown (StatusIdleOther)
-Regd - Registered (ClientGlideTotal)
-Claimd - Claimed (ClientGlideRunning)
-Unmtchd - Unmatched (ClientGlideIdle)
-RunDiff - StatusRunning - ClientRegistered (ClientGlideTotal)
-%UM - Percent Unmatched (Unmatched/Registered)
+Run : Status Running
+Held : Status Held
+Idle : Status Idle
+Unknwn : Status Unknown (StatusIdleOther)
+Pending : Status Pending
+Wait : Status Wait
+StgIn : Status Stage In
+StgOut : Status Stage Out
+RunDiff : StatusRunning - ClientRegistered (ClientGlideTotal)
+IdleDiff : StatusIdle - ReqIdle (Requested Idle)
 %RD - Percent RunDiff over Running (RunDiff/StatusRunning)
 -------------------------------------
         \n""")
