@@ -1,0 +1,358 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import pwd
+import ConfigParser
+import popen2
+import select
+import stat
+import fcntl
+import tarfile
+import urllib
+import signal
+import errno
+import datetime
+
+# GLOBALS
+CONST_SUCCESS = 0
+CONST_ERROR = 1
+
+# defaults
+GLIDEIN_USER = "glidein_pilot"
+GLIDEIN_USER_IDS = "91234.91234"
+GLIDEIN_HOME = "/mnt/%s" % GLIDEIN_USER
+USER_DATA_TARBALL = "%s/user_data.tar.gz" % GLIDEIN_HOME
+OSG_GRID = "/usr/local/osg/wn_client/current"
+EC2_URL = "http://169.254.169.254/latest/user-data"
+INI_FILE = "%s/glidein_userdata" % GLIDEIN_HOME
+
+PILOT_ENV = PilotEnvironment({"GLIDEIN_Condor_IDS" : GLIDEIN_USER_IDS,
+                            "OSG_GRID" : OSG_GRID, 
+                            "OSG_APP" : "/mnt/app",
+                            "OSG_DATA" : "/mnt/data",
+                            "X509_USER_PROXY" : "%s/pilot_proxy" % GLIDEIN_HOME, 
+                            "VOMS_PROXY_INFO_DONT_VERIFY_AC" : "1"
+                           })
+
+one_week_in_seconds = 604800
+MAX_LIFETIME = one_week_in_seconds 
+
+# Custom Exceptions
+class PilotError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+class TimeoutError(Exception):
+    def __init__(self, value):
+        self.value = value
+    def __str__(self):
+        return repr(self.value)
+
+# Pilot Environment class
+class PilotEnvironment(dict):
+    """
+    Customized dictionary for defining the environment that will be used for
+    launching the glideinWMS pilot
+    """
+    def __init__(self, defaults={}):
+        if len(defaults) > 0:
+            for key, value in defaults.items():
+                self[key] = value
+    
+    def export(self):
+        evironment = ""
+        template = "export %s=%s; "
+        try:
+            for key, value in self.items():
+                environment += template % (key, value)
+        except:
+            pass
+        return Environment
+
+    def __repr__(self): return self.export()
+    
+# Copyright: Copyright (C) 2005 Chad J. Schroeder
+# This script is one I've found to be very reliable for creating daemons.
+# The license is permissible for redistribution.
+# I've modified it slightly for my purposes.  -BB
+UMASK = 0
+WORKDIR = "/"
+
+if (hasattr(os, "devnull")):
+   REDIRECT_TO = os.devnull
+else:
+   REDIRECT_TO = "/dev/null"
+
+def daemonize(pidfile):
+    """Detach a process from the controlling terminal and run it in the
+    background as a daemon.
+
+    The detached process will return; the process controlling the terminal
+    will exit.
+
+    If the fork is unsuccessful, it will raise an exception; DO NOT CAPTURE IT.
+    """
+
+    try:
+        pid = os.fork()
+    except OSError, e:
+        raise Exception("%s [%d]" % (e.strerror, e.errno))
+
+    if (pid == 0):       # The first child.
+        os.setsid()
+        try:
+            pid = os.fork()        # Fork a second child.
+        except OSError, e:
+            raise Exception("%s [%d]" % (e.strerror, e.errno))
+
+        if (pid == 0):    # The second child.
+            os.chdir(WORKDIR)
+            os.umask(UMASK)
+            for i in range(3):
+                os.close(i)
+            os.open(REDIRECT_TO, os.O_RDWR|os.O_CREAT) # standard input (0)
+            os.dup2(0, 1)                        # standard output (1)
+            os.dup2(0, 2)                        # standard error (2)
+            try:
+                fp = open(pidfile, 'w')
+                fp.write(str(os.getpid()))
+                fp.close()
+            except:
+                pass
+        else:
+            os._exit(0)    # Exit parent (the first child) of the second child.
+    else:
+        os._exit(0)       # Exit parent of the first child.
+
+def handler_max_lifetime(signum, frame):
+    raise TimeoutError("Max lifetime (%s) has been exceeded, shutting down..." )
+
+def shutdown_ami():
+    if PILOT_ENV.has_key("disable_shutdown"):
+        disable_shutdown = PILOT_ENV["disable_shutdown"]
+    
+    if disable_shutdown:
+        cmd = "echo shutdown command has been disabled"
+    else:
+        cmd = "shutdown -h now"
+        
+    os.system(cmd)
+
+def launch_pilot(command, ini_file, fdout, fderr):
+    try:
+        cp = ConfigParser.ConfigParser()
+        cp.read(ini_file)
+    
+        if cp.has_option("glidein_startup", "max_lifetime"):
+            MAX_LIFETIME = cp.get("glidein_startup", "max_lifetime")
+        
+        signal.signal(signal.SIGALRM, handler_max_lifetime)
+        signal.alarm(MAX_LIFETIME)
+
+        child = popen2.Popen3(command, capturestderr=True)
+        child.tochild.close()
+
+        stdout = child.fromchild
+        stderr = child.childerr
+
+        outfd = stdout.fileno()
+        errfd = stderr.fileno()
+
+        outeof = erreof = 0
+
+        fdlist = [outfd, errfd]
+        while fdlist:
+            ready = select.select(fdlist, [], [])
+            if outfd in ready[0]:
+                outchunk = stdout.read()
+                if outchunk == '':
+                    fdlist.remove(outfd)
+                else:
+                    fdout.write(outchunk)
+                    fdout.flush()
+            if errfd in ready[0]:
+                errchunk = stderr.read()
+                if errchunk == '':
+                    fdlist.remove(errfd)
+                else:
+                    fderr.write(errchunk)
+                    fderr.flush()
+
+        exitStatus = child.wait()
+        
+        if exitStatus:
+            raise PilotError('Command %s exited with %d\n' % (command, os.WEXITSTATUS(exitStatus)))
+        
+        signal.alarm(0)
+        
+    except TimeoutError, ex:
+        raise PilotError("Timeout Error occurred.  The Pilot has been running for more than %s seconds: %s\n" % (str(MAX_LIFETIME), str(ex)))
+    except PilotError, ex:
+        raise
+    except Exception, ex:
+        raise PilotError("Unexpected error encountered while running the pilot startup script: %s\n" % str(ex))
+
+def retrieve_user_data(url, tarball):
+    try:
+        tarball, headers = urllib.urlretrieve(url, tarball)
+    except Exception, ex:
+        raise PilotError("Error retrieving User Data: %s\n" % str(ex))
+
+def retrieve_glidein_startup(ini_file, startup_script_dir):
+    try:
+        cp = ConfigParser.ConfigParser()
+        cp.read(ini_file)
+        base_url = cp.get("glidein_startup", "webbase")
+        
+        url = "%s/glidein_startup.sh" % base_url
+        script = "%s/glidein_startup.sh" % startup_script_dir
+        
+        script, headers = urllib.urlretrieve(url, script)
+        
+    except Exception, ex:
+        raise PilotError("Error retrieving glidein_startup.sh: %s\n" % str(ex))
+
+def extract_from_tar(tarball, extract_to_dir):
+    try:
+        tar = tarfile.open(name=tarball, mode="r:gz")
+        for tarinfo in tar:
+            tar.extract(tarinfo, extract_to_dir)
+    except Exception, ex:
+        raise PilotError("Error extracting User Data: %s\n" % str(ex))
+
+def set_file_owner(user, group, file):
+    # I can do this through python libs, but this is so much easier!
+    rtn = os.system("chown %s:%s %s" % (user, group, file))
+    if rtn != 0:
+        raise PilotError("Failed to change ownership of file.  Return Code: %s\n" % str(rtn))
+
+def define_cmd(ini_file, osgGrid, glideinHome):
+    """
+        The minimum environment is as follows:
+        env = "export GLIDEIN_Condor_IDS=91234.91234; " \
+              "export OSG_GRID=%s; " \
+              "export OSG_APP=/mnt/app; " \
+              "export OSG_DATA=/mnt/data; " \
+              "export X509_USER_PROXY=%s/pilot_proxy; " \
+              "export VOMS_PROXY_INFO_DONT_VERIFY_AC=1" % (osgGrid, glideinHome)
+    """
+    
+    try:
+        cp = ConfigParser.ConfigParser()
+        cp.read(ini_file)
+    
+        arguments = cp.get("glidein_startup", "args")
+        if cp.has_section("custom_environment"):
+            for option, value in cp.items("custom_environment"):
+                PILOT_ENV[option] = value
+        cmd = "%s; cd %s; sh glidein_startup.sh %s" % (PILOT_ENV.export(), GLIDEIN_HOME, arguments)
+    except Exception, ex:
+        raise PilotError("Error defining pilot launch command: %s\n" % str(ex))
+
+    return cmd
+
+def detect_cores():
+    """
+    Detects the number of cores on a system.
+    Code taken from:
+    http://codeliberates.blogspot.com/2008/05/detecting-cpuscores-in-python.html
+    """
+    # Linux, Unix and MacOS:
+    if hasattr(os, "sysconf"):
+        if os.sysconf_names.has_key("SC_NPROCESSORS_ONLN"):
+            # Linux & Unix:
+            ncpus = os.sysconf("SC_NPROCESSORS_ONLN")
+            if isinstance(ncpus, int) and ncpus > 0:
+                return ncpus
+        else: # OSX:
+            return int(os.popen2("sysctl -n hw.ncpu")[1].read())
+    # Windows:
+    if os.environ.has_key("NUMBER_OF_PROCESSORS"):
+        ncpus = int(os.environ["NUMBER_OF_PROCESSORS"]);
+        if ncpus > 0:
+            return ncpus
+    return 1 # Default
+
+def mkdir_p(path):
+    try:
+        os.makedirs(path)
+    except OSError, ex:
+        if exc.errno == errno.EEXIST:
+            pass
+        else: 
+            raise PilotError("Error creating path (%s): %s\n" % (path, str(ex)))
+
+def main():
+    """
+        Perform all the work necessary to launch a glideinWMS pilot which will
+        attempt to connect back to the user pool.
+
+        1)  daemonize this script.  This script is lauched via the *nix service
+            mechanisms.  We don't want to make it wait forever and we don't want
+            it to be attached to a console.
+        2)  Get the user data that was passed to the AMI - Currently it is a
+            tarball.
+        3)  untar the tarball.  The tarball will contain a proxy, the
+            glidein_startup.sh script and an ini file containing all the extra
+            information needed
+        4)  read the ini file
+        5)  get the arguments for the glidein_startup.sh script
+        6)  create an environment string to pass with final command
+        7)  launch the glidein pilot with the appropriate environment
+    """
+    daemonize("/tmp/pilot.pid")
+    
+    # Make GLIDEIN_HOME
+    mkdir_p(GLIDEIN_HOME)
+    # setup logging
+    outputlog = open("%s/output.log" % GLIDEIN_HOME, 'w')
+    errorlog = open("%s/error.log" % GLIDEIN_HOME, 'w')
+    outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Output Log opened\n"))
+    outputlog.flush()
+
+    try:
+        # get the user data - should be a tar file
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Retrieving user data\n"))
+        outputlog.flush()
+        retrieve_user_data(EC2_URL, USER_DATA_TARBALL)
+        
+        # untar the user data
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Extracting user data\n"))
+        outputlog.flush()
+        extract_from_tar(USER_DATA_TARBALL, GLIDEIN_HOME)
+        
+        # ensure that the proxy is owned by the correct user
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Chowning the VO proxy\n"))
+        outputlog.flush()
+        set_file_owner(GLIDEIN_USER, GLIDEIN_USER, "%s/pilot_proxy" % GLIDEIN_HOME)
+    
+        # get the glidein_startup.sh script
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Retrieving glidein_startup.sh\n"))
+        outputlog.flush()
+        retrieve_glidein_startup(INI_FILE, GLIDEIN_HOME)
+        
+        # generate the pilot launch command
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Generating the pilot launch command\n"))
+        outputlog.flush()
+        cmd = define_cmd(INI_FILE, OSG_GRID, GLIDEIN_HOME)
+    
+        # launch the pilot
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "About to execute command: \n%s\n" % cmd))
+        outputlog.flush()
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "===== BEGIN LOGGING EXTERNAL (non-formatted) DATA ======\n"))
+        launch_pilot(cmd, INI_FILE, outputlog, errorlog)
+        outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "===== END LOGGING EXTERNAL (non-formatted) DATA ======\n"))
+            
+    except Exception, ex:
+        errorlog.write("[%s] %s" % (str(datetime.datetime.now()), "Error launching pilot: %s\n" % str(ex)))
+        errorlog.flush()
+    
+    outputlog.close()
+    errorlog.close()
+    shutdown_ami()
+
+if __name__ == "__main__":
+    main()
