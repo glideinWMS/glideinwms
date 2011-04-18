@@ -1,4 +1,4 @@
-#! /bin/sh
+#!/bin/sh
 
 #
 # chkconfig: 3 90 99
@@ -15,7 +15,7 @@ case $1 in
     mkdir -p /mnt/data
     # make the CMS directory
     mkdir -p /mnt/app/cmssoft
-    # put a symbolic link in $OSG_DATA/cmssoft to point to the CERN VM FS mount point for CMS 
+    # put a symbolic link in $OSG_DATA/cmssoft to point to the CERN VM FS mount point for CMS
     ln -s /opt/cms /mnt/app/cmssoft/cms
 
     echo "Starting up GlideinPilot"
