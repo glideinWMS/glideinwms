@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: poolWatcherLog.py,v 1.2.8.1 2010/09/08 03:09:51 parag Exp $
+# File Version:
+#   $Id: poolWatcherLog.py,v 1.2.8.1.4.1 2011/04/18 20:33:54 tiradani Exp $
 #
 # Description:
 #   This module implements the classes needed
@@ -41,7 +41,7 @@ class watcherLogWriter:
         for k in attr_keys:
             event_comments.append("VMAttr %s = %s"%(k,vm_attributes[k]))
         return self.logEvent(0, VM, DaemonStartTime, event_comments,timestamp)
-    
+
     def logClaimed(self, VM, DaemonStartTime,
                    job_attributes={},     # attr_name:value pairs
                    timestamp=None):   # use current time if None
@@ -51,13 +51,13 @@ class watcherLogWriter:
         for k in attr_keys:
             event_comments.append("JobAttr %s = %s"%(k,job_attributes[k]))
         return self.logEvent(1, VM, DaemonStartTime, event_comments,timestamp)
-    
+
     def logReleased(self, VM, DaemonStartTime,
                     last_known_claimed=None, # None means unknown
                     timestamp=None):         # use current time if None
         lkc_comments=[]
         if last_known_claimed!=None:
-            lkc_comments.append("LastKnownClaimed: "+time.strftime("%m/%d %H:%M:%S",time.localtime(last_known_claimed))))
+            lkc_comments.append("LastKnownClaimed: "+time.strftime("%m/%d %H:%M:%S",time.localtime(last_known_claimed)))
         return self.logEvent(4, VM, DaemonStartTime,lkc_comments,timestamp)
 
     def logDisappeared(self, VM, DaemonStartTime,
@@ -65,9 +65,9 @@ class watcherLogWriter:
                        timestamp=None):   # use current time if None
         lke_comments=[]
         if last_known_existed!=None:
-            lke_comments.append("LastKnownExisted: "+time.strftime("%m/%d %H:%M:%S",time.localtime(last_known_existed))))
+            lke_comments.append("LastKnownExisted: "+time.strftime("%m/%d %H:%M:%S",time.localtime(last_known_existed)))
         return self.logEvent(5, VM, DaemonStartTime,lke_comments,timestamp)
-    
+
 
     ### PR I V A T E ###
     def logEvent(self, event, VM, DaemonStartTime,

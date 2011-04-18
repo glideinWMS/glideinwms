@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryConfig.py,v 1.21.10.4 2010/09/08 03:22:58 parag Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.1 2011/04/18 20:33:54 tiradani Exp $
 #
 
 import string
@@ -26,6 +26,7 @@ class FactoryConfig:
         self.job_attrs_file = "attributes.cfg"
         self.job_params_file = "params.cfg"
         self.frontend_descript_file = "frontend.descript"
+        self.signatures_file = "signatures.sha1"
 
 # global configuration of the module
 factoryConfig=FactoryConfig()
@@ -210,3 +211,33 @@ class FrontendDescript(ConfigFile):
         return usernames.keys()
     
         
+# Signatures File
+## File: signatures.sha1
+##
+#6e3565a9a0f39e0641d7e3e777b8f22d7ebc8b0f  description.a92arS.cfg  entry_AmazonEC2
+#51b01a3c38589a41fb7a44936e12b31fe506ec7b  description.a92aqM.cfg  main
+class SignatureFile:
+    def __init__(self, signature_file):
+        global factoryConfig
+        
+        self.config_file = factoryConfig.signatures_file
+        self.load(signature_file)
+
+    def load(self, fname):
+        self.data = {}
+        fd = open(fname,"r")
+        try:
+            lines = fd.readlines()
+            for line in lines:
+                if line[0] == "#":
+                    continue # comment
+                if len(string.strip(line)) == 0:
+                    continue # empty line
+                larr = string.split(line, None, 1)
+                lsign = larr[0]
+                ldescript = [1] 
+                lname = larr[2]
+                self.data["%s_sign" % str(lname)] = str(lsign)
+                self.data["%s_descript" % lname] = str(ldescript)
+        finally:
+            fd.close()
