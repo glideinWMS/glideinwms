@@ -3,7 +3,7 @@
 
 Name:               gWMS-EC2-Pilot
 Version:            0.0.1
-Release:            1
+Release:            2
 
 Summary:            The glideinWMS service that contextualizes an Amazon EC2 AMI 
 Group:              System Environment/Daemons
@@ -40,8 +40,8 @@ StartD and shutting down the AMI once the pilot exits.
 
 %pre
 # Make user glidein_pilot
-/sbin/groupadd -g 91234 glidein_pilot
-/sbin/useradd -M -g 91234 -u 91234 -d /mnt/glidein_pilot -s /bin/bash glidein_pilot
+/usr/sbin/groupadd -g 91234 glidein_pilot
+/usr/sbin/useradd -M -g 91234 -u 91234 -d /mnt/glidein_pilot -s /bin/bash glidein_pilot
 
 %install
 rm -rf $RPM_BUILD_ROOT
@@ -68,7 +68,8 @@ install -m 0500 %{SOURCE1} $RPM_BUILD_ROOT%{_sbindir}/PilotLauncher
 
 if [ "$1" = "0" ] ; then
     /sbin/chkconfig --del GlideinPilot
-    /sbin/userdel -f glidein_pilot
+    /usr/sbin/userdel -f glidein_pilot
+
     rm -rf %{_sbindir}/PilotLauncher
     rm -rf %{_initrddir}/GlideinPilot
 fi
