@@ -96,6 +96,11 @@ file as being executable:</P>
     <BLOCKQUOTE>executable=”True”</BLOCKQUOTE>
 <P>By default the files listed are non executable, so an
 administrator needs explicitly list the executable ones.</P>
+<p>
+    Files will be in the "main" sub directory for factory files
+    and the "client" sub directory for frontend files.
+
+</p>
 <H2><A NAME="api"></A>Script API</H2>
 <P>A script is provided with exactly 2 arguments:</P>
 <OL>
@@ -136,12 +141,12 @@ spaces, the easiest way to extract a value in bash is:</P>
 <P>Several attributes are added by the default glidein scripts, the
 most interesting being:</P>
 <UL>
-    <LI>DD_CONFIG_LINE_SOURCE – Script that can be used to add new
+    <LI>ADD_CONFIG_LINE_SOURCE – Script that can be used to add new
     attributes to the glidein configuration file (see below).</li>
-    <LI>LIDEIN_Name – Name of the glidein branch</li>
-    <LI>LIDEIN_Entry_Name – name of the glidein entry point</li>
-    <LI>MP_DIR – The path to the temporary dir</li>
-    <LI>ROXY_URL – The URL of the Web proxy</li>
+    <LI>GLIDEIN_Name – Name of the glidein branch</li>
+    <LI>GLIDEIN_Entry_Name – name of the glidein entry point</li>
+    <LI>TMP_DIR – The path to the temporary dir</li>
+    <LI>PROXY_URL – The URL of the Web proxy</li>
 
 </UL>
 <P>All attributes of the glidein factory (both the common and the
