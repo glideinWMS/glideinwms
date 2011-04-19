@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.7 2010/10/06 23:26:08 sfiligoi Exp $
+#   $Id: cgWCreate.py,v 1.49.2.7.2.1 2011/04/19 15:22:55 tiradani Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -39,7 +39,8 @@ def create_condor_tar_fd(condor_base_dir):
                   'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
                   'libexec/condor_glexec_run','libexec/condor_glexec_setup',
                   'sbin/condor_fetchlog',
-                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template']:
+                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template',
+                  'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class','lib/scimark2lib.jar']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         
@@ -86,6 +87,7 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add('+GlideinEntryName','"%s"'%entry_name)
         self.add('+GlideinClient','"$ENV(GLIDEIN_CLIENT)"')
         self.add('+GlideinX509Identifier','"$ENV(GLIDEIN_X509_ID)"')
+        self.add('+GlideinX509SecurityClass','"$ENV(GLIDEIN_X509_SEC_CLASS)"')
         self.add('+GlideinWebBase','"%s"'%web_base)
         if proxy_url!=None:
             self.add('+GlideinProxyURL','"%s"'%proxy_url)
@@ -212,23 +214,18 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("}\n\n")
 
         fd.write('downtime() {\n')
-        fd.write('       if [ -z "$2" ]; then\n')
-        fd.write('           echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
+        fd.write('       if [ -z "$3" ]; then\n')
+        fd.write('           echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay] [-frontend sec_name] [-security sec_class|\'All\'] [-comment comment]"\n')
         fd.write('           exit 1\n')
         fd.write('       fi\n\n')
         fd.write('	 if [ "$1" == "down" ]; then\n')
-        fd.write('	   echo -n "Setting downtime for"\n')
+        fd.write('	   echo -n "Setting downtime..."\n')
         fd.write('	 elif [ "$1" == "up" ]; then\n')
-        fd.write('	   echo -n "Removing downtime for"\n')
+        fd.write('	   echo -n "Removing downtime..."\n')
         fd.write('	 else\n')
-        fd.write('	   echo -n "Infosys-based downtime management for"\n')
+        fd.write('	   echo -n "Infosys-based downtime management."\n')
         fd.write('	 fi\n\n')
-        fd.write('	 if [ "$2" == "factory" ]; then\n')
-        fd.write('	   echo -n " factory:"\n')
-        fd.write('       else\n')
-        fd.write('	   echo -n " entry $2:"\n')
-        fd.write('	 fi\n\n')
-        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 $1 $3 2>/dev/null 1>&2 </dev/null && success || failure\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd $1 -dir "$factory_dir" "$@" 2>/dev/null 1>&2 </dev/null && success || failure\n')
         fd.write('	 RETVAL=$?\n')
         fd.write('	 echo\n')
         fd.write('}\n\n')
@@ -256,20 +253,20 @@ def create_initd_startup(startup_fname,factory_dir,glideinWMS_dir):
         fd.write("                reconfig $2\n")
         fd.write("        ;;\n")
         fd.write("	  down)\n")
-        fd.write("		  downtime down $2 $3\n")
+        fd.write("		  downtime down \"$@\"\n")
         fd.write("	  ;;\n")
         fd.write("	  up)\n")
-        fd.write("		  downtime up $2 $3\n")
+        fd.write("		  downtime up \"$@\"\n")
         fd.write("	  ;;\n")
         fd.write("	  infosysdown)\n")
-        fd.write("		  downtime ress+bdii entries $2\n")
+        fd.write("		  downtime ress+bdii entries \"$@\"\n")
         fd.write("	  ;;\n")
         fd.write("	  statusdown)\n")
         fd.write('            if [ -z "$2" ]; then\n')
-        fd.write('              echo $"Usage: factory_startup $1 \'factory\'|\'entries\'|entry_name [delay]"\n')
+        fd.write('              echo $"Usage: factory_startup $1 -entry \'factory\'|\'entries\'|entry_name [-delay delay]"\n')
         fd.write('              exit 1\n')
         fd.write('            fi\n')
-        fd.write('            "$glideinWMS_dir/factory/manageFactoryDowntimes.py" "$factory_dir" $2 check $3\n')
+        fd.write('	 "$glideinWMS_dir/factory/manageFactoryDowntimes.py" -cmd check -dir "$factory_dir" "$@"\n')
         fd.write('            RETVAL=$?\n')
         fd.write("	  ;;\n")
         fd.write("        *)\n")

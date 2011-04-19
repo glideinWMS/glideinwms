@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.11 2010/11/02 22:47:09 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.1 2011/04/19 15:22:58 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -217,7 +217,7 @@ class condorQStats:
         self.files_updated=None
         self.attributes={'Status':("Idle","Running","Held","Wait","Pending","StageIn","IdleOther","StageOut"),
                          'Requested':("Idle","MaxRun"),
-                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","GlideIdle","GlideRunning","GlideTotal")}
+                         'ClientMonitor':("InfoAge","JobsIdle","JobsRunning","JobsRunHere","GlideIdle","GlideRunning","GlideTotal")}
         # create a global downtime field since we want to propagate it in various places
         self.downtime = 'True'
 
@@ -231,19 +231,23 @@ class condorQStats:
             t_el={}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['Status']=el
+        if t_el.has_key('Status'):
+            el=t_el['Status']
+        else:
+            el={}
+            t_el['Status']=el
 
         status_pairs=((1,"Idle"), (2,"Running"), (5,"Held"), (1001,"Wait"),(1002,"Pending"),(1010,"StageIn"),(1100,"IdleOther"),(4010,"StageOut"))
         for p in status_pairs:
             nr,str=p
-            if qc_status.has_key(nr):
-                el[str]=qc_status[nr]
-            else:
+            if not el.has_key(str):
                 el[str]=0
+            if qc_status.has_key(nr):
+                el[str]+=qc_status[nr]
+
         self.updated=time.time()
 
-    def logRequest(self,client_name,requests,params):
+    def logRequest(self,client_name,requests):
         """
         requests is a dictinary of requests
         params is a dictinary of parameters
@@ -256,22 +260,32 @@ class condorQStats:
             t_el=self.data[client_name]
         else:
             t_el={}
+            t_el['Downtime'] = {'status':self.downtime}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['Requested']=el
-        t_el['Downtime'] = {'status':self.downtime}
+        if t_el.has_key('Requested'):
+            el=t_el['Requested']
+        else:
+            el={}
+            t_el['Requested']=el
 
-        if requests.has_key('IdleGlideins'):
-            el['Idle']=requests['IdleGlideins']
-        if requests.has_key('MaxRunningGlideins'):
-            el['MaxRun']=requests['MaxRunningGlideins']
+        for reqpair in  (('IdleGlideins','Idle'),('MaxRunningGlideins','MaxRun')):
+            org,new=reqpair
+            if not el.has_key(new):
+                el[new]=0
+            if requests.has_key(org):
+                el[new]+=requests[org]
 
-        el['Parameters']=copy.deepcopy(params)
+        # Had to get rid of this
+        # Does not make sense when one aggregates
+        #el['Parameters']=copy.deepcopy(params)
+        # Replacing with an empty list
+        el['Parameters']={}
 
         self.updated=time.time()
 
-    def logClientMonitor(self,client_name,client_monitor,client_internals):
+    def logClientMonitor(self,client_name,client_monitor,client_internals,
+                         fraction=1.0): # if specified, will be used to extract partial info
         """
         client_monitor is a dictinary of monitoring info
         client_internals is a dictinary of internals
@@ -279,6 +293,7 @@ class condorQStats:
         At the moment, it looks only for
           'Idle'
           'Running'
+          'RunningHere'
           'GlideinsIdle'
           'GlideinsRunning'
           'GlideinsTotal'
@@ -290,19 +305,44 @@ class condorQStats:
             t_el={}
             self.data[client_name]=t_el
 
-        el={}
-        t_el['ClientMonitor']=el
+        if t_el.has_key('ClientMonitor'):
+            el=t_el['ClientMonitor']
+        else:
+            el={}
+            t_el['ClientMonitor']=el
 
-        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
+        for karr in (('Idle','JobsIdle'),('Running','JobsRunning'),('RunningHere','JobsRunHere'),('GlideinsIdle','GlideIdle'),('GlideinsRunning','GlideRunning'),('GlideinsTotal','GlideTotal')):
             ck,ek=karr
+            if not el.has_key(ek):
+                el[ek]=0
             if client_monitor.has_key(ck):
-                el[ek]=client_monitor[ck]
+                el[ek]+=(client_monitor[ck]*fraction)
+            elif ck=='RunningHere':
+                # for compatibility, if RunningHere not defined, use min between Running and GlideinsRunning
+                if (client_monitor.has_key('Running') and client_monitor.has_key('GlideinsRunning')):
+                    el[ek]+=(min(client_monitor['Running'],client_monitor['GlideinsRunning'])*fraction)
+
+        if not el.has_key('InfoAge'):
+            el['InfoAge']=0
+            el['InfoAgeAvgCounter']=0 # used for totals since we need an avg in totals, not absnum 
+
 
         if client_internals.has_key('LastHeardFrom'):
-            el['InfoAge']=int(time.time()-long(client_internals['LastHeardFrom']))
-            el['InfoAgeAvgCounter']=1 # used for totals since we need an avg in totals, not absnum 
+            el['InfoAge']+=(int(time.time()-long(client_internals['LastHeardFrom']))*fraction)
+            el['InfoAgeAvgCounter']+=fraction
 
         self.updated=time.time()
+
+    # call this after the last logClientMonitor
+    def finalizeClientMonitor(self):
+        # convert all ClinetMonitor numbers in integers
+        # needed due to fraction calculations
+        for client_name in self.data.keys():
+            if self.data[client_name].has_key('ClientMonitor'):
+                el=self.data[client_name]['ClientMonitor']
+                for k in el.keys():
+                    el[k]=int(round(el[k]))
+        return
 
     def get_data(self):
         data1=copy.deepcopy(self.data)
@@ -376,7 +416,7 @@ class condorQStats:
                                       inst_name="total",
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -465,7 +505,8 @@ class condorLogSummary:
         self.data={} # not used
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
-        self.current_stats_data={}     # will contain dictionary client->username->dirSummary.data
+        self.current_stats_data={}     # will contain dictionary client->username->dirSummarySimple
+        self.old_stats_data={}
         self.stats_diff={}             # will contain the differences
         self.job_statuses=('Running','Idle','Wait','Held','Completed','Removed') #const
         self.job_statuses_short=('Running','Idle','Wait','Held') #const
@@ -479,7 +520,8 @@ class condorLogSummary:
             # but carry over all the users... should not change that often
             new_stats_data[c]=self.current_stats_data[c]
 
-        self.current_stats_data=new_stats_data
+        self.old_stats_data=new_stats_data
+        self.current_stats_data={}
 
         # and flush out the differences
         self.stats_diff={}
@@ -515,18 +557,26 @@ class condorLogSummary:
         """
          stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
-        self.stats_diff[client_name]={}
-        if self.current_stats_data.has_key(client_name):
-            for username in stats.keys():
-                if self.current_stats_data[client_name].has_key(username):
-                    self.stats_diff[client_name][username]=stats[username].diff(self.current_stats_data[client_name][username])
-
-        self.current_stats_data[client_name]={}
+        if not self.current_stats_data.has_key(client_name):
+            self.current_stats_data[client_name]={}
+            
         for username in stats.keys():
-            self.current_stats_data[client_name][username]=stats[username].data
+            if not self.current_stats_data[client_name].has_key(username):
+                self.current_stats_data[client_name][username]=stats[username].get_simple()
+            else:
+                self.current_stats_data[client_name][username].merge(stats[username])
         
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
+
+    def computeDiff(self):
+        for client_name in self.current_stats_data.keys():
+            self.stats_diff[client_name]={}
+            if self.old_stats_data.has_key(client_name):
+                stats=self.current_stats_data[client_name]
+                for username in stats.keys():
+                    if self.old_stats_data[client_name].has_key(username):
+                        self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
     def get_stats_data_summary(self):
         stats_data={}
@@ -536,7 +586,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=0
                     for username in self.current_stats_data[client_name].keys():
-                        client_el=self.current_stats_data[client_name][username]
+                        client_el=self.current_stats_data[client_name][username].data
                         if ((client_el!=None) and (s in client_el.keys())):
                             count+=len(client_el[s])
 
@@ -746,7 +796,7 @@ class condorLogSummary:
                 if not (s in ('Completed','Removed')): # I don't have their numbers from inactive logs
                     count=0
                     for username in self.current_stats_data[client_name].keys():
-                        stats_el=self.current_stats_data[client_name][username]
+                        stats_el=self.current_stats_data[client_name][username].data
 
                         if ((stats_el!=None) and (s in stats_el.keys())):
                             count+=len(stats_el[s])
@@ -774,7 +824,7 @@ class condorLogSummary:
             tdata=[]
             for client_name in self.current_stats_data.keys():
                 for username in self.current_stats_data[client_name]:
-                    sdata=self.current_stats_data[client_name][username]
+                    sdata=self.current_stats_data[client_name][username].data
                     if ((sdata!=None) and (k in sdata.keys())):
                         tdata=tdata+sdata[k]
             total[k]=tdata
@@ -804,12 +854,14 @@ class condorLogSummary:
                 for username in self.stats_diff[client_name].keys():
                     sdiff=self.stats_diff[client_name][username]
                     if ((sdiff!=None) and (k in sdiff.keys())):
+                        if k=='Completed':
+                            # for completed jobs, add the username
+                            # not for the others since there is no adequate place in the object
+                            for sdel in sdiff[k]['Entered']:
+                                sdel[4]['username']=username
+                            
                         for e in tdata.keys():
                             for sdel in sdiff[k][e]:
-                                # for completed jobs, add the username
-                                # not for the others since there is no adequate place in the object
-                                if k=='Completed':
-                                    sdel[4]['username']=username
                                 tdata[e].append(sdel)
             out_data[client_name]=client_el
         return out_data
@@ -851,7 +903,7 @@ class condorLogSummary:
                                       subclass_params={'CompletedCounts':get_completed_stats_xml_desc()},
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
-    def get_updated():
+    def get_updated(self):
         return self.updated
 
     def get_xml_updated(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):

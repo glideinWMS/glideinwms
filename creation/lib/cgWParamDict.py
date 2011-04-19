@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14 2010/09/08 23:22:37 sfiligoi Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14.4.1 2011/04/19 15:22:55 tiradani Exp $
 #
 # Description:
 #   Glidein creation module
@@ -98,7 +98,7 @@ class glideinMainDicts(cgWDictFile.glideinMainDicts):
             self.dicts['untar_cfg'].add(condor_fname,cgWConsts.CONDOR_DIR)
 
         # add additional system scripts
-        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh'):
+        for script_name in ('create_mapfile.sh','collector_setup.sh','gcb_setup.sh','glexec_setup.sh','java_setup.sh'):
             self.dicts['after_file_list'].add_from_file(script_name,(cWConsts.insert_timestr(script_name),'exec','TRUE','FALSE'),os.path.join(params.src_dir,script_name))
                 
         # this must be the last script in the list
@@ -529,7 +529,7 @@ def populate_factory_descript(work_dir,
         # if a user does not provide a file name, use the default one
         down_fname=params.downtimes.absfname
         if down_fname==None:
-            down_fname=os.path.join(work_dir,'factory.downtimes')
+            down_fname=os.path.join(work_dir,'glideinWMS.downtimes')
 
         glidein_dict.add('FactoryName',params.factory_name)
         glidein_dict.add('GlideinName',params.glidein_name)

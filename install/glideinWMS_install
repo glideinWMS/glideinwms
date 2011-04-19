@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.28 2010/10/07 21:44:19 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.28.2.1 2011/04/19 15:22:58 tiradani Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -264,6 +264,50 @@ def schedd_node_install():
             config_fd.write("# Enable match authentication\n")
             config_fd.write("#####################################\n")
             config_fd.write("SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION=TRUE\n")
+        finally:
+            config_fd.close()
+
+    # USE SHARED PORT
+    print
+    print "Condor 7.5.3 and up support the use of a shared_port_daemon"
+    print "that drastically reduces the number of ports used"
+    print "and thus also improves the pool scalability."
+    while 1:
+        print ""
+        sport_yn=raw_input("Do you want to enable the shadred_port_daemon?: (y/n) ")
+        if sport_yn=="":
+            sport_yn="y"
+        if (sport_yn!="y") and (sport_yn!="n"):
+            print "Please answer y or n"
+            continue 
+        break
+    if sport_yn=='y':
+        default_sport_nr=9615
+        while 1:
+            sport_nr_str=raw_input("What port should it use?: [%i] "%default_sport_nr)
+            if sport_nr_str=="":
+                sport_nr=default_sport_nr
+                break
+            try:
+                sport_nr=int(sport_nr_str)
+                break
+            except:
+                print "%s not a number, please correct"
+                continue
+            
+
+        print
+        print "Make sure you use Condor 7.5.3 and up in glideins, too"
+        print
+        
+        config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+        try:
+            config_fd.write("\n#####################################\n")
+            config_fd.write("# Enable shared_port_daemon \n")
+            config_fd.write("#####################################\n")
+            config_fd.write("USE_SHARED_PORT = True\n")
+            config_fd.write("SHARED_PORT_ARGS = -p %i\n"%sport_nr)
+            config_fd.write("DAEMON_LIST = $(DAEMON_LIST) SHARED_PORT\n")
         finally:
             config_fd.close()
 
@@ -692,14 +736,14 @@ def query_WebLocation(web_subdir):
                     print "Cannot create dir '%s'"%sdir_fullpath
                     continue
 
-                test_fname=os.path.join(sdir_fullpath,"test.txt")
-                try:
-                    fd=open(test_fname,"w")
-                    fd.close()
-                    os.unlink(test_fname)
-                except:
-                    print "Dir '%s' not writable."%sdir_fullpath
-                    continue
+            test_fname=os.path.join(sdir_fullpath,"test.txt")
+            try:
+                fd=open(test_fname,"w")
+                fd.write("Test text file for glideinWMS to download");
+                fd.close()
+            except:
+                print "Dir '%s' not writable."%sdir_fullpath
+                continue
         break # everything worked, go on 
         
 
@@ -773,7 +817,7 @@ def query_WebLocation(web_subdir):
                 else:
                     hc=httplib.HTTPSConnection(web_base_url_host_name,web_base_url_host_port)
                 hc.connect()
-                hc.request("GET", "/%sstage/"%web_base_url_path)
+                hc.request("GET", "/%sstage/test.txt"%web_base_url_path)
                 rc = hc.getresponse()
                 hc.close()
                 if rc.status!=200:
@@ -1761,8 +1805,8 @@ def vofrontend_install():
             fd.write('      <attr name="USE_MATCH_AUTH" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
             # the following are just so admins know they exist
             # we put in the default values
-            fd.write('      <attr name="GLIDEIN_Entry_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
-            fd.write('      <attr name="GLIDEIN_Entry_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
+            fd.write('      <attr name="GLIDECLIENT_Start" glidein_publish="False" job_publish="False" parameter="True" type="string" value="True"/>\n')
+            fd.write('      <attr name="GLIDECLIENT_Rank" glidein_publish="False" job_publish="False" parameter="True" type="string" value="1"/>\n')
             fd.write('   </attrs>\n')
             fd.write('   <groups>\n')
             fd.write('      <group name=%s enabled="True">\n'%xmlFormat.xml_quoteattr(group_name))
@@ -2518,7 +2562,7 @@ def install_condor():
         print
         print "You will now need the Condor tarball"
         print "You can find it on http://www.cs.wisc.edu/condor/"
-        print "Versions v7.2.2 and 7.3.1 have been tested, but you"
+        print "Versions v7.4.4 and 7.5.4 have been tested, but you"
         print "should always use the latest one"
         print
         condor_tarball=raw_input("Where do you have the Condor tarball? ")
@@ -2536,8 +2580,12 @@ def install_condor():
 
         try:
             try:
-                first_dir=fd.getnames()[0]
-                if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
+                first_entry=fd.getnames()[0]
+                if (len(first_entry.split('/'))<2):
+                    print "File '%s' is not a condor tarball! (found '%s', expected a subdirectory'"%(condor_tarball,first_entry)
+                    continue
+                first_dir=first_entry.split('/')[0]+'/'
+                if (first_dir[:7]!="condor-"):
                     print "File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'"%(condor_tarball,first_dir)
                     continue
                 condor_version=first_dir[7:-1]

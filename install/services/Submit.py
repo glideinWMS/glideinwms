@@ -14,33 +14,50 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-valid_options = [ "node", 
-"unix_acct",
+submit_options = [ "hostname", 
+"username",
 "service_name", 
 "condor_location", 
-"certificates",
-"gsi_authentication", 
-"cert_proxy_location", 
-"gsi_dn", 
+"x509_cert_dir",
+"x509_cert", 
+"x509_key", 
+"x509_gsi_dn", 
 "match_authentication", 
 "condor_tarball", 
 "condor_admin_email", 
 "split_condor_config", 
 "number_of_schedds",
+"schedd_shared_port",
 "install_vdt_client",
 "vdt_location",
 "pacman_location",
 ]
 
+usercollector_options = [ "hostname", 
+"service_name", 
+"x509_gsi_dn",
+"condor_location",
+]
+
+frontend_options = [ "hostname", 
+"service_name", 
+"x509_gsi_dn",
+]
+
+valid_options = { "Submit"        : submit_options,
+                  "UserCollector" : usercollector_options,
+                  "VOFrontend"    : frontend_options,
+}
+
 class Submit(Condor):
 
-  def __init__(self,inifile):
+  def __init__(self,inifile,options=None):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Submit"
-    Condor.__init__(self,self.inifile,self.ini_section,valid_options)
-    #self.certificates = self.option_value(self.ini_section,"certificates")
-    self.certificates = None
+    if options == None:
+      options = valid_options[self.ini_section]
+    Condor.__init__(self,self.inifile,self.ini_section,options)
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "SCHEDD"
     self.frontend      = None     # VOFrontend object
@@ -52,15 +69,11 @@ class Submit(Condor):
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile)
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile)
-  #--------------------------------
-  def get_usercollector(self):
-    if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile)
+      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options["UserCollector"])
  
   #--------------------------------
   def install(self):
@@ -76,15 +89,7 @@ class Submit(Condor):
       self.install_condor()
     self.configure_condor()
     common.logit ("======== %s install complete ==========" % self.ini_section)
-    os.system("sleep 3")
-    common.logit("")
-    common.logit("You will need to have the Submit node schedds running if you intend\nto install the other glideinWMS components.")
-    yn = common.ask_yn("... would you like to start it now")
-    cmd ="./manage-glideins  --start submit --ini %s" % (self.inifile)
-    if yn == "y":
-      common.run_script(cmd)
-    else:
-      common.logit("\nTo start the Submit node schedds, you can run:\n %s" % cmd)
+    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
 
   #-----------------------------
   def determine_co_located_services(self):
@@ -94,13 +99,13 @@ class Submit(Condor):
         perform the configuration of the condor_config file.
     """
     common.logit("\nChecking for co-located services")
-    # -- if not on same node, we don't have any co-located
-    if self.node() <> self.usercollector.node():
-      common.logit("... no services are co-located on this node")
+    # -- if not on same host, we don't have any co-located
+    if self.hostname() <> self.usercollector.hostname():
+      common.logit("... no services are co-located on this host")
       return 
     common.logit("""
 The Submit service and the User Collector service are being installed on the
-same node and can share the same Condor instance, as well as certificates and
+same host and can share the same Condor instance, as well as certificates and
 VDT client instances.""")
     #--- Condor ---
     common.logit(".......... Submit Condor: %s" % self.condor_location())
@@ -145,16 +150,10 @@ Do you want to continue""")
       common.logit("... no updates to condor mapfile required")
       return
     common.logit("... updating condor_mapfile")
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
     #--- create condor_mapfile entries ---
-    condor_entries = """\
-GSI "^%s$" %s
-GSI "^%s$" %s
-GSI "^%s$" %s""" % \
-              (re.escape(self.gsi_dn()),              self.service_name(),
- re.escape(self.usercollector.gsi_dn()),self.usercollector.service_name(),
-      re.escape(self.frontend.gsi_dn()),              self.frontend.service_name())
-
+    condor_entries = ""
+    condor_entries += common.mapfile_entry(self.usercollector.x509_gsi_dn(), self.usercollector.service_name())
+    condor_entries += common.mapfile_entry( self.frontend.x509_gsi_dn(),     self.frontend.service_name())
     self.__create_condor_mapfile__(condor_entries)
 
     #-- create the condor config file entries ---
@@ -167,9 +166,9 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 # --- Frontend user: %s
 GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
 """ % \
-                 (self.unix_acct(),               self.gsi_dn(),
-    self.usercollector.unix_acct(), self.usercollector.gsi_dn(),
-         self.frontend.unix_acct(),      self.frontend.gsi_dn())
+                 (self.username(),               self.x509_gsi_dn(),
+    self.usercollector.service_name(), self.usercollector.x509_gsi_dn(),
+         self.frontend.service_name(),      self.frontend.x509_gsi_dn())
 
     #-- update the condor config file entries ---
     self.__update_gsi_daemon_names__(gsi_daemon_entries)
@@ -200,14 +199,27 @@ specified.
     common.logit("Using ini file: %s" % options.inifile)
     return options
 
+#-------------------------
+def create_template():
+  global valid_options
+  print "; ------------------------------------------"
+  print "; Submit  minimal ini options template"
+  for section in valid_options.keys():
+    print "; ------------------------------------------"
+    print "[%s]" % section
+    for option in valid_options[section]:
+      print "%-25s =" % option
+    print
+
 ##########################################
 def main(argv):
   try:
-    options = validate_args(argv)
-    submit = Submit(options.inifile)
+    create_template()
+    #options = validate_args(argv)
+    #submit = Submit(options.inifile)
     #submit.install()
     #submit.configure_gsi_security()
-    submit.__validate_tarball__(submit.condor_tarball())
+    #submit.__validate_tarball__(submit.condor_tarball())
   except KeyboardInterrupt, e:
     common.logit("\n... looks like you aborted this script... bye.")
     return 1

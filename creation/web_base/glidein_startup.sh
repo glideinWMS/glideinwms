@@ -4,15 +4,19 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.85.2.6 2010/10/11 19:11:47 burt Exp $
+#   $Id: glidein_startup.sh,v 1.85.2.6.2.1 2011/04/19 15:22:56 tiradani Exp $
 #
 
 export LANG=C
 
 function on_die {
-        echo "Received kill signal... shutting down child processes"
+        echo "Received kill signal... shutting down child processes" 1>&2
         ON_DIE=1
         kill %1
+}
+
+function ignore_signal {
+        echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
 }
 
 function warn {
@@ -93,7 +97,7 @@ done
 work_dir_created=0
 function glidein_exit {
   if [ $1 -ne 0 ]; then
-    sleep $sleep_time # wait a bit in case of error, to reduce lost glideins
+      sleep $sleep_time 
   fi
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
@@ -1050,6 +1054,7 @@ let validation_time=$last_startup_time-$startup_time
 echo "=== Last script starting `date` ($last_startup_time) after validating for $validation_time ==="
 echo
 ON_DIE=0
+trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
 gs_id_work_dir=`get_work_dir main`
@@ -1064,8 +1069,7 @@ let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
 echo
 if [ $ret -ne 0 ]; then
-  warn "Error running '$last_script'" 1>&2
-  glidein_exit 1
+    warn "Error running '$last_script'" 1>&2
 fi
 
 #########################

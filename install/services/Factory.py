@@ -17,75 +17,104 @@ import optparse
 #sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
 os.environ["PYTHONPATH"] = ""
 
-valid_options = [ "node", 
-"unix_acct", 
+factory_options = [ "hostname", 
+"username", 
 "service_name", 
 "install_location", 
-"client_files", 
+"logs_dir",
+"client_log_dir", 
+"client_proxy_dir", 
 "instance_name",
-"gsi_authentication", 
-"cert_proxy_location", 
-"gsi_dn", 
 "use_vofrontend_proxy", 
+"x509_proxy", 
+"x509_gsi_dn", 
 "use_glexec", 
 "use_ccb", 
-"gcb_list", 
 "ress_host",
-"bdii_host",
 "entry_vos",
 "entry_filters",
 "web_location",
 "web_url",
-"javascriptrrd",
-"flot",
-"m2crypto",
-"javascriptrrd_tarball",
-"flot_tarball",
-"m2crypto_tarball",
+"javascriptrrd_location",
 "match_authentication",
 "install_vdt_client",
-"glidein_install_dir",
+"glideinwms_location",
 "vdt_location",
 "pacman_location",
 ]
 
+wmscollector_options = [ "hostname", 
+"username", 
+"privilege_separation",
+"condor_location",
+"frontend_users",
+"x509_cert_dir",
+]
+
+frontend_options = [ 
+"glidein_proxy_files", 
+"glidein_proxy_dns", 
+]
+
+valid_options = { "Factory"       : factory_options,
+                  "WMSCollector"  : wmscollector_options,
+                  "VOFrontend"    : frontend_options,
+}
+
 
 class Factory(Configuration):
+
   def __init__(self,inifile,options=None):
     global valid_options
-    if options <> None:
-       valid_options = options
     self.inifile = inifile
     self.ini_section = "Factory"
+    if options == None:
+      options = valid_options[self.ini_section]
     Configuration.__init__(self,inifile)
-    self.validate_section(self.ini_section,valid_options)
-    self.wms = WMSCollector.WMSCollector(self.inifile)
-    frontend1 = VOFrontend.VOFrontend(self.inifile) 
-    self.frontends = [ frontend1,]    # list of VOFrontends
-
-    self.glidein = Glidein(self.inifile,self.ini_section,valid_options)
-
+    self.validate_section(self.ini_section,options)
+    self.glidein = Glidein(self.inifile,self.ini_section,options)
     self.config_entries_list = {} # Config file entries elements
+    self.wms      = None
+    self.frontend = None
+    self.get_wms()
+
+  #-- get service instances --------
+  def get_wms(self):
+    if self.wms == None:
+      self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+
+  def get_frontend(self):
+    if self.frontend == None:
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
 
   #---------------------
-  def glidein_install_dir(self):
-    return self.glidein.glidein_install_dir()
+  def glideinwms_location(self):
+    return self.glidein.glideinwms_location()
   #---------------------
   def install_location(self):
     return self.glidein.install_location()
+  #---------------------
+  def logs_dir(self):
+     return self.option_value(self.ini_section,"logs_dir")
   #---------------------
   def glidein_dir(self):
     # this directory is hardcoded in the createglidein script
     return "%s/glidein_%s" % (self.glidein.install_location(),self.glidein.instance_name())
   #---------------------
-  def unix_acct(self):
-    return self.glidein.unix_acct()
+  def username(self):
+    return self.glidein.username()
   #---------------------
-  def node(self):
-    return self.glidein.node()
+  def hostname(self):
+    return self.glidein.hostname()
   #---------------------
-  def gsi_dn(self):
-    return self.glidein.gsi_dn()
+  def use_vofrontend_proxy(self):
+    return self.option_value(self.ini_section,"use_vofrontend_proxy")
+  #---------------------
+  def x509_proxy(self):
+    return self.option_value(self.ini_section,"x509_proxy")
+  #---------------------
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def env_script(self):
     return "%s/factory.sh" % self.glidein.install_location()
@@ -93,20 +122,11 @@ class Factory(Configuration):
   def service_name(self):
     return self.glidein.service_name()
   #---------------------
-#  def factory_files(self):
-#    return "%s" % (self.option_value(self.ini_section,"install_location"))
+  def client_log_dir(self):
+    return self.option_value(self.ini_section,"client_log_dir")
   #---------------------
-  def factory_logs(self):
-    return "%s/logs" % (self.install_location())
-  #---------------------
-  def client_files(self):
-    return "%s/%s" % (self.option_value(self.ini_section,"client_files"),"clients")
-  #---------------------
-  def client_logs(self):
-    return "%s/logs" % self.client_files()
-  #---------------------
-  def client_proxies(self):
-    return "%s/proxies" % self.client_files()
+  def client_proxy_dir(self):
+    return self.option_value(self.ini_section,"client_proxy_dir")
 
   #----------------------------
   def get_new_config_entries(self):
@@ -123,6 +143,8 @@ class Factory(Configuration):
   #---------------------
   def install(self):
     common.logit ("======== %s install starting ==========\n" % self.ini_section)
+    self.get_wms()
+    self.get_frontend()
     common.ask_continue("Continue")
     self.validate_install()
     self.get_config_entries_data()
@@ -130,64 +152,115 @@ class Factory(Configuration):
     self.create_config()
     common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
     self.create_glideins()
-    self.start()
-
+    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
+      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
+ 
   #-----------------------
   def validate_install(self):
     common.logit( "\nDependency and validation checking starting\n")
-    if os.getuid() <> pwd.getpwnam(self.unix_acct())[2]:
-      common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.unix_acct())
+    if os.getuid() <> pwd.getpwnam(self.username())[2]:
+      common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.username())
     # check to see if there will be a problem with client files during the
     # create factory step.
-#JGW NOT COMPLETE HERE AS I CANNOT FIGURE OUT WHAT NEEDS TO BE DELETED
-    #if wms.privsep <> None:
-    #  if len(os.listdir(self.client_logs()) <> 0:
-    #  if len(os.listdir(self.client_proxies()) <> 0:
-    self.glidein.validate_install()
+    common.validate_hostname(self.hostname())
+    common.validate_user(self.username())
+    common.validate_installer_user(self.username())
+    self.glidein.validate_web_location()
+    self.validate_use_vofrontend_proxy()
+    self.glidein.preinstallation_software_check()
     self.glidein.__install_vdt_client__()
+    self.validate_logs_dir()
+    common.validate_install_location(self.install_location())
     self.glidein.create_web_directories()
-    common.make_directory(self.install_location(),self.unix_acct(),0755,empty_required=True)
-    self.create_factory_dirs(self.unix_acct(),0755)
+    common.make_directory(self.install_location(),self.username(),0755,empty_required=True)
+    self.create_factory_dirs(self.username(),0755)
     if self.wms.privilege_separation() <> "y":
       #-- done in WMS collector install if privilege separation is used --
-      self.create_factory_client_dirs(self.unix_acct(),0755)
+      self.create_factory_client_dirs(self.username(),0755)
     common.logit( "\nDependency and validation checking complete\n")
+
+  #---------------------------------
+  def validate_use_vofrontend_proxy(self):
+    option =  self.use_vofrontend_proxy()
+    common.logit("... validating use_vofrontend_proxy: %s" % option)
+    if option not in ("y","n"):
+      common.logerr("use_vofrontend_proxy must be 'y' or 'n'")
+    if option == "y":  # using vofrontend 
+      if len(self.x509_proxy())  > 0 or \
+         len(self.x509_gsi_dn()) > 0:
+        common.logerr("""You have said you want to use the Frontend proxies only.
+The x509_proxy and x509_gsi_dn option must be empty.""")
+      if len(self.frontend.glidein_proxy_files())  == 0 or \
+         len(self.frontend.glidein_proxy_dns()[0]) == 0:
+        common.logerr("""You have said you want to use the Frontend proxies only.
+The VOFrontend glidein_proxy_files & glidein_proxy_dns are not fully populated.""")
       
+    else:  # use factory proxy if no vofrontend proxy provided
+      self.validate_factory_proxy()
+
+  #---------------------------------
+  def validate_factory_proxy(self):
+    #--- using factory and vofrontend ---
+    if len(self.x509_proxy())  == 0 or \
+       len(self.x509_gsi_dn()) == 0:
+      common.logerr("""You have said you want to use a Frontend and Factory proxies.
+The x509_proxy and x509_gsi_dn option must be populated.""")
+    proxy_file = self.x509_proxy()
+    common.logit("... validating x509_proxy: %s" % proxy_file)
+    if not os.path.exists(proxy_file):
+      common.logerr("""File specified does not exist.""")
+    common.logit("... validating x509_gsi_dn: %s" % self.x509_gsi_dn())
+    type = "proxy"
+    dn_to_validate = self.x509_gsi_dn()
+    dn_in_file = common.get_gsi_dn(type,proxy_file)
+    if dn_in_file <> dn_to_validate:
+      common.logerr("""The DN of the %(type)s in %(file)s 
+does not match the x509_gsi_dn attribute in your ini file:
+%(type)8s dn: %(file_dn)s
+%(ini)11s: %(ini_dn)s
+This may cause a problem in other services.
+Are you sure this is a proxy and not a certificate?""" % \
+              { "type"    : type,
+                "ini"     : "x509_gsi_dn",
+                "file"    : proxy_file,
+                "file_dn" : dn_in_file,
+                "ini_dn"  : dn_to_validate},)
+
+    
+      
+  #---------------------------------
+  def validate_logs_dir(self):
+    common.logit("... validating logs_dir: %s" % self.logs_dir())
+    common.make_directory(self.logs_dir(),self.username(),0755,empty_required=True)
 
   #--------------------------------
   def create_factory_dirs(self,owner,perm):
     common.logit("Creating factory directory: %s" % self.install_location())
     common.make_directory(self.install_location(),owner,perm,empty_required=True)
-    common.logit("Creating factory log directory: %s" % self.factory_logs())
-    common.make_directory(self.factory_logs(),owner,perm,empty_required=True)
+    common.logit("Creating factory log directory: %s" % self.logs_dir())
+    common.make_directory(self.logs_dir(),owner,perm,empty_required=True)
+
   #--------------------------------
   def create_factory_client_dirs(self,owner,perm):
-    common.logit("Creating client files directory: %s" % self.client_files())
-    common.make_directory(self.client_files(),owner,perm,empty_required=False)
-    common.logit("Creating client logs directory: %s" % self.client_logs())
-    common.make_directory(self.client_logs(),owner,perm,empty_required=True)
-    common.logit("Creating client proxies directory: %s" % self.client_proxies())
-    common.make_directory(self.client_proxies(),owner,perm,empty_required=True)
+    common.logit("Creating client logs directory: %s" % self.client_log_dir())
+    common.make_directory(self.client_log_dir(),owner,perm,empty_required=True)
+    common.logit("Creating client proxies directory: %s" % self.client_proxy_dir())
+    common.make_directory(self.client_proxy_dir(),owner,perm,empty_required=True)
 
-
-  #-----------------------
-  def start(self):
-    cmd1 = "source %s" % self.env_script()
-    cmd2 = "cd %s;./factory_startup start" % (self.glidein_dir())
-    common.logit("\nTo start the glideins you need to run the following:\n  %s\n  %s" % (cmd1,cmd2))
-    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
-      yn=raw_input("Do you want to start the glideins now? (y/n) [n]: ")
-      if yn=='y':
-        common.run_script("%s;%s" % (cmd1,cmd2))
 
   #-----------------------
   def create_env_script(self):
+    """This creates an "env" type script that must be used before starting the
+       factory.
+    """
     common.logit("Creating environment script...")
     data = """#!/bin/bash
-source %s/setup.sh
-export PYTHONPATH=%s/usr/lib/python2.3/site-packages:$PYTHONPATH
-source %s/condor.sh
-""" % (self.glidein.vdt_location(),self.glidein.m2crypto(),self.wms.condor_location())
+export X509_CERT_DIR=%(x509_cert_dir)s
+source %(condor_location)s/condor.sh
+""" % { "x509_cert_dir"   : self.wms.certificates, 
+        "condor_location" : self.wms.condor_location(),}
+    if self.use_vofrontend_proxy() == "n":
+      data += "export X509_USER_PROXY=%s" % self.x509_proxy()
     common.write_file("w",0644,self.env_script(),data)
     common.logit("%s\n" % data)
 
@@ -196,7 +269,7 @@ source %s/condor.sh
   def create_glideins(self):
     yn=raw_input("\nDo you want to create the glideins now? (y/n) [n]: ")
     cmd1 = "source %s" % self.env_script()
-    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glidein_install_dir(),self.glidein.config_file())
+    cmd2 = "%s/creation/create_glidein %s" % (self.glidein.glideinwms_location(),self.glidein.config_file())
     if yn=='y':
       common.run_script("%s;%s" % (cmd1,cmd2))
     else:
@@ -204,18 +277,18 @@ source %s/condor.sh
 
   #-----------------------
   def schedds(self):
-    collector_node = self.wms.node()
+    collector_hostname = self.wms.hostname()
     schedd_list = []
     for filename in os.listdir(self.wms.condor_local()):
       if filename[0:6] == "schedd":
-        schedd_list.append("%s@%s" % (filename,collector_node))
+        schedd_list.append("%s@%s" % (filename,collector_hostname))
     return schedd_list
 
   #-------------------------
   def create_config(self):
     config_xml = self.config_data()
     common.logit("\nCreating configuration file: %s" % self.glidein.config_file())
-    common.make_directory(self.glidein.config_dir(),self.unix_acct(),0755,empty_required=True)
+    common.make_directory(self.glidein.config_dir(),self.username(),0755,empty_required=True)
     common.write_file("w",0644,self.glidein.config_file(),config_xml)
 
   #-------------------------
@@ -267,12 +340,12 @@ source %s/condor.sh
   #---------------
   def config_submit_data(self): 
     return """
-%(indent1)s<submit base_dir="%(install_location)s" base_log_dir="%(factory_logs)s" base_client_log_dir="%(client_logs)s" base_client_proxies_dir="%(client_proxies)s"/> """ % \
+%(indent1)s<submit base_dir="%(install_location)s" base_log_dir="%(factory_logs)s" base_client_log_dir="%(client_log_dir)s" base_client_proxies_dir="%(client_proxy_dir)s"/> """ % \
 { "indent1"          : common.indent(1),
   "install_location" : self.install_location(),
-  "factory_logs"     : self.factory_logs(),
-  "client_logs"      : self.client_logs(),
-  "client_proxies"   : self.client_proxies(),
+  "factory_logs"     : self.logs_dir(),
+  "client_log_dir"   : self.client_log_dir(),
+  "client_proxy_dir" : self.client_proxy_dir(),
 }
   #---------------
   def config_stage_data(self): 
@@ -296,7 +369,7 @@ source %s/condor.sh
 
   #---------------
   def config_security_data(self): 
-    if self.glidein.use_vofrontend_proxy() == "y": # disable factory proxy
+    if self.use_vofrontend_proxy() == "y": # disable factory proxy
       allow_proxy = "frontend"
     else: # allow both factory proxy and VO proxy
       allow_proxy = "factory,frontend"
@@ -309,24 +382,35 @@ source %s/condor.sh
   "allow_proxy": allow_proxy,
 }
 
-##JGW not sure what to do if Priv Sep not involved
-##    for frontend in self.frontends:
-
     frontend_users_dict =  self.wms.frontend_users()
     for frontend in frontend_users_dict.keys():
       data = data + """
-%(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(node)s">
+%(indent3)s<frontend name="%(frontend)s" identity="%(frontend)s@%(hostname)s">
 %(indent4)s<security_classes>
-%(indent5)s<security_class name="frontend" username="%(user)s"/>
-%(indent4)s</security_classes>
-%(indent3)s</frontend>""" %  \
+%(indent5)s<security_class name="frontend" username="%(frontend_user)s"/>
+""" %  \
 { "indent3" : common.indent(3),
   "indent4" : common.indent(4),
   "indent5" : common.indent(5),
   "frontend": frontend,
-  "node"    : self.node(),
-  "user"    : frontend_users_dict[frontend],
+  "hostname"      : self.hostname(),
+  "frontend_user" : frontend_users_dict[frontend],
 }
+      if self.use_vofrontend_proxy() == "n":
+        data = data + """\
+%(indent5)s<security_class name="factory"  username="%(factory_user)s"/>
+""" % \
+{ "indent5"       : common.indent(5),
+  "factory_user"  : self.username(),
+}
+
+      data = data + """
+%(indent4)s</security_classes>
+%(indent3)s</frontend>""" %  \
+{ "indent3" : common.indent(3),
+  "indent4" : common.indent(4),
+}
+
     data = data + """
 %(indent2)s</frontends>
 %(indent1)s</security>""" % \
@@ -340,22 +424,11 @@ source %s/condor.sh
     indent = common.indent(1)
     data = """
 %s<attrs>""" % (indent)
-    gcb_list = self.glidein.gcb_list()
     indent = common.indent(2)
 
     if self.glidein.use_ccb()  == "n":
       data = data + """
 %s<attr name="USE_CCB" value="False" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>"""  % (indent)
-
-      if len(gcb_list) > 0:  #-- using gcb ---
-        data = data + """
-%s<attr name="GCB_LIST" value="%s" const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>""" % (indent,string.join(gcb_list,','))
-      else:  #-- no gcb used ---
-        data = data + """
-%s<attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
-    else: # no GCB if CCB used
-      data = data + """
-%s<attr name="GCB_ORDER" value="NONE" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (indent)
 
     # -- glexec --
     data = data + """
@@ -396,7 +469,7 @@ source %s/condor.sh
 %(indent4)s<attr name="CONDOR_OS"    value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="CONDOR_ARCH"  value="default"         const="True" type="string" glidein_publish="False" publish="False" job_publish="False" parameter="True"/>
 %(indent4)s<attr name="GLEXEC_BIN"   value="%(glexec_path)s" const="True" type="string" glidein_publish="False" publish="True"  job_publish="False" parameter="True"/>
-%(ccb_gcb_attr)s
+%(ccb_attr)s
 %(indent3)s</attrs>
 %(indent3)s<files>
 %(indent3)s</files>
@@ -410,7 +483,7 @@ source %s/condor.sh
   "gatekeeper"  : entry_el['gatekeeper'],
   "workdir"     : entry_el['work_dir'],
   "infosys_ref" : self.entry_infosys_ref_data(entry_el['is_ids']),
-  "ccb_gcb_attr": self.entry_ccb_gcb_attrs(),
+  "ccb_attr"    : self.entry_ccb_attrs(),
   "site_name"   : entry_el['site_name'],
   "glexec_path" : entry_el['glexec_path'],
 }
@@ -422,15 +495,11 @@ source %s/condor.sh
     return data
 
    #-----------------
-  def entry_ccb_gcb_attrs(self):
+  def entry_ccb_attrs(self):
     data = ""
     if self.glidein.use_ccb() == "y":
       # Put USE_CCB in the entries so that it is easy to disable it selectively
       data = data + """%s<attr name="USE_CCB" value="True" const="True" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
-    else:
-      # Put GCB_ORDER in the entries so that it is easy to disable if selectively
-      if len(self.glidein.gcb_list()) > 0:
-        data = data + """%s<attr name="GCB_ORDER" value="RANDOM" const="False" type="string" glidein_publish="True" publish="True" job_publish="False" parameter="True"/>""" % (common.indent(1))
     return data
 
   #-------------
@@ -459,17 +528,18 @@ source %s/condor.sh
         ress_data     = self.get_ress_data()
         filtered_data = self.apply_filters_to_ress(ress_data)
         self.ask_user(filtered_data)
-      yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
-      if yn == 'y':
-        bdii_data     = self.get_bdii_data()
-        filtered_data = self.apply_filters_to_bdii(bdii_data)
-        self.ask_user(filtered_data)
+      ## - tmp/permanent removal of BDII query as too may results occur 12/14/10 -
+      ## yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
+      ## if yn == 'y':
+      ##   bdii_data     = self.get_bdii_data()
+      ##   filtered_data = self.apply_filters_to_bdii(bdii_data)
+      ##   self.ask_user(filtered_data)
       yn=raw_input("Do you want to add manual entries?: (y/n) [n] ")
       if yn == 'y':
         self.additional_entry_points()
       if len(self.config_entries_list) > 0:
         break
-      common.logerr("You have no entry points. You need at least 1.\...... check your ini file's entry_vos and entry_filters attributes..")
+      common.logerr("You have no entry points. You need at least 1. Check your ini file's entry_vos and entry_filters attributes..")
     common.logit("Configuration file questioning complete.\n")
    
 
@@ -724,25 +794,29 @@ source %s/condor.sh
     print "Please list all additional glidein entry points,"
     while 1:
       print
-      entry_name=raw_input("Entry name (leave empty when finished): ")
+      entry_name = raw_input("Entry name (leave empty when finished): ").strip()
       if entry_name == "":
         if len(self.config_entries_list.keys()) < 1:
-          print "You must instert at least one entry point"
+          print "You must insert at least one entry point"
           continue
         break
-
       if entry_name in self.config_entries_list.keys():
         print "You already inserted '%s'!" % entry_name
         continue
-      gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name)
-      rsl_name        = raw_input("RSL for '%s': " % entry_name)
-      work_dir        = raw_input("Work dir for '%s': " % entry_name)
-      site_name       = raw_input("Site name for '%s': [%s] " % (entry_name,entry_name))
+      gatekeeper_name = raw_input("Gatekeeper for '%s': " % entry_name).strip()
+      if gatekeeper_name == "":
+        print "Gatekeeper cannot be empty!"
+        continue
+      rsl_name = raw_input("RSL for '%s': " % entry_name).strip() # can be empty
+      work_dir = raw_input("Work dir for '%s': [.] " % entry_name).strip()
+      if work_dir == "":
+        work_dir = "."
+      site_name = raw_input("Site name for '%s': [%s] " % (entry_name,entry_name)).strip()
       if site_name == "":
         site_name = entry_name
       glexec_path = ""
       if self.glidein.use_glexec() == "y":
-        glexec_path = raw_input("gLExec path for '%s': [OSG] " % entry_name)
+        glexec_path = raw_input("gLExec path for '%s': [OSG] " % entry_name).strip()
         if glexec_path == "":
           glexec_path = 'OSG'
       else:
@@ -824,11 +898,25 @@ specified.
     common.logit("Using ini file: %s" % options.inifile)
     return options
 
+#-------------------------
+def create_template():
+  global valid_options
+  print "; ------------------------------------------"
+  print "; Factory minimal ini options template"
+  for section in valid_options.keys():
+    print "; ------------------------------------------"
+    print "[%s]" % section
+    for option in valid_options[section]:
+      print "%-25s =" % option
+    print#-------------------------
+
 ##################################################
 def main(argv):
   try:
+    #create_template()
     options = validate_args(argv)
     factory = Factory(options.inifile)
+    factory.validate_glidein_proxy()
     #factory.get_new_config_entries()
     #factory.install()
     #factory.install()

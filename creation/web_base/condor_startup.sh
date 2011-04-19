@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.48.2.6.2.1 2010/11/09 20:38:32 tiradani Exp $
+#   $Id: condor_startup.sh,v 1.48.2.6.2.2 2011/04/19 15:22:55 tiradani Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -15,6 +15,10 @@ function on_die {
 echo "Condor startup received kill signal... shutting down condor processes"
 $CONDOR_DIR/sbin/condor_master -k $PWD/condor_master2.pid
 ON_DIE=1
+}
+
+function ignore_signal {
+        echo "Condor startup received SIGHUP signal, ignoring..."
 }
 
 
@@ -225,19 +229,35 @@ done < condor_vars.lst.tmp
 #let "max_job_time=$job_max_hours * 3600"
 
 # calculate retire time if wall time is defined (undefined=-1)
-if [ -z "$GLIDEIN_Max_Walltime" ]; then
-  retire_time=$GLIDEIN_Retire_Time
-  echo "used param defined retire time, $retire_time" 1>&2
+max_walltime=`grep -i "^GLIDEIN_Max_Walltime " $config_file | awk '{print $2}'`
+if [ -z "$max_walltime" ]; then
+  retire_time=`grep -i "^GLIDEIN_Retire_Time " $config_file | awk '{print $2}'`
+  if [ -z "$retire_time" ]; then
+    retire_time=21600
+    echo "used default retire time, $retire_time" 1>&2
+  else
+    echo "used param defined retire time, $retire_time" 1>&2
+  fi
 else
-  echo "max wall time, $GLIDEIN_Max_Walltime" 1>&2
-  retire_time=$(($GLIDEIN_Max_Walltime - $GLIDEIN_Job_Max_Time))
+  echo "max wall time, $max_walltime" 1>&2
+  job_maxtime=`grep -i "^GLIDEIN_Job_Max_Time " $config_file | awk '{print $2}'`
+  echo "job max time, $job_maxtime" 1>&2
+  let "retire_time=$max_walltime - $job_maxtime"
   GLIDEIN_Retire_Time=$retire_time
   echo "calculated retire time, $retire_time" 1>&2
 fi
 org_GLIDEIN_Retire_Time=$retire_time
 # randomize the retire time, to smooth starts and terminations
+retire_spread=`grep -i "^GLIDEIN_Retire_Time_Spread " $config_file | awk '{print $2}'`
+if [ -z "$retire_spread" ]; then
+  let "retire_spread=$retire_time / 10"
+  echo "using default retire spread, $retire_spread" 1>&2
+else
+  echo "used param retire spead, $retire_spread" 1>&2
+fi
+
 let "random100=$RANDOM%100"
-let "retire_time=$retire_time - $GLIDEIN_Retire_Time_Spread * $random100 / 100"
+let "retire_time=$retire_time - $retire_spread * $random100 / 100"
 
 # but protect from going too low
 if [ "$retire_time" -lt "600" ]; then
@@ -429,6 +449,7 @@ fi
 start_time=`date +%s`
 echo "=== Condor starting `date` (`date +%s`) ==="
 ON_DIE=0
+trap 'ignore_signal' HUP
 trap 'on_die' TERM
 trap 'on_die' INT
 let "retmins=$retire_time / 60 - 1"

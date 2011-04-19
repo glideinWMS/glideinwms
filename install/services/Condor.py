@@ -3,14 +3,16 @@
 import common
 from Configuration import Configuration
 from Configuration import ConfigurationError
-from Certificates  import Certificates
+import Certificates  
 import VDTClient
 #---------------------
-import sys,os,os.path,string,time
+import sys,os,os.path,string,time,re
 import tarfile
 import shutil
 import pwd
 import stat
+import commands
+import traceback
 
 
 class Condor(Configuration):
@@ -23,6 +25,7 @@ class Condor(Configuration):
     self.validate_section(ini_section,ini_options)
 
     self.condor_version      = None
+    self.condor_first_dir    = None
     self.certificates        = None
 
     #--- secondary schedd files --
@@ -30,6 +33,16 @@ class Condor(Configuration):
     self.schedd_init_file    = "init_schedd.sh"
     self.schedd_startup_file = "start_master_schedd.sh"
     self.schedd_initd_function = "return # no secondary schedds"
+
+    #-- classes used ---
+    self.certs = None
+    self.get_cert()
+
+  #--- instantiate objects needed ----
+  def get_cert(self):
+    if self.certs == None:
+      self.certs = Certificates.Certificates(self.inifile,self.ini_section)
+    self.certificates = self.certs.x509_cert_dir()
 
   #----------------------------------
   # methods for returning attributes
@@ -53,20 +66,20 @@ class Condor(Configuration):
   def install_location(self):
     return self.option_value(self.ini_section,"install_location")
   #----------------------------------
+  def glideinwms_location(self):
+    return self.option_value(self.ini_section,"glideinwms_location")
+  #----------------------------------
   def vdt_location(self):
     return self.option_value(self.ini_section,"vdt_location")
-  #----------------------------------
-  def gsi_dn(self):
-    return self.option_value(self.ini_section,"gsi_dn")
   #---------------------
-  def unix_acct(self):
-    return self.option_value(self.ini_section,"unix_acct")
+  def username(self):
+    return self.option_value(self.ini_section,"username")
   #---------------------
   def service_name(self):
     return self.option_value(self.ini_section,"service_name")
   #---------------------
-  def node(self):
-    return self.option_value(self.ini_section,"node")
+  def hostname(self):
+    return self.option_value(self.ini_section,"hostname")
   #---------------------
   def condor_tarball(self):
     return self.option_value(self.ini_section,"condor_tarball")
@@ -77,11 +90,14 @@ class Condor(Configuration):
   def split_condor_config(self):
     return self.option_value(self.ini_section,"split_condor_config")
   #---------------------
-  def gsi_location(self):
-    return  self.option_value(self.ini_section,"cert_proxy_location")
+  def x509_cert(self):
+    return self.option_value(self.ini_section,"x509_cert")
   #---------------------
-  def gsi_authentication(self):
-    return self.option_value(self.ini_section,"gsi_authentication")
+  def x509_key(self):
+    return self.option_value(self.ini_section,"x509_key")
+  #----------------------------------
+  def x509_gsi_dn(self):
+    return self.option_value(self.ini_section,"x509_gsi_dn")
   #---------------------
   def condor_config(self):
     return "%s/etc/condor_config" % self.condor_location()
@@ -109,19 +125,40 @@ class Condor(Configuration):
     option = "number_of_schedds"
     if not self.has_option(self.ini_section,option):
       return int(0)
-    return self.option_value(self.ini_section,option)
+    value =  self.option_value(self.ini_section,option)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
+  #---------------------
+  def schedd_shared_port(self):
+    """ Returns the shared port number if specified, else zero."""
+    option = "schedd_shared_port"
+    if not self.has_option(self.ini_section,option):
+      return int(0)
+    value =  self.option_value(self.ini_section,option)
+    if len(value) == 0:
+      return int(0)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #----------------------------------
   def collector_port(self):
     option = "collector_port"
     if not self.has_option(self.ini_section,option):
       return int(0)
-    return self.option_value(self.ini_section,option)
+    value = self.option_value(self.ini_section,option)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #---------------------
   def secondary_collectors(self):
     option = "number_of_secondary_collectors"
     if not self.has_option(self.ini_section,option):
       return int(0)
-    return self.option_value(self.ini_section,option)
+    value = self.option_value(self.ini_section,option)
+    if common.not_an_integer(value):
+      common.logerr("%s option is not a number: %s" % (option,value))
+    return int(value)
   #---------------------
   def secondary_collector_ports(self):
     ports = []
@@ -136,21 +173,21 @@ class Condor(Configuration):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to stop.")
     else: 
-      common.logit( "... stopping condor as user %s" % self.unix_acct())
+      common.logit( "... stopping condor as user %s" % self.username())
       common.run_script("%s stop" % self.initd_script())
   #--------------------------------
   def start_condor(self):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to start.")
     else:
-      common.logit( "... starting condor as user %s" % self.unix_acct())
+      common.logit( "... starting condor as user %s" % self.username())
       common.run_script("%s start" % self.initd_script())
   #--------------------------------
   def restart_condor(self):
     if self.client_only_install() == True:
       common.logerr( "This is a client only install. Nothing to restart.")
     else:
-      common.logit( "... restarting condor as user %s" % self.unix_acct())
+      common.logit( "... restarting condor as user %s" % self.username())
       common.run_script("%s restart" % self.initd_script())
    
   #--------------------------------
@@ -194,9 +231,7 @@ class Condor(Configuration):
   #--------------------------------
   def install_certificates(self):
     """ Certificates are required for Condor GSI authentication. """
-    certs = Certificates(self.inifile,self.ini_section)
-    certs.install()
-    self.certificates = certs.certificate_dir()
+    self.certs.install()
 
   #--------------------------------
   def install_vdtclient(self):
@@ -209,17 +244,50 @@ class Condor(Configuration):
   #--------------------------------
   def validate_condor_install(self):
     common.logit( "\nVerifying Condor installation")
-    common.validate_node(self.node())
-    common.validate_user(self.unix_acct())
+    common.validate_hostname(self.hostname())
+    common.validate_user(self.username())
     common.validate_email(self.admin_email())
-    common.validate_gsi(self.gsi_dn(),self.gsi_authentication(),self.gsi_location())
-    self.__validate_collector_port__(self.collector_port())
-    self.__validate_secondary_collectors__(self.secondary_collectors())
-    self.__validate_schedds__(self.number_of_schedds())
-    self.__validate_condor_config__(self.split_condor_config())
+    if self.ini_section == "VOFrontend":
+      common.validate_gsi_for_proxy(self.x509_gsi_dn(), self.x509_proxy() )
+    else:
+      common.validate_gsi_for_cert(self.x509_gsi_dn(), self.x509_cert(), self.x509_key() )
     if "usercollector" not in self.colocated_services:
       self.__validate_tarball__(self.condor_tarball())
+    self.check_condor_version()
+    self.__validate_collector_port__()
+    self.__validate_secondary_collectors__()
+    self.__validate_schedds__()
+    self.__validate_schedd_shared_port__()
+    self.__validate_condor_config__(self.split_condor_config())
+    if "usercollector" not in self.colocated_services:
       common.validate_install_location(self.condor_location())
+
+  #-------------------------------
+  def check_condor_version(self):
+    """ Gets the Condor version from a collocated Condor instance.
+        Normally this would come from the tarball but no reason to use it
+        if services are collocated.
+    """
+    if self.condor_version <> None:
+      return   # we already have it
+    common.logit("... verifying Condor version from collocated service")
+    version_script = "%s/%s" % (self.condor_location(),"bin/condor_version")
+    if not os.path.isfile(version_script):
+      common.logerr("""Unable to determine condor version using: 
+  %s
+This appears to be a collocated service for Condor. 
+Did you install in the correct order.""" % version_script)
+    
+    cmds = "%s| awk '{print $2;exit}'" % version_script
+    (status, self.condor_version) = commands.getstatusoutput(cmds)
+    if status > 0:
+      common.logerr("""Unable to determine Condor version using:
+  %s""" % version_script)
+    if self.condor_version == None:
+      common.logerr("Still unable to determine condor_version")
+    common.logit("... condor version: %s" % self.condor_version)
+
+
 
   #--------------------------------
   def __setup_condor_env__(self):
@@ -291,7 +359,8 @@ setenv CONDOR_CONFIG %s
       common.logerr("Condor installation failed. Cannot make %s directory: %s" % (tar_dir,e))
     
     try:
-        common.logit( "... extracting from tarball: %s" % self.condor_tarball())
+        common.logit("... extracting tarball: %s" % self.condor_tarball())
+        common.logit("    into: %s" % tar_dir)
         fd = tarfile.open(self.condor_tarball(),"r:gz")
         #-- first create the regular files --
         for f in fd.getmembers():
@@ -302,21 +371,20 @@ setenv CONDOR_CONFIG %s
           if f.islnk():
             os.link(os.path.join(tar_dir,f.linkname),os.path.join(tar_dir,f.name))
         fd.close()
-
+        
         common.logit( "... running condor_configure")
-        install_str="%s/condor-%s/release.tar" % (tar_dir,self.condor_version)
-        if not os.path.isfile(install_str):
-          # Condor v7 changed the packaging
-          install_str="%s/condor-%s"%(tar_dir,self.condor_version)
-        #if not os.path.isfile(install_str):
-        #    common.logerr(("Cannot find path to condor_configure(%s)" % (install_str))
-        cmdline="cd %(tar_dir)s/condor-%(version)s;./condor_configure --install=%(install_str)s --install-dir=%(condor_location)s --local-dir=%(condor_local)s --install-log=%(tar_dir)s/condor_configure.log" %  \
-          {   "tar_dir": tar_dir,             "version": self.condor_version, 
-          "install_str": install_str, "condor_location": self.condor_location(),
-         "condor_local": self.condor_local(), }
+        install_str="%s/%s" % (tar_dir,self.condor_first_dir)
+        if not os.path.isfile("%s/condor_configure" % install_str):
+          common.logerr("Cannot find path to condor_configure in: %s" % (install_str))
+        cmdline="""%(install_str)s/condor_configure --install=%(install_str)s --install-dir=%(condor_location)s  --local-dir=%(condor_local)s --install-log=%(tar_dir)s/condor_configure.log""" %  \
+          {   "tar_dir"        : tar_dir,     
+              "first_dir"      : self.condor_first_dir, 
+              "install_str"    : install_str, 
+              "condor_location": self.condor_location(),
+              "condor_local"   : self.condor_local(), }
 
         if os.getuid() == 0:
-            cmdline="%s  --owner=%s" % (cmdline,self.unix_acct())
+            cmdline="%s  --owner=%s" % (cmdline,self.username())
         common.run_script(cmdline)
     except Exception,e:
         shutil.rmtree(self.condor_location())
@@ -327,67 +395,75 @@ setenv CONDOR_CONFIG %s
     common.logit("\nCondor installation complete")
 
   #--------------------------------
-  def __validate_schedds__(self,value):
+  def __validate_schedds__(self):
     if self.daemon_list.find("SCHEDD") < 0:
       common.logit("... no schedds")
       return # no schedd daemon
-    common.logit("... validating schedds: %s" % value)
-    min = 0
+    common.logit("... validating number_of_schedds: %s" % self.number_of_schedds())
+    nbr = self.number_of_schedds()
+    min = 1
     max = 99
-    try:
-      nbr = int(value)
-    except:
-      common.logerr("number of schedds is not a number: %s" % (value))
     if nbr < min:
-      common.logerr("number of schedds is negative: %s" % (value))
+      common.logerr("You must have at least 1 schedd")
     if nbr > max:
-      common.logerr("number of schedds exceeds maximum allowed value: %s" % (value))
+      common.logerr("Number of schedds exceeds maximum allowed value: %s" % (nbr))
 
   #--------------------------------
-  def __validate_secondary_collectors__(self,value):
+  def __validate_secondary_collectors__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
       common.logit("... no secondary collectors")
       return # no collector daemon
-    common.logit("... validating secondary collectors: %s" % value)
+    common.logit("... validating number_of_secondary_collectors: %s" % self.secondary_collectors())
+    nbr = self.secondary_collectors()
     min = 0
     max = 399
-    try:
-      nbr = int(value)
-    except:
-      common.logerr("nbr of secondary collectors is not a number: %s" % (value))
     if nbr < min:
-      common.logerr("nbr of secondary collectors is negative: %s" % (value))
+      common.logerr("nbr of secondary collectors is negative: %s" % (nbr))
     if nbr > max:
-      common.logerr("nbr of secondary collectors exceeds maximum allowed value: %s" % (value))
+      common.logerr("nbr of secondary collectors exceeds maximum allowed value: %s" % (nbr))
  
   #--------------------------------
-  def __validate_collector_port__(self,port):
+  def __validate_collector_port__(self):
     if self.daemon_list.find("COLLECTOR") < 0:
-      common.logit("... no collector")
+      common.logit("... no COLLECTOR daemon")
       return # no collector daemon
-    common.logit("... validating collector port: %s" % port)
-    collector_port = 0
+    common.logit("... validating collector port: %s" % self.collector_port())
+    self.__validate_port_value__(self.collector_port(),"collector_port") 
+
+  #--------------------------------
+  def __validate_schedd_shared_port__(self):
+    if self.daemon_list.find("SCHEDD") < 0:
+      common.logit("... no SCHEDD daemon")
+      return # only schedd deamons
+    if self.ini_section != "Submit":
+      return # only submit service 
+    if self.schedd_shared_port() == 0:
+      common.logit("... validating schedd_shared_port: %s" % "not used")
+      return
+    common.logit("... validating schedd_shared_port: %s" % self.schedd_shared_port())
+    if self.condor_version < "7.5.3":
+      common.logerr("the schedd shared port option can only be used in Condor 7.5.3+")
+    self.__validate_port_value__(self.schedd_shared_port(),"schedd_shared_port") 
+  #-------------------------------
+  def __validate_port_value__(self,port,option):
     min = 1
     max = 65535
     root_port = 1024
-    try:
-      nbr = int(port)
-    except:
-      common.logerr("collector port option is not a number: %s" % (port))
-    if nbr < min:
-      common.logerr("collector port option is negative: %s" % (port))
-    if nbr > max:
-      common.logerr("collector port option exceeds maximum allowed value: %s" % (port))
-    if nbr < root_port:
+    if port < min:
+      common.logerr("%s option must be a positive value: %s" % (option,port))
+    if port > max:
+      common.logerr("%s option exceeds maximum allowed value of %s" % (option,max))
+    if port < root_port:
       if os.getuid() == 0:  #-- root user --
-        common.logit("Ports less that %i are generally reserved." % (root_port))
-        common.logit("You have specified port %s for the collector." % (port))
-        yn = raw_input("Do you really want to use privileged port %s? (y/n): "% port)
+        common.logit("Ports less that %i are generally reserved for root." % (root_port))
+        common.logit("You have specified port %s for the %s option." % (port,option))
+        yn = raw_input("Do you really want to use a privileged port %s? (y/n): "% port)
         if yn != 'y':
           common.logerr("... exiting at your request")
       else: #-- non-root user --
-        common.logerr("Collector port (%s) less than %i can only be used by root." % (port,root_port))
- 
+        common.logit("Ports less that %i are generally reserved for root." % (root_port))
+        common.logerr("You have specified a %s option of %s" % (option,port))
+
   #--------------------------------
   def __validate_condor_config__(self,value):
     common.logit("... validating split_condor_config: %s" % value)
@@ -396,24 +472,34 @@ setenv CONDOR_CONFIG %s
 
   #--------------------------------
   def __validate_tarball__(self,tarball):
+    """ Attempts to verify that this is a valid Condor tarball.
+        - the first level of the directory structure is the
+          Condor release with a format 'condor-*'.
+        - the tarball contains the condor-*/configure_condor script.
+    """
     common.logit("... validating condor tarball: %s" % tarball)
     if not os.path.isfile(tarball):
       common.logerr("File (%s) not found" % (tarball))
     try:
-      fd=tarfile.open(tarball,"r:gz")
+      fd = tarfile.open(tarball,"r:gz")
     except:
       common.logerr("File (%s) not a valid tar.gz file" % (tarball))
     try:
         try:
-            first_dir=fd.next().name
-            if (first_dir[:7]!="condor-") or (first_dir[-1]!='/'):
-              common.logerr("File (%s) is not a condor tarball! (found (%s), expected 'condor-*/'" %(tarball,first_dir))
-            self.condor_version=first_dir[7:-1]
-            common.logit( "... condor version %s" % (self.condor_version))
+            first_entry = fd.next().name
+            if ( len(first_entry.split('/')) < 2 ):
+              common.logerr("File (%s) is not a condor tarball! (found (%s), expected a subdirectory" % (tarball, first_entry))
+            self.condor_first_dir = first_entry.split('/')[0]+'/'
+            
+            if ( self.condor_first_dir[:7] != "condor-"):
+              common.logerr("File '%s' is not a condor tarball! (found '%s', expected 'condor-*/'" % (condor_tarball, self.condor_first_dir))
+
+            self.condor_version = re.sub("/","",first_entry.split('-')[1])
+            common.logit( "... condor version: %s" % (self.condor_version))
             try:
-                fd.getmember(first_dir+"condor_configure")
+                fd.getmember(self.condor_first_dir + "condor_configure")
             except:
-                common.logerr("Condor tarball (%s) missing %s" % (tarball,first_dir+"condor_configure"))
+                common.logerr("Condor tarball (%s) missing %s" % (tarball, self.condor_first_dir + "condor_configure"))
         except Exception,e:
             common.logerr("Condor tarball file is corrupted: %s" % (tarball))
     finally:
@@ -428,11 +514,10 @@ setenv CONDOR_CONFIG %s
     filename = self.condor_mapfile()
     common.logit("... creating Condor mapfile: %s" % filename)
     common.make_directory(os.path.dirname(filename),pwd.getpwuid(os.getuid())[0],0755,empty_required=False)
-    entries = """%s
-GSI (.*) anonymous
+    mapfile_entries += """GSI (.*) anonymous
 FS (.*) \\1
-""" % mapfile_entries
-    common.write_file("w",0644,filename,entries)
+""" 
+    common.write_file("w",0644,filename,mapfile_entries)
     common.logit("... condor mapfile entries:")
     common.logit(os.system("cat %s" % filename))
     common.logit("... creating Condor mapfile complete.\n")
@@ -482,10 +567,10 @@ LOCAL_CONFIG_FILE =
     self.__append_to_condor_config__(data,"GSI")
 
   #-----------------------------
-  def __update_gsi_daemon_names__(self,gsi_dns):
+  def __update_gsi_daemon_names__(self,x509_gsi_dns):
     if len(self.colocated_services) > 0:
       return  # we've already updated for these common attributes
-    if len(gsi_dns) == 0:
+    if len(x509_gsi_dns) == 0:
       common.logit("... no GSI_DAEMON_NAMEs to add")
       return
     data =  """
@@ -493,8 +578,8 @@ LOCAL_CONFIG_FILE =
 # Whitelist of condor daemon DNs
 #####################################
 %s
-""" % (gsi_dns)
-    self.__append_to_condor_config__(data,"GSI_DEAMON_NAME")
+""" % (x509_gsi_dns)
+    self.__append_to_condor_config__(data,"GSI_DAEMON_NAME")
 
 
   #--------------------------------
@@ -536,7 +621,7 @@ RESERVED_SWAP = 0
 ####################################
 CONDOR_HOST = %(host)s
 COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
-""" % { "host" : self.option_value("UserCollector","node"),
+""" % { "host" : self.option_value("UserCollector","hostname"),
         "port" : self.option_value("UserCollector","collector_port"),
       }
     self.__append_to_condor_config__(data,"COLLECTOR")
@@ -575,18 +660,19 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
   def configure_secondary_schedds(self):
     common.logit("\nConfiguring secondary schedd support.")
     if self.daemon_list.find("SCHEDD") < 0:
-      common.logit("... no schedds daemons for this condor instance")
+      common.logit("... no SCHEDD daemons for this condor instance")
       return
-    if self.number_of_schedds() == 0:
+    if self.number_of_schedds() == 1:
       common.logit("... no secondary schedds to configure")
       return
     self.__create_secondary_schedd_support_files__()
     self.schedd_initd_function = ""
-    schedds = int(self.number_of_schedds())
-    for i in range(schedds):
+    secondary_schedds = int(self.number_of_schedds()) - 1
+    common.logit("... setting up %i secondary schedds" % secondary_schedds)
+    for i in range(secondary_schedds):
       schedd_name = "%s%i" % (self.schedd_name_suffix,i+1)
       #-- run the init script --
-      user = pwd.getpwnam(self.unix_acct())
+      user = pwd.getpwnam(self.username())
       condor_ids = "%s.%s" % (user[2],user[3])
       common.run_script("export CONDOR_IDS=%s;%s/%s %s" % (condor_ids,self.condor_location(),self.schedd_init_file,schedd_name))
       #-- add the start script to the condor initd function --
@@ -613,7 +699,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
 
   #----------------------------------
   def __secondary_schedd_setup_file_data__(self):
-    return """\
+    data = """\
 if [ $# -ne 1 ]
 then
  echo "ERROR: arg1 should be schedd name."
@@ -627,8 +713,18 @@ export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}
 export _CONDOR_DAEMON_LIST="MASTER,SCHEDD"
 export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME
 export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock
-unset LD
 """ % (self.condor_local())
+
+    if self.schedd_shared_port() > 0:
+      data += """\
+export _CONDOR_USE_SHARED_PORT=True
+export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad
+export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock
+"""
+    data += """\
+unset LD
+"""
+    return data
 
   #----------------------------------
   def __secondary_schedd_init_file_data__(self):
@@ -672,53 +768,124 @@ elif [ -f /etc/rc.d/init.d/functions ] ; then
 else
   exit 0
 fi
-"""
-    data = data + """
-CONDOR_LOCATION=%s
+
+#-- Condor settings --
+CONDOR_LOCATION=%(condor_location)s
 if [ ! -d "$CONDOR_LOCATION" ];then
+  echo "ERROR: CONDOR_LOCATION does not exist: $CONDOR_LOCATION"
   failure
   exit 1
 fi
-#-- Condor settings --
 if [ ! `echo ${PATH} | grep -q $CONDOR_LOCATION/bin` ]; then
   PATH=${PATH}:$CONDOR_LOCATION/bin
 fi
 export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config
 if [ ! -f "$CONDOR_CONFIG" ];then
   echo "ERROR: CONDOR_CONFIG not found: $CONDOR_CONFIG"
+  failure
   exit 1
 fi
-""" % (self.condor_location())
+CONDOR_MASTER=$CONDOR_LOCATION/sbin/condor_master
+if [ ! -f "$CONDOR_MASTER" ];then
+  echo "ERROR: cannot find $CONDOR_MASTER"
+  failure
+  exit 1
+fi
 
-    data = data + """
+#---- verify correct user is starting/stopping condor --
+validate_user () {
+  config_vals="GSI_DAEMON_CERT GSI_DAEMON_KEY GSI_DAEMON_PROXY"
+  good="no"
+  for gsi_type in $config_vals
+  do
+    file="$(condor_config_val $gsi_type 2>/dev/null)"
+    if [ ! -z "$file" ];then
+      if [ -r "$file" ];then
+        owner=$(ls -l $file | awk '{print $3}')
+        me="$(/usr/bin/whoami)"
+        if [ "$me" = "$owner" ];then
+          good="yes"
+          break
+        fi
+      fi
+    fi
+  done
+  if [ $good = "no" ];then
+    echo "ERROR: GSI self authentication will fail." 
+    echo "Check these Condor attributes and verify ownership."
+    echo "    $config_vals"
+    echo "Or you may be starting/stopping Condor as the wrong user."
+    if [ -n "$owner" ];then
+      echo "You should be starting  as user: $owner"
+      echo "You are trying to start as user: $me"
+    fi
+    exit 1
+  fi
+}
+
 #---- secondary schedd start function ---
 start_secondary_schedds () {
-%s
+%(schedds)s
 }
-""" % (self.schedd_initd_function)
 
-    data = data + """
-#----
+#-- start --
 start () { 
+   validate_user
+   condor_status
+   [ "$RETVAL" = "0" ] && { echo "Condor is already running";return
+}
    echo -n "Starting condor: "
-   $CONDOR_LOCATION/sbin/condor_master 2>/dev/null 1>&2 && success || failure
+   $CONDOR_MASTER 2>/dev/null 1>&2 && success || failure
    RETVAL=$?
    start_secondary_schedds
    echo
+   sleep 3
+   condor_status
+   [ "$RETVAL" != "0" ] && { echo "ERROR: Condor did not start correctly"
 }
-#----
+}
+
+#-- stop --
 stop () { 
+   validate_user
+   condor_status
+   [ "$RETVAL" != "0" ] && { return
+}
    echo -n "Shutting down condor: "
-   killall -q -9 condor_master condor_schedd condor_shadow condor_collector condor_negotiator condor_procd condor_gridmanager gahp_server 2>/dev/null 1>&2
-   sleep 1
+   killall -q -15 -exact $CONDOR_MASTER && success || failure
+   sleep 3
+   condor_status
+   [ "$RETVAL" != "0" ] && { return  # the stop worked
+}
+   echo -n "Shutting down condor with SIGKILL: "
    # If a master is still alive, we have a problem
-   killall condor_master 2>/dev/null 1>&2 && failure || success
+   killall -q -9 -exact $CONDOR_MASTER && success || failure
+   condor_status
    RETVAL=$?
+   [ "$RETVAL" != "0" ] && { return  # the stop worked
+}
+}
+#-- restart --
+restart () { 
+   stop
+   start
+}
+
+#-- status --
+condor_status () { 
+   pids="$(ps -ef |grep $CONDOR_MASTER |egrep -v grep | awk '{printf "%(format)s ", $2}')"
+   echo
+   if [ -z "$pids" ];then
+     echo "$CONDOR_MASTER not running"
+     RETVAL=1
+   else
+   echo "$CONDOR_MASTER running...
+pids ($pids)"
+     RETVAL=0
+   fi
    echo
 }
-#----
-restart () { stop; start
-}
+
 #--------
 prog=$(basename $0)
 
@@ -726,11 +893,14 @@ case $1 in
    start  ) start ;;
    stop   ) stop ;;
    restart) restart ;;
-   status ) status $CONDOR_LOCATION/sbin/condor_master ;;
+   status ) condor_status ;;
         * ) echo "Usage: $prog {start|stop|restart|status}"; exit 1 ;;
 esac
 exit $RETVAL
-""" 
+""" % { "condor_location" : self.condor_location(),
+        "schedds" : self.schedd_initd_function,
+        "format" : "%s",
+      }
     return data
 
   #-----------------------------
@@ -799,13 +969,13 @@ SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI
 GSI_DAEMON_TRUSTED_CA_DIR=%s
 """ % (self.certificates)
 
-    if self.gsi_authentication() == "proxy":
+    if self.ini_section == "VOFrontend":
       data = data + """
 ############################
 # Credentials
 ############################
 GSI_DAEMON_PROXY = %s 
-""" % self.gsi_location()
+""" % self.x509_proxy()
     else:
       data = data + """
 ############################
@@ -813,7 +983,7 @@ GSI_DAEMON_PROXY = %s
 ############################
 GSI_DAEMON_CERT = %s
 GSI_DAEMON_KEY  = %s
-""" % (self.gsi_location(),string.replace(self.gsi_location(),"cert.pem","key.pem"))
+""" % (self.x509_cert(),self.x509_key())
 
     if self.condor_version >= "7.4":
       data = data + """
@@ -933,6 +1103,16 @@ STARTD_SENDS_ALIVES = True
 #-- Reduce disk IO - paranoid fsyncs are usully not needed
 ENABLE_USERLOG_FSYNC = False
 """
+    
+    if self.condor_version >= "7.5.3" and self.schedd_shared_port() > 0:
+      data += """
+#--  Enable shared_port_daemon 
+SHADOW.USE_SHARED_PORT = True
+SCHEDD.USE_SHARED_PORT = True
+SCHEDD.SHARED_PORT_ARGS = -p %(port)s
+DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
+""" % { "port" : self.schedd_shared_port(), }
+
     return data
 
   #-----------------------------
@@ -1028,14 +1208,19 @@ GRIDMANAGER_MAX_PENDING_REQUESTS=500
 
 def main(argv):
   try:
-    condor = Condor("/home/weigand/myinstall/glideinWMS.ini")
-    condor.install_condor()
+    print argv
+    inifile = "/home/weigand/glidein-ini/glidein-all-xen21-doug.ini"
+    section = "WMSCollector"
+    options = {}
+    condor = Condor(inifile,section,options)
+    #condor.install_condor()
+    condor.__validate_tarball__("/usr/local/tarballs/" + argv[1])
   except ConfigurationError, e:
     print "ERROR: %s" % e;return 1
   except common.WMSerror, e:
     print "WMSError";return 1
   except Exception, e:
-    print "ERROR: %s - %s" % (show_line(),e);return 1
+    print traceback.print_exc()
   return 0
 
 

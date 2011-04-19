@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.1 2010/11/09 20:38:32 tiradani Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.2 2011/04/19 15:22:58 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -49,7 +49,7 @@ def write_stats(stats):
         stats[k].write_file();
 
 ############################################################
-# Will log the factory_stat_arr (tuple composed of 10 numbers)
+# Will log the factory_stat_arr (tuple composed of 13 numbers)
 # and return a sum of factory_stat_arr+old_factory_stat_arr
 def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_arr):
     # if numbers are too big, reduce them to either k or M for presentation
@@ -67,7 +67,7 @@ def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_a
     else:
         down_str="Up  "
 
-    glideinFrontendLib.log_files.logActivity(("%s(%s %s) %s(%s) | %s %s %s | %s %s "%tuple(form_arr))+
+    glideinFrontendLib.log_files.logActivity(("%s(%s %s %s %s) %s(%s %s) | %s %s %s | %s %s "%tuple(form_arr))+
                                              ("%s %s"%(down_str,factory)))
 
     new_arr=[]
@@ -77,16 +77,16 @@ def log_and_sum_factory_line(factory,is_down,factory_stat_arr,old_factory_stat_a
 
 def init_factory_stats_arr():
     new_arr=[]
-    for i in range(10):
+    for i in range(13):
         new_arr.append(0)
     return new_arr
 
 def log_factory_header():
-    glideinFrontendLib.log_files.logActivity("     Jobs in schedd queues      |      Glideins     |   Request   ")
-    glideinFrontendLib.log_files.logActivity("Idle ( eff   old )  Run ( max ) | Total Idle   Run  | Idle MaxRun Down Factory")
+    glideinFrontendLib.log_files.logActivity("            Jobs in schedd queues                 |      Glideins     |   Request   ")
+    glideinFrontendLib.log_files.logActivity("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
 
 ############################################################
-def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats):
+def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj):
     frontend_name=elementDescript.frontend_data['FrontendName']
     group_name=elementDescript.element_data['GroupName']
     security_name=elementDescript.merged_data['SecurityName']
@@ -140,7 +140,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
 
-    condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+    condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                         'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
                         'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
@@ -159,11 +159,17 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     status_dict_idle=glideinFrontendLib.getIdleCondorStatus(status_dict)
     status_dict_running=glideinFrontendLib.getRunningCondorStatus(status_dict)
 
+    #glideinFrontendLib.log_files.logDebug("condor stat: %s\n\n" % status_dict_running[None].fetchStored())
+
+    glideinFrontendLib.appendRealRunning(condorq_dict_running, status_dict_running)
+
+    #glideinFrontendLib.log_files.logDebug("condorq running: %s\n\n" % condorq_dict_running['devg-1.t2.ucsd.edu'].fetchStored())
+
     status_dict_types={'Total':{'dict':status_dict,'abs':glideinFrontendLib.countCondorStatus(status_dict)},
                        'Idle':{'dict':status_dict_idle,'abs':glideinFrontendLib.countCondorStatus(status_dict_idle)},
                        'Running':{'dict':status_dict_running,'abs':glideinFrontendLib.countCondorStatus(status_dict_running)}}
 
-    stats['group'].logSlots({'Total':status_dict_types['Total']['abs'],
+    stats['group'].logGlideins({'Total':status_dict_types['Total']['abs'],
                             'Idle':status_dict_types['Idle']['abs'],
                             'Running':status_dict_types['Running']['abs']})
 
@@ -242,10 +248,14 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     glideinFrontendLib.log_files.logActivity("Match")
 
+    #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
+
     for dt in condorq_dict_types.keys():
-        condorq_dict_types[dt]['count']=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
+        (condorq_dict_types[dt]['count'], condorq_dict_types[dt]['prop'], condorq_dict_types[dt]['hereonly'])=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
         # is the semantics right?
         condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+
+    count_real = glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
     fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
@@ -262,7 +272,11 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
     total_down_stats_arr=init_factory_stats_arr()
-    for glideid in condorq_dict_types['Idle']['count'].keys():
+    glideid_list=condorq_dict_types['Idle']['count'].keys()
+    glideid_list.sort() # sort for the sake of monitoring
+    for glideid in glideid_list:
+        if glideid==(None,None,None):
+            continue # This is the special "Unmatched" entry
         factory_pool_node=glideid[0]
         request_name=glideid[1]
         my_identity=str(glideid[2]) # get rid of unicode
@@ -273,9 +287,13 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
             glidein_in_downtime=(glidein_el['attrs']['GLIDEIN_In_Downtime']=='True')
 
-        count_jobs={}
+        count_jobs={}     # straight match
+        prop_jobs={}      # proportional subset for this entry
+        hereonly_jobs={}  # can only run on this site
         for dt in condorq_dict_types.keys():
             count_jobs[dt]=condorq_dict_types[dt]['count'][glideid]
+            prop_jobs[dt]=condorq_dict_types[dt]['prop'][glideid]
+            hereonly_jobs[dt]=condorq_dict_types[dt]['hereonly'][glideid]
 
         count_status={}
         for dt in status_dict_types.keys():
@@ -285,7 +303,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
-        effective_idle=count_jobs['Idle']-count_status['Idle']
+        effective_idle=prop_jobs['Idle']-count_status['Idle']
         if effective_idle<0:
             effective_idle=0
 
@@ -296,9 +314,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             # enough idle vms, do not ask for more
             glidein_min_idle=0
         elif (effective_idle>0):
-            glidein_min_idle=count_jobs['Idle']
+            glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
-            glidein_idle_reserve=count_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
+            glidein_idle_reserve=prop_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
 
@@ -315,11 +333,94 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
+
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
-        glidein_max_run=int((count_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
-        this_stats_arr=(count_jobs['Idle'],effective_idle,count_jobs['OldIdle'],count_jobs['Running'],max_running,
+        if (prop_jobs['Idle']+count_jobs['Running'])>0:
+            glidein_max_run=int((prop_jobs['Idle']+count_jobs['Running'])*fraction_running+1)
+        else:
+            # the above calculation is always >0, but should be 0 if nothing in the user queue
+            glidein_max_run=0
+
+        remove_excess_wait=False # do not remove excessive glideins by default
+        # keep track of how often idle was 0
+        if not history_obj.has_key('idle0'):
+            history_obj['idle0']={}
+        history_idle0=history_obj['idle0']
+        if not history_idle0.has_key(glideid):
+            history_idle0[glideid]=0
+        if count_jobs['Idle']==0:
+            # no idle jobs in the queue left
+            # consider asking for unsubmitted idle glideins to be removed
+            history_idle0[glideid]+=1
+            if history_idle0[glideid]>5:
+                # nobody asked for anything more for some time, so
+                remove_excess_wait=True
+        else:
+            history_idle0[glideid]=0
+
+        remove_excess_idle=False # do not remove excessive glideins by default
+
+        # keep track of how often glideidle was 0
+        if not history_obj.has_key('glideempty'):
+            history_obj['glideempty']={}
+        history_glideempty=history_obj['glideempty']
+        if not history_glideempty.has_key(glideid):
+            history_glideempty[glideid]=0
+        if count_status['Idle']>=count_status['Total']:
+            # no glideins being used
+            # consider asking for all idle glideins to be removed
+            history_glideempty[glideid]+=1
+            if remove_excess_wait and (history_glideempty[glideid]>10):
+                # no requests and no glideins being used
+                # no harm getting rid of everything
+                remove_excess_idle=True
+        else:
+            history_glideempty[glideid]=0
+
+        remove_excess_running=False # do not remove excessive glideins by default
+
+        # keep track of how often glidetotal was 0
+        if not history_obj.has_key('glidetotal0'):
+            history_obj['glidetotal0']={}
+        history_glidetotal0=history_obj['glidetotal0']
+        if not history_glidetotal0.has_key(glideid):
+            history_glidetotal0[glideid]=0
+        if count_status['Total']==0:
+            # no glideins registered
+            # consider asking for all idle glideins to be removed
+            history_glidetotal0[glideid]+=1
+            if remove_excess_wait and (history_glidetotal0[glideid]>10):
+                # no requests and no glidein registered
+                # no harm getting rid of everything
+                remove_excess_running=True
+        else:
+            history_glidetotal0[glideid]=0
+
+        if remove_excess_running:
+            remove_excess_str="ALL"
+        elif remove_excess_idle:
+            remove_excess_str="IDLE"
+        elif remove_excess_wait:
+            remove_excess_str="WAIT"
+        else:
+            remove_excess_str="NO"
+
+        this_stats_arr=(prop_jobs['Idle'],count_jobs['Idle'],effective_idle,prop_jobs['OldIdle'],hereonly_jobs['Idle'],count_jobs['Running'],count_real[glideid],max_running,
                         count_status['Total'],count_status['Idle'],count_status['Running'],
                         glidein_min_idle,glidein_max_run)
+
+        stats['group'].logMatchedJobs(
+            glideid_str, prop_jobs['Idle'],effective_idle, prop_jobs['OldIdle'],
+            count_jobs['Running'], count_real[glideid])
+
+        stats['group'].logMatchedGlideins(
+            glideid_str, count_status['Total'],count_status['Idle'],
+            count_status['Running'])
+
+        stats['group'].logFactAttrs(glideid_str, glidein_el['attrs'], ('PubKeyValue','PubKeyObj'))
+
+        stats['group'].logFactDown(glideid_str, glidein_in_downtime)
+
         if glidein_in_downtime:
             total_down_stats_arr=log_and_sum_factory_line(glideid_str,glidein_in_downtime,this_stats_arr,total_down_stats_arr)
         else:
@@ -332,9 +433,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             # convert kexpr -> kval
             glidein_params[k]=glideinFrontendLib.evalParamExpr(kexpr,paramsDescript.const_data,glidein_el)
 
+        stats['group'].logFactReq(
+            glideid_str, glidein_min_idle, glidein_max_run, glidein_params)
+
         glidein_monitors={}
         for t in count_jobs.keys():
             glidein_monitors[t]=count_jobs[t]
+        
+        glidein_monitors['RunningHere'] = count_real[glideid]
+        
         for t in count_status.keys():
             glidein_monitors['Glideins%s'%t]=count_status[t]
         if descript_obj.need_encryption():
@@ -352,7 +459,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         advertizer.add(factory_pool_node,
                        request_name,request_name,
                        glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
-                       key_obj,glidein_params_to_encrypt=None,security_name=security_name)
+                       remove_excess_str=remove_excess_str,
+                       key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name)
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
     # Print the totals
@@ -360,6 +468,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     log_factory_header()
     log_and_sum_factory_line('Sum of useful factories',False,tuple(total_up_stats_arr),total_down_stats_arr)
     log_and_sum_factory_line('Sum of down factories',True,tuple(total_down_stats_arr),total_up_stats_arr)
+
+    # Print unmatched... Ignore the resulting sum
+    unmatched_idle=condorq_dict_types['Idle']['count'][(None,None,None)]
+    unmatched_oldidle=condorq_dict_types['OldIdle']['count'][(None,None,None)]
+    unmatched_running=condorq_dict_types['Running']['count'][(None,None,None)]
+    this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
+                    0,0,0, # glideins... none, since no matching
+                    0,0)   # requested... none, since not matching
+    log_and_sum_factory_line('Unmatched',True,this_stats_arr,total_down_stats_arr)
         
     try:
         glideinFrontendLib.log_files.logActivity("Advertizing %i requests"%advertizer.get_queue_len())
@@ -391,6 +508,7 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
     group_name=elementDescript.element_data['GroupName']
 
     stats={}
+    history_obj={}
 
     if not elementDescript.frontend_data.has_key('X509Proxy'):
         published_frontend_name='%s.%s'%(frontend_name,group_name)
@@ -409,7 +527,7 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                 # recreate every time (an easy way to start from a clean state)
                 stats['group']=glideinFrontendMonitoring.groupStats()
                 
-                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats)
+                done_something=iterate_one(published_frontend_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj)
                 
                 glideinFrontendLib.log_files.logActivity("Writing stats")
                 try:
@@ -473,17 +591,13 @@ def main(parent_pid, work_dir, group_name):
     glideinFrontendInterface.frontendConfig.advertise_use_multi=(elementDescript.frontend_data['AdvertiseWithMultiple'] in ('True','1'))
 
     try:
-        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(os.path.dirname(os.path.dirname(sys.argv[0]))).version()
+        dir = os.path.dirname(os.path.dirname(sys.argv[0]))
+        glideinFrontendInterface.frontendConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.frontend')).version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
         glideinFrontendLib.log_files.logWarning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
         glideinFrontendLib.log_files.logDebug("Exception occurred: %s" % tb)    
-
-
-
-
-
 
     if len(elementDescript.merged_data['Proxies'])>0:
         if not glideinFrontendPlugins.proxy_plugins.has_key(elementDescript.merged_data['ProxySelectionPlugin']):

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.63.2.7 2010/09/08 23:22:37 sfiligoi Exp $
+#   $Id: cgWParams.py,v 1.63.2.7.4.1 2011/04/19 15:22:55 tiradani Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -225,11 +225,11 @@ class GlideinParams(cWParams.CommonParams):
     def get_xml_format(self):
         return {'lists_params':{'condor_tarballs':{'el_name':'condor_tarball','subtypes_params':{'class':{}}},
                                 'files':{'el_name':'file','subtypes_params':{'class':{}}},
+                                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'infosys_refs':{'el_name':'infosys_ref','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'entries':{'el_name':'entry','subtypes_params':{'class':{}}},
                                 'allow_frontends':{'el_name':'allow_frontend','subtypes_params':{'class':{}}},
-                                'monitorgroups':{'el_name':'monitorgroup','subtypes_params':{'class':{}}},
                                 'frontends':{'el_name':'frontend','subtypes_params':{'class':{}}},'security_classes':{'el_name':'security_class','subtypes_params':{'class':{}}}}}
 
 

@@ -1,14 +1,78 @@
-vNext	Installer can now install gridFTP and VOMS certs needed by CREAM
+vNext	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
+
+v2_5_1	Factory now can remove excessive glideins
+	  New ClassAd attribute - RemoveExcess
+	Frontend will request removal of glideins when no user jobs in queue
+	Improved idle counting by the frontend when jobs match many factory
+	  entries.
+	Improved frontend logging.
+	Add Java support in the glideins.
+	Changed factory monitoring. It is now based on security names and not 
+	  plain frontend names
+	Improved installation process using ini based installer.
+	glideinWMS tarball does not include CVS directories and files any more 
+	Added support of shared port configuration for condor daemons
+	SIGHUP signals to glideins are ignored correctly.
+	Improved documentation
+	BUG FIX: Fixed a bug introduced in v2_5 release where reconfiguring the
+	  factory would fail because of monitoring groups
+	BUG FIX: Fixed a typo in one of the links in frontendRRDBrowse.html
+
+v2_5	Installer can now install gridFTP and VOMS certs needed by CREAM
+	glideinWMS release is now available in 3 different tarballs, frontend
+	  only, factory only and a complete tarball.
+	glideinWMS factory and the Corral frontend can now talk to each other
+	Corral tarball is now available from the glideinWMS release page
+	Factory is smarter about handling held glideins
+	Factory can now black/white list VOs on a per-entry basis
+	Version of glideinWMS is now published in the classads. Scheme can 
+	  detect any changes to any service appropriate files and advertises 
+	  cersion as patched.
+	Frontend should try to recover the crashed group before it gives up and
+	  shutsdown
+	Improvements to the monitoring
         Improvements to documentaion
-	Bug Fix: Correctly interpret DN from a voms proxy generated from a 
+	Add support for use of TCP in condor_advertise
+	Add support for condor_advertise -multiple (requires Condor v7.5.4+)
+	Improved factory stopping procedure
+	Add XML monitoring files of RRD files on both factory and frontend
+	Add JobsRunningHere attribute - CANNOT SIMPLY UPGRADE, NEEDS NEW
+	  INSTANCE FOR BOTH FACTORY AND FRONTEND
+	Graceful shutdown of the glidein by trapping signals in glidein_startup
+	BUG FIX: Fixed a bug where factory would create a malformed 
+	  glideinWMS.xml config file when configured to use a default proxy 
+	  for glideins from the factory.
+	BUG FIX: Factory entry sometimes stops reporting when it gets an 
+	  exception for any reason
+	BUG FIX: Top-level schedd_status.xml malformed Total data
+	BUG FIX: Fixed a bug where the LogCounts.rrd was created with wrong
+	  data types.
+	KNOWN ISSUE: Automatic release of held glideins for CREAM CEs with 
+	  issues could result in factory submitting more than required
+	  glideins to the CE. As a workaround, disable release of held glideins
+	  for CREAM CE.
+
+v2_4_3  Install VOMS Certificates during the install time
+	Entry does not print stacktrace when it fails to submit glidein.
+	  Instead it logs the error message appropriately.
+	Default scripts run on the worker node correctly print errors to
+	  stderr instead of stdout
+	Allow factory to startup from any directory
+	Python scripts get the python from /usr/bin/env python instead of
+	  /bin/env python making them more portable accross different linux
+	  distros
+	Better exception handling and error reporting
+	Fixed how voms_proxy_init is looked for after VDT install
+	BUG FIX: Fixed a bug where Summarize.listStored() in CondorMonitor.py
+	  returned the wrong value
+	BUG FIX: Fixed a bug in factory monitoring that prevented proper
+	  aggregation of sites
+	BUG FIX: Correctly interpret DN from a voms proxy generated from a
 	  service certificate.
-	Bug Fix: Generate frontend's condor_config without empty values for
+	BUG FIX: Generate frontend's condor_config without empty values for
 	  certain configuration options. Empty values is not the right way to
 	  reset the configuration options.
-	Add support for use of TCP in condor_advertise
-	Add support for condor_advertise -multiple (Condor v7.5.4+)
-	Improved factory stopping procedure
-	Add XML monitoring files of RRD files
+
 
 v2_4_2	Fixed the incompatibility introduced in v2_4_1 in monitoring components.
 

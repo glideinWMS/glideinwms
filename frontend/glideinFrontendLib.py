@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.4 2010/10/28 00:38:37 sfiligoi Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.4.2.1 2011/04/19 15:22:58 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -77,7 +77,7 @@ log_files=None
 #
 def getCondorQ(schedd_names,constraint=None,format_list=None):
     if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i')])
+        format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i'),('RemoteHost','s')])
     return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
 
 #
@@ -108,6 +108,39 @@ def getRunningCondorQ(condorq_dict):
         out[schedd_name]=sq
     return out
 
+def appendRealRunning(condorq_dict, status_dict):
+    for schedd_name in condorq_dict:
+        condorq = condorq_dict[schedd_name].fetchStored()
+
+        for jid in condorq:
+            found = False
+  
+            if condorq[jid].has_key('RemoteHost'):
+                remote_host = condorq[jid]['RemoteHost']
+
+                for collector_name in status_dict:
+                    condor_status = status_dict[collector_name].fetchStored()
+                    if remote_host in condor_status:
+                        # there is currently no way to get the factory collector from
+                        #   condor status so this hack grabs the hostname of the schedd
+                        schedd = condor_status[remote_host]['GLIDEIN_Schedd'].split('@')
+                        if len(schedd) < 2:
+                          break
+
+                        # split by : to remove port number if there
+                        fact_pool = schedd[1].split(':')[0]
+
+                        condorq[jid]['RunningOn'] = "%s@%s@%s@%s" % (
+                            condor_status[remote_host]['GLIDEIN_Entry_Name'],
+                            condor_status[remote_host]['GLIDEIN_Name'],
+                            condor_status[remote_host]['GLIDEIN_Factory'],
+                            fact_pool)
+                        found = True
+                        break
+
+            if not found:
+                condorq[jid]['RunningOn'] = 'UNKNOWN'
+        
 #
 # Return a dictionary of schedds containing old jobs
 # Each element is a condorQ
@@ -155,11 +188,104 @@ def getCondorQUsers(condorq_dict):
 # glidein_dict = output of interface.findGlideins
 #
 # Returns:
-#  dictionary of glidein name
-#   where elements are number of idle jobs matching
+#  tuple of 3 elements, where each is a
+#    dictionary of glidein name where elements are number of jobs matching
+#  The first  one is a straight match
+#  The second one is the entry proportion based on unique subsets
+#  The third  one contains only elements that can only run on this site 
+#
+#  A special "glidein name" of (None, None, None) is used for jobs 
+#   that don't match any "real glidein name"
+
 def countMatch(match_obj,condorq_dict,glidein_dict):
     out_glidein_counts={}
+    #new_out_counts: keys are site indexes(numbers), 
+    #elements will be the number of real
+    #idle jobs associated with each site
+    new_out_counts={}
+    glideindex=0
+
+    cq_jobs=sets.Set()
+    for schedd in condorq_dict.keys():
+        condorq=condorq_dict[schedd]
+        condorq_data=condorq.fetchStored()
+        for jid in condorq_data.keys():
+            t=(schedd,jid)
+            cq_jobs.add(t)
+
+    list_of_all_jobs=[]
+
     for glidename in glidein_dict:
+        glidein=glidein_dict[glidename]
+        glidein_count=0
+        jobs=sets.Set()
+        for schedd in condorq_dict.keys():
+            condorq=condorq_dict[schedd]
+            condorq_data=condorq.fetchStored()
+            schedd_count=0
+            for jid in condorq_data.keys():
+                job=condorq_data[jid]
+                if eval(match_obj):
+                    t=(schedd,jid)
+                    jobs.add(t)
+                    schedd_count+=1
+                pass
+            glidein_count+=schedd_count
+            pass    
+        list_of_all_jobs.append(jobs)
+        out_glidein_counts[glidename]=glidein_count
+        pass
+    (outvals,range) = uniqueSets(list_of_all_jobs)
+    count_unmatched=len(cq_jobs-range)
+
+    #unique_to_site: keys are sites, elements are num of unique jobs
+    unique_to_site = {}
+    #each tuple contains ([list of site_indexes],jobs associated with those sites)
+    #this loop necessary to avoid key error
+    for tuple in outvals:
+        for site_index in tuple[0]:
+            new_out_counts[site_index]=0
+            unique_to_site[site_index]=0
+    #for every tuple of([site_index],jobs), cycle through each site index
+    #new_out_counts[site_index] is the number of jobs over the number
+    #of indexes, rounded up.
+    for tuple in outvals:
+        for site_index in tuple[0]:
+            new_out_counts[site_index]=new_out_counts[site_index]+(len(tuple[1])/len(tuple[0]))+(len(tuple[1])%len(tuple[0]))
+        #if the site has jobs unique to it
+        if len(tuple[0])==1:
+            temp_sites=tuple[0]
+            unique_to_site[temp_sites.pop()]=len(tuple[1])
+    #create a list of all sites, list_of_sites[site_index]=site
+    list_of_sites=[]
+    i=0
+    for glidename in glidein_dict:
+        list_of_sites.append(0)
+        list_of_sites[i]=glidename
+        i=i+1
+    final_out_counts={}
+    final_unique={}
+    # new_out_counts to final_out_counts
+    # unique_to_site to final_unique
+    # keys go from site indexes to sites
+    for glidename in glidein_dict:
+        final_out_counts[glidename]=0
+        final_unique[glidename]=0
+    for site_index in new_out_counts:
+        site=list_of_sites[site_index]
+        final_out_counts[site]=new_out_counts[site_index]
+        final_unique[site]=unique_to_site[site_index]
+
+    out_glidein_counts[(None,None,None)]=count_unmatched
+    final_out_counts[(None,None,None)]=count_unmatched
+    final_unique[(None,None,None)]=count_unmatched
+    return (out_glidein_counts,final_out_counts,final_unique)
+
+def countRealRunning(match_obj,condorq_dict,glidein_dict):
+    out_glidein_counts={}
+    for glidename in glidein_dict:
+        # split by : to remove port number if there
+        glide_str = "%s@%s" % (glidename[1],glidename[0].split(':')[0])
         glidein=glidein_dict[glidename]
         glidein_count=0
         for schedd in condorq_dict.keys():
@@ -168,7 +294,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
             schedd_count=0
             for jid in condorq_data.keys():
                 job=condorq_data[jid]
-                if eval(match_obj):
+                if eval(match_obj) and job['RunningOn'] == glide_str:
                     schedd_count+=1
                 pass
             glidein_count+=schedd_count
@@ -176,7 +302,6 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         out_glidein_counts[glidename]=glidein_count
         pass
     return out_glidein_counts
-
 
 #
 # Convert frontend param expression in a value
@@ -199,7 +324,7 @@ def evalParamExpr(expr_obj,frontend,glidein):
 #
 def getCondorStatus(collector_names,constraint=None,format_list=None):
     if format_list!=None:
-        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s')])
+        format_list=condorMonitor.complete_format_list(format_list,[('State','s'),('Activity','s'),('EnteredCurrentState','i'),('EnteredCurrentActivity','i'),('LastHeardFrom','i'),('GLIDEIN_Factory','s'),('GLIDEIN_Name','s'),('GLIDEIN_Entry_Name','s'),('GLIDECLIENT_Name','s'),('GLIDEIN_Schedd','s')])
     return getCondorStatusConstrained(collector_names,'(IS_MONITOR_VM=!=True)&&(GLIDEIN_Factory=!=UNDEFINED)&&(GLIDEIN_Name=!=UNDEFINED)&&(GLIDEIN_Entry_Name=!=UNDEFINED)',constraint,format_list)
 
 #
@@ -389,6 +514,7 @@ def uniqueSets(in_sets):
     sum_set = sets.Set()
     for s in sorted_sets:
         sum_set = sum_set | s
+
 
     sorted_sets.append(sum_set)
 
