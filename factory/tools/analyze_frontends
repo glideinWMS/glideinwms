@@ -330,7 +330,7 @@ RunDiff (Running-ClientRegistered): %s
        analyze.printline(period_data[period]['ClientJobsRunHere'],1,period),
        analyze.printline(period_data[period]['ClientJobsIdle'],1,period),
 
-       analyze.printline(period_data[period]['ClientGlideRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period)))
+       analyze.printline(period_data[period]['StatusRunning']-period_data[period]['ClientGlideTotal'],period_data[period]['StatusRunning'],period)))
 
 
 ################################################################################
