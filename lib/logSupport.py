@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: logSupport.py,v 1.21.10.2.4.1 2011/04/19 19:10:48 tiradani Exp $
+#   $Id: logSupport.py,v 1.21.10.2.4.2 2011/04/20 14:30:44 tiradani Exp $
 #
 # Description: log support module
 #
@@ -242,8 +242,6 @@ class GlideinHandler(TimedRotatingFileHandler):
         """
         do_timed_rollover = logging.handlers.TimedRotatingFileHandler.shouldRollover(self, record)
         do_size_rollover = 0
-        if self.stream is None:                 # delay was set...
-            self.stream = self._open()
         if self.maxBytes > 0:                   # are we rolling over?
             msg = "%s\n" % self.format(record)
             self.stream.seek(0, 2)  #due to non-posix-compliant Windows feature
