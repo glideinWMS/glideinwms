@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryCompletedStats.html,v 1.10.8.5.18.2 2011/04/20 20:41:41 amccrea Exp $
+  $Id: factoryCompletedStats.html,v 1.10.8.5.18.3 2011/04/20 22:01:29 sfiligoi Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -391,7 +391,7 @@ Description:
         list = ['Lasted','JobsLasted','JobsNr','validation','idle','nosuccess','badput'];
         for (var a in list) {
            gtype_formats[list[a]]['WeightedSum'] = {stack:'negative', yaxis:2, color: '#990066', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
-           gtype_formats[list[a]]['AverageSum'] = {stack:'negative', yaxis:2, color: '#000000', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
+           gtype_formats[list[a]]['Average'] = {stack:'negative', yaxis:2, color: '#000000', lines: {show:true, fill:true, fillColor: "rgba(255,255,255,0.3)"}}; 
         }
 
         var rrd_data1 = undefined;
