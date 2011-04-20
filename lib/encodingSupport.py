@@ -15,7 +15,7 @@ class EncodingTypeError(Exception):
         Exception.__init__(self, message)
 
 def encode_data(data, encoding="b64", url_safe=False):
-    """This function encodes data using the base64 library.
+    """Encode data using the base64 library.
 
     @raise EncodingTypeError: This exception occurs if an invalid encoding type
         is specified
@@ -36,9 +36,9 @@ def encode_data(data, encoding="b64", url_safe=False):
         raise EncodingTypeError(encoding, supported_encoding_types)
 
 def decode_data(encoded_data, encoding="b64", url_safe=False):
-    """This function decodes previously encoded data using the base64 library
-    or base64 compatible library.  For security purposes, some optional
-    parameters are not allowed in some of the supported encoding types.  See
+    """Decode previously encoded data using the base64 library or base64
+    compatible library.  For security purposes, some optional parameters are
+    not allowed in some of the supported encoding types.  See
     U{http://docs.python.org/library/base64.html}
 
     @raise EncodingTypeError: This exception occurs if an invalid encoding type
