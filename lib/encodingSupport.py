@@ -49,14 +49,14 @@ def decode_data(encoded_data, encoding="b64", url_safe=False):
     decoded_data = ""
     if encoding in supported_encoding_types:
         if encoding == "b16":
-            decoded_data = base64.b16decode(data)
+            decoded_data = base64.b16decode(encoded_data)
         elif encoding == "b32":
-            decoded_data = base64.b32decode(data)
+            decoded_data = base64.b32decode(encoded_data)
         else:  # We assume that the encoding type is the default (b64)
             if url_safe:
-                decoded_data = base64.urlsafe_b64decode(data)
+                decoded_data = base64.urlsafe_b64decode(encoded_data)
             else:
-                decoded_data = base64.b64decode(data)
+                decoded_data = base64.b64decode(encoded_data)
         return decoded_data
     else:
         raise EncodingTypeError(encoding, supported_encoding_types)
