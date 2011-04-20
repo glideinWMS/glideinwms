@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.16 2011/01/26 20:15:17 parag Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.17 2011/04/20 15:34:53 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1220,6 +1220,20 @@ def releaseGlideins(schedd_name,jid_list):
 
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
+    """
+    This function looks at the glidein job's information and returns if the
+    CondorG job is unrecoverable.
+
+    This is useful to change to status of glidein (CondorG job) from hold to
+    idle.
+
+    @type jobInfo: dictionary
+    @param jobInfo: Dictionary containing glidein job's classad information
+
+    @rtype: bool
+    @return: True if job is unrecoverable, False if recoverable
+    """
+
     # CondorG held jobs have HeldReasonCode 2
     # CondorG held jobs with following HeldReasonSubCode are not recoverable
     # 0   : Job failed, no reason given by GRAM server 
@@ -1239,7 +1253,7 @@ def isGlideinUnrecoverable(jobInfo):
     #       terminated, invalid job contact, network problems, ... 
     # 121 : the job state file doesn't exist 
     # 122 : could not read the job state file
-    
+
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17, 
