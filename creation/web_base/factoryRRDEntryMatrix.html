@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version:
-  $Id: factoryRRDEntryMatrix.html,v 1.4.8.9 2010/09/08 03:30:00 parag Exp $
+  $Id: factoryRRDEntryMatrix.html,v 1.4.8.9.18.1 2011/04/21 19:57:46 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs over the entries
@@ -208,7 +208,7 @@ Description:
 	} 
 
         // the rrdFlot object creates and handles the graph
-        var f=new rrdFlotMatrix("mygraph",rrd_files);
+        var f=new rrdFlotMatrix("mygraph",rrd_files,null,null,null,{legend:"None"});
 
         // Finally, update the file name and enable the update button
         rrds_loaded = rrds_loaded + 1;
