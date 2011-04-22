@@ -307,7 +307,7 @@ What do you want to install?
     <td><i>Do you want to enable the shared_port_daemon?: (y/n)</i><br>
         <i>What port should it use?: [9615]</i></td>
     <td>
-	The shared port daemon drastically reduces the number of ports used.<br>
+	The shared port daemon drastically reduces the number of ports used. This port must be open on any firewalls.<br>
         <br>
         Recommended for Condor versions 7.5.4 and above. (<b>Does not work with older versions of condor</b>)
     </td>
@@ -324,7 +324,10 @@ What do you want to install?
         If you are only running hundreds of jobs, you may want to tune this down.  
         Conversely, with higher amounts of jobs, this may need to be increased.
         This value depends on your installation and can later be tuned 
-        based on load and average number of jobs.
+        based on load and average number of jobs.<br/><br/>
+
+        A rough estimate is to use one collector per 100 glideins with a 
+        hard limit on 200 glideins per collector.
     </td>
     </tr>
     </tbody></table>

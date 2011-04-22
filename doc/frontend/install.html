@@ -410,7 +410,8 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
 
     <td><i>What node is the collector running (i.e. CONDOR_HOST)? </i></td>
     <td>
-        The installer will ask, "What node is the collector running (i.e. CONDOR_HOST)?".  The collector referred to by this question is the user pool collector.  Answer with the fqdn of the user pool collector.
+        The installer will ask, "What node is the collector running (i.e. CONDOR_HOST)?".  The collector referred to by this question is the user pool collector.  Answer with the fqdn of the user pool collector.  You will need to open all
+port(s) that the collector will use on the firewall.
     </td>
     </tr>
 
@@ -518,7 +519,8 @@ Where will the web data be hosted?: [/var/www/html/glidefactory] /var/www/html/g
     <td>
 
         At this point, the location (fqdn) as well as the DN for the WMS collector is needed.
-        The installer will ask you for the classad identity of the glidein factory.  This should be the be the username the factory was installed as.  It should be in this format:  &lt;username&gt;@&lt;factoryfqdn&gt;
+        The installer will ask you for the classad identity of the glidein factory.  This should be the be the username the factory was installed as.  It should be in this format:  &lt;username&gt;@&lt;factoryfqdn&gt;.  You will need
+to make sure all ports are open on any firewalls for these machines.
 
             <br/><b>
         For a visual guide to the configuration options that need to
