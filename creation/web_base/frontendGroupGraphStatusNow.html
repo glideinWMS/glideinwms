@@ -251,6 +251,7 @@ function UpdateGroup(group_obj) {
     var idle = [];
     var factories = [];
     var matchedglideins_idle = [];
+    var matchedglideins_idlefra = [];
     var matchedglideins_running = [];
     var matchedjobs_idle = [];
     var matchedjobs_running = [];
@@ -266,6 +267,7 @@ function UpdateGroup(group_obj) {
     data.addColumn('number', 'Idle Jobs');
     data.addColumn('number', 'Glideins claimed by jobs');
     data.addColumn('number', 'Glideins not matched');
+    data.addColumn('number', '% not matched');
     data.addColumn('number', 'Requested Max Run');
     data.addColumn('number', 'Requested Idle');
     var counter = 0;
@@ -273,23 +275,38 @@ function UpdateGroup(group_obj) {
     // For each factory (entry_point), grab attributes from the xml
     $(group_obj).find("factory").each(function() {
         data.addRows(1);
-        factories.push($(this).find("Attributes").attr("EntryName"));
-        data.setCell(counter, 0, $(this).find("Attributes").attr("EntryName"));
+        entry_name = $(this).find("Attributes").attr("EntryName");
+        factories.push(entry_name);
+        data.setCell(counter, 0, entry_name);
 
-        matchedglideins_idle.push($(this).find("MatchedGlideins").attr('Idle'));
-        data.setCell(counter, 4, parseFloat($(this).find("MatchedGlideins").attr('Idle')));
-        matchedglideins_running.push($(this).find("MatchedGlideins").attr('Running'));
-        data.setCell(counter, 3, parseFloat($(this).find("MatchedGlideins").attr('Running')));
+        var matched_idle_glideins = parseFloat($(this).find("MatchedGlideins").attr('Idle'));
+        matchedglideins_idle.push(matched_idle_glideins);
+        var matched_running_glideins = parseFloat($(this).find("MatchedGlideins").attr('Running'));
+        matchedglideins_running.push(matched_running_glideins);
+        data.setCell(counter, 3, matched_running_glideins);
 
-        matchedjobs_idle.push($(this).find("MatchedJobs").attr('Idle'));
-        data.setCell(counter, 2, parseFloat($(this).find("MatchedJobs").attr('Idle')));
-        matchedjobs_running.push($(this).find("MatchedJobs").attr('RunningHere'));
+        var matched_idle_glideins_fraction = 0;
+        if (matched_idle_glideins > 0) {
+         // make sure we don't have division by zero
+            matched_idle_glideins_fraction = 100.0 * matched_idle_glideins / (matched_idle_glideins + matched_running_glideins);
+            matched_idle_glideins_fraction = Math.round(matched_idle_glideins_fraction*100)/100.0;
+        }
+        matchedglideins_idlefra.push(matched_idle_glideins_fraction);
+        data.setCell(counter, 4,     matched_idle_glideins);
+        data.setCell(counter, 5,     matched_idle_glideins_fraction);
+
+
+        var mji=parseFloat($(this).find("MatchedJobs").attr('Idle'));
+        matchedjobs_idle.push(mji);
+        data.setCell(counter, 2, mji);
+
+        matchedjobs_running.push(parseFloat($(this).find("MatchedJobs").attr('RunningHere')));
         data.setCell(counter, 1, parseFloat($(this).find("MatchedJobs").attr('RunningHere')));
 
-        requested_idle.push($(this).find("Requested").attr('Idle'));
-        data.setCell(counter, 6, parseFloat($(this).find("Requested").attr('Idle')));
-        requested_running.push($(this).find("Requested").attr('MaxRun'));
-        data.setCell(counter, 5, parseFloat($(this).find("Requested").attr('MaxRun')));
+        requested_idle.push(parseFloat($(this).find("Requested").attr('Idle')));
+        data.setCell(counter, 7, parseFloat($(this).find("Requested").attr('Idle')));
+        requested_running.push(parseFloat($(this).find("Requested").attr('MaxRun')));
+        data.setCell(counter, 6, parseFloat($(this).find("Requested").attr('MaxRun')));
 
         counter++;
 
@@ -322,7 +339,7 @@ function UpdateGroup(group_obj) {
     function SumElements(sum_array) {
         var sum = 0;
         $(sum_array).each(function() {
-            sum += parseFloat(this);
+            sum += this;
         });
         return sum;
     }
@@ -334,8 +351,9 @@ function UpdateGroup(group_obj) {
     data.setCell(counter, 2, SumElements(matchedjobs_idle));
     data.setCell(counter, 3, SumElements(matchedglideins_running));
     data.setCell(counter, 4, SumElements(matchedglideins_idle));
-    data.setCell(counter, 5, SumElements(requested_running));
-    data.setCell(counter, 6, SumElements(requested_idle));
+    data.setCell(counter, 5, Math.round(SumElements(matchedglideins_idlefra)*100)/100.0);
+    data.setCell(counter, 6, SumElements(requested_running));
+    data.setCell(counter, 7, SumElements(requested_idle));
 
 
     
@@ -388,15 +406,15 @@ function CreateGraphImage() {
 
 }
 
+
 // Function to create the charts by querying google
 // users: array of entry_points
 // data: array of values for the entry_point
 // title: Title for the graph
 // image: an image object created with 'new Image()'
 function MakeChart(entry_points, data, title, image) {
-    
     var i = 0;
-    entry_limit = 30;
+    entry_limit = 25;
 
     // Sort the entries
     // entry_data = [<entry_name>, <number(str)>, <normalized>]
@@ -435,7 +453,7 @@ function MakeChart(entry_points, data, title, image) {
     baseurl += "&chl=";
     var formatted_entry_points = [];
     for (var i in entry_data) {
-        formatted_entry_points.push(entry_data[i][0] + " (" + entry_data[i][1] + ")");
+        formatted_entry_points.push(entry_data[i][0] + " (" + Math.round(entry_data[i][1]*10)/10.0 + ")");
     }
     baseurl += formatted_entry_points.join("|");
     var img = image;
