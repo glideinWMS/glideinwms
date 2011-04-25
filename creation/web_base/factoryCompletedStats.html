@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryCompletedStats.html,v 1.10.8.5.18.4 2011/04/21 19:49:17 amccrea Exp $
+  $Id: factoryCompletedStats.html,v 1.10.8.5.18.5 2011/04/25 18:09:35 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -454,7 +454,7 @@ Description:
         else if ((gtype_id=='validation')  || (gtype_id=='idle')|| (gtype_id=='nosuccess') || (gtype_id=='badput')) {x=9;}
 
         // the rrdFlot object creates and handles the graph
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{num_legend_rows:x});
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{num_cb_rows:x});
 
         // Finally, update the files loaded so far
         files_loaded = files_loaded + 1;
