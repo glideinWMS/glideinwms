@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: logSupport.py,v 1.21.10.2.4.2 2011/04/20 14:30:44 tiradani Exp $
+#   $Id: logSupport.py,v 1.21.10.2.4.3 2011/04/26 20:24:22 tiradani Exp $
 #
 # Description: log support module
 #
@@ -190,6 +190,9 @@ class DirCleanupWSpace(DirCleanup):
 # Note:  We may need to create a custom class later if we need to handle
 #        logging with privilege separation
 
+log = None # create a place holder for a global logger, individual modules can create their own loggers if necessary
+log_dir = None
+
 class GlideinHandler(TimedRotatingFileHandler):
     """
     Custom logging handler class for glideinWMS.  It combines the decision tree
@@ -251,7 +254,7 @@ class GlideinHandler(TimedRotatingFileHandler):
         return do_timed_rollover or do_size_rollover
 
 
-def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes, debug=False):
+def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes):
     """
     Setup python's built-in logging module.  This is designed to mimic the
     original logging in GlideinWMS, but allow logging in every module.
@@ -300,10 +303,9 @@ def add_glideinlog_handler(logger_name, log_dir, maxDays, maxBytes, debug=False)
     mylog.addHandler(handler)
 
     # DEBUG Logger
-    if debug:
-        formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
-        logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
-        handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
-        handler.setFormatter(formatter)
-        handler.setLevel(logging.DEBUG)
-        mylog.addHandler(handler)
+    formatter = logging.Formatter('[%(asctime)s] %(levelname)s:::%(module)s::%(lineno)d: %(message)s ')
+    logfile = os.path.expandvars("%s/%s.debug.log" % (log_dir, logger_name))
+    handler = GlideinHandler(logfile, maxDays, maxBytes, backupCount=5)
+    handler.setFormatter(formatter)
+    handler.setLevel(logging.DEBUG)
+    mylog.addHandler(handler)

@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.2 2011/04/19 15:22:58 tiradani Exp $
+# File Version:
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.3 2011/04/26 20:24:22 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -23,9 +23,10 @@ import pwd
 import binascii
 import condorExe,condorPrivsep
 import logSupport
+import logging
 import condorMonitor
 
-MY_USERNAME=pwd.getpwuid(os.getuid())[0]
+MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
 ############################################################
 #
@@ -86,51 +87,51 @@ class FactoryConfig:
         self.supported_signtypes=['sha1']
 
         # who am I
-        self.factory_name=None
-        self.glidein_name=None
+        self.factory_name = None
+        self.glidein_name = None
         # do not add the entry_name, as we may decide someday to share
         # the same process between multiple entries
 
         # used directories
-        self.submit_dir=None
-        self.log_base_dir=None
-        self.client_log_base_dir=None
-        self.client_proxies_base_dir=None
+        self.submit_dir = None
+        self.log_base_dir = None
+        self.client_log_base_dir = None
+        self.client_proxies_base_dir = None
 
-    def config_whoamI(self,factory_name,glidein_name):
-        self.factory_name=factory_name
-        self.glidein_name=glidein_name
+    def config_whoamI(self, factory_name, glidein_name):
+        self.factory_name = factory_name
+        self.glidein_name = glidein_name
 
-    def config_dirs(self,submit_dir,log_base_dir,client_log_base_dir,client_proxies_base_dir):
-        self.submit_dir=submit_dir
-        self.log_base_dir=log_base_dir
-        self.client_log_base_dir=client_log_base_dir
-        self.client_proxies_base_dir=client_proxies_base_dir
+    def config_dirs(self, submit_dir, log_base_dir, client_log_base_dir, client_proxies_base_dir):
+        self.submit_dir = submit_dir
+        self.log_base_dir = log_base_dir
+        self.client_log_base_dir = client_log_base_dir
+        self.client_proxies_base_dir = client_proxies_base_dir
 
-    def config_submit_freq(self,sleepBetweenSubmits,maxSubmitsXCycle):
-        self.submit_sleep=sleepBetweenSubmits
-        self.max_submits=maxSubmitsXCycle
+    def config_submit_freq(self, sleepBetweenSubmits, maxSubmitsXCycle):
+        self.submit_sleep = sleepBetweenSubmits
+        self.max_submits = maxSubmitsXCycle
 
-    def config_remove_freq(self,sleepBetweenRemoves,maxRemovesXCycle):
-        self.remove_sleep=sleepBetweenRemoves
-        self.max_removes=maxRemovesXCycle
+    def config_remove_freq(self, sleepBetweenRemoves, maxRemovesXCycle):
+        self.remove_sleep = sleepBetweenRemoves
+        self.max_removes = maxRemovesXCycle
 
-    def get_client_log_dir(self,entry_name,username):
-        log_dir=os.path.join(self.client_log_base_dir,"user_%s/glidein_%s/entry_%s"%(username,self.glidein_name,entry_name))
+    def get_client_log_dir(self, entry_name, username):
+        log_dir = os.path.join(self.client_log_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return log_dir
 
-    def get_client_proxies_dir(self,entry_name,username):
-        proxy_dir=os.path.join(self.client_proxies_base_dir,"user_%s/glidein_%s/entry_%s"%(username,self.glidein_name,entry_name))
+    def get_client_proxies_dir(self, entry_name, username):
+        proxy_dir = os.path.join(self.client_proxies_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return proxy_dir
 
 
 # global configuration of the module
-factoryConfig=FactoryConfig()
+factoryConfig = FactoryConfig()
 
 ############################################################
 #
-def secClass2Name(client_security_name,proxy_security_class):
-    return "%s_%s"%(client_security_name,proxy_security_class)
+def secClass2Name(client_security_name, proxy_security_class):
+    return "%s_%s" % (client_security_name, proxy_security_class)
 
 ############################################################
 #
@@ -210,7 +211,7 @@ class LogFiles:
                                                 sys.exc_info()[2])
                 self.logWarning("%s cleanup failed."%cleanupObj.dirname)
                 self.logDebug("%s cleanup failed: Exception %s"%(cleanupObj.dirname,string.join(tb,'')))
-                
+
     #
     # Clients can add additional cleanup objects, if needed
     #
@@ -218,15 +219,15 @@ class LogFiles:
                            username,       # if None, no privsep
                            dir_to_cleanup,fname_expression,
                            max_days,min_days,max_mbs):
-        self.cleanupObjs.append(PrivsepDirCleanupWSpace(username,dir_to_cleanup,fname_expression,
-                                                        int(max_days*24*3600),int(min_days*24*3600),
+        self.cleanupObjs.append(PrivsepDirCleanupWSpace(username, dir_to_cleanup, fname_expression,
+                                                        int(max_days*24*3600), int(min_days*24*3600),
                                                         long(max_mbs*(1024.0*1024.0)),
-                                                        self.activity_log,self.warning_log))
-        
+                                                        self.activity_log, self.warning_log))
+
 
 # someone needs to initialize this
 # type LogFiles
-log_files=None
+log_files = None
 
 ############################################################
 #
@@ -249,82 +250,83 @@ def getCondorQData(entry_name,
                    x509secclass_schedd_attribute=None): # if None, use the global one
     global factoryConfig
 
-    if factory_schedd_attribute==None:
-        fsa_str=factoryConfig.factory_schedd_attribute
+    if factory_schedd_attribute == None:
+        fsa_str = factoryConfig.factory_schedd_attribute
     else:
-        fsa_str=factory_schedd_attribute
+        fsa_str = factory_schedd_attribute
 
-    if glidein_schedd_attribute==None:
-        gsa_str=factoryConfig.glidein_schedd_attribute
+    if glidein_schedd_attribute == None:
+        gsa_str = factoryConfig.glidein_schedd_attribute
     else:
-        gsa_str=glidein_schedd_attribute
-   
-    if entry_schedd_attribute==None:
-        esa_str=factoryConfig.entry_schedd_attribute
+        gsa_str = glidein_schedd_attribute
+
+    if entry_schedd_attribute == None:
+        esa_str = factoryConfig.entry_schedd_attribute
     else:
-        esa_str=entry_schedd_attribute
+        esa_str = entry_schedd_attribute
 
-    if client_schedd_attribute==None:
-        csa_str=factoryConfig.client_schedd_attribute
+    if client_schedd_attribute == None:
+        csa_str = factoryConfig.client_schedd_attribute
     else:
-        csa_str=client_schedd_attribute
+        csa_str = client_schedd_attribute
 
-    if x509secclass_schedd_attribute==None:
-        xsa_str=factoryConfig.x509secclass_schedd_attribute
+    if x509secclass_schedd_attribute == None:
+        xsa_str = factoryConfig.x509secclass_schedd_attribute
     else:
-        xsa_str=x509secclass_schedd_attribute
+        xsa_str = x509secclass_schedd_attribute
 
-    if client_name==None:
-        client_constraint=""
+    if client_name == None:
+        client_constraint = ""
     else:
-        client_constraint=' && (%s =?= "%s")'%(csa_str,client_name)
+        client_constraint = ' && (%s =?= "%s")' % (csa_str, client_name)
 
-    x509id_str=factoryConfig.x509id_schedd_attribute
+    x509id_str = factoryConfig.x509id_schedd_attribute
 
-    q_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,client_constraint,x509id_str)
-    q_glidein_format_list=[("JobStatus","i"),("GridJobStatus","s"),("ServerTime","i"),("EnteredCurrentStatus","i"),(factoryConfig.x509id_schedd_attribute,"s"),("HoldReasonCode","i"), ("HoldReasonSubCode","i"),(csa_str,"s"),(xsa_str,"s")]
+    q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)' % \
+        (fsa_str, factoryConfig.factory_name, gsa_str, factoryConfig.glidein_name, esa_str, entry_name, client_constraint, x509id_str)
+    q_glidein_format_list = [("JobStatus","i"), ("GridJobStatus","s"), ("ServerTime","i"), ("EnteredCurrentStatus","i"),
+                             (factoryConfig.x509id_schedd_attribute,"s"), ("HoldReasonCode","i"), ("HoldReasonSubCode","i"),
+                             (csa_str,"s"), (xsa_str,"s")]
 
-    q=condorMonitor.CondorQ(schedd_name)
-    q.factory_name=factoryConfig.factory_name
-    q.glidein_name=factoryConfig.glidein_name
-    q.entry_name=entry_name
-    q.client_name=client_name
-    q.load(q_glidein_constraint,q_glidein_format_list)
+    q = condorMonitor.CondorQ(schedd_name)
+    q.factory_name = factoryConfig.factory_name
+    q.glidein_name = factoryConfig.glidein_name
+    q.entry_name = entry_name
+    q.client_name = client_name
+    q.load(q_glidein_constraint, q_glidein_format_list)
     return q
 
 # fiter only a specific client and proxy security class
-def getQProxSecClass(condorq,
-                     client_name,
-                     proxy_security_class,
+def getQProxSecClass(condorq, client_name, proxy_security_class,
                      client_schedd_attribute=None,  # if None, use the global one
                      x509secclass_schedd_attribute=None): # if None, use the global one
-                     
-    if client_schedd_attribute==None:
-        csa_str=factoryConfig.client_schedd_attribute
-    else:
-        csa_str=client_schedd_attribute
 
-    if x509secclass_schedd_attribute==None:
-        xsa_str=factoryConfig.x509secclass_schedd_attribute
+    if client_schedd_attribute == None:
+        csa_str = factoryConfig.client_schedd_attribute
     else:
-        xsa_str=x509secclass_schedd_attribute
+        csa_str = client_schedd_attribute
 
-    entry_condorQ=condorMonitor.SubQuery(condorq,lambda d:(d.has_key(csa_str) and (d[csa_str]==client_name) and
+    if x509secclass_schedd_attribute == None:
+        xsa_str = factoryConfig.x509secclass_schedd_attribute
+    else:
+        xsa_str = x509secclass_schedd_attribute
+
+    entry_condorQ = condorMonitor.SubQuery(condorq, lambda d:(d.has_key(csa_str) and (d[csa_str]==client_name) and
                                                            d.has_key(xsa_str) and (d[xsa_str]==proxy_security_class)))
-    entry_condorQ.schedd_name=condorq.schedd_name
-    entry_condorQ.factory_name=condorq.factory_name
-    entry_condorQ.glidein_name=condorq.glidein_name
-    entry_condorQ.entry_name=condorq.entry_name
-    entry_condorQ.client_name=condorq.client_name
+    entry_condorQ.schedd_name = condorq.schedd_name
+    entry_condorQ.factory_name = condorq.factory_name
+    entry_condorQ.glidein_name = condorq.glidein_name
+    entry_condorQ.entry_name = condorq.entry_name
+    entry_condorQ.client_name = condorq.client_name
     entry_condorQ.load()
     return entry_condorQ
 
 def getQStatus(condorq):
-    qc_status=condorMonitor.Summarize(condorq,hash_status).countStored()
+    qc_status = condorMonitor.Summarize(condorq, hash_status).countStored()
     return qc_status
 
 def getQStatusStale(condorq):
-    qc_status=condorMonitor.Summarize(condorq,hash_statusStale).countStored()
+    qc_status = condorMonitor.Summarize(condorq, hash_statusStale).countStored()
     return qc_status
 
 def getCondorStatusData(entry_name,client_name,pool_name=None,
@@ -334,32 +336,33 @@ def getCondorStatusData(entry_name,client_name,pool_name=None,
                         client_startd_attribute=None):  # if None, use the global one
     global factoryConfig
 
-    if factory_startd_attribute==None:
-        fsa_str=factoryConfig.factory_startd_attribute
+    if factory_startd_attribute == None:
+        fsa_str = factoryConfig.factory_startd_attribute
     else:
-        fsa_str=factory_startd_attribute
+        fsa_str = factory_startd_attribute
 
-    if glidein_startd_attribute==None:
-        gsa_str=factoryConfig.glidein_startd_attribute
+    if glidein_startd_attribute == None:
+        gsa_str = factoryConfig.glidein_startd_attribute
     else:
-        gsa_str=glidein_startd_attribute
+        gsa_str = glidein_startd_attribute
 
-    if entry_startd_attribute==None:
-        esa_str=factoryConfig.entry_startd_attribute
+    if entry_startd_attribute == None:
+        esa_str = factoryConfig.entry_startd_attribute
     else:
-        esa_str=entry_startd_attribute
+        esa_str = entry_startd_attribute
 
-    if client_startd_attribute==None:
-        csa_str=factoryConfig.client_startd_attribute
+    if client_startd_attribute == None:
+        csa_str = factoryConfig.client_startd_attribute
     else:
-        csa_str=client_startd_attribute
+        csa_str = client_startd_attribute
 
-    status_glidein_constraint='(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")'%(fsa_str,factoryConfig.factory_name,gsa_str,factoryConfig.glidein_name,esa_str,entry_name,csa_str,client_name)
-    status=condorMonitor.CondorStatus(pool_name=pool_name)
-    status.factory_name=factoryConfig.factory_name
-    status.glidein_name=factoryConfig.glidein_name
-    status.entry_name=entry_name
-    status.client_name=client_name
+    status_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")' % \
+        (fsa_str, factoryConfig.factory_name, gsa_str, factoryConfig.glidein_name, esa_str, entry_name, csa_str, client_name)
+    status = condorMonitor.CondorStatus(pool_name=pool_name)
+    status.factory_name = factoryConfig.factory_name
+    status.glidein_name = factoryConfig.glidein_name
+    status.entry_name = entry_name
+    status.client_name = client_name
     status.load(status_glidein_constraint)
     return status
 
@@ -367,69 +370,71 @@ def getCondorStatusData(entry_name,client_name,pool_name=None,
 #
 # Create/update the proxy file
 # returns the proxy fname
-def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
-    proxy_dir=factoryConfig.get_client_proxies_dir(entry_name,username)
-    fname_short='x509_%s.proxy'%escapeParam(client_id)
-    fname=os.path.join(proxy_dir,fname_short)
-    if username!=MY_USERNAME:
+def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
+
+    proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username)
+    fname_short = 'x509_%s.proxy' % escapeParam(client_id)
+    fname = os.path.join(proxy_dir, fname_short)
+
+    if username != MY_USERNAME:
         # use privsep
         # all args go through the environment, so they are protected
-        update_proxy_env=['HEXDATA=%s'%binascii.b2a_hex(proxy_data),'FNAME=%s'%fname]
-        for var in ('PATH','LD_LIBRARY_PATH','PYTHON_PATH'):
+        update_proxy_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
+        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
             if os.environ.has_key(var):
-                update_proxy_env.append('%s=%s'%(var,os.environ[var]))
+                update_proxy_env.append('%s=%s' % (var, os.environ[var]))
 
         try:
-            condorPrivsep.execute(username,factoryConfig.submit_dir,os.path.join(factoryConfig.submit_dir,'update_proxy.py'),['update_proxy.py'],update_proxy_env)
+            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_proxy_env)
         except condorPrivsep.ExeError, e:
-            raise RuntimeError,"Failed to update proxy %s in %s (user %s): %s"%(client_id,proxy_dir,username,e)
+            raise RuntimeError, "Failed to update proxy %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
         except:
-            raise RuntimeError,"Failed to update proxy %s in %s (user %s): Unknown privsep error"%(client_id,proxy_dir,username)
+            raise RuntimeError, "Failed to update proxy %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
         return fname
     else:
         # do it natively when you can
         if not os.path.isfile(fname):
             # new file, create
-            fd=os.open(fname,os.O_CREAT|os.O_WRONLY,0600)
+            fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
             try:
-                os.write(fd,proxy_data)
+                os.write(fd, proxy_data)
             finally:
                 os.close(fd)
             return fname
 
         # old file exists, check if same content
-        fl=open(fname,'r')
+        fl = open(fname,'r')
         try:
-            old_data=fl.read()
+            old_data = fl.read()
         finally:
             fl.close()
-        if proxy_data==old_data:
+        if proxy_data == old_data:
             # nothing changed, done
             return fname
 
         #
         # proxy changed, neeed to update
         #
-        
+
         # remove any previous backup file
         try:
-            os.remove(fname+".old")
+            os.remove(fname + ".old")
         except:
             pass # just protect
-    
+
         # create new file
-        fd=os.open(fname+".new",os.O_CREAT|os.O_WRONLY,0600)
+        fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
         try:
-            os.write(fd,proxy_data)
+            os.write(fd, proxy_data)
         finally:
             os.close(fd)
 
         # move the old file to a tmp and the new one into the official name
         try:
-            os.rename(fname,fname+".old")
+            os.rename(fname, fname + ".old")
         except:
             pass # just protect
-        os.rename(fname+".new",fname)
+        os.rename(fname + ".new", fname)
         return fname
 
     # end of update_x509_proxy_file
@@ -439,203 +444,200 @@ def update_x509_proxy_file(entry_name,username,client_id, proxy_data):
 #   Will keep the required number of Idle glideins
 #
 class ClientWebNoGroup:
-    def __init__(self,client_web_url,
-                 client_signtype,
-                 client_descript,client_sign):
+    def __init__(self, client_web_url, client_signtype, client_descript, client_sign):
+
         if not (client_signtype in factoryConfig.supported_signtypes):
-            raise ValueError, "Signtype '%s' not supported!"%client_signtype
-        self.url=client_web_url
-        self.signtype=client_signtype
-        self.descript=client_descript
-        self.sign=client_sign
-        return
+            raise ValueError, "Signtype '%s' not supported!" % client_signtype
+
+        self.url = client_web_url
+        self.signtype = client_signtype
+        self.descript = client_descript
+        self.sign = client_sign
 
     def get_glidein_args(self):
-        return ["-clientweb",self.url,"-clientsign",self.sign,"-clientsigntype",self.signtype,"-clientdescript",self.descript]
+        return ["-clientweb", self.url, "-clientsign", self.sign, "-clientsigntype",
+                self.signtype, "-clientdescript", self.descript]
 
 
 class ClientWeb(ClientWebNoGroup):
-    def __init__(self,client_web_url,
-                 client_signtype,
-                 client_descript,client_sign,
-                 client_group,client_group_web_url,
-                 client_group_descript,client_group_sign):
-        ClientWebNoGroup.__init__(self,client_web_url,
-                                  client_signtype,
-                                  client_descript,client_sign)
-        self.group_name=client_group
-        self.group_url=client_group_web_url
-        self.group_descript=client_group_descript
-        self.group_sign=client_group_sign
-        return
+    def __init__(self, client_web_url, client_signtype, client_descript, client_sign,
+                 client_group, client_group_web_url, client_group_descript, client_group_sign):
+
+        ClientWebNoGroup.__init__(self, client_web_url, client_signtype, client_descript, client_sign)
+        self.group_name = client_group
+        self.group_url = client_group_web_url
+        self.group_descript = client_group_descript
+        self.group_sign = client_group_sign
 
     def get_glidein_args(self):
-        return (ClientWebNoGroup.get_glidein_args(self)+
-                ["-clientgroup",self.group_name,"-clientwebgroup",self.group_url,"-clientsigngroup",self.group_sign,"-clientdescriptgroup",self.group_descript])
+        return (ClientWebNoGroup.get_glidein_args(self) +
+                ["-clientgroup", self.group_name, "-clientwebgroup", self.group_url, "-clientsigngroup",
+                 self.group_sign, "-clientdescriptgroup", self.group_descript])
 
 # Returns number of newely submitted glideins
 # Can throw a condorExe.ExeError exception
-def keepIdleGlideins(client_condorq,client_int_name,
-                     in_downtime,remove_excess_wait,remove_excess_idle,remove_excess_running,
-                     min_nr_idle,max_nr_running,max_held,submit_attrs,
-                     x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,x509_proxy_security_class,
+def keepIdleGlideins(client_condorq, client_int_name,
+                     in_downtime, remove_excess_wait, remove_excess_idle, remove_excess_running,
+                     min_nr_idle, max_nr_running, max_held,
+                     submit_attrs,
+                     x509_proxy_identifier, x509_proxy_fname, x509_proxy_username, x509_proxy_security_class,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
     global factoryConfig
 
     # filter out everything but the proper x509_proxy_identifier
-    condorq=condorMonitor.SubQuery(client_condorq,lambda d:(d[factoryConfig.x509id_schedd_attribute]==x509_proxy_identifier))
-    condorq.schedd_name=client_condorq.schedd_name
-    condorq.factory_name=client_condorq.factory_name
-    condorq.glidein_name=client_condorq.glidein_name
-    condorq.entry_name=client_condorq.entry_name
-    condorq.client_name=client_condorq.client_name
+    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.x509id_schedd_attribute]==x509_proxy_identifier))
+    condorq.schedd_name = client_condorq.schedd_name
+    condorq.factory_name = client_condorq.factory_name
+    condorq.glidein_name = client_condorq.glidein_name
+    condorq.entry_name = client_condorq.entry_name
+    condorq.client_name = client_condorq.client_name
     condorq.load()
-    condorq.x509_proxy_identifier=x509_proxy_identifier
+    condorq.x509_proxy_identifier = x509_proxy_identifier
 
     #
     # First check if we have enough glideins in the queue
     #
 
     # Count glideins by status
-    qc_status=getQStatus(condorq)
+    qc_status = getQStatus(condorq)
 
     #   Held==JobStatus(5)
-    held_glideins=0
+    held_glideins = 0
     if qc_status.has_key(5):
-        held_glideins=qc_status[5]
+        held_glideins = qc_status[5]
 
     #   Idle==Jobstatus(1)
     sum_idle_count(qc_status)
-    idle_glideins=qc_status[1]
+    idle_glideins = qc_status[1]
 
     #   Running==Jobstatus(2)
     if qc_status.has_key(2):
-        running_glideins=qc_status[2]
+        running_glideins = qc_status[2]
     else:
-        running_glideins=0
+        running_glideins = 0
 
-    if ((idle_glideins<min_nr_idle) and
-        ((max_nr_running==None) or  #no max
-         ((running_glideins+idle_glideins)<max_nr_running))):
+    # if idle is < min idle and (either no max specified or running + idle is < max)
+    if ((idle_glideins < min_nr_idle) and ((max_nr_running == None) or ((running_glideins + idle_glideins) < max_nr_running))):
         # need more glideins, submit
-        stat_str="min_idle=%i, idle=%i, running=%i"%(min_nr_idle,idle_glideins,running_glideins)
-        if max_nr_running!=None:
-            stat_str="%s, max_running=%i"%(stat_str,max_nr_running)
-        log_files.logActivity("Need more glideins: %s"%stat_str)
+        stat_str = "min_idle=%i, idle=%i, running=%i" % (min_nr_idle, idle_glideins, running_glideins)
+        if max_nr_running != None:
+            stat_str = "%s, max_running=%i" % (stat_str, max_nr_running)
+        logSupport.log.info("Need more glideins: %s" % stat_str)
+
         if in_downtime:
-            log_files.logActivity("In downtime, not submitting")
-            return 0
-        if held_glideins>max_held:
-            log_files.logActivity("Too many held (%s>%s), not submitting"%(held_glideins,max_held))
+            logSupport.log.info("In downtime, not submitting")
             return 0
 
-        add_glideins=min_nr_idle-idle_glideins
-        if ((max_nr_running!=None) and
-            ((running_glideins+idle_glideins+add_glideins)>max_nr_running)):
+        if held_glideins > max_held:
+            logSupport.log.info("Too many held (%s>%s), not submitting" % (held_glideins, max_held))
+            return 0
+
+        add_glideins = min_nr_idle - idle_glideins
+        if ((max_nr_running != None) and ((running_glideins + idle_glideins + add_glideins) > max_nr_running)):
             # never exceed max_nr_running
-            add_glideins=max_nr_running-(running_glideins+idle_glideins)
+            add_glideins = max_nr_running - (running_glideins + idle_glideins)
         try:
-            submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                           client_int_name,add_glideins,submit_attrs,
-                           x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
-                           client_web,params)
+            submitGlideins(condorq.entry_name, condorq.schedd_name, x509_proxy_username,
+                           client_int_name, add_glideins, submit_attrs,
+                           x509_proxy_identifier, x509_proxy_security_class, x509_proxy_fname,
+                           client_web, params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
-            log_files.logWarning("%s"%e)
+            logSupport.log.warning("%s" % e)
             return 0 # something is wrong... assume 0 and exit
         except:
-            log_files.logWarning("Unexpected error in glideFactoryLib.submitGlideins")
+            logSupport.log.warning("Unexpected error in glideFactoryLib.submitGlideins")
             return 0 # something is wrong... assume 0 and exit
-    elif (((remove_excess_wait or remove_excess_idle) and
-           (idle_glideins>min_nr_idle)) or
-          (remove_excess_running and 
-           ((max_nr_running!=None) and  #make sure there is a max
-            ((running_glideins+idle_glideins)>max_nr_running)))):
-        # too many glideins, remove
-        remove_nr=idle_glideins-min_nr_idle
-        if (remove_excess_running and 
-            ((max_nr_running!=None) and  #make sure there is a max
-             ((running_glideins+idle_glideins)>max_nr_running))):
-            remove_all_nr=(running_glideins+idle_glideins)-max_nr_running
-            if remove_all_nr>remove_nr:
-                # if we are past max_run, then min_idle does not make sense to start with
-                remove_nr=remove_all_nr
-            
-        idle_list=extractIdleUnsubmitted(condorq)
 
-        if remove_excess_wait and (len(idle_list)>0):
+    elif (((remove_excess_wait or remove_excess_idle) and (idle_glideins > min_nr_idle)) or
+          (remove_excess_running and ((max_nr_running != None) and  #make sure there is a max
+            ((running_glideins + idle_glideins) > max_nr_running)))):
+        # too many glideins, remove
+        remove_nr = idle_glideins - min_nr_idle
+        if (remove_excess_running and ((max_nr_running!=None) and  #make sure there is a max
+             ((running_glideins + idle_glideins) > max_nr_running))):
+
+            remove_all_nr = (running_glideins + idle_glideins) - max_nr_running
+            if remove_all_nr > remove_nr:
+                # if we are past max_run, then min_idle does not make sense to start with
+                remove_nr = remove_all_nr
+
+        idle_list = extractIdleUnsubmitted(condorq)
+
+        if remove_excess_wait and (len(idle_list) > 0):
             # remove unsubmitted first, if any
-            if len(idle_list)>remove_nr:                
-                idle_list=idle_list[:remove_nr] #shorten
-            stat_str="min_idle=%i, idle=%i, unsubmitted=%i"%(min_nr_idle,idle_glideins, len(idle_list))
-            log_files.logActivity("Too many glideins: %s"%stat_str)
-            log_files.logActivity("Removing %i unsubmitted idle glideins"%len(idle_list))
-            removeGlideins(condorq.schedd_name,idle_list)
+            if len(idle_list) > remove_nr:
+                idle_list = idle_list[:remove_nr] #shorten
+
+            stat_str = "min_idle=%i, idle=%i, unsubmitted=%i" % (min_nr_idle, idle_glideins, len(idle_list))
+            logSupport.log.info("Too many glideins: %s" % stat_str)
+            logSupport.log.info("Removing %i unsubmitted idle glideins" % len(idle_list))
+            removeGlideins(condorq.schedd_name, idle_list)
             return 1 # stop here... the others will be retried in next round, if needed
 
-        idle_list=extractIdleQueued(condorq)
-        if remove_excess_idle and (len(idle_list)>0):
+        idle_list = extractIdleQueued(condorq)
+        if remove_excess_idle and (len(idle_list) > 0):
             # no unsubmitted, go for all the others now
-            if len(idle_list)>remove_nr:                
-                idle_list=idle_list[:remove_nr] #shorten
-            stat_str="min_idle=%i, idle=%i, unsubmitted=%i"%(min_nr_idle,idle_glideins, 0)
-            log_files.logActivity("Too many glideins: %s"%stat_str)
-            log_files.logActivity("Removing %i idle glideins"%len(idle_list))
-            removeGlideins(condorq.schedd_name,idle_list)
+            if len(idle_list) > remove_nr:
+                idle_list = idle_list[:remove_nr] #shorten
+            stat_str = "min_idle=%i, idle=%i, unsubmitted=%i" % (min_nr_idle, idle_glideins, 0)
+            logSupport.log.info("Too many glideins: %s" % stat_str)
+            logSupport.log.info("Removing %i idle glideins" % len(idle_list))
+            removeGlideins(condorq.schedd_name, idle_list)
             return 1 # exit, even if no submitted
 
         if remove_excess_running:
             # no idle left, remove anything you can
 
-            stat_str="idle=%i, running=%i, max_running=%i"%(idle_glideins,running_glideins,max_nr_running)
-            log_files.logActivity("Too many glideins: %s"%stat_str)
+            stat_str = "idle=%i, running=%i, max_running=%i" % (idle_glideins, running_glideins, max_nr_running)
+            logSupport.log.info("Too many glideins: %s" % stat_str)
 
-            run_list=extractRunSimple(condorq)
-            if len(run_list)>remove_nr:                
-                run_list=run_list[:remove_nr] #shorten
-            log_files.logActivity("Removing %i running glideins"%len(run_list))
+            run_list = extractRunSimple(condorq)
+            if len(run_list) > remove_nr:
+                run_list = run_list[:remove_nr] #shorten
+            logSupport.log.info("Removing %i running glideins" % len(run_list))
 
-            rm_list=run_list
+            rm_list = run_list
 
             #
             # Remove Held as well
             # No reason to keep them alive if we are about to kill running glideins anyhow
             #
 
-            log_files.logActivity("No glideins requested.")
+            logSupport.log.info("No glideins requested.")
             # Check if there are held glideins that are not recoverable
-            unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
-            if len(unrecoverable_held_list)>0:
-                log_files.logActivity("Removing %i unrecoverable held glideins"%len(unrecoverable_held_list))
-                rm_list+=unrecoverable_held_list
+            unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
+            if len(unrecoverable_held_list) > 0:
+                logSupport.log.info("Removing %i unrecoverable held glideins" % len(unrecoverable_held_list))
+                rm_list += unrecoverable_held_list
 
             # Check if there are held glideins
-            held_list=extractRecoverableHeldSimple(condorq)
-            if len(held_list)>0:
-                log_files.logActivity("Removing %i held glideins"%len(held_list))
-                rm_list+=held_list
+            held_list = extractRecoverableHeldSimple(condorq)
+            if len(held_list) > 0:
+                logSupport.log.info("Removing %i held glideins" % len(held_list))
+                rm_list += held_list
 
-            removeGlideins(condorq.schedd_name,rm_list)
+            removeGlideins(condorq.schedd_name, rm_list)
             return 1 # exit, even if no submitted
-    elif remove_excess_running and (max_nr_running==0) and (held_glideins>0):
+
+    elif remove_excess_running and (max_nr_running == 0) and (held_glideins > 0):
         # no glideins desired, remove all held
         # (only held should be left at this point... idle and running addressed above)
 
         # Check if there are held glideins that are not recoverable
-        unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
-        if len(unrecoverable_held_list)>0:
-            log_files.logActivity("Removing %i unrecoverable held glideins"%len(unrecoverable_held_list))
+        unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
+        if len(unrecoverable_held_list) > 0:
+            logSupport.log.info("Removing %i unrecoverable held glideins" % len(unrecoverable_held_list))
 
         # Check if there are held glideins
-        held_list=extractRecoverableHeldSimple(condorq)
-        if len(held_list)>0:
-            log_files.logActivity("Removing %i held glideins"%len(held_list))
+        held_list = extractRecoverableHeldSimple(condorq)
+        if len(held_list) > 0:
+            logSupport.log.info("Removing %i held glideins" % len(held_list))
 
-        removeGlideins(condorq.schedd_name,unrecoverable_held_list+held_list)
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list + held_list)
         return 1 # exit, even if no submitted
-        
-        
+
     return 0
 
 #
@@ -647,35 +649,34 @@ def sanitizeGlideins(condorq,status):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
-    stale_list=extractStale(condorq,status)
+    stale_list = extractStale(condorq, status)
     if len(stale_list)>0:
-        log_files.logWarning("Found %i stale glideins"%len(stale_list))
-        removeGlideins(condorq.schedd_name,stale_list)
+        logSupport.log.warning("Found %i stale glideins" % len(stale_list))
+        removeGlideins(condorq.schedd_name, stale_list)
 
     # Check if some glideins have been in running state for too long
-    runstale_list=extractRunStale(condorq)
-    if len(runstale_list)>0:
-        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
-        removeGlideins(condorq.schedd_name,runstale_list)
+    runstale_list = extractRunStale(condorq)
+    if len(runstale_list) > 0:
+        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name, runstale_list)
 
     # Check if there are held glideins that are not recoverable
-    unrecoverable_held_list=extractUnrecoverableHeld(condorq,status)
-    if len(unrecoverable_held_list)>0:
-        log_files.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name,unrecoverable_held_list,force=False)
+    unrecoverable_held_list = extractUnrecoverableHeld(condorq,status)
+    if len(unrecoverable_held_list) > 0:
+        logSupport.log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list, force=False)
 
     # Check if there are held glideins
-    held_list=extractRecoverableHeld(condorq,status)
-    if len(held_list)>0:
-        log_files.logWarning("Found %i held glideins"%len(held_list))
-        releaseGlideins(condorq.schedd_name,held_list)
+    held_list = extractRecoverableHeld(condorq, status)
+    if len(held_list) > 0:
+        logSupport.log.warning("Found %i held glideins" % len(held_list))
+        releaseGlideins(condorq.schedd_name, held_list)
 
     # Now look for VMs that have not been claimed for a long time
-    staleunclaimed_list=extractStaleUnclaimed(condorq,status)
-    if len(staleunclaimed_list)>0:
-        log_files.logWarning("Found %i stale unclaimed glideins"%len(staleunclaimed_list))
-        removeGlideins(condorq.schedd_name,staleunclaimed_list)
-
+    staleunclaimed_list = extractStaleUnclaimed(condorq, status)
+    if len(staleunclaimed_list) > 0:
+        logSupport.log.warning("Found %i stale unclaimed glideins" % len(staleunclaimed_list))
+        removeGlideins(condorq.schedd_name, staleunclaimed_list)
 
     #
     # A check of glideins in "Running" state but not in status
@@ -690,67 +691,67 @@ def sanitizeGlideinsSimple(condorq):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
-    stale_list=extractStaleSimple(condorq)
+    stale_list = extractStaleSimple(condorq)
     if len(stale_list)>0:
-        log_files.logWarning("Found %i stale glideins"%len(stale_list))
-        removeGlideins(condorq.schedd_name,stale_list)
+        logSupport.log.warning("Found %i stale glideins" % len(stale_list))
+        removeGlideins(condorq.schedd_name, stale_list)
 
     # Check if some glideins have been in running state for too long
-    runstale_list=extractRunStale(condorq)
-    if len(runstale_list)>0:
-        log_files.logWarning("Found %i stale (>%ih) running glideins"%(len(runstale_list),factoryConfig.stale_maxage[2]/3600))
-        removeGlideins(condorq.schedd_name,runstale_list)
+    runstale_list = extractRunStale(condorq)
+    if len(runstale_list) > 0:
+        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2]/3600))
+        removeGlideins(condorq.schedd_name, runstale_list)
 
     # Check if there are held glideins that are not recoverable
-    unrecoverable_held_list=extractUnrecoverableHeldSimple(condorq)
-    if len(unrecoverable_held_list)>0:
-        log_files.logWarning("Found %i unrecoverable held glideins"%len(unrecoverable_held_list))
-        removeGlideins(condorq.schedd_name,unrecoverable_held_list, force=False)
+    unrecoverable_held_list = extractUnrecoverableHeldSimple(condorq)
+    if len(unrecoverable_held_list) > 0:
+        logSupport.log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
+        removeGlideins(condorq.schedd_name, unrecoverable_held_list, force=False)
 
     # Check if there are held glideins
-    held_list=extractRecoverableHeldSimple(condorq)
-    if len(held_list)>0:
-        log_files.logWarning("Found %i held glideins"%len(held_list))
-        releaseGlideins(condorq.schedd_name,held_list)
+    held_list = extractRecoverableHeldSimple(condorq)
+    if len(held_list) > 0:
+        logSupport.log.warning("Found %i held glideins" % len(held_list))
+        releaseGlideins(condorq.schedd_name, held_list)
 
     return
 
-def logStats(condorq,condorstatus,client_int_name, client_security_name,proxy_security_class):
+def logStats(condorq, condorstatus, client_int_name, client_security_name, proxy_security_class):
     global factoryConfig
     #
     # First check if we have enough glideins in the queue
     #
 
     # Count glideins by status
-    qc_status=getQStatus(condorq)
+    qc_status = getQStatus(condorq)
     sum_idle_count(qc_status)
-    if condorstatus!=None:
-        s_running_str=" collector running %s"%len(condorstatus.fetchStored().keys())
+    if condorstatus != None:
+        s_running_str = " collector running %s" % len(condorstatus.fetchStored().keys())
     else:
-        s_running_str="" # not monitored
-    
-    log_files.logActivity("Client %s (secid: %s_%s) schedd status %s%s"%(client_int_name,client_security_name,proxy_security_class,qc_status,s_running_str))
-    if factoryConfig.qc_stats!=None:
-        client_log_name=secClass2Name(client_security_name,proxy_security_class)
-        factoryConfig.client_stats.logSchedd(client_int_name,qc_status)
-        factoryConfig.qc_stats.logSchedd(client_log_name,qc_status)
-    
+        s_running_str = "" # not monitored
+
+    logSupport.log.info("Client %s (secid: %s_%s) schedd status %s%s" % (client_int_name, client_security_name,
+                                                                         proxy_security_class, qc_status, s_running_str))
+    if factoryConfig.qc_stats != None:
+        client_log_name = secClass2Name(client_security_name, proxy_security_class)
+        factoryConfig.client_stats.logSchedd(client_int_name, qc_status)
+        factoryConfig.qc_stats.logSchedd(client_log_name, qc_status)
+
     return
 
-def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
-                   req_idle, req_max_run,
-                   work_el, fraction=1.0):
+def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
+                   req_idle, req_max_run, work_el, fraction=1.0):
     # temporary workaround; the requests should always be processed at the caller level
     if work_el['requests'].has_key('RemoveExcess'):
-        remove_excess=work_el['requests']['RemoveExcess']
+        remove_excess = work_el['requests']['RemoveExcess']
     else:
-        remove_excess='NO'
+        remove_excess = 'NO'
 
-    client_log_name=secClass2Name(client_security_name,proxy_security_class)
+    client_log_name = secClass2Name(client_security_name, proxy_security_class)
 
-    log_files.logActivity("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'"%(client_int_name,client_log_name,req_idle,req_max_run,remove_excess))
-    log_files.logActivity("  Params: %s"%work_el['params'])
-    log_files.logActivity("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
+    logSupport.log.info("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'"%(client_int_name,client_log_name,req_idle,req_max_run,remove_excess))
+    logSupport.log.info("  Params: %s"%work_el['params'])
+    logSupport.log.info("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
 
     reqs={'IdleGlideins':req_idle,'MaxRunningGlideins':req_max_run}
     factoryConfig.client_stats.logRequest(client_int_name,reqs)
@@ -774,7 +775,7 @@ def logWorkRequest(client_int_name, client_security_name,proxy_security_class,
 
 def get_status_glideidx(el):
     global factoryConfig
-    return (el[factoryConfig.clusterid_startd_attribute],el[factoryConfig.procid_startd_attribute])
+    return (el[factoryConfig.clusterid_startd_attribute], el[factoryConfig.procid_startd_attribute])
 
 # Split idle depending on GridJobStatus
 #   1001 : Unsubmitted
@@ -784,31 +785,31 @@ def get_status_glideidx(el):
 #   4010 : Staging out
 # All others just return the JobStatus
 def hash_status(el):
-    job_status=el["JobStatus"]
-    if job_status==1:
+    job_status = el["JobStatus"]
+    if job_status == 1:
         # idle jobs, look of GridJobStatus
         if el.has_key("GridJobStatus"):
-            grid_status=el["GridJobStatus"]
-            if grid_status in ("PENDING","INLRMS: Q","PREPARED","SUBMITTING","IDLE","SUSPENDED"):
+            grid_status = el["GridJobStatus"]
+            if grid_status in ("PENDING", "INLRMS: Q", "PREPARED", "SUBMITTING", "IDLE", "SUSPENDED"):
                 return 1002
-            elif grid_status in ("STAGE_IN","PREPARING","ACCEPTING"):
+            elif grid_status in ("STAGE_IN", "PREPARING", "ACCEPTING"):
                 return 1010
             else:
                 return 1100
         else:
             return 1001
-    elif job_status==2:
+    elif job_status == 2:
         # count only real running, all others become Other
         if el.has_key("GridJobStatus"):
-            grid_status=el["GridJobStatus"]
-            if grid_status in ("ACTIVE","REALLY-RUNNING","INLRMS: R"):
+            grid_status = el["GridJobStatus"]
+            if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R"):
                 return 2
-            elif grid_status in ("STAGE_OUT","INLRMS: E","EXECUTED","FINISHING","DONE"):
+            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING","DONE"):
                 return 4010
             else:
                 return 1100
         else:
-            return 2        
+            return 2
     else:
         # others just pass over
         return job_status
@@ -817,20 +818,20 @@ def hash_status(el):
 def sum_idle_count(qc_status):
     #   Idle==Jobstatus(1)
     #   Have to integrate all the variants
-    qc_status[1]=0
+    qc_status[1] = 0
     for k in qc_status.keys():
-        if (k>=1000) and (k<1100):
-            qc_status[1]+=qc_status[k]
+        if (k >= 1000) and (k < 1100):
+            qc_status[1] += qc_status[k]
     return
 
 def hash_statusStale(el):
     global factoryConfig
-    age=el["ServerTime"]-el["EnteredCurrentStatus"]
-    jstatus=el["JobStatus"]
+    age = el["ServerTime"] - el["EnteredCurrentStatus"]
+    jstatus = el["JobStatus"]
     if factoryConfig.stale_maxage.has_key(jstatus):
-        return [jstatus,age>factoryConfig.stale_maxage[jstatus]]
+        return [jstatus, age>factoryConfig.stale_maxage[jstatus]]
     else:
-        return [jstatus,0] # others are not stale
+        return [jstatus, 0] # others are not stale
 
 
 #
@@ -838,16 +839,15 @@ def hash_statusStale(el):
 #
 
 def diffList(base_list, subtract_list):
-    if len(subtract_list)==0:
+    if len(subtract_list) == 0:
         return base_list # nothing to do
-    
-    out_list=[]
+
+    out_list = []
     for i in base_list:
         if not (i in subtract_list):
             out_list.append(i)
 
     return out_list
-    
 
 #
 # Extract functions
@@ -855,14 +855,14 @@ def diffList(base_list, subtract_list):
 #
 
 # return list of glidein clusters within the search list
-def extractRegistered(q,status,search_list):
+def extractRegistered(q, status, search_list):
     global factoryConfig
-    sdata=status.fetchStored(lambda el:(el[factoryConfig.schedd_startd_attribute]==q.schedd_name) and (get_status_glideidx(el) in search_list))
+    sdata = status.fetchStored(lambda el:(el[factoryConfig.schedd_startd_attribute]==q.schedd_name) and (get_status_glideidx(el) in search_list))
 
-    out_list=[]
+    out_list = []
     for vm in sdata.keys():
-        el=sdata[vm]
-        i=get_status_glideidx(el)
+        el = sdata[vm]
+        i = get_status_glideidx(el)
         if not (i in out_list): # prevent duplicates from multiple VMs
             out_list.append(i)
 
@@ -872,32 +872,32 @@ def extractRegistered(q,status,search_list):
 def extractStale(q,status):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
-    qstale=q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
-    qstale_list=qstale.keys()
-    
-    # find out if any "Idle" glidein is running instead (in condor_status)
-    sstale_list=extractRegistered(q,status,qstale_list)
+    qstale = q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
+    qstale_list = qstale.keys()
 
-    return diffList(qstale_list,sstale_list)
+    # find out if any "Idle" glidein is running instead (in condor_status)
+    sstale_list = extractRegistered(q,status,qstale_list)
+
+    return diffList(qstale_list, sstale_list)
 
 def extractStaleSimple(q):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
-    qstale=q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
-    qstale_list=qstale.keys()
-    
+    qstale = q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
+    qstale_list = qstale.keys()
+
     return qstale_list
 
 def extractUnrecoverableHeld(q,status):
     # first find out the held jids that are not recoverable
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el)))
-    qheld_list=qheld.keys()
-    
+    qheld = q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el)))
+    qheld_list = qheld.keys()
+
     # find out if any "Held" glidein is running instead (in condor_status)
-    sheld_list=extractRegistered(q,status,qheld_list)
-    return diffList(qheld_list,sheld_list)
+    sheld_list = extractRegistered(q, status, qheld_list)
+    return diffList(qheld_list, sheld_list)
 
 def extractUnrecoverableHeldSimple(q):
     #  Held==5 and glideins are not recoverable
@@ -912,7 +912,7 @@ def extractRecoverableHeld(q,status):
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
     qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
     qheld_list=qheld.keys()
-    
+
     # find out if any "Held" glidein is running instead (in condor_status)
     sheld_list=extractRegistered(q,status,qheld_list)
 
@@ -931,7 +931,7 @@ def extractHeld(q,status):
     #  Held==5
     qheld=q.fetchStored(lambda el:el["JobStatus"]==5)
     qheld_list=qheld.keys()
-    
+
     # find out if any "Held" glidein is running instead (in condor_status)
     sheld_list=extractRegistered(q,status,qheld_list)
 
@@ -981,7 +981,7 @@ def extractRunStale(q):
 
     # no need to check with condor_status
     # these glideins were running for too long, period!
-    return qstale_list 
+    return qstale_list
 
 # helper function of extractStaleUnclaimed
 def group_unclaimed(el_list):
@@ -1001,7 +1001,7 @@ def extractStaleUnclaimed(q,status):
     #  hash: (Running==2, Stale==0)
     qsearch=q.fetchStored(lambda el:(hash_statusStale(el)==[2,0]))
     search_list=qsearch.keys()
-    
+
     # find out if any "Idle" glidein is running instead (in condor_status)
     global factoryConfig
     sgroup=condorMonitor.Group(status,lambda el:get_status_glideidx(el),group_unclaimed)
@@ -1017,140 +1017,145 @@ def extractStaleUnclaimed(q,status):
 ############################################################
 
 def schedd_name2str(schedd_name):
-    if schedd_name==None:
+    if schedd_name == None:
         return ""
     else:
-        return "-name %s"%schedd_name
+        return "-name %s" % schedd_name
 
 extractJobId_recmp = re.compile("^(?P<count>[0-9]+) job\(s\) submitted to cluster (?P<cluster>[0-9]+)\.$")
 def extractJobId(submit_out):
     for line in submit_out:
         found = extractJobId_recmp.search(line[:-1])
-        if found!=None:
-            return (long(found.group("cluster")),int(found.group("count")))
+        if found != None:
+            return (long(found.group("cluster")), int(found.group("count")))
     raise condorExe.ExeError, "Could not find cluster info!"
 
-escape_table={'.':'.dot,',
-              ',':'.comma,',
-              '&':'.amp,',
-              '\\':'.backslash,',
-              '|':'.pipe,',
-              "`":'.fork,',
-              '"':'.quot,',
-              "'":'.singquot,',
-              '=':'.eq,',
-              '+':'.plus,',
-              '-':'.minus,',
-              '<':'.lt,',
-              '>':'.gt,',
-              '(':'.open,',
-              ')':'.close,',
-              '{':'.gopen,',
-              '}':'.gclose,',
-              '[':'.sopen,',
-              ']':'.sclose,',
-              '#':'.comment,',
-              '$':'.dollar,',
-              '*':'.star,',
-              '?':'.question,',
-              '!':'.not,',
-              '~':'.tilde,',
-              ':':'.colon,',
-              ';':'.semicolon,',
-              ' ':'.nbsp,'}
+escape_table = {'.':'.dot,',
+                ',':'.comma,',
+                '&':'.amp,',
+                '\\':'.backslash,',
+                '|':'.pipe,',
+                "`":'.fork,',
+                '"':'.quot,',
+                "'":'.singquot,',
+                '=':'.eq,',
+                '+':'.plus,',
+                '-':'.minus,',
+                '<':'.lt,',
+                '>':'.gt,',
+                '(':'.open,',
+                ')':'.close,',
+                '{':'.gopen,',
+                '}':'.gclose,',
+                '[':'.sopen,',
+                ']':'.sclose,',
+                '#':'.comment,',
+                '$':'.dollar,',
+                '*':'.star,',
+                '?':'.question,',
+                '!':'.not,',
+                '~':'.tilde,',
+                ':':'.colon,',
+                ';':'.semicolon,',
+                ' ':'.nbsp,'}
 def escapeParam(param_str):
     global escape_table
-    out_str=""
+    out_str = ""
     for c in param_str:
         if escape_table.has_key(c):
-            out_str=out_str+escape_table[c]
+            out_str = out_str + escape_table[c]
         else:
-            out_str=out_str+c
+            out_str = out_str + c
     return out_str
-    
+
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submit_attrs,
-                   x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
+def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins, submit_attrs,
+                   x509_proxy_identifier, x509_proxy_security_class, x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
     global factoryConfig
 
-    submitted_jids=[]
+    submitted_jids = []
 
-    if nr_glideins>factoryConfig.max_submits:
-        nr_glideins=factoryConfig.max_submits
+    if nr_glideins > factoryConfig.max_submits:
+        nr_glideins = factoryConfig.max_submits
 
-    submit_attrs_arr=[]
+    submit_attrs_arr = []
     for e in submit_attrs:
-        submit_attrs_arr.append("'"+e+"'")
-    submit_attrs_str = string.join(submit_attrs_arr," ")
+        submit_attrs_arr.append("'" + e + "'")
+    submit_attrs_str = string.join(submit_attrs_arr, " ")
 
-    params_arr=[]
+    params_arr = []
     for k in params.keys():
         params_arr.append(k)
         params_arr.append(escapeParam(str(params[k])))
-    params_str=string.join(params_arr," ")
+    params_str = string.join(params_arr, " ")
 
-    client_web_arr=[]
-    if client_web!=None:
-        client_web_arr=client_web.get_glidein_args()
-    client_web_str=string.join(client_web_arr," ")
+    client_web_arr = []
+    if client_web != None:
+        client_web_arr = client_web.get_glidein_args()
+    client_web_str = string.join(client_web_arr, " ")
 
     try:
-        nr_submitted=0
-        while (nr_submitted<nr_glideins):
-            if nr_submitted!=0:
+        nr_submitted = 0
+        while (nr_submitted < nr_glideins):
+            if nr_submitted != 0:
                 time.sleep(factoryConfig.submit_sleep)
 
-            nr_to_submit=(nr_glideins-nr_submitted)
-            if nr_to_submit>factoryConfig.max_cluster_size:
-                nr_to_submit=factoryConfig.max_cluster_size
+            nr_to_submit = (nr_glideins - nr_submitted)
+            if nr_to_submit > factoryConfig.max_cluster_size:
+                nr_to_submit = factoryConfig.max_cluster_size
 
-            if username!=MY_USERNAME:
-                # use privsep
-                exe_env=['X509_USER_PROXY=%s'%x509_proxy_fname]
+            # check to see if the username for the proxy is the same as the factory username
+            if username != MY_USERNAME:
+                # no? use privsep
+                exe_env = ['X509_USER_PROXY=%s' % x509_proxy_fname]
                 # need to push all the relevant env variables through
                 for var in os.environ.keys():
-                    if ((var in ('PATH','LD_LIBRARY_PATH','X509_CERT_DIR')) or
-                        (var[:8]=='_CONDOR_') or (var[:7]=='CONDOR_')):
+                    if ((var in ('PATH','LD_LIBRARY_PATH','X509_CERT_DIR')) or (var[:8]=='_CONDOR_') or (var[:7]=='CONDOR_')):
                         if os.environ.has_key(var):
-                            exe_env.append('%s=%s'%(var,os.environ[var]))
+                            exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
-                    submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
-                                                     os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,]+
-                                                     client_web_arr+submit_attrs+
-                                                     ['--']+params_arr,
-                                                     exe_env)
+                    argument_list = [factoryConfig.submit_fname,
+                                     entry_name,
+                                     client_name,
+                                     x509_proxy_security_class,
+                                     x509_proxy_identifier, "%i" % nr_to_submit,]
+                    argument_list += client_web_arr + submit_attrs + ['--'] + params_arr
+
+                    submit_out = condorPrivsep.execute(username, factoryConfig.submit_dir,
+                            os.path.join(factoryConfig.submit_dir, factoryConfig.submit_fname), argument_list, exe_env)
                 except condorPrivsep.ExeError, e:
-                    submit_out=[]
-                    raise RuntimeError, "condor_submit failed (user %s): %s"%(username,e)
+                    submit_out = []
+                    raise RuntimeError, "condor_submit failed (user %s): %s" % (username, e)
                 except:
-                    submit_out=[]
-                    raise RuntimeError, "condor_submit failed (user %s): Unknown privsep error"%username
+                    submit_out = []
+                    raise RuntimeError, "condor_submit failed (user %s): Unknown privsep error" % username
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
-                except condorExe.ExeError,e:
-                    submit_out=[]
-                    raise RuntimeError, "condor_submit failed: %s"%e
+                    submit_out = condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s' % \
+                            (x509_proxy_fname, factoryConfig.submit_fname, entry_name, client_name, x509_proxy_security_class, \
+                             x509_proxy_identifier, nr_to_submit, client_web_str, submit_attrs_str, params_str))
+                except condorExe.ExeError, e:
+                    submit_out = []
+                    raise RuntimeError, "condor_submit failed: %s" % e
                 except:
-                    submit_out=[]
+                    submit_out = []
                     raise RuntimeError, "condor_submit failed: Unknown error"
-                
-                
-            cluster,count=extractJobId(submit_out)
+
+
+            cluster, count = extractJobId(submit_out)
             for j in range(count):
-                submitted_jids.append((cluster,j))
-            nr_submitted+=count
+                submitted_jids.append((cluster, j))
+            nr_submitted += count
     finally:
         # write out no matter what
-        log_files.logActivity("Submitted %i glideins to %s: %s"%(len(submitted_jids),schedd_name,submitted_jids))
+        logSupport.log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids), schedd_name, submitted_jids))
 
 # remove the glideins in the list
-def removeGlideins(schedd_name,jid_list,force=False):
+def removeGlideins(schedd_name, jid_list, force=False):
     ####
     # We are assuming the gfactory to be
     # a condor superuser and thus does not need
@@ -1159,38 +1164,38 @@ def removeGlideins(schedd_name,jid_list,force=False):
 
     global factoryConfig
 
-    removed_jids=[]
-    
-    schedd_str=schedd_name2str(schedd_name)
-    is_not_first=0
+    removed_jids = []
+
+    schedd_str = schedd_name2str(schedd_name)
+    is_not_first = 0
     for jid in jid_list:
         if is_not_first:
-            is_not_first=1
+            is_not_first = 1
             time.sleep(factoryConfig.remove_sleep)
         try:
-            condorExe.exe_cmd("condor_rm","%s %li.%li"%(schedd_str,jid[0],jid[1]))
+            condorExe.exe_cmd("condor_rm", "%s %li.%li" % (schedd_str, jid[0], jid[1]))
             removed_jids.append(jid)
 
             # Force the removal if requested
             if force == True:
                 try:
-                    log_files.logActivity("Forcing the removal of glideins in X state")
-                    condorExe.exe_cmd("condor_rm","-forcex %s %li.%li"%(schedd_str,jid[0],jid[1]))
+                    logSupport.log.info("Forcing the removal of glideins in X state")
+                    condorExe.exe_cmd("condor_rm", "-forcex %s %li.%li" % (schedd_str, jid[0], jid[1]))
                 except condorExe.ExeError, e:
-                    log_files.logWarning("Forcing the removal of glideins in %s.%s state failed" % (jid[0],jid[1]))
+                    logSupport.log.warning("Forcing the removal of glideins in %s.%s state failed" % (jid[0], jid[1]))
 
         except condorExe.ExeError, e:
             # silently ignore errors, and try next one
-            log_files.logWarning("removeGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            logSupport.log.warning("removeGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
-        if len(removed_jids)>=factoryConfig.max_removes:
+        if len(removed_jids) >= factoryConfig.max_removes:
             break # limit reached, stop
 
 
-    log_files.logActivity("Removed %i glideins on %s: %s"%(len(removed_jids),schedd_name,removed_jids))
+    logSupport.log.info("Removed %i glideins on %s: %s" % (len(removed_jids), schedd_name, removed_jids))
 
 # release the glideins in the list
-def releaseGlideins(schedd_name,jid_list):
+def releaseGlideins(schedd_name, jid_list):
     ####
     # We are assuming the gfactory to be
     # a condor superuser and thus does not need
@@ -1199,51 +1204,51 @@ def releaseGlideins(schedd_name,jid_list):
 
     global factoryConfig
 
-    released_jids=[]
-    
-    schedd_str=schedd_name2str(schedd_name)
-    is_not_first=0
+    released_jids = []
+
+    schedd_str = schedd_name2str(schedd_name)
+    is_not_first = 0
     for jid in jid_list:
         if is_not_first:
-            is_not_first=1
+            is_not_first = 1
             time.sleep(factoryConfig.release_sleep)
         try:
-            condorExe.exe_cmd("condor_release","%s %li.%li"%(schedd_str,jid[0],jid[1]))
+            condorExe.exe_cmd("condor_release", "%s %li.%li" % (schedd_str, jid[0], jid[1]))
             released_jids.append(jid)
         except condorExe.ExeError, e:
-            log_files.logWarning("releaseGlidein(%s,%li.%li): %s"%(schedd_name,jid[0],jid[1],e))
+            logSupport.log.warning("releaseGlidein(%s,%li.%li): %s" % (schedd_name, jid[0], jid[1], e))
 
-        if len(released_jids)>=factoryConfig.max_releases:
+        if len(released_jids) >= factoryConfig.max_releases:
             break # limit reached, stop
-    log_files.logActivity("Released %i glideins on %s: %s"%(len(released_jids),schedd_name,released_jids))
+    logSupport.log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
 
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
     # CondorG held jobs have HeldReasonCode 2
     # CondorG held jobs with following HeldReasonSubCode are not recoverable
-    # 0   : Job failed, no reason given by GRAM server 
-    # 4   : jobmanager unable to set default to the directory requested 
-    # 7   : authentication with the remote server failed 
-    # 8   : the user cancelled the job 
-    # 9   : the system cancelled the job 
+    # 0   : Job failed, no reason given by GRAM server
+    # 4   : jobmanager unable to set default to the directory requested
+    # 7   : authentication with the remote server failed
+    # 8   : the user cancelled the job
+    # 9   : the system cancelled the job
     # 10  : globus_xio_gsi: Token size exceeds limit
     # 17  : the job failed when the job manager attempted to run it
     # 22  : the job manager failed to create an internal script argument file
-    # 31  : the job manager failed to cancel the job as requested 
-    # 47  : the gatekeeper failed to run the job manager 
-    # 48  : the provided RSL could not be properly parsed 
+    # 31  : the job manager failed to cancel the job as requested
+    # 47  : the gatekeeper failed to run the job manager
+    # 48  : the provided RSL could not be properly parsed
     # 76  : cannot access cache files in ~/.globus/.gass_cache,
-    #       check permissions, quota, and disk space 
+    #       check permissions, quota, and disk space
     # 79  : connecting to the job manager failed. Possible reasons: job
-    #       terminated, invalid job contact, network problems, ... 
-    # 121 : the job state file doesn't exist 
+    #       terminated, invalid job contact, network problems, ...
+    # 121 : the job state file doesn't exist
     # 122 : could not read the job state file
-    
+
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
-    unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17, 
-                               22, 27, 28, 31, 37, 47, 48, 
+    unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17,
+                               22, 27, 28, 31, 37, 47, 48,
                                72, 76, 79, 81, 86, 87,
                                121, 122 ]}
 
