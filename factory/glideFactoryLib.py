@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.65 2011/02/10 21:35:30 parag Exp $
+#   $Id: glideFactoryLib.py,v 1.66 2011/04/26 19:35:08 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -24,6 +24,7 @@ import binascii
 import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
+import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
@@ -190,7 +191,7 @@ class LogFiles:
             # silently ignore
             pass
         if log_in_activity:
-            self.logActivity("WARNING: %s" % str)
+            self.logActivity("WARNING: %s"%str)
 
     def logDebug(self,str):
         try:
@@ -1090,13 +1091,17 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
     for k in params.keys():
         params_arr.append(k)
         params_arr.append(escapeParam(str(params[k])))
-    params_str = string.join(params_arr," ")
+    params_str=string.join(params_arr," ")
 
     client_web_arr=[]
     if client_web!=None:
         client_web_arr=client_web.get_glidein_args()
     client_web_str=string.join(client_web_arr," ")
 
+    # Allows for retrieving any entry description values
+    jobDescript=glideFactoryConfig.JobDescript(entry_name)
+
+    
     try:
         nr_submitted=0
         while (nr_submitted<nr_glideins):
@@ -1106,7 +1111,15 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             nr_to_submit=(nr_glideins-nr_submitted)
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
-
+            
+            if jobDescript.data.has_key('GlobusRSL'):   
+                glidein_rsl = jobDescript.data['GlobusRSL']
+                # Replace placeholder for project id 
+                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
+                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+            else:
+                glidein_rsl = "none"
+            
             if username!=MY_USERNAME:
                 # use privsep
                 exe_env=['X509_USER_PROXY=%s'%x509_proxy_fname]
@@ -1119,7 +1132,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                 try:
                     submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
                                                      os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,]+
+                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,glidein_rsl,]+
                                                      client_web_arr+submit_attrs+
                                                      ['--']+params_arr,
                                                      exe_env)
@@ -1132,7 +1145,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     raise RuntimeError, "condor_submit failed: %s"%e
@@ -1220,6 +1233,20 @@ def releaseGlideins(schedd_name,jid_list):
 
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
+    """
+    This function looks at the glidein job's information and returns if the
+    CondorG job is unrecoverable.
+
+    This is useful to change to status of glidein (CondorG job) from hold to
+    idle.
+
+    @type jobInfo: dictionary
+    @param jobInfo: Dictionary containing glidein job's classad information
+
+    @rtype: bool
+    @return: True if job is unrecoverable, False if recoverable
+    """
+
     # CondorG held jobs have HeldReasonCode 2
     # CondorG held jobs with following HeldReasonSubCode are not recoverable
     # 0   : Job failed, no reason given by GRAM server 
@@ -1239,7 +1266,7 @@ def isGlideinUnrecoverable(jobInfo):
     #       terminated, invalid job contact, network problems, ... 
     # 121 : the job state file doesn't exist 
     # 122 : could not read the job state file
-    
+
     unrecoverable = False
     # Dictionary of {HeldReasonCode: HeldReasonSubCode}
     unrecoverableCodes = {2: [ 0, 2, 4, 5, 7, 8, 9, 10, 14, 17, 
