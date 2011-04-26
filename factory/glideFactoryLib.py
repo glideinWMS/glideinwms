@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.17 2011/04/20 15:34:53 parag Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.18 2011/04/26 16:14:57 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -24,6 +24,7 @@ import binascii
 import condorExe,condorPrivsep
 import logSupport
 import condorMonitor
+import glideFactoryConfig
 
 MY_USERNAME=pwd.getpwuid(os.getuid())[0]
 
@@ -1097,6 +1098,10 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
         client_web_arr=client_web.get_glidein_args()
     client_web_str=string.join(client_web_arr," ")
 
+    # Allows for retrieving any entry description values
+    jobDescript=glideFactoryConfig.JobDescript(entry_name)
+
+    
     try:
         nr_submitted=0
         while (nr_submitted<nr_glideins):
@@ -1106,7 +1111,12 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             nr_to_submit=(nr_glideins-nr_submitted)
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
-
+                        
+            glidein_rsl = jobDescript.data['GlobusRSL']
+            # Replace placeholder for project id 
+            if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
+                glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+            
             if username!=MY_USERNAME:
                 # use privsep
                 exe_env=['X509_USER_PROXY=%s'%x509_proxy_fname]
@@ -1119,7 +1129,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                 try:
                     submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
                                                      os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
-                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,]+
+                                                     [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,glidein_rsl,]+
                                                      client_web_arr+submit_attrs+
                                                      ['--']+params_arr,
                                                      exe_env)
@@ -1132,7 +1142,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,client_web_str,submit_attrs_str,params_str))
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,submit_attrs_str,params_str))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     raise RuntimeError, "condor_submit failed: %s"%e

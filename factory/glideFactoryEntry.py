@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.36 2011/01/27 19:39:32 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.37 2011/04/26 16:14:45 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -456,6 +456,19 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
             else:
                 max_running=factory_max_running
 
+            # Validate that project id is supplied when required (as specified in the rsl string)
+            if 'TG_PROJECT_ID' in jobDescript.data['GlobusRSL']:
+                if decrypted_params.has_key('ProjectId'):
+                    project_id = decrypted_params['ProjectId']
+                    # just add to params for now, not a security issue
+                    # this may change when we implement the new protocol with the auth types and trust domains
+                    params['ProjectId'] = project_id
+                else:
+                    # project id is required, cannot service request
+                    glideFactoryLib.log_files.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                    continue
+                
+            
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins=0
