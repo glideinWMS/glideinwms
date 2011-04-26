@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.18 2011/04/26 16:14:57 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.19 2011/04/26 19:09:09 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1111,11 +1111,14 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             nr_to_submit=(nr_glideins-nr_submitted)
             if nr_to_submit>factoryConfig.max_cluster_size:
                 nr_to_submit=factoryConfig.max_cluster_size
-                        
-            glidein_rsl = jobDescript.data['GlobusRSL']
-            # Replace placeholder for project id 
-            if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
-                glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+            
+            if jobDescript.data.has_key('GlobusRSL'):   
+                glidein_rsl = jobDescript.data['GlobusRSL']
+                # Replace placeholder for project id 
+                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
+                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+            else:
+                glidein_rsl = "none"
             
             if username!=MY_USERNAME:
                 # use privsep
