@@ -4,16 +4,14 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: job_submit.sh,v 1.8 2011/02/10 21:35:30 parag Exp $
+#   $Id: job_submit.sh,v 1.9 2011/04/26 19:34:36 klarson1 Exp $
 #
 
 export GLIDEIN_USER=`id -u -n`
 
-export GLIDEIN_USER=`id -u -n`
-
 if [ $# -lt 4 ]; then
- echo "At least 4 args expected!" 1>&2
- echo "Usage: job_submit.sh entry_name client x509_sec_class x509_id count [attrs]* -- [params]*"
+ echo "At least 5 args expected!" 1>&2
+ echo "Usage: job_submit.sh entry_name client x509_sec_class x509_id count glidein_rsl [attrs]* -- [params]*"
  1>&2
  exit 1
 fi
@@ -26,6 +24,8 @@ shift
 export GLIDEIN_X509_ID="$1"
 shift
 export GLIDEIN_COUNT=$1
+shift
+export GLIDEIN_RSL=$1
 shift
 GLIDEIN_PARAMS=""
 while [ "$1" != "--" ]; do
