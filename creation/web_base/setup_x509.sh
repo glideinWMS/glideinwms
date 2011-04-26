@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: setup_x509.sh,v 1.13 2011/02/10 21:35:30 parag Exp $
+#   $Id: setup_x509.sh,v 1.14 2011/04/26 19:33:36 klarson1 Exp $
 #
 # Description;
 #   This is an include file for glidein_startup.sh
@@ -13,15 +13,18 @@
 # check that x509 certificates exist and set the env variable if needed
 function check_x509_certs {
     if [ -e "$X509_CERT_DIR" ]; then
-	export X509_CERT_DIR
+	  export X509_CERT_DIR
+    elif [ -e "$HOME/.globus/certificates/" ]; then
+	  export X509_CERT_DIR=$HOME/.globus/certificates/
     elif [ -e "/etc/grid-security/certificates/" ]; then
-	export X509_CERT_DIR=/etc/grid-security/certificates/
+	  export X509_CERT_DIR=/etc/grid-security/certificates/
     else
-	echo "Could not find grid-certificates!" 1>&2
-	echo "Looked in:" 1>&2
-	echo ' $X509_CERT_DIR' 1>&2
- 	echo ' /etc/grid-security/certificates/' 1>&2
-	exit 1
+	  echo "Could not find grid-certificates!" 1>&2
+	  echo "Looked in:" 1>&2
+	  echo ' $X509_CERT_DIR' 1>&2
+	  echo ' $HOME/.globus/certificates/' 1>&2
+ 	  echo ' /etc/grid-security/certificates/' 1>&2
+	  exit 1
     fi
     return 0
 }
