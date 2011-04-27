@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.3 2011/04/26 20:24:22 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.4 2011/04/27 14:20:29 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -106,6 +106,8 @@ def perform_work(entry_name, condorQ,
     else:
         condor_pool = None
 
+    # not used in original code but need to pass it to the functions anyway
+    condorStatus = None
 
     x509_proxy_keys = x509_proxy_fnames.keys()
     random.shuffle(x509_proxy_keys) # randomize so I don't favour any proxy over another
@@ -815,20 +817,20 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
                                       int(glideinDescript.data['LogRetentionMaxDays']),
                                       int(glideinDescript.data['LogRetentionMaxMBs']))
     logSupport.log = logging.getLogger(entry_name)
-    logSupport.debug("Logging initialized")
+    logSupport.log.debug("Logging initialized")
 
 
     ## Not touching the monitoring logging.  Don't know how that works yet
-    logSupport.debug("Setting up the monitoring")
+    logSupport.log.debug("Setting up the monitoring")
     glideFactoryMonitoring.monitoringConfig.monitor_dir = os.path.join(startup_dir, "monitor/entry_%s" % entry_name)
-    logSupport.debug("Monitoring directory: %s" % glideFactoryMonitoring.monitoringConfig.monitor_dir)
-    glideFactoryMonitoring.monitoringConfig.config_log(log_dir,
+    logSupport.log.debug("Monitoring directory: %s" % glideFactoryMonitoring.monitoringConfig.monitor_dir)
+    glideFactoryMonitoring.monitoringConfig.config_log(logSupport.log_dir,
                                                        float(glideinDescript.data['SummaryLogRetentionMaxDays']),
                                                        float(glideinDescript.data['SummaryLogRetentionMinDays']),
                                                        float(glideinDescript.data['SummaryLogRetentionMaxMBs']))
 
     glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (entry_name, glideinDescript.data['GlideinName'])
-    logSupport.debug("Monitoring Name: %s" % glideFactoryMonitoring.monitoringConfig.my_name)
+    logSupport.log.debug("Monitoring Name: %s" % glideFactoryMonitoring.monitoringConfig.my_name)
 
 
     logSupport.log.debug("Getting configurations")
@@ -907,7 +909,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     try:
         try:
             try:
-                logSupport.info("Starting up")
+                logSupport.log.info("Starting up")
                 iterate(parent_pid, sleep_time, advertize_rate,
                         glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams)
             except KeyboardInterrupt:
