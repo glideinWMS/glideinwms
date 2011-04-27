@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.4 2011/04/27 14:20:29 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.5 2011/04/27 19:06:51 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -819,6 +819,11 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     logSupport.log = logging.getLogger(entry_name)
     logSupport.log.debug("Logging initialized")
 
+    # Have to keep this here since the cleanup functionality is used for more than just logs.  -- WHY!?
+    glideFactoryLib.log_files=glideFactoryLib.LogFiles(log_dir,
+                                                       float(glideinDescript.data['LogRetentionMaxDays']),
+                                                       float(glideinDescript.data['LogRetentionMinDays']),
+                                                       float(glideinDescript.data['LogRetentionMaxMBs']))
 
     ## Not touching the monitoring logging.  Don't know how that works yet
     logSupport.log.debug("Setting up the monitoring")
