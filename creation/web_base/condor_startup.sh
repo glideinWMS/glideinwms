@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condor_startup.sh,v 1.48.2.10 2011/03/14 17:49:46 sfiligoi Exp $
+#   $Id: condor_startup.sh,v 1.48.2.10.2.1 2011/04/27 21:29:28 sfiligoi Exp $
 #
 # Description:
 # This script starts the condor daemons expects a config file as a parameter
@@ -30,6 +30,8 @@ for v in $condor_vars; do
 done
 echo "Removed condor variables $condor_vars" 1>&2
 
+# Condor 7.5.6 and above will use the system's gsi-authz.conf.  We don't want that.
+export GSI_AUTHZ_CONF=/dev/null
 
 # pstr = variable representing an appendix
 pstr='"'
