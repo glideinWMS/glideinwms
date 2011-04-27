@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.66 2011/04/26 19:35:08 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.67 2011/04/27 14:22:25 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1145,7 +1145,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,submit_attrs_str,params_str))
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s %s -- %s'%(x509_proxy_fname, factoryConfig.submit_fname, entry_name, client_name, x509_proxy_security_class, x509_proxy_identifier, nr_to_submit, glidein_rsl, client_web_str, submit_attrs_str, params_str))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     raise RuntimeError, "condor_submit failed: %s"%e
