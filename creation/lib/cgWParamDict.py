@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14.4.2 2011/04/28 19:07:35 klarson1 Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14.4.3 2011/04/28 20:10:18 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -571,13 +571,13 @@ def populate_job_descript(work_dir, job_descript_dict,
     Modifies the job_descript_dict to contain the factory configuration values.
     
     @type work_dir: string
-    @param work_dir:
+    @param work_dir: location of entry files
     @type job_descript_dict: dict
-    @param job_descript_dict:
+    @param job_descript_dict: contains the values of the job.descript file
     @type sub_name: string
-    @param sub_name:
+    @param sub_name: entry name
     @type sub_params: dict
-    @param sub_params:
+    @param sub_params: entry parameters
     """
     # if a user does not provide a file name, use the default one
     down_fname = sub_params.downtimes.absfname
