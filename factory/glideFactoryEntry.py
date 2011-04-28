@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.7 2011/04/28 14:22:43 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.8 2011/04/28 19:07:35 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -604,6 +604,8 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
 ############################################################
 def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, jobParams):
     entry_name = jobDescript.data['EntryName']
+    trust_domain = jobDescript.data['TrustDomain']
+    auth_methods = jobDescript.data['AuthMethods']
     allowed_proxy_source = glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj = glideinDescript.data['PubKeyObj']
 
@@ -621,6 +623,8 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,
                                                glideFactoryLib.factoryConfig.glidein_name,
                                                entry_name,
+                                               trust_domain,
+                                               auth_methods,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,
                                                jobParams.data.copy(),

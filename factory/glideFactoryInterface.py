@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.2 2011/04/19 15:22:58 tiradani Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.3 2011/04/28 19:07:35 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -19,6 +19,7 @@ import condorManager
 import os
 import time
 import string
+import logSupport
 
 ############################################################
 #
@@ -26,9 +27,9 @@ import string
 #
 ############################################################
 
-class FakeLog:
-    def write(self,str):
-        pass
+#class FakeLog:
+#    def write(self,str):
+#        pass
 
 class FactoryConfig:
     def __init__(self):
@@ -71,7 +72,7 @@ class FactoryConfig:
 
         # warning log files
         # default is FakeLog, any other value must implement the write(str) method
-        self.warning_log = FakeLog()
+        #self.warning_log = FakeLog()
 
 
 # global configuration of the module
@@ -117,6 +118,7 @@ def findWork(factory_name,glidein_name,entry_name,
     """
 
     global factoryConfig
+    logSupport.log.debug("Querying collector for requests.")
     
     status_constraint='(GlideinMyType=?="%s") && (ReqGlidein=?="%s@%s@%s")'%(factoryConfig.client_id,entry_name,glidein_name,factory_name)
 
@@ -182,10 +184,10 @@ def findWork(factory_name,glidein_name,entry_name,
             try:
                 enc_identity=sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
             except:
-                factoryConfig.warning_log.write("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons."%k)
+                logSupport.log.warning("Client %s provided invalid ReqEncIdentity, could not decode. Skipping for security reasons."%k)
                 continue # corrupted classad
             if enc_identity!=kel['AuthenticatedIdentity']:
-                factoryConfig.warning_log.write("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons."%(k,enc_identity,kel['AuthenticatedIdentity']))
+                logSupport.log.warning("Client %s provided invalid ReqEncIdentity(%s!=%s). Skipping for security reasons."%(k,enc_identity,kel['AuthenticatedIdentity']))
                 continue # uh oh... either the client is misconfigured, or someone is trying to cheat
             
 
@@ -204,7 +206,7 @@ def findWork(factory_name,glidein_name,entry_name,
                             invalid_classad=True
                             break # I don't understand it -> invalid
         if invalid_classad:
-            factoryConfig.warning_log.write("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."%k)
+            logSupport.log.warning("At least one of the encrypted parameters for client %s cannot be decoded. Skipping for security reasons."%k)
             continue # need to go this way as I may have problems in an inner loop
 
 
@@ -226,53 +228,83 @@ advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name,glidein_name,entry_name,
+def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_methods,
                      supported_signtypes,
-                     glidein_attrs={},glidein_params={},glidein_monitors={},
-                     pub_key_obj=None,allowed_proxy_source=None):
-    global factoryConfig,advertizeGlideinCounter
+                     glidein_attrs={}, glidein_params={}, glidein_monitors={},
+                     pub_key_obj=None, allowed_proxy_source=None):
+    
+    """
+    Creates the glideclient classad and advertises.
+    
+    @type factory_name: string
+    @param factory_name: the name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein
+    @type entry_name: string
+    @param entry_name: name of the entry
+    @type trust_domain: string
+    @param trust_domain: trust domain for this entry
+    @type auth_methods: string
+    @param auth_methods: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
+    @type supported_signtypes: string
+    @param supported_signtypes: suppported sign types, i.e. sha1
+    @type glidein_attrs: dict 
+    @param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
+    @type glidein_params: dict 
+    @param glidein_params: params to be published, can be overwritten by Frontends
+    @type glidein_monitors: dict 
+    @param glidein_monitors: monitor attrs to be published
+    @type pub_key_obj: GlideinKey
+    @param pub_key_obj: for the frontend to use in encryption
+    @type allowed_proxy_source: list
+    @param allowed_proxy_source: factory supported sources for proxy submission 
+    @todo: will need to move proxy requirements from the factory to the entry
+    """
+    global factoryConfig, advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
-    fd=file(tmpnam,"w")
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
     try:
         try:
-            fd.write('MyType = "%s"\n'%factoryConfig.factory_id)
-            fd.write('GlideinMyType = "%s"\n'%factoryConfig.factory_id)
-            fd.write('GlideinWMSVersion = "%s"\n'%factoryConfig.glideinwms_version)
-            fd.write('Name = "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
-            fd.write('FactoryName = "%s"\n'%factory_name)
-            fd.write('GlideinName = "%s"\n'%glidein_name)
-            fd.write('EntryName = "%s"\n'%entry_name)
-            fd.write('%s = "%s"\n'%(factoryConfig.factory_signtype_id,string.join(supported_signtypes,',')))
-            if pub_key_obj!=None:
-                fd.write('PubKeyID = "%s"\n'%pub_key_obj.get_pub_key_id())
-                fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
-                fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n'))
-                if allowed_proxy_source!=None:
-                    fd.write('GlideinAllowx509_Proxy = %s\n'%('frontend' in allowed_proxy_source))
-                    fd.write('GlideinRequirex509_Proxy = %s\n'%(not ('factory' in allowed_proxy_source)))
-            fd.write('DaemonStartTime = %li\n'%start_time)
-            fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
-            advertizeGlideinCounter+=1
+            fd.write('MyType = "%s"\n' % factoryConfig.factory_id)
+            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_id)
+            fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
+            fd.write('Name = "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
+            fd.write('FactoryName = "%s"\n' % factory_name)
+            fd.write('GlideinName = "%s"\n' % glidein_name)
+            fd.write('EntryName = "%s"\n' % entry_name)
+            fd.write('TrustDomain = "%s"\n' % trust_domain)
+            fd.write('AuthMethods = "%s"\n' % auth_methods)
+            fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
+            if pub_key_obj != None:
+                fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
+                fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
+                fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
+                if allowed_proxy_source != None:
+                    fd.write('GlideinAllowx509_Proxy = %s\n' % ('frontend' in allowed_proxy_source))
+                    fd.write('GlideinRequirex509_Proxy = %s\n' % (not ('factory' in allowed_proxy_source)))
+            fd.write('DaemonStartTime = %li\n' % start_time)
+            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlideinCounter)
+            advertizeGlideinCounter += 1
 
             # write out both the attributes, params and monitors
-            for (prefix,data) in ((factoryConfig.glidein_attr_prefix,glidein_attrs),
-                                  (factoryConfig.glidein_param_prefix,glidein_params),
-                                  (factoryConfig.glidein_monitor_prefix,glidein_monitors)):
+            for (prefix, data) in ((factoryConfig.glidein_attr_prefix, glidein_attrs),
+                                  (factoryConfig.glidein_param_prefix, glidein_params),
+                                  (factoryConfig.glidein_monitor_prefix, glidein_monitors)):
                 for attr in data.keys():
-                    el=data[attr]
-                    if type(el)==type(1):
+                    el = data[attr]
+                    if type(el) == type(1):
                         # don't quote ints
-                        fd.write('%s%s = %s\n'%(prefix,attr,el))
+                        fd.write('%s%s = %s\n' % (prefix, attr, el))
                     else:
-                        escaped_el=string.replace(string.replace(str(el),'"','\\"'),'\n','\\n')
-                        fd.write('%s%s = "%s"\n'%(prefix,attr,escaped_el))
+                        escaped_el = string.replace(string.replace(str(el), '"', '\\"'), '\n', '\\n')
+                        fd.write('%s%s = "%s"\n' % (prefix, attr, escaped_el))
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam,"UPDATE_MASTER_AD")
+        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD")
     finally:
         os.remove(tmpnam)
 

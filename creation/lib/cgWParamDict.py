@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14.4.1 2011/04/19 15:22:55 tiradani Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14.4.2 2011/04/28 19:07:35 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -565,46 +565,60 @@ def populate_factory_descript(work_dir,
 
 
 #######################
-# Populate job_descript
-def populate_job_descript(work_dir,job_descript_dict,        # will be modified
-                          sub_name,sub_params):
+def populate_job_descript(work_dir, job_descript_dict, 
+                          sub_name, sub_params):
+    """
+    Modifies the job_descript_dict to contain the factory configuration values.
+    
+    @type work_dir: string
+    @param work_dir:
+    @type job_descript_dict: dict
+    @param job_descript_dict:
+    @type sub_name: string
+    @param sub_name:
+    @type sub_params: dict
+    @param sub_params:
+    """
     # if a user does not provide a file name, use the default one
-    down_fname=sub_params.downtimes.absfname
-    if down_fname==None:
-        down_fname=os.path.join(work_dir,'entry.downtimes')
+    down_fname = sub_params.downtimes.absfname
+    if down_fname == None:
+        down_fname = os.path.join(work_dir, 'entry.downtimes')
 
-    job_descript_dict.add('EntryName',sub_name)
-    job_descript_dict.add('GridType',sub_params.gridtype)
-    job_descript_dict.add('Gatekeeper',sub_params.gatekeeper)
-    if sub_params.rsl!=None:
-        job_descript_dict.add('GlobusRSL',sub_params.rsl)
-    job_descript_dict.add('Schedd',sub_params.schedd_name)
-    job_descript_dict.add('StartupDir',sub_params.work_dir)
-    if sub_params.proxy_url!=None:
-        job_descript_dict.add('ProxyURL',sub_params.proxy_url)
-    job_descript_dict.add('Verbosity',sub_params.verbosity)
-    job_descript_dict.add('DowntimesFile',down_fname)
-    job_descript_dict.add('MaxRunning',sub_params.config.max_jobs.running)
-    job_descript_dict.add('MaxIdle',sub_params.config.max_jobs.idle)
-    job_descript_dict.add('MaxHeld',sub_params.config.max_jobs.held)
-    job_descript_dict.add('MaxSubmitRate',sub_params.config.submit.max_per_cycle)
-    job_descript_dict.add('SubmitCluster',sub_params.config.submit.cluster_size)
-    job_descript_dict.add('SubmitSleep',sub_params.config.submit.sleep)
-    job_descript_dict.add('MaxRemoveRate',sub_params.config.remove.max_per_cycle)
-    job_descript_dict.add('RemoveSleep',sub_params.config.remove.sleep)
-    job_descript_dict.add('MaxReleaseRate',sub_params.config.release.max_per_cycle)
-    job_descript_dict.add('ReleaseSleep',sub_params.config.release.sleep)
+    job_descript_dict.add('EntryName', sub_name)
+    job_descript_dict.add('GridType', sub_params.gridtype)
+    job_descript_dict.add('Gatekeeper', sub_params.gatekeeper)
+    job_descript_dict.add('AuthMethods', sub_params.auth_methods)
+    job_descript_dict.add('TrustDomain', sub_params.trust_domain)
+    if sub_params.rsl != None:
+        job_descript_dict.add('GlobusRSL', sub_params.rsl)
+    job_descript_dict.add('Schedd', sub_params.schedd_name)
+    job_descript_dict.add('StartupDir', sub_params.work_dir)
+    if sub_params.proxy_url != None:
+        job_descript_dict.add('ProxyURL', sub_params.proxy_url)
+    job_descript_dict.add('Verbosity', sub_params.verbosity)
+    job_descript_dict.add('DowntimesFile', down_fname)
+    job_descript_dict.add('MaxRunning', sub_params.config.max_jobs.running)
+    job_descript_dict.add('MaxIdle', sub_params.config.max_jobs.idle)
+    job_descript_dict.add('MaxHeld', sub_params.config.max_jobs.held)
+    job_descript_dict.add('MaxSubmitRate', sub_params.config.submit.max_per_cycle)
+    job_descript_dict.add('SubmitCluster', sub_params.config.submit.cluster_size)
+    job_descript_dict.add('SubmitSleep', sub_params.config.submit.sleep)
+    job_descript_dict.add('MaxRemoveRate', sub_params.config.remove.max_per_cycle)
+    job_descript_dict.add('RemoveSleep', sub_params.config.remove.sleep)
+    job_descript_dict.add('MaxReleaseRate', sub_params.config.release.max_per_cycle)
+    job_descript_dict.add('ReleaseSleep', sub_params.config.release.sleep)
 
     #  If the configuration has a non-empty frontend_allowlist
     #  then create a white list and add all the frontends:security_classes
     #  to it.
-    white_mode="Off";
-    allowed_vos="";
+    white_mode = "Off";
+    allowed_vos = "";
     for X in sub_params.allow_frontends.keys():
-        white_mode="On";
-        allowed_vos=allowed_vos+X+":"+sub_params.allow_frontends[X].security_class+",";
-    job_descript_dict.add("WhitelistMode",white_mode);
-    job_descript_dict.add("AllowedVOs",allowed_vos[:-1]);
+        white_mode = "On";
+        allowed_vos = allowed_vos + X + ":" + sub_params.allow_frontends[X].security_class + ",";
+    job_descript_dict.add("WhitelistMode", white_mode);
+    job_descript_dict.add("AllowedVOs", allowed_vos[:-1]);
+
 
 ###################################
 # Create the frontend descript file
