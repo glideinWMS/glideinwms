@@ -178,10 +178,8 @@ Install as: root<br><br>
         The installer will ask for several DNs for GSI authentication.  You have the option of using a service certificate or a proxy.  These should be
         created and put in place before running the installer.  The following is a list of DNs the installer will ask for:
         </p><ul>
-            <li>Glidein Submitter cert/proxy DN</li>
             <li>Pool Collector cert/proxy DN</li>
-            <li>Glidein Factory cert/proxy DN</li>
-
+            <li>Glidein Frontend cert/proxy DN</li>
         </ul>
         <strong>Note:</strong> In some places the installer will also ask for nicknames to go with the DNs.  For the most part the name given doesn't 
         really matter.  There is one case where is does matter.  If you are using privilege separation, then, on the WMS Collector, the nickname for 
@@ -199,7 +197,6 @@ Install as: root<br><br>
     <h2><a name="condor">5. Installation instructions</a></h2>
     <p>
         The scheduler node software should be installed as root. While it is possible to run the schedds as a non-privileged user, it has some serious
-        security implications; see the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.0/3_6Security.html#sec:Non-Root">Condor manual</a> for details.
         The whole process is managed by a install script described below.
     </p>
 
@@ -268,7 +265,7 @@ What do you want to install?
     <td><i>Please insert all such DNs, together with a user nickname.</i></td>
 
     <td>
-        You will need to provide the DN of the pool collector and the DN of the glidein factory.
+        You will need to provide the DN of the pool collector and the DN of the glidein factory.  If you do not use match authentication, you will need the DN of the glidein startd as well.  Any other DNs you list will be put into the condor_mapfile for authentication.
         This will populate the condor_mapfile with the dns and nicknames.
         See <a href="../components/gsi.html">GSI Reference</a> for more information.
     </td>
@@ -496,11 +493,17 @@ How many secondary schedds do you want?: [9] <b>4</b>
         Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
         of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in 
         the queue at any given time. This is particularly required for large scale installations. 
+        <blockquote>
+        ulimit -n <i>16384</i>
+        </blockquote>
         <br><br>
-        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/xinet.d/condor This
-        is a good place to set higher file descriptor limit for the schedd process.
+        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/init.d/condor.   This
+        is a good place to set higher file descriptor limit for the schedd process.  Condor can also be started using the xinetd mechanism, so make sure to check the configuration in /etc/xinet.d if you are using this functionality.
     </p>
-
+    <p>
+        For more information on advanced condor installations and multiple
+        schedds, see the <a href="./condor.html">Advanced Condor</a> page.
+    </p>
 </div>
 <div class="footer">
 Banner image by

@@ -259,11 +259,17 @@ those instructions.
 
       condor_q -name scjedd_jobs1@
     </blockquote>
+
+<h4>Increase the number of available file descriptors</h4>
+
+    <p>When using multiple schedds, you may want to consider increasing the avaiable file descriptors. 
+    This can be done by issuing a "ulimit -n" command as well as changing the values in the /etc/security/limits.conf file</p>
+
 </div>
 <div class="section">
 <h2><a name="gcb">GCB Installation</a></h2>
     <img src="../images/overview_gcb.png" name="graphics1" height="213" width="359" align="right" border="0"><p></p>
-    <p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
+    <p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB. GCB is no longer supported in Condor 7.6 and following.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
     <p>This node will serveas a 
     <a target="_blank" href="http://www.cs.wisc.edu/condor/gcb/">Generic Connection Brokering (GCB)</a> node. 
     If you are working over firewalls or NATs, and are using an older version of condor (before v7.3.0) you will need one or more of these.  If in use, GCB is needed every time you have a firewall or a NAT.

@@ -541,6 +541,14 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     The parameters listed here define how many glideins to create and
     maintain, such as idle_glideins_per_entry 
     and running_glideins_per_entry. 
+        <ul>
+        <li>idle_glideins_per_entry: This will limit the number of idle glideins sent to each entry point.</li>
+        <li>running_glideins_per_entry: This will limit the number of running glideins sent to each entry point.</li>
+        </ul>
+        Note that the number of idle glideins is also influenced by the 
+        number of user jobs.  For instance, with 180 user jobs and 6 entry
+        points, you can expect to see between 180/6 and 180/6/3 (ie 10-30)
+        idle glideins at each entry point.
     </P></li>
 
     <LI><P>
