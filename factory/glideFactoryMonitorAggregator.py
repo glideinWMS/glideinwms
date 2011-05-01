@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.8 2010/11/22 19:15:19 sfiligoi Exp $
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.8.12.1 2011/05/01 17:13:18 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -72,6 +72,7 @@ def aggregateStatus(in_downtime):
     type_strings={'Status':'Status','Requested':'Req','ClientMonitor':'Client'}
     global_total={'Status':None,'Requested':None,'ClientMonitor':None}
     status={'entries':{},'total':global_total}
+    status_fe={'frontends':{}} #analogous to above but for frontend totals
 
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
@@ -87,6 +88,7 @@ def aggregateStatus(in_downtime):
             val_dict["%s%s"%(tp_str,a)]=None
 
     nr_entries=0
+    nr_feentries={} #dictionary for nr entries per fe
     for entry in monitorAggregatorConfig.entries:
         # load entry status file
         status_fname=os.path.join(os.path.join(monitorAggregatorConfig.monitor_dir,'entry_'+entry),
@@ -107,7 +109,7 @@ def aggregateStatus(in_downtime):
             for w in global_total.keys():
                 tel=global_total[w]
                 if not entry_data['total'].has_key(w):
-                    continue 
+                    continue
                 el=entry_data['total'][w]
                 if tel==None:
                     # new one, just copy over
@@ -125,7 +127,52 @@ def aggregateStatus(in_downtime):
                         for a in tel.keys():
                             if not el.has_key(a):
                                 del tel[a]
-        
+
+        # update frontends
+        if entry_data.has_key('frontends'):
+            #loop on fe's in this entry
+            for fe in entry_data['frontends'].keys():
+                #compare each to the list of fe's accumulated so far
+                if not status_fe['frontends'].has_key(fe):
+                    status_fe['frontends'][fe]={}
+                if not nr_feentries.has_key(fe):
+                    nr_feentries[fe]=1 #already found one
+                else:
+                    nr_feentries[fe]+=1
+                for w in entry_data['frontends'][fe].keys():
+                    if not status_fe['frontends'][fe].has_key(w):                    
+                        status_fe['frontends'][fe][w]={}
+                    tela=status_fe['frontends'][fe][w]
+                    ela=entry_data['frontends'][fe][w]
+                    for a in ela.keys():
+                        #for the 'Downtime' field (only bool), do logical AND of all site downtimes
+                        # 'w' is frontend attribute name, ie 'ClientMonitor' or 'Downtime'
+                        # 'a' is sub-field, such as 'GlideIdle' or 'status'
+                        if w=='Downtime' and a=='status':
+                            ela_val=(ela[a]!='False') # Check if 'True' or 'False' but default to True if neither
+                            if tela.has_key(a):
+                                try:
+                                    tela[a]=tela[a] and ela_val
+                                except:
+                                    pass # just protect
+                            else:
+                                tela[a]=ela_val
+                        else:
+                            try:
+                                #if there already, sum
+                                if tela.has_key(a):
+                                    tela[a]+=int(ela[a])
+                                else:
+                                    tela[a]=int(ela[a])
+                            except:
+                                pass #not an int, not Downtime, so do nothing
+                                        
+                        # if any attribute from prev. frontends are not in the current one, remove from total
+                        for a in tela.keys():
+                            if not ela.has_key(a):
+                                del tela[a]        
+
+
     for w in global_total.keys():
         if global_total[w]==None:
             del global_total[w] # remove entry if not defined
@@ -134,6 +181,15 @@ def aggregateStatus(in_downtime):
             for a in tel.keys():
                 if a in avgEntries:
                     tel[a]=tel[a]/nr_entries # since all entries must have this attr to be here, just divide by nr of entries
+
+    #do average for per-fe stat--'InfoAge' only
+    for fe in status_fe['frontends'].keys():
+        for w in status_fe['frontends'][fe].keys():
+            tel=status_fe['frontends'][fe][w]
+            for a in tel.keys():
+                if a in avgEntries and nr_feentries.has_key(fe):
+                    tel[a]=tel[a]/nr_feentries[fe] # divide per fe
+            
 
     xml_downtime = xmlFormat.dict2string({}, dict_name = 'downtime', el_name = '', params = {'status':str(in_downtime)}, leading_tab = xmlFormat.DEFAULT_TAB)
 
@@ -149,6 +205,10 @@ def aggregateStatus(in_downtime):
                                                                                                                                                                                     "subtypes_params":{"class":{}}}}}}}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
+             xmlFormat.dict2string(status_fe["frontends"],dict_name="frontends",el_name="frontend",
+                                   subtypes_params={"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
+                                                                                                                           "subtypes_params":{"class":{}}}}}}}},
+                                   leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</glideFactoryQStats>\n")
     glideFactoryMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
 
