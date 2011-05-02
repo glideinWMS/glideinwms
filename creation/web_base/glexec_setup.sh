@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glexec_setup.sh,v 1.20 2011/03/28 16:55:19 parag Exp $
+#   $Id: glexec_setup.sh,v 1.21 2011/05/02 16:54:57 parag Exp $
 #
 # Description:
 #   This script will setup the gLExec parameters
@@ -119,10 +119,15 @@ if [ "$glexec_bin" == "OSG" ]; then
     glexec_bin="$OSG_GLEXEC_LOCATION"
 fi
 
-# but first test it does exist
+# but first test it does exist and is executable
 
-if [ -x "$glexec_bin" ]; then
-    echo "Using gLExec binary '$glexec_bin'"
+if [ -f "$glexec_bin" ]; then
+    if [ -x "$glexec_bin" ]; then
+        echo "Using gLExec binary '$glexec_bin'"
+    else
+        echo "gLExec binary '$glexec_bin' is not executable!" 1>&2
+        exit 1
+    fi
 else
     echo "gLExec binary '$glexec_bin' not found!" 1>&2
     exit 1
