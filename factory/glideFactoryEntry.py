@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.38 2011/04/26 19:09:18 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.39 2011/05/04 04:12:07 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -98,11 +98,11 @@ def perform_work(entry_name,
 
     # find out the users it is using
     log_stats={}
-    log_stats[x509_proxy_username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
+    log_stats[x509_proxy_username+":"+client_int_name]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
                                                                               glideFactoryLib.log_files.log_dir,
                                                                               client_int_name,x509_proxy_username)
     # should not need privsep for reading logs
-    log_stats[x509_proxy_username].load()
+    log_stats[x509_proxy_username+":"+client_int_name].load()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
     client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
