@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.39 2011/05/04 04:12:07 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.40 2011/05/04 20:57:09 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -552,6 +552,21 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
 ############################################################
 def write_stats():
+    """
+    Calls the statistics functions to record and write
+    stats for this iteration.
+
+    There are several main types of statistics:
+
+    log stats: That come from parsing the condor_activity
+    and job logs.  This is computed every iteration 
+    (in perform_work()) and diff-ed to see any newly 
+    changed job statuses (ie. newly completed jobs)
+
+    qc stats: From condor_q data.
+    
+    rrd stats: Used in monitoring statistics for javascript rrd graphs.
+    """
     global log_rrd_thread,qc_rrd_thread
     
     glideFactoryLib.factoryConfig.log_stats.computeDiff()

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorLogParser.py,v 1.22.8.10 2011/01/27 19:27:53 parag Exp $
+#   $Id: condorLogParser.py,v 1.22.8.11 2011/05/04 20:57:09 dstrain Exp $
 #
 # Description:
 #   This module implements classes and functions to parse
@@ -26,11 +26,15 @@ import cPickle,sets
 # -------------- Single Log classes ------------------------
 
 class cachedLogClass:
-    # virtual, do not use
-    # the Constructor needs to define logname and cachename (possibly by using clInit)
-    # also loadFromLog, merge and isActive need to be implemented
-
-    # init method to be used by real constructors
+    """
+    This is the base class for most Log Parsers in lib/condorLogParser
+    and factory/glideFactoryLogParser. (I{virtual, do not use})
+    
+    The Constructor for inherited classes needs to define logname and cachename 
+    (possibly by using clInit) as well as the methods
+     loadFromLog, merge and isActive.
+    init method to be used by real constructors
+    """
     def clInit(self,logname,cache_dir,cache_ext):
         self.logname=logname
         if cache_dir==None:
@@ -38,8 +42,11 @@ class cachedLogClass:
         else:
             self.cachename=os.path.join(cache_dir,os.path.basename(logname)+cache_ext)
 
-    # compare to cache, and tell if the log file has changed since last checked
     def has_changed(self):
+        """
+        Compare to cache, and tell if the log file has changed 
+        since last checked
+        """
         if os.path.isfile(self.logname):
             fstat=os.lstat(self.logname)
             logtime=fstat[stat.ST_MTIME]
@@ -55,8 +62,14 @@ class cachedLogClass:
         # both exist -> check if log file is newer
         return (logtime>cachetime)
 
-    # load from the most recent one, and update the cache if needed
     def load(self):
+        """
+        Load data from most recent file. Update the cache if needed.
+        If the file has not changed, use the cache instead
+        (typically named something like filename.ftstpk) in a pickle format.
+        If file is newer, uses inherited class's loadFromLog method.
+        Then, save in pickle cache.
+        """
         if not self.has_changed():
             # cache is newer, just load the cache
             return self.loadCache()
@@ -94,15 +107,22 @@ class cachedLogClass:
         return
 
         
-# this class will keep track of:
-#  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
-# These data is available in self.data dictionary
-# for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummary(cachedLogClass):
+    """
+    This class will keep track of:
+    jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
+    This data is available in self.data dictionary
+    for example 
+    self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
+    """
     def __init__(self,logname,cache_dir):
         self.clInit(logname,cache_dir,".cstpk")
 
     def loadFromLog(self):
+        """
+        Parse the condor activity log and interpret the globus status code.
+        Stores in self.data
+        """
         jobs = parseSubmitLogFastRaw(self.logname)
         self.data = listAndInterpretRawStatuses(jobs,listStatuses)
         return
@@ -115,9 +135,11 @@ class logSummary(cachedLogClass):
                     active=True # it is enought that at least one non Completed/removed job exist
         return active
 
-    # merge self data with other info
-    # return merged data, may modify other
     def merge(self,other):
+        """
+        Merge self data with other info
+        @return: merged data, may modify other
+        """
         if other==None:
             return self.data
         elif self.data==None:
@@ -131,9 +153,16 @@ class logSummary(cachedLogClass):
                 pass
             return other
 
-    # diff self data with other info
-    # return data[status]['Entered'|'Exited'] - list of jobs
     def diff(self,other):
+        """
+        diff self data with other info.  Used to compare
+        previous iteration with current iteration
+        
+        Performs symmetric difference on the two sets and
+        creates a dictionary for each status.
+
+        @return: data[status]['Entered'|'Exited'] - list of jobs
+        """
         if other==None:
             outdata={}
             if self.data!=None:
@@ -181,10 +210,25 @@ class logSummary(cachedLogClass):
 # These data is available in self.data dictionary
 #   for example self.data={'completed_jobs':['123.002','555.001'],'counts':{'Idle': 1145, 'Completed': 2}}
 class logCompleted(cachedLogClass):
+    """
+    This class will keep track of:
+        - counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
+        - list of completed jobs
+    This data is available in self.data dictionary
+
+    For example self.data=
+    {'completed_jobs':['123.002','555.001'],
+    'counts':{'Idle': 1145, 'Completed': 2}}
+    """
     def __init__(self,logname,cache_dir):
         self.clInit(logname,cache_dir,".clspk")
 
     def loadFromLog(self):
+        """
+        Load information from condor_activity logs
+        Then parse globus statuses.
+        Finally, parse and add counts.
+        """
         tmpdata={}
         jobs = parseSubmitLogFastRaw(self.logname)
         status  = listAndInterpretRawStatuses(jobs,listStatuses)
@@ -209,9 +253,11 @@ class logCompleted(cachedLogClass):
         return active
 
 
-    # merge self data with other info
-    # return merged data, may modify other
     def merge(self,other):
+        """
+        Merge self data with other info
+        @return: merged data, may modify other
+        """
         if other==None:
             return self.data
         elif self.data==None:
@@ -227,8 +273,13 @@ class logCompleted(cachedLogClass):
             return other
 
 
-    # diff self data with other info
     def diff(self,other):
+        """
+        Diff self.data with other info.
+        For use in comparing previous iteration with current iteration
+
+        Uses symmetric difference of sets.
+        """
         if other==None:
             if self.data!=None:
                 outcj={'Exited':[],'Entered':self.data['completed_jobs']}
@@ -275,11 +326,13 @@ class logCompleted(cachedLogClass):
 
             return outdata
 
-# this class will keep track of
-#  counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
-# These data is available in self.data dictionary
-#   for example self.data={'Idle': 1145, 'Completed': 2}
 class logCounts(cachedLogClass):
+    """
+    This class will keep track of
+    counts of statuses (Wait, Idle, Running, Held, Completed, Removed)
+    This data is available in self.data dictionary
+    For example self.data={'Idle': 1145, 'Completed': 2}
+    """
     def __init__(self,logname,cache_dir):
         self.clInit(logname,cache_dir,".clcpk")
 
@@ -298,9 +351,11 @@ class logCounts(cachedLogClass):
         return active
 
 
-    # merge self data with other info
-    # return merged data, may modify other
     def merge(self,other):
+        """
+        Merge self data with other info
+        @return: merged data, may modify other
+        """
         if other==None:
             return self.data
         elif self.data==None:
@@ -314,9 +369,11 @@ class logCounts(cachedLogClass):
                 pass
             return other
 
-    # diff self data with other info
-    # return diff of counts
     def diff(self,other):
+        """
+        Diff self data with other info
+        @return: diff of counts
+        """
         if other==None:
             if self.data!=None:
                 return self.data
@@ -349,11 +406,14 @@ class logCounts(cachedLogClass):
 
             return outdata
 
-# this class will keep track of:
-#  jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
-# These data is available in self.data dictionary
-# for example self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
 class logSummaryTimings(cachedLogClass):
+    """
+    This class will keep track of:
+    jobs in various of statuses (Wait, Idle, Running, Held, Completed, Removed)
+    This data is available in self.data dictionary
+    for example 
+    self.data={'Idle':['123.003','123.004'],'Running':['123.001','123.002']}
+    """
     def __init__(self,logname,cache_dir):
         self.clInit(logname,cache_dir,".ctstpk")
 
@@ -370,9 +430,11 @@ class logSummaryTimings(cachedLogClass):
                     active=True # it is enought that at least one non Completed/removed job exist
         return active
 
-    # merge self data with other info
-    # return merged data, may modify other
     def merge(self,other):
+        """
+        merge self data with other info
+        @return: merged data, may modify other
+        """
         if other==None:
             return self.data
         elif self.data==None:
@@ -386,9 +448,11 @@ class logSummaryTimings(cachedLogClass):
                 pass
             return other
 
-    # diff self data with other info
-    # return data[status]['Entered'|'Exited'] - list of jobs
     def diff(self,other):
+        """
+        diff self data with other info
+        @return: data[status]['Entered'|'Exited'] - list of jobs
+        """
         if other==None:
             outdata={}
             if self.data!=None:
@@ -450,22 +514,38 @@ class logSummaryTimings(cachedLogClass):
             
 # -------------- Multiple Log classes ------------------------
 
-# this is a generic class
-# while usefull, you probably don't wnat ot use it directly
 class cacheDirClass:
+    """
+    This is the base class for all the directory log Parser
+    classes.  It parses some/all log files in a directory.
+    It should generally not be called directly.  Rather,
+    call one of the inherited classes.
+    """
     def __init__(self,logClass,
                  dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-                 inactive_files=None,         # if ==None, will be reloaded from cache
-                 inactive_timeout=24*3600,   # how much time must elapse before a file can be declared inactive
-                 cache_dir=None):            # if None, use dirname
+                 inactive_files=None,         
+                 inactive_timeout=24*3600,   
+                 cache_dir=None):            
+        """
+        @param inactive_files: if None, will be reloaded from cache
+        @param inactive_timeout: how much time must elapse before a file can be declared inactive
+        @param cache_dir: If None, use dirname for the cache directory.
+        """
         self.cdInit(logClass,dirname,log_prefix,log_suffix,cache_ext,inactive_files,inactive_timeout,cache_dir)
 
     def cdInit(self,logClass,
                dirname,log_prefix,log_suffix=".log",cache_ext=".cifpk",
-               inactive_files=None,         # if ==None, will be reloaded from cache
-               inactive_timeout=24*3600,    # how much time must elapse before a file can be declared inactive
-               cache_dir=None):             # if None, use dirname
-        self.logClass=logClass # this is an actual class, not an object
+               inactive_files=None,         
+               inactive_timeout=24*3600,    
+               cache_dir=None):             
+        """
+        @param logClass: this is an actual class, not an object
+        @param inactive_files: if None, will be reloaded from cache
+        @param inactive_timeout: how much time must elapse before a file can be
+declared inactive
+        @param cache_dir: If None, use dirname for the cache directory.
+        """
+        self.logClass=logClass
         self.dirname=dirname
         if cache_dir==None:
             cache_dir=dirname
@@ -484,8 +564,10 @@ class cacheDirClass:
         return
     
 
-    # return a list of log files
     def getFileList(self, active_only):
+        """
+        @return: a list of log files
+        """
         prefix_len=len(self.log_prefix)
         suffix_len=len(self.log_suffix)
         files=[]

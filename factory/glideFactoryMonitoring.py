@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.16 2011/05/04 04:12:07 dstrain Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.17 2011/05/04 20:57:09 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -42,9 +42,8 @@ class MonitoringConfig:
                            ('AVERAGE',0.98,144,740)        # 12 hour precision, keep for a year
                            ]
 
-        # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
-
+        """@ivar: The name of the attribute that identifies the glidein """
         
         self.log_dir="log/"
         self.logCleanupObj=None
@@ -60,6 +59,16 @@ class MonitoringConfig:
                                                      max_days,min_days,max_mbs)
 
     def logCompleted(self,client_name,entered_dict):
+        """
+        This function takes all newly completed glideins and
+        logs them in logs/entry_Name/completed_jobs_date.log in an
+        XML-like format.
+    
+        @type client_name: String
+        @param client_name: the name of the frontend client 
+        @type entered_dict: Dictionary of dictionaries
+        @param entered_dict: This is the dictionary of all jobs that have "Entered" the "Completed" states.  It is indexed by job_id.  Each data is an info dictionary containing the keys: username, jobs_duration (subkeys:total,goodput,terminated), wastemill (subkeys:validation,idle,nosuccess,badput) , duration, condor_started, condor_duration, jobsnr
+        """
         now=time.time()
 
         job_ids=entered_dict.keys()
@@ -96,6 +105,11 @@ class MonitoringConfig:
             fd.close()
 
     def write_file(self,relative_fname,str):
+        """ 
+        Writes out a string to a file
+        @param relative_fname: The relative path name to write out
+        @param str: the string to write to the file
+        """
         fname=os.path.join(self.monitor_dir,relative_fname)
         #print "Writing "+fname
         fd=open(fname+".tmp","w")
@@ -502,6 +516,9 @@ class condorQStats:
 #########################################################################################################################################
 
 class condorLogSummary:
+    """
+    This class handles the data obtained from parsing the glidein log files
+    """
     def __init__(self):
         self.data={} # not used
         self.updated=time.time()
@@ -515,6 +532,13 @@ class condorLogSummary:
         self.files_updated=None
 
     def reset(self):
+        """
+        Replaces old_stats_data with current_stats_data
+        Sets current_stats_data to empty.
+        This is called every iteration in order to later
+        compare the diff of the previous iteration and current one
+        to find any newly changed jobs (ie newly completed jobs)
+        """
         # reserve only those that has been around this time
         new_stats_data={}
         for c in self.stats_diff.keys():
@@ -556,7 +580,12 @@ class condorLogSummary:
         
     def logSummary(self,client_name,stats):
         """
-         stats - glideFactoryLogParser.dirSummaryTimingsOut
+        log_stats taken during during an iteration of perform_work are
+        added/merged into the condorLogSummary class here.
+
+        @type stats: dictionary of glideFactoryLogParser.dirSummaryTimingsOut
+        @param stats: Dictionary keyed by "username:client_int_name"
+        client_int_name is needed for frontends with multiple groups
         """
         if not self.current_stats_data.has_key(client_name):
             self.current_stats_data[client_name]={}
@@ -571,6 +600,16 @@ class condorLogSummary:
         self.updated_year=time.localtime(self.updated)[0]
 
     def computeDiff(self):
+        """
+        This function takes the current_stats_data from the current iteration
+        and the old_stats_data from the last iteration (see reset() function)
+        to create a diff of the data in the stats_diff dictionary.
+
+        This stats_diff will be a dictionary with two entries for each
+        status: "Entered" and "Exited" denoting which job ids have recently
+        changed status, ie. 
+        stats_diff[frontend][username:client_int_name]["Completed"]["Entered"]
+        """
         for client_name in self.current_stats_data.keys():
             self.stats_diff[client_name]={}
             if self.old_stats_data.has_key(client_name):
@@ -580,6 +619,13 @@ class condorLogSummary:
                         self.stats_diff[client_name][username]=stats[username].diff(self.old_stats_data[client_name][username])
 
     def get_stats_data_summary(self):
+        """
+        Summarizes current_stats_data:
+        Adds up current_stats_data[frontend][user:client][status]
+        across all username keys.
+
+        @return: returns dictionary stats_data[frontend][status]=count
+        """
         stats_data={}
         for client_name in self.current_stats_data.keys():
             out_el={}
@@ -778,6 +824,15 @@ class condorLogSummary:
         return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Sum':count_total,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
+        """
+        Summarizes stats_diff data (computeDiff should have
+        already been called)
+        Sums over username in the dictionary
+        stats_diff[frontend][username][entered/exited][status]
+        to make stats_data[client_name][entered/exited][status]=count
+
+        @return: dictionary[client_name][entered/exited][status]=count
+        """
         stats_data={}
         for client_name in self.stats_diff.keys():
             out_el={'Current':{},'Entered':{},'Exited':{}}
@@ -820,6 +875,9 @@ class condorLogSummary:
                                      indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_stats_total(self):
+        """
+        @return: Dictionary with keys (wait,idle,running,held)
+        """
         total={'Wait':None,'Idle':None,'Running':None,'Held':None}
         for k in total.keys():
             tdata=[]
@@ -845,6 +903,11 @@ class condorLogSummary:
                                       indent_tab=indent_tab,leading_tab=leading_tab)
 
     def get_diff_summary(self):
+        """
+        Flattens stats_diff differential data.
+
+        @return: Dictionary of client_name with sub_keys Wait,Idle,Running,Held,Completed,Removed
+        """
         out_data={}
         for client_name in self.stats_diff.keys():
             client_el={'Wait':None,'Idle':None,'Running':None,'Held':None,'Completed':None,'Removed':None}
