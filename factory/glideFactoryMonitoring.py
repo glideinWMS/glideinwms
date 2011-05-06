@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.1 2011/04/19 15:22:58 tiradani Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.2 2011/05/06 16:01:53 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1201,7 +1201,7 @@ class Descript2XML:
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
                                          'Schedd')
         self.frontend_blacklist = ('usermap', )
-        self.glidein_whitelist = ('AdvertiseDelay', 'AllowedJobProxySource',
+        self.glidein_whitelist = ('AdvertiseDelay', 
                                   'FactoryName', 'GlideinName', 'LoopDelay',
                                   'PubKeyType', 'WebURL')
 

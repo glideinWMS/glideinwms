@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.63.2.7.4.2 2011/04/28 19:07:35 klarson1 Exp $
+#   $Id: cgWParams.py,v 1.63.2.7.4.3 2011/05/06 16:00:36 klarson1 Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -159,7 +159,6 @@ class GlideinParams(cWParams.CommonParams):
         security_default = cWParams.commentedOrderedDict()
         security_default["pub_key"] = ("RSA", "None|RSA", "Type of public key system used for secure message passing", None)
         security_default["key_length"] = ("2048", "bits", "Key length in bits", None)
-        security_default["allow_proxy"] = ("frontend", "list", "What proxies can be used for glidein submission? (list combination of factory,frontend)", None)
         security_default["frontends"] = (xmlParse.OrderedDict(), "Dictionary of frontend", "Each frontend contains", self.frontend_defaults)
         
         self.defaults["security"] = security_default

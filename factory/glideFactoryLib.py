@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.3 2011/04/26 20:24:22 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.4 2011/05/06 16:01:53 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1096,7 +1096,7 @@ def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins, 
     if client_web != None:
         client_web_arr = client_web.get_glidein_args()
     client_web_str = string.join(client_web_arr, " ")
-
+   
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):

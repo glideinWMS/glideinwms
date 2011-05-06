@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.8 2011/04/28 19:07:35 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.9 2011/05/06 16:01:53 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -209,8 +209,29 @@ class X509Proxies:
 
 ###
 def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
+    """
+    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
+    in downtime, requested glideins is zero.
+    
+    @type in_downtime: boolean
+    @param in_downtime: True if entry is in downtime
+    @type glideinDescript:  
+    @param glideinDescript: 
+    @type frontendDescript:  
+    @param frontendDescript: 
+    @type jobDescript:  
+    @param jobDescript: 
+    @type jobAttributes:  
+    @param jobAttributes: 
+    @type jobParams:  
+    @param jobParams: 
+    
+    @return: returns a value greater than zero if work was done.
+    """
+           
     entry_name = jobDescript.data['EntryName']
     pub_key_obj = glideinDescript.data['PubKeyObj']
+    auth_methods = jobDescript.data['AuthMethods'].split(',')
 
     # Get information about which VOs to allow for this entry point.
     # This will be a comma-delimited list of pairs
@@ -227,22 +248,24 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 security_list[entry_part[0]] = [entry_part[1]];
 
-    # get the locations from where the proxy is allowed
-    allowed_proxy_source = glideinDescript.data['AllowedJobProxySource'].split(',')
-
     # Set downtime in the stats
     glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime)
     glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
 
-    #glideFactoryLib.log_files.logActivity("Find work")
+    logSupport.log.debug("Finding work")
+    additional_constraints = None
+    if pub_key_obj != None:
+        # get only classads that have my key or no key at all, any other key will not work
+        additional_constraints = '(((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,
                                           glideFactoryLib.factoryConfig.glidein_name,
                                           entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
                                           pub_key_obj,
-                                          allowed_proxy_source)
+                                          additional_constraints)
 
     if len(work.keys()) == 0:
+        logSupport.log.debug("No work found")
         return 0 # nothing to be done
 
     #glideFactoryLib.log_files.logActivity("Perform work")
@@ -253,6 +276,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     factory_max_held = int(jobDescript.data['MaxHeld'])
 
     try:
+        logSupport.log.debug("Querying factory queue for glideins.")
         condorQ = glideFactoryLib.getCondorQData(entry_name, None, schedd_name)
     except glideFactoryLib.condorExe.ExeError, e:
         logSupport.log.info("Schedd %s not responding, skipping" % schedd_name)
@@ -268,6 +292,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
     all_security_names = sets.Set()
 
+    logSupport.log.debug("Validating requests and doing work")
     done_something = 0
     for work_key in work.keys():
         if not is_str_safe(work_key):
@@ -309,10 +334,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             in_downtime = True
 
         ##### BEGIN - PROXY HANDLING - BEGIN #####
-        # Check if proxy passing is compatible with allowed_proxy_source
+        # Check if proxy passing is compatible with supported authentication methods
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
-            if not ('frontend' in allowed_proxy_source):
-                logSupport.log.warning("Client %s provided proxy, but cannot use it. Skipping request" % client_int_name)
+            if not ('grid_proxy' in auth_methods):
+                logSupport.log.warning("Client %s provided proxy, but but only factory supplied proxy is allowed. Skipping bad request" % client_int_name)
                 continue #skip request
 
             client_expected_identity = frontendDescript.get_identity(client_security_name)
@@ -331,8 +356,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue #skip request
 
         else:
-            if not ('factory' in allowed_proxy_source):
-                logSupport.log.warning("Client %s did not provide a proxy, but cannot use factory one. Skipping request" % client_int_name)
+            if not ('factory' in auth_methods):
+                logSupport.log.warning("Client %s did not provide a proxy, but cannot use factory one. Skipping bad request" % client_int_name)
                 continue #skip request
 
         x509_proxies = X509Proxies(frontendDescript, client_security_name)
@@ -514,7 +539,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 # old style
                 client_web = None
-            ##### BEGIN - PROXY HANDLING - BEGIN #####
+            
             x509_proxy_security_classes = x509_proxies.fnames.keys()
             x509_proxy_security_classes.sort() # sort to have consistent logging
             for x509_proxy_security_class in x509_proxy_security_classes:
@@ -549,6 +574,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                client_web, params)
         #else, it is malformed and should be skipped
 
+    logSupport.log.debug("Updating statistics")
     for sec_el in all_security_names:
         try:
             glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
@@ -606,7 +632,6 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
     entry_name = jobDescript.data['EntryName']
     trust_domain = jobDescript.data['TrustDomain']
     auth_methods = jobDescript.data['AuthMethods']
-    allowed_proxy_source = glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj = glideinDescript.data['PubKeyObj']
 
     glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor()
@@ -626,11 +651,10 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
                                                trust_domain,
                                                auth_methods,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
+                                               pub_key_obj,
                                                myJobAttributes,
                                                jobParams.data.copy(),
-                                               glidein_monitors.copy(),
-                                               pub_key_obj,
-                                               allowed_proxy_source)
+                                               glidein_monitors.copy())
     except:
         logSupport.log.warning("Advertize failed")
 
@@ -912,6 +936,14 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
     logSupport.log.debug("Set Condor security environment")
+
+    # If authentication method is factory, verify that the environ is set
+    auth_methods = jobDescript.data['AuthMethods'].split(',')
+    if 'factory' in auth_methods:
+        if not os.environ.has_key('X509_USER_PROXY'):
+            logSupport.log.warning("Factory is supposed to provide a proxy for this entry, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
+            # KEL TODO - raise error or just log warning????
+            raise RuntimeError, "Factory is supposed to provide a proxy for this entry. Need X509_USER_PROXY to work!"          
 
     # start
     pid_obj.register(parent_pid)

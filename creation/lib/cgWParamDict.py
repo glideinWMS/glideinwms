@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14.4.3 2011/04/28 20:10:18 klarson1 Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14.4.4 2011/05/06 16:00:36 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -551,8 +551,6 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('RestartAttempts',params.restart_attempts)
         glidein_dict.add('RestartInterval',params.restart_interval)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        validate_job_proxy_source(params.security.allow_proxy)
-        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
         glidein_dict.add('LogDir',params.log_dir)
         glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
         glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
@@ -641,17 +639,6 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
-    
-#################################
-# Check that it is a string list
-# containing only valid entries
-def validate_job_proxy_source(allow_proxy):
-    recognized_sources=('factory','frontend')
-    ap_list=allow_proxy.split(',')
-    for source in ap_list:
-        if not (source in recognized_sources):
-            raise RuntimeError, "'%s' not a valid proxy source (valid list = %s)"%(source,recognized_sources)
-    return
 
 #####################
 # Simply copy a file
