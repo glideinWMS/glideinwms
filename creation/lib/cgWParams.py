@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.63.2.8 2011/02/01 17:25:23 parag Exp $
+#   $Id: cgWParams.py,v 1.63.2.9 2011/05/06 16:26:27 klarson1 Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -26,18 +26,23 @@ import cWParams
 
 
 ######################################################
-# Params used by create_glideins and recreate_glideins
 class GlideinParams(cWParams.CommonParams):
-    # populate self.defaults
+    """
+    Contains all the factory configuration values as params.  Used in create_glideins and recreate_glideins.
+    """
+    
     def init_defaults(self):
+        """
+        Populates the defaults for all the factory configuration values.
+        """
      
         self.init_support_defaults()
       
-	# Defaults for allowing frontends in a whitelist
-	# in the factory config (per entry point)
-        self.allow_defaults=cWParams.commentedOrderedDict()
-        self.allow_defaults["name"]=(None,"string","frontend name",None)
-        self.allow_defaults["security_class"]=("All","string","security class",None)
+        # Defaults for allowing frontends in a whitelist
+        # in the factory config (per entry point)
+        self.allow_defaults = cWParams.commentedOrderedDict()
+        self.allow_defaults["name"] = (None, "string", "frontend name", None)
+        self.allow_defaults["security_class"] = ("All", "string", "security class", None)
 
         # publishing specific to factory
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
