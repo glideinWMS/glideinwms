@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.6 2010/11/09 17:43:40 parag Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.7 2011/05/06 16:36:09 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -101,19 +101,33 @@ class MultiExeError(condorExe.ExeError):
 ############################################################
 
 
-def findWork(factory_name,glidein_name,entry_name,
+def findWork(factory_name, glidein_name, entry_name,
              supported_signtypes,
-             pub_key_obj=None,allowed_proxy_source=('factory','frontend'),
-             get_only_matching=True,  # if this is false, return also glideins I cannot use)
+             pub_key_obj=None, allowed_proxy_source=('factory','frontend'),
+             get_only_matching=True,
              additional_constraints=None):
     """
-    Look for requests.
-    Look for classAds that have my (factory, glidein name, entry name).
+    Find request classAds that have my (factory, glidein name, entry name) and create the dictionary of work request information.
 
-    Return:
-      Dictionary, each key is the name of a frontend.
-      Each value has a 'requests' and a 'params' key.
-        Both refer to classAd dictionaries.
+    @type factory_name: string
+    @param factory_name: name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein instance
+    @type entry_name: string
+    @param entry_name: name of the factory entry
+    @type supported_signtypes: list
+    @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
+    @type pub_key_obj: string
+    @param pub_key_obj: only support 'RSA'
+    @type allowed_proxy_source: list
+    @param allowed_proxy_source: types of sources the proxy is allowed to come from
+    @type get_only_matching: boolean
+    @param get_only_matching: if this is false, return also glideins I cannot use
+    @type additional_constraints: string
+    @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
+    
+    @return: dictionary, each key is the name of a frontend.  Each value has a 'requests' and a 'params' key.  Both refer to classAd dictionaries.
+        
     """
 
     global factoryConfig
@@ -226,10 +240,34 @@ advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name,glidein_name,entry_name,
+def advertizeGlidein(factory_name, glidein_name, entry_name,
                      supported_signtypes,
-                     glidein_attrs={},glidein_params={},glidein_monitors={},
-                     pub_key_obj=None,allowed_proxy_source=None):
+                     glidein_attrs={}, glidein_params={}, glidein_monitors={},
+                     pub_key_obj=None, allowed_proxy_source=None):
+    
+    """
+    Creates the glideclient classad and advertises.
+    
+    @type factory_name: string
+    @param factory_name: the name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein
+    @type entry_name: string
+    @param entry_name: name of the entry
+    @type supported_signtypes: string
+    @param supported_signtypes: suppported sign types, i.e. sha1
+    @type glidein_attrs: dict 
+    @param glidein_attrs: glidein attrs to be published, not be overwritten by Frontends
+    @type glidein_params: dict 
+    @param glidein_params: params to be published, can be overwritten by Frontends
+    @type glidein_monitors: dict 
+    @param glidein_monitors: monitor attrs to be published
+    @type pub_key_obj: GlideinKey
+    @param pub_key_obj: for the frontend to use in encryption
+    @type allowed_proxy_source: list
+    @param allowed_proxy_source: allowed sources for the glidein proxy
+    """
+    
     global factoryConfig,advertizeGlideinCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years

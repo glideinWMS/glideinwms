@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.40 2011/05/04 20:57:09 dstrain Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.41 2011/05/06 16:36:09 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -39,7 +39,19 @@ import logSupport
 import glideinWMSVersion
 
 ############################################################
-def check_parent(parent_pid,glideinDescript,jobDescript):
+def check_parent(parent_pid, glideinDescript, jobDescript):
+    """Check to make sure that we aren't an orphaned process.  If Factory
+    daemon has died, then clean up after ourselves and kill ourselves off.
+
+    @type parent_pid: int
+    @param parent_pid: the pid for the Factory daemon
+    @type glideinDescript: glideFactoryConfig.GlideinDescript
+    @param glideinDescript: Object that encapsulates glidein.descript in the Factory root directory
+    @type jobDescript: glideFactoryConfig.JobDescript
+    @param jobDescript: Object that encapsulates job.descript in the entry directory
+
+    @raise KeyboardInterrupt: Raised when the Factory daemon cannot be found
+    """
     if os.path.exists('/proc/%s'%parent_pid):
         return # parent still exists, we are fine
     
@@ -195,7 +207,27 @@ class X509Proxies:
         self.count_fnames+=1
 
 ###
-def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
+    """
+    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
+    in downtime, requested glideins is zero.
+    
+    @type in_downtime: boolean
+    @param in_downtime: True if entry is in downtime
+    @type glideinDescript:  
+    @param glideinDescript: 
+    @type frontendDescript:  
+    @param frontendDescript: 
+    @type jobDescript:  
+    @param jobDescript: 
+    @type jobAttributes:  
+    @param jobAttributes: 
+    @type jobParams:  
+    @param jobParams: 
+    
+    @return: returns a value greater than zero if work was done.
+    """
+    
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
@@ -684,8 +716,32 @@ def iterate_one(do_advertize,in_downtime,
     return done_something
 
 ############################################################
-def iterate(parent_pid,sleep_time,advertize_rate,
-            glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+def iterate(parent_pid, sleep_time, advertize_rate,
+            glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
+    """iterate function
+
+    The main "worker" function for the Factory Entry.
+    @todo: More description to come
+
+    @type parent_pid: int
+    @param parent_pid: the pid for the Factory daemon
+    @type sleep_time: int
+    @param sleep_time: The number of seconds to sleep between iterations
+    @type advertise_rate: int
+    @param advertise_rate: The rate at which advertising should occur (CHANGE ME... THIS IS NOT HELPFUL)
+    @type glideinDescript: glideFactoryConfig.GlideinDescript
+    @param glideinDescript: Object that encapsulates glidein.descript in the Factory root directory
+    @type frontendDescript: glideFactoryConfig.FrontendDescript
+    @param frontendDescript: Object that encapsulates frontend.descript in the Factory root directory
+    @type jobDescript: glideFactoryConfig.JobDescript
+    @param jobDescript: Object that encapsulates job.descript in the entry directory
+    @type jobAttributes: glideFactoryConfig.JobAttributes
+    @param jobAttributes: Object that encapsulates attributes.cfg in the entry directory
+    @type jobParams: glideFactoryConfig.JobParams
+    @param jobParams: Object that encapsulates params.cfg in the entry directory
+
+
+    """
     is_first=1
     count=0;
 
@@ -740,7 +796,23 @@ def iterate(parent_pid,sleep_time,advertize_rate,
         
         
 ############################################################
-def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
+def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
+    """GlideinFactoryEntry main function
+
+    Setup logging, monitoring, and configuration information.  Starts the Entry
+    main loop and handles cleanup at shutdown.
+
+    @type parent_pid: int
+    @param parent_pid: The pid for the Factory daemon
+    @type sleep_time: int
+    @param sleep_time: The number of seconds to sleep between iterations
+    @type advertise_rate: int
+    @param advertise_rate: The rate at which advertising should occur (CHANGE ME... THIS IS NOT HELPFUL)
+    @type startup_dir: string
+    @param startup_dir: The "home" directory for the entry.
+    @type entry_name: string
+    @param entry_name: The name of the entry as specified in the config file
+    """
     startup_time=time.time()
 
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
