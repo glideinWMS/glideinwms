@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.28.2.1 2011/04/19 15:22:58 tiradani Exp $
+#   $Id: glideinWMS_install,v 1.265.2.28.2.2 2011/05/06 16:06:13 klarson1 Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -1091,21 +1091,6 @@ def gfactory_install():
             print "Please answer y or n"
             continue 
         break
-    
-    # Security setup
-    if proxy_fname!=None:
-        while 1:
-            voproxy_yn=raw_input("Force VO frontend to provide its own proxy?: (y/n) [y] ")
-            if voproxy_yn=="":
-                voproxy_yn="y"
-                break
-            if (voproxy_yn!="y") and (voproxy_yn!="n"):
-                print "Please answer y or n"
-                continue 
-            break
-    else:
-        # no factory proxy, so I must use the VO proxy; no choice
-        voproxy_yn="y"
 
     # entries
     entries_list={}
@@ -1243,15 +1228,10 @@ def gfactory_install():
             fd.write('       <condor_tarball arch="default" os="default" base_dir="%s"/>\n'%condor_base_dir)
             fd.write('   </condor_tarballs>\n')
 
-            # Reminder to self(Igor)
+            # Reminder to self(Igor) 
             # Add factory proxy in the config file... not reliable to use the ENV(X509_USER_PROXY)
+            fd.write('   <security key_length="2048" pub_key="RSA">\n')
 
-            if voproxy_yn=="y":
-                # disable factory proxy
-                fd.write('   <security allow_proxy="frontend" key_length="2048" pub_key="RSA">\n')
-            else:
-                # allow both factory proxy and VO proxy
-                fd.write('   <security allow_proxy="factory,frontend" key_length="2048" pub_key="RSA">\n')
             fd.write('    <frontends>\n')
             for fe_name in frontends.keys():
                 fd.write('     <frontend name="%s" identity="%s">\n'%(fe_name,frontends[fe_name]['id']))
