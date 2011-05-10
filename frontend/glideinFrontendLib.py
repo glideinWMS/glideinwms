@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.7 2011/01/26 19:25:24 parag Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.7.4.1 2011/05/10 00:15:58 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -15,7 +15,7 @@
 #
 
 import os.path
-import sets,string
+import sets,string,math
 import condorMonitor,condorExe
 import logSupport
 
@@ -244,14 +244,14 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
     #this loop necessary to avoid key error
     for tuple in outvals:
         for site_index in tuple[0]:
-            new_out_counts[site_index]=0
+            new_out_counts[site_index]=0.0
             unique_to_site[site_index]=0
     #for every tuple of([site_index],jobs), cycle through each site index
     #new_out_counts[site_index] is the number of jobs over the number
-    #of indexes, rounded up.
+    #of indexes, may not be an integer.
     for tuple in outvals:
         for site_index in tuple[0]:
-            new_out_counts[site_index]=new_out_counts[site_index]+(len(tuple[1])/len(tuple[0]))+(len(tuple[1])%len(tuple[0]))
+            new_out_counts[site_index]=new_out_counts[site_index]+(1.0*len(tuple[1])/len(tuple[0]))
         #if the site has jobs unique to it
         if len(tuple[0])==1:
             temp_sites=tuple[0]
@@ -273,7 +273,7 @@ def countMatch(match_obj,condorq_dict,glidein_dict):
         final_unique[glidename]=0
     for site_index in new_out_counts:
         site=list_of_sites[site_index]
-        final_out_counts[site]=new_out_counts[site_index]
+        final_out_counts[site]=math.ceil(new_out_counts[site_index])
         final_unique[site]=unique_to_site[site_index]
 
     out_glidein_counts[(None,None,None)]=count_unmatched
