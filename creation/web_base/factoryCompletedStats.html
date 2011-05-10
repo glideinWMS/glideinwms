@@ -1,11 +1,11 @@
-<DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 
 <!--
 Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryCompletedStats.html,v 1.10.8.5.18.6 2011/05/09 21:38:25 amccrea Exp $
+  $Id: factoryCompletedStats.html,v 1.10.8.5.18.7 2011/05/10 19:02:49 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -55,9 +55,17 @@ Description:
      <tr>
        <th>Entry</th>
        <td valing="middle">
-         <select id="entries">
+         <select id="entries" onchange="setOptions(document.getElementById('entries').options[document.getElementById('entries').selectedIndex].value);">
 	  <option value="total">total</option>
 	 </select>
+       </td>
+     </tr>
+     <tr>
+       <th>Frontend</th>
+       <td valing="middle">
+         <select id="frontends">
+          <option value="total">total</option>
+         </select>
        </td>
      </tr>
      <tr>
@@ -108,7 +116,7 @@ Description:
       var total_file_to_load=0;
       var multi_rrd_flag=0;
       var a =  document.getElementById("gtypes"); 
-	  var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput");
+	  var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput","aggavg","aggwsum","aggavgf","affwsumf","fail");
 	  var ENTRY; 
 
       // Remove the Javascript warning
@@ -119,6 +127,7 @@ Description:
       //var entries=getFactoryEntries(factoryQStats);
 
       var entries=getFactoryEntryGroups(factoryQStats);
+      var frontend_list=getFactoryFrontends(factoryQStats);
       group_map = entries;
       char_count=0;
       groups_starting_idx = 0;
@@ -141,6 +150,7 @@ Description:
       entries = ordered_entries_groups;
 
       var entries_select=document.getElementById("entries");
+      var frontends_select=document.getElementById("frontends");
       var sep1 = new Option("--------------------","-");
       var sep2 = new Option("--------------------","-");
       sep1.disabled = true;
@@ -166,6 +176,17 @@ Description:
       rrd_group_data=[];
       files_loaded = 0;
 	  checkUrl(); 
+
+      function setOptions(entry) {
+        var fes = document.getElementById("frontends");
+        //Remove frontends from previous entry choices, add back 'total'
+        // and this entry's frontends. 
+        while(fes.childNodes.length>0) {fes.removeChild(fes.firstChild);}
+        fes.appendChild(new Option('total','total'));
+        for(var frontend in frontend_list[entry]) {
+           frontends_select.appendChild(new Option(frontend_list[entry][frontend]));
+        }
+      }
 
 ////////////////////////////////////////////////////////////////
 /////Filter Functions///////////////////////////////////////////
@@ -450,7 +471,7 @@ Description:
         gtype_formats['fail']={}; 
         gtype_formats['fail']['FailedNr'] = {yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
         gtype_formats['fail']['Glideins'] = {yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
-        gtype_formats['fail']['FailedNr/Glideins'] = {yaxis:1, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
+        gtype_formats['fail']['FailedNr/Glideins'] = {yaxis:2, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
 
 ////////////////////////////////////////////////////////////////
 /////Create Graph///////////////////////////////////////////////
@@ -623,6 +644,8 @@ Description:
 
         var entries_obj=document.getElementById("entries");
         entry_name=entries_obj.options[entries_obj.selectedIndex].value;
+        var frontend_obj=document.getElementById("frontends")
+        frontend_name=frontend_obj.options[frontend_obj.selectedIndex].value;
 
         var gtypes_obj=document.getElementById("gtypes");
         for (var i in gtypes_obj.gtype) {
@@ -645,6 +668,8 @@ Description:
 
         if (entry_name=="total") {
           fname="total/"+rrd_fname+".rrd";
+        } else if (frontend_name!="total"){
+          fname="entry_"+entry_name+"/frontend_"+frontend_name+"/"+rrd_fname+".rrd";
         } else {
           fname="entry_"+entry_name+"/total/"+rrd_fname+".rrd";
         }
@@ -686,7 +711,7 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-		parameterArry = new Array("entry", "infoGroup"); 
+		parameterArry = new Array("entry", "frontend", "infoGroup"); 
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
@@ -724,6 +749,7 @@ Description:
 							if(entry == groups[j])
 							{
 								document.getElementById("entries").selectedIndex = counter + 1; 
+                                                                setOptions(entry);
 								group = 1;
 								break;  
 							}	
@@ -731,6 +757,15 @@ Description:
 						if(!group)
 						{
 							document.getElementById("entries").selectedIndex = counter; 
+                                                        setOptions(entry);
+                                                        var frontend = paramSpecArry[1];
+                                                        var fe_list = document.getElementById("frontends").childNodes; 
+                                                        var fe_idx=0;
+                                                        for(var k=0;k<fe_list.length;k++) {
+                                                           document.write(fe_list[k].innerHTML);
+                                                           if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
+                                                        }
+                                                        document.getElementById("frontends").selectedIndex = fe_idx; 
 						}
 						break;
 					} 
@@ -738,17 +773,18 @@ Description:
 					{
 						urlValid = 1; 
 						document.getElementById("entries").selectedIndex = 0; 
+                                                setOptions(entry);
 						break;  	
 					}
 					counter++; 
 				}
 			}
-			else if(i == 1)
+			else if(i == 2)
 			{
 				child = 1; 
 				for(i = 0; i< infoGroupOptions.length; i++)
 				{
-					if(infoGroupOptions[i] == paramSpecArry[1])
+					if(infoGroupOptions[i] == paramSpecArry[2])
 					{
 						document.getElementById("gtypes").elements[i].checked = true;
 						urlValid = 1; 
@@ -767,7 +803,9 @@ Description:
 	{
 		constructed = document.URL.split('?');
 		entriesTable = document.getElementById("entries"); 
+                frontendsTable = document.getElementById("frontends"); 
 		var specifiedEntry;
+		var specifiedFrontend;
 		var specifiedGOption; 
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
@@ -777,6 +815,14 @@ Description:
 				specifiedEntry = entriesTable.options[i].text; 	
 			}
 		}
+                /* Find the current frontend specified. */
+                for(i = 0; i < frontendsTable.options.length; i++)
+                {
+                        if(frontendsTable.options[i].selected == true)
+                        {
+                                specifiedFrontend = frontendsTable.options[i].text;     
+                        }
+                }
 		gOptionTable = document.getElementById("gtypes");
 		j = 0;  
 		/* Find the current group option specified. */
@@ -791,7 +837,7 @@ Description:
 				j++;
 			}
 		}
-		constructed = constructed[0] + "?entry=" + specifiedEntry + "&infoGroup=" + specifiedGOption; 
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
 		document.location.href = constructed; 
 	}  
 	/* Function to navigate to other glidein tools. */
