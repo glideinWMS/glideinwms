@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryStatus.html,v 1.13.8.5.18.1 2011/05/09 21:52:28 amccrea Exp $
+  $Id: factoryStatus.html,v 1.13.8.5.18.2 2011/05/10 19:04:30 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -290,8 +290,8 @@ Description:
         gtype_id=undefined;
 
         var entries_obj=document.getElementById("entries")
-        var frontend_obj=document.getElementById("frontends")
         entry_name=entries_obj.options[entries_obj.selectedIndex].value;
+        var frontend_obj=document.getElementById("frontends")
         frontend_name=frontend_obj.options[frontend_obj.selectedIndex].value;
 
         rrd_fname="Status_Attributes";
@@ -350,7 +350,7 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-		parameterArry = new Array("entry", "infoGroup"); 
+		parameterArry = new Array("entry","frontend","infoGroup"); 
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
@@ -388,6 +388,7 @@ Description:
 							if(entry == groups[j])
 							{
 								document.getElementById("entries").selectedIndex = counter + 1; 
+                                                                setOptions(entry);
 								group = 1;
 								break;  
 							}	
@@ -395,6 +396,15 @@ Description:
 						if(!group)
 						{
 							document.getElementById("entries").selectedIndex = counter; 
+                                                        setOptions(entry);
+                                                        var frontend = paramSpecArry[1];
+                                                        var fe_list = document.getElementById("frontends").childNodes; 
+                                                        var fe_idx=0;
+                                                        for(var k=0;k<fe_list.length;k++) {
+                                                           document.write(fe_list[k].innerHTML);
+                                                           if(frontend==fe_list[k].innerHTML) {fe_idx=k;}
+                                                        }
+                                                        document.getElementById("frontends").selectedIndex = fe_idx; 
 						}
 						break;
 					} 
@@ -402,17 +412,18 @@ Description:
 					{
 						urlValid = 1; 
 						document.getElementById("entries").selectedIndex = 0; 
+                                                setOptions(entry);
 						break;  	
 					}
 					counter++; 
 				}
 			}
-			else if(i == 1)
+			else if(i == 2)
 			{
 				child = 1; 
 				for(i = 0; i< infoGroupOptions.length; i++)
 				{
-					if(infoGroupOptions[i] == paramSpecArry[1])
+					if(infoGroupOptions[i] == paramSpecArry[2])
 					{
 						document.getElementById("gtypes").childNodes[child].checked = true;
 						urlValid = 1; 
@@ -431,7 +442,9 @@ Description:
 	{
 		constructed = document.URL.split('?');
 		entriesTable = document.getElementById("entries"); 
+		frontendsTable = document.getElementById("frontends"); 
 		var specifiedEntry;
+		var specifiedFrontend; 
 		var specifiedGOption; 
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
@@ -439,6 +452,14 @@ Description:
 			if(entriesTable.options[i].selected == true)
 			{
 				specifiedEntry = entriesTable.options[i].text; 	
+			}
+		}
+		/* Find the current frontend specified. */
+		for(i = 0; i < frontendsTable.options.length; i++)
+		{
+			if(frontendsTable.options[i].selected == true)
+			{
+				specifiedFrontend = frontendsTable.options[i].text; 	
 			}
 		}
 		gOptionTable = document.getElementById("gtypes");
@@ -452,7 +473,7 @@ Description:
 			}
 			j++; 	
 		}
-		constructed = constructed[0] + "?entry=" + specifiedEntry + "&infoGroup=" + specifiedGOption; 
+		constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
 		document.location.href = constructed; 
 	}
 	/* Function to handle changing Glidein tools. */
