@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.4 2011/05/06 16:01:53 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.5 2011/05/10 15:19:24 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -169,10 +169,7 @@ def findWork(factory_name, glidein_name, entry_name,
                 try:
                     sym_key_obj = pub_key_obj.extract_sym_key(kel['ReqEncKeyCode'])
                 except:
-                    if get_only_matching:
-                        continue # bad key, ignore entry
-                    else:
-                        sym_key_obj = None # leave it encrypted
+                    continue # bad key, ignore entry
             else:
                 sym_key_obj = None # no key used, will not decrypt
         else:
