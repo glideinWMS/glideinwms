@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.1 2011/04/18 20:33:54 tiradani Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.2 2011/05/11 18:46:03 klarson1 Exp $
 #
 
 import string
@@ -174,25 +174,46 @@ class JobParams(JoinConfigFile):
                                 lambda s:s) # values are in python format
 
 
-# Data format:
-#  obj.data[frontend]['ident']=identity
-#  obj.data[frontend]['usermap'][sec_class]=username
 class FrontendDescript(ConfigFile):
+    """
+    Contains the security identity and username mappings for the Frontends that are authorized to 
+    use this factory.
+    
+    Contains dictionary of dictionaries:
+    obj.data[frontend]['ident']=identity
+    obj.data[frontend]['usermap'][sec_class]=username
+    """
     def __init__(self):
         global factoryConfig
         ConfigFile.__init__(self,factoryConfig.frontend_descript_file,
                             lambda s:s) # values are in python format
 
-    # returns None if the frontend is unknown
     def get_identity(self,frontend):
+        """
+        Gets the identity for the given frontend.  If the Frontend is unknown, returns None.
+        
+        @type frontend: string
+        @param frontend: frontend name
+        
+        @return identity
+        """
         if self.data.has_key(frontend):
             fe=self.data[frontend]
             return fe['ident']
         else:
             return None
 
-    # return None, if not found/not authorized
     def get_username(self,frontend,sec_class):
+        """
+        Gets the security name mapping for the given frontend and security class.  If not found or not authorized, returns None.
+        
+        @type frontend: string
+        @param frontend: frontend name
+        @type sec_class: string
+        @param sec_class: security class name 
+        
+        @return security name
+        """
         if self.data.has_key(frontend):
             fe=self.data[frontend]['usermap']
             if fe.has_key(sec_class):
@@ -200,8 +221,12 @@ class FrontendDescript(ConfigFile):
 
         return None
 
-    # returns a list of all the usernames assigned to the frontends
     def get_all_usernames(self):
+        """
+        Gets all the usernames assigned to all the frontends.
+        
+        @return list of usernames 
+        """
         usernames={}
         for frontend in self.data.keys():
             fe=self.data[frontend]['usermap']
