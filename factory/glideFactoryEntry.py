@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.9 2011/05/06 16:01:53 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.10 2011/05/12 19:10:51 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -94,11 +94,55 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
 ############################################################
 def perform_work(entry_name, condorQ,
                  client_name, client_int_name, client_security_name,
-                 x509_proxy_security_class, client_int_req,
+                 credential_security_class, client_int_req,
                  in_downtime, remove_excess,
                  idle_glideins, max_running, max_held,
-                 jobDescript, x509_proxy_fnames, x509_proxy_username,
-                 client_web, params):
+                 jobDescript, x509_proxy_fnames, credential_username,
+                 client_web, params,
+                 security_credentials):
+    """
+    Logs stats.  Determines how many idle glideins are needed per proxy.
+    @todo deprecate the old x509_proxy_fnames parameter from the method signature
+    
+    @type entry_name:  string
+    @param entry_name:  name of the entry
+    @type condorQ:  CondorQ object
+    @param condorQ:  Condor queue filtered by security class
+    @type client_name:  string
+    @param client_name:  name of the frontend client
+    @type client_int_name:  string
+    @param client_int_name:  client name in the request
+    @type client_security_name:  string
+    @param client_security_name:  decrypted client security name in the request
+    @type credential_security_class:  string
+    @param credential_security_class:  security class this client and credential are mapped to
+    @type client_int_req:  string
+    @param client_int_req:  name of the request from the client
+    @type in_downtime:  boolean
+    @param in_downtime:  true if entry (or factory) is in downtime
+    @type remove_excess:  string
+    @param remove_excess: contains the value specified in the request.  If none specified, contains 'NO'
+    @type idle_glideins:  int
+    @param idle_glideins:  number of idle glideins requested
+    @type max_running:  int
+    @param max_running:  max number of running glideins requested
+    @type max_held:  int
+    @param max_held:  max number of held glideins requested
+    @type jobDescript:  dict
+    @param jobDescript:  entry configuration values
+    @type x509_proxy_fnames:  dict
+    @param x509_proxy_fnames:  proxies for the associated security class 
+    @type credential_username:  string
+    @param credential_username:  username to be used for submitting glideins (if not factory username, privsep is used)
+    @type client_web:   glideFactoryLib.ClientWeb or glideFactoryLib.ClientWebNoGroup
+    @param client_web:  client web values
+    @type params:  dict
+    @param params:  entry parameters to be passed to the glidein
+    @type security_credentials:  dict
+    @param security_credentials: credentials needed to submit glideins.  Will contain paths to the auth method required credentials.
+    """
+    
+    
     glideFactoryLib.factoryConfig.client_internals[client_int_name] = {"CompleteName":client_name, "ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -114,13 +158,13 @@ def perform_work(entry_name, condorQ,
 
     # find out the users it is using
     log_stats = {}
-    log_stats[x509_proxy_username] = glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, x509_proxy_username),
-                                                                              logSupport.log_dir, client_int_name, x509_proxy_username)
+    log_stats[credential_username] = glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, credential_username),
+                                                                              logSupport.log_dir, client_int_name, credential_username)
     # should not need privsep for reading logs
-    log_stats[x509_proxy_username].load()
+    log_stats[credential_username].load()
 
-    glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, x509_proxy_security_class)
-    client_log_name = glideFactoryLib.secClass2Name(client_security_name, x509_proxy_security_class)
+    glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, credential_security_class)
+    client_log_name = glideFactoryLib.secClass2Name(client_security_name, credential_security_class)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats)
 
     remove_excess_wait = False
@@ -157,7 +201,7 @@ def perform_work(entry_name, condorQ,
                                                          remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                          idle_glideins_pproxy, max_running_pproxy, max_held,
                                                          submit_attrs,
-                                                         x509_proxy_id, x509_proxy_fnames[x509_proxy_id], x509_proxy_username, x509_proxy_security_class,
+                                                         x509_proxy_id, x509_proxy_fnames[x509_proxy_id], credential_username, credential_security_class,
                                                          client_web, params)
 
     if nr_submitted > 0:
@@ -215,16 +259,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     
     @type in_downtime: boolean
     @param in_downtime: True if entry is in downtime
-    @type glideinDescript:  
-    @param glideinDescript: 
-    @type frontendDescript:  
-    @param frontendDescript: 
-    @type jobDescript:  
-    @param jobDescript: 
-    @type jobAttributes:  
-    @param jobAttributes: 
-    @type jobParams:  
-    @param jobParams: 
+    @type glideinDescript:  dictionary
+    @param glideinDescript: factory configuration values
+    @type frontendDescript:  dictionary
+    @param frontendDescript: frontend identity and security mappings
+    @type jobDescript:  dictionary
+    @param jobDescript: entry configuration values
+    @type jobAttributes:  dictionary
+    @param jobAttributes: entry attributes to be published
+    @type jobParams:  dictionary
+    @param jobParams: entry parameters that will be passed to the glideins
     
     @return: returns a value greater than zero if work was done.
     """
@@ -268,7 +312,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         logSupport.log.debug("No work found")
         return 0 # nothing to be done
 
-    #glideFactoryLib.log_files.logActivity("Perform work")
     schedd_name = jobDescript.data['Schedd']
 
     factory_max_running = int(jobDescript.data['MaxRunning'])
@@ -432,25 +475,25 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 x509_proxy_username = x509_proxies.get_username(x509_proxy_security_class)
                 if x509_proxy_username == None:
                     logSupport.log.warning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others" % (x509_proxy_security_class, i, client_int_name, client_security_name))
-                    continue # cannot map, skip proxy
+                    continue 
 
                 try:
                     x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(entry_name, x509_proxy_username, "%s_%s" % (work_key, x509_proxy_identifier), x509_proxy)
                 except RuntimeError,e:
-                    logSupport.log.warning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
-                    logSupport.log.debug("Failed to update x509_proxy_%i using usename %s for client %s: %s" % (i, x509_proxy_username, client_int_name, e))
-                    continue # skip request
+                    logSupport.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
+                    logSupport.log.debug("Failed to update x509_proxy_%i using username %s for client %s: %s" % (i, x509_proxy_username, client_int_name, e))
+                    continue 
                 except:
                     tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                     logSupport.log.warning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
                     logSupport.log.debug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s" % (i, x509_proxy_username, client_int_name, string.join(tb, '')))
-                    continue # skip request
+                    continue 
 
                 x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname)
 
             if x509_proxies.count_fnames < 1:
                 logSupport.log.warning("No good proxies for %s, skipping request" % client_int_name)
-                continue #skip request
+                continue 
         else:
             # no proxy passed, use factory one
             x509_proxy_security_class = "factory"
@@ -472,9 +515,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         ##### END - PROXY HANDLING - END #####
 
         #Check security class for downtime
-        factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
         logSupport.log.info("Checking downtime for frontend %s security class: %s (entry %s)." % (client_security_name, x509_proxy_security_class, jobDescript.data['EntryName']))
-
+        factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
         in_sec_downtime = (factory_downtimes.checkDowntime(entry="factory", frontend=client_security_name, security_class=x509_proxy_security_class) or
                            factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'], frontend=client_security_name, security_class=x509_proxy_security_class))
         if (in_sec_downtime):
@@ -564,6 +606,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 all_security_names.add((client_security_name, x509_proxy_security_class))
 
                 entry_condorQ = glideFactoryLib.getQProxSecClass(condorQ, client_int_name, x509_proxy_security_class)
+                security_credentials = {}
                 done_something += perform_work(entry_name, entry_condorQ,
                                                work_key, client_int_name, client_security_name,
                                                x509_proxy_security_class, client_int_req,
@@ -571,7 +614,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                idle_glideins_pc, max_running_pc, factory_max_held,
                                                jobDescript, x509_proxies.fnames[x509_proxy_security_class],
                                                x509_proxies.get_username(x509_proxy_security_class),
-                                               client_web, params)
+                                               client_web, params, security_credentials)
         #else, it is malformed and should be skipped
 
     logSupport.log.debug("Updating statistics")

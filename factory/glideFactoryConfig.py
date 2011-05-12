@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.2 2011/05/11 18:46:03 klarson1 Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.3 2011/05/12 19:10:51 klarson1 Exp $
 #
 
 import string
@@ -185,10 +185,10 @@ class FrontendDescript(ConfigFile):
     """
     def __init__(self):
         global factoryConfig
-        ConfigFile.__init__(self,factoryConfig.frontend_descript_file,
+        ConfigFile.__init__(self, factoryConfig.frontend_descript_file,
                             lambda s:s) # values are in python format
 
-    def get_identity(self,frontend):
+    def get_identity(self, frontend):
         """
         Gets the identity for the given frontend.  If the Frontend is unknown, returns None.
         
@@ -198,12 +198,12 @@ class FrontendDescript(ConfigFile):
         @return identity
         """
         if self.data.has_key(frontend):
-            fe=self.data[frontend]
+            fe = self.data[frontend]
             return fe['ident']
         else:
             return None
 
-    def get_username(self,frontend,sec_class):
+    def get_username(self, frontend, sec_class):
         """
         Gets the security name mapping for the given frontend and security class.  If not found or not authorized, returns None.
         
@@ -215,7 +215,7 @@ class FrontendDescript(ConfigFile):
         @return security name
         """
         if self.data.has_key(frontend):
-            fe=self.data[frontend]['usermap']
+            fe = self.data[frontend]['usermap']
             if fe.has_key(sec_class):
                 return fe[sec_class]
 
@@ -227,14 +227,14 @@ class FrontendDescript(ConfigFile):
         
         @return list of usernames 
         """
-        usernames={}
+        usernames = {}
         for frontend in self.data.keys():
-            fe=self.data[frontend]['usermap']
+            fe = self.data[frontend]['usermap']
             for sec_class in fe.keys():
-                username=fe[sec_class]
-                usernames[username]=True
+                username = fe[sec_class]
+                usernames[username] = True
         return usernames.keys()
-    
+
         
 # Signatures File
 ## File: signatures.sha1
