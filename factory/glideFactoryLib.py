@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.5 2011/05/12 19:17:12 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.6 2011/05/12 19:26:58 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -25,6 +25,7 @@ import condorExe,condorPrivsep
 import logSupport
 import logging
 import condorMonitor
+import glideFactoryConfig
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -1097,6 +1098,9 @@ def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins, 
         client_web_arr = client_web.get_glidein_args()
     client_web_str = string.join(client_web_arr, " ")
    
+    # Allows for retrieving any entry description values
+    jobDescript=glideFactoryConfig.JobDescript(entry_name)
+    
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
