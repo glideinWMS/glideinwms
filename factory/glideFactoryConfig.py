@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.3 2011/05/12 19:10:51 klarson1 Exp $
+# File Version:
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.4 2011/05/12 20:30:20 tiradani Exp $
 #
 
 import string
@@ -137,7 +137,7 @@ class GlideinKey:
             sym_key_code=self.rsa_key.decrypt_hex(enc_sym_key)
             return self.sym_class(sym_key_code)
         else:
-            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type        
+            raise RuntimeError, 'Invalid pub key type value(%s), only RSA supported'%self.pub_key_type
 
 class GlideinDescript(ConfigFile):
     def __init__(self):
@@ -176,9 +176,9 @@ class JobParams(JoinConfigFile):
 
 class FrontendDescript(ConfigFile):
     """
-    Contains the security identity and username mappings for the Frontends that are authorized to 
+    Contains the security identity and username mappings for the Frontends that are authorized to
     use this factory.
-    
+
     Contains dictionary of dictionaries:
     obj.data[frontend]['ident']=identity
     obj.data[frontend]['usermap'][sec_class]=username
@@ -191,10 +191,10 @@ class FrontendDescript(ConfigFile):
     def get_identity(self, frontend):
         """
         Gets the identity for the given frontend.  If the Frontend is unknown, returns None.
-        
+
         @type frontend: string
         @param frontend: frontend name
-        
+
         @return identity
         """
         if self.data.has_key(frontend):
@@ -206,12 +206,12 @@ class FrontendDescript(ConfigFile):
     def get_username(self, frontend, sec_class):
         """
         Gets the security name mapping for the given frontend and security class.  If not found or not authorized, returns None.
-        
+
         @type frontend: string
         @param frontend: frontend name
         @type sec_class: string
-        @param sec_class: security class name 
-        
+        @param sec_class: security class name
+
         @return security name
         """
         if self.data.has_key(frontend):
@@ -224,8 +224,8 @@ class FrontendDescript(ConfigFile):
     def get_all_usernames(self):
         """
         Gets all the usernames assigned to all the frontends.
-        
-        @return list of usernames 
+
+        @return list of usernames
         """
         usernames = {}
         for frontend in self.data.keys():
@@ -235,20 +235,32 @@ class FrontendDescript(ConfigFile):
                 usernames[username] = True
         return usernames.keys()
 
-        
+
 # Signatures File
 ## File: signatures.sha1
 ##
 #6e3565a9a0f39e0641d7e3e777b8f22d7ebc8b0f  description.a92arS.cfg  entry_AmazonEC2
 #51b01a3c38589a41fb7a44936e12b31fe506ec7b  description.a92aqM.cfg  main
-class SignatureFile:
-    def __init__(self, signature_file):
+class SignatureFile(ConfigFile):
+    def __init__(self):
         global factoryConfig
-        
-        self.config_file = factoryConfig.signatures_file
-        self.load(signature_file)
+        ConfigFile.__init__(self, factoryConfig.signatures_file, lambda s:s) # values are in python format
 
-    def load(self, fname):
+    def load(self, fname, convert_function):
+        """ Load the signatures.sha1 file into the class as a dictionary.  The
+        convert_function is completely ignored here.  The line format is different
+        from all the other class in that there are three values with the key being
+        the last value.  The internal dictionary has the following structure:
+            where:
+                line[0] is the sign for the line
+                line[1] is the descript file for the line
+                line[2] is the key for the line
+
+            for each line:
+                line[2]_sign = line[0]
+                line[2]_descript = line[1]
+
+        """
         self.data = {}
         fd = open(fname,"r")
         try:
@@ -260,7 +272,7 @@ class SignatureFile:
                     continue # empty line
                 larr = string.split(line, None, 1)
                 lsign = larr[0]
-                ldescript = [1] 
+                ldescript = [1]
                 lname = larr[2]
                 self.data["%s_sign" % str(lname)] = str(lsign)
                 self.data["%s_descript" % lname] = str(ldescript)
