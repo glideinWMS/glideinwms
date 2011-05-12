@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.7 2011/05/06 16:36:09 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.8 2011/05/12 15:32:48 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -126,7 +126,7 @@ def findWork(factory_name, glidein_name, entry_name,
     @type additional_constraints: string
     @param additional_constraints: any additional constraints to include for querying the WMS collector, default is None
     
-    @return: dictionary, each key is the name of a frontend.  Each value has a 'requests' and a 'params' key.  Both refer to classAd dictionaries.
+    @return: dictionary, each key is the name of a frontend. Each value has a 'requests' and a 'params' key. Both refer to classAd dictionaries.
         
     """
 
