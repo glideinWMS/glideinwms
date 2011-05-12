@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.49.2.7.2.1 2011/04/19 15:22:55 tiradani Exp $
+#   $Id: cgWCreate.py,v 1.49.2.7.2.2 2011/05/12 19:17:12 klarson1 Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -69,6 +69,18 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
         self.add("Universe","grid")
         self.add("Grid_Resource","%s %s"%(gridtype,gatekeeper))
         if rsl!=None:
+            rsl = '$ENV(GLIDEIN_RSL)'
+            if gridtype=='gt2' or gridtype=='gt5':
+                #rsl+='$ENV(GLIDEIN_ADDITIONAL_RSL)'
+                self.add("globus_rsl",rsl)
+            elif gridtype=='gt4':
+                self.add("globus_xml",rsl)
+            elif gridtype=='nordugrid':
+                self.add("nordugrid_rsl",rsl)
+            else:
+                raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
+        """
+        if rsl!=None:
             if gridtype=='gt2':
                self.add("globus_rsl",rsl)
             elif gridtype=='gt4':
@@ -76,7 +88,8 @@ class GlideinSubmitDictFile(cgWDictFile.CondorJDLDictFile):
             elif gridtype=='nordugrid':
                self.add("nordugrid_rsl",rsl)
             else:
-               raise RuntimeError, "Rsl not supported for gridtype %s"%gridtype
+               raise RuntimeError, 'Rsl not supported for gridtype %s'%gridtype
+        """
         self.add("Executable",exe_fname)
         # Force the copy to spool to prevent caching at the CE side
         self.add("copy_to_spool","True")

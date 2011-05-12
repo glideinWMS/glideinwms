@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.4 2011/05/06 16:01:53 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.5 2011/05/12 19:17:12 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -1106,7 +1106,14 @@ def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins, 
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
-
+            
+            glidein_rsl = "none"
+            if jobDescript.data.has_key('GlobusRSL'):   
+                glidein_rsl = jobDescript.data['GlobusRSL']
+                # Replace placeholder for project id 
+                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
+                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+                
             # check to see if the username for the proxy is the same as the factory username
             if username != MY_USERNAME:
                 # no? use privsep
