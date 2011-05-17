@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.1 2011/05/17 23:40:22 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.2 2011/05/17 23:55:35 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -218,7 +218,8 @@ def aggregateStatus():
                     a_el=int(tp_el[a])
                     val_dict["%s%s"%(tp_str,a)]=a_el
 
-        glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fact,
+        fe_dir="factory_%s"%glideinFrontendMonitoring.sanitize(fact)
+        glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
                                                                "GAUGE",updated,val_dict)
 
 
