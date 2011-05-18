@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.3 2011/05/18 00:04:13 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.4 2011/05/18 00:30:56 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -170,11 +170,10 @@ def aggregateStatus():
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              xmlFormat.class2string(status["total"],inst_name="total",leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
 
-             xmlFormat.dict2string(global_fact_totals,dict_name="global_fact_totals",el_name="fact",
-                                   subtypes_params={"class":{"dicts_params":{"factories":{"el_name":"factory",
-                                                                                          "subtypes_params":{"class":{"subclass_params":{"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
+             xmlFormat.dict2string(global_fact_totals,dict_name="factories",el_name="factory",
+                                   subclass_params={"Requested":{"dicts_params":{"Parameters":{"el_name":"Parameter",
 
-       "subtypes_params":{"class":{}}}}}}}}}}}},
+       "subtypes_params":{"class":{}}}}}},
                                    leading_tab=xmlFormat.DEFAULT_TAB)+"\n"+
              "</VOFrontendStats>\n")
 
