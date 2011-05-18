@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glexec_setup.sh,v 1.17.2.2.18.2 2011/05/18 23:29:27 sfiligoi Exp $
+#   $Id: glexec_setup.sh,v 1.17.2.2.18.3 2011/05/18 23:39:37 sfiligoi Exp $
 #
 # Description:
 #   This script will setup the gLExec parameters
@@ -78,14 +78,12 @@ case "$use_glexec" in
             no_use_glexec_config
         fi
         # Default to secure mode using glexec
-        break
         ;;
     REQUIRED)
         if [ "$glexec_bin" == "NONE" ]; then
             echo "`date` VO mandates the use of glexec but the site is not configured with glexec information."
             exit 1
         fi
-        break
         ;;
     *)
         echo "`date` USE_GLEXEC in VO Frontend configured to be $use_glexec. Accepted values are 'NEVER' or 'OPTIONAL' or 'REQUIRED'."
