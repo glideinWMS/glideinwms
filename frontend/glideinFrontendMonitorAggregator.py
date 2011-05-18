@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.5 2011/05/18 00:37:54 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.6 2011/05/18 00:50:45 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -201,7 +201,7 @@ def aggregateStatus():
                                                                "GAUGE",updated,val_dict)
 
     for fact in global_fact_totals.keys():
-        fe_dir="factory_%s"%glideinFrontendMonitoring.sanitize(fact)
+        fe_dir="total/factory_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
 
         for tp in global_fact_totals[fact].keys():
