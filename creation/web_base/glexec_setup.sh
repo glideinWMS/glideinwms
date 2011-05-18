@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glexec_setup.sh,v 1.17.2.2.18.1 2011/05/02 17:01:23 sfiligoi Exp $
+#   $Id: glexec_setup.sh,v 1.17.2.2.18.2 2011/05/18 23:29:27 sfiligoi Exp $
 #
 # Description:
 #   This script will setup the gLExec parameters
@@ -13,13 +13,32 @@
 
 # Configuration in case GLEXEC should not be used
 function no_use_glexec_config {
-    echo "Not using glexec"
+    echo "Not using glexec" 1>&2
     # still explicitly disable it in the config
     add_config_line "GLEXEC_STARTER" "False"
     add_config_line "GLEXEC_JOB" "False"
     add_condor_vars_line "GLEXEC_STARTER" "C" "False" "+" "Y" "Y" "-"
     add_condor_vars_line "GLEXEC_JOB"     "C" "False" "+" "Y" "Y" "-"
     exit 0
+}
+
+function test_glexec {
+  tst=`env GLEXEC_CLIENT_CERT="$X509_USER_PROXY" "$glexec_bin"  "$ALTSH" -c "id && echo \"Hello World\""`
+  res=$?
+  if [ $res -ne 0 ]; then
+    echo "glexec test failed, nonzero value $res" 1>&2
+    echo "result: $tst" 1>&2
+    exit 1
+  else
+    tst2=`echo "$tst" |tail -1`
+    if [ "$tst2" == "Hello World" ]; then
+      echo "glexec verified to work" 1>&2
+    else
+      echo "glexec broken!" 1>&2
+      echo "Expected 'Hello World', got '$tst2'" 1>&2
+      exit 1
+    fi
+  fi
 }
 
 glidein_config=$1
@@ -83,7 +102,8 @@ if [ $? -ne 0 ]; then
     echo "Failed to copy /bin/sh to . ($PWD)" 1>&2
     exit 1
 fi
-add_config_line "ALTERNATIVE_SHELL" "$PWD/sh" 
+export ALTSH="$PWD/sh"
+add_config_line "ALTERNATIVE_SHELL" "$ALTSH" 
 add_condor_vars_line "ALTERNATIVE_SHELL" "C" "-" "SH" "Y" "N" "-"
 
 # --------------------------------------------------
@@ -142,6 +162,8 @@ else
 fi
 
 add_config_line "GLEXEC_BIN" "$glexec_bin"
+
+test_glexec
 
 ####################################################################
 # Add requirement that only jobs with X509 attributes can start here
