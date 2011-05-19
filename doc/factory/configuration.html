@@ -98,7 +98,7 @@ for a more detailed description.
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
     <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.5.0/flot" javascriptRRD_dir="/opt/javascriptrrd-0.5.0" jquery_dir="/opt/javascriptrrd-0.5.0/flot" /&gt;</a><br/>
-    <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA"&gt;</a><br/>
+    <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA" reuse_oldkey_onstartup_gracetime="900"&gt;</a><br/>
     <blockquote>
         <a href="#security">&lt;frontends &gt;</a><br/>
         <blockquote>
@@ -336,6 +336,7 @@ individual entry point configuration.
         <div class="xml">
         &lt;glidein&gt;&lt;security 
         allow_proxy=&quot;<I>frontend[,factory]</I>&quot;
+        reuse_oldkey_onstartup_gracetime=&quot;<I>900</I>&quot;
         pub_key=&quot;<I>RSA</I>&quot;/&gt;
 
         </div>
@@ -344,7 +345,11 @@ individual entry point configuration.
     and factory. Define if the frontend needs to pass a proxy
     (<EM>&quot;frontend&quot;</EM>), if it must use the factory one
     (<EM>&quot;factory&quot;</EM>), or if both methods are supported
-    (<EM>&quot;frontend,factory&quot;</EM>).</P>
+    (<EM>&quot;frontend,factory&quot;</EM>). Factory creates a new RSA key
+    everytime it starts up. This key is used for encrypting the info from frontend.
+    For efficieny in case of a busy factory, configure the factory to accept info from
+    the frontend that was encrypted using factory's old key, before it was restarted.
+    </P>
     </li>
     <P>
       <b>Important:</b> If you configure to use a factory proxy (even optionally), you will need to export
