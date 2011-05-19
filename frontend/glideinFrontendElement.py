@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.3 2011/05/19 17:57:35 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.4 2011/05/19 18:14:11 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -259,17 +259,19 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if pid==0:
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
-            if dt!='Real':
-                c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
-                t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
-                out=(c,p,h,t)
-            else:
-                out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
+            try:
+                if dt!='Real':
+                    c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
+                    t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                    out=(c,p,h,t)
+                else:
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
 
-            os.write(w,cPickle.dumps(out))
-            os.close(w)
-            # hard kill myself... don't want any cleanup, since i was created just for this calculation
-            os.kill(os.getpid(),signal.SIGKILL) 
+                os.write(w,cPickle.dumps(out))
+            finally:
+                os.close(w)
+                # hard kill myself... don't want any cleanup, since i was created just for this calculation
+                os.kill(os.getpid(),signal.SIGKILL) 
         else:
             # this is the original
             # just remember what you did for now
