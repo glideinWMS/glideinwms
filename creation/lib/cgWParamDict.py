@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.17 2011/05/06 16:26:27 klarson1 Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.18 2011/05/19 19:52:10 parag Exp $
 #
 # Description:
 #   Glidein creation module
@@ -535,6 +535,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
         glidein_dict.add('PubKeyType',params.security.pub_key)
+        glidein_dict.add('OldPubKeyGraceTime',params.security.reuse_oldkey_onstartup_gracetime)
         del active_sub_list[:] # clean
 
         for sub in params.entries.keys():
