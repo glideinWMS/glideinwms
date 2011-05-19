@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.2 2011/03/29 23:04:46 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.3 2011/05/19 17:57:35 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -22,7 +22,7 @@ import signal
 import sys,os,os.path,copy
 import fcntl
 import traceback
-import time,string
+import time,string,cPickle,signal
 sys.path.append(os.path.join(sys.path[0],"../lib"))
 
 import symCrypto,pubCrypto
@@ -250,12 +250,47 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
 
-    for dt in condorq_dict_types.keys():
-        (condorq_dict_types[dt]['count'], condorq_dict_types[dt]['prop'], condorq_dict_types[dt]['hereonly'])=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
-        # is the semantics right?
-        condorq_dict_types[dt]['total']=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+    glideinFrontendLib.log_files.logActivity("Counting")
+    pipe_ids={}
+    for dt in condorq_dict_types.keys()+['Real']:
+        # will make calculations in parallel,using multiple processes
+        r,w=os.pipe()
+        pid=os.fork()
+        if pid==0:
+            # this is the child... return output as a pickled object via the pipe
+            os.close(r)
+            if dt!='Real':
+                c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
+                t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
+                out=(c,p,h,t)
+            else:
+                out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
 
-    count_real = glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
+            os.write(w,cPickle.dumps(out))
+            os.close(w)
+            # hard kill myself... don't want any cleanup, since i was created just for this calculation
+            os.kill(os.getpid(),signal.SIGKILL) 
+        else:
+            # this is the original
+            # just remember what you did for now
+            os.close(w)
+            pipe_ids[dt]={'r':r,'pid':pid} 
+
+    
+
+    glideinFrontendLib.log_files.logActivity("Child processes created")
+    for dt in condorq_dict_types.keys()+['Real']:
+        # now collect the results
+        s=os.read(pipe_ids[dt]['r'],1024*1024*1024) # set max to a really large number just to be sure, data should be small
+        os.close(pipe_ids[dt]['r'])
+        if dt!='Real':
+            el=condorq_dict_types[dt]
+            (el['count'], el['prop'], el['hereonly'], el['total'])=cPickle.loads(s)
+        else:
+            count_real=cPickle.loads(s)
+        glideinFrontendLib.log_files.logActivity("Counted %s"%dt)
+
+    os.wait()
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
     fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
