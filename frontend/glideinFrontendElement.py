@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.4 2011/05/19 18:14:11 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.5 2011/05/19 21:07:31 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -281,18 +281,37 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     
 
     glideinFrontendLib.log_files.logActivity("Child processes created")
+    failures=0
     for dt in condorq_dict_types.keys()+['Real']:
-        # now collect the results
-        s=os.read(pipe_ids[dt]['r'],1024*1024*1024) # set max to a really large number just to be sure, data should be small
-        os.close(pipe_ids[dt]['r'])
-        if dt!='Real':
-            el=condorq_dict_types[dt]
-            (el['count'], el['prop'], el['hereonly'], el['total'])=cPickle.loads(s)
-        else:
-            count_real=cPickle.loads(s)
-        glideinFrontendLib.log_files.logActivity("Counted %s"%dt)
-
-    os.wait()
+        try:
+            # now collect the results
+            r=pipe_ids[dt]['r']
+            try:
+                rin=""
+                s=os.read(r,1024*1024*1024) # set max to a really large number just to be sure, data should be small
+                while (s!=""): # "" means EOF
+                    rin+=s
+                    s=os.read(r,1024*1024*1024)
+            finally:
+                os.close(r)
+                os.waitpid(pipe_ids[dt]['pid'],0)
+            if dt!='Real':
+                el=condorq_dict_types[dt]
+                (el['count'], el['prop'], el['hereonly'], el['total'])=cPickle.loads(rin)
+            else:
+                count_real=cPickle.loads(rin)
+            glideinFrontendLib.log_files.logActivity("Counted %s"%dt)
+        except:
+            # protect the loop, so we do all of them
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logWarning("Exception in %s, ignoring. See debug log for more details."%dt)
+            glideinFrontendLib.log_files.logDebug("Exception in %s occurred: %s" % (dt,tb))
+            failures+=1
+        
+    if failures>0:
+        glideinFrontendLib.log_files.logActivity("Terminating iteration due to errors")
+        return
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
     fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
