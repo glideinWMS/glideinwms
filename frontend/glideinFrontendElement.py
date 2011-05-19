@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.5 2011/05/19 21:07:31 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.6 2011/05/19 23:25:18 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -85,6 +85,49 @@ def log_factory_header():
     glideinFrontendLib.log_files.logActivity("            Jobs in schedd queues                 |      Glideins     |   Request   ")
     glideinFrontendLib.log_files.logActivity("Idle (match  eff   old  uniq )  Run ( here  max ) | Total Idle   Run  | Idle MaxRun Down Factory")
 
+###############################
+# to be used with fork clients
+# Args:
+#  r    - input pipe
+#  pid - pid of the child
+def fetch_fork_result(r,pid):
+    try:
+        rin=""
+        s=os.read(r,1024*1024*1024) # set max to a really large number just to be sure, data should be small
+        while (s!=""): # "" means EOF
+            rin+=s
+            s=os.read(r,1024*1024*1024)
+    finally:
+        os.close(r)
+        os.waitpid(pid,0)
+
+    out=cPickle.loads(rin)
+    return out
+
+# in: pipe_is - dictionary, each element is {'r':r,'pid':pid} - see above
+# out: dictionary of fork_results
+def fetch_fork_result_list(pipe_ids):
+    out={}
+    failures=0
+    for k in pipe_ids.keys():
+        try:
+            # now collect the results
+            rin=fetch_fork_result(pipe_ids[k]['r'],pipe_ids[k]['pid'])
+            out[k]=rin
+        except:
+            # protect the loop, so we do all of them
+            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                            sys.exc_info()[2])
+            glideinFrontendLib.log_files.logWarning("Exception in %s. See debug log for more details."%k)
+            glideinFrontendLib.log_files.logDebug("Exception in %s occurred: %s" % (k,tb))
+            failures+=1
+        
+    if failures>0:
+        raise RuntimeError, "Found %i errors"%failures
+
+    return out
+        
+
 ############################################################
 def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x509_proxy_plugin,stats,history_obj):
     frontend_name=elementDescript.frontend_data['FrontendName']
@@ -94,47 +137,114 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     web_url=elementDescript.frontend_data['WebURL']
 
     # query condor
-    glidein_dict={}
-    factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
-    factory_pools=elementDescript.merged_data['FactoryCollectors']
-    for factory_pool in factory_pools:
-        factory_pool_node=factory_pool[0]
-        factory_identity=factory_pool[1]
-        my_identity_at_factory_pool=factory_pool[2]
+    glideinFrontendLib.log_files.logActivity("Query condor")
+
+    pipe_ids={}
+    r,w=os.pipe()
+    pid=os.fork()
+    if pid==0:
+        # this is the child... return output as a pickled object via the pipe
+        os.close(r)
         try:
-            factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
-        except RuntimeError,e:
-            if factory_pool_node!=None:
-                glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
-                glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
-            else:
-                glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
-                glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
-            # failed to talk, like empty... maybe the next factory will have something
-            factory_glidein_dict={}
-             
-        for glidename in factory_glidein_dict.keys():
-            if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
-                glideinFrontendLib.log_files.logWarning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
-                if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
-                    glideinFrontendLib.log_files.logDebug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
-            else:
-                glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
+            glidein_dict={}
+            factory_constraint=elementDescript.merged_data['FactoryQueryExpr']
+            factory_pools=elementDescript.merged_data['FactoryCollectors']
+            for factory_pool in factory_pools:
+                factory_pool_node=factory_pool[0]
+                factory_identity=factory_pool[1]
+                my_identity_at_factory_pool=factory_pool[2]
+                try:
+                    factory_glidein_dict=glideinFrontendInterface.findGlideins(factory_pool_node,None,signatureDescript.signature_type,factory_constraint,x509_proxy_plugin!=None,get_only_matching=True)
+                except RuntimeError,e:
+                    if factory_pool_node!=None:
+                        glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool %s. See debug log for more details."%factory_pool_node)
+                        glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool %s: %s"%(factory_pool_node, e))
+                    else:
+                        glideinFrontendLib.log_files.logWarning("Failed to talk to factory_pool. See debug log for more details.")
+                        glideinFrontendLib.log_files.logDebug("Failed to talk to factory_pool: %s"%e)
+                    # failed to talk, like empty... maybe the next factory will have something
+                    factory_glidein_dict={}
+
+                for glidename in factory_glidein_dict.keys():
+                    if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity']!=factory_identity):
+                        glideinFrontendLib.log_files.logWarning("Found an untrusted factory %s at %s; ignoring."%(glidename,factory_pool_node))
+                        if factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity'):
+                            glideinFrontendLib.log_files.logDebug("Found an untrusted factory %s at %s; identity mismatch '%s'!='%s'"%(glidename,factory_pool_node,factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'],factory_identity))
+                    else:
+                        glidein_dict[(factory_pool_node,glidename,my_identity_at_factory_pool)]=factory_glidein_dict[glidename]
+
+            os.write(w,cPickle.dumps(glidein_dict))
+        finally:
+            os.close(w)
+            # hard kill myself... don't want any cleanup, since i was created just for this calculation
+            os.kill(os.getpid(),signal.SIGKILL) 
+    else:
+        # this is the original
+        # just remember what you did for now
+        os.close(w)
+        pipe_ids['entries']={'r':r,'pid':pid} 
 
     ## schedd
-    condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
-    if x509_proxy_plugin!=None:
-        condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
+    r,w=os.pipe()
+    pid=os.fork()
+    if pid==0:
+        # this is the child... return output as a pickled object via the pipe
+        os.close(r)
+        try:
+            condorq_format_list=elementDescript.merged_data['JobMatchAttrs']
+            if x509_proxy_plugin!=None:
+                condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
 
-    condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
-                                               elementDescript.merged_data['JobQueryExpr'],
-                                               condorq_format_list)
+            condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
+                                                       elementDescript.merged_data['JobQueryExpr'],
+                                                       condorq_format_list)
 
-    status_format_list=[]
-    if x509_proxy_plugin!=None:
-        status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
+            os.write(w,cPickle.dumps(condorq_dict))
+        finally:
+            os.close(w)
+            # hard kill myself... don't want any cleanup, since i was created just for this calculation
+            os.kill(os.getpid(),signal.SIGKILL) 
+    else:
+        # this is the original
+        # just remember what you did for now
+        os.close(w)
+        pipe_ids['jobs']={'r':r,'pid':pid} 
 
-    status_dict=glideinFrontendLib.getCondorStatus([None],'True',status_format_list) # use the main collector... all adds must go there
+    r,w=os.pipe()
+    pid=os.fork()
+    if pid==0:
+        # this is the child... return output as a pickled object via the pipe
+        os.close(r)
+        try:
+            status_format_list=[]
+            if x509_proxy_plugin!=None:
+                status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
+
+            status_dict=glideinFrontendLib.getCondorStatus([None],'True',status_format_list) # use the main collector... all adds must go there
+
+            os.write(w,cPickle.dumps(status_dict))
+        finally:
+            os.close(w)
+            # hard kill myself... don't want any cleanup, since i was created just for this calculation
+            os.kill(os.getpid(),signal.SIGKILL) 
+    else:
+        # this is the original
+        # just remember what you did for now
+        os.close(w)
+        pipe_ids['startds']={'r':r,'pid':pid} 
+ 
+    glideinFrontendLib.log_files.logActivity("Child processes created")
+    try:
+        pipe_out=fetch_fork_result_list(pipe_ids)
+    except RuntimeError, e:
+        # expect all errors logged already
+        glideinFrontendLib.log_files.logActivity("Terminating iteration due to errors")
+        return
+    glideinFrontendLib.log_files.logActivity("All children terminated")
+
+    glidein_dict=pipe_out['entries']
+    condorq_dict=pipe_out['jobs']
+    status_dict=pipe_out['startds']
 
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
@@ -281,37 +391,19 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     
 
     glideinFrontendLib.log_files.logActivity("Child processes created")
-    failures=0
-    for dt in condorq_dict_types.keys()+['Real']:
-        try:
-            # now collect the results
-            r=pipe_ids[dt]['r']
-            try:
-                rin=""
-                s=os.read(r,1024*1024*1024) # set max to a really large number just to be sure, data should be small
-                while (s!=""): # "" means EOF
-                    rin+=s
-                    s=os.read(r,1024*1024*1024)
-            finally:
-                os.close(r)
-                os.waitpid(pipe_ids[dt]['pid'],0)
-            if dt!='Real':
-                el=condorq_dict_types[dt]
-                (el['count'], el['prop'], el['hereonly'], el['total'])=cPickle.loads(rin)
-            else:
-                count_real=cPickle.loads(rin)
-            glideinFrontendLib.log_files.logActivity("Counted %s"%dt)
-        except:
-            # protect the loop, so we do all of them
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                            sys.exc_info()[2])
-            glideinFrontendLib.log_files.logWarning("Exception in %s, ignoring. See debug log for more details."%dt)
-            glideinFrontendLib.log_files.logDebug("Exception in %s occurred: %s" % (dt,tb))
-            failures+=1
-        
-    if failures>0:
+    try:
+        pipe_out=fetch_fork_result_list(pipe_ids)
+    except RuntimeError, e:
+        # expect all errors logged already
         glideinFrontendLib.log_files.logActivity("Terminating iteration due to errors")
         return
+    glideinFrontendLib.log_files.logActivity("All children terminated")
+
+    for dt in condorq_dict_types.keys():
+        el=condorq_dict_types[dt]
+        (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
+
+    count_real=pipe_out['Real']
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
     fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
