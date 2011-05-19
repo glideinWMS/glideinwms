@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.129 2011/02/10 21:35:30 parag Exp $
+#   $Id: cgWParamDict.py,v 1.130 2011/05/19 21:19:07 parag Exp $
 #
 # Description:
 #   Glidein creation module
@@ -535,6 +535,7 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('GlideinName',params.glidein_name)
         glidein_dict.add('WebURL',params.web_url)
         glidein_dict.add('PubKeyType',params.security.pub_key)
+        glidein_dict.add('OldPubKeyGraceTime',params.security.reuse_oldkey_onstartup_gracetime)
         del active_sub_list[:] # clean
 
         for sub in params.entries.keys():
@@ -565,9 +566,20 @@ def populate_factory_descript(work_dir,
 
 
 #######################
-# Populate job_descript
-def populate_job_descript(work_dir,job_descript_dict,        # will be modified
-                          sub_name,sub_params):
+def populate_job_descript(work_dir, job_descript_dict, 
+                          sub_name, sub_params):
+    """
+    Modifies the job_descript_dict to contain the factory configuration values.
+    
+    @type work_dir: string
+    @param work_dir: location of entry files
+    @type job_descript_dict: dict
+    @param job_descript_dict: contains the values of the job.descript file
+    @type sub_name: string
+    @param sub_name: entry name
+    @type sub_params: dict
+    @param sub_params: entry parameters
+    """
     # if a user does not provide a file name, use the default one
     down_fname=sub_params.downtimes.absfname
     if down_fname==None:

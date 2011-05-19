@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.66 2011/02/10 21:35:30 parag Exp $
+#   $Id: cgWParams.py,v 1.67 2011/05/19 21:19:07 parag Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -26,18 +26,23 @@ import cWParams
 
 
 ######################################################
-# Params used by create_glideins and recreate_glideins
 class GlideinParams(cWParams.CommonParams):
-    # populate self.defaults
+    """
+    Contains all the factory configuration values as params.  Used in create_glideins and recreate_glideins.
+    """
+    
     def init_defaults(self):
+        """
+        Populates the defaults for all the factory configuration values.
+        """
      
         self.init_support_defaults()
       
-	# Defaults for allowing frontends in a whitelist
-	# in the factory config (per entry point)
-        self.allow_defaults=cWParams.commentedOrderedDict()
-        self.allow_defaults["name"]=(None,"string","frontend name",None)
-        self.allow_defaults["security_class"]=("All","string","security class",None)
+        # Defaults for allowing frontends in a whitelist
+        # in the factory config (per entry point)
+        self.allow_defaults = cWParams.commentedOrderedDict()
+        self.allow_defaults["name"] = (None, "string", "frontend name", None)
+        self.allow_defaults["security_class"] = ("All", "string", "security class", None)
 
         # publishing specific to factory
         self.attr_defaults["publish"]=("True","Bool","Should it be published by the factory?",None)
@@ -59,6 +64,7 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_max_jobs_defaults["idle"]=('2000',"nr","Maximum number of idle glideins (per frontend) allowed.",None)
         entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
+
 
         entry_config_queue_defaults=cWParams.commentedOrderedDict()
         entry_config_queue_defaults["max_per_cycle"]=['100',"nr","Maximum number of jobs affected per cycle.",None]
@@ -150,6 +156,7 @@ class GlideinParams(cWParams.CommonParams):
         
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
+        security_default["reuse_oldkey_onstartup_gracetime"]=("900","seconds","Time in sec old key can be used to decrypt requests from frontend",None)
         security_default["key_length"]=("2048","bits","Key length in bits",None)
         security_default["allow_proxy"]=("frontend","list","What proxies can be used for glidein submission? (list combination of factory,frontend)",None)
         security_default["frontends"]=(xmlParse.OrderedDict(),"Dictionary of frontend","Each frontend contains",self.frontend_defaults)

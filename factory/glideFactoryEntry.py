@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.105 2011/04/26 19:34:57 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.106 2011/05/19 21:19:07 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -39,7 +39,20 @@ import logSupport
 import glideinWMSVersion
 
 ############################################################
-def check_parent(parent_pid,glideinDescript,jobDescript):
+def check_parent(parent_pid, glideinDescript, jobDescript):
+    """Check to make sure that we aren't an orphaned process.  If Factory
+    daemon has died, then clean up after ourselves and kill ourselves off.
+
+    @type parent_pid: int
+    @param parent_pid: the pid for the Factory daemon
+    @type glideinDescript: glideFactoryConfig.GlideinDescript
+    @param glideinDescript: Object that encapsulates glidein.descript in the Factory root directory
+    @type jobDescript: glideFactoryConfig.JobDescript
+    @param jobDescript: Object that encapsulates job.descript in the entry directory
+
+    @raise KeyboardInterrupt: Raised when the Factory daemon cannot be found
+    """
+
     if os.path.exists('/proc/%s'%parent_pid):
         return # parent still exists, we are fine
     
@@ -196,8 +209,29 @@ class X509Proxies:
 
 ###
 def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+    """
+    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
+    in downtime, requested glideins is zero.
+    
+    @type in_downtime: boolean
+    @param in_downtime: True if entry is in downtime
+    @type glideinDescript:  
+    @param glideinDescript: 
+    @type frontendDescript:  
+    @param frontendDescript: 
+    @type jobDescript:  
+    @param jobDescript: 
+    @type jobAttributes:  
+    @param jobAttributes: 
+    @type jobParams:  
+    @param jobParams: 
+    
+    @return: returns a value greater than zero if work was done.
+    """
+    
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
+    old_pub_key_obj = glideinDescript.data['OldPubKeyObj']
 
     # Get information about which VOs to allow for this entry point.
     # This will be a comma-delimited list of pairs
@@ -223,6 +257,18 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                                           glideFactoryLib.factoryConfig.supported_signtypes,
                                           pub_key_obj,allowed_proxy_source)
     
+    if (len(work.keys())==0) and (old_pub_key_obj != None):
+        # Could not find work to do using pub key and we do have a valid old 
+        # pub key object. Either there is really no work or the frontend is 
+        # still using the old key in this cycle
+        glideFactoryLib.log_files.logActivity("Could not find work to do using the existing key. Trying to find work using old factory key.")
+        work = glideFactoryInterface.findWork(
+                   glideFactoryLib.factoryConfig.factory_name,
+                   glideFactoryLib.factoryConfig.glidein_name, entry_name,
+                   glideFactoryLib.factoryConfig.supported_signtypes,
+                   old_pub_key_obj, allowed_proxy_source)
+        if len(work.keys())>0:
+            glideFactoryLib.log_files.logActivity("Found work to do using old factory key.")
     if len(work.keys())==0:
         return 0 # nothing to be done
 
@@ -552,6 +598,22 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
 
 ############################################################
 def write_stats():
+    """
+    Calls the statistics functions to record and write
+    stats for this iteration.
+
+    There are several main types of statistics:
+
+    log stats: That come from parsing the condor_activity
+    and job logs.  This is computed every iteration 
+    (in perform_work()) and diff-ed to see any newly 
+    changed job statuses (ie. newly completed jobs)
+
+    qc stats: From condor_q data.
+    
+    rrd stats: Used in monitoring statistics for javascript rrd graphs.
+    """
+
     global log_rrd_thread,qc_rrd_thread
     
     glideFactoryLib.factoryConfig.log_stats.computeDiff()
@@ -669,16 +731,55 @@ def iterate_one(do_advertize,in_downtime,
     return done_something
 
 ############################################################
-def iterate(parent_pid,sleep_time,advertize_rate,
-            glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+def iterate(parent_pid, sleep_time, advertize_rate,
+            glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
+    """iterate function
+
+    The main "worker" function for the Factory Entry.
+    @todo: More description to come
+
+    @type parent_pid: int
+    @param parent_pid: the pid for the Factory daemon
+    @type sleep_time: int
+    @param sleep_time: The number of seconds to sleep between iterations
+    @type advertise_rate: int
+    @param advertise_rate: The rate at which advertising should occur (CHANGE ME... THIS IS NOT HELPFUL)
+    @type glideinDescript: glideFactoryConfig.GlideinDescript
+    @param glideinDescript: Object that encapsulates glidein.descript in the Factory root directory
+    @type frontendDescript: glideFactoryConfig.FrontendDescript
+    @param frontendDescript: Object that encapsulates frontend.descript in the Factory root directory
+    @type jobDescript: glideFactoryConfig.JobDescript
+    @param jobDescript: Object that encapsulates job.descript in the entry directory
+    @type jobAttributes: glideFactoryConfig.JobAttributes
+    @param jobAttributes: Object that encapsulates attributes.cfg in the entry directory
+    @type jobParams: glideFactoryConfig.JobParams
+    @param jobParams: Object that encapsulates params.cfg in the entry directory
+
+    """
+
     is_first=1
     count=0;
+
+    # Record the starttime so we know when to disable the use of old pub key
+    starttime = time.time()
+    # The grace period should be in the factory config. Use it to determine
+    # the end of lifetime for the old key object. Hardcoded for now to 30 mins.
+    oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
+    oldkey_eoltime = starttime + oldkey_gracetime
+
 
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     while 1:
         check_parent(parent_pid,glideinDescript,jobDescript)
+        if ( (time.time() > oldkey_eoltime) and 
+             (glideinDescript.data['OldPubKeyObj'] != None) ):
+            # Invalidate the use of factory's old key
+            glideFactoryLib.log_files.logActivity("Retiring use of old key.")
+            glideFactoryLib.log_files.logActivity("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
+            glideinDescript.data['OldPubKeyType'] = None
+            glideinDescript.data['OldPubKeyObj'] = None
         in_downtime=(factory_downtimes.checkDowntime(entry="factory") or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
         if in_downtime:
             glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
@@ -725,7 +826,25 @@ def iterate(parent_pid,sleep_time,advertize_rate,
         
         
 ############################################################
-def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
+
+def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
+    """GlideinFactoryEntry main function
+
+    Setup logging, monitoring, and configuration information.  Starts the Entry
+    main loop and handles cleanup at shutdown.
+
+    @type parent_pid: int
+    @param parent_pid: The pid for the Factory daemon
+    @type sleep_time: int
+    @param sleep_time: The number of seconds to sleep between iterations
+    @type advertise_rate: int
+    @param advertise_rate: The rate at which advertising should occur (CHANGE ME... THIS IS NOT HELPFUL)
+    @type startup_dir: string
+    @param startup_dir: The "home" directory for the entry.
+    @type entry_name: string
+    @param entry_name: The name of the entry as specified in the config file
+    """
+
     startup_time=time.time()
 
     glideFactoryMonitoring.monitoringConfig.monitor_dir=os.path.join(startup_dir,"monitor/entry_%s"%entry_name)
@@ -734,6 +853,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideinDescript=glideFactoryConfig.GlideinDescript()
 
     glideinDescript.load_pub_key()
+    glideinDescript.load_old_rsa_key()
     if not (entry_name in string.split(glideinDescript.data['Entries'],',')):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
 
@@ -805,8 +925,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
         glideFactoryLib.log_files.logWarning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
-        glideFactoryLib.log_files.logDebug("Exception occurred: %s" % tb)    
-
+        glideFactoryLib.log_files.logDebug("Exception occurred while trying to retrieve the glideinwms version: %s" % tb)    
 
     # create lock file
     pid_obj=glideFactoryPidLib.EntryPidSupport(startup_dir,entry_name)
