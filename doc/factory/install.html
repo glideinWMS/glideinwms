@@ -1184,9 +1184,12 @@ Please be aware that both will be used.
         <li> -end [[[YYYY-]MM-]DD-]HH:MM[:SS]   (end time for adding a downtime)
         <li> -delay [HHh][MMm][SS[s]]           
             (delay a downtime for down, up, and check cmds)
+        <li> -frontend SECURITY_NAME  
+            (limits a downtime to one frontend)<br/>
+            (If security class is not specified, the downtime is for all users for this frontend.)
         <li> -security SECURITY_CLASS  
             (restricts a downtime to users of that security class)<br/>
-            (If not specified, the downtime is for all users.)
+            (If frontend is not specified, the downtime is for all frontends that have this security class.)
         <li> -comment "Comment here"   
             (user comment for the downtime. Not used by WMS.)
     </ul>
