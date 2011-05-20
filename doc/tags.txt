@@ -1,4 +1,6 @@
 vNext	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
+	Factory can now resue old public key after startup to decrypt
+	  frontend requests. Grace time for old public key is configurable.
 
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
