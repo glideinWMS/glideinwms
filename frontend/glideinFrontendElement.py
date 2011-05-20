@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.6 2011/05/19 23:25:18 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.7 2011/05/20 00:25:52 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -362,7 +362,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
     glideinFrontendLib.log_files.logActivity("Counting")
     pipe_ids={}
-    for dt in condorq_dict_types.keys()+['Real']:
+    for dt in condorq_dict_types.keys()+['Real','Glidein']:
         # will make calculations in parallel,using multiple processes
         r,w=os.pipe()
         pid=os.fork()
@@ -370,12 +370,22 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             # this is the child... return output as a pickled object via the pipe
             os.close(r)
             try:
-                if dt!='Real':
+                if dt=='Real':
+                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
+                elif dt=='Glidein':
+                    count_status_multi={}
+                    for glideid in glidein_dict.keys():
+                        request_name=glideid[1]
+
+                        count_status_multi[request_name]={}
+                        for st in status_dict_types.keys():
+                            c=glideinFrontendLib.getClientCondorStatus(status_dict_types[st]['dict'],frontend_name,group_name,request_name)
+                            count_status_multi[request_name][st]=glideinFrontendLib.countCondorStatus(c)
+                    out=count_status_multi
+                else:
                     c,p,h=glideinFrontendLib.countMatch(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_types[dt]['dict'],glidein_dict)
                     t=glideinFrontendLib.countCondorQ(condorq_dict_types[dt]['dict'])
                     out=(c,p,h,t)
-                else:
-                    out=glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict)
 
                 os.write(w,cPickle.dumps(out))
             finally:
@@ -404,6 +414,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         (el['count'], el['prop'], el['hereonly'], el['total'])=pipe_out[dt]
 
     count_real=pipe_out['Real']
+    count_status_multi=pipe_out['Glidein']
 
     max_running=int(elementDescript.element_data['MaxRunningPerEntry'])
     fraction_running=float(elementDescript.element_data['FracRunningPerEntry'])
@@ -416,12 +427,13 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
 
 
+    glideid_list=glidein_dict.keys()
+    glideid_list.sort() # sort for the sake of monitoring
+
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
     total_down_stats_arr=init_factory_stats_arr()
-    glideid_list=condorq_dict_types['Idle']['count'].keys()
-    glideid_list.sort() # sort for the sake of monitoring
     for glideid in glideid_list:
         if glideid==(None,None,None):
             continue # This is the special "Unmatched" entry
@@ -443,11 +455,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             prop_jobs[dt]=condorq_dict_types[dt]['prop'][glideid]
             hereonly_jobs[dt]=condorq_dict_types[dt]['hereonly'][glideid]
 
-        count_status={}
-        for dt in status_dict_types.keys():
-            status_dict_types[dt]['client_dict']=glideinFrontendLib.getClientCondorStatus(status_dict_types[dt]['dict'],frontend_name,group_name,request_name)
-            count_status[dt]=glideinFrontendLib.countCondorStatus(status_dict_types[dt]['client_dict'])
-
+        count_status=count_status_multi[request_name]
 
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
