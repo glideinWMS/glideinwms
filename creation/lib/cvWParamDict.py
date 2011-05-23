@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.47.2.8 2010/11/05 17:08:14 parag Exp $
+#   $Id: cvWParamDict.py,v 1.47.2.9 2011/05/23 14:50:43 weigand Exp $
 #
 # Description: 
 #   Frontend creation module
@@ -75,7 +75,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
         populate_common_descript(self.dicts['frontend_descript'],params)
 
         # populate the monitor files
-        javascriptrrd_dir=os.path.join(params.monitor.javascriptRRD_dir,'src/lib')
+        javascriptrrd_dir = params.monitor.javascriptRRD_dir
         for mfarr in ((params.src_dir,'frontend_support.js'),
                       (javascriptrrd_dir,'rrdFlot.js'),
                       (javascriptrrd_dir,'rrdFlotMatrix.js'),
@@ -88,7 +88,8 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
                       (params.monitor.flot_dir,'excanvas.js'),
                       (params.monitor.jquery_dir,'jquery.js')):
             mfdir,mfname=mfarr
-            mfobj=cWDictFile.SimpleFile(mfdir,mfname)
+            parent_dir = self.find_parent_dir(mfdir,mfname)
+            mfobj=cWDictFile.SimpleFile(parent_dir,mfname)
             mfobj.load()
             self.monitor_jslibs.append(mfobj)
 
@@ -102,6 +103,19 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         # populate security data
         populate_main_security(self.client_security,params)
+
+    def find_parent_dir(self,search_path,name):
+        """ Given a search path, determine if the given file exists
+            somewhere in the path.
+            Returns: if found. returns the parent directory
+                     if not found, raises an Exception
+        """
+        for root, dirs, files in os.walk(search_path,topdown=True):
+            for file in files:
+                if file == name:
+                    return root
+        raise RuntimeError,"Unable to find %(file)s in %(dir)s path" % \
+                           { "file" : name,  "dir" : search_path, }
 
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
