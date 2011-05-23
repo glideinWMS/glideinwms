@@ -793,6 +793,14 @@ Remember to set X509_USER_PROXY before starting the daemon
         If you make changes to the configuration file /home/frontend/frontstage/instance_v1.cfg/frontend.xml from above after creating
         glidein, run reconfig_frontend tool to propagate the changes to the frontend configuration.
     </p>
+    <p>
+     <b>Note: If you make changes to the CONDOR_CONFIG files of the Condor
+        installation used by the Frontend, you MUST also
+        reconfigure the Frontend.  The Frontend is the only Glidein service 
+        that uses a modified version of the Condor config files. It can be found
+        in &lt;install_dir&gt;/frontend.condor_config.
+     </b>
+    </p>
     <blockquote>glideinWMS/creation/frontend_startup reconfig /home/frontend/frontstage/instance_v1.cfg/frontend.xml</blockquote>
     <p>
     <i>Note: you will need to change the location of the frontend.xml if you have made changes to this file in another location.</i></p>
