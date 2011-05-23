@@ -109,10 +109,40 @@ Factory troubleshooting:
         Many problems are caused are by using the wrong path/environment, 
         (for instance, sourcing the user pool condor.sh then running WMS collector commands).
         Run "which condor_q" to see if your path is correct.<br/>
+    </p>
+    <p> 
         <b>Note:  If you are using VDT and source the setup.sh (e.g. for voms-proxy-init), 
         this may change your path/environment, and you may need to run condor.sh again.
         </b>
     </p>
+
+    <h3>Using the correct CONDOR_CONFIG for the Frontend</h3>
+    <p> 
+       The Frontend is the only Glidein service that uses a modified version
+       of the CONDOR_CONFIG file(s).  
+       If you are troubleshooting problems using Condor commands 
+       (e.g. condor_status), you may not see the same results that the Frontend
+        service does.
+    </p>
+    <p> 
+       The Frontend uses GLIDEINWMS_VOFRONTEND_HOME/frontend.condor_config
+    </p>
+    <p> 
+       So, in order to simulate the Frontend environment, you should set the
+       environment as follows before executing the Condor commands (bash syntax shown):
+       <blockquote>
+&gt; source CONDOR_LOCATION/condor.sh</br>
+&gt; export CONDOR_CONFIG=GLIDEINWMS_VOFRONTEND_HOME/frontend.condor_config</br>
+       </blockquote>
+    </p>
+    <p> 
+      <b>Note: The <i>frontend.condor_config</i> is created everytime you do a
+      frontend reconfig.  If you change the Condor <i>condor_config</i> with 
+      a new configuration, you need to reconfig the Frontend for the Frontend 
+      to see these changes and take effect.
+     </b>
+    </p>
+
    </div>
 
 
