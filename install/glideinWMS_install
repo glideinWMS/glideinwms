@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.33 2011/03/02 21:48:49 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.34 2011/05/24 18:14:05 parag Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -274,7 +274,7 @@ def schedd_node_install():
     print "and thus also improves the pool scalability."
     while 1:
         print ""
-        sport_yn=raw_input("Do you want to enable the shadred_port_daemon?: (y/n) ")
+        sport_yn=raw_input("Do you want to enable the shared_port_daemon?: (y/n) ")
         if sport_yn=="":
             sport_yn="y"
         if (sport_yn!="y") and (sport_yn!="n"):
@@ -316,6 +316,23 @@ def schedd_node_install():
     #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
     #    if yn=='y':
     #        setup_quill()
+
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+    try:
+        config_fd.write('\n#####################################\n')
+        config_fd.write('# Enable Job/glidein information \n')
+        config_fd.write('#####################################\n')
+        config_fd.write('JOB_Site = "$$(GLIDEIN_Site:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Name = "$$(GLIDEIN_Name:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Factory = "$$(GLIDEIN_Factory:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Schedd = "$$(GLIDEIN_Schedd:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_ClusterId = "$$(GLIDEIN_ClusterId:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_ProcId = "$$(GLIDEIN_ProcId:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Site = "$$(GLIDEIN_Site:Unknown)"\n')
+        config_fd.write('SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site\n')
+    finally:
+        config_fd.close()
 
     if not MAIN_SCHEDD_INSTALLED:
         setup_main_schedd()

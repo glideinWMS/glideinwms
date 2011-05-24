@@ -210,7 +210,7 @@ class Condor(Configuration):
     self.update_condor_config()
     self.configure_secondary_schedds()
     self.__create_initd_script__()
-    common.logit( "\nCondor configuration completen")
+    common.logit( "\nCondor configuration complete\n")
 
   #--------------------------------
   def update_condor_config(self):
@@ -225,6 +225,8 @@ class Condor(Configuration):
     self.__update_condor_config_collector__()
     if self.ini_section == "WMSCollector":
       self.__update_condor_config_condorg__()
+    if self.ini_section == "Submit":
+        self.__udpate_condor_config_userjob_default_attributes__()
     self.update_condor_config_privsep()
     common.logit( "condor_config file update complete")
 
@@ -635,6 +637,11 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
   def update_condor_config_privsep(self):
     data = self.condor_config_privsep_data()
     self.__append_to_condor_config__(data,"Privilege Separation")
+
+  #--------------------------------
+  def __udpate_condor_config_userjob_default_attributes__(self):
+    data = self.__condor_config_userjob_default_attributes_data__()
+    self.__append_to_condor_config__(data,"UserJob Default Attributes")
 
   #--------------------------------
   def __append_to_condor_config__(self,data,type):
@@ -1202,6 +1209,25 @@ GRIDMANAGER_MAX_PENDING_REQUESTS=500
   #------------------------------------------
   def condor_config_privsep_data(self):
     return ""
+
+  #-----------------------------
+  def __condor_config_userjob_default_attributes_data__(self):
+    data = """
+######################################################
+# Add default attributes
+######################################################
+JOB_Site = "$$(GLIDEIN_Site:Unknown)"
+JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)"
+JOB_GLIDEIN_Name = "$$(GLIDEIN_Name:Unknown)"
+JOB_GLIDEIN_Factory = "$$(GLIDEIN_Factory:Unknown)"
+JOB_GLIDEIN_Schedd = "$$(GLIDEIN_Schedd:Unknown)"
+JOB_GLIDEIN_ClusterId = "$$(GLIDEIN_ClusterId:Unknown)"
+JOB_GLIDEIN_ProcId = "$$(GLIDEIN_ProcId:Unknown)"
+JOB_GLIDEIN_Site = "$$(GLIDEIN_Site:Unknown)"
+
+SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site
+"""
+    return data
 
 #--- end of Condor class ---------
 ####################################
