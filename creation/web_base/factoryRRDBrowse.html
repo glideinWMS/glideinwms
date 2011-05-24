@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryRRDBrowse.html,v 1.13.8.5.18.1 2011/05/10 19:05:39 amccrea Exp $
+  $Id: factoryRRDBrowse.html,v 1.13.8.5.18.2 2011/05/24 20:55:10 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -78,7 +78,12 @@ Description:
        </form></td>
      </tr>
      <tr>
-      <td colspan=2><button onClick="fname_update()">Update</button><button onClick="showLink()" style="float:right">Link</button></td>
+       <td colspan=2>
+         <button onClick="nonlink_update()">Update</button>
+         <button onClick="defaults()" style="float:right">Defaults</button>
+         <button onClick="unlink()" style="float:right">Unlink</button>
+         <button onClick="showLink()" style="float:right">Link</button>
+       </td>
      </tr>
     </table>
 
@@ -98,8 +103,16 @@ Description:
  
     <script type="text/javascript">
 
-	  var rrdOptions = new Array("Status_Attributes", "Log_Counts", "Log_Completed", "Log_Completed_Stats", "Log_Completed_WasteTime");
-	  var ENTRY; 
+      var rrdOptions = new Array("Status_Attributes", "Log_Counts", "Log_Completed", "Log_Completed_Stats", "Log_Completed_WasteTime");
+      var ENTRY; 
+      var graph_info;
+      var specified_rra = 0;
+      var windows = true;
+      var link_checked_DSs = [];
+      var local_window_min=0;
+      var local_window_max=0;
+      var coming_from_defaults = false;
+      var coming_from_link = true;
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -185,12 +198,45 @@ Description:
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
       function update_fname() {
+
+      /////////////////////////////////////////////////////////////////
+      //check previously defined checked DSs, if any match this new gtype, then preserve them
+      //also preserve rra and window selection across info group updates
+      graph_info = getGraphInfo();
+
+      //preserve window selection
+      if(!coming_from_link) { //get from graph
+         windows = true;
+         local_window_max = graph_info['window_max'];
+         local_window_min = graph_info['window_min'];
+      } //if coming from link, use link params (which are already set)
+
+      if(coming_from_defaults) {
+         windows=false;
+      }
+
+      //preserve rra
+      if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
+      else if (!coming_from_link) {specified_rra = graph_info["rra"];}
+        
+      //if coming from link, used DS elements provided in link
+      //else, use preserved elements across link
+      var use_checked_DSs_local = true;
+      if(!coming_from_link) {
+         use_checked_DSs_local = false;
+      }   
+
+      if (local_window_max==0 && local_window_min==0) {windows=false;} 
+
+       ///////////////////////////////////////////////////////////
+
+
         // the rrdFlot object creates and handles the graph
         if (rrd_group_data.length == 0) {
-            var f=new rrdFlot("mygraph",rrd_data,null);
+          var f=new rrdFlot("mygraph",rrd_data,null,null,{use_checked_DSs: use_checked_DSs_local, checked_DSs: link_checked_DSs,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max});
         } else {
             var rrd_data_sum = new RRDFileSum(rrd_group_data, false);
-            var f=new rrdFlot("mygraph",rrd_data_sum,null);
+          var f=new rrdFlot("mygraph",rrd_data_sum,null,null,{use_checked_DSs: use_checked_DSs_local, checked_DSs: link_checked_DSs,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max});
         }
 
         // Finally, update the files loaded so far
@@ -243,6 +289,10 @@ Description:
           }
       }
 
+      function nonlink_update() {
+         coming_from_link = false;
+         fname_update();
+      }
 
       // this function is invoked when the RRD file name changes
       function fname_update() {
@@ -310,11 +360,13 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-		parameterArry = new Array("entry", "frontend", "rrd"); 
+                parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max"); 
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
 		var infoGroupSpec;
+                link_checked_DSs=[];
+                specified_rra = 0;
 		urlValid = 0; 
 		paramSpecArry = new Array(); 
 		if(url)
@@ -381,16 +433,25 @@ Description:
 			else if(i == 2)
 			{
 				child = 1; 
-				for(i = 0; i< rrdOptions.length; i++)
+				for(var k = 0; k< rrdOptions.length; k++)
 				{
-					if(rrdOptions[i] == paramSpecArry[2])
+					if(rrdOptions[k] == paramSpecArry[2])
 					{
-						document.getElementById("rrds").elements[i].checked = true;
+						document.getElementById("rrds").elements[k].checked = true;
 						urlValid = 1; 
 					}
 					child+=2;	
 				}
 			}
+                        else if(i==3) {
+                           var elems = paramSpecArry[i].split(",");
+                           for(var j=0;j<elems.length;j++){
+                              link_checked_DSs.push(elems[j]);
+                           } 
+                        }
+                        else if(i==4) {specified_rra = paramSpecArry[i];}
+                        else if(i==5) {local_window_min = paramSpecArry[i];}
+                        else if(i==6) {local_window_max = paramSpecArry[i];}
 		}
 		if(urlValid)
 		{
@@ -406,6 +467,16 @@ Description:
                 var specifiedEntry;
                 var specifiedFrontend;
 		var specifiedGOption; 
+                var specified_win_max; 
+                var specified_win_min; 
+
+                //Graph data from rrdFlot.js
+                graph_info = getGraphInfo();
+                var local_checked_DSs_input= graph_info["dss"];
+                specified_rra = graph_info["rra"];
+                specified_win_min = graph_info["window_min"];
+                specified_win_max = graph_info["window_max"];
+
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
 		{
@@ -436,9 +507,27 @@ Description:
 				j++;
 			}
 		}
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&rrd="+specifiedGOption; 
+                var elem_string = "";
+                for(var i=0;i<local_checked_DSs_input.length;i++) {
+                   elem_string += local_checked_DSs_input[i]+",";
+                }
+
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max; 
 		document.location.href = constructed; 
 	}  
+
+        function unlink() {
+           document.location.href= document.URL.split('?')[0];
+        }
+        function defaults() {
+           local_checked_DSs = [];
+           link_checked_DSs = [];
+           specified_rra = null;
+           coming_from_defaults = true;
+           resetWindow();
+           update_fname();
+        }
+
 	/* Function to navigate to other glidein tools. */
 	function goToDestination(option)
 	{

@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryLogStatus.html,v 1.12.8.5.18.1 2011/05/10 19:05:25 amccrea Exp $
+  $Id: factoryLogStatus.html,v 1.12.8.5.18.2 2011/05/24 20:54:58 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -79,7 +79,12 @@ Description:
        </form></td>
      </tr>
      <tr>
-      <td colspan=2><button onClick="fname_update()">Update</button><button onClick="showLink()" style="float:right">Link</button></td>
+       <td colspan=2>
+         <button onClick="nonlink_update()">Update</button>
+         <button onClick="defaults()" style="float:right">Defaults</button>
+         <button onClick="unlink()" style="float:right">Unlink</button>
+         <button onClick="showLink()" style="float:right">Link</button>
+       </td>
      </tr>
     </table>
 
@@ -99,8 +104,16 @@ Description:
  
     <script type="text/javascript">
 	
-	  var infoGroupOptions = new Array("running", "idle", "other", "completed");
-	  var ENTRY; 
+      var infoGroupOptions = new Array("running", "idle", "other", "completed");
+      var ENTRY; 
+      var graph_info;
+      var specified_rra = 0;
+      var windows = true;
+      var link_checked_DSs = [];
+      var local_window_min=0;
+      var local_window_max=0;
+      var coming_from_defaults = false;
+      var coming_from_link = true;
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -232,6 +245,62 @@ Description:
                                     'FailedNr':{title: 'Number of glideins failing validation', label:'Failed Nr', color: "#ff0000", yaxis: 2, checked:false},
                                     'JobsNr':{title: 'Number of user jobs executed', label: 'Jobs Nr', color: "#c0ff00", yaxis: 2, checked:false}};
 
+////////////////////////////////////////////////////////////////////////////
+
+        //check previously defined checked DSs, if any match this new gtype, then preserve them
+        //also preserve rra and window selection across info group updates
+        graph_info = getGraphInfo();
+
+        //preserve window selection
+        if(!coming_from_link) { //get from graph
+           windows = true;
+           local_window_max = graph_info['window_max'];
+           local_window_min = graph_info['window_min'];
+        } //if coming from link, use link params (which are already set)
+
+        if(coming_from_defaults) {
+           windows=false;
+        }
+
+        //preserve rra
+        if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
+        else if (!coming_from_link) {specified_rra = graph_info["rra"];}
+        
+        local_checked_DSs = [];
+        //preserve same-named elements
+        var elem, link_elem, trunc1, trunc2;
+        for(var a in graph_info["dss"]) {
+           for(var b in gtype_formats[gtype_id]) {
+              elem = b;              
+              link_elem = graph_info["dss"][a];
+              //truncate names, only compare ends like "500m" to preserve checks across
+              //groups with same-named elements, like "Lasted_500m" and "JobsLasted_500m". 
+              var trunc1 = elem.split("_");
+              var trunc2 = link_elem.split("_");
+              if(elem=="Average") {if (link_elem=="Average") {local_checked_DSs.push(elem);}}
+              else if(elem=="WeightedSum") {if (link_elem=="WeightedSum") {local_checked_DSs.push(elem);}}
+              else {
+                 //for aggregated names, like Wallclock_time_per_glidien, disregard this truncation
+                 if(trunc2.length>2) {if (elem==link_elem) {local_checked_DSs.push(elem)}}
+                 else if(trunc1[1]!=null && trunc1[1]==trunc2[1]) {
+                    local_checked_DSs.push(elem);
+                 }
+              }
+           } 
+        } 
+        //if coming from link, used DS elements provided in link
+        //else, use preserved elements across link
+        if(!coming_from_link) {
+           checklist = local_checked_DSs;
+        }
+        else { //if coming from link
+           checklist = link_checked_DSs;
+        }   
+
+        if (local_window_max==0 && local_window_min==0) {windows=false;} 
+
+////////////////////////////////////////////////////////////////////////////
+
         var rrd_data1 = undefined;
         if (rrd_group_data.length == 0) {
             rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
@@ -242,7 +311,7 @@ Description:
         }
 
         // the rrdFlot object creates and handles the graph
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
+          var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{use_checked_DSs: true, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max});
 
         // Finally, update the files loaded so far
         files_loaded = files_loaded + 1;
@@ -253,7 +322,10 @@ Description:
         else {
             document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load + ": " + fname;
         }
-
+        graph_info = getGraphInfo();
+        local_window_max = graph_info['window_max'];
+        local_window_min = graph_info['window_min'];
+        coming_from_defaults = false;
       }
 
       // This is the callback function that,
@@ -292,6 +364,11 @@ Description:
             rrd_group_data[idx] = i_rrd_data;
             update_plot()
           }
+      }
+
+      function nonlink_update() {
+         coming_from_link = false;
+         fname_update();
       }
 
 
@@ -356,7 +433,7 @@ Description:
           document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + fname.split(",").length;
 
           for (var i=0; i<en_array.length; i++) {
-            //alert("GROUP SELECTED with entry: " + en_array[i]);
+            //alert("GROUP SELECTED with entry: " + en_array[i]);tatus.html?entry=total&frontend=total&infoGroup=running&elements=StatusRunning,ExitedRunning,&rra=0&window_min=0
             var fn = "entry_"+en_array[i]+"/total/"+rrd_fname+".rrd"; 
             try {
               FetchBinaryURLAsync(fn,update_grouped_plot_handler);
@@ -370,11 +447,13 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-		parameterArry = new Array("entry", "frontend", "infoGroup"); 
+                parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max"); 
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
 		var infoGroupSpec;
+                link_checked_DSs=[];
+                specified_rra = 0;
 		urlValid = 0; 
 		paramSpecArry = new Array(); 
 		if(url)
@@ -441,9 +520,9 @@ Description:
 			else if(i == 2)
 			{
 				child = 1; 
-				for(i = 0; i< infoGroupOptions.length; i++)
+				for(var k = 0; k< infoGroupOptions.length; k++)
 				{
-					if(infoGroupOptions[i] == paramSpecArry[2])
+					if(infoGroupOptions[k] == paramSpecArry[2])
 					{
 						document.getElementById("gtypes").childNodes[child].checked = true;
 						urlValid = 1; 
@@ -451,6 +530,15 @@ Description:
 					child+=2;	
 				}
 			}
+                        else if(i==3) {
+                           var elems = paramSpecArry[i].split(",");
+                           for(var j=0;j<elems.length;j++){
+                              link_checked_DSs.push(elems[j]);
+                           } 
+                        }
+                        else if(i==4) {specified_rra = paramSpecArry[i];}
+                        else if(i==5) {local_window_min = paramSpecArry[i];}
+                        else if(i==6) {local_window_max = paramSpecArry[i];}
 		}
 		if(urlValid)
 		{
@@ -466,6 +554,16 @@ Description:
 		var specifiedEntry;
                 var specifiedFrontend;
 		var specifiedGOption; 
+                var specified_win_max; 
+                var specified_win_min; 
+
+                //Graph data from rrdFlot.js
+                graph_info = getGraphInfo();
+                var local_checked_DSs_input= graph_info["dss"];
+                specified_rra = graph_info["rra"];
+                specified_win_min = graph_info["window_min"];
+                specified_win_max = graph_info["window_max"];
+                
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
 		{
@@ -493,9 +591,28 @@ Description:
 			}
 			j++; 	
 		}
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
+                var elem_string = "";
+                for(var i=0;i<local_checked_DSs_input.length;i++) {
+                   elem_string += local_checked_DSs_input[i]+",";
+                }
+
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max; 
+
 		document.location.href = constructed; 
 	}
+
+        function unlink() {
+           document.location.href= document.URL.split('?')[0];
+        }
+        function defaults() {
+           local_checked_DSs = [];
+           link_checked_DSs = [];
+           specified_rra = null;
+           coming_from_defaults = true;
+           resetWindow();
+           update_plot();
+        }
+
 	function goToDestination(option)
 	{
 		if(option.value != "factoryStatusNow.html" && option.value != "factoryRRDEntryMatrix.html" && ENTRY)
