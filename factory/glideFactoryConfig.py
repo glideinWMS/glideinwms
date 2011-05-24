@@ -3,12 +3,15 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryConfig.py,v 1.21.10.4 2010/09/08 03:22:58 parag Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.18.1 2011/05/24 20:24:59 sfiligoi Exp $
 #
 
 import string
+import os
 import os.path
 import sys
+import time
+import shutil
 
 ############################################################
 #
@@ -99,6 +102,16 @@ class GlideinKey:
         self.load(key_fname,recreate)
 
     def load(self,key_fname=None,recreate=False):
+        """
+        Create the key if required and initialize it
+        
+        @type key_fname: String
+        @param key_fname: Filename of the key
+        @type recreate: bool
+        @param recreate: Create a new key if True else load existing key. Defaults to False.
+          
+        """
+        
         if self.pub_key_type=='RSA':
             import pubCrypto,symCrypto,md5
             if key_fname==None:
@@ -145,11 +158,79 @@ class GlideinDescript(ConfigFile):
                             repr) # convert everything in strings
         if self.data['PubKeyType']=='None':
             self.data['PubKeyType']=None
+        self.default_rsakey_fname = 'rsa.key'
+        self.backup_rsakey_fname = 'rsa.key.bak'
 
-    # define PubKeyObj
+
+    def backup_and_load_old_key(self):
+        """
+        Backup existing key and load the key object
+        """
+ 
+        if self.data['PubKeyType'] != None:
+            self.backup_rsa_key()
+        self.load_old_rsa_key()
+                
+    def backup_rsa_key(self):
+        """
+        Backup existing rsa key.
+        """
+        
+        if self.data['PubKeyType'] == 'RSA':
+            try:
+                shutil.copy(self.default_rsakey_fname, self.backup_rsakey_fname)
+                self.data['OldPubKeyType'] = self.data['PubKeyType']
+                return
+            except:
+                # In case of failure, the requests from frontend get
+                # delayed. So it is not critical enough to fail.
+                pass
+            
+        self.data['OldPubKeyType'] = None
+        self.data['OldPubKeyObj'] = None
+        return
+
+    def load_old_rsa_key(self):
+        """
+        Load the old key object.
+        """
+
+        # Assume that old key if exists is of same type
+        self.data['OldPubKeyType'] = self.data['PubKeyType']
+        self.data['OldPubKeyObj'] = None
+
+        if self.data['OldPubKeyType'] != None:
+            try:
+                self.data['OldPubKeyObj'] = GlideinKey(self.data['OldPubKeyType'],
+                                                       key_fname=self.backup_rsakey_fname)
+            except:
+                self.data['OldPubKeyType'] = None
+                self.data['OldPubKeyObj'] = None
+        return
+
+    def remove_old_key(self):
+        try:
+            os.remove(self.backup_rsakey_fname)
+        except:
+            self.data['OldPubKeyType'] = None
+            self.data['OldPubKeyObj'] = None
+            raise
+        self.data['OldPubKeyType'] = None
+        self.data['OldPubKeyObj'] = None
+        return
+    
     def load_pub_key(self,recreate=False):
+        """
+        Load the key object. Create the key if required
+        
+        @type recreate: bool
+        @param recreate: Create a new key overwriting the old one. Defaults to False
+        """
+        
         if self.data['PubKeyType']!=None:
-            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'],recreate=recreate)
+            self.data['PubKeyObj']=GlideinKey(self.data['PubKeyType'], 
+                                              key_fname=self.default_rsakey_fname,
+                                              recreate=recreate)
         else:
             self.data['PubKeyObj']=None
         return

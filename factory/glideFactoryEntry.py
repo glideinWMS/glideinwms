@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.36 2011/01/27 19:39:32 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.36.4.1 2011/05/24 20:24:59 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -198,6 +198,7 @@ class X509Proxies:
 def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
     entry_name=jobDescript.data['EntryName']
     pub_key_obj=glideinDescript.data['PubKeyObj']
+    old_pub_key_obj = glideinDescript.data['OldPubKeyObj']
 
     # Get information about which VOs to allow for this entry point.
     # This will be a comma-delimited list of pairs
@@ -223,6 +224,18 @@ def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescri
                                           glideFactoryLib.factoryConfig.supported_signtypes,
                                           pub_key_obj,allowed_proxy_source)
     
+    if (len(work.keys())==0) and (old_pub_key_obj != None):
+        # Could not find work to do using pub key and we do have a valid old 
+        # pub key object. Either there is really no work or the frontend is 
+        # still using the old key in this cycle
+        glideFactoryLib.log_files.logActivity("Could not find work to do using the existing key. Trying to find work using old factory key.")
+        work = glideFactoryInterface.findWork(
+                   glideFactoryLib.factoryConfig.factory_name,
+                   glideFactoryLib.factoryConfig.glidein_name, entry_name,
+                   glideFactoryLib.factoryConfig.supported_signtypes,
+                   old_pub_key_obj, allowed_proxy_source)
+        if len(work.keys())>0:
+            glideFactoryLib.log_files.logActivity("Found work to do using old factory key.")
     if len(work.keys())==0:
         return 0 # nothing to be done
 
@@ -661,11 +674,25 @@ def iterate(parent_pid,sleep_time,advertize_rate,
     is_first=1
     count=0;
 
+    # Record the starttime so we know when to disable the use of old pub key
+    starttime = time.time()
+    # The grace period should be in the factory config. Use it to determine
+    # the end of lifetime for the old key object. Hardcoded for now to 30 mins.
+    oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
+    oldkey_eoltime = starttime + oldkey_gracetime
+    
     glideFactoryLib.factoryConfig.log_stats=glideFactoryMonitoring.condorLogSummary()
     glideFactoryLib.factoryConfig.rrd_stats = glideFactoryMonitoring.FactoryStatusData()
     factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
     while 1:
         check_parent(parent_pid,glideinDescript,jobDescript)
+        if ( (time.time() > oldkey_eoltime) and 
+             (glideinDescript.data['OldPubKeyObj'] != None) ):
+            # Invalidate the use of factory's old key
+            glideFactoryLib.log_files.logActivity("Retiring use of old key.")
+            glideFactoryLib.log_files.logActivity("Old key was valid from %s to %s ie grace of ~%s sec" % (starttime,oldkey_eoltime,oldkey_gracetime))
+            glideinDescript.data['OldPubKeyType'] = None
+            glideinDescript.data['OldPubKeyObj'] = None
         in_downtime=(factory_downtimes.checkDowntime(entry="factory") or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
         if in_downtime:
             glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
@@ -721,6 +748,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
     glideinDescript=glideFactoryConfig.GlideinDescript()
 
     glideinDescript.load_pub_key()
+    glideinDescript.load_old_rsa_key()
     if not (entry_name in string.split(glideinDescript.data['Entries'],',')):
         raise RuntimeError, "Entry '%s' not supported: %s"%(entry_name,glideinDescript.data['Entries'])
 
@@ -792,7 +820,7 @@ def main(parent_pid,sleep_time,advertize_rate,startup_dir,entry_name):
         tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                         sys.exc_info()[2])
         glideFactoryLib.log_files.logWarning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
-        glideFactoryLib.log_files.logDebug("Exception occurred: %s" % tb)    
+        glideFactoryLib.log_files.logDebug("Exception occurred while trying to retrieve the glideinwms version: %s" % tb)    
 
 
     # create lock file

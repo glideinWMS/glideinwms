@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.10.16.1 2011/03/28 23:23:27 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.16.2 2011/05/24 20:24:59 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -184,10 +184,11 @@ def spawn(sleep_time,advertize_rate,startup_dir,
     global STARTUP_DIR
     childs={}
 
+    starttime = time.time()
+    oldkey_gracetime = int(glideinDescript.data['OldPubKeyGraceTime'])
+    oldkey_eoltime = starttime + oldkey_gracetime
+    
     childs_uptime={}
-    # Allow max 3 restarts every 30 min before giving up
-    #restart_attempts = 3
-    #restart_interval = 1800
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
@@ -210,6 +211,23 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         while 1:
+            # THIS IS FOR SECURITY
+            # Make sure you delete the old key when its grace is up.
+            # If a compromised key is left around and if attacker can somehow 
+            # trigger FactoryEntry process crash, we do not want the entry to pick up 
+            # the old key again when factory auto restarts it.  
+            if ( (time.time() > oldkey_eoltime) and 
+             (glideinDescript.data['OldPubKeyObj'] != None) ):
+                glideinDescript.data['OldPubKeyObj'] = None
+                glideinDescript.data['OldPubKeyType'] = None
+                try:
+                    glideinDescript.remove_old_key()
+                    glideFactoryLib.log_files.logActivity("Removed the old public key after it's grace time of %s seconds" % oldkey_gracetime)
+                except:
+                    # Do not crash if delete fails. Just log it.
+                    glideFactoryLib.log_files.logActivity("Failed to remove the old public key after it's grace time")
+                    glideFactoryLib.log_files.logWarning("Failed to remove the old public key after it's grace time")
+
             glideFactoryLib.log_files.logActivity("Checking entries %s"%entries)
             for entry_name in childs.keys():
                 child=childs[entry_name]
@@ -293,6 +311,12 @@ def spawn(sleep_time,advertize_rate,startup_dir,
         
 ############################################################
 def main(startup_dir):
+    """
+    Reads in the configuration file and starts up the factory
+    
+    @type startup_dir: String 
+    @param startup_dir: Path to glideinsubmit directory
+    """
     
     startup_time=time.time()
 
@@ -317,7 +341,6 @@ def main(startup_dir):
                                                        float(glideinDescript.data['LogRetentionMaxDays']),
                                                        float(glideinDescript.data['LogRetentionMinDays']),
                                                        float(glideinDescript.data['LogRetentionMaxMBs']))
-    
 
     try:
         os.chdir(startup_dir)
@@ -328,16 +351,13 @@ def main(startup_dir):
         raise
 
     try:
-        os.chdir(startup_dir)
-    except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        glideFactoryLib.log_files.logWarning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
-        raise
-
-    try:
+        # First back and load any existing key
+        glideFactoryLib.log_files.logActivity("Backing up and loading old key")
+        glideinDescript.backup_and_load_old_key()
+        # Create a new key for this run
+        glideFactoryLib.log_files.logActivity("Recreating and loading new key")
         glideinDescript.load_pub_key(recreate=True)
-
+        
         glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name="%s@%s"%(glideinDescript.data['GlideinName'],glideinDescript.data['FactoryName'])
 
         # check that the GSI environment is properly set
