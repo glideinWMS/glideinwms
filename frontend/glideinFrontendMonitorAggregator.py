@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.6 2011/05/18 00:50:45 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.7 2011/05/24 19:17:30 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -98,30 +98,35 @@ def aggregateStatus():
           # first time after upgrade factories may not be defined
           status['groups'][group]={'factories':{}}
 
-        for fact in status['groups'][group]['factories'].keys():
+        this_group=status['groups'][group]
+        for fact in this_group['factories'].keys():
+            this_fact=this_group['factories'][fact]
             if not fact in global_fact_totals.keys():
+                # first iteration through, set fact totals equal to the first group's fact totals
                 global_fact_totals[fact]={}
                 for attribute in type_strings.keys():
-                    if attribute in status['groups'][group]['factories'][fact].keys():
+                    if attribute in this_fact.keys():
                         global_fact_totals[fact][attribute]={}
-                        for type_attribute in status['groups'][group]['factories'][fact][attribute].keys():
+                        for type_attribute in this_fact[attribute].keys():
+                            this_type_attribute=this_fact[attribute][type_attribute]
                             try:
-                                global_fact_totals[fact][attribute][type_attribute]=int(status['groups'][group]['factories'][fact][attribute][type_attribute])
+                                global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
                             except:
                                 pass
             else:
+                # next iterations, factory already present in global fact totals, add the new factory values to the previous ones
                 for attribute in type_strings.keys():
-                    if attribute in status['groups'][group]['factories'][fact].keys():
-                        for type_attribute in status['groups'][group]['factories'][fact][attribute].keys():
-
-                            if type(status['groups'][group]['factories'][fact][attribute][type_attribute])==type(global_fact_totals):
-                                # dist, do nothing
+                    if attribute in this_fact.keys():
+                        for type_attribute in this_fact[attribute].keys():
+                            this_type_attribute=this_fact[attribute][type_attribute]
+                            if type(this_type_attribute)==type(global_fact_totals):
+                                # dict, do nothing
                                 pass
                             else:
                                 if type_attribute in global_fact_totals[fact][attribute].keys(): 
-                                   global_fact_totals[fact][attribute][type_attribute]+=int(status['groups'][group]['factories'][fact][attribute][type_attribute])
+                                   global_fact_totals[fact][attribute][type_attribute]+=int(this_type_attribute)
                                 else:
-                                   global_fact_totals[fact][attribute][type_attribute]=int(status[fact]['groups'][group]['factories'][fact][attribute][type_attribute])
+                                   global_fact_totals[fact][attribute][type_attribute]=int(this_type_attribute)
         #nr_groups+=1
         #status['groups'][group]={}
 
