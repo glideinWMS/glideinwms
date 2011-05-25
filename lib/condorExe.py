@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: condorExe.py,v 1.9 2011/02/10 21:35:31 parag Exp $
+#   $Id: condorExe.py,v 1.10 2011/05/25 21:43:01 tiradani Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands
@@ -16,6 +16,8 @@ import os
 import os.path
 import popen2
 import string
+import select
+import cStringIO
 
 class UnconfigError(RuntimeError):
     def __init__(self, error_msg):
@@ -73,27 +75,64 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None):
 ############################################################
 
 # can throw ExeError
-def iexe_cmd(cmd,stdin_data=None):
-    child=popen2.Popen3(cmd,True)
-    if stdin_data!=None:
-        child.tochild.write(stdin_data)
-    child.tochild.close()
-    tempOut = child.fromchild.readlines()
-    child.fromchild.close()
-    tempErr = child.childerr.readlines()
-    child.childerr.close()
+def iexe_cmd(cmd, stdin_data=None):
+    """Fork a process and execute cmd - rewritten to use select to avoid filling
+    up stderr and stdout queues.
+
+    @type cmd: string
+    @param cmd: Sting containing the entire command including all arguments
+    @type stdin_data: string
+    @param stdin_data: Data that will be fed to the command via stdin
+    """
     try:
-        errcode = child.wait()
-    except OSError, e:
-        if len(tempOut)!=0:
-            # if there was some output, it is probably just a problem of timing
-            # have seen a lot of those when running very short processes
-            errcode = 0
-        else:
-            raise ExeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, tempOut, tempErr, e)
-    if (errcode != 0):
-        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, errcode, tempErr)
-    return tempOut
+        child = popen2.Popen3(cmd, capturestderr=True)
+
+        if stdin_data != None:
+            child.tochild.write(stdin_data)
+
+        child.tochild.close()
+
+        stdout = child.fromchild
+        stderr = child.childerr
+
+        outfd = stdout.fileno()
+        errfd = stderr.fileno()
+
+        outeof = erreof = 0
+        outdata = cStringIO.StringIO()
+        errdata = cStringIO.StringIO()
+
+        fdlist = [outfd, errfd]
+        while fdlist:
+            ready = select.select(fdlist, [], [])
+            if outfd in ready[0]:
+                outchunk = stdout.read()
+                if outchunk == '':
+                    fdlist.remove(outfd)
+                else:
+                    outdata.write(outchunk)
+
+            if errfd in ready[0]:
+                errchunk = stderr.read()
+                if errchunk == '':
+                    fdlist.remove(errfd)
+                else:
+                    errdata.write(errchunk)
+
+        exitStatus = child.wait()
+        outdata.seek(0)
+        errdata.seek(0)
+
+        if exitStatus:
+            raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), error_str)
+
+        return outdata.readlines()
+    except OSError, ex:
+        raise ExeError, "OS Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
+
+    except Exception, ex:
+        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
+
 
 #
 # Set condor_bin_path
