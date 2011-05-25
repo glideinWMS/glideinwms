@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.14.4.1 2011/03/28 22:53:31 sfiligoi Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.14.4.2 2011/05/25 18:26:43 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -74,6 +74,7 @@ class MonitoringConfig:
             for job_id in job_ids:
                 el=entered_dict[job_id]
                 username=el['username']
+                username=username.split(":")[0]
                 jobs_duration=el['jobs_duration']
                 waste_mill=el['wastemill']
                 fd.write(("<job %37s %34s %22s %17s %17s %22s %24s>"%(('terminated="%s"'%timeConversion.getISO8601_Local(now)),
