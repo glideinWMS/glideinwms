@@ -432,15 +432,20 @@ How many slave collectors do you want?: [10] <b>10</b>
     <h3>7.1 Increase the number of available file descriptors</h3>
 
     <p>
-        Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
-        of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in
-        the queue at any given time. This is particularly required for large scale installations.
+        
+        The default number of file descriptors per process is 1024 on most systems. 
+        Increase this limit for large scale installations if you are running
+        into problems.  The below shows one example of how to do this.
         <blockquote>
         ulimit -n <i>16384</i>
         </blockquote>
-        <br><br>
-        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/init.d/condor.   This
-        is a good place to set higher file descriptor limit for the schedd process.  Condor can also be started using the xinetd mechanism, so make sure to check the configuration in /etc/xinet.d if you are using this functionality.
+        <br>
+        One note is that this may increase the amount of memory used by
+        condor shadow processes.  If this becomes the case, you may need
+        to change the condor shadows to have a smaller table size, ie.
+        <blockquote>
+        SHADOW_MAX_FILE_DESCRIPTORS = 100
+        </blockquote>
     </p>
     <p>
         For more information on advanced condor installations and multiple
