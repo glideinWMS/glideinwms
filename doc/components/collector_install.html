@@ -426,6 +426,30 @@ How many slave collectors do you want?: [10] <b>10</b>
 
 
 </div>
+<div class="section">
+
+    <h2><a name="fine_tune">7. Fine Tunning for Large Scale Installations</a></h2>
+    <h3>7.1 Increase the number of available file descriptors</h3>
+
+    <p>
+        Number of ports used by the condor_schedd process increases as the number of jobs running/queued in the schedd increase. The default number
+        of file descriptors per process is 1024 on most systems. Increase this limit to ~16k or value higher than number of jobs that might be in
+        the queue at any given time. This is particularly required for large scale installations.
+        <blockquote>
+        ulimit -n <i>16384</i>
+        </blockquote>
+        <br><br>
+        In most cases for default installation, user schedd is configured to start as root and started through the script in /etc/init.d/condor.   This
+        is a good place to set higher file descriptor limit for the schedd process.  Condor can also be started using the xinetd mechanism, so make sure to check the configuration in /etc/xinet.d if you are using this functionality.
+    </p>
+    <p>
+        For more information on advanced condor installations and multiple
+        schedds, see the <a href="./condor.html">Advanced Condor</a> page.
+    </p>
+</div>
+
+
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
