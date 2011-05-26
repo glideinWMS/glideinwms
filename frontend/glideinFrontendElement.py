@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.11 2011/05/26 22:11:28 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.12 2011/05/26 23:12:39 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -494,8 +494,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             
             if glidein_min_idle>max_idle:
                 glidein_min_idle=max_idle # but never go above max
-            if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
-                glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
+            if glidein_min_idle>(max_running-count_status['Total']+glidein_idle_reserve):
+                glidein_min_idle=(max_running-count_status['Total']+glidein_idle_reserve) # don't go over the max_running
             if glidein_min_idle>(total_max_glideins-total_glideins+glidein_idle_reserve):
                 # don't go over the system-wide max
                 # not perfect, given te number of entries, but better than nothing
