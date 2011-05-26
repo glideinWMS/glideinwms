@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.22 2011/05/26 22:42:57 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.23 2011/05/26 23:07:14 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -480,8 +480,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             
             if glidein_min_idle>max_idle:
                 glidein_min_idle=max_idle # but never go above max
-            if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
-                glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
+            if glidein_min_idle>(max_running-count_status['Total']+glidein_idle_reserve):
+                glidein_min_idle=(max_running-count_status['Total']+glidein_idle_reserve) # don't go over the max_running
             if count_status['Idle']>=curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
             if glidein_min_idle<1:
