@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: condorExe.py,v 1.10 2011/05/25 21:43:01 tiradani Exp $
+# File Version:
+#   $Id: condorExe.py,v 1.11 2011/05/26 15:05:32 tiradani Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands
@@ -124,13 +124,18 @@ def iexe_cmd(cmd, stdin_data=None):
         errdata.seek(0)
 
         if exitStatus:
+            error_str = str(errdata.read())
             raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), error_str)
 
         return outdata.readlines()
     except OSError, ex:
+        output_str = str(outdata.read())
+        error_str = str(errdata.read())
         raise ExeError, "OS Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
 
     except Exception, ex:
+        output_str = str(outdata.read())
+        error_str = str(errdata.read())
         raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
 
 
@@ -160,7 +165,7 @@ def init1():
                     condor_config = os.environ["CONDOR_CONFIG"]
                 else:
                     condor_config = "/etc/condor/condor_config"
-                
+
                 try:
                     # BIN = <path>
                     bin_def = iexe_cmd('grep "^ *BIN" %s' % condor_config)
@@ -198,7 +203,7 @@ def init2():
                     condor_config=os.environ["CONDOR_CONFIG"]
                 else:
                     condor_config="/etc/condor/condor_config"
-                
+
                 try:
                     # BIN = <path>
                     bin_def=iexe_cmd('grep "^ *SBIN" %s'%condor_config)
