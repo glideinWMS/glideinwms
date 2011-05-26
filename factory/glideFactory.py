@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.10.16.2 2011/05/24 20:24:59 sfiligoi Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.16.3 2011/05/26 20:57:29 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -114,6 +114,22 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
             crashing_often = True
 
     return crashing_often
+
+def is_file_old(filename, allowed_time):
+    """
+    Check if the file is older than given time
+
+    @type filename: String 
+    @param filename: Full path to the file
+    @type allowed_time: long
+    @param allowed_time: Time is second
+    
+    @rtype: bool
+    @return: True if file is older than the given time, else False 
+    """
+    if (time.time() > (os.path.getmtime(filename) + allowed_time)):
+        return True
+    return False
 
 ############################################################
 def clean_exit(childs):
@@ -351,12 +367,22 @@ def main(startup_dir):
         raise
 
     try:
-        # First back and load any existing key
-        glideFactoryLib.log_files.logActivity("Backing up and loading old key")
-        glideinDescript.backup_and_load_old_key()
-        # Create a new key for this run
-        glideFactoryLib.log_files.logActivity("Recreating and loading new key")
-        glideinDescript.load_pub_key(recreate=True)
+        
+        if (is_file_old(glideinDescript.default_rsakey_fname, 
+                        int(glideinDescript.data['OldPubKeyGraceTime']))):
+            # First back and load any existing key
+            glideFactoryLib.log_files.logActivity("Backing up and loading old key")
+            glideinDescript.backup_and_load_old_key()
+            # Create a new key for this run
+            glideFactoryLib.log_files.logActivity("Recreating and loading new key")
+            glideinDescript.load_pub_key(recreate=True)
+        else:
+            # Key is recent enough. Just reuse them.
+            glideFactoryLib.log_files.logActivity("Key is recent enough")
+            glideFactoryLib.log_files.logActivity("Reusing key for this run")
+            glideinDescript.load_pub_key(recreate=False)
+            glideFactoryLib.log_files.logActivity("Loading old key")
+            glideinDescript.load_old_rsa_key()
         
         glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name="%s@%s"%(glideinDescript.data['GlideinName'],glideinDescript.data['FactoryName'])
 
