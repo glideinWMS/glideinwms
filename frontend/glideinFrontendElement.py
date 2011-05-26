@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.20 2011/05/24 04:11:38 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.21 2011/05/26 18:33:52 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -463,7 +463,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if effective_idle<0:
             effective_idle=0
 
-        if total_running>=max_running:
+        if count_status['Total']>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
         elif count_status['Idle']>=max_vms_idle:
