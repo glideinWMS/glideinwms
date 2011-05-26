@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.10 2011/05/26 19:32:11 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.11 2011/05/26 22:11:28 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -283,9 +283,16 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                             'Idle':status_dict_types['Idle']['abs'],
                             'Running':status_dict_types['Running']['abs']})
 
-    glideinFrontendLib.log_files.logActivity("Glideins found total %i idle %i running %i"%(status_dict_types['Total']['abs'],
-                                                                                           status_dict_types['Idle']['abs'],
-                                                                                           status_dict_types['Running']['abs']))
+    total_max_glideins=int(elementDescript.element_data['MaxRunningTotal'])
+    total_curb_glideins=int(elementDescript.element_data['CurbRunningTotal'])
+    total_glideins=status_dict_types['Total']['abs']
+    
+    glideinFrontendLib.log_files.logActivity("Glideins found total %i idle %i running %i limit %i curb %i"%
+                                             (total_glideins,
+                                              status_dict_types['Idle']['abs'],
+                                              status_dict_types['Running']['abs'],
+                                              total_max_glideins,total_curb_glideins)
+                                             )
 
     # extract the public key, if present
     for glideid in glidein_dict.keys():
@@ -424,7 +431,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     curb_vms_idle=int(elementDescript.element_data['CurbIdleVMsPerEntry'])
     
     total_running=condorq_dict_types['Running']['total']
-    glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i limit %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running,max_running))
+    glideinFrontendLib.log_files.logActivity("Total matching idle %i (old %i) running %i"%(condorq_dict_types['Idle']['total'],condorq_dict_types['OldIdle']['total'],total_running))
 
 
     glideid_list=glidein_dict.keys()
@@ -473,6 +480,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         elif count_status['Idle']>=max_vms_idle:
             # enough idle vms, do not ask for more
             glidein_min_idle=0
+        elif total_glideins>=total_max_glideins:
+            # reached the system-wide limit
+            glidein_min_idle=0
         elif (effective_idle>0):
             glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
@@ -486,8 +496,14 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                 glidein_min_idle=max_idle # but never go above max
             if glidein_min_idle>(max_running-total_running+glidein_idle_reserve):
                 glidein_min_idle=(max_running-total_running+glidein_idle_reserve) # don't go over the max_running
+            if glidein_min_idle>(total_max_glideins-total_glideins+glidein_idle_reserve):
+                # don't go over the system-wide max
+                # not perfect, given te number of entries, but better than nothing
+                glidein_min_idle=(total_max_glideins-total_glideins+glidein_idle_reserve)
             if count_status['Idle']>=curb_vms_idle:
                 glidein_min_idle/=2 # above first treshold, reduce
+            if total_glideins>=total_curb_glideins:
+                glidein_min_idle/=2 # above global treshold, reduce
             if glidein_min_idle<1:
                 glidein_min_idle=1
         else:

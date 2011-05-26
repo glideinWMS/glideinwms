@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.6 2010/11/05 17:08:14 parag Exp $
+#   $Id: cvWParams.py,v 1.40.2.6.14.1 2011/05/26 22:09:23 sfiligoi Exp $
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -50,6 +50,11 @@ class VOFrontendParams(cWParams.CommonParams):
         group_config_running_defaults["max"]=['10000',"nr_jobs","What is the max number of running glideins I want to get to",None]
         group_config_running_defaults["relative_to_queue"]=['1.15',"fraction","Max relative to number of matching jobs in the queue.",None]
         group_config_defaults['running_glideins_per_entry']=group_config_running_defaults
+
+        group_config_running_total_defaults=cWParams.commentedOrderedDict()
+        group_config_running_total_defaults["max"]=['100000',"nr_jobs","What is the max number of running glideins I want to get to - globally",None]
+        group_config_running_total_defaults["curb"]=['90000',"nr_jobs","When should I start curbing glidein submission",None]
+        group_config_defaults['running_glideins_total']=group_config_running_total_defaults
 
         group_config_idle_defaults=cWParams.commentedOrderedDict()
         group_config_idle_defaults["max"]=['100',"nr_jobs","How much pressure should I apply to the entry points",None]
