@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.9 2011/05/26 18:49:32 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.10 2011/05/26 19:32:11 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -220,7 +220,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             if x509_proxy_plugin!=None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
-            status_dict=glideinFrontendLib.getCondorStatus([None],'True',status_format_list) # use the main collector... all adds must go there
+            status_dict=glideinFrontendLib.getCondorStatus([None],'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),status_format_list) # use the main collector... all adds must go there
 
             os.write(w,cPickle.dumps(status_dict))
         finally:
