@@ -19,10 +19,12 @@ if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"lib"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"factory"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"frontend"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"factory/tools"))
 else:
     sys.path.append(os.path.join(unittest_dir,"../lib"))
     sys.path.append(os.path.join(unittest_dir,"../factory"))
     sys.path.append(os.path.join(unittest_dir,"../frontend"))
+    sys.path.append(os.path.join(unittest_dir,"../factory/tools"))
 
 def runTest(cls):
     """
