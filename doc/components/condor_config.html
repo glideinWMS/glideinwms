@@ -1,0 +1,439 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
+  <title>glideinWMS</title>
+  <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
+</head>
+
+<body lang="en-US" dir="ltr">
+    <h1>
+        <a href="index.html">GlideinWMS</a>
+	<span>The Glidein-based Workflow Management System</span>
+    </h1>
+    <ul class="breadcrumbs">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="./index.html">Components</a></li>
+        <li>Condor Configuration Attributes</li>
+    </ul>
+
+    <div class="clear" />
+
+    <div class="leftmenu">
+        <ul class="components">
+	        <li> <a href="../index.html">Home</a></li>
+	        <li> <a href="../download.html">Download</a></li>
+	        <li> <a href="../frontend/index.html">Glidein Frontend</a></li>
+            <li> <a href="../corral.html">Corral Frontend</a></li>
+	        <li> <a href="../factory/index.html">WMS Factory</a></li>
+	        <li> <a href="../components/index.html" >Components</a></li>
+	        <li> <a href="../components/faq.html" class="last">FAQ</a></li>
+        </ul>
+        <div class="search">
+            <div id="cse-search-form" style="width: 100%;">Loading</div>
+            <script src="http://www.google.com/jsapi" type="text/javascript"></script>
+            <script src="../common/glidein.js" type="text/javascript"></script>
+            <script type="text/javascript">
+            google.load('search', '1', {language : 'en', style : google.loader.themes.MINIMALIST});
+            google.setOnLoadCallback(onLoad);
+            </script>
+        </div>
+    </div>
+    <div id="searchcontent"><h2>Search Results</h2><div id="cse"></div> </div>
+
+<div class="content">
+    <div class="heading">
+        <h2>Components</h2>
+	<ul class="subcomponents">
+	     <li> <a href="./index.html">Overview</a></li>
+	     <li> <a href="./prerequisites.html">Prerequisites</a></li>
+	     <li> <a href="./collector_install.html">User Collector</a></li>
+	     <li> <a href="./pool_install.html">User Schedd</a></li>
+             <li> <a href="./gsi.html">GSI</a></li>
+	     <li class="last">Condor</li>
+	</ul>
+        <h3>Condor Configuration Attributes</h3>
+    </div>
+
+<div class="jump">
+  <u>Jump to:</u>
+    <ol>
+    </ol>
+</div>
+
+<div class="related">
+  Related Links:
+  <ul>
+    <li><a target="_blank" href="http://www.cs.wisc.edu/condor/">Condor Website</a></li>
+    <li><a href="./index.html">More GlideinWMS Condor Topics</a></li>
+  </ul>
+</div>
+
+<div class="section">
+  <h2>Reference Guide to Condor Configuration Attributes</h2>
+  <p>
+  The tables below acts as a reference guide for condor_config attributes
+  for glideinWMS.
+  </p>
+</div>
+
+<div class="section">
+<table class="requirements"> <tbody>
+<tr class="head">
+   <td align="center">GlideinWMS<br/>Service</td>
+                  <td>Attribute</td>
+                  <td>Description</td>
+  </tr>
+<!--  Base configuration -->
+<tr>
+  <td rowspan="15" align="center" valign="top">ALL
+  </td>
+  <td>CONDOR_IDS = 500.500
+  </td>
+  <td>Condor user (uid.gid)
+   </td>
+</tr>
+<tr>
+   <td>CONDOR_ADMIN = user at domain
+   </td>
+   <td>Contact, via email, when problems occur
+   </td>
+   </tr>
+<tr>
+   <td>UID_DOMAIN=$(FULL_HOSTNAME)
+   </td>
+   <td>
+   </td>
+</tr>
+<tr>
+   <td>FILESYSTEM_DOMAIN=$(FULL_HOSTNAME)
+   </td>
+   <td>With glideins, there is nothing shared
+   </td>
+</tr>
+<tr>
+   <td>LOCK = $(LOG)
+   </td>
+   <td>Condor lock files to synchronize access to  various log files.<br/>
+       They use the log directory so they are collocated.
+   </td>
+</tr>
+
+<tr>
+   <td>DAEMON_LIST = MASTER, COLLECTOR, NEGOTIATOR, SCHEDD
+   </td>
+   <td>Condor daemons.<br/>
+       The WMS Collector services will have the list shown above.<br/>
+       The User Collector service uses all but the SCHEDD.<br/>
+       The Submit service uses only the SCHEDD.<br/>
+       The Frontend service is a client only instance and will have
+       a 'DAEMON_SHUTDOWN = True' to insure no daemons are started 
+       accidently. 
+  </td>
+  </tr>
+
+<tr>
+   <td>SEC_DAEMON_SESSION_DURATION = 50000
+   </td>
+   <td>Limit session caching to 12 hours
+  </td>
+</tr>
+
+<!--  Security -->
+<tr>
+   <td>SEC_DEFAULT_AUTHENTICATION = REQUIRED<br/>
+       SEC_DEFAULT_AUTHENTICATION_METHODS = FS,GSI<br/>
+       SEC_READ_AUTHENTICATION    = OPTIONAL<br/>
+       SEC_CLIENT_AUTHENTICATION  = OPTIONAL<br/>
+       DENY_WRITE         = anonymous@*<br/>
+       DENY_ADMINISTRATOR = anonymous@*<br/>
+       DENY_DAEMON        = anonymous@*<br/>
+       DENY_NEGOTIATOR    = anonymous@*<br/>
+       DENY_CLIENT        = anonymous@*
+   </td>
+   <td>Authentication settings
+   </td>
+  </tr>
+<tr>
+   <td>SEC_DEFAULT_ENCRYPTION = OPTIONAL<br/>
+       SEC_DEFAULT_INTEGRITY = REQUIRED<br/>
+       SEC_READ_INTEGRITY = OPTIONAL<br/>
+       SEC_CLIENT_INTEGRITY = OPTIONAL<br/>
+       SEC_READ_ENCRYPTION = OPTIONAL<br/>
+       SEC_CLIENT_ENCRYPTION = OPTIONAL
+  </td>
+  <td>Privacy settings
+  </td>
+  </tr>
+<tr>
+  <td>GSI_DAEMON_TRUSTED_CA_DIR = full_path_to_CA_directory
+  </td>
+  <td>Certificate directory
+  </td>
+  </tr>
+<tr>
+  <td>GSI_DAEMON_CERT = full_path_to_your_hostcert.pem<br/>
+      GSI_DAEMON_KEY  = full_path_to_the_hostkey.pem
+  </td>
+  <td>Credentials
+  </td>
+  </tr>
+
+<tr>
+   <td>GSI_DAEMON_DIRECTORY = full_path_to_your_condor_mapfile_directory
+   </td>
+   <td>Set daemon cert location
+  </td>
+  </tr>
+
+<tr>
+  <td>CERTIFICATE_MAPFILE = full_path_to_the_condor_mapfile
+  </td>
+  <td>Condor mapfile
+  </td>
+  </tr>
+
+<tr>
+  <td>HOSTALLOW_WRITE = *<br/>
+      ALLOW_WRITE = $(HOSTALLOW_WRITE)
+  </td>
+  <td>With strong security, do not use IP based controls<br/>
+      <font color="blue">Condor 7.4+ only</font>
+  </td>
+  </tr>
+
+<tr>
+  <td>GSI_DAEMON_NAME=
+  </td>
+  <td>Identity of the GlideinWMS services used to authenenticate when 
+      communicating between serrvices.
+      This is a comma separated list of their identities (DNs).
+  </td>
+  </tr>
+
+
+
+<!--  Negotiator -->
+<tr>
+  <td rowspan="10" align="center" valign="top">WMS Collector<br/>
+                  User Collector
+  </td>
+  <td>NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom
+  </td>
+  <td>Prefer newer claims as they are more likely to be alive
+  </td>
+  </tr>
+<tr>
+  <td>NEGOTIATOR_INTERVAL = 60<br/>
+    NEGOTIATOR_MAX_TIME_PER_SUBMITTER=40<br/>
+    NEGOTIATOR_MAX_TIME_PER_PIESPIN=20
+  </td>
+  <td>Increase negotiation frequency, as new glideins do not trigger a reschedule
+  </td>
+  </tr>
+<tr>
+  <td>PREEMPTION_REQUIREMENTS = False
+  </td>
+  <td>Prevent preemption
+  </td>
+  </tr>
+<tr>
+  <td>NEGOTIATOR_INFORM_STARTD = False
+  </td>
+  <td>Negotiator/GCB optimization
+  </td>
+  </tr>
+<tr>
+  <td>NEGOTIATOR.USE_VOMS_ATTRIBUTES = False
+  </td>
+  <td>Disable checking for VOMS extended attributes (FQAN)
+  </td>
+  </tr>
+<tr>
+  <td>NEGOTIATOR_CONSIDER_PREEMPTION = False</td>
+  <td>Causes Negotiator to run faster. PREEMPTION_REQUIREMENTS and all 
+      condor_startd rank expressions must be False for
+      NEGOTIATOR_CONSIDER_PREEMPTION to be False
+  </td>
+  </tr>
+<!--  Collector -->
+<tr>
+  <td>COLLECTOR_NAME = wms_service</td>
+  <td></td>
+  </tr>
+<tr>
+  <td>COLLECTOR_HOST = $(CONDOR_HOST):9618</td>
+  <td></td>
+  </tr>
+<tr>
+  <td>COLLECTOR.USE_VOMS_ATTRIBUTES = False</td>
+  <td>Disable checking for VOMS extended attributes (FQAN)</td>
+  </tr>
+
+<!--  Secondary Collectors -->
+<tr>
+  <td>COLLECTOR0 = $(COLLECTOR)<br/>
+      COLLECTOR0_ENVIRONMENT = "_CONDOR_COLLECTOR_LOG=$(LOG)/Collector0Log"<br/>
+      COLLECTOR0_ARGS = -f -p 9641<br/>
+      DAEMON_LIST = $(DAEMON_LIST), COLLECTOR0<br/>
+  </td>
+  <td valign="top">
+      Attributes for secondary collectors.<br/><br/>
+      For <b>each</b> secondary Condor collector desired, the attributes specified
+      must be set.
+  </td>
+  </tr>
+
+<!--  Schedd -->
+<tr>
+  <td rowspan="13" align="center" valign="top">WMS Collector<br/>
+                   Submit
+  </td>
+  <td>MAX_JOBS_RUNNING = 6000
+  </td>
+  <td>Allow up to 6K concurrent running jobs.
+  </td>
+  </tr>
+<tr>
+  <td>JOB_START_DELAY = 2<br/>
+      JOB_START_COUNT = 50
+  </td>
+  <td>Start max of 50 jobs every 2 seconds
+  </td>
+  </tr>
+<tr>
+  <td>JOB_STOP_DELAY = 1<br/>
+      JOB_STOP_COUNT = 30
+  </td>
+  <td>Stop 30 jobs every seconds<br/>
+      This is needed to prevent glexec overload, when used<br/>
+      Works for Condor v7.3.1 and up only, but harmless for older versions
+  </td>
+  </tr>
+<tr>
+  <td>MAX_CONCURRENT_UPLOADS = 0<br/>
+      MAX_CONCURRENT_DOWNLOADS = 100</td>
+  <td>Raise file transfer limits.<br/>
+      No upload limits, since JOB_START_DELAY limits that.
+      But do limit downloads, as they are asyncronous</td>
+  </tr>
+<tr>
+  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)</td>
+  <td>Prevent checking on ImageSize</td>
+  </tr>
+<tr>
+  <td>MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7</td>
+  <td>Prevent preemption</td>
+  </tr>
+<tr>
+  <td>SCHEDD_SEND_VACATE_VIA_TCP = True<br/>
+      STARTD_SENDS_ALIVES = True</td>
+  <td>GCB optimization</td>
+  </tr>
+<tr>
+  <td>ENABLE_USERLOG_FSYNC = False</td>
+  <td>Reduce disk IO - paranoid fsyncs are usully not needed</td>
+  </tr>
+<tr>
+  <td>SHADOW.GLEXEC_STARTER = True<br/>
+      SHADOW.GLEXEC = /bin/false</td>
+  <td>Prepare the Shadow for use with glexec-enabled glideins</td>
+  </tr>
+<tr>
+  <td>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE<br/>
+  <td>WMS Collector only and only if you have enabled the USE_MATCH_AUTH attribute 
+      in the Factory configuration file.</td>
+  </tr>
+<tr>
+  <td>SHADOW_WORKLIFE = 0</td>
+  <td>This is a workaround to a Condor problem 
+      if SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE and Condor 
+      version &lt;= 7.5.3<br/>
+      See Condor ticket 
+     <a href="https://condor-wiki.cs.wisc.edu/index.cgi/tktview?tn=1481">1481</a>
+  </td>
+  </tr>
+
+<!--  Multiple Schedds -->
+<tr>
+  <td>SCHEDDGLIDEINS2                      = $(SCHEDD)<br/>
+  SCHEDDGLIDEINS2_ARGS                 = -local-name scheddglideins2<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME   = schedd_glideins2<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_LOG    = $(LOG)/SchedLog.$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME)<br/>
+  SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR     = $(LOCAL_DIR)/$(SCHEDD.SCHEDDGLIDEINS2.SCHEDD_NAME)<br/>
+  SCHEDD.SCHEDDGLIDEINS2.EXECUTE       = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/execute<br/>
+  SCHEDD.SCHEDDGLIDEINS2.LOCK          = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/lock<br/>
+  SCHEDD.SCHEDDGLIDEINS2.PROCD_ADDRESS = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/procd_pipe<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SPOOL         = $(SCHEDD.SCHEDDGLIDEINS2.LOCAL_DIR)/spool<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_ADDRESS_FILE   = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_address<br/>
+  SCHEDD.SCHEDDGLIDEINS2.SCHEDD_DAEMON_AD_FILE = $(SCHEDD.SCHEDDGLIDEINS2.SPOOL)/.schedd_classad<br/>
+  <br/>
+  DAEMON_LIST = $(DAEMON_LIST), SCHEDDGLIDEINS2<br/>
+  DC_DAEMON_LIST = +  SCHEDDGLIDEINS2
+  </td>
+  <td valign="top">
+    Atttributes for defining multiple schedds.<br/><br/>
+    The capability to define multiple SCHEDD daemons as a Condor attribute is 
+    available in Condor 7.5+.<br/><br/>
+    The execute, lock and spool directories for each schedd must be created manually.
+  </td>
+  </tr>
+
+<!--  Shared schedd ports -->
+<tr>
+  <td>
+   SHADOW.USE_SHARED_PORT = True<br/>
+   SCHEDD.USE_SHARED_PORT = True<br/>
+   SCHEDD.SHARED_PORT_ARGS = -p 9615<br/>
+   DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT
+  </td>
+  <td valign="top">
+   SCHEDD Shared Ports<br/><br/>
+   Available only in Condor 7.5.3+.
+   </td>
+  </tr>
+
+<!--  Condor-G -->
+<tr>
+   <td  align="center" valign="top">WMS Collector</td>
+   <td>
+     GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)<br/>
+     GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000<br/>
+     GRIDMANAGER_MAX_PENDING_SUBMITS_PER_RESOURCE=5000<br/>
+     GRIDMANAGER_MAX_PENDING_REQUESTS=500
+  </td>
+  <td valign="top">Condor-G attributes
+  </td>
+  </tr>
+
+<!--  user job attributes -->
+<tr>
+  <td align="center" valign="top">Submit</td>
+  <td>
+    JOB_Site = "$$(GLIDEIN_Site:Unknown)"<br/>
+    JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)<br/>
+    JOB_GLIDEIN_Name = "$$(GLIDEIN_Name:Unknown)<br/>
+    JOB_GLIDEIN_Factory = "$$(GLIDEIN_Factory:Unknown)<br/>
+    JOB_GLIDEIN_Schedd = "$$(GLIDEIN_Schedd:Unknown)<br/>
+    JOB_GLIDEIN_ClusterId = "$$(GLIDEIN_ClusterId:Unknown)<br/>
+    JOB_GLIDEIN_ProcId = "$$(GLIDEIN_ProcId:Unknown)<br/>
+    JOB_GLIDEIN_Site = "$$(GLIDEIN_Site:Unknown)<br/>
+    <br/>
+    SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site
+  </td>
+  <td valign="top">User Job Class Ad Attributes
+  </td>
+  </tr>
+</tbody></table>
+
+</div>
+</div>
+<div class="footer">
+Banner image by
+<a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
+used under Creative Commons license.<br/>
+Original Home URL: <a href="http://www.uscms.org/SoftwareComputing/Grid/WMS/glid%0AeinWMS">http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS</a>.
+glideinWMS email support: glideinwms-support at fnal.gov
+</div>
+</body>
+</html>
