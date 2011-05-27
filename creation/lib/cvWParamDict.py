@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.51 2011/02/10 21:35:30 parag Exp $
+#   $Id: cvWParamDict.py,v 1.52 2011/05/27 01:41:39 sfiligoi Exp $
 #
 # Description: 
 #   Frontend creation module
@@ -459,6 +459,8 @@ def populate_group_descript(work_dir,group_descript_dict,        # will be modif
     group_descript_dict.add('ReserveIdlePerEntry',sub_params.config.idle_glideins_per_entry.reserve)
     group_descript_dict.add('MaxIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.max)
     group_descript_dict.add('CurbIdleVMsPerEntry',sub_params.config.idle_vms_per_entry.curb)
+    group_descript_dict.add('MaxRunningTotal',sub_params.config.running_glideins_total.max)
+    group_descript_dict.add('CurbRunningTotal',sub_params.config.running_glideins_total.curb)
 
 
 #####################################################
