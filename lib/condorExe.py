@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condorExe.py,v 1.6.12.5 2011/05/26 14:47:16 tiradani Exp $
+#   $Id: condorExe.py,v 1.6.12.6 2011/05/27 19:40:26 tiradani Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands
@@ -19,6 +19,8 @@ import popen2
 import string
 import select
 import cStringIO
+import fcntl
+import time
 
 class UnconfigError(RuntimeError):
     def __init__(self,str):
@@ -38,8 +40,6 @@ def set_path(new_condor_bin_path,new_condor_sbin_path=None):
     condor_bin_path=new_condor_bin_path
     if new_condor_sbin_path!=None:
         condor_sbin_path=new_condor_sbin_path
-
-
 
 #
 # Execute an arbitrary condor command and return its output as a list of lines
@@ -86,6 +86,9 @@ def iexe_cmd(cmd, stdin_data=None):
     @type stdin_data: string
     @param stdin_data: Data that will be fed to the command via stdin
     """
+    output_lines = None
+    error_lines = None
+    exitStatus = 0
     try:
         child = popen2.Popen3(cmd, capturestderr=True)
 
@@ -105,7 +108,12 @@ def iexe_cmd(cmd, stdin_data=None):
         errdata = cStringIO.StringIO()
 
         fdlist = [outfd, errfd]
+        for fd in fdlist: # make stdout/stderr nonblocking
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
         while fdlist:
+            time.sleep(.001) # prevent 100% CPU spin
             ready = select.select(fdlist, [], [])
             if outfd in ready[0]:
                 outchunk = stdout.read()
@@ -124,21 +132,17 @@ def iexe_cmd(cmd, stdin_data=None):
         exitStatus = child.wait()
         outdata.seek(0)
         errdata.seek(0)
-
-        if exitStatus:
-            error_str = str(errdata.read())
-            raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), error_str)
-
-        return outdata.readlines()
-    except OSError, ex:
-        output_str = str(outdata.read())
-        error_str = str(errdata.read())
-        raise ExeError, "OS Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
+        output_lines = outdata.readlines()
+        error_lines = errdata.readlines()
 
     except Exception, ex:
-        output_str = str(outdata.read())
-        error_str = str(errdata.read())
-        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
+        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\n" \
+            "Exception OSError: %s" % (cmd, str(output_lines), str(error_lines), ex)
+
+    if exitStatus:
+        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), "".join(error_lines))
+
+    return output_lines
 
 
 #
