@@ -59,3 +59,6 @@ def runAllTests():
     modules = map(__import__, test_modules)
     for test in modules:
         test.main()
+
+if __name__ == "__main__":
+    runAllTests()
