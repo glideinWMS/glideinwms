@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: ldapMonitor.py,v 1.6 2011/05/27 20:28:03 klarson1 Exp $
+#   $Id: ldapMonitor.py,v 1.7 2011/05/27 21:19:35 klarson1 Exp $
 #
 # Description:
 #   This module implements classes to query the ldap server
@@ -14,6 +14,7 @@
 #
 
 import ldap
+import re
 
 class LDAPQuery:
     def __init__(self,
