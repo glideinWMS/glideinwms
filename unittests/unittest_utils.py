@@ -2,6 +2,10 @@ import os
 import sys
 import unittest
 
+# We assume that this module is in the unittest directory
+module_globals = globals()
+unittest_dir = os.path.dirname(os.path.realpath(module_globals["__file__"]))
+
 """
 Check to see if $GLIDEINWMS_LOCATION is defined.  If it is, use that as the
 base directory for glideinWMS source code.  If not, then assume the source is
@@ -16,9 +20,9 @@ if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"factory"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"frontend"))
 else:
-    sys.path.append(os.path.join(sys.path[0],"../lib"))
-    sys.path.append(os.path.join(sys.path[0],"../factory"))
-    sys.path.append(os.path.join(sys.path[0],"../frontend"))
+    sys.path.append(os.path.join(unittest_dir,"../lib"))
+    sys.path.append(os.path.join(unittest_dir,"../factory"))
+    sys.path.append(os.path.join(unittest_dir,"../frontend"))
 
 def runTest(cls):
     """
@@ -33,3 +37,23 @@ def runTest(cls):
     testRunner = unittest.TextTestRunner(verbosity=2)
     result = testRunner.run(testSuite)
     return not result.wasSuccessful()
+
+def runAllTests():
+    """
+    We assume that this particular module is in the unittest directory
+    Search the unittest directory for all files matching test_*.py.
+    Attempt to import main()
+    execute main()
+
+    What kinds of safety checks do we need here?
+    """
+    def is_test(filename):
+        if os.path.isfile(os.path.join(unittest_dir, filename)) and \
+                filename.startswith("test_") and filename.endswith(".py"):
+            return True
+        return False
+
+    test_modules = [f[:-3] for f in os.listdir(unittest_dir) if is_test(f)]
+    modules = map(__import__, test_modules)
+    for test in modules:
+        test.main()
