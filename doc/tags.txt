@@ -3,9 +3,9 @@ vNext	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
 	  frontend requests. Grace time for old public key is configurable.
 	The frontend now can set global limits on number of glideins.
 	The frontend now can use more than a single CPU.
-	glexec not tested during initial validation.
-	Bug fix: Do not double cound glideins when using multiple groups.
-	Bug fix: Respect per-entry running limits.
+	glexec now tested during initial validation.
+	Bug fix frontend: Do not double count glideins when using multiple groups.
+	Bug fix frontend: Respect per-entry running limits.
 
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
