@@ -226,7 +226,7 @@ class Condor(Configuration):
     if self.ini_section == "WMSCollector":
       self.__update_condor_config_condorg__()
     if self.ini_section == "Submit":
-        self.__udpate_condor_config_userjob_default_attributes__()
+        self.__update_condor_config_userjob_default_attributes__()
     self.update_condor_config_privsep()
     common.logit( "condor_config file update complete")
 
@@ -639,7 +639,7 @@ COLLECTOR_HOST = $(CONDOR_HOST):%(port)s
     self.__append_to_condor_config__(data,"Privilege Separation")
 
   #--------------------------------
-  def __udpate_condor_config_userjob_default_attributes__(self):
+  def __update_condor_config_userjob_default_attributes__(self):
     data = self.__condor_config_userjob_default_attributes_data__()
     self.__append_to_condor_config__(data,"UserJob Default Attributes")
 
