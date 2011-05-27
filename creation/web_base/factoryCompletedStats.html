@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryCompletedStats.html,v 1.10.8.5.18.8 2011/05/24 20:54:38 amccrea Exp $
+  $Id: factoryCompletedStats.html,v 1.10.8.5.18.9 2011/05/27 18:52:37 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -479,7 +479,7 @@ Description:
            gtype_formats[agg_name_list[a]]={};
            gtype_formats[agg_name_list[a]]['Fraction_wasted_due_to_node_validation'] = {label: "Fraction wasted due to node validation", yaxis:1, color: '#000000',checked:true,lines: {show:true, fill:false}}; 
            gtype_formats[agg_name_list[a]]['Fraction_wasted_because_idle'] = {label: "Fraction wasted because idle", yaxis:1, color: '#6666FF', checked:true, lines: {show:true, fill:false}}; 
-           gtype_formats[agg_name_list[a]]['Fraction_wasted_due_to_job_failures'] = {label: "Fraction wasted due to job failutres", yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
+           gtype_formats[agg_name_list[a]]['Fraction_wasted_due_to_job_failures'] = {label: "Fraction wasted due to job failures", yaxis:1, color: '#FF00FF', checked:true, lines: {show:true, fill:false}}; 
            gtype_formats[agg_name_list[a]]['Fraction_not_used_by_user_jobs'] = {label: "Fraction not used by user jobs", yaxis:1, color: '#FF6600', checked:true, lines: {show:true, fill:false}}; 
         }
         gtype_formats['fail']={}; 
@@ -567,7 +567,7 @@ Description:
           }
           else {
             gtype_filtered_list = ["badput","validation","nosuccess","idle"];
-            name_list=['Fraction_wasted_due_to_node_validation','Fraction_wasted_because_idle','Fraction_wasted_due_to_job_failures','Fraction_not_used_by_user_jobs'];
+            name_list=['Fraction_not_used_by_user_jobs','Fraction_wasted_due_to_node_validation','Fraction_wasted_due_to_job_failures','Fraction_wasted_because_idle'];
           }
 
           //get DS list, filter RRD data by it, and push average/weighted sum filters onto filter list; then plot
