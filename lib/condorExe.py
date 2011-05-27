@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condorExe.py,v 1.11 2011/05/26 15:05:32 tiradani Exp $
+#   $Id: condorExe.py,v 1.12 2011/05/27 19:43:16 tiradani Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands
@@ -12,20 +12,23 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
+
 import os
 import os.path
 import popen2
 import string
 import select
 import cStringIO
+import fcntl
+import time
 
 class UnconfigError(RuntimeError):
-    def __init__(self, error_msg):
-        RuntimeError.__init__(self, error_msg)
+    def __init__(self,str):
+        RuntimeError.__init__(self,str)
 
 class ExeError(RuntimeError):
-    def __init__(self, error_msg):
-        RuntimeError.__init__(self, error_msg)
+    def __init__(self,str):
+        RuntimeError.__init__(self,str)
 
 #
 # Configuration
@@ -38,7 +41,6 @@ def set_path(new_condor_bin_path,new_condor_sbin_path=None):
     if new_condor_sbin_path!=None:
         condor_sbin_path=new_condor_sbin_path
 
-
 #
 # Execute an arbitrary condor command and return its output as a list of lines
 #  condor_exe uses a relative path to $CONDOR_BIN
@@ -49,11 +51,11 @@ def set_path(new_condor_bin_path,new_condor_sbin_path=None):
 def exe_cmd(condor_exe,args,stdin_data=None):
     global condor_bin_path
 
-    if condor_bin_path == None:
+    if condor_bin_path==None:
         raise UnconfigError, "condor_bin_path is undefined!"
-    condor_exe_path = os.path.join(condor_bin_path, condor_exe)
+    condor_exe_path=os.path.join(condor_bin_path,condor_exe)
 
-    cmd = "%s %s" % (condor_exe_path, args)
+    cmd="%s %s" % (condor_exe_path,args)
 
     return iexe_cmd(cmd,stdin_data)
 
@@ -84,6 +86,9 @@ def iexe_cmd(cmd, stdin_data=None):
     @type stdin_data: string
     @param stdin_data: Data that will be fed to the command via stdin
     """
+    output_lines = None
+    error_lines = None
+    exitStatus = 0
     try:
         child = popen2.Popen3(cmd, capturestderr=True)
 
@@ -103,7 +108,12 @@ def iexe_cmd(cmd, stdin_data=None):
         errdata = cStringIO.StringIO()
 
         fdlist = [outfd, errfd]
+        for fd in fdlist: # make stdout/stderr nonblocking
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
         while fdlist:
+            time.sleep(.001) # prevent 100% CPU spin
             ready = select.select(fdlist, [], [])
             if outfd in ready[0]:
                 outchunk = stdout.read()
@@ -122,21 +132,17 @@ def iexe_cmd(cmd, stdin_data=None):
         exitStatus = child.wait()
         outdata.seek(0)
         errdata.seek(0)
-
-        if exitStatus:
-            error_str = str(errdata.read())
-            raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), error_str)
-
-        return outdata.readlines()
-    except OSError, ex:
-        output_str = str(outdata.read())
-        error_str = str(errdata.read())
-        raise ExeError, "OS Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
+        output_lines = outdata.readlines()
+        error_lines = errdata.readlines()
 
     except Exception, ex:
-        output_str = str(outdata.read())
-        error_str = str(errdata.read())
-        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s" % (cmd, output_str, error_str, ex)
+        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\n" \
+            "Exception OSError: %s" % (cmd, str(output_lines), str(error_lines), ex)
+
+    if exitStatus:
+        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), "".join(error_lines))
+
+    return output_lines
 
 
 #
@@ -147,35 +153,34 @@ def init1():
     global condor_bin_path
     # try using condor commands to find it out
     try:
-        # remove trailing newline
-        condor_bin_path = iexe_cmd("condor_config_val BIN")[0][:-1]
-    except ExeError:
+        condor_bin_path=iexe_cmd("condor_config_val BIN")[0][:-1] # remove trailing newline
+    except ExeError,e:
         # try to find the RELEASE_DIR, and append bin
         try:
-            release_path = iexe_cmd("condor_config_val RELEASE_DIR")
-            condor_bin_path = os.path.join(release_path[0][:-1], "bin")
-        except ExeError:
+            release_path=iexe_cmd("condor_config_val RELEASE_DIR")
+            condor_bin_path=os.path.join(release_path[0][:-1],"bin")
+        except ExeError,e:
             # try condor_q in the path
             try:
-                condorq_bin_path = iexe_cmd("which condor_q")
-                condor_bin_path = os.path.dirname(condorq_bin_path[0][:-1])
-            except ExeError:
+                condorq_bin_path=iexe_cmd("which condor_q")
+                condor_bin_path=os.path.dirname(condorq_bin_path[0][:-1])
+            except ExeError,e:
                 # look for condor_config in /etc
                 if os.environ.has_key("CONDOR_CONFIG"):
-                    condor_config = os.environ["CONDOR_CONFIG"]
+                    condor_config=os.environ["CONDOR_CONFIG"]
                 else:
-                    condor_config = "/etc/condor/condor_config"
+                    condor_config="/etc/condor/condor_config"
 
                 try:
                     # BIN = <path>
-                    bin_def = iexe_cmd('grep "^ *BIN" %s' % condor_config)
-                    condor_bin_path = string.split(bin_def[0][:-1])[2]
-                except ExeError:
+                    bin_def=iexe_cmd('grep "^ *BIN" %s'%condor_config)
+                    condor_bin_path=string.split(bin_def[0][:-1])[2]
+                except ExeError, e:
                     try:
                         # RELEASE_DIR = <path>
-                        release_def = iexe_cmd('grep "^ *RELEASE_DIR" %s' % condor_config)
-                        condor_bin_path = os.path.join(string.split(release_def[0][:-1])[2], "bin")
-                    except ExeError:
+                        release_def=iexe_cmd('grep "^ *RELEASE_DIR" %s'%condor_config)
+                        condor_bin_path=os.path.join(string.split(release_def[0][:-1])[2],"bin")
+                    except ExeError, e:
                         pass # don't know what else to try
 
 #
@@ -225,3 +230,6 @@ condor_bin_path=None
 condor_sbin_path=None
 
 init()
+
+
+
