@@ -63,114 +63,159 @@
 Related Links:
 <ul>
 <li><a target="_blank" href="http://www.cs.wisc.edu/condor/">Condor Website</a></li>
+<li> <a href="./condor_config.html">Condor configuration attributes</a></li>
+<li><a  href="./index.html">More GlideinWMS Condor Topics</a></li>
+
 </div>
 <div class="section">
 <a name="schedds"><h2>Multiple Schedds</h2></a>
 
     <p>
-    The installation will assume you have installed Condor v7.0.5.
+    The installation will assume you have installed Condor v7.0.5+.
     <br>
-    The install directory is <b>/opt/glidecondor</b>, the working directory is
+    For the purposes of the examples shown here the Condor install location is 
+    shown as <b>/opt/glideincondor</b>.<br/>
+    The working directory is
     <b>/opt/glidecondor/condor_local</b> and the machine name is 
     <b>mymachine.fnal.gov</b>.<br>
 
     If you want to use a different setup, make the necessary changes.
     </p>
     <p>
-    It also assumes you have <a href="#quill" title="configured Quill">configured
-    Quill</a>; you can use multiple Schedds without using Quill, but this is not
-    described here, although it should be obvious what you can skip in that case.
+    <b>Note: </b>If you specified any of these options using the glideinWMS
+    configuration based installer, these files and initialization steps will
+    already have been performed.  These instructions are relevant to any
+    post-installation changes you desire to make.
     </p>
     <p>
-    Unless explicity mentioned, all operations are to be done as root.
+    Unless explicity mentioned, all operations are to be done by the user that 
+    you installed Condor as.
     </p>
+    <h3>Using the condor_shared_port feature</h3>
+    <p>
+    The Condor shared_port_daemon is available in Condor 7.5.3+.
+    Additional information on this daemon can be found here:<ul>
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_1Introduction.html#8153">Condor manual 3.1.2 The Condor Daemons</a></br>
+    <a href="http://www.cs.wisc.edu/condor/manual/v7.5/3_7Networking_includes.html#31365">Condor manuel 3.7.2 Reducing Port Usage with the condor_shared_port Daemon</a><br></ul> 
+    </p>
+    <p>
+    If you are using this feature, there are 3 additional variables that must 
+    be added to the schedd setup script described in the 
+    <a href="#new_schedd_setup">create setup files section</a>:
+    <blockquote>
+      _CONDOR_USE_SHARED_PORT</br>
+      _CONDOR_SHARED_PORT_DAEMON_AD_FILE</br>
+      _CONDOR_DAEMON_SOCKET_DIR
+    </blockquote>
+    In addition, your <b>/opt/glidecondor/condor_local/condor_config.local</b> 
+    will need to contain the following attributes. Port 9615 is the default port
+    for the schedds.
+    <blockquote>
+         #--  Enable shared_port_daemon<br>
+         SHADOW.USE_SHARED_PORT = True<br>
+         SCHEDD.USE_SHARED_PORT = True<br>
+         SCHEDD.SHARED_PORT_ARGS = -p 9615<br>
+         DAEMON_LIST = $(DAEMON_LIST), SHARED_PORT<br>
+    </blockquote>
+    Note: Both the SCHEDD and SHADOW processes need to specify the shared port option is in effect.
+    </p>
+    <a name="new_schedd_setup"/>
     <h3>Create setup files</h3>
+    If not already created during installation, you will need to create
+    a set of files to support multiple schedds.  This describes the
+    steps necessary.
     <p>
-    In order to easily manage a secondary schedd, create
-    <b>/opt/glidecondor/new_schedd_setup.sh</b>,
-    containing:
-    </p>
+    <b>/opt/glidecondor/new_schedd_setup.sh</b>
+    (<a href="../install/example-config/multi_schedd/new_schedd_setup.sh">example new_schedd_setup.sh</a>)<br/>
+     1. adds the necessary attributes when the schedds are initialized and 
+       started.
     <blockquote>
       if [ $# -ne 1 ]<br>
       then<br>
-
-      &nbsp;echo "Schedd name expected!"<br>
-      &nbsp;return 1<br>
-      fi<br>
-      <br>
-    LD=`condor_config_val LOCAL_DIR`<br>
-      QDB=`condor_config_val QUILL_DB_NAME`<br>
-
-      <br>
+      &nbsp;echo "ERROR: arg1 should be schedd name"<br/>
+      &nbsp;return 1<br/>
+      fi<br/>
+      LD=`condor_config_val LOCAL_DIR`<br/>
       export _CONDOR_SCHEDD_NAME=schedd_$1<br>
-      export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}<br>
-      # SCHEDD and MASTER names MUST be the same (Condor requirement)<br>
-      export _CONDOR_QUILL_NAME=quill_$1@`uname -n`<br>
-      export _CONDOR_QUILL_DB_NAME=${QDB}_$1<br>
-
-      export _CONDOR_DAEMON_LIST="MASTER, SCHEDD,QUILL"<br>
-      export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br>
-      export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br>
-      <br>
-      unset LD<br>
-      unset QDB<br>
-
+      export _CONDOR_MASTER_NAME=${_CONDOR_SCHEDD_NAME}<br/>
+      # SCHEDD and MASTER names MUST be the same (Condor requirement)<br/>
+      export _CONDOR_DAEMON_LIST="MASTER, SCHEDD,QUILL"<br/>
+      export _CONDOR_LOCAL_DIR=$LD/$_CONDOR_SCHEDD_NAME<br/>
+      export _CONDOR_LOCK=$_CONDOR_LOCAL_DIR/lock<br/>
+      <b>
+      #-- condor_shared_port attributes ---<br/>
+      export _CONDOR_USE_SHARED_PORT=True<br/>
+      export _CONDOR_SHARED_PORT_DAEMON_AD_FILE=$LD/log/shared_port_ad<br/>
+      export _CONDOR_DAEMON_SOCKET_DIR=$LD/log/daemon_sock<br/>
+      #------------------------------------<br/>
+      </b>
+      unset LD<br/>
     </blockquote>
     <p>
     The same file can be downloaded from
-    <a href="example-config/multi_schedd/new_schedd_setup.sh" title="example-config/multi_schedd/new_schedd_setup.sh">
+    <a href="../install/example-config/multi_schedd/new_schedd_setup.sh" title="example-config/multi_schedd/new_schedd_setup.sh">
         example-config/multi_schedd/new_schedd_setup.sh
     </a>.
     </p>
     <p>
-    To create the necessary directories and files, create
-    <b>/opt/glidecondor/init_schedd.sh</b>:<br>
-
-    </p><blockquote>
-      #!/bin/sh<br>
-      source /opt/glidecondor/new_schedd_setup.sh $1<br>
-      # add whatever other config you need<br>
-      # create needed directories<br>
-      /opt/glidecondor/sbin/condor_init<br>
-
-      # copy Quill writer passwd<br>
+    <b>/opt/glidecondor/init_schedd.sh</b>
+    (<a href="../install/example-config/multi_schedd/init_schedd.sh">example init_schedd.sh</a>)<br/>
+    1. This script creates the necessary directories and files for the additional schedds.
+       It will only be used to initialize a new secondary schedd.
+       (see the <a href="#initialize_schedds">initialize schedds section</a>)
+       
+     <blockquote>
+      #!/bin/sh<br/>
+      CONDOR_LOCATION=/opt/glidecondor<br/>
+      script=$CONDOR_LOCATION/new_schedd_setup.sh<br/>
+      source $script $1<br/>
+      if [ "$?" != "0" ];then<br/>
+      &nbsp;echo "ERROR in $script"<br/>
+      &nbsp;exit 1<br/>
+      fi<br/>
+      # add whatever other config you need<br/>
+      # create needed directories<br/>
+      $CONDOR_LOCATION/sbin/condor_init<br/>
     </blockquote>
-    Then:
+    2. This needs to be made executable by the user that installed Condor:<br>
     <blockquote>
-        cp -p $_CONDOR_LOCAL_DIR/../spool/.quillwritepassword $_CONDOR_LOCAL_DIR/spool/<br>
+      chmod u+x /opt/glidecondor/init_schedd.sh<br>
     </blockquote>
-    This one you want to make executable:<br>
-    <blockquote>
+    <p></p>
 
       chmod a+x /opt/glidecondor/init_schedd.sh<br>
     </blockquote>
     The same file can be downloaded from
-    <a href="example-config/multi_schedd/init_schedd.sh" title="example-config/multi_schedd/init_schedd.sh">
+    <a href="../install/example-config/multi_schedd/init_schedd.sh" title="example-config/multi_schedd/init_schedd.sh">
         example-config/multi_schedd/init_schedd.sh
     </a>.
     <p></p>
     <p>
-    Similarly, you will want to have a way to easily start a secondary schedd, so create
-    <b>/opt/glidecondor/start_master_schedd.sh</b>:<br>
-
+    <b>/opt/glidecondor/start_master_schedd.sh</b>
+    (<a href="../install/example-config/multi_schedd/start_master_schedd.sh">example start_master_schedd.sh</a>)<br/>
+    1. This script is used to start the secondary schedds
+       (see the <a href="#starting">starting up schedds section</a>)
     </p><blockquote>
-      #!/bin/sh<br>
-      source /opt/glidecondor/new_schedd_setup.sh $1<br>
-      # add whatever other config you need<br>
-      /opt/glidecondor/sbin/condor_master<br>
+      #!/bin/sh
+      CONDOR_LOCATION=/opt/glidecondor/condor-submit
+      export CONDOR_CONFIG=$CONDOR_LOCATION/etc/condor_config
+      source $CONDOR_LOCATION/new_schedd_setup.sh $1
+      # add whatever other config you need
+      $CONDOR_LOCATION/sbin/condor_master
     </blockquote>
-    This one you want to make executable:
-    <blockquote>
 
-      chmod a+x /opt/glidecondor/start_master_schedd.sh<br>
+    2.- This needs to be made executable by the user that installed Condor:<br>
+    <blockquote>
+      chmod u+x /opt/glidecondor/start_master_schedd.sh<br>
     </blockquote>
+
     The same file can be downloaded from
-    <a href="example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
+    <a href="../install/example-config/multi_schedd/start_master_schedd.sh" title="example-config/multi_schedd/start_master_schedd.sh">
         example-config/multi_schedd/start_master_schedd.sh
     </a>.
 <h3>Initialize schedds</h3>
     <p>
-    To initialize a secondary schedd, use
+    To initialize the secondary schedds, use
     <b>/opt/glidecondor/init_schedd.sh</b> created above.
     </p>
     <p>
@@ -215,13 +260,19 @@ those instructions.
     <blockquote>
       condor_submit -name schedd_jobs1@ job.jdl<br>
 
-      condor_q -name scjedd_jobs1@
+      condor_q -name schedd_jobs1@
     </blockquote>
+
+<h4>Increase the number of available file descriptors</h4>
+
+    <p>When using multiple schedds, you may want to consider increasing the avaiable file descriptors. 
+    This can be done by issuing a "ulimit -n" command as well as changing the values in the /etc/security/limits.conf file</p>
+
 </div>
 <div class="section">
 <h2><a name="gcb">GCB Installation</a></h2>
     <img src="../images/overview_gcb.png" name="graphics1" height="213" width="359" align="right" border="0"><p></p>
-    <p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
+    <p><b>NOTE: It is strongly recommended to use CCB available in new version of condor over GCB. GCB is no longer supported in Condor 7.6 and following.</b> CCB provides same functionality as GCB and has performance benifits. Using GCB requires additional installation of condor daemon whereas this feature is integrated in newer versions of condor.</p>
     <p>This node will serveas a 
     <a target="_blank" href="http://www.cs.wisc.edu/condor/gcb/">Generic Connection Brokering (GCB)</a> node. 
     If you are working over firewalls or NATs, and are using an older version of condor (before v7.3.0) you will need one or more of these.  If in use, GCB is needed every time you have a firewall or a NAT.
