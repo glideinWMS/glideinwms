@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.89.2.13 2011/05/26 20:19:37 parag Exp $
+#   $Id: glideFactory.py,v 1.89.2.14 2011/05/27 18:47:47 burt Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -238,11 +238,11 @@ def spawn(sleep_time,advertize_rate,startup_dir,
                 glideinDescript.data['OldPubKeyType'] = None
                 try:
                     glideinDescript.remove_old_key()
-                    glideFactoryLib.log_files.logActivity("Removed the old public key after it's grace time of %s seconds" % oldkey_gracetime)
+                    glideFactoryLib.log_files.logActivity("Removed the old public key after its grace time of %s seconds" % oldkey_gracetime)
                 except:
                     # Do not crash if delete fails. Just log it.
-                    glideFactoryLib.log_files.logActivity("Failed to remove the old public key after it's grace time")
-                    glideFactoryLib.log_files.logWarning("Failed to remove the old public key after it's grace time")
+                    glideFactoryLib.log_files.logActivity("Failed to remove the old public key after its grace time")
+                    glideFactoryLib.log_files.logWarning("Failed to remove the old public key after its grace time")
 
             glideFactoryLib.log_files.logActivity("Checking entries %s"%entries)
             for entry_name in childs.keys():
