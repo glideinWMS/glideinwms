@@ -2,9 +2,10 @@ import os
 import sys
 import unittest
 
+# unittest_utils will handle putting the appropriate directories on the python
+# path for us.
 from unittest_utils import runTest
 
-sys.path.append(os.path.join(sys.path[0],"../lib"))
 import condorExe
 from condorExe import iexe_cmd
 from condorExe import exe_cmd
