@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.4 2011/05/12 20:30:20 tiradani Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.5 2011/05/31 21:56:23 tiradani Exp $
 #
 
 import string
@@ -69,6 +69,9 @@ class ConfigFile:
                 exec("self.data['%s']=%s"%(lname,convert_function(lval)))
         finally:
             fd.close()
+
+    def has_key(self, key_name):
+        return self.data.has_key(key_name)
 
 # load from the entry subdir
 class EntryConfigFile(ConfigFile):
