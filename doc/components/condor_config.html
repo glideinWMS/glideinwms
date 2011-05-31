@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta http-equiv="CONTENT-TYPE" content="text/html; charset=UTF-8">
-  <title>glideinWMS</title>
+  <title>glideinWMS - condor attributes</title>
   <link rel="stylesheet" type="text/css" href="../common/glideinWMS.css" media="screen, projection" />
 </head>
 
@@ -69,6 +69,7 @@
   </ul>
 </div>
 
+
 <div class="section">
   <h2>Reference Guide to Condor Configuration Attributes</h2>
   <p>
@@ -78,7 +79,7 @@
 </div>
 
 <div class="section">
-<table class="requirements"> <tbody>
+<table class="requirements"><tbody>
 <tr class="head">
    <td align="center">GlideinWMS<br/>Service</td>
                   <td>Attribute</td>
@@ -86,7 +87,7 @@
   </tr>
 <!--  Base configuration -->
 <tr>
-  <td rowspan="15" align="center" valign="top">ALL
+  <td rowspan="15" align="center" valign="top"><b>ALL</b>
   </td>
   <td>CONDOR_IDS = 500.500
   </td>
@@ -171,6 +172,7 @@
   <td>Certificate directory
   </td>
   </tr>
+
 <tr>
   <td>GSI_DAEMON_CERT = full_path_to_your_hostcert.pem<br/>
       GSI_DAEMON_KEY  = full_path_to_the_hostkey.pem
@@ -210,13 +212,17 @@
       This is a comma separated list of their identities (DNs).
   </td>
   </tr>
+<tr class="head"><td colspan="3"></td></tr>
 
 
 
 <!--  Negotiator -->
 <tr>
-  <td rowspan="10" align="center" valign="top">WMS Collector<br/>
-                  User Collector
+  <td rowspan="10" align="center" valign="top">
+     <b>
+      WMS Collector<br/>
+      User Collector
+     </b>
   </td>
   <td>NEGOTIATOR_POST_JOB_RANK = MY.LastHeardFrom
   </td>
@@ -283,17 +289,22 @@
       must be set.
   </td>
   </tr>
+<tr class="head"><td colspan="3"></td></tr>
 
 <!--  Schedd -->
 <tr>
-  <td rowspan="13" align="center" valign="top">WMS Collector<br/>
-                   Submit
+  <td rowspan="13" align="center" valign="top">
+      <b>
+      WMS Collector<br/>
+      Submit
+      </b>
   </td>
   <td>MAX_JOBS_RUNNING = 6000
   </td>
   <td>Allow up to 6K concurrent running jobs.
   </td>
   </tr>
+
 <tr>
   <td>JOB_START_DELAY = 2<br/>
       JOB_START_COUNT = 50
@@ -301,51 +312,71 @@
   <td>Start max of 50 jobs every 2 seconds
   </td>
   </tr>
+
 <tr>
   <td>JOB_STOP_DELAY = 1<br/>
       JOB_STOP_COUNT = 30
   </td>
   <td>Stop 30 jobs every seconds<br/>
-      This is needed to prevent glexec overload, when used<br/>
+      This is needed to prevent glexec overload, when used.<br>
       Works for Condor v7.3.1 and up only, but harmless for older versions
   </td>
   </tr>
+
 <tr>
   <td>MAX_CONCURRENT_UPLOADS = 0<br/>
-      MAX_CONCURRENT_DOWNLOADS = 100</td>
+      MAX_CONCURRENT_DOWNLOADS = 100
+  </td>
   <td>Raise file transfer limits.<br/>
       No upload limits, since JOB_START_DELAY limits that.
-      But do limit downloads, as they are asyncronous</td>
+      But do limit downloads, as they are asyncronous
+  </td>
   </tr>
+
 <tr>
-  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)</td>
-  <td>Prevent checking on ImageSize</td>
+  <td>APPEND_REQ_VANILLA = (Memory&gt;=1) && (Disk&gt;=1)
+  </td>
+  <td>Prevent checking on ImageSize
+  </td>
   </tr>
+
 <tr>
-  <td>MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7</td>
-  <td>Prevent preemption</td>
+  <td>MAXJOBRETIREMENTTIME = $(HOUR) * 24 * 7
+  </td>
+  <td>Prevent preemption
+  </td>
   </tr>
 <tr>
   <td>SCHEDD_SEND_VACATE_VIA_TCP = True<br/>
-      STARTD_SENDS_ALIVES = True</td>
-  <td>GCB optimization</td>
+      STARTD_SENDS_ALIVES = True
+  </td>
+  <td>GCB optimization
+  </td>
   </tr>
 <tr>
-  <td>ENABLE_USERLOG_FSYNC = False</td>
-  <td>Reduce disk IO - paranoid fsyncs are usully not needed</td>
+  <td>ENABLE_USERLOG_FSYNC = False
+  </td>
+  <td>Reduce disk IO - paranoid fsyncs are usully not needed
+  </td>
   </tr>
+
 <tr>
   <td>SHADOW.GLEXEC_STARTER = True<br/>
-      SHADOW.GLEXEC = /bin/false</td>
-  <td>Prepare the Shadow for use with glexec-enabled glideins</td>
+      SHADOW.GLEXEC = /bin/false
+  </td>
+  <td>Prepare the Shadow for use with glexec-enabled glideins
+  </td>
   </tr>
 <tr>
-  <td>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE<br/>
-  <td>WMS Collector only and only if you have enabled the USE_MATCH_AUTH attribute 
-      in the Factory configuration file.</td>
+  <td>SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE
+  </td>
+  <td>WMS Collector only and only if you have enabled the USE_MATCH_AUTH 
+      attribute in the Factory configuration file.
+  </td>
   </tr>
 <tr>
-  <td>SHADOW_WORKLIFE = 0</td>
+  <td>SHADOW_WORKLIFE = 0
+  </td>
   <td>This is a workaround to a Condor problem 
       if SEC_ENABLE_MATCH_PASSWORD_AUTHENTICATION = TRUE and Condor 
       version &lt;= 7.5.3<br/>
@@ -392,10 +423,15 @@
    Available only in Condor 7.5.3+.
    </td>
   </tr>
+<tr class="head"><td colspan="3"></td></tr>
 
 <!--  Condor-G -->
 <tr>
-   <td  align="center" valign="top">WMS Collector</td>
+   <td  align="center" valign="top">
+      <b>
+      WMS Collector
+      </b>
+   </td>
    <td>
      GRIDMANAGER_LOG = /tmp/GridmanagerLog.$(SCHEDD_NAME).$(USERNAME)<br/>
      GRIDMANAGER_MAX_SUBMITTED_JOBS_PER_RESOURCE=5000<br/>
@@ -404,11 +440,16 @@
   </td>
   <td valign="top">Condor-G attributes
   </td>
-  </tr>
+</tr>
 
+<tr class="head"><td colspan="3"></td></tr>
 <!--  user job attributes -->
 <tr>
-  <td align="center" valign="top">Submit</td>
+  <td align="center" valign="top">
+     <b>
+     Submit
+     </b>
+  </td>
   <td>
     JOB_Site = "$$(GLIDEIN_Site:Unknown)"<br/>
     JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)<br/>
@@ -423,11 +464,14 @@
   </td>
   <td valign="top">User Job Class Ad Attributes
   </td>
-  </tr>
-</tbody></table>
+</tr>
 
+<tr class="head"><td colspan="3"></td></tr>
+</tbody>
+</table>
 </div>
 </div>
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
