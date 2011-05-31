@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: cgWDictFile.py,v 1.105.8.5 2010/09/08 03:29:59 parag Exp $
+# File Version:
+#   $Id: cgWDictFile.py,v 1.105.8.5.4.1 2011/05/31 21:32:49 tiradani Exp $
 #
 # Description:
 #   Glidein creation module Classes and functions needed to
@@ -46,10 +46,10 @@ class MonitorGroupDictFile(cWDictFile.DictFile):
                      group_name,
                      allow_overwrite=0):
         self.add(None,(group_name,))
-        
+
     def format_val(self,key,want_comments):
         return "  <monitorgroup group_name=\"%s\">"%(self.vals[key][0],)
-        
+
 
     def parse_val(self,line):
         if len(line)==0:
@@ -94,10 +94,10 @@ class InfoSysDictFile(cWDictFile.DictFile):
                      ref_str,
                      allow_overwrite=0):
         self.add(None,(infosys_type,server_name,ref_str))
-        
+
     def format_val(self,key,want_comments):
         return "%s \t%30s \t%s \t\t%s"%(self.vals[key][0],self.vals[key][1],self.vals[key][2],key)
-        
+
 
     def parse_val(self,line):
         if len(line)==0:
@@ -127,7 +127,11 @@ class CondorJDLDictFile(cWDictFile.DictFile):
             return "Queue %s"%self.jobs_in_cluster
 
     def format_val(self,key,want_comments):
-        return "%s = %s"%(key,self.vals[key])
+        if self.vals[key] == "##PRINT_KEY_ONLY##":
+            return "%s" % key
+        else:
+            return "%s = %s"%(key,self.vals[key])
+
 
     def parse_val(self,line):
         if line[0]=='#':
@@ -144,13 +148,13 @@ class CondorJDLDictFile(cWDictFile.DictFile):
             else:
                 self.jobs_in_cluster=arr[1]
             return
-            
+
         # should be a regular line
         if len(arr)<2:
             raise RuntimeError,"Not a valid Condor JDL line, too short: '%s'"%line
         if arr[1]!='=':
             raise RuntimeError,"Not a valid Condor JDL line, no =: '%s'"%line
-        
+
         if len(arr)==2:
             return self.add(arr[0],"") # key = <empty>
         else:
@@ -231,7 +235,7 @@ def load_main_dicts(main_dicts): # update in place
     load_common_dicts(main_dicts,main_dicts['description'])
 
 def load_entry_dicts(entry_dicts,                   # update in place
-                     entry_name,summary_signature): 
+                     entry_name,summary_signature):
     try:
         entry_dicts['infosys'].load()
     except RuntimeError:
@@ -274,7 +278,7 @@ def refresh_signature(dicts): # update in place
             filedict=dicts[k]
             for fname in filedict.get_immutable_files():
                 signature_dict.add_from_file(os.path.join(filedict.dir,fname),allow_overwrite=True)
-    
+
 
 ################################################
 #
@@ -356,7 +360,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
     # check simple dictionaries
     for k in ('consts','untar_cfg','vars'):
         all_reused=reuse_simple_dict(dicts,other_dicts,k) and all_reused
-    # since the file names may have changed, refresh the file_list    
+    # since the file names may have changed, refresh the file_list
     refresh_file_list(dicts,is_main)
     # check file-based dictionaries
     for k in ('file_list','after_file_list'):
@@ -370,7 +374,7 @@ def reuse_common_dicts(dicts, other_dicts,is_main,all_reused):
             dicts[k]=copy.deepcopy(other_dicts[k])
             dicts[k].changed=False
             dicts[k].set_readonly(True)
-            
+
     # check the mutable ones
     for k in ('attrs','params'):
         reuse_simple_dict(dicts,other_dicts,k)
@@ -515,14 +519,14 @@ class baseClientDirSupport(cWDictFile.multiSimpleDirSupport):
     def __init__(self,user,dir,dir_name='client'):
         cWDictFile.multiSimpleDirSupport.__init__(self,(),dir_name)
         self.user=user
-        
+
         self.base_dir=os.path.dirname(dir)
         if not os.path.isdir(self.base_dir):
             # Parent does not exist
             # This is the user base directory
             # In order to make life easier for the factory admins, create it automatically when needed
             self.add_dir_obj(clientDirSupport(user,self.base_dir,"base %s"%dir_name,privsep_mkdir=True))
-        
+
         self.add_dir_obj(clientDirSupport(user,dir,dir_name))
 
 class clientSymlinksSupport(cWDictFile.multiSimpleDirSupport):
@@ -561,7 +565,7 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
         self.client_log_dirs=client_log_dirs
         for user in client_log_dirs.keys():
             self.add_dir_obj(baseClientDirSupport(user,client_log_dirs[user],'clientlog'))
-        
+
         self.client_proxies_dirs=client_proxies_dirs
         for user in client_proxies_dirs:
             self.add_dir_obj(baseClientDirSupport(user,client_proxies_dirs[user],'clientproxies'))
@@ -569,7 +573,7 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
         # make them easier to find; create symlinks in work/client_proxies
         self.add_dir_obj(clientSymlinksSupport(client_log_dirs,work_dir,'client_log','clientlog'))
         self.add_dir_obj(clientSymlinksSupport(client_proxies_dirs,work_dir,'client_proxies','clientproxies'))
-    
+
     ######################################
     # Redefine methods needed by parent
     def load(self):
@@ -593,8 +597,8 @@ class glideinMainDicts(cWDictFile.fileMainDicts):
     # Child must overwrite this
     def get_main_dicts(self):
         return get_main_dicts(self.work_dir,self.stage_dir)
-    
-        
+
+
 ################################################
 #
 # This Class contains the entry dicts
@@ -612,7 +616,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 
         for user in base_client_log_dirs.keys():
             self.add_dir_obj(clientLogDirSupport(user,cgWConsts.get_entry_userlog_dir(base_client_log_dirs[user],sub_name)))
-        
+
         for user in base_client_proxies_dirs:
             self.add_dir_obj(clientProxiesDirSupport(user,cgWConsts.get_entry_userproxies_dir(base_client_proxies_dirs[user],sub_name)))
 
@@ -626,7 +630,7 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 
     def save_final(self,set_readonly=True):
         pass # nothing to do
-    
+
     # reuse as much of the other as possible
     def reuse(self,other):             # other must be of the same class
         cWDictFile.fileSubDicts.reuse(self,other)
@@ -638,19 +642,19 @@ class glideinEntryDicts(cWDictFile.fileSubDicts):
 
     def get_sub_work_dir(self,base_dir):
         return cgWConsts.get_entry_submit_dir(base_dir,self.sub_name)
-    
+
     def get_sub_log_dir(self,base_dir):
         return cgWConsts.get_entry_log_dir(base_dir,self.sub_name)
-    
+
     def get_sub_stage_dir(self,base_dir):
         return cgWConsts.get_entry_stage_dir(base_dir,self.sub_name)
-    
+
     def get_sub_dicts(self):
         return get_entry_dicts(self.work_dir,self.stage_dir,self.sub_name)
-    
+
     def reuse_nocheck(self,other):
         reuse_entry_dicts(self.dicts,other.dicts,self.sub_name)
-        
+
 ################################################
 #
 # This Class contains both the main and
