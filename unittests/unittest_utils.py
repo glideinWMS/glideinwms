@@ -22,11 +22,21 @@ if "GLIDEINWMS_LOCATION" in os.environ:
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"factory"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"frontend"))
     sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"factory/tools"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"install"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"install/services"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"poolwatcher"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"tools"))
+    sys.path.append(os.path.join(os.environ["GLIDEINWMS_LOCATION"],"tools/lib"))
 else:
     sys.path.append(os.path.join(unittest_dir,"../lib"))
     sys.path.append(os.path.join(unittest_dir,"../factory"))
     sys.path.append(os.path.join(unittest_dir,"../frontend"))
     sys.path.append(os.path.join(unittest_dir,"../factory/tools"))
+    sys.path.append(os.path.join(unittest_dir,"../install"))
+    sys.path.append(os.path.join(unittest_dir,"../install/services"))
+    sys.path.append(os.path.join(unittest_dir,"../poolwatcher"))
+    sys.path.append(os.path.join(unittest_dir,"../tools"))
+    sys.path.append(os.path.join(unittest_dir,"../tools/lib"))
 
 def runTest(cls):
     """
