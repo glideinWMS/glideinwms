@@ -122,7 +122,8 @@ class VOFrontendParams(cWParams.CommonParams):
         ###############################
         # Start defining the defaults
         self.defaults["frontend_name"]=(socket.gethostname(),'ID', 'VO Frontend name',None)
-
+        self.defaults['frontend_monitor_index_page'] = ('True', 'Bool', 'Should we create an index.html in the monitoring web directory?',None)
+        
         work_defaults=cWParams.commentedOrderedDict()
         work_defaults["base_dir"]=("%s/frontstage"%os.environ["HOME"],"base_dir","Frontend base dir",None)
         work_defaults["base_log_dir"]=("%s/frontlogs"%os.environ["HOME"],"log_dir","Frontend base log dir",None)
