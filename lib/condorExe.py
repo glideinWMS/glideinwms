@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: condorExe.py,v 1.6.12.3 2010/11/05 18:23:44 sfiligoi Exp $
+# File Version:
+#   $Id: condorExe.py,v 1.6.12.3.16.1 2011/06/01 22:53:52 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands
@@ -17,6 +17,10 @@ import os
 import os.path
 import popen2
 import string
+import select
+import cStringIO
+import fcntl
+import time
 
 class UnconfigError(RuntimeError):
     def __init__(self,str):
@@ -36,8 +40,6 @@ def set_path(new_condor_bin_path,new_condor_sbin_path=None):
     condor_bin_path=new_condor_bin_path
     if new_condor_sbin_path!=None:
         condor_sbin_path=new_condor_sbin_path
-    
-
 
 #
 # Execute an arbitrary condor command and return its output as a list of lines
@@ -75,27 +77,73 @@ def exe_cmd_sbin(condor_exe,args,stdin_data=None):
 ############################################################
 
 # can throw ExeError
-def iexe_cmd(cmd,stdin_data=None):
-    child=popen2.Popen3(cmd,True)
-    if stdin_data!=None:
-        child.tochild.write(stdin_data)
-    child.tochild.close()
-    tempOut = child.fromchild.readlines()
-    child.fromchild.close()
-    tempErr = child.childerr.readlines()
-    child.childerr.close()
+def iexe_cmd(cmd, stdin_data=None):
+    """Fork a process and execute cmd - rewritten to use select to avoid filling
+    up stderr and stdout queues.
+
+    @type cmd: string
+    @param cmd: Sting containing the entire command including all arguments
+    @type stdin_data: string
+    @param stdin_data: Data that will be fed to the command via stdin
+    """
+    output_lines = None
+    error_lines = None
+    exitStatus = 0
     try:
-        errcode=child.wait()
-    except OSError, e:
-        if len(tempOut)!=0:
-            # if there was some output, it is probably just a problem of timing
-            # have seen a lot of those when running very short processes
-            errcode=0
-        else:
-            raise ExeError, "Error running '%s'\nStdout:%s\nStderr:%s\nException OSError: %s"%(cmd,tempOut,tempErr,e)
-    if (errcode!=0):
-        raise ExeError, "Error running '%s'\ncode %i:%s"%(cmd,errcode,tempErr)
-    return tempOut
+        child = popen2.Popen3(cmd, capturestderr=True)
+
+        if stdin_data != None:
+            child.tochild.write(stdin_data)
+
+        child.tochild.close()
+
+        stdout = child.fromchild
+        stderr = child.childerr
+
+        outfd = stdout.fileno()
+        errfd = stderr.fileno()
+
+        outeof = erreof = 0
+        outdata = cStringIO.StringIO()
+        errdata = cStringIO.StringIO()
+
+        fdlist = [outfd, errfd]
+        for fd in fdlist: # make stdout/stderr nonblocking
+            fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+            fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+
+        while fdlist:
+            time.sleep(.001) # prevent 100% CPU spin
+            ready = select.select(fdlist, [], [])
+            if outfd in ready[0]:
+                outchunk = stdout.read()
+                if outchunk == '':
+                    fdlist.remove(outfd)
+                else:
+                    outdata.write(outchunk)
+
+            if errfd in ready[0]:
+                errchunk = stderr.read()
+                if errchunk == '':
+                    fdlist.remove(errfd)
+                else:
+                    errdata.write(errchunk)
+
+        exitStatus = child.wait()
+        outdata.seek(0)
+        errdata.seek(0)
+        output_lines = outdata.readlines()
+        error_lines = errdata.readlines()
+
+    except Exception, ex:
+        raise ExeError, "Unexpected Error running '%s'\nStdout:%s\nStderr:%s\n" \
+            "Exception OSError: %s" % (cmd, str(output_lines), str(error_lines), ex)
+
+    if exitStatus:
+        raise ExeError, "Error running '%s'\ncode %i:%s" % (cmd, os.WEXITSTATUS(exitStatus), "".join(error_lines))
+
+    return output_lines
+
 
 #
 # Set condor_bin_path
@@ -122,7 +170,7 @@ def init1():
                     condor_config=os.environ["CONDOR_CONFIG"]
                 else:
                     condor_config="/etc/condor/condor_config"
-                
+
                 try:
                     # BIN = <path>
                     bin_def=iexe_cmd('grep "^ *BIN" %s'%condor_config)
@@ -160,7 +208,7 @@ def init2():
                     condor_config=os.environ["CONDOR_CONFIG"]
                 else:
                     condor_config="/etc/condor/condor_config"
-                
+
                 try:
                     # BIN = <path>
                     bin_def=iexe_cmd('grep "^ *SBIN" %s'%condor_config)
@@ -184,4 +232,4 @@ condor_sbin_path=None
 init()
 
 
-    
+
