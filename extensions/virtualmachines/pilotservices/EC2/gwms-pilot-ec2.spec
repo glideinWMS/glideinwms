@@ -1,9 +1,9 @@
 # Define custom macros
 %define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
 
-Name:               gWMS-EC2-Pilot
+Name:               gwms-pilot-ec2
 Version:            0.0.1
-Release:            2
+Release:            3
 
 Summary:            The glideinWMS service that contextualizes an Amazon EC2 AMI
 Group:              System Environment/Daemons
@@ -87,6 +87,8 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
+* Wed Jun 1 2011 Anthony Tiradani  0.0.1-3
+- Changed the name of the rpm package to be consistent across versions
 * Mon Oct 18 2010 Anthony Tiradani  0.0.1-1
 - Initial Version
 

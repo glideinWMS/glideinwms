@@ -1,19 +1,19 @@
 # Define custom macros
 %define is_fedora %(test -e /etc/fedora-release && echo 1 || echo 0)
 
-Name:               gWMS-EC2-Pilot
+Name:               gwms-pilot-condorc
 Version:            0.0.1
 Release:            1
 
-Summary:            The glideinWMS service that contextualizes an Amazon EC2 AMI 
+Summary:            The glideinWMS service that contextualizes an VM run by the Condor VM Universe
 Group:              System Environment/Daemons
 License:            Fermitools Software Legal Information (Modified BSD License)
 URL:                http://www.uscms.org/SoftwareComputing/Grid/WMS/glideinWMS/doc.v2/manual/
 BuildRoot:          %{_builddir}
 BuildArchitectures: noarch
 
-#Requires:       
-#BuildRequires:  
+#Requires:
+#BuildRequires:
 
 Source0:        GlideinPilot
 Source1:        PilotLauncher
@@ -27,10 +27,11 @@ Requires(post): /usr/sbin/useradd
 %description
 Glidein Pilot Service
 
-Sets up a service definition in init.d (GlideinPilot) that executes 
-PilotLauncher.py.  This script contextualizes an Amazon AMI to become a 
-glideinWMS worker node.  It is responsible for bootstrapping the pilot Condor
-StartD and shutting down the AMI once the pilot exits.
+Sets up a service definition in init.d (GlideinPilot) that executes
+PilotLauncher.py.  This script contextualizes a VM launched by Condor (VM
+Universe) to become a glideinWMS worker node.  It is responsible for
+bootstrapping the pilot Condor StartD and shutting down the VM once the pilot
+exits.
 
 %prep
 #%setup -q
@@ -62,6 +63,9 @@ install -m 0500 %{SOURCE1} $RPM_BUILD_ROOT%{_sbindir}/PilotLauncher
 /sbin/chkconfig --add GlideinPilot
 /sbin/chkconfig GlideinPilot on
 
+sed -i "s/SERVICE_VERSION = 0/SERVICE_VERSION = %{version}/" %{_sbindir}/PilotLauncher
+sed -i "s/SERVICE_RELEASE = 0/SERVICE_RELEASE = %{release}/" %{_sbindir}/PilotLauncher
+
 %preun
 # $1 = 0 - Action is uninstall
 # $1 = 1 - Action is upgrade
@@ -83,6 +87,6 @@ rm -rf $RPM_BUILD_ROOT
 
 
 %changelog
-* Mon Oct 18 2010 Anthony Tiradani  0.0.1-1
+* Wed Jun 1 2011 Anthony Tiradani  0.0.1-1
 - Initial Version
 
