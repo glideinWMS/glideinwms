@@ -105,14 +105,14 @@ class PilotEnvironment(dict):
                 self[key] = value
 
     def export(self):
-        evironment = ""
+        environment = ""
         template = "export %s=%s; "
         try:
             for key, value in self.items():
                 environment += template % (key, value)
         except:
             pass
-        return Environment
+        return environment
 
     def __repr__(self): return self.export()
 
@@ -235,7 +235,7 @@ def extract_user_data(config):
 def define_cmd(config):
     try:
         pilot_env = set_pilot_env(config)
-        cmd = "%s; cd %s; sh glidein_startup.sh %s" % \
+        cmd = "%s cd %s; sh glidein_startup.sh %s" % \
                 (pilot_env.export(), config.home_dir, config.pilot_args)
     except Exception, ex:
         raise PilotError("Error defining pilot launch command: %s\n" % str(ex))
@@ -258,9 +258,6 @@ def chown(user, group, full_path):
     if rtn != 0:
         raise PilotError("Failed to change ownership of file.  Return Code: %s\n" % str(rtn))
 
-def process_ini_file(ini_file):
-    pass
-
 def set_config(version, release):
     config = Config(version, release)
     config.glidein_user = "glidein_pilot"
@@ -270,6 +267,7 @@ def set_config(version, release):
     config.ini_file = "%s/glidein_userdata" % config.home_dir
     config.userdata_file = "%s/ec2_userdata" % config.home_dir
     config.max_lifetime = MAX_LIFETIME
+    config.disable_shutdown = False
 
     return config
 
@@ -335,8 +333,7 @@ def main():
         # ensure that the proxy is owned by the correct user
         outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Chowning the VO proxy\n"))
         outputlog.flush()
-        proxy_full_path = "%s/%s" % (config.glidein_user, config.proxy_file)
-        chown(config.glidein_user, config.glidein_user, proxy_full_path)
+        chown(config.glidein_user, config.glidein_user, config.proxy_file)
 
         # get the glidein_startup.sh script
         outputlog.write("[%s] %s" % (str(datetime.datetime.now()), "Retrieving glidein_startup.sh\n"))
@@ -369,7 +366,7 @@ def main():
     # turn off the alarm signal since the very next step is to shutdown the VM anyway
     signal.alarm(0)
 
-    shutdown_ami()
+    shutdown_ami(config)
 
 if __name__ == "__main__":
     main()
