@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condorPrivsep.py,v 1.1.2.2.4.1 2011/05/11 18:36:17 tiradani Exp $
+#   $Id: condorPrivsep.py,v 1.1.2.2.4.2 2011/06/01 21:47:19 tiradani Exp $
 #
 # Description:
 #   This module implements Condor PrivSep-related functions
@@ -135,7 +135,7 @@ def condor_execute(target_user, init_dir, condor_exe, args, env=None, stdin_fnam
     @type init_dir: string
     @param init_dir: The init_dir is the initial working directory
     @type condor_exe: string
-    @param condor_exe: The absolute path to the executable.  Note: The exe B{must} be an abspath
+    @param condor_exe: the particular command that is to be run
     @type args: list
     @param args: The optional args is a list of arguments, args[0] should
         contain the exe name
