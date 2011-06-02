@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.95 2011/05/19 21:19:07 parag Exp $
+#   $Id: glideFactory.py,v 1.96 2011/06/02 19:26:22 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -424,4 +424,4 @@ if __name__ == '__main__':
     try:
         main(sys.argv[1])
     except KeyboardInterrupt,e:
-        print glideFactoryLib.log_files.logActivity("Terminating: %s"%e)
+        glideFactoryLib.log_files.logActivity("Terminating: %s"%e)
