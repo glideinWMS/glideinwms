@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontend.py,v 1.77.4.6 2010/11/05 17:08:14 parag Exp $
+#   $Id: glideinFrontend.py,v 1.77.4.7 2011/06/02 19:23:38 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -99,13 +99,15 @@ def spawn(sleep_time,advertize_rate,work_dir,
                 try:
                     tempOut = child.fromchild.read()
                     if len(tempOut)!=0:
-                        print child, tempOut
+                        glideinFrontendLib.log_files.logActivity(
+                            "[%s]: %s" % (child, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.childerr.read()
                     if len(tempErr)!=0:
-                        print child, tempErr
+                        glideinFrontendLib.log_files.logWarning(
+                            "[%s]: %s" % (child, tempErr))
                 except IOError:
                     pass # ignore
                 
