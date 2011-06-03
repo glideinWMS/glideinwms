@@ -12,10 +12,10 @@ WORK_DIR=$(LOCAL_DIR)
 # No need to be nice... I got the slot
 JOB_RENICE_INCREMENT = 0
 
-NUM_CPUS = 2
+NUM_CPUS = $(GLIDEIN_CPUS)+1
 VIRTUAL_MACHINE_TYPE_1 = cpus=1, memory=1%, swap=1%, disk=1%
 NUM_VIRTUAL_MACHINES_TYPE_1 = 1
-VIRTUAL_MACHINE_TYPE_2 = cpus=1, memory=99%, swap=99%, disk=99%
+VIRTUAL_MACHINE_TYPE_2 = cpus=$(GLIDEIN_CPUS), memory=99%, swap=99%, disk=99%
 NUM_VIRTUAL_MACHINES_TYPE_2 = 1
 
 STARTD_RESOURCE_PREFIX = vm

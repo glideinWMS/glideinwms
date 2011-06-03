@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.106 2011/05/19 21:19:07 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.107 2011/06/03 20:10:47 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -111,11 +111,11 @@ def perform_work(entry_name,
 
     # find out the users it is using
     log_stats={}
-    log_stats[x509_proxy_username]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
+    log_stats[x509_proxy_username+":"+client_int_name]=glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name,x509_proxy_username),
                                                                               glideFactoryLib.log_files.log_dir,
                                                                               client_int_name,x509_proxy_username)
     # should not need privsep for reading logs
-    log_stats[x509_proxy_username].load()
+    log_stats[x509_proxy_username+":"+client_int_name].load()
 
     glideFactoryLib.logStats(condorQ,condorStatus,client_int_name,client_security_name,x509_proxy_security_class)
     client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
@@ -208,7 +208,7 @@ class X509Proxies:
         self.count_fnames+=1
 
 ###
-def find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
     """
     Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
     in downtime, requested glideins is zero.
@@ -666,7 +666,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
         myJobAttributes=jobAttributes.data.copy()
-        #myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
+        myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
@@ -754,7 +754,6 @@ def iterate(parent_pid, sleep_time, advertize_rate,
     @param jobAttributes: Object that encapsulates attributes.cfg in the entry directory
     @type jobParams: glideFactoryConfig.JobParams
     @param jobParams: Object that encapsulates params.cfg in the entry directory
-
     """
 
     is_first=1

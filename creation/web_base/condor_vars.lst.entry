@@ -17,6 +17,7 @@ GLEXEC_BIN		C	-		GLEXEC				N	N	-
 GLIDEIN_Monitoring_Enabled	C	True		+				N	Y	+
 # this will be used for MaxJobRetirementTime of the main startd
 PREEMPT_GRACE_TIME	I	10000000	+				N	Y	+
+GLIDEIN_CPUS		C	1		+				N	N	@ 
 
 # Factory provided
 GLIDEIN_Entry_Name	S	-		+				Y	Y	@

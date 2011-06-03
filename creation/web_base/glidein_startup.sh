@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.88 2011/02/10 21:35:30 parag Exp $
+#   $Id: glidein_startup.sh,v 1.89 2011/06/03 20:10:47 parag Exp $
 #
 
 export LANG=C
@@ -17,12 +17,6 @@ function on_die {
 
 function ignore_signal {
         echo "Ignoring SIGHUP signal... Use SIGTERM or SIGINT to kill processes" 1>&2
-}
-
-function on_die {
-        echo "Received kill signal... shutting down child processes"
-        ON_DIE=1
-        kill %1
 }
 
 function warn {

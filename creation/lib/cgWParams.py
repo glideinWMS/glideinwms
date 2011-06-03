@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.67 2011/05/19 21:19:07 parag Exp $
+#   $Id: cgWParams.py,v 1.68 2011/06/03 20:10:47 parag Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -65,7 +65,7 @@ class GlideinParams(cWParams.CommonParams):
         entry_config_max_jobs_defaults["held"]=('1000',"nr","Maximum number of held glideins (per frontend) before forcing the cleanup.",None)
         entry_config_defaults['max_jobs']=entry_config_max_jobs_defaults
 
-
+        
         entry_config_queue_defaults=cWParams.commentedOrderedDict()
         entry_config_queue_defaults["max_per_cycle"]=['100',"nr","Maximum number of jobs affected per cycle.",None]
         entry_config_queue_defaults["sleep"]=['0.2',"seconds","Sleep between interactions with the schedd.",None]
@@ -145,7 +145,6 @@ class GlideinParams(cWParams.CommonParams):
         self.monitor_defaults["base_dir"]=("/var/www/html/glidefactory/monitor","base_dir","Monitoring base dir",None)
         self.defaults["monitor"]=self.monitor_defaults
 
-
         self.frontend_sec_class_defaults=cWParams.commentedOrderedDict()
         self.frontend_sec_class_defaults["username"]=(None,'username','UNIX ID to be used for this security class',None)
 
@@ -153,7 +152,6 @@ class GlideinParams(cWParams.CommonParams):
         self.frontend_defaults["identity"]=(None,'identity','Authenticated Identity',None)
         self.frontend_defaults["security_classes"]=(xmlParse.OrderedDict(),"Dictionary of security class maps","Each mapping contains",self.frontend_sec_class_defaults)
 
-        
         security_default=cWParams.commentedOrderedDict()
         security_default["pub_key"]=("RSA","None|RSA","Type of public key system used for secure message passing",None)
         security_default["reuse_oldkey_onstartup_gracetime"]=("900","seconds","Time in sec old key can be used to decrypt requests from frontend",None)

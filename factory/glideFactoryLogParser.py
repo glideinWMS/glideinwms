@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLogParser.py,v 1.18 2011/02/10 21:35:30 parag Exp $
+#   $Id: glideFactoryLogParser.py,v 1.19 2011/06/03 20:10:47 parag Exp $
 #
 # Description:
 #   This module implements classes to track
@@ -22,12 +22,19 @@ import condorLogParser
 rawJobId2Nr=condorLogParser.rawJobId2Nr
 rawTime2cTime=condorLogParser.rawTime2cTime
 
-# this class declares a job complete only after the output file has been received, too
-# the format is slightly different than the one of logSummaryTimings; we add the dirname in the job id
-# when a output file is found, it adds a 4th parameter to the completed jobs
-# see extractLogData below for more details
 class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
+    """
+    Class logSummaryTimingsOut logs timing and status of a job.
+    It declares a job complete only after the output file has been received
+    The format is slightly different than the one of logSummaryTimings; 
+    we add the dirname in the job id
+    When a output file is found, it adds a 4th parameter to the completed jobs
+    See extractLogData below for more details
+    """
     def __init__(self,logname,cache_dir,username):
+        """
+        This class uses the condorLogParser clInit function to initialize
+        """
         self.clInit(logname,cache_dir,".%s.ftstpk"%username)
         self.dirname=os.path.dirname(logname)
         self.cache_dir=cache_dir
@@ -35,6 +42,13 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
         self.year=time.localtime(self.now)[0]
 
     def loadFromLog(self):
+        """
+        This class inherits from cachedLogClass.  So, load() will 
+        first check the cached files.  If changed, it will call this function.
+        This uses the condorLogParser to load the log, then does
+        some post-processing to check the job.NUMBER.out files
+        to see if the job has finished and to extract some data.
+        """
         condorLogParser.logSummaryTimings.loadFromLog(self)
         if not self.data.has_key('Completed'):
             return # nothing else to fo
@@ -91,10 +105,17 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
 
         return
 
-    # diff self data with other info
-    # add glidein log data to Entered/Completed
-    # return data[status]['Entered'|'Exited'] - list of jobs
     def diff_raw(self,other):
+        """
+        Diff self.data with other info,
+        add glidein log data to Entered/Exited.
+        Used to compare current data with previous iteration.
+
+        Uses symmetric difference of sets to compare the two dictionaries.
+
+        @type other: dictionary of statuses -> jobs
+        @return: data[status]['Entered'|'Exited'] - list of jobs
+        """
         if other==None:
             outdata={}
             if self.data!=None:
@@ -154,11 +175,17 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
             return outdata
 
 
-    # diff self data with other info
-    # add glidein log data to Entered/Completed
-    # return data[status]['Entered'|'Exited'] - list of jobs
-    # completed jobs are augmented with data from the log
     def diff(self,other):
+        """
+        Diff self.data with other for use in comparing current
+        iteration data with previous iteration.
+
+        Uses diff_raw to perform symmetric difference of self.data
+        and other and puts it into data[status]['Entered'|'Exited']
+        Completed jobs are augmented with data from the log
+
+        @return: data[status]['Entered'|'Exited'] - list of jobs 
+        """
         outdata=self.diff_raw(other)
         if outdata.has_key("Completed"):
             outdata_s=outdata["Completed"]
@@ -175,10 +202,14 @@ class logSummaryTimingsOut(condorLogParser.logSummaryTimings):
                 entered[i]=(sel_e[:-1]+(fdata,sel_e[-1]))
         return outdata
 
-# for now it is just a constructor wrapper
-# Further on it will need to implement glidein exit code checks
 
 class dirSummarySimple:
+    """
+    dirSummary Simple
+
+    for now it is just a constructor wrapper
+    Further on it will need to implement glidein exit code checks
+    """
     def __init__(self,obj):
         self.data=copy.deepcopy(obj.data)
         self.logClass=obj.logClass
@@ -196,16 +227,26 @@ class dirSummarySimple:
         dummyobj.merge(copy.deepcopy(other.data))
         self.data=dummyobj.data
 
-# One client_name
 class dirSummaryTimingsOut(condorLogParser.cacheDirClass):
+    """
+    This class uses a lambda function to initialize an instance
+    of cacheDirClass.
+    The function chooses all condor_activity files in a directory
+    that correspond to a particular client.
+    """
     def __init__(self,dirname,cache_dir,client_name,user_name,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,user_name),dirname,"condor_activity_","_%s.log"%client_name,".%s.cifpk"%user_name,inactive_files,inactive_timeout,cache_dir)
 
     def get_simple(self):
         return dirSummarySimple(self)
 
-# All clients
 class dirSummaryTimingsOutFull(condorLogParser.cacheDirClass):
+    """
+    This class uses a lambda function to initialize an instance
+    of cacheDirClass.
+    The function chooses all condor_activity files in a directory
+    regardless of client name.
+    """
     def __init__(self,dirname,cache_dir,inactive_files=None,inactive_timeout=24*3600):
         self.cdInit(lambda ln,cd:logSummaryTimingsOut(ln,cd,"all"),dirname,"condor_activity_",".log",".all.cifpk",inactive_files,inactive_timeout,cache_dir)
 
@@ -227,17 +268,23 @@ KNOWN_SLOT_STATS=['Total','goodZ','goodNZ','badSignal','badOther']
 
 EMPTY_LOG_DATA={'condor_started':0,'glidein_duration':0}
 
-# will return a dictionary
-#  glidein_duration - integer, how long did the glidein run
-#  validation_duration - integer, how long did it take before starting condor
-#  condor_started - Boolean, did condor even start (if false, no further entries)
-#  condor_duration - integer, how long did Condor run
-#  stats - dictionary of stats (as in KNOWN_SLOT_STATS), each having
-#           jobsnr - integer, number of jobs started
-#           secs   - integer, total number of secods used
-# for example {'glidein_duration':20305,'validation_duration':6,'condor_started': 1, 'condor_duration': 20298,
-#              'stats': {'badSignal': {'secs': 0, 'jobsnr': 0}, 'goodZ': {'secs': 19481, 'jobsnr': 1}, 'Total': {'secs': 19481, 'jobsnr': 1}, 'goodNZ': {'secs': 0, 'jobsnr': 0}, 'badOther': {'secs': 0, 'jobsnr': 0}}}
 def extractLogData(fname):
+    """
+    Given a filename of a job file "path/job.NUMBER.out"
+    extract the statistics of the job duration, etc.
+
+    @param fname: Filename to extract
+    @return: a dictionary with keys:
+        - glidein_duration - integer, how long did the glidein run
+        - validation_duration - integer, how long before starting condor
+        - condor_started - Boolean, did condor even start 
+          (if false, no further entries)
+        - condor_duration - integer, how long did Condor run
+        - stats - dictionary of stats (as in KNOWN_SLOT_STATS), each having
+        - jobsnr - integer, number of jobs started
+        - secs   - integer, total number of secods used
+    For example {'glidein_duration':20305,'validation_duration':6,'condor_started' : 1, 'condor_duration': 20298, 'stats': {'badSignal': {'secs': 0, 'jobsnr': 0}, 'goodZ': {'secs' : 19481, 'jobsnr': 1}, 'Total': {'secs': 19481, 'jobsnr': 1}, 'goodNZ': {'secs': 0, 'jobsnr': 0}, 'badOther': {'secs': 0, 'jobsnr': 0}}}
+    """
     condor_starting=0
     condor_duration=None
     validation_duration=None
@@ -308,8 +355,10 @@ def extractLogData(fname):
                     glidein_duration=int(glidein_end_re.group('secs'))
                 except:
                     glidein_duration=None
-                
                 bux_idx=glidein_end_re.end()+1
+            else:
+                glidein_duration=None
+                
         finally:
             buf.close()
     finally:
