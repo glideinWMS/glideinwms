@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.25 2011/06/03 18:34:47 burt Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.26 2011/06/03 19:10:31 burt Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -93,12 +93,10 @@ def log_factory_header():
 def fetch_fork_result(r,pid):
     try:
         rin=""
-        s=os.read(r,1024*1024) # set max to a really large number just to be sure, data should be small
-        rin += s
+        s=os.read(r,1024*1024)
         while (s!=""): # "" means EOF
-            s=os.read(r,1024*1024)
             rin+=s
-
+            s=os.read(r,1024*1024) 
     finally:
         os.close(r)
         os.waitpid(pid,0)
