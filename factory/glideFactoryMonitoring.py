@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.2 2011/05/06 16:01:53 klarson1 Exp $
+# File Version:
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.3 2011/06/06 18:35:42 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -45,7 +45,7 @@ class MonitoringConfig:
         # The name of the attribute that identifies the glidein
         self.monitor_dir="monitor/"
 
-        
+
         self.log_dir="log/"
         self.logCleanupObj=None
 
@@ -54,10 +54,13 @@ class MonitoringConfig:
         self.my_name="Unknown"
 
     def config_log(self,log_dir,max_days,min_days,max_mbs):
-        self.log_dir=log_dir
-        glideFactoryLib.log_files.add_dir_to_cleanup(None,log_dir,
-                                                     "(completed_jobs_\..*\.log)",
-                                                     max_days,min_days,max_mbs)
+        self.log_dir = log_dir
+        cleaner = PrivsepDirCleanupWSpace(None ,log_dir, "(completed_jobs_\..*\.log)",
+                                          int(max_days*24*3600), int(min_days*24*3600),
+                                          long(max_mbs*(1024.0*1024.0)))
+        glideFactoryLib.cleaners.add_cleaner(cleaner)
+
+
 
     def logCompleted(self,client_name,entered_dict):
         now=time.time()
@@ -66,7 +69,7 @@ class MonitoringConfig:
         if len(job_ids)==0:
             return # nothing to do
         job_ids.sort()
-        
+
         relative_fname="completed_jobs_%s.log"%time.strftime("%Y%m%d",time.localtime(now))
         fname=os.path.join(self.log_dir,relative_fname)
         fd=open(fname,"a")
@@ -105,9 +108,9 @@ class MonitoringConfig:
 
         tmp2final(fname)
         return
-    
+
     def establish_dir(self,relative_dname):
-        dname=os.path.join(self.monitor_dir,relative_dname)      
+        dname=os.path.join(self.monitor_dir,relative_dname)
         if not os.path.isdir(dname):
             os.mkdir(dname)
         return
@@ -118,12 +121,12 @@ class MonitoringConfig:
         """
         if self.rrd_obj.isDummy():
             return # nothing to do, no rrd bin no rrd creation
-        
+
         for tp in ((".rrd",self.rrd_archives),):
             rrd_ext,rrd_archives=tp
             fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
             #print "Writing RRD "+fname
-        
+
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
                 if min==None:
@@ -157,12 +160,12 @@ class MonitoringConfig:
         """
         if self.rrd_obj.isDummy():
             return # nothing to do, no rrd bin no rrd creation
-        
+
         for tp in ((".rrd",self.rrd_archives),):
             rrd_ext,rrd_archives=tp
             fname=os.path.join(self.monitor_dir,relative_fname+rrd_ext)
             #print "Writing RRD "+fname
-        
+
             if not os.path.isfile(fname):
                 #print "Create RRD "+fname
                 ds_names=val_dict.keys()
@@ -174,7 +177,7 @@ class MonitoringConfig:
                     if ds_desc_dict.has_key(ds_name):
                         for k in ds_desc_dict[ds_name].keys():
                             ds_desc[k]=ds_desc_dict[ds_name][k]
-                    
+
                     ds_arr.append((ds_name,ds_desc['ds_type'],self.rrd_heartbeat,ds_desc['min'],ds_desc['max']))
                 self.rrd_obj.create_rrd_multi(fname,
                                               self.rrd_step,rrd_archives,
@@ -186,7 +189,7 @@ class MonitoringConfig:
             except Exception,e:
                 print "Failed to update %s"%fname
         return
-    
+
 
 ####################################
 def time2xml(the_time,outer_tag,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -324,7 +327,7 @@ class condorQStats:
 
         if not el.has_key('InfoAge'):
             el['InfoAge']=0
-            el['InfoAgeAvgCounter']=0 # used for totals since we need an avg in totals, not absnum 
+            el['InfoAgeAvgCounter']=0 # used for totals since we need an avg in totals, not absnum
 
 
         if client_internals.has_key('LastHeardFrom'):
@@ -353,7 +356,7 @@ class condorQStats:
                 for a in el.keys():
                     if a[-10:]=='AvgCounter': # do not publish avgcounter fields... they are internals
                         del el[a]
-            
+
         return data1
 
     def get_xml_data(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
@@ -381,7 +384,7 @@ class condorQStats:
                             if type(el[a])==type(1): # copy only numbers
                                 tel[a]=el[a]
                     else:
-                        # successive, sum 
+                        # successive, sum
                         for a in el.keys():
                             if type(el[a])==type(1): # consider only numbers
                                 if tel.has_key(a):
@@ -393,7 +396,7 @@ class condorQStats:
                                 del tel[a]
                             elif type(el[a])!=type(1):
                                 del tel[a]
-        
+
         for w in total.keys():
             if total[w]==None:
                 del total[w] # remove entry if not defined
@@ -409,7 +412,7 @@ class condorQStats:
                         del tel[a]
 
         return total
-    
+
     def get_xml_total(self,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
         total=self.get_total()
         return xmlFormat.class2string(total,
@@ -435,8 +438,8 @@ class condorQStats:
 
         if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
-            return 
-        
+            return
+
 
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
@@ -467,8 +470,8 @@ class condorQStats:
                 tp_str=type_strings[tp]
                 attributes_tp=self.attributes[tp]
                 for a in attributes_tp:
-                    val_dict["%s%s"%(tp_str,a)]=None               
-            
+                    val_dict["%s%s"%(tp_str,a)]=None
+
             monitoringConfig.establish_dir(fe_dir)
             for tp in fe_el.keys():
                 # type - Status, Requested or ClientMonitor
@@ -478,20 +481,20 @@ class condorQStats:
                 tp_str=type_strings[tp]
 
                 attributes_tp=self.attributes[tp]
-                
+
                 fe_el_tp=fe_el[tp]
                 for a in fe_el_tp.keys():
                     if a in attributes_tp:
                         a_el=fe_el_tp[a]
                         if type(a_el)!=type({}): # ignore subdictionaries
                             val_dict["%s%s"%(tp_str,a)]=a_el
-                
+
             monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
                                              "GAUGE",self.updated,val_dict)
 
-        self.files_updated=self.updated        
+        self.files_updated=self.updated
         return
-    
+
 #########################################################################################################################################
 #
 #  condorLogSummary
@@ -552,20 +555,20 @@ class condorLogSummary:
 
         return end_ctime-start_ctime
 
-        
+
     def logSummary(self,client_name,stats):
         """
          stats - glideFactoryLogParser.dirSummaryTimingsOut
         """
         if not self.current_stats_data.has_key(client_name):
             self.current_stats_data[client_name]={}
-            
+
         for username in stats.keys():
             if not self.current_stats_data[client_name].has_key(username):
                 self.current_stats_data[client_name][username]=stats[username].get_simple()
             else:
                 self.current_stats_data[client_name][username].merge(stats[username])
-        
+
         self.updated=time.time()
         self.updated_year=time.localtime(self.updated)[0]
 
@@ -679,7 +682,7 @@ class condorLogSummary:
                                    'duration':enle_glidein_duration,'condor_started':enle_condor_started,'condor_duration':enle_condor_duration,
                                    'jobsnr':enle_nr_jobs,'jobs_duration':{'total':enle_jobs_duration,'goodput':enle_goodput,'terminated':enle_terminated_duration},
                                    'wastemill':enle_waste_mill}
-        
+
         return out_list
 
     # in: entered_list=get_completed_data()
@@ -688,11 +691,11 @@ class condorLogSummary:
     def summarize_completed_stats(self,entered_list):
         # summarize completed data
         count_entered_times={}
-        for enle_timerange in getAllTimeRanges(): 
+        for enle_timerange in getAllTimeRanges():
             count_entered_times[enle_timerange]=0 # make sure all are initialized
 
         count_jobnrs={}
-        for enle_jobrange in getAllJobRanges(): 
+        for enle_jobrange in getAllJobRanges():
             count_jobnrs[enle_jobrange]=0 # make sure all are initialized
 
         count_jobs_duration={};
@@ -707,7 +710,7 @@ class condorLogSummary:
                      'JobsTerminated':0,
                      'JobsGoodput':0,
                      'CondorLasted':0}
-        
+
         count_waste_mill={'validation':{},
                           'idle':{},
                           'nosuccess':{}, #i.e. everything but jobs terminating with 0
@@ -772,8 +775,8 @@ class condorLogSummary:
 
                 time_waste_mill_w=time_waste_mill[w]
                 time_waste_mill_w[enle_waste_mill_w_range]+=enle_glidein_duration
-        
-        
+
+
         return {'Lasted':count_entered_times,'JobsNr':count_jobnrs,'Sum':count_total,'JobsDuration':count_jobs_duration,'Waste':count_waste_mill,'WasteTime':time_waste_mill}
 
     def get_data_summary(self):
@@ -786,7 +789,7 @@ class condorLogSummary:
                 exited=0
                 for username in self.stats_diff[client_name].keys():
                     diff_el=self.stats_diff[client_name][username]
-                
+
                     if ((diff_el!=None) and (s in diff_el.keys())):
                         entered_list+=diff_el[s]['Entered']
                         entered+=len(diff_el[s]['Entered'])
@@ -859,7 +862,7 @@ class condorLogSummary:
                             # not for the others since there is no adequate place in the object
                             for sdel in sdiff[k]['Entered']:
                                 sdel[4]['username']=username
-                            
+
                         for e in tdata.keys():
                             for sdel in sdiff[k][e]:
                                 tdata[e].append(sdel)
@@ -914,7 +917,7 @@ class condorLogSummary:
 
         if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
-            return 
+            return
 
         # write snaphot file
         xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
@@ -960,7 +963,7 @@ class condorLogSummary:
                     entered_list=[]
                     entered=0
                     exited=0
-                    
+
                 val_dict_counts["Entered%s"%s]=entered
                 val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
                 if not (s in ('Completed','Removed')): # Always 0 for them
@@ -1021,7 +1024,7 @@ class condorLogSummary:
         self.files_updated=self.updated
         return
 
-    
+
 ###############################################################################
 #
 # factoryStatusData
@@ -1061,12 +1064,12 @@ class FactoryStatusData:
             fetched = baseRRDSupport.fetch_rrd(pathway + file, 'AVERAGE', resolution = res, start = start, end = end)
         except:
             # probably not created yet
-            glideFactoryLib.log_files.logDebug("Failed to load %s"%(pathway + file))
+            logSupport.log.debug("Failed to load %s"%(pathway + file))
             return {}
 
         #converts fetched from tuples to lists
         fetched_names = list(fetched[1])
-        
+
         fetched_data_raw = fetched[2][:-1] # drop the last entry... rrdtool will return one more than needed, and often that one is unreliable (in the python version)
         fetched_data = []
         for data in fetched_data_raw:
@@ -1080,7 +1083,7 @@ class FactoryStatusData:
         #check to make sure the data exists
         all_empty=True
         for data_set in data_sets:
-            index = fetched_names.index(data_set)	
+            index = fetched_names.index(data_set)
             for data in fetched_data:
                 if isinstance(data[index], (int, float)):
                     data_sets[data_set].append(data[index])
@@ -1100,13 +1103,13 @@ class FactoryStatusData:
                 avg_list = 0
             return avg_list
         except TypeError:
-            glideFactoryLib.log_files.logDebug("average: TypeError")
+            logSupport.log.debug("average: TypeError")
             return
 
     def getData(self, input):
         """returns the data fetched by rrdtool in a xml readable format"""
         global monitoringConfig
-        
+
         folder = str(input)
         if folder == self.total:
             client = folder
@@ -1115,7 +1118,7 @@ class FactoryStatusData:
             client = folder_name.join(["frontend_","/"])
             if client not in self.frontends:
                 self.frontends.append(client)
-        
+
         for rrd in rrd_list:
             self.data[rrd][client] = {}
             for res_raw in self.resolution:
@@ -1130,7 +1133,7 @@ class FactoryStatusData:
                     period_mul=int(res_raw/rrd_res)
 
                 period=period_mul*rrd_res
-            
+
                 self.data[rrd][client][period] = {}
                 end = (int(time.time()/rrd_res)-1)*rrd_res # round due to RRDTool requirements, -1 to avoid the last (partial) one
                 start = end - period
@@ -1140,7 +1143,7 @@ class FactoryStatusData:
                     for data_set in fetched_data:
                         self.data[rrd][client][period][data_set] = self.average(fetched_data[data_set])
                 except TypeError:
-                    glideFactoryLib.log_files.logDebug("FactoryStatusData:fetchData: TypeError")
+                    logSupport.log.debug("FactoryStatusData:fetchData: TypeError")
 
         return self.data
 
@@ -1154,7 +1157,7 @@ class FactoryStatusData:
             total_data = self.data[rrd][self.total]
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 2 * self.tab) + "\n")
         except NameError, UnboundLocalError:
-            glideFactoryLib.log_files.logDebug("FactoryStatusData:total_data: NameError or UnboundLocalError")
+            logSupport.log.debug("FactoryStatusData:total_data: NameError or UnboundLocalError")
         total_xml_str += self.tab + '</total>\n'
 
         # create a string containing the frontend data
@@ -1167,13 +1170,13 @@ class FactoryStatusData:
                 frontend_data = self.data[rrd][frontend]
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 3 * self.tab) + "\n")
             except NameError, UnboundLocalError:
-                glideFactoryLib.log_files.logDebug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
+                logSupport.log.debug("FactoryStatusData:frontend_data: NameError or UnboundLocalError")
             frontend_xml_str += 2 * self.tab + '</frontend>'
         frontend_xml_str += self.tab + '</frontends>\n'
-                  
+
         data_str =  total_xml_str + frontend_xml_str
         return data_str
-    
+
     def writeFiles(self):
         for rrd in rrd_list:
             file_name = 'rrd_' + rrd.split(".")[0] + '.xml'
@@ -1185,9 +1188,9 @@ class FactoryStatusData:
             try:
                 monitoringConfig.write_file(file_name, xml_str)
             except IOError:
-                glideFactoryLib.log_files.logDebug("FactoryStatusData:write_file: IOError")
+                logSupport.log.debug("FactoryStatusData:write_file: IOError")
         return
-    
+
 ##############################################################################
 #
 #  create an XML file out of glidein.descript, frontend.descript,
@@ -1201,7 +1204,7 @@ class Descript2XML:
         self.entry_descript_blacklist = ('DowntimesFile', 'EntryName',
                                          'Schedd')
         self.frontend_blacklist = ('usermap', )
-        self.glidein_whitelist = ('AdvertiseDelay', 
+        self.glidein_whitelist = ('AdvertiseDelay',
                                   'FactoryName', 'GlideinName', 'LoopDelay',
                                   'PubKeyType', 'WebURL')
 
@@ -1214,12 +1217,12 @@ class Descript2XML:
                     except KeyError:
                         continue
             except RuntimeError:
-                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in frontendDescript")
+                logSupport.log.debug("blacklist RuntimeError in frontendDescript")
         try:
             str = xmlFormat.dict2string(dict, dict_name = "frontends", el_name = "frontend", subtypes_params = {"class":{}}, leading_tab = self.tab)
             return str + "\n"
         except RuntimeError:
-            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in frontendDescript")
+            logSupport.log.debug("xmlFormat RuntimeError in frontendDescript")
             return
 
     def entryDescript(self, dict):
@@ -1231,12 +1234,12 @@ class Descript2XML:
                     except KeyError:
                         continue
             except RuntimeError:
-                glideFactoryLib.log_files.logDebug("blacklist RuntimeError in entryDescript")
+                logSupport.log.debug("blacklist RuntimeError in entryDescript")
         try:
             str = xmlFormat.dict2string(dict, dict_name = "entries", el_name = "entry", subtypes_params = {"class":{'subclass_params':{}}}, leading_tab = self.tab)
             return str + "\n"
         except RuntimeError:
-            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in entryDescript")
+            logSupport.log.debug("xmlFormat RuntimeError in entryDescript")
             return
 
     def glideinDescript(self, dict):
@@ -1251,9 +1254,9 @@ class Descript2XML:
             b = a.split("\n")[1]
             c = b.split('name="" ')
             str = "".join(c)
-            return str + "\n"            
+            return str + "\n"
         except SyntaxError, RuntimeError:
-            glideFactoryLib.log_files.logDebug("xmlFormat RuntimeError in glideinDescript")
+            logSupport.log.debug("xmlFormat RuntimeError in glideinDescript")
             return
 
     def getUpdated(self):
@@ -1278,7 +1281,7 @@ class Descript2XML:
         tmp2final(fname)
         return
 
-    
+
 ############### P R I V A T E ################
 
 ##################################################
@@ -1299,7 +1302,7 @@ def getTimeRange(absval):
 
 def getAllTimeRanges():
         return ('Unknown','Minutes','30mins','2hours','8hours','32hours','Days')
-    
+
 def getJobRange(absval):
         if absval<1:
             return 'None'
@@ -1316,7 +1319,7 @@ def getJobRange(absval):
 
 def getAllJobRanges():
         return ('None','1job','2jobs','4jobs','16jobs','Many')
-    
+
 def getMillRange(absval):
         if absval<2:
             return 'None'
@@ -1336,7 +1339,7 @@ def getMillRange(absval):
             return 'Most'
 
 def getAllMillRanges():
-        return ('None','5m','25m','100m','250m','500m','Most','All')            
+        return ('None','5m','25m','100m','250m','500m','Most','All')
 
 ##################################################
 def get_completed_stats_xml_desc():

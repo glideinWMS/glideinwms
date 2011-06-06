@@ -2,8 +2,8 @@
 # Project:
 #   glideinWMS
 #
-# File Version: 
-#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.7.2.1 2011/04/19 15:22:58 tiradani Exp $
+# File Version:
+#   $Id: glideFactoryMonitorAggregator.py,v 1.84.8.7.2.2 2011/06/06 18:35:42 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -19,6 +19,7 @@ import timeConversion
 import xmlParse,xmlFormat
 import glideFactoryMonitoring
 import glideFactoryLib
+import logSupport
 
 ############################################################
 #
@@ -42,7 +43,7 @@ class MonitorAggregatorConfig:
         self.monitor_dir=monitor_dir
         self.entries=entries
         glideFactoryMonitoring.monitoringConfig.monitor_dir=monitor_dir
-    
+
 
 # global configuration of the module
 monitorAggregatorConfig=MonitorAggregatorConfig()
@@ -96,7 +97,7 @@ def aggregateStatus(in_downtime):
         except IOError:
             continue # file not found, ignore
 
-        # update entry 
+        # update entry
         status['entries'][entry]={'downtime':entry_data['downtime'], 'frontends':entry_data['frontends']}
 
         # update total
@@ -107,7 +108,7 @@ def aggregateStatus(in_downtime):
             for w in global_total.keys():
                 tel=global_total[w]
                 if not entry_data['total'].has_key(w):
-                    continue 
+                    continue
                 el=entry_data['total'][w]
                 if tel==None:
                     # new one, just copy over
@@ -115,17 +116,17 @@ def aggregateStatus(in_downtime):
                     tel=global_total[w]
                     for a in el.keys():
                         tel[a]=int(el[a]) #coming from XML, everything is a string
-                else:                
-                    # successive, sum 
+                else:
+                    # successive, sum
                     for a in el.keys():
                         if tel.has_key(a):
                             tel[a]+=int(el[a])
-                            
+
                         # if any attribute from prev. frontends are not in the current one, remove from total
                         for a in tel.keys():
                             if not el.has_key(a):
                                 del tel[a]
-        
+
     for w in global_total.keys():
         if global_total[w]==None:
             del global_total[w] # remove entry if not defined
@@ -162,7 +163,7 @@ def aggregateStatus(in_downtime):
 
         tp_str=type_strings[tp]
         attributes_tp=status_attributes[tp]
-                
+
         tp_el=global_total[tp]
 
         for a in tp_el.keys():
@@ -222,7 +223,7 @@ def aggregateLogSummary():
                                             'JobsGoodput':0,
                                             'JobsTerminated':0,
                                             'CondorLasted':0}
-    
+
     #
     status={'entries':{},'total':global_total}
     nr_entries=0
@@ -260,7 +261,7 @@ def aggregateLogSummary():
             for t in glideFactoryMonitoring.getAllJobRanges():
                 out_fe_el['CompletedCounts']['JobsNr'][t]=int(fe_el['CompletedCounts']['JobsNr'][t]['val'])
             out_data[frontend]=out_fe_el
-            
+
         status['entries'][entry]={'frontends':out_data}
 
         # update total
@@ -297,7 +298,7 @@ def aggregateLogSummary():
                 global_total['CompletedCounts']['JobsNr'][t]+=int(entry_data['total']['CompletedCounts']['JobsNr'][t]['val'])
 
             status['entries'][entry]['total']=local_total
-        
+
     # Write xml files
     updated=time.time()
     xml_str=('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n'+
@@ -335,7 +336,7 @@ def aggregateLogSummary():
             exited=-status["total"]['Exited'][s]
             val_dict_counts["Exited%s"%s]=exited
             val_dict_counts_desc["Exited%s"%s]={'ds_type':'ABSOLUTE'}
-            
+
         entered=status["total"]['Entered'][s]
         val_dict_counts["Entered%s"%s]=entered
         val_dict_counts_desc["Entered%s"%s]={'ds_type':'ABSOLUTE'}
@@ -379,12 +380,12 @@ def aggregateLogSummary():
                                                             "ABSOLUTE",updated,val_dict_completed)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Stats"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_stats)
-    # Disable Waste RRDs... WasteTime much more useful 
+    # Disable Waste RRDs... WasteTime much more useful
     #glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_Waste"%fe_dir,
     #                                                        "ABSOLUTE",updated,val_dict_waste)
     glideFactoryMonitoring.monitoringConfig.write_rrd_multi("%s/Log_Completed_WasteTime"%fe_dir,
                                                             "ABSOLUTE",updated,val_dict_wastetime)
-    
+
     return status
 
 def aggregateRRDStats():
@@ -394,7 +395,7 @@ def aggregateRRDStats():
     tab = xmlFormat.DEFAULT_TAB
 
     for rrd in rrdstats_relname:
-	
+
         # assigns the data from every site to 'stats'
         stats = {}
         for entry in monitorAggregatorConfig.entries:
@@ -402,13 +403,13 @@ def aggregateRRDStats():
             try:
                 stats[entry] = xmlParse.xmlfile2dict(rrd_fname, always_singular_list = {'timezone':{}})
             except IOError:
-                glideFactoryLib.log_files.logDebug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
+                logSupport.log.debug("aggregateRRDStats %s exception: parse_xml, IOError"%rrd_fname)
 
         stats_entries=stats.keys()
         if len(stats_entries)==0:
             continue # skip this RRD... nothing to aggregate
         stats_entries.sort()
-        
+
         # Get all the resolutions, data_sets and frontends... for totals
         resolution = sets.Set([])
         frontends = sets.Set([])
@@ -448,7 +449,7 @@ def aggregateRRDStats():
                                 aggregate_output[client][res][data_set] += float(stats[entry][client]['periods'][res][data_set])
                             except KeyError:
                                 # well, some may be just missing.. can happen
-                                glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
+                                logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s]"%(entry,client,'periods',res,data_set))
 
                         else:
                             if stats[entry]['frontends'].has_key(client):
@@ -457,7 +458,7 @@ def aggregateRRDStats():
                                     aggregate_output[client][res][data_set] += float(stats[entry]['frontends'][client]['periods'][res][data_set])
                                 except KeyError:
                                     # well, some may be just missing.. can happen
-                                    glideFactoryLib.log_files.logDebug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
+                                    logSupport.log.debug("aggregate_data, KeyError stats[%s][%s][%s][%s][%s][%s]" %(entry,'frontends',client,'periods',res,data_set))
 
         # write an aggregate XML file
 
@@ -470,9 +471,9 @@ def aggregateRRDStats():
             try:
                 entry_str += (xmlFormat.dict2string(stats[entry]['total']['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
             except NameError, UnboundLocalError:
-                glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+                logSupport.log.debug("total_data, NameError or TypeError")
             entry_str += 3 * tab + '</total>\n'
-        
+
             entry_str += (3 * tab + '<frontends>\n')
             try:
                 entry_frontends = stats[entry]['frontends'].keys()
@@ -483,23 +484,23 @@ def aggregateRRDStats():
                     try:
                         entry_str += (xmlFormat.dict2string(stats[entry]['frontends'][frontend]['periods'], dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 5 * tab) + "\n")
                     except KeyError:
-                        glideFactoryLib.log_files.logDebug("frontend_data, KeyError")
+                        logSupport.log.debug("frontend_data, KeyError")
                     entry_str += 4 * tab + '</frontend>\n'
             except TypeError:
-                glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
+                logSupport.log.debug("frontend_data, TypeError")
             entry_str += (3 * tab + '</frontends>\n')
             entry_str += 2 * tab + "</entry>\n"
         entry_str += tab + "</entries>\n"
-		
+
         # aggregated data
         total_xml_str = 2 * tab + '<total>\n'
         total_data = aggregate_output['total']
         try:
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
         except NameError, UnboundLocalError:
-            glideFactoryLib.log_files.logDebug("total_data, NameError or TypeError")
+            logSupport.log.debug("total_data, NameError or TypeError")
         total_xml_str += 2 * tab + '</total>\n'
-        
+
         frontend_xml_str = (2 * tab + '<frontends>\n')
         try:
             for frontend in frontends:
@@ -509,9 +510,9 @@ def aggregateRRDStats():
                 frontend_xml_str += (xmlFormat.dict2string(frontend_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = tab, leading_tab = 4 * tab) + "\n")
                 frontend_xml_str += 3 * tab + '</frontend>\n'
         except TypeError:
-            glideFactoryLib.log_files.logDebug("frontend_data, TypeError")
+            logSupport.log.debug("frontend_data, TypeError")
         frontend_xml_str += (2 * tab + '</frontends>\n')
-                  
+
         data_str =  (tab + "<total>\n" + total_xml_str + frontend_xml_str +
                      tab + "</total>\n")
 
@@ -519,17 +520,17 @@ def aggregateRRDStats():
         updated = time.time()
         xml_str = ('<?xml version="1.0" encoding="ISO-8859-1"?>\n\n' +
                    '<glideFactoryRRDStats>\n' +
-                   get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" + entry_str + 
+                   get_xml_updated(updated, indent_tab = xmlFormat.DEFAULT_TAB, leading_tab = xmlFormat.DEFAULT_TAB) + "\n" + entry_str +
                    data_str + '</glideFactoryRRDStats>')
 
         try:
             glideFactoryMonitoring.monitoringConfig.write_file(rrd_site(rrd), xml_str)
         except IOError:
-            glideFactoryLib.log_files.logDebug("write_file %s, IOError"%rrd_site(rrd))
+            logSupport.log.debug("write_file %s, IOError"%rrd_site(rrd))
 
     return
 
-    
+
 #################        PRIVATE      #####################
 
 def get_xml_updated(when,indent_tab=xmlFormat.DEFAULT_TAB,leading_tab=""):
