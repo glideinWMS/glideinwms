@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.11 2011/05/12 19:17:12 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.12 2011/06/06 18:36:20 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -103,7 +103,7 @@ def perform_work(entry_name, condorQ,
     """
     Logs stats.  Determines how many idle glideins are needed per proxy.
     @todo deprecate the old x509_proxy_fnames parameter from the method signature
-    
+
     @type entry_name:  string
     @param entry_name:  name of the entry
     @type condorQ:  CondorQ object
@@ -131,7 +131,7 @@ def perform_work(entry_name, condorQ,
     @type jobDescript:  dict
     @param jobDescript:  entry configuration values
     @type x509_proxy_fnames:  dict
-    @param x509_proxy_fnames:  proxies for the associated security class 
+    @param x509_proxy_fnames:  proxies for the associated security class
     @type credential_username:  string
     @param credential_username:  username to be used for submitting glideins (if not factory username, privsep is used)
     @type client_web:   glideFactoryLib.ClientWeb or glideFactoryLib.ClientWebNoGroup
@@ -141,8 +141,8 @@ def perform_work(entry_name, condorQ,
     @type security_credentials:  dict
     @param security_credentials: credentials needed to submit glideins.  Will contain paths to the auth method required credentials.
     """
-    
-    
+
+
     glideFactoryLib.factoryConfig.client_internals[client_int_name] = {"CompleteName":client_name, "ReqName":client_int_req}
 
     if params.has_key("GLIDEIN_Collector"):
@@ -205,16 +205,13 @@ def perform_work(entry_name, condorQ,
                                                          client_web, params)
 
     if nr_submitted > 0:
-        #glideFactoryLib.log_files.logActivity("Submitted")
         return 1 # we submitted something, return immediately
 
     if condorStatus != None: # temporary glitch, no sanitization this round
-        #glideFactoryLib.log_files.logActivity("Sanitize")
         glideFactoryLib.sanitizeGlideins(condorQ, condorStatus)
     else:
         glideFactoryLib.sanitizeGlideinsSimple(condorQ)
 
-    #glideFactoryLib.log_files.logActivity("Work done")
     return 0
 
 ############################################################
@@ -254,9 +251,9 @@ class X509Proxies:
 ###
 def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams):
     """
-    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
+    Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is
     in downtime, requested glideins is zero.
-    
+
     @type in_downtime: boolean
     @param in_downtime: True if entry is in downtime
     @type glideinDescript:  dictionary
@@ -269,10 +266,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     @param jobAttributes: entry attributes to be published
     @type jobParams:  dictionary
     @param jobParams: entry parameters that will be passed to the glideins
-    
+
     @return: returns a value greater than zero if work was done.
     """
-           
+
     entry_name = jobDescript.data['EntryName']
     pub_key_obj = glideinDescript.data['PubKeyObj']
     auth_methods = jobDescript.data['AuthMethods'].split(',')
@@ -432,7 +429,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             try:
                 nr_x509_proxies = int(decrypted_params['nr_x509_proxies'])
             except:
-                glideFactoryLib.log_files.logWarning("Invalid number of proxies for %s, skipping request" % client_int_name)
+                logSupport.log.warning("Invalid number of proxies for %s, skipping request" % client_int_name)
                 continue # skip request
             # If the whitelist mode is on, then set downtime to true
             # We will set it to false in the loop if a security class passes the test
@@ -475,25 +472,25 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 x509_proxy_username = x509_proxies.get_username(x509_proxy_security_class)
                 if x509_proxy_username == None:
                     logSupport.log.warning("No mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others" % (x509_proxy_security_class, i, client_int_name, client_security_name))
-                    continue 
+                    continue
 
                 try:
                     x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(entry_name, x509_proxy_username, "%s_%s" % (work_key, x509_proxy_identifier), x509_proxy)
                 except RuntimeError,e:
                     logSupport.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
                     logSupport.log.debug("Failed to update x509_proxy_%i using username %s for client %s: %s" % (i, x509_proxy_username, client_int_name, e))
-                    continue 
+                    continue
                 except:
                     tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                     logSupport.log.warning("Failed to update x509_proxy_%i using usename %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
                     logSupport.log.debug("Failed to update x509_proxy_%i using usename %s for client %s: Exception %s" % (i, x509_proxy_username, client_int_name, string.join(tb, '')))
-                    continue 
+                    continue
 
                 x509_proxies.add_fname(x509_proxy_security_class, x509_proxy_identifier, x509_proxy_fname)
 
             if x509_proxies.count_fnames < 1:
                 logSupport.log.warning("No good proxies for %s, skipping request" % client_int_name)
-                continue 
+                continue
         else:
             # no proxy passed, use factory one
             x509_proxy_security_class = "factory"
@@ -563,9 +560,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         params['ProjectId'] = project_id
                     else:
                         # project id is required, cannot service request
-                        glideFactoryLib.log_files.logActivity("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue                
-            
+                        logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        continue
+
             if in_downtime:
                 # we are in downtime... no new submissions
                 idle_glideins = 0
@@ -594,7 +591,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 # old style
                 client_web = None
-            
+
             x509_proxy_security_classes = x509_proxies.fnames.keys()
             x509_proxy_security_classes.sort() # sort to have consistent logging
             for x509_proxy_security_class in x509_proxy_security_classes:
@@ -819,9 +816,9 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
         in_downtime = (factory_downtimes.checkDowntime(entry="factory") or
                        factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName']))
         if in_downtime:
-            glideFactoryLib.log_files.logActivity("Downtime iteration at %s" % time.ctime())
+            logSupport.log.info("Downtime iteration at %s" % time.ctime())
         else:
-            glideFactoryLib.log_files.logActivity("Iteration at %s" % time.ctime())
+            logSupport.log.info("Iteration at %s" % time.ctime())
 
         try:
             glideFactoryLib.factoryConfig.log_stats.reset()
@@ -835,7 +832,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
             done_something = iterate_one(count==0, in_downtime, glideinDescript, frontendDescript,
                                          jobDescript, jobAttributes, jobParams)
 
-            glideFactoryLib.log_files.logActivity("Writing stats")
+            logSupport.log.info("Writing stats")
             try:
                 write_stats()
             except KeyboardInterrupt:
@@ -854,7 +851,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
                 tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                 logSupport.log.warning("Exception occurred: %s" % tb)
 
-        glideFactoryLib.log_files.cleanup()
+        glideFactoryLib.cleaners.cleanup()
 
         # Sleep now before next iteration
         logSupport.log.info("Sleep %is" % sleep_time)
@@ -903,12 +900,6 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     logSupport.log = logging.getLogger(entry_name)
     logSupport.log.debug("Logging initialized")
 
-    # Have to keep this here since the cleanup functionality is used for more than just logs.  -- WHY!?
-    glideFactoryLib.log_files=glideFactoryLib.LogFiles(logSupport.log_dir,
-                                                       float(glideinDescript.data['LogRetentionMaxDays']),
-                                                       float(glideinDescript.data['LogRetentionMinDays']),
-                                                       float(glideinDescript.data['LogRetentionMaxMBs']))
-
     ## Not touching the monitoring logging.  Don't know how that works yet
     logSupport.log.debug("Setting up the monitoring")
     glideFactoryMonitoring.monitoringConfig.monitor_dir = os.path.join(startup_dir, "monitor/entry_%s" % entry_name)
@@ -948,24 +939,25 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     glideFactoryLib.factoryConfig.release_sleep  = float(jobDescript.data['ReleaseSleep'])
 
     logSupport.log.debug("Adding directory cleaners")
-    glideFactoryLib.log_files.add_dir_to_cleanup(None, glideFactoryLib.log_files.log_dir,
-                                                 "(condor_activity_.*\.log\..*\.ftstpk)",
-                                                 float(glideinDescript.data['CondorLogRetentionMaxDays']),
-                                                 float(glideinDescript.data['CondorLogRetentionMinDays']),
-                                                 float(glideinDescript.data['CondorLogRetentionMaxMBs']))
+    cleaner = PrivsepDirCleanupWSpace(None, logSupport.log_dir, "(condor_activity_.*\.log\..*\.ftstpk)",
+                                      int(glideinDescript.data['CondorLogRetentionMaxDays']*24*3600),
+                                      int(glideinDescript.data['CondorLogRetentionMinDays']*24*3600),
+                                      long(glideinDescript.data['CondorLogRetentionMaxMBs']*(1024.0*1024.0)))
+    glideFactoryLib.cleaners.add_cleaner(cleaner)
+
     # add cleaners for the user log directories
     for username in frontendDescript.get_all_usernames():
         user_log_dir = glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, username)
-        glideFactoryLib.log_files.add_dir_to_cleanup(username, user_log_dir,
-                                                     "(job\..*\.out)|(job\..*\.err)",
-                                                     float(glideinDescript.data['JobLogRetentionMaxDays']),
-                                                     float(glideinDescript.data['JobLogRetentionMinDays']),
-                                                     float(glideinDescript.data['JobLogRetentionMaxMBs']))
-        glideFactoryLib.log_files.add_dir_to_cleanup(username, user_log_dir,
-                                                     "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
-                                                     float(glideinDescript.data['CondorLogRetentionMaxDays']),
-                                                     float(glideinDescript.data['CondorLogRetentionMinDays']),
-                                                     float(glideinDescript.data['CondorLogRetentionMaxMBs']))
+        cleaner = PrivsepDirCleanupWSpace(username, user_log_dir, "(job\..*\.out)|(job\..*\.err)",
+                                          int(glideinDescript.data['JobLogRetentionMaxDays']*24*3600),
+                                          int(glideinDescript.data['JobLogRetentionMinDays']*24*3600),
+                                          long(glideinDescript.data['JobLogRetentionMaxMBs']*(1024.0*1024.0)))
+        glideFactoryLib.cleaners.add_cleaner(cleaner)
+        cleaner = PrivsepDirCleanupWSpace(username, user_log_dir, "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
+                                          int(glideinDescript.data['CondorLogRetentionMaxDays']*24*3600),
+                                          int(glideinDescript.data['CondorLogRetentionMinDays']*24*3600),
+                                          long(glideinDescript.data['CondorLogRetentionMaxMBs']*(1024.0*1024.0)))
+        glideFactoryLib.cleaners.add_cleaner(cleaner)
 
     logSupport.log.debug("Set advertiser parameters")
     glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
@@ -999,7 +991,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
         if not os.environ.has_key('X509_USER_PROXY'):
             logSupport.log.warning("Factory is supposed to provide a proxy for this entry, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
             # KEL TODO - raise error or just log warning????
-            raise RuntimeError, "Factory is supposed to provide a proxy for this entry. Need X509_USER_PROXY to work!"          
+            raise RuntimeError, "Factory is supposed to provide a proxy for this entry. Need X509_USER_PROXY to work!"
 
     # start
     pid_obj.register(parent_pid)
