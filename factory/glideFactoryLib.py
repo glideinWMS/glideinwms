@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.7 2011/06/07 14:33:42 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.8 2011/06/07 16:03:39 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -454,10 +454,9 @@ def keepIdleGlideins(client_condorq, client_int_name,
             # never exceed max_nr_running
             add_glideins = max_nr_running - (running_glideins + idle_glideins)
         try:
-            submitGlideins(condorq.entry_name, condorq.schedd_name, x509_proxy_username,
-                           client_int_name, add_glideins, submit_attrs,
-                           x509_proxy_identifier, x509_proxy_security_class, x509_proxy_fname,
-                           client_web, params)
+            #submitGlideins(condorq.entry_name, x509_proxy_username, client_int_name, add_glideins,
+            #               submit_attrs, x509_proxy_security_class, security_dict, client_web,
+            #               params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
             logSupport.log.warning("%s" % e)
@@ -992,9 +991,9 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
     global factoryConfig
 
     # Need information from glidein.descript, job.descript, and signatures.sha1
-    glideinDescript = glideFactoryConfig.GlideinDescript()
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
-    signatures = glideFactoryConfig.SignatureFile()
+
+    schedd = jobDescript.data["Schedd"]
 
     # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
@@ -1004,22 +1003,13 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
     if nr_glideins > factoryConfig.max_submits:
         nr_glideins = factoryConfig.max_submits
 
-    # this is the parameter list that will be added to the arguments for glidein_startup.sh
-    params_str = ""
-    # if client_web has been provided, get the arguments and add them to the string
-    if client_web != None:
-        params_str = string.join(client_web.get_glidein_args(), "")
-    # add all the params to the argument string
-    for k in params.keys():
-        params_str  += " -param_%s %s" % (k, params[k])
-
-    exe_env = get_submit_environment(entry_name, username, client_name, security_class, security_dict, params_str)
-
-    client_web_arr = []
-    if client_web != None:
-        client_web_arr = client_web.get_glidein_args()
-    client_web_str = string.join(client_web_arr, " ")
-
+    exe_env = get_submit_environment(entry_name,
+                                     username,
+                                     client_name,
+                                     security_class,
+                                     security_dict,
+                                     client_web,
+                                     params)
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1029,6 +1019,8 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
+
+            exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
 
             # check to see if the username for the proxy is the same as the factory username
             if username != MY_USERNAME:
@@ -1050,7 +1042,7 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
             else:
                 # avoid using privsep, if possible
                 try:
-                    env = exe_env.join("; ")
+                    env = "; ".join(exe_env)
                     submit_out = condorExe.iexe_cmd("%s; condor_submit -name %s entry_%s/job.condor" % (env, schedd, entry_name))
                 except condorExe.ExeError, e:
                     submit_out = []
@@ -1070,7 +1062,7 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
             nr_submitted += count
     finally:
         # write out no matter what
-        logSupport.log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids), schedd_name, submitted_jids))
+        logSupport.log.info("Submitted %i glideins to %s: %s" % (len(submitted_jids), schedd, submitted_jids))
 
 # remove the glideins in the list
 def removeGlideins(schedd_name, jid_list, force=False):
@@ -1140,17 +1132,26 @@ def releaseGlideins(schedd_name, jid_list):
             break # limit reached, stop
     logSupport.log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
-def get_submit_environment(entry_name, username, client_name, security_class, security_dict, params_str):
+def get_submit_environment(entry_name, username, client_name, security_class, security_dict, client_web, params):
     # Need information from glidein.descript, job.descript, and signatures.sha1
     glideinDescript = glideFactoryConfig.GlideinDescript()
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
     signatures = glideFactoryConfig.SignatureFile()
 
+    # this is the parameter list that will be added to the arguments for glidein_startup.sh
+    params_str = ""
+    # if client_web has been provided, get the arguments and add them to the string
+    if client_web != None:
+        params_str = string.join(client_web.get_glidein_args(), "")
+    # add all the params to the argument string
+    for k in params.keys():
+        params_str  += " -param_%s %s" % (k, params[k])
+
+
     exe_env = ['X509_USER_PROXY=%s' % security_dict["x509Proxy"]]
     exe_env.append('GLIDEIN_ENTRY_NAME=%s' % entry_name)
     exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
     exe_env.append('GLIDEIN_SEC_CLASS=%s' % security_class)
-    exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
 
     # Entry Params (job.descript)
     schedd = jobDescript.data["Schedd"]
