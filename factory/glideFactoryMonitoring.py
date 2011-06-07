@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.3 2011/06/06 18:35:42 tiradani Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.4 2011/06/07 14:47:09 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -13,12 +13,16 @@
 #   Igor Sfiligoi (Dec 11th 2006)
 #
 
-import os,os.path
-import re,time,copy,string,math,random,fcntl
-import xmlFormat,timeConversion
+import os
+import time
+import copy
+import math
+import xmlFormat
+import timeConversion
 import rrdSupport
 
 import logSupport
+import cleanupSupport
 import glideFactoryLib
 
 # list of rrd files that each site has
@@ -55,7 +59,7 @@ class MonitoringConfig:
 
     def config_log(self,log_dir,max_days,min_days,max_mbs):
         self.log_dir = log_dir
-        cleaner = PrivsepDirCleanupWSpace(None ,log_dir, "(completed_jobs_\..*\.log)",
+        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(None ,log_dir, "(completed_jobs_\..*\.log)",
                                           int(max_days*24*3600), int(min_days*24*3600),
                                           long(max_mbs*(1024.0*1024.0)))
         glideFactoryLib.cleaners.add_cleaner(cleaner)
@@ -146,7 +150,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname,time,val_dict)
-            except Exception,e:
+            except Exception, e: #@UnusedVariable
                 print "Failed to update %s"%fname
         return
 
@@ -186,7 +190,7 @@ class MonitoringConfig:
             #print "Updating RRD "+fname
             try:
                 self.rrd_obj.update_rrd_multi(fname,time,val_dict)
-            except Exception,e:
+            except Exception, e: #@UnusedVariable
                 print "Failed to update %s"%fname
         return
 
@@ -1152,7 +1156,7 @@ class FactoryStatusData:
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
-        get_data_total = self.getData(self.total)
+        #get_data_total = self.getData(self.total) # Apparently unused
         try:
             total_data = self.data[rrd][self.total]
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name = 'periods', el_name = 'period', subtypes_params={"class":{}}, indent_tab = self.tab, leading_tab = 2 * self.tab) + "\n")
@@ -1372,9 +1376,9 @@ def tmp2final(fname):
         pass
 
     try:
-      os.rename(fname+".tmp",fname)
+        os.rename(fname+".tmp",fname)
     except:
-      print "Failed renaming %s.tmp into %s"%(fname,fname)
+        print "Failed renaming %s.tmp into %s"%(fname,fname)
     return
 
 
