@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.3 2011/06/06 18:36:20 tiradani Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.4 2011/06/07 14:26:45 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -39,6 +39,8 @@ import glideFactoryInterface
 import glideFactoryMonitorAggregator
 import glideFactoryMonitoring
 import glideFactoryDowntimeLib
+
+import logSupport
 
 ############################################################
 def aggregate_stats(in_downtime):
@@ -255,8 +257,8 @@ def spawn(sleep_time,advertize_rate,startup_dir,
             logSupport.log.info("Aggregate monitoring data")
             aggregate_stats(factory_downtimes.checkDowntime())
 
-            # do it just before the sleep
-            glideFactoryLib.cleaners.cleanup()
+            # do it just before the sleep - commenting out - I think that only logs are cleaned up here
+            #glideFactoryLib.cleaners.cleanup()
 
             logSupport.log.info("Sleep %s secs" % sleep_time)
             time.sleep(sleep_time)
