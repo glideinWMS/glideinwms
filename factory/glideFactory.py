@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.4 2011/06/07 14:26:45 tiradani Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.5 2011/06/07 16:00:59 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -20,7 +20,7 @@ import os
 import os.path
 import sys
 
-STARTUP_DIR=sys.path[0]
+STARTUP_DIR = sys.path[0]
 
 import fcntl
 import popen2
@@ -30,7 +30,8 @@ import time
 import string
 import copy
 import threading
-sys.path.append(os.path.join(STARTUP_DIR,"../lib"))
+import logging
+sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
 import glideFactoryPidLib
 import glideFactoryConfig
@@ -45,33 +46,33 @@ import logSupport
 ############################################################
 def aggregate_stats(in_downtime):
     try:
-        status=glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
+        status = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
-        logSupport.log.debug("aggregateStatus failed: %s" % string.join(tb,''))
+        logSupport.log.debug("aggregateStatus failed: %s" % string.join(tb, ''))
 
     try:
-        status=glideFactoryMonitorAggregator.aggregateLogSummary()
+        status = glideFactoryMonitorAggregator.aggregateLogSummary()
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
-        logSupport.log.debug("aggregateLogStatus failed: %s" % string.join(tb,''))
+        logSupport.log.debug("aggregateLogStatus failed: %s" % string.join(tb, ''))
 
     try:
-        status=glideFactoryMonitorAggregator.aggregateRRDStats()
+        status = glideFactoryMonitorAggregator.aggregateRRDStats()
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
-        logSupport.log.debug("aggregateRRDStats failed: %s" % string.join(tb,''))
+        logSupport.log.debug("aggregateRRDStats failed: %s" % string.join(tb, ''))
 
     return
 
 # added by C.W. Murphy to make descript.xml
-def write_descript(glideinDescript,frontendDescript,monitor_dir):
+def write_descript(glideinDescript, frontendDescript, monitor_dir):
     glidein_data = copy.deepcopy(glideinDescript.data)
     frontend_data = copy.deepcopy(frontendDescript.data)
     entry_data = {}
@@ -119,140 +120,140 @@ def is_crashing_often(startup_time, restart_interval, restart_attempts):
 
 ############################################################
 def clean_exit(childs):
-    count=100000000 # set it high, so it is triggered at the first iteration
-    sleep_time=0.1 # start with very little sleep
-    while len(childs.keys())>0:
-        count+=1
-        if count>4:
+    count = 100000000 # set it high, so it is triggered at the first iteration
+    sleep_time = 0.1 # start with very little sleep
+    while len(childs.keys()) > 0:
+        count += 1
+        if count > 4:
             # Send a term signal to the childs
             # May need to do it several times, in case there are in the middle of something
-            count=0
-            entries=childs.keys()
+            count = 0
+            entries = childs.keys()
             entries.sort()
-            logSupport.log.info("Killing entries %s"%entries)
+            logSupport.log.info("Killing entries %s" % entries)
             for entry_name in childs.keys():
                 try:
-                    os.kill(childs[entry_name].pid,signal.SIGTERM)
+                    os.kill(childs[entry_name].pid, signal.SIGTERM)
                 except OSError:
-                    logSupport.log.info("Entry %s already dead"%entry_name)
+                    logSupport.log.info("Entry %s already dead" % entry_name)
                     del childs[entry_name] # already dead
 
         logSupport.log.info("Sleep")
         time.sleep(sleep_time)
         # exponentially increase, up to 5 secs
-        sleep_time=sleep_time*2
-        if sleep_time>5:
-            sleep_time=5
+        sleep_time = sleep_time * 2
+        if sleep_time > 5:
+            sleep_time = 5
 
-        entries=childs.keys()
+        entries = childs.keys()
         entries.sort()
 
-        logSupport.log.info("Checking dying entries %s"%entries)
-        dead_entries=[]
+        logSupport.log.info("Checking dying entries %s" % entries)
+        dead_entries = []
         for entry_name in childs.keys():
-            child=childs[entry_name]
+            child = childs[entry_name]
 
             # empty stdout and stderr
             try:
                 tempOut = child.fromchild.read()
-                if len(tempOut)!=0:
-                    logSupport.log.warning("Child %s STDOUT: %s"%(entry_name, tempOut))
+                if len(tempOut) != 0:
+                    logSupport.log.warning("Child %s STDOUT: %s" % (entry_name, tempOut))
             except IOError:
                 pass # ignore
             try:
                 tempErr = child.childerr.read()
-                if len(tempErr)!=0:
-                    logSupport.log.warning("Child %s STDERR: %s"%(entry_name, tempErr))
+                if len(tempErr) != 0:
+                    logSupport.log.warning("Child %s STDERR: %s" % (entry_name, tempErr))
             except IOError:
                 pass # ignore
 
             # look for exited child
-            if child.poll()!=-1:
+            if child.poll() != -1:
                 # the child exited
                 dead_entries.append(entry_name)
                 del childs[entry_name]
                 tempOut = child.fromchild.readlines()
                 tempErr = child.childerr.readlines()
-        if len(dead_entries)>0:
-            logSupport.log.info("These entries died: %s"%dead_entries)
+        if len(dead_entries) > 0:
+            logSupport.log.info("These entries died: %s" % dead_entries)
 
     logSupport.log.info("All entries dead")
 
 
 ############################################################
-def spawn(sleep_time,advertize_rate,startup_dir,
-          glideinDescript,entries,restart_attempts,restart_interval):
+def spawn(sleep_time, advertize_rate, startup_dir,
+          glideinDescript, entries, restart_attempts, restart_interval):
 
     global STARTUP_DIR
-    childs={}
+    childs = {}
 
-    childs_uptime={}
+    childs_uptime = {}
     # Allow max 3 restarts every 30 min before giving up
     #restart_attempts = 3
     #restart_interval = 1800
 
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
 
-    logSupport.log.info("Starting entries %s"%entries)
+    logSupport.log.info("Starting entries %s" % entries)
     try:
         for entry_name in entries:
-            childs[entry_name]=popen2.Popen3("%s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
+            childs[entry_name] = popen2.Popen3("%s %s %s %s %s %s %s" % (sys.executable, os.path.join(STARTUP_DIR, "glideFactoryEntry.py"), os.getpid(), sleep_time, advertize_rate, startup_dir, entry_name), True)
             # Get the startup time. Used to check if the entry is crashing
             # periodically and needs to be restarted.
-            childs_uptime[entry_name]=list()
-            childs_uptime[entry_name].insert(0,time.time())
-        logSupport.log.info("Entry startup times: %s"%childs_uptime)
+            childs_uptime[entry_name] = list()
+            childs_uptime[entry_name].insert(0, time.time())
+        logSupport.log.info("Entry startup times: %s" % childs_uptime)
 
         for entry_name in childs.keys():
             childs[entry_name].tochild.close()
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
-            for fd  in (childs[entry_name].fromchild.fileno(),childs[entry_name].childerr.fileno()):
+            for fd  in (childs[entry_name].fromchild.fileno(), childs[entry_name].childerr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         while 1:
-            logSupport.log.info("Checking entries %s"%entries)
+            logSupport.log.info("Checking entries %s" % entries)
             for entry_name in childs.keys():
-                child=childs[entry_name]
+                child = childs[entry_name]
 
                 # empty stdout and stderr
                 try:
                     tempOut = child.fromchild.read()
-                    if len(tempOut)!=0:
-                        logSupport.log.warning("Child %s STDOUT: %s"%(entry_name, tempOut))
+                    if len(tempOut) != 0:
+                        logSupport.log.warning("Child %s STDOUT: %s" % (entry_name, tempOut))
                 except IOError:
                     pass # ignore
                 try:
                     tempErr = child.childerr.read()
-                    if len(tempErr)!=0:
-                        logSupport.log.warning("Child %s STDERR: %s"%(entry_name, tempErr))
+                    if len(tempErr) != 0:
+                        logSupport.log.warning("Child %s STDERR: %s" % (entry_name, tempErr))
                 except IOError:
                     pass # ignore
 
                 # look for exited child
-                if child.poll()!=-1:
+                if child.poll() != -1:
                     # the child exited
-                    logSupport.log.warning("Child %s exited. Checking if it should be restarted."%(entry_name))
+                    logSupport.log.warning("Child %s exited. Checking if it should be restarted." % (entry_name))
                     tempOut = child.fromchild.readlines()
                     tempErr = child.childerr.readlines()
 
                     if is_crashing_often(childs_uptime[entry_name], restart_interval, restart_attempts):
                         del childs[entry_name]
-                        raise RuntimeError,"Entry '%s' has been crashing too often, quit the whole factory:\n%s\n%s"%(entry_name,tempOut,tempErr)
+                        raise RuntimeError, "Entry '%s' has been crashing too often, quit the whole factory:\n%s\n%s" % (entry_name, tempOut, tempErr)
                     else:
                         # Restart the entry setting its restart time
-                        logSupport.log.warning("Restarting child %s."%(entry_name))
+                        logSupport.log.warning("Restarting child %s." % (entry_name))
                         del childs[entry_name]
-                        childs[entry_name]=popen2.Popen3("%s %s %s %s %s %s %s"%(sys.executable,os.path.join(STARTUP_DIR,"glideFactoryEntry.py"),os.getpid(),sleep_time,advertize_rate,startup_dir,entry_name),True)
+                        childs[entry_name] = popen2.Popen3("%s %s %s %s %s %s %s" % (sys.executable, os.path.join(STARTUP_DIR, "glideFactoryEntry.py"), os.getpid(), sleep_time, advertize_rate, startup_dir, entry_name), True)
                         if len(childs_uptime[entry_name]) == restart_attempts:
                             childs_uptime[entry_name].pop(0)
                         childs_uptime[entry_name].append(time.time())
                         childs[entry_name].tochild.close()
-                        for fd  in (childs[entry_name].fromchild.fileno(),childs[entry_name].childerr.fileno()):
+                        for fd  in (childs[entry_name].fromchild.fileno(), childs[entry_name].childerr.fileno()):
                             fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                             fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
-                        logSupport.log.warning("Entry startup/restart times: %s"%childs_uptime)
+                        logSupport.log.warning("Entry startup/restart times: %s" % childs_uptime)
 
             logSupport.log.info("Aggregate monitoring data")
             aggregate_stats(factory_downtimes.checkDowntime())
@@ -271,9 +272,9 @@ def spawn(sleep_time,advertize_rate,startup_dir,
             except:
                 # if anything goes wrong, hardkill the rest
                 for entry_name in childs.keys():
-                    logSupport.log.info("Hard killing entry %s"%entry_name)
+                    logSupport.log.info("Hard killing entry %s" % entry_name)
                     try:
-                        os.kill(childs[entry_name].pid,signal.SIGKILL)
+                        os.kill(childs[entry_name].pid, signal.SIGKILL)
                     except OSError:
                         pass # ignore dead clients
         finally:
@@ -296,7 +297,7 @@ def spawn(sleep_time,advertize_rate,startup_dir,
 ############################################################
 def main(startup_dir):
 
-    startup_time=time.time()
+    startup_time = time.time()
 
     # force integrity checks on all the operations
     # I need integrity checks also on reads, as I depend on them
@@ -305,11 +306,11 @@ def main(startup_dir):
     os.environ['_CONDOR_SEC_READ_INTEGRITY'] = 'REQUIRED'
     os.environ['_CONDOR_SEC_WRITE_INTEGRITY'] = 'REQUIRED'
 
-    glideFactoryConfig.factoryConfig.glidein_descript_file=os.path.join(startup_dir,glideFactoryConfig.factoryConfig.glidein_descript_file)
-    glideinDescript=glideFactoryConfig.GlideinDescript()
+    glideFactoryConfig.factoryConfig.glidein_descript_file = os.path.join(startup_dir, glideFactoryConfig.factoryConfig.glidein_descript_file)
+    glideinDescript = glideFactoryConfig.GlideinDescript()
     frontendDescript = glideFactoryConfig.FrontendDescript()
 
-    write_descript(glideinDescript,frontendDescript,os.path.join(startup_dir, 'monitor/'))
+    write_descript(glideinDescript, frontendDescript, os.path.join(startup_dir, 'monitor/'))
 
     # Set the Log directory
     logSupport.log_dir = os.path.join(glideinDescript.data['LogDir'], "factory")
@@ -324,59 +325,59 @@ def main(startup_dir):
     try:
         os.chdir(startup_dir)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
-        logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir, tb))
         raise
 
     try:
         os.chdir(startup_dir)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
-        logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir,tb))
+        logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir, tb))
         raise
 
     try:
         glideinDescript.load_pub_key(recreate=True)
 
-        glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name="%s@%s"%(glideinDescript.data['GlideinName'],glideinDescript.data['FactoryName'])
+        glideFactoryMonitorAggregator.glideFactoryMonitoring.monitoringConfig.my_name = "%s@%s" % (glideinDescript.data['GlideinName'], glideinDescript.data['FactoryName'])
 
         # check that the GSI environment is properly set
         if not os.environ.has_key('X509_CERT_DIR'):
             logSupport.log.warning("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
             raise RuntimeError, "Need X509_CERT_DIR to work!"
 
-        glideFactoryInterface.factoryConfig.advertise_use_tcp=(glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
-        glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
-        sleep_time=int(glideinDescript.data['LoopDelay'])
-        advertize_rate=int(glideinDescript.data['AdvertiseDelay'])
-        restart_attempts=int(glideinDescript.data['RestartAttempts'])
-        restart_interval=int(glideinDescript.data['RestartInterval'])
+        glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
+        glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
+        sleep_time = int(glideinDescript.data['LoopDelay'])
+        advertize_rate = int(glideinDescript.data['AdvertiseDelay'])
+        restart_attempts = int(glideinDescript.data['RestartAttempts'])
+        restart_interval = int(glideinDescript.data['RestartInterval'])
 
-        entries=string.split(glideinDescript.data['Entries'],',')
+        entries = string.split(glideinDescript.data['Entries'], ',')
         entries.sort()
 
-        glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir,"monitor"),entries)
+        glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir, "monitor"), entries)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                         sys.exc_info()[2])
         logSupport.log.warning("Exception occurred: %s" % tb)
         raise
 
     # create lock file
-    pid_obj=glideFactoryPidLib.FactoryPidSupport(startup_dir)
+    pid_obj = glideFactoryPidLib.FactoryPidSupport(startup_dir)
 
     # start
     pid_obj.register()
     try:
         try:
-            spawn(sleep_time,advertize_rate,startup_dir,
-                  glideinDescript,entries,restart_attempts,restart_interval)
-        except KeyboardInterrupt,e:
+            spawn(sleep_time, advertize_rate, startup_dir,
+                  glideinDescript, entries, restart_attempts, restart_interval)
+        except KeyboardInterrupt, e:
             raise e
         except:
-            tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
                                             sys.exc_info()[2])
             logSupport.log.warning("Exception occurred: %s" % tb)
     finally:
@@ -388,14 +389,15 @@ def main(startup_dir):
 #
 ############################################################
 
-def termsignal(signr,frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
+def termsignal(signr, frame):
+    raise KeyboardInterrupt, "Received signal %s" % signr
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM,termsignal)
-    signal.signal(signal.SIGQUIT,termsignal)
+    signal.signal(signal.SIGTERM, termsignal)
+    signal.signal(signal.SIGQUIT, termsignal)
 
     try:
         main(sys.argv[1])
-    except KeyboardInterrupt,e:
-        logSupport.log.info("Terminating: %s"%e)
+    except KeyboardInterrupt, e:
+        logSupport.log.info("Terminating: %s" % e)
+
