@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.12 2011/06/06 18:36:20 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.13 2011/06/07 14:31:46 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -42,8 +42,10 @@ import glideFactoryMonitoring
 import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
-import logSupport
 import glideinWMSVersion
+
+import logSupport
+import cleanupSupport
 
 # This declaration is not strictly needed - it is declared as global in main
 # however, to make code clearer (hopefully), it is declared here to make it
@@ -895,8 +897,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
 
     # Configure the process to use the proper LogDir as soon as you get the info
     logSupport.add_glideinlog_handler(entry_name, logSupport.log_dir,
-                                      int(float(glideinDescript.data['LogRetentionMaxDays'])),
-                                      int(float(glideinDescript.data['LogRetentionMaxMBs'])))
+                                      int(glideinDescript.data['LogRetentionMaxDays']),
+                                      int(glideinDescript.data['LogRetentionMaxMBs']))
     logSupport.log = logging.getLogger(entry_name)
     logSupport.log.debug("Logging initialized")
 
@@ -939,7 +941,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     glideFactoryLib.factoryConfig.release_sleep  = float(jobDescript.data['ReleaseSleep'])
 
     logSupport.log.debug("Adding directory cleaners")
-    cleaner = PrivsepDirCleanupWSpace(None, logSupport.log_dir, "(condor_activity_.*\.log\..*\.ftstpk)",
+    cleaner = cleanupSupport.PrivsepDirCleanupWSpace(None, logSupport.log_dir,
+                                      "(condor_activity_.*\.log\..*\.ftstpk)",
                                       int(glideinDescript.data['CondorLogRetentionMaxDays']*24*3600),
                                       int(glideinDescript.data['CondorLogRetentionMinDays']*24*3600),
                                       long(glideinDescript.data['CondorLogRetentionMaxMBs']*(1024.0*1024.0)))
@@ -948,12 +951,14 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     # add cleaners for the user log directories
     for username in frontendDescript.get_all_usernames():
         user_log_dir = glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, username)
-        cleaner = PrivsepDirCleanupWSpace(username, user_log_dir, "(job\..*\.out)|(job\..*\.err)",
+        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(username, user_log_dir,
+                                          "(job\..*\.out)|(job\..*\.err)",
                                           int(glideinDescript.data['JobLogRetentionMaxDays']*24*3600),
                                           int(glideinDescript.data['JobLogRetentionMinDays']*24*3600),
                                           long(glideinDescript.data['JobLogRetentionMaxMBs']*(1024.0*1024.0)))
         glideFactoryLib.cleaners.add_cleaner(cleaner)
-        cleaner = PrivsepDirCleanupWSpace(username, user_log_dir, "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
+        cleaner = cleanupSupport.PrivsepDirCleanupWSpace(username, user_log_dir,
+                                          "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
                                           int(glideinDescript.data['CondorLogRetentionMaxDays']*24*3600),
                                           int(glideinDescript.data['CondorLogRetentionMinDays']*24*3600),
                                           long(glideinDescript.data['CondorLogRetentionMaxMBs']*(1024.0*1024.0)))
