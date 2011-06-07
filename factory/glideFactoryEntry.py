@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.13 2011/06/07 14:31:46 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.14 2011/06/07 16:02:21 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -22,9 +22,7 @@
 
 import signal
 import os
-import os.path
 import sys
-import fcntl
 import traceback
 import time
 import string
@@ -147,10 +145,10 @@ def perform_work(entry_name, condorQ,
 
     glideFactoryLib.factoryConfig.client_internals[client_int_name] = {"CompleteName":client_name, "ReqName":client_int_req}
 
-    if params.has_key("GLIDEIN_Collector"):
-        condor_pool = params["GLIDEIN_Collector"]
-    else:
-        condor_pool = None
+    #if params.has_key("GLIDEIN_Collector"):
+    #    condor_pool = params["GLIDEIN_Collector"]
+    #else:
+    #    condor_pool = None
 
     # not used in original code but need to pass it to the functions anyway
     condorStatus = None
