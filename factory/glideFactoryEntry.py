@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.43 2011/05/20 21:41:54 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.44 2011/06/07 14:44:36 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -212,18 +212,18 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     Finds work requests from the WMS collector, validates security credentials, and requests glideins.  If an entry is 
     in downtime, requested glideins is zero.
     
-    @type in_downtime: boolean
-    @param in_downtime: True if entry is in downtime
-    @type glideinDescript:  
-    @param glideinDescript: 
-    @type frontendDescript:  
-    @param frontendDescript: 
-    @type jobDescript:  
-    @param jobDescript: 
-    @type jobAttributes:  
-    @param jobAttributes: 
-    @type jobParams:  
-    @param jobParams: 
+    @type in_downtime:  boolean
+    @param in_downtime:  True if entry is in downtime
+    @type glideinDescript:  dict
+    @param glideinDescript:  factory glidein config values
+    @type frontendDescript:  dict 
+    @param frontendDescript:  security mappings for frontend identities, security classes, and usernames for privsep
+    @type jobDescript:  dict
+    @param jobDescript:  entry config values
+    @type jobAttributes:  dict  
+    @param jobAttributes:  entry attributes that are published in the classad
+    @type jobParams:  dict
+    @param jobParams:  entry parameters that are passed to the glideins
     
     @return: returns a value greater than zero if work was done.
     """
@@ -334,6 +334,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         if ((frontend_whitelist == "On") and (not security_list.has_key(client_security_name))):
             glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
             in_downtime=True
+            
+        # Get factory, entry, and security class downtimes
+        factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
+        
         # Check if proxy passing is compatible with allowed_proxy_source
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
             if not ('frontend' in allowed_proxy_source):
@@ -365,6 +369,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue #skip request
 
             # This old style protocol does not support SecurityName, use default
+            # Cannot check against a security class downtime since will never exist in the config
             x509_proxy_security_class="none"
             
             x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
@@ -379,6 +384,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue # skip request
             
             x509_proxies.add_fname(x509_proxy_security_class,'main',x509_proxy_fname)
+            
         elif decrypted_params.has_key('x509_proxy_0'):
             if not decrypted_params.has_key('nr_x509_proxies'):
                 glideFactoryLib.log_files.logWarning("Could not determine number of proxies for %s, skipping request"%client_int_name)
@@ -393,6 +399,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             if (frontend_whitelist=="On"):
                 prev_downtime=in_downtime
                 in_downtime=True
+            
+            # Set security class downtime flag
+            security_class_downtime_found = False
+            
             for i in range(nr_x509_proxies):
                 if decrypted_params['x509_proxy_%i'%i]==None:
                     glideFactoryLib.log_files.logWarning("Could not decrypt x509_proxy_%i for %s, skipping and trying the others"%(i,client_int_name))
@@ -412,7 +422,15 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     x509_proxy_security_class=decrypted_params['x509_proxy_%i_security_class'%i]
                 else:
                     x509_proxy_security_class=x509_proxy_identifier
-
+                
+                # Check security class for downtime
+                glideFactoryLib.log_files.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,jobDescript.data['EntryName']))
+                in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",frontend=client_security_name,security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],frontend=client_security_name,security_class=x509_proxy_security_class))
+                if (in_sec_downtime):
+                    glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Skipping proxy %s."%(x509_proxy_security_class,jobDescript.data['EntryName'], x509_proxy_identifier))
+                    security_class_downtime_found = True
+                    continue # cannot use proxy for submission but entry is not in downtime since other proxies may map to valid security classes
+                    
                 # Deny Frontend from entering glideins if the whitelist
                 # does not have its security class (or "All" for everyone)
                 if (frontend_whitelist == "On") and (security_list.has_key(client_security_name)):
@@ -443,10 +461,15 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 x509_proxies.add_fname(x509_proxy_security_class,x509_proxy_identifier,x509_proxy_fname)
 
             if x509_proxies.count_fnames<1:
-                glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
-                continue #skip request
+                if security_class_downtime_found:
+                    glideFactoryLib.log_files.logWarning("Found proxies for client %s but the security class was in downtime, setting entry into downtime for advertising" % client_int_name)
+                    in_downtime = True
+                else:
+                    glideFactoryLib.log_files.logWarning("No good proxies for %s, skipping request"%client_int_name)
+                    continue #skip request
         else:
             # no proxy passed, use factory one
+            # Cannot check against a security class downtime since will never exist in the config
             x509_proxy_security_class="factory"
             
             x509_proxy_username=x509_proxies.get_username(x509_proxy_security_class)
@@ -463,15 +486,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 glideFactoryLib.log_files.logWarning("Client %s not allowed to use entry point. Marking as in downtime (security class %s) "%(client_security_name,x509_proxy_security_class))
                 in_downtime=True
 
-        #Check security class for downtime
-        factory_downtimes=glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
-        glideFactoryLib.log_files.logActivity("Checking downtime for frontend %s security class: %s (entry %s)."%(client_security_name, x509_proxy_security_class,jobDescript.data['EntryName']))
-
-        in_sec_downtime=(factory_downtimes.checkDowntime(entry="factory",frontend=client_security_name,security_class=x509_proxy_security_class) or factory_downtimes.checkDowntime(entry=jobDescript.data['EntryName'],frontend=client_security_name,security_class=x509_proxy_security_class))
-        if (in_sec_downtime):
-            glideFactoryLib.log_files.logWarning("Security Class %s is currently in a downtime window for Entry: %s. Ignoring request."%(x509_proxy_security_class,jobDescript.data['EntryName']))
-            in_downtime=True
-        
         jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
 
@@ -516,8 +530,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             
             if in_downtime:
                 # we are in downtime... no new submissions
-                idle_glideins=0
-            
+                idle_glideins=0          
 
             if work[work_key]['web'].has_key('URL'):
                 try:
@@ -580,7 +593,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                              idle_glideins_pc,max_running_pc,factory_max_held,
                                              jobDescript,x509_proxies.fnames[x509_proxy_security_class],x509_proxies.get_username(x509_proxy_security_class),
                                              client_web,params)
-        #else, it is malformed and should be skipped
+        else: # it is malformed and should be skipped
+            glideFactoryLib.log_files.logWarning("Malformed classad for client %s, skipping"%work_key)
 
     for sec_el in all_security_names:
         try:
@@ -650,6 +664,21 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
 
 ############################################################
 def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
+    """
+    Advertises the entry (glidefactory) and the monitoring (glidefactoryclient) Classads.
+    
+    @type in_downtime:  boolean
+    @param in_downtime:  setting of the entry (or factory) in the downtimes file
+    @type glideinDescript:  dict
+    @param glideinDescript:  factory glidein config values
+    @type jobDescript:  dict
+    @param jobDescript:  entry config values
+    @type jobAttributes:  dict  
+    @param jobAttributes:  entry attributes to be published in the classad
+    @type jobParams:  dict
+    @param jobParams:  entry parameters to be passed to the glideins
+    """
+    
     entry_name=jobDescript.data['EntryName']
     allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     pub_key_obj=glideinDescript.data['PubKeyObj']
@@ -663,6 +692,7 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         for a in current_qc_total[w].keys():
             glidein_monitors['Total%s%s'%(w,a)]=current_qc_total[w][a]
     try:
+        # Make copy of job attributes so can override the validation downtime setting with the true setting of the entry (not from validation)
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
@@ -672,9 +702,10 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
     except:
         glideFactoryLib.log_files.logWarning("Advertize failed")
 
-    # Advertise the monitoring
+    # Advertise the monitoring, use the downtime found in validation of the credentials
+    monitor_job_attrs = jobAttributes.data.copy()
     advertizer=glideFactoryInterface.MultiAdvertizeGlideinClientMonitoring(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
-                                                                           jobAttributes.data.copy())
+                                                                           monitor_job_attrs)
 
     current_qc_data=glideFactoryLib.factoryConfig.client_stats.get_data()
     for client_name in current_qc_data.keys():
