@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.6 2011/05/12 19:26:58 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.7 2011/06/07 14:33:42 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -21,11 +21,17 @@ import re
 import traceback
 import pwd
 import binascii
-import condorExe,condorPrivsep
+import condorExe
+import condorPrivsep
 import logSupport
 import logging
 import condorMonitor
+import cleanupSupport
 import glideFactoryConfig
+import base64
+
+from tarSupport import GlideinTar
+from tarSupport import FileDoesNotExist
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -134,101 +140,10 @@ factoryConfig = FactoryConfig()
 def secClass2Name(client_security_name, proxy_security_class):
     return "%s_%s" % (client_security_name, proxy_security_class)
 
-############################################################
-#
-# Log files
-#
-# Consider moving them to a dedicated file
-# since it is the only part in common between main and entries
-#
-############################################################
-
-class PrivsepDirCleanupWSpace(logSupport.DirCleanupWSpace):
-    def __init__(self,
-                 username,         # if None, no privsep
-                 dirname,
-                 fname_expression, # regular expression, used with re.match
-                 maxlife,          # max lifetime after which it is deleted
-                 minlife,maxspace, # max space allowed for the sum of files, unless they are too young
-                 activity_log,warning_log): # if None, no logging
-        logSupport.DirCleanupWSpace.__init__(self,dirname,fname_expression,
-                                             maxlife,minlife,maxspace,
-                                             activity_log,warning_log)
-        self.username=username
-
-    def delete_file(self,fpath):
-        if (self.username!=None) and (self.username!=MY_USERNAME):
-            # use privsep
-            # do not use rmtree as we do not want root privileges
-            condorPrivsep.execute(self.username,os.path.dirname(fpath),'/bin/rm',['rm',fpath],stdout_fname=None)
-        else:
-            # use the native method, if possible
-            os.unlink(fpath)
-
-class LogFiles:
-    def __init__(self,log_dir,max_days,min_days,max_mbs):
-        self.log_dir=log_dir
-        self.activity_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"info.log")
-        self.warning_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"err.log")
-        self.debug_log=logSupport.DayLogFile(os.path.join(log_dir,"factory"),"debug.log")
-        # no need to use the privsep version
-        self.cleanupObjs=[logSupport.DirCleanupWSpace(log_dir,"(factory\.[0-9]*\.info\.log)|(factory\.[0-9]*\.err\.log)|(factory\.[0-9]*\.debug\.log)",
-                                                      int(max_days*24*3600),int(min_days*24*3600),
-                                                      long(max_mbs*(1024.0*1024.0)),
-                                                      self.activity_log,self.warning_log)]
-
-    def logActivity(self,str):
-        try:
-            self.activity_log.write(str)
-        except:
-            # logging must never throw an exception!
-            self.logWarning("logActivity failed, was logging: %s"%str,False)
-
-    def logWarning(self,str, log_in_activity=True):
-        try:
-            self.warning_log.write(str)
-        except:
-            # logging must throw an exception!
-            # silently ignore
-            pass
-        if log_in_activity:
-            self.logActivity("WARNING: %s"%str)
-
-    def logDebug(self,str):
-        try:
-            self.debug_log.write(str)
-        except:
-            # logging must never throw an exception!
-            # silently ignore
-            pass
-
-    def cleanup(self):
-        for cleanupObj in self.cleanupObjs:
-            try:
-                cleanupObj.cleanup()
-            except:
-                # logging must never throw an exception!
-                tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
-                                                sys.exc_info()[2])
-                self.logWarning("%s cleanup failed."%cleanupObj.dirname)
-                self.logDebug("%s cleanup failed: Exception %s"%(cleanupObj.dirname,string.join(tb,'')))
-
-    #
-    # Clients can add additional cleanup objects, if needed
-    #
-    def add_dir_to_cleanup(self,
-                           username,       # if None, no privsep
-                           dir_to_cleanup,fname_expression,
-                           max_days,min_days,max_mbs):
-        self.cleanupObjs.append(PrivsepDirCleanupWSpace(username, dir_to_cleanup, fname_expression,
-                                                        int(max_days*24*3600), int(min_days*24*3600),
-                                                        long(max_mbs*(1024.0*1024.0)),
-                                                        self.activity_log, self.warning_log))
-
-
 # someone needs to initialize this
 # type LogFiles
 log_files = None
+cleaners = cleanupSupport.Cleanup()
 
 ############################################################
 #
@@ -1071,36 +986,40 @@ def escapeParam(param_str):
 
 
 # submit N new glideins
-def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins, submit_attrs,
-                   x509_proxy_identifier, x509_proxy_security_class, x509_proxy_fname,
-                   client_web, # None means client did not pass one, backwards compatibility
+def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
+                   security_class, security_dict, client_web, # None means client did not pass one, backwards compatibility
                    params):
     global factoryConfig
 
+    # Need information from glidein.descript, job.descript, and signatures.sha1
+    glideinDescript = glideFactoryConfig.GlideinDescript()
+    jobDescript = glideFactoryConfig.JobDescript(entry_name)
+    signatures = glideFactoryConfig.SignatureFile()
+
+    # List of job ids that have been submitted - initialize to empty array
     submitted_jids = []
 
+    # if we are requesting more than the maximum glideins that we can submit at one time,
+    # then set to the max submit number
     if nr_glideins > factoryConfig.max_submits:
         nr_glideins = factoryConfig.max_submits
 
-    submit_attrs_arr = []
-    for e in submit_attrs:
-        submit_attrs_arr.append("'" + e + "'")
-    submit_attrs_str = string.join(submit_attrs_arr, " ")
-
-    params_arr = []
+    # this is the parameter list that will be added to the arguments for glidein_startup.sh
+    params_str = ""
+    # if client_web has been provided, get the arguments and add them to the string
+    if client_web != None:
+        params_str = string.join(client_web.get_glidein_args(), "")
+    # add all the params to the argument string
     for k in params.keys():
-        params_arr.append(k)
-        params_arr.append(escapeParam(str(params[k])))
-    params_str = string.join(params_arr, " ")
+        params_str  += " -param_%s %s" % (k, params[k])
+
+    exe_env = get_submit_environment(entry_name, username, client_name, security_class, security_dict, params_str)
 
     client_web_arr = []
     if client_web != None:
         client_web_arr = client_web.get_glidein_args()
     client_web_str = string.join(client_web_arr, " ")
-   
-    # Allows for retrieving any entry description values
-    jobDescript=glideFactoryConfig.JobDescript(entry_name)
-    
+
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1110,51 +1029,39 @@ def submitGlideins(entry_name, schedd_name, username, client_name, nr_glideins, 
             nr_to_submit = (nr_glideins - nr_submitted)
             if nr_to_submit > factoryConfig.max_cluster_size:
                 nr_to_submit = factoryConfig.max_cluster_size
-            
-            glidein_rsl = "none"
-            if jobDescript.data.has_key('GlobusRSL'):   
-                glidein_rsl = jobDescript.data['GlobusRSL']
-                # Replace placeholder for project id 
-                if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
-                    glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
-                
+
             # check to see if the username for the proxy is the same as the factory username
             if username != MY_USERNAME:
                 # no? use privsep
-                exe_env = ['X509_USER_PROXY=%s' % x509_proxy_fname]
                 # need to push all the relevant env variables through
                 for var in os.environ.keys():
                     if ((var in ('PATH','LD_LIBRARY_PATH','X509_CERT_DIR')) or (var[:8]=='_CONDOR_') or (var[:7]=='CONDOR_')):
                         if os.environ.has_key(var):
                             exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
-                    argument_list = [factoryConfig.submit_fname,
-                                     entry_name,
-                                     client_name,
-                                     x509_proxy_security_class,
-                                     x509_proxy_identifier, "%i" % nr_to_submit,]
-                    argument_list += client_web_arr + submit_attrs + ['--'] + params_arr
-
-                    submit_out = condorPrivsep.execute(username, factoryConfig.submit_dir,
-                            os.path.join(factoryConfig.submit_dir, factoryConfig.submit_fname), argument_list, exe_env)
+                    args = ["condor_submit", "-name", schedd, "entry_%s/job.condor" % entry_name]
+                    submit_out = condorPrivsep.condor_execute(username, factoryConfig.submit_dir, "condor_submit", args, env=exe_env)
                 except condorPrivsep.ExeError, e:
                     submit_out = []
-                    raise RuntimeError, "condor_submit failed (user %s): %s" % (username, e)
+                    raise RuntimeError, "%s failed (user %s): %s" % (factoryConfig.submit_fname, username, e)
                 except:
                     submit_out = []
-                    raise RuntimeError, "condor_submit failed (user %s): Unknown privsep error" % username
+                    raise RuntimeError, "%s failed (user %s): Unknown privsep error" % (factoryConfig.submit_fname, username)
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out = condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i %s %s -- %s' % \
-                            (x509_proxy_fname, factoryConfig.submit_fname, entry_name, client_name, x509_proxy_security_class, \
-                             x509_proxy_identifier, nr_to_submit, client_web_str, submit_attrs_str, params_str))
+                    env = exe_env.join("; ")
+                    submit_out = condorExe.iexe_cmd("%s; condor_submit -name %s entry_%s/job.condor" % (env, schedd, entry_name))
                 except condorExe.ExeError, e:
                     submit_out = []
-                    raise RuntimeError, "condor_submit failed: %s" % e
-                except:
+                    msg = "condor_submit failed: %s" % e
+                    logSupport.log.error(msg)
+                    raise RuntimeError, msg
+                except Exception, e:
                     submit_out = []
-                    raise RuntimeError, "condor_submit failed: Unknown error"
+                    msg = "condor_submit failed: Unknown error: %s" % e
+                    logSupport.log.error(msg)
+                    raise RuntimeError, msg
 
 
             cluster, count = extractJobId(submit_out)
@@ -1233,6 +1140,105 @@ def releaseGlideins(schedd_name, jid_list):
             break # limit reached, stop
     logSupport.log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
+def get_submit_environment(entry_name, username, client_name, security_class, security_dict, params_str):
+    # Need information from glidein.descript, job.descript, and signatures.sha1
+    glideinDescript = glideFactoryConfig.GlideinDescript()
+    jobDescript = glideFactoryConfig.JobDescript(entry_name)
+    signatures = glideFactoryConfig.SignatureFile()
+
+    exe_env = ['X509_USER_PROXY=%s' % security_dict["x509Proxy"]]
+    exe_env.append('GLIDEIN_ENTRY_NAME=%s' % entry_name)
+    exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
+    exe_env.append('GLIDEIN_SEC_CLASS=%s' % security_class)
+    exe_env.append('GLIDEIN_COUNT=%s' % nr_to_submit)
+
+    # Entry Params (job.descript)
+    schedd = jobDescript.data["Schedd"]
+    verbosity = jobDescript.data["Verbosity"]
+    startup_dir = jobDescript.data["StartupDir"]
+
+    exe_env.append('GLIDEIN_SCHEDD=%s' % schedd)
+    exe_env.append('GLIDEIN_VERBOSITY=%s' % verbosity)
+    exe_env.append('GLIDEIN_STARTUP_DIR=%s' % startup_dir)
+
+    # Main Params (glidein.descript
+    glidein_name = glideinDescript.data["GlideinName"]
+    factory_name = glideinDescript.data["FactoryName"]
+    web_url = glideinDescript.data["WebURL"]
+    exe_env.append('GLIDEIN_NAME=%s' % glidein_name)
+    exe_env.append('FACTORY_NAME=%s' % factory_name)
+    exe_env.append('WEB_URL=%s' % web_url)
+
+    # Security Params (signatures.sha1)
+    # sign_type has always been hardcoded... we can change in the future if need be
+    sign_type = "sha1"
+    exe_env.append('SIGN_TYPE=%s' % sign_type)
+
+    main_descript = signatures.data["main_descript"]
+    main_sign = signatures.data["main_sign"]
+    entry_descript = signatures.data["%s_descript" % entry_name]
+    entry_sign = signatures.data["%s_sign" % entry_name]
+    exe_env.append('MAIN_DESCRIPT=%s' % main_descript)
+    exe_env.append('MAIN_SIGN=%s' % main_sign)
+    exe_env.append('ENTRY_DESCRIPT=%s' % entry_descript)
+    exe_env.append('ENTRY_SIGN=%s' % entry_sign)
+
+    # Build the glidein pilot arguments
+    glidein_arguments = "-v %s -name %s -entry %s -clientname %s -schedd %s " \
+                        "-factory %s -web %s -sign %s -signentry %s -signtype %s " \
+                        "-descript %s -descriptentry %s -dir %s -param_GLIDEIN_Client %s %s" % \
+                        (verbosity, glidein_name, entry_name, client_name,
+                         schedd, factory_name, web_url, main_sign, entry_sign,
+                         sign_type, main_descript, entry_descript, startup_dir,
+                         client_name, params_str)
+
+    # get my (entry) type
+    grid_type = jobDescript.data["GridType"]
+    if grid_type == "ec2":
+        exe_env.append('AMI_ID=%s' % params["AmiId"])
+        exe_env.append('INSTANCE_TYPE=%s' % params["InstanceType"])
+        exe_env.append('ACCESS_KEY_FILE=%s' % security_dict["AccessKey"])
+        exe_env.append('SECRET_KEY_FILE=%s' % security_dict["SecretKey"])
+
+        # get the proxy
+        full_path_to_proxy = security_dict["x509Proxy"]
+        proxy_file = os.path.basename(full_path_to_proxy)
+        proxy_dir = os.path.dirname(full_path_to_proxy)
+
+        cat_cmd = "/bin/cat"
+        args = [cat_cmd, proxy_file]
+        proxy_contents = condorPrivsep.execute(username, proxy_dir, cat_cmd, args)
+
+        ini_template = "[glidein_startup]\n" \
+                        "args = %s\n" \
+                        "webbase = %s\n" \
+                        "proxy_file_name = pilot_proxy\n"
+
+        if jobDescript.has_key("shutdownVM"):
+            disable_shutdown = jobDescript["shutdownVM"]
+            if disable_shutdown: ini_template += "disable_shutdown = True"
+        ini = ini_template % (glidein_arguments, web_url)
+
+        tarball = GlideinTar()
+        tarball.add_string("glidein_userdata", ini)
+        tarball.add_string("pilot_proxy", proxy_contents)
+        binary_string = tarball.create_tar_blob()
+        encoded_tarball = base64.b64encode(binary_string)
+        exe_env.append('USER_DATA=%s' % encoded_tarball)
+
+    else:
+        exe_env.append("GLIDEIN_ARGUMENTS=%s" % glidein_arguments)
+        # RSL is definitely not for cloud entries
+        glidein_rsl = "none"
+        if jobDescript.data.has_key('GlobusRSL'):
+            glidein_rsl = jobDescript.data['GlobusRSL']
+            # Replace placeholder for project id
+            if params.has_key('ProjectId') and 'TG_PROJECT_ID' in glidein_rsl:
+                glidein_rsl = glidein_rsl.replace('TG_PROJECT_ID', params['ProjectId'])
+        if not (glidein_rsl == "none"):
+            exe_env.append('GLIDEIN_RSL=%s' % glidein_rsl)
+
+    return exe_env
 
 # Get list of CondorG job status for held jobs that are not recoverable
 def isGlideinUnrecoverable(jobInfo):
