@@ -1,11 +1,8 @@
 import os
-import os.path
 import stat
-import sys
-import timeConversion
 import time
 import re
-import logging
+import pwd
 import logSupport
 import condorPrivsep
 
@@ -16,7 +13,7 @@ class Cleanup:
         self.cleanup_objects = []
 
     def add_cleaner(self, cleaner):
-        self.cleanupObjs.append(cleaner)
+        self.cleanup_objects.append(cleaner)
 
     def cleanup(self):
         for cleaner in self.cleanup_objects:
@@ -48,8 +45,8 @@ class DirCleanup:
                     self.delete_file(fpath)
                     count_removes += 1
                 except:
-                   if self.should_log_warnings:
-                       logSupport.log.warning("Could not remove %s" % fpath)
+                    if self.should_log_warnings:
+                        logSupport.log.warning("Could not remove %s" % fpath)
 
         if count_removes > 0:
             if self.should_log:
@@ -122,8 +119,8 @@ class DirCleanupWSpace(DirCleanup):
                     count_removes_bytes += fsize
                     used_space -= fsize
                 except:
-                   if self.should_log_warnings:
-                       logSupport.log.warning("Could not remove %s" % fpath)
+                    if self.should_log_warnings:
+                        logSupport.log.warning("Could not remove %s" % fpath)
 
         if count_removes > 0:
             if self.should_log:
@@ -137,9 +134,9 @@ class PrivsepDirCleanupWSpace(DirCleanupWSpace):
                  maxlife,          # max lifetime after which it is deleted
                  minlife,maxspace, # max space allowed for the sum of files, unless they are too young
                  should_log=True, should_log_warnings=True):
-        logSupport.DirCleanupWSpace.__init__(self, dirname, fname_expression,
-                                             maxlife, minlife, maxspace,
-                                             should_log=True, should_log_warnings=True)
+        DirCleanupWSpace.__init__(self, dirname, fname_expression,
+                                  maxlife, minlife, maxspace,
+                                  should_log=True, should_log_warnings=True)
         self.username = username
 
     def delete_file(self, fpath):
