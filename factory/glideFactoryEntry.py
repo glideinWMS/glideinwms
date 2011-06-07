@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.44 2011/06/07 14:44:36 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.45 2011/06/07 18:59:44 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -120,7 +120,6 @@ def perform_work(entry_name,
     client_log_name=glideFactoryLib.secClass2Name(client_security_name,x509_proxy_security_class)
     glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name,log_stats)
         
-
     remove_excess_wait=False
     remove_excess_idle=False
     remove_excess_run=False
@@ -139,8 +138,6 @@ def perform_work(entry_name,
         glideFactoryLib.log_files.logActivity("Unknown RemoveExcess '%s', assuming 'NO'"%remove_excess)
         pass # nothing to do
 
-    submit_attrs=[]
-
     # use the extended params for submission
     proxy_fraction=1.0/len(x509_proxy_keys)
 
@@ -153,7 +150,7 @@ def perform_work(entry_name,
     for x509_proxy_id in x509_proxy_keys:
         nr_submitted+=glideFactoryLib.keepIdleGlideins(condorQ,client_int_name,
                                                        in_downtime,remove_excess_wait,remove_excess_idle,remove_excess_run,
-                                                       idle_glideins_pproxy,max_running_pproxy,max_held,submit_attrs,
+                                                       idle_glideins_pproxy,max_running_pproxy,max_held,
                                                        x509_proxy_id,x509_proxy_fnames[x509_proxy_id],x509_proxy_username,x509_proxy_security_class,
                                                        client_web,params)
     

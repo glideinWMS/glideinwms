@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryLib.py,v 1.55.2.22 2011/06/07 14:44:36 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.23 2011/06/07 18:59:44 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -478,7 +478,7 @@ class ClientWeb(ClientWebNoGroup):
 # Can throw a condorExe.ExeError exception
 def keepIdleGlideins(client_condorq,client_int_name,
                      in_downtime,remove_excess_wait,remove_excess_idle,remove_excess_running,
-                     min_nr_idle,max_nr_running,max_held,submit_attrs,
+                     min_nr_idle,max_nr_running,max_held,
                      x509_proxy_identifier,x509_proxy_fname,x509_proxy_username,x509_proxy_security_class,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
@@ -538,7 +538,7 @@ def keepIdleGlideins(client_condorq,client_int_name,
             add_glideins=max_nr_running-(running_glideins+idle_glideins)
         try:
             submitGlideins(condorq.entry_name,condorq.schedd_name,x509_proxy_username,
-                           client_int_name,add_glideins,submit_attrs,
+                           client_int_name,add_glideins,
                            x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
                            client_web,params)
             return add_glideins # exit, some submitted
@@ -1071,7 +1071,7 @@ def escapeParam(param_str):
     
 
 # submit N new glideins
-def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submit_attrs,
+def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,
                    x509_proxy_identifier,x509_proxy_security_class,x509_proxy_fname,
                    client_web, # None means client did not pass one, backwards compatibility
                    params):
@@ -1081,11 +1081,6 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
 
     if nr_glideins>factoryConfig.max_submits:
         nr_glideins=factoryConfig.max_submits
-
-    submit_attrs_arr=[]
-    for e in submit_attrs:
-        submit_attrs_arr.append("'"+e+"'")
-    submit_attrs_str = string.join(submit_attrs_arr," ")
 
     params_arr=[]
     for k in params.keys():
@@ -1129,10 +1124,16 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
                         if os.environ.has_key(var):
                             exe_env.append('%s=%s'%(var,os.environ[var]))
                 try:
+                    #submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
+                    #                                 os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
+                    #                                 [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,glidein_rsl,]+
+                    #                                 client_web_arr+submit_attrs+
+                    #                                 ['--']+params_arr,
+                    #                                 exe_env)
                     submit_out=condorPrivsep.execute(username,factoryConfig.submit_dir,
                                                      os.path.join(factoryConfig.submit_dir,factoryConfig.submit_fname),
                                                      [factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,"%i"%nr_to_submit,glidein_rsl,]+
-                                                     client_web_arr+submit_attrs+
+                                                     client_web_arr+
                                                      ['--']+params_arr,
                                                      exe_env)
                 except condorPrivsep.ExeError, e:
@@ -1144,7 +1145,7 @@ def submitGlideins(entry_name,schedd_name,username,client_name,nr_glideins,submi
             else:
                 # avoid using privsep, if possible
                 try:
-                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i "%s" %s %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,submit_attrs_str,params_str))
+                    submit_out=condorExe.iexe_cmd('export X509_USER_PROXY=%s;./%s "%s" "%s" "%s" "%s" %i "%s" %s -- %s'%(x509_proxy_fname,factoryConfig.submit_fname,entry_name,client_name,x509_proxy_security_class,x509_proxy_identifier,nr_to_submit,glidein_rsl,client_web_str,params_str))
                 except condorExe.ExeError,e:
                     submit_out=[]
                     raise RuntimeError, "condor_submit failed: %s"%e
