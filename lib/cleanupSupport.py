@@ -6,7 +6,21 @@ import timeConversion
 import time
 import re
 import logging
+import logSupport
+import condorPrivsep
 
+MY_USERNAME = pwd.getpwuid(os.getuid())[0]
+
+class Cleanup:
+    def __init__(self):
+        self.cleanup_objects = []
+
+    def add_cleaner(self, cleaner):
+        self.cleanupObjs.append(cleaner)
+
+    def cleanup(self):
+        for cleaner in self.cleanup_objects:
+            cleaner.cleanup()
 
 # this class is used for cleanup
 class DirCleanup:
