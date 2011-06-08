@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryRRDBrowse.html,v 1.13.8.5.18.2 2011/05/24 20:55:10 amccrea Exp $
+  $Id: factoryRRDBrowse.html,v 1.13.8.5.18.3 2011/06/08 21:37:12 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -20,6 +20,8 @@ Description:
     <script type="text/javascript" src="jslibs/binaryXHR.js"></script>
     <script type="text/javascript" src="jslibs/rrdFile.js"></script>
     <script type="text/javascript" src="jslibs/rrdMultiFile.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFilter.js"></script>
+    <script type="text/javascript" src="jslibs/rrdFlot.js"></script>
 
     <!-- rrdFlot class needs the following four include files !-->
     <script type="text/javascript" src="jslibs/rrdFlotSupport.js"></script>
@@ -54,7 +56,7 @@ Description:
      <tr>
        <th>Entry</th>
        <td valing="middle">
-         <select id="entries" onchange="setOptions(document.getElementById('entries').options[document.getElementById('entries').selectedIndex].value);">
+         <select id="entries" onchange="setFrontendMenu(document.getElementById('entries').options[document.getElementById('entries').selectedIndex].value);">
 	  <option value="total">total</option>
 	 </select>
        </td>
@@ -85,6 +87,21 @@ Description:
          <button onClick="showLink()" style="float:right">Link</button>
        </td>
      </tr>
+     <tr>
+       <th>Timezone</th>
+       <td valign="middle">
+         <select id="timezone">
+          <option value="3">+3 Moscow</option>
+          <option value="2">+2 East Eur</option>
+          <option value="1">+1 West Eur</option>
+          <option value="0" selected=true> 0 GMT</option>
+          <option value="-5">-5 East Coast</option>
+          <option value="-6">-6 Central</option>
+          <option value="-7">-7 Mountain</option>
+          <option value="-8">-8 Pacific</option>
+         </select>
+       </td>
+     </tr>
     </table>
 
     <hr>
@@ -113,6 +130,7 @@ Description:
       var local_window_max=0;
       var coming_from_defaults = false;
       var coming_from_link = true;
+      var timezone_num=0;
 
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
@@ -172,7 +190,7 @@ Description:
       files_loaded = 0;
 	  checkUrl(); 
 
-      function setOptions(entry) {
+      function setFrontendMenu(entry) {
         var fes = document.getElementById("frontends");
         //Remove frontends from previous entry choices, add back 'total'
         // and this entry's frontends. 
@@ -194,6 +212,22 @@ Description:
           return gname;
       }
 
+      //RRA Filter - leaves it alone.
+      function RRADoNothing(rra_idx) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return null;}
+      }
+      
+      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
+      / based on another RRA, whose data the new RRA averages. 
+      / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
+      */
+      function RRA_Avg(rra_idx,new_step_in_seconds) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return new_step_in_seconds;}
+      }
+
+//---------------------------------------------------------------------------------------
 
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
@@ -230,14 +264,25 @@ Description:
 
        ///////////////////////////////////////////////////////////
 
+      //Add RRA filters for longer averaged-out RRAs
+      var rra_op_list = [];
+      for(var i=0; i<rrd_data.getNrRRAs();i++) {
+         if(i==2) {rra_op_list.push(new RRA_Avg(1,14400));} //4 hours, based on rra at idx 1 (added here for ordering)
+         rra_op_list.push(new RRADoNothing(i));
+      }
+      rra_op_list.push(new RRA_Avg(2,86400)); //24 hours - base off rra at index 2
+      rra_op_list.push(new RRA_Avg(2,604800)); //1 week
 
-        // the rrdFlot object creates and handles the graph
-        if (rrd_group_data.length == 0) {
-          var f=new rrdFlot("mygraph",rrd_data,null,null,{use_checked_DSs: use_checked_DSs_local, checked_DSs: link_checked_DSs,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max});
-        } else {
-            var rrd_data_sum = new RRDFileSum(rrd_group_data, false);
-          var f=new rrdFlot("mygraph",rrd_data_sum,null,null,{use_checked_DSs: use_checked_DSs_local, checked_DSs: link_checked_DSs,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max});
-        }
+      var timezone_selection = document.getElementById("timezone");
+      timezone_num = timezone_selection.options[timezone_selection.selectedIndex].value;
+
+      if(rrd_group_data.length!=0) {rrd_data = new RRDFileSum(rrd_group_data,false);}
+
+      rrd_data = new RRDRRAFilterAvg(rrd_data,rra_op_list); //Adds 2 extra RRAs (averaged)
+      rrd_data = new RRAFilterShift(rrd_data, timezone_num, [0,1,2,3,4]); //Used for timezone
+
+      // the rrdFlot object creates and handles the graph
+      var f=new rrdFlot("mygraph",rrd_data,null,null,{use_checked_DSs: use_checked_DSs_local, checked_DSs: link_checked_DSs,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons:false});
 
         // Finally, update the files loaded so far
         files_loaded = files_loaded + 1;
@@ -360,7 +405,7 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-                parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max"); 
+                parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max","timezone"); 
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
@@ -400,7 +445,7 @@ Description:
 							if(entry == groups[j])
 							{
 								document.getElementById("entries").selectedIndex = counter + 1; 
-                                                                setOptions(entry);
+                                                                setFrontendMenu(entry);
 								group = 1;
 								break;  
 							}	
@@ -408,7 +453,7 @@ Description:
 						if(!group)
 						{
 							document.getElementById("entries").selectedIndex = counter; 
-                                                        setOptions(entry);
+                                                        setFrontendMenu(entry);
                                                         var frontend = paramSpecArry[1];
                                                         var fe_list = document.getElementById("frontends").childNodes; 
                                                         var fe_idx=0;
@@ -424,7 +469,7 @@ Description:
 					{
 						urlValid = 1; 
 						document.getElementById("entries").selectedIndex = 0; 
-                                                setOptions(entry);
+                                                setFrontendMenu(entry);
 						break;  	
 					}
 					counter++; 
@@ -452,6 +497,15 @@ Description:
                         else if(i==4) {specified_rra = paramSpecArry[i];}
                         else if(i==5) {local_window_min = paramSpecArry[i];}
                         else if(i==6) {local_window_max = paramSpecArry[i];}
+                        else if(i==7) {
+                           local_timezone = paramSpecArry[i];
+                           timezone_sel = document.getElementById("timezone");
+                           var t_idx=3;
+                           for(var j in timezone_sel.options) {
+                              if(local_timezone == timezone_sel.options[j].value) {t_idx=j;}
+                           }
+                           timezone_sel.selectedIndex = t_idx; 
+                        }
 		}
 		if(urlValid)
 		{
@@ -512,7 +566,7 @@ Description:
                    elem_string += local_checked_DSs_input[i]+",";
                 }
 
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max; 
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+timezone_num; 
 		document.location.href = constructed; 
 	}  
 
