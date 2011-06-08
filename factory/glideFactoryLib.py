@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.8 2011/06/07 16:03:39 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.9 2011/06/08 16:49:25 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -14,24 +14,19 @@
 #   Igor Sfiligoi (Sept 7th 2006)
 #
 
-import os,sys
+import os
 import time
-import string
 import re
-import traceback
 import pwd
 import binascii
 import condorExe
 import condorPrivsep
 import logSupport
-import logging
 import condorMonitor
-import cleanupSupport
 import glideFactoryConfig
 import base64
 
 from tarSupport import GlideinTar
-from tarSupport import FileDoesNotExist
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
 
@@ -64,13 +59,13 @@ class FactoryConfig:
 
         self.count_env = 'GLIDEIN_COUNT'
 
-        self.submit_fname="job_submit.sh"
+        self.submit_fname = "job_submit.sh"
 
 
         # Stale value settings, in seconds
-        self.stale_maxage={ 1:7*24*3600,      # 1 week for idle
-                            2:31*24*3600,     # 1 month for running
-                           -1:2*3600}         # 2 hours for unclaimed (using special value -1 for this)
+        self.stale_maxage = { 1:7 * 24 * 3600, # 1 week for idle
+                            2:31 * 24 * 3600, # 1 month for running
+                           - 1:2 * 3600}         # 2 hours for unclaimed (using special value -1 for this)
 
         # Sleep times between commands
         self.submit_sleep = 0.2
@@ -79,7 +74,7 @@ class FactoryConfig:
 
         # Max commands per cycle
         self.max_submits = 100
-        self.max_cluster_size=10
+        self.max_cluster_size = 10
         self.max_removes = 5
         self.max_releases = 20
 
@@ -91,7 +86,7 @@ class FactoryConfig:
         self.log_stats = None
         self.rrd_stats = None
 
-        self.supported_signtypes=['sha1']
+        self.supported_signtypes = ['sha1']
 
         # who am I
         self.factory_name = None
@@ -140,11 +135,6 @@ factoryConfig = FactoryConfig()
 def secClass2Name(client_security_name, proxy_security_class):
     return "%s_%s" % (client_security_name, proxy_security_class)
 
-# someone needs to initialize this
-# type LogFiles
-log_files = None
-cleaners = cleanupSupport.Cleanup()
-
 ############################################################
 #
 # User functions
@@ -157,12 +147,12 @@ cleaners = cleanupSupport.Cleanup()
 #
 
 def getCondorQData(entry_name,
-                   client_name,                    # if None, return all clients
+                   client_name, # if None, return all clients
                    schedd_name,
-                   factory_schedd_attribute=None,  # if None, use the global one
-                   glidein_schedd_attribute=None,  # if None, use the global one
-                   entry_schedd_attribute=None,    # if None, use the global one
-                   client_schedd_attribute=None,   # if None, use the global one
+                   factory_schedd_attribute=None, # if None, use the global one
+                   glidein_schedd_attribute=None, # if None, use the global one
+                   entry_schedd_attribute=None, # if None, use the global one
+                   client_schedd_attribute=None, # if None, use the global one
                    x509secclass_schedd_attribute=None): # if None, use the global one
     global factoryConfig
 
@@ -200,9 +190,9 @@ def getCondorQData(entry_name,
 
     q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)' % \
         (fsa_str, factoryConfig.factory_name, gsa_str, factoryConfig.glidein_name, esa_str, entry_name, client_constraint, x509id_str)
-    q_glidein_format_list = [("JobStatus","i"), ("GridJobStatus","s"), ("ServerTime","i"), ("EnteredCurrentStatus","i"),
-                             (factoryConfig.x509id_schedd_attribute,"s"), ("HoldReasonCode","i"), ("HoldReasonSubCode","i"),
-                             (csa_str,"s"), (xsa_str,"s")]
+    q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
+                             (factoryConfig.x509id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
+                             (csa_str, "s"), (xsa_str, "s")]
 
     q = condorMonitor.CondorQ(schedd_name)
     q.factory_name = factoryConfig.factory_name
@@ -214,7 +204,7 @@ def getCondorQData(entry_name,
 
 # fiter only a specific client and proxy security class
 def getQProxSecClass(condorq, client_name, proxy_security_class,
-                     client_schedd_attribute=None,  # if None, use the global one
+                     client_schedd_attribute=None, # if None, use the global one
                      x509secclass_schedd_attribute=None): # if None, use the global one
 
     if client_schedd_attribute == None:
@@ -227,8 +217,8 @@ def getQProxSecClass(condorq, client_name, proxy_security_class,
     else:
         xsa_str = x509secclass_schedd_attribute
 
-    entry_condorQ = condorMonitor.SubQuery(condorq, lambda d:(d.has_key(csa_str) and (d[csa_str]==client_name) and
-                                                           d.has_key(xsa_str) and (d[xsa_str]==proxy_security_class)))
+    entry_condorQ = condorMonitor.SubQuery(condorq, lambda d:(d.has_key(csa_str) and (d[csa_str] == client_name) and
+                                                           d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)))
     entry_condorQ.schedd_name = condorq.schedd_name
     entry_condorQ.factory_name = condorq.factory_name
     entry_condorQ.glidein_name = condorq.glidein_name
@@ -245,10 +235,10 @@ def getQStatusStale(condorq):
     qc_status = condorMonitor.Summarize(condorq, hash_statusStale).countStored()
     return qc_status
 
-def getCondorStatusData(entry_name,client_name,pool_name=None,
-                        factory_startd_attribute=None,  # if None, use the global one
-                        glidein_startd_attribute=None,  # if None, use the global one
-                        entry_startd_attribute=None,    # if None, use the global one
+def getCondorStatusData(entry_name, client_name, pool_name=None,
+                        factory_startd_attribute=None, # if None, use the global one
+                        glidein_startd_attribute=None, # if None, use the global one
+                        entry_startd_attribute=None, # if None, use the global one
                         client_startd_attribute=None):  # if None, use the global one
     global factoryConfig
 
@@ -311,7 +301,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
         # do it natively when you can
         if not os.path.isfile(fname):
             # new file, create
-            fd = os.open(fname, os.O_CREAT|os.O_WRONLY, 0600)
+            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
             try:
                 os.write(fd, proxy_data)
             finally:
@@ -319,7 +309,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
             return fname
 
         # old file exists, check if same content
-        fl = open(fname,'r')
+        fl = open(fname, 'r')
         try:
             old_data = fl.read()
         finally:
@@ -339,7 +329,7 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
             pass # just protect
 
         # create new file
-        fd = os.open(fname + ".new", os.O_CREAT|os.O_WRONLY, 0600)
+        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
         try:
             os.write(fd, proxy_data)
         finally:
@@ -402,7 +392,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
     global factoryConfig
 
     # filter out everything but the proper x509_proxy_identifier
-    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.x509id_schedd_attribute]==x509_proxy_identifier))
+    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.x509id_schedd_attribute] == x509_proxy_identifier))
     condorq.schedd_name = client_condorq.schedd_name
     condorq.factory_name = client_condorq.factory_name
     condorq.glidein_name = client_condorq.glidein_name
@@ -470,7 +460,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
             ((running_glideins + idle_glideins) > max_nr_running)))):
         # too many glideins, remove
         remove_nr = idle_glideins - min_nr_idle
-        if (remove_excess_running and ((max_nr_running!=None) and  #make sure there is a max
+        if (remove_excess_running and ((max_nr_running != None) and  #make sure there is a max
              ((running_glideins + idle_glideins) > max_nr_running))):
 
             remove_all_nr = (running_glideins + idle_glideins) - max_nr_running
@@ -560,23 +550,23 @@ def keepIdleGlideins(client_condorq, client_int_name,
 #   Can be used if we the glidein connect to a reachable Collector
 #
 
-def sanitizeGlideins(condorq,status):
+def sanitizeGlideins(condorq, status):
     global factoryConfig
 
     # Check if some glideins have been in idle state for too long
     stale_list = extractStale(condorq, status)
-    if len(stale_list)>0:
+    if len(stale_list) > 0:
         logSupport.log.warning("Found %i stale glideins" % len(stale_list))
         removeGlideins(condorq.schedd_name, stale_list)
 
     # Check if some glideins have been in running state for too long
     runstale_list = extractRunStale(condorq)
     if len(runstale_list) > 0:
-        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2]/3600))
+        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2] / 3600))
         removeGlideins(condorq.schedd_name, runstale_list)
 
     # Check if there are held glideins that are not recoverable
-    unrecoverable_held_list = extractUnrecoverableHeld(condorq,status)
+    unrecoverable_held_list = extractUnrecoverableHeld(condorq, status)
     if len(unrecoverable_held_list) > 0:
         logSupport.log.warning("Found %i unrecoverable held glideins" % len(unrecoverable_held_list))
         removeGlideins(condorq.schedd_name, unrecoverable_held_list, force=False)
@@ -607,14 +597,14 @@ def sanitizeGlideinsSimple(condorq):
 
     # Check if some glideins have been in idle state for too long
     stale_list = extractStaleSimple(condorq)
-    if len(stale_list)>0:
+    if len(stale_list) > 0:
         logSupport.log.warning("Found %i stale glideins" % len(stale_list))
         removeGlideins(condorq.schedd_name, stale_list)
 
     # Check if some glideins have been in running state for too long
     runstale_list = extractRunStale(condorq)
     if len(runstale_list) > 0:
-        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2]/3600))
+        logSupport.log.warning("Found %i stale (>%ih) running glideins" % (len(runstale_list), factoryConfig.stale_maxage[2] / 3600))
         removeGlideins(condorq.schedd_name, runstale_list)
 
     # Check if there are held glideins that are not recoverable
@@ -664,16 +654,16 @@ def logWorkRequest(client_int_name, client_security_name, proxy_security_class,
 
     client_log_name = secClass2Name(client_security_name, proxy_security_class)
 
-    logSupport.log.info("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'"%(client_int_name,client_log_name,req_idle,req_max_run,remove_excess))
-    logSupport.log.info("  Params: %s"%work_el['params'])
-    logSupport.log.info("  Decrypted Param Names: %s"%work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
+    logSupport.log.info("Client %s (secid: %s) requesting %i glideins, max running %i, remove excess '%s'" % (client_int_name, client_log_name, req_idle, req_max_run, remove_excess))
+    logSupport.log.info("  Params: %s" % work_el['params'])
+    logSupport.log.info("  Decrypted Param Names: %s" % work_el['params_decrypted'].keys()) # cannot log decrypted ones... they are most likely sensitive
 
-    reqs={'IdleGlideins':req_idle,'MaxRunningGlideins':req_max_run}
-    factoryConfig.client_stats.logRequest(client_int_name,reqs)
-    factoryConfig.qc_stats.logRequest(client_log_name,reqs)
+    reqs = {'IdleGlideins':req_idle, 'MaxRunningGlideins':req_max_run}
+    factoryConfig.client_stats.logRequest(client_int_name, reqs)
+    factoryConfig.qc_stats.logRequest(client_log_name, reqs)
 
-    factoryConfig.client_stats.logClientMonitor(client_int_name,work_el['monitor'],work_el['internals'],fraction)
-    factoryConfig.qc_stats.logClientMonitor(client_log_name,work_el['monitor'],work_el['internals'],fraction)
+    factoryConfig.client_stats.logClientMonitor(client_int_name, work_el['monitor'], work_el['internals'], fraction)
+    factoryConfig.qc_stats.logClientMonitor(client_log_name, work_el['monitor'], work_el['internals'], fraction)
 
 ############################################################
 #
@@ -719,7 +709,7 @@ def hash_status(el):
             grid_status = el["GridJobStatus"]
             if grid_status in ("ACTIVE", "REALLY-RUNNING", "INLRMS: R"):
                 return 2
-            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING","DONE"):
+            elif grid_status in ("STAGE_OUT", "INLRMS: E", "EXECUTED", "FINISHING", "DONE"):
                 return 4010
             else:
                 return 1100
@@ -744,7 +734,7 @@ def hash_statusStale(el):
     age = el["ServerTime"] - el["EnteredCurrentStatus"]
     jstatus = el["JobStatus"]
     if factoryConfig.stale_maxage.has_key(jstatus):
-        return [jstatus, age>factoryConfig.stale_maxage[jstatus]]
+        return [jstatus, age > factoryConfig.stale_maxage[jstatus]]
     else:
         return [jstatus, 0] # others are not stale
 
@@ -772,7 +762,7 @@ def diffList(base_list, subtract_list):
 # return list of glidein clusters within the search list
 def extractRegistered(q, status, search_list):
     global factoryConfig
-    sdata = status.fetchStored(lambda el:(el[factoryConfig.schedd_startd_attribute]==q.schedd_name) and (get_status_glideidx(el) in search_list))
+    sdata = status.fetchStored(lambda el:(el[factoryConfig.schedd_startd_attribute] == q.schedd_name) and (get_status_glideidx(el) in search_list))
 
     out_list = []
     for vm in sdata.keys():
@@ -784,30 +774,30 @@ def extractRegistered(q, status, search_list):
     return out_list
 
 
-def extractStale(q,status):
+def extractStale(q, status):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
+    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [1, 1]))
     qstale_list = qstale.keys()
 
     # find out if any "Idle" glidein is running instead (in condor_status)
-    sstale_list = extractRegistered(q,status,qstale_list)
+    sstale_list = extractRegistered(q, status, qstale_list)
 
     return diffList(qstale_list, sstale_list)
 
 def extractStaleSimple(q):
     # first find out the stale idle jids
     #  hash: (Idle==1, Stale==1)
-    qstale = q.fetchStored(lambda el:(hash_statusStale(el)==[1,1]))
+    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [1, 1]))
     qstale_list = qstale.keys()
 
     return qstale_list
 
-def extractUnrecoverableHeld(q,status):
+def extractUnrecoverableHeld(q, status):
     # first find out the held jids that are not recoverable
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld = q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el)))
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el)))
     qheld_list = qheld.keys()
 
     # find out if any "Held" glidein is running instead (in condor_status)
@@ -817,82 +807,82 @@ def extractUnrecoverableHeld(q,status):
 def extractUnrecoverableHeldSimple(q):
     #  Held==5 and glideins are not recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and isGlideinUnrecoverable(el)))
-    qheld_list=qheld.keys()
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and isGlideinUnrecoverable(el)))
+    qheld_list = qheld.keys()
     return qheld_list
 
-def extractRecoverableHeld(q,status):
+def extractRecoverableHeld(q, status):
     # first find out the held jids
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
-    qheld_list=qheld.keys()
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el)))
+    qheld_list = qheld.keys()
 
     # find out if any "Held" glidein is running instead (in condor_status)
-    sheld_list=extractRegistered(q,status,qheld_list)
+    sheld_list = extractRegistered(q, status, qheld_list)
 
-    return diffList(qheld_list,sheld_list)
+    return diffList(qheld_list, sheld_list)
 
 def extractRecoverableHeldSimple(q):
     #  Held==5 and glideins are recoverable
     #qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el["HeldReasonCode"],el["HoldReasonSubCode"])))
-    qheld=q.fetchStored(lambda el:(el["JobStatus"]==5 and not isGlideinUnrecoverable(el)))
-    qheld_list=qheld.keys()
+    qheld = q.fetchStored(lambda el:(el["JobStatus"] == 5 and not isGlideinUnrecoverable(el)))
+    qheld_list = qheld.keys()
     return qheld_list
 
-def extractHeld(q,status):
+def extractHeld(q, status):
 
     # first find out the held jids
     #  Held==5
-    qheld=q.fetchStored(lambda el:el["JobStatus"]==5)
-    qheld_list=qheld.keys()
+    qheld = q.fetchStored(lambda el:el["JobStatus"] == 5)
+    qheld_list = qheld.keys()
 
     # find out if any "Held" glidein is running instead (in condor_status)
-    sheld_list=extractRegistered(q,status,qheld_list)
+    sheld_list = extractRegistered(q, status, qheld_list)
 
-    return diffList(qheld_list,sheld_list)
+    return diffList(qheld_list, sheld_list)
 
 def extractHeldSimple(q):
     #  Held==5
-    qheld=q.fetchStored(lambda el:el["JobStatus"]==5)
-    qheld_list=qheld.keys()
+    qheld = q.fetchStored(lambda el:el["JobStatus"] == 5)
+    qheld_list = qheld.keys()
     return qheld_list
 
 def extractIdleSimple(q):
     #  Idle==1
-    qidle=q.fetchStored(lambda el:el["JobStatus"]==1)
-    qidle_list=qidle.keys()
+    qidle = q.fetchStored(lambda el:el["JobStatus"] == 1)
+    qidle_list = qidle.keys()
     return qidle_list
 
 def extractIdleUnsubmitted(q):
     #  1001 == Unsubmitted
-    qidle=q.fetchStored(lambda el:hash_status(el)==1001)
-    qidle_list=qidle.keys()
+    qidle = q.fetchStored(lambda el:hash_status(el) == 1001)
+    qidle_list = qidle.keys()
     return qidle_list
 
 def extractIdleQueued(q):
     #  All 1xxx but 1001
-    qidle=q.fetchStored(lambda el:(hash_status(el) in (1002,1010,1100)))
-    qidle_list=qidle.keys()
+    qidle = q.fetchStored(lambda el:(hash_status(el) in (1002, 1010, 1100)))
+    qidle_list = qidle.keys()
     return qidle_list
 
 def extractNonRunSimple(q):
     #  Run==2
-    qnrun=q.fetchStored(lambda el:el["JobStatus"]!=2)
-    qnrun_list=qnrun.keys()
+    qnrun = q.fetchStored(lambda el:el["JobStatus"] != 2)
+    qnrun_list = qnrun.keys()
     return qnrun_list
 
 def extractRunSimple(q):
     #  Run==2
-    qrun=q.fetchStored(lambda el:el["JobStatus"]==2)
-    qrun_list=qrun.keys()
+    qrun = q.fetchStored(lambda el:el["JobStatus"] == 2)
+    qrun_list = qrun.keys()
     return qrun_list
 
 def extractRunStale(q):
     # first find out the stale running jids
     #  hash: (Running==2, Stale==1)
-    qstale=q.fetchStored(lambda el:(hash_statusStale(el)==[2,1]))
-    qstale_list=qstale.keys()
+    qstale = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 1]))
+    qstale_list = qstale.keys()
 
     # no need to check with condor_status
     # these glideins were running for too long, period!
@@ -900,28 +890,28 @@ def extractRunStale(q):
 
 # helper function of extractStaleUnclaimed
 def group_unclaimed(el_list):
-    out={"nr_vms":0,"nr_unclaimed":0,"min_unclaimed_time":1024*1024*1024}
+    out = {"nr_vms":0, "nr_unclaimed":0, "min_unclaimed_time":1024 * 1024 * 1024}
     for el in el_list:
-        out["nr_vms"]+=1
-        if el["State"]=="Unclaimed":
-            out["nr_unclaimed"]+=1
-            unclaimed_time=el["LastHeardFrom"]-el["EnteredCurrentState"]
-            if unclaimed_time<out["min_unclaimed_time"]:
-                out["min_unclaimed_time"]=unclaimed_time
+        out["nr_vms"] += 1
+        if el["State"] == "Unclaimed":
+            out["nr_unclaimed"] += 1
+            unclaimed_time = el["LastHeardFrom"] - el["EnteredCurrentState"]
+            if unclaimed_time < out["min_unclaimed_time"]:
+                out["min_unclaimed_time"] = unclaimed_time
     return out
 
-def extractStaleUnclaimed(q,status):
+def extractStaleUnclaimed(q, status):
     global factoryConfig
     # first find out the active running jids
     #  hash: (Running==2, Stale==0)
-    qsearch=q.fetchStored(lambda el:(hash_statusStale(el)==[2,0]))
-    search_list=qsearch.keys()
+    qsearch = q.fetchStored(lambda el:(hash_statusStale(el) == [2, 0]))
+    search_list = qsearch.keys()
 
     # find out if any "Idle" glidein is running instead (in condor_status)
     global factoryConfig
-    sgroup=condorMonitor.Group(status,lambda el:get_status_glideidx(el),group_unclaimed)
-    sgroup.load(lambda el:(el[factoryConfig.schedd_startd_attribute]==q.schedd_name) and (get_status_glideidx(el) in search_list))
-    sdata=sgroup.fetchStored(lambda el:(el["nr_unclaimed"]>0) and (el["min_unclaimed_time"]>factoryConfig.stale_maxage[-1]))
+    sgroup = condorMonitor.Group(status, lambda el:get_status_glideidx(el), group_unclaimed)
+    sgroup.load(lambda el:(el[factoryConfig.schedd_startd_attribute] == q.schedd_name) and (get_status_glideidx(el) in search_list))
+    sdata = sgroup.fetchStored(lambda el:(el["nr_unclaimed"] > 0) and (el["min_unclaimed_time"] > factoryConfig.stale_maxage[-1]))
 
     return sdata.keys()
 
@@ -1027,7 +1017,7 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
                 # no? use privsep
                 # need to push all the relevant env variables through
                 for var in os.environ.keys():
-                    if ((var in ('PATH','LD_LIBRARY_PATH','X509_CERT_DIR')) or (var[:8]=='_CONDOR_') or (var[:7]=='CONDOR_')):
+                    if ((var in ('PATH', 'LD_LIBRARY_PATH', 'X509_CERT_DIR')) or (var[:8] == '_CONDOR_') or (var[:7] == 'CONDOR_')):
                         if os.environ.has_key(var):
                             exe_env.append('%s=%s' % (var, os.environ[var]))
                 try:
@@ -1142,10 +1132,10 @@ def get_submit_environment(entry_name, username, client_name, security_class, se
     params_str = ""
     # if client_web has been provided, get the arguments and add them to the string
     if client_web != None:
-        params_str = string.join(client_web.get_glidein_args(), "")
+        params_str = "".join(client_web.get_glidein_args())
     # add all the params to the argument string
     for k in params.keys():
-        params_str  += " -param_%s %s" % (k, params[k])
+        params_str += " -param_%s %s" % (k, params[k])
 
 
     exe_env = ['X509_USER_PROXY=%s' % security_dict["x509Proxy"]]
