@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryStatus.html,v 1.13.8.5.18.5 2011/06/08 21:50:48 amccrea Exp $
+  $Id: factoryStatus.html,v 1.13.8.5.18.6 2011/06/08 21:54:42 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -343,7 +343,7 @@ Description:
         timezone_num = timezone_selection.options[timezone_selection.selectedIndex].value;
 
         rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
-        rrd_data1 = new RRAFilterShift(rrd_data1, timezone_num, [0,1,2,3,4]); //Used for timezone
+        rrd_data1 = new RRAFilterShift(rrd_data1, timezone_num, [0,1,2,3,4,5]); //Used for timezone
 
         var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{use_checked_DSs: true, checked_DSs: checklist, use_rra:true, rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons: false });
 
