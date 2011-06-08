@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.3 2011/06/08 18:07:53 tiradani Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.4 2011/06/08 21:42:41 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -586,8 +586,8 @@ def main(parent_pid, work_dir, group_name):
     # Set the Log directory
     # Configure the process to use the proper LogDir as soon as you get the info
     logSupport.add_glideinlog_handler("group_%s" % group_name, logSupport.log_dir,
-                                      int(elementDescript.frontend_data['LogRetentionMaxDays']),
-                                      int(elementDescript.frontend_data['LogRetentionMaxMBs']))
+                                      int(float(elementDescript.frontend_data['LogRetentionMaxDays'])),
+                                      int(float(elementDescript.frontend_data['LogRetentionMaxMBs'])))
     logSupport.log = logging.getLogger("group_%s" % group_name)
     logSupport.log.debug("Logging initialized")
     logSupport.log.debug("Frontend Element startup time: %s" % str(startup_time))
