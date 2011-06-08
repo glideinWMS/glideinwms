@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.5 2011/06/07 16:00:59 tiradani Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.6 2011/06/08 16:40:04 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -17,25 +17,21 @@
 #
 
 import os
-import os.path
 import sys
 
 STARTUP_DIR = sys.path[0]
 
-import fcntl
+import fcntl #@UnresolvedImport
 import popen2
 import traceback
 import signal
 import time
-import string
 import copy
-import threading
 import logging
 sys.path.append(os.path.join(STARTUP_DIR, "../lib"))
 
 import glideFactoryPidLib
 import glideFactoryConfig
-import glideFactoryLib
 import glideFactoryInterface
 import glideFactoryMonitorAggregator
 import glideFactoryMonitoring
@@ -47,27 +43,27 @@ import logSupport
 def aggregate_stats(in_downtime):
     try:
         status = glideFactoryMonitorAggregator.aggregateStatus(in_downtime)
+        logSupport.log.debug("aggregateStatus status: %s" % str(status))
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.debug("aggregateStatus failed: %s" % string.join(tb, ''))
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        logSupport.log.debug("aggregateStatus failed: %s" % "".join(tb))
 
     try:
         status = glideFactoryMonitorAggregator.aggregateLogSummary()
+        logSupport.log.debug("aggregateLogSummary status: %s" % str(status))
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.debug("aggregateLogStatus failed: %s" % string.join(tb, ''))
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        logSupport.log.debug("aggregateLogStatus failed: %s" % "".join(tb))
 
     try:
         status = glideFactoryMonitorAggregator.aggregateRRDStats()
+        logSupport.log.debug("aggregateRRDStats status: %s" % str(status))
     except:
         # protect and report
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.debug("aggregateRRDStats failed: %s" % string.join(tb, ''))
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        logSupport.log.debug("aggregateRRDStats failed: %s" % "".join(tb))
 
     return
 
@@ -94,7 +90,7 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
                descript2XML.entryDescript(entry_data))
 
     try:
-       descript2XML.writeFile(monitor_dir, xml_str)
+        descript2XML.writeFile(monitor_dir, xml_str)
     except IOError:
         logSupport.log.debug("IOError in writeFile in descript2XML")
     # end add
@@ -283,14 +279,14 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                 glideFactoryInterface.deadvertizeFactory(glideinDescript.data['FactoryName'],
                                                          glideinDescript.data['GlideinName'])
             except:
+                # just warn
                 logSupport.log.warning("Factory deadvertize failed!")
-                pass # just warn
             try:
                 glideFactoryInterface.deadvertizeFactoryClientMonitoring(glideinDescript.data['FactoryName'],
                                                                          glideinDescript.data['GlideinName'])
             except:
+                # just warn
                 logSupport.log.warning("Factory Monitoring deadvertize failed!")
-                pass # just warn
         logSupport.log.info("All entries should be terminated")
 
 
@@ -321,6 +317,7 @@ def main(startup_dir):
                                       int(float(glideinDescript.data['LogRetentionMaxMBs'])))
     logSupport.log = logging.getLogger("factory")
     logSupport.log.debug("Logging initialized")
+    logSupport.log.debug("Daemon start time: %s" % str(startup_time))
 
     try:
         os.chdir(startup_dir)
@@ -355,7 +352,7 @@ def main(startup_dir):
         restart_attempts = int(glideinDescript.data['RestartAttempts'])
         restart_interval = int(glideinDescript.data['RestartInterval'])
 
-        entries = string.split(glideinDescript.data['Entries'], ',')
+        entries = ",".split(glideinDescript.data['Entries'])
         entries.sort()
 
         glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir, "monitor"), entries)
