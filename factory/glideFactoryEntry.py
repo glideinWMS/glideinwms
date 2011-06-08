@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.14 2011/06/07 16:02:21 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.15 2011/06/08 16:46:43 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -31,7 +31,7 @@ import copy
 import random
 import sets
 import logging
-sys.path.append(os.path.join(sys.path[0],"../lib"))
+sys.path.append(os.path.join(sys.path[0], "../lib"))
 
 import glideFactoryPidLib
 import glideFactoryConfig
@@ -88,7 +88,7 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
     except:
         logSupport.log.warning("Failed to deadvertize my monitoring")
 
-    raise KeyboardInterrupt,"Parent died"
+    raise KeyboardInterrupt, "Parent died"
 
 
 ############################################################
@@ -165,7 +165,7 @@ def perform_work(entry_name, condorQ,
 
     glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, credential_security_class)
     client_log_name = glideFactoryLib.secClass2Name(client_security_name, credential_security_class)
-    glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats)
+    glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats) #@UndefinedVariable
 
     remove_excess_wait = False
     remove_excess_idle = False
@@ -182,8 +182,8 @@ def perform_work(entry_name, condorQ,
         remove_excess_idle = True
         remove_excess_run = True
     else:
+        # nothing to do
         logSupport.log.info("Unknown RemoveExcess '%s', assuming 'NO'" % remove_excess)
-        pass # nothing to do
 
     submit_attrs = []
 
@@ -235,7 +235,7 @@ class X509Proxies:
     def get_username(self, x509_proxy_security_class):
         if not self.usernames.has_key(x509_proxy_security_class):
             # lookup only the first time
-            x509_proxy_username = self.frontendDescript.get_username(self.client_security_name,x509_proxy_security_class)
+            x509_proxy_username = self.frontendDescript.get_username(self.client_security_name, x509_proxy_security_class)
             if x509_proxy_username == None:
                 # but don't cache misses
                 return None
@@ -278,26 +278,26 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     # This will be a comma-delimited list of pairs
     # vofrontendname:security_class,vofrontend:sec_class, ...
     frontend_whitelist = jobDescript.data['WhitelistMode']
-    security_list = {};
+    security_list = {}
     if (frontend_whitelist == "On"):
         frontend_allowed = jobDescript.data['AllowedVOs']
-        frontend_allow_list = frontend_allowed.split(',');
+        frontend_allow_list = frontend_allowed.split(',')
         for entry in frontend_allow_list:
-            entry_part = entry.split(":");
+            entry_part = entry.split(":")
             if (security_list.has_key(entry_part[0])):
-                security_list[entry_part[0]].append(entry_part[1]);
+                security_list[entry_part[0]].append(entry_part[1])
             else:
-                security_list[entry_part[0]] = [entry_part[1]];
+                security_list[entry_part[0]] = [entry_part[1]]
 
     # Set downtime in the stats
-    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime)
-    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
+    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) #@UndefinedVariable
+    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) #@UndefinedVariable
 
     logSupport.log.debug("Finding work")
     additional_constraints = None
     if pub_key_obj != None:
         # get only classads that have my key or no key at all, any other key will not work
-        additional_constraints = '(((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
+        additional_constraints = '(((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))' % pub_key_obj.get_pub_key_id()
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,
                                           glideFactoryLib.factoryConfig.glidein_name,
                                           entry_name,
@@ -476,7 +476,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
                 try:
                     x509_proxy_fname = glideFactoryLib.update_x509_proxy_file(entry_name, x509_proxy_username, "%s_%s" % (work_key, x509_proxy_identifier), x509_proxy)
-                except RuntimeError,e:
+                except RuntimeError, e:
                     logSupport.log.warning("Failed to update x509_proxy_%i using username %s for client %s, skipping request" % (i, x509_proxy_username, client_int_name))
                     logSupport.log.debug("Failed to update x509_proxy_%i using username %s for client %s: %s" % (i, x509_proxy_username, client_int_name, e))
                     continue
@@ -500,7 +500,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 logSupport.log.warning("No mapping for security class %s for %s (secid: %s), skipping frontend" % (x509_proxy_security_class, client_int_name, client_security_name))
                 continue # cannot map, frontend
 
-            x509_proxies.add_fname(x509_proxy_security_class,'factory', os.environ['X509_USER_PROXY']) # use the factory one
+            x509_proxies.add_fname(x509_proxy_security_class, 'factory', os.environ['X509_USER_PROXY']) # use the factory one
 
             # Check if this entry point has a whitelist
             # If it does, then make sure that this frontend is in it.
@@ -521,7 +521,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             in_downtime = True
 
         jobAttributes.data['GLIDEIN_In_Downtime'] = in_downtime
-        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
+        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) #@UndefinedVariable
 
         if work[work_key]['requests'].has_key('RemoveExcess'):
             remove_excess = work[work_key]['requests']['RemoveExcess']
@@ -560,7 +560,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         params['ProjectId'] = project_id
                     else:
                         # project id is required, cannot service request
-                        logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping " % (client_int_name, jobDescript.data['EntryName']))
                         continue
 
             if in_downtime:
@@ -579,11 +579,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         client_group_web_url = work[work_key]['web']['GroupURL']
                         client_group_descript = work[work_key]['web']['GroupDescriptFile']
                         client_group_sign = work[work_key]['web']['GroupDescriptSign']
-                        client_web = glideFactoryLib.ClientWeb(client_web_url, client_signtype, client_descript,client_sign,
-                                                    client_group,client_group_web_url, client_group_descript,client_group_sign)
+                        client_web = glideFactoryLib.ClientWeb(client_web_url, client_signtype, client_descript, client_sign,
+                                                    client_group, client_group_web_url, client_group_descript, client_group_sign)
                     else:
                         # new style, but without a group (basic frontend)
-                        client_web = glideFactoryLib.ClientWebNoGroup(client_web_url, client_signtype, client_descript,client_sign)
+                        client_web = glideFactoryLib.ClientWebNoGroup(client_web_url, client_signtype, client_descript, client_sign)
                 except:
                     # malformed classad, skip
                     logSupport.log.warning("Malformed classad for client %s, skipping" % work_key)
@@ -630,36 +630,37 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     logSupport.log.debug("Updating statistics")
     for sec_el in all_security_names:
         try:
-            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el)
-        except glideFactoryLib.condorExe.ExeError,e:
+            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el) #@UndefinedVariable
+        except glideFactoryLib.condorExe.ExeError, e:
+            # never fail for monitoring... just log
             logSupport.log.warning("get_RRD_data failed: %s" % e)
-            pass # never fail for monitoring... just log
         except:
+            # never fail for monitoring... just log
             logSupport.log.warning("get_RRD_data failed: error unknown")
-            pass # never fail for monitoring... just log
 
 
     return done_something
 
 ############################################################
 def write_stats():
-    global log_rrd_thread,qc_rrd_thread
+    global log_rrd_thread
+    global qc_rrd_thread
 
-    glideFactoryLib.factoryConfig.log_stats.computeDiff()
-    glideFactoryLib.factoryConfig.log_stats.write_file()
+    glideFactoryLib.factoryConfig.log_stats.computeDiff() #@UndefinedVariable
+    glideFactoryLib.factoryConfig.log_stats.write_file() #@UndefinedVariable
     logSupport.log.info("log_stats written")
 
-    glideFactoryLib.factoryConfig.qc_stats.finalizeClientMonitor()
-    glideFactoryLib.factoryConfig.qc_stats.write_file()
+    glideFactoryLib.factoryConfig.qc_stats.finalizeClientMonitor() #@UndefinedVariable
+    glideFactoryLib.factoryConfig.qc_stats.write_file() #@UndefinedVariable
     logSupport.log.info("qc_stats written")
 
-    glideFactoryLib.factoryConfig.rrd_stats.writeFiles()
+    glideFactoryLib.factoryConfig.rrd_stats.writeFiles() #@UndefinedVariable
     logSupport.log.info("rrd_stats written")
 
     return
 
 # added by C.W. Murphy for glideFactoryEntryDescript
-def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_dir):
+def write_descript(entry_name, entryDescript, entryAttributes, entryParams, monitor_dir):
     entry_data = {entry_name:{}}
     entry_data[entry_name]['descript'] = copy.deepcopy(entryDescript.data)
     entry_data[entry_name]['attributes'] = copy.deepcopy(entryAttributes.data)
@@ -673,7 +674,7 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
         xml_str += line
 
     try:
-        descript2XML.writeFile(monitor_dir + "/", xml_str, singleEntry = True)
+        descript2XML.writeFile(monitor_dir + "/", xml_str, singleEntry=True)
     except IOError:
         logSupport.log.debug("IOError in writeFile in descript2XML")
 
@@ -687,9 +688,9 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
     auth_methods = jobDescript.data['AuthMethods']
     pub_key_obj = glideinDescript.data['PubKeyObj']
 
-    glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor()
+    glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor() #@UndefinedVariable
 
-    current_qc_total = glideFactoryLib.factoryConfig.client_stats.get_total()
+    current_qc_total = glideFactoryLib.factoryConfig.client_stats.get_total #@UndefinedVariable()
 
     glidein_monitors = {}
     for w in current_qc_total.keys():
@@ -717,10 +718,10 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
                                                                              entry_name,
                                                                              jobAttributes.data.copy())
 
-    current_qc_data = glideFactoryLib.factoryConfig.client_stats.get_data()
+    current_qc_data = glideFactoryLib.factoryConfig.client_stats.get_data() #@UndefinedVariable
     for client_name in current_qc_data.keys():
         client_qc_data = current_qc_data[client_name]
-        if not glideFactoryLib.factoryConfig.client_internals.has_key(client_name):
+        if not glideFactoryLib.factoryConfig.client_internals.has_key(client_name): #@UndefinedVariable
             logSupport.log.warning("Client '%s' has stats, but no classad! Ignoring." % client_name)
             continue
 
@@ -821,7 +822,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
             logSupport.log.info("Iteration at %s" % time.ctime())
 
         try:
-            glideFactoryLib.factoryConfig.log_stats.reset()
+            glideFactoryLib.factoryConfig.log_stats.reset() #@UndefinedVariable
             # This one is used for stats advertized in the ClassAd
             glideFactoryLib.factoryConfig.client_stats = glideFactoryMonitoring.condorQStats()
             # These two are used to write the history to disk
@@ -829,7 +830,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
             glideFactoryLib.factoryConfig.client_internals = {}
 
             # actually do some work now that we have everything setup (hopefully)
-            done_something = iterate_one(count==0, in_downtime, glideinDescript, frontendDescript,
+            done_something = iterate_one(count == 0, in_downtime, glideinDescript, frontendDescript,
                                          jobDescript, jobAttributes, jobParams)
 
             logSupport.log.info("Writing stats")
@@ -851,7 +852,7 @@ def iterate(parent_pid, sleep_time, advertize_rate, glideinDescript, frontendDes
                 tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
                 logSupport.log.warning("Exception occurred: %s" % tb)
 
-        glideFactoryLib.cleaners.cleanup()
+        cleanupSupport.cleaners.cleanup()
 
         # Sleep now before next iteration
         logSupport.log.info("Sleep %is" % sleep_time)
@@ -936,40 +937,40 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     glideFactoryLib.factoryConfig.max_removes = int(jobDescript.data['MaxRemoveRate'])
     glideFactoryLib.factoryConfig.remove_sleep = float(jobDescript.data['RemoveSleep'])
     glideFactoryLib.factoryConfig.max_releases = int(jobDescript.data['MaxReleaseRate'])
-    glideFactoryLib.factoryConfig.release_sleep  = float(jobDescript.data['ReleaseSleep'])
+    glideFactoryLib.factoryConfig.release_sleep = float(jobDescript.data['ReleaseSleep'])
 
     logSupport.log.debug("Adding directory cleaners")
     cleaner = cleanupSupport.PrivsepDirCleanupWSpace(None, logSupport.log_dir,
                                       "(condor_activity_.*\.log\..*\.ftstpk)",
-                                      int(glideinDescript.data['CondorLogRetentionMaxDays']*24*3600),
-                                      int(glideinDescript.data['CondorLogRetentionMinDays']*24*3600),
-                                      long(glideinDescript.data['CondorLogRetentionMaxMBs']*(1024.0*1024.0)))
-    glideFactoryLib.cleaners.add_cleaner(cleaner)
+                                      int(glideinDescript.data['CondorLogRetentionMaxDays'] * 24 * 3600),
+                                      int(glideinDescript.data['CondorLogRetentionMinDays'] * 24 * 3600),
+                                      long(glideinDescript.data['CondorLogRetentionMaxMBs'] * (1024.0 * 1024.0)))
+    cleanupSupport.cleaners.add_cleaner(cleaner)
 
     # add cleaners for the user log directories
     for username in frontendDescript.get_all_usernames():
         user_log_dir = glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, username)
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(username, user_log_dir,
                                           "(job\..*\.out)|(job\..*\.err)",
-                                          int(glideinDescript.data['JobLogRetentionMaxDays']*24*3600),
-                                          int(glideinDescript.data['JobLogRetentionMinDays']*24*3600),
-                                          long(glideinDescript.data['JobLogRetentionMaxMBs']*(1024.0*1024.0)))
-        glideFactoryLib.cleaners.add_cleaner(cleaner)
+                                          int(glideinDescript.data['JobLogRetentionMaxDays'] * 24 * 3600),
+                                          int(glideinDescript.data['JobLogRetentionMinDays'] * 24 * 3600),
+                                          long(glideinDescript.data['JobLogRetentionMaxMBs'] * (1024.0 * 1024.0)))
+        cleanupSupport.cleaners.add_cleaner(cleaner)
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(username, user_log_dir,
                                           "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
-                                          int(glideinDescript.data['CondorLogRetentionMaxDays']*24*3600),
-                                          int(glideinDescript.data['CondorLogRetentionMinDays']*24*3600),
-                                          long(glideinDescript.data['CondorLogRetentionMaxMBs']*(1024.0*1024.0)))
-        glideFactoryLib.cleaners.add_cleaner(cleaner)
+                                          int(glideinDescript.data['CondorLogRetentionMaxDays'] * 24 * 3600),
+                                          int(glideinDescript.data['CondorLogRetentionMinDays'] * 24 * 3600),
+                                          long(glideinDescript.data['CondorLogRetentionMaxMBs'] * (1024.0 * 1024.0)))
+        cleanupSupport.cleaners.add_cleaner(cleaner)
 
     logSupport.log.debug("Set advertiser parameters")
-    glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
-    glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))
+    glideFactoryInterface.factoryConfig.advertise_use_tcp = (glideinDescript.data['AdvertiseWithTCP'] in ('True', '1'))
+    glideFactoryInterface.factoryConfig.advertise_use_multi = (glideinDescript.data['AdvertiseWithMultiple'] in ('True', '1'))
 
     logSupport.log.debug("Get glideinWMS version")
     try:
         dir = os.path.dirname(os.path.dirname(sys.argv[0]))
-        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir,'etc/checksum.factory')).version()
+        glideFactoryInterface.factoryConfig.glideinwms_version = glideinWMSVersion.GlideinWMSDistro(dir, os.path.join(dir, 'etc/checksum.factory')).version()
     except:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         logSupport.log.warning("Exception occured while trying to retrieve the glideinwms version. See debug log for more details.")
@@ -1023,12 +1024,12 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
 #
 ############################################################
 
-def termsignal(signr,frame):
-    raise KeyboardInterrupt, "Received signal %s"%signr
+def termsignal(signr, frame):
+    raise KeyboardInterrupt, "Received signal %s" % signr
 
 if __name__ == '__main__':
-    signal.signal(signal.SIGTERM,termsignal)
-    signal.signal(signal.SIGQUIT,termsignal)
-    main(sys.argv[1],int(sys.argv[2]),int(sys.argv[3]),sys.argv[4],sys.argv[5])
+    signal.signal(signal.SIGTERM, termsignal)
+    signal.signal(signal.SIGQUIT, termsignal)
+    main(sys.argv[1], int(sys.argv[2]), int(sys.argv[3]), sys.argv[4], sys.argv[5])
 
 
