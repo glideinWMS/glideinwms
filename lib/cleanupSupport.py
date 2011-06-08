@@ -19,6 +19,8 @@ class Cleanup:
         for cleaner in self.cleanup_objects:
             cleaner.cleanup()
 
+cleaners = Cleanup()
+
 # this class is used for cleanup
 class DirCleanup:
     def __init__(self, dirname, fname_expression, # regular expression, used with re.match
@@ -79,7 +81,7 @@ class DirCleanup:
 # this class is used for cleanup
 class DirCleanupWSpace(DirCleanup):
     def __init__(self, dirname, fname_expression, # regular expression, used with re.match
-                 maxlife,          # max lifetime after which it is deleted
+                 maxlife, # max lifetime after which it is deleted
                  minlife, maxspace, # max space allowed for the sum of files, unless they are too young
                  should_log=True, should_log_warnings=True):
         DirCleanup.__init__(self, dirname, fname_expression, maxlife, should_log, should_log_warnings)
@@ -128,11 +130,11 @@ class DirCleanupWSpace(DirCleanup):
 
 class PrivsepDirCleanupWSpace(DirCleanupWSpace):
     def __init__(self,
-                 username,         # if None, no privsep
+                 username, # if None, no privsep
                  dirname,
                  fname_expression, # regular expression, used with re.match
-                 maxlife,          # max lifetime after which it is deleted
-                 minlife,maxspace, # max space allowed for the sum of files, unless they are too young
+                 maxlife, # max lifetime after which it is deleted
+                 minlife, maxspace, # max space allowed for the sum of files, unless they are too young
                  should_log=True, should_log_warnings=True):
         DirCleanupWSpace.__init__(self, dirname, fname_expression,
                                   maxlife, minlife, maxspace,
