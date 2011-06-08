@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitoring.py,v 1.8.8.4.4.1 2011/04/12 01:49:02 sfiligoi Exp $
+#   $Id: glideinFrontendMonitoring.py,v 1.8.8.4.4.2 2011/06/08 22:29:07 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -294,7 +294,7 @@ class groupStats:
 
         data = self.get_data()
         for fact in data.keys():
-            self.write_one_rrd("factory_%s"%sanitize(fact),data[fact])
+            self.write_one_rrd("factory_%s"%sanitize(fact),data[fact],1)
 
         self.files_updated=self.updated        
         return
@@ -302,19 +302,24 @@ class groupStats:
     ###############################
     # PRIVATE - Used by write_file
     # Write one RRD
-    def write_one_rrd(self,name,data):
+    def write_one_rrd(self,name,data,fact=0):
         global monitoringConfig
 
         val_dict={}
-        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+        if fact==0:
+            type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                 'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+        else:
+            type_strings={'MatchedJobs':'MatchJob',
                       'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 
         #init, so that all get created properly
         for tp in self.attributes.keys():
-            tp_str=type_strings[tp]
-            attributes_tp=self.attributes[tp]
-            for a in attributes_tp:
-                val_dict["%s%s"%(tp_str,a)]=None
+            if tp in type_strings.keys():
+                tp_str=type_strings[tp]
+                attributes_tp=self.attributes[tp]
+                for a in attributes_tp:
+                    val_dict["%s%s"%(tp_str,a)]=None
             
         
         for tp in data:
@@ -336,7 +341,7 @@ class groupStats:
         monitoringConfig.establish_dir("%s"%name)
         monitoringConfig.write_rrd_multi("%s/Status_Attributes"%name,
                                          "GAUGE",self.updated,val_dict)
-
+   
 ########################################################################
     
 class factoryStats:
