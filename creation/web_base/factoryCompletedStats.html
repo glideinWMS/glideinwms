@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryCompletedStats.html,v 1.10.8.5.18.11 2011/06/08 21:54:42 amccrea Exp $
+  $Id: factoryCompletedStats.html,v 1.10.8.5.18.12 2011/06/09 18:07:47 amccrea Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -98,21 +98,6 @@ Description:
          <button onClick="showLink()" style="float:right">Link</button>
        </td>
      </tr>
-     <tr>
-       <th>Timezone</th>
-       <td valign="middle">
-         <select id="timezone">
-          <option value="3">+3 Moscow</option>
-          <option value="2">+2 East Eur</option>
-          <option value="1">+1 West Eur</option>
-          <option value="0" selected=true> 0 GMT</option>
-          <option value="-5">-5 East Coast</option>
-          <option value="-6">-6 Central</option>
-          <option value="-7">-7 Mountain</option>
-          <option value="-8">-8 Pacific</option>
-         </select>
-       </td>
-     </tr>
     </table>
     <hr>
     <table id="infotable" border=1>
@@ -143,6 +128,7 @@ Description:
       var local_window_max=0;             
       var coming_from_link = true;
       var coming_from_defaults = false; 
+      var timezone_num=0;
 
       var a =  document.getElementById("gtypes"); 
       var infoGroupOptions = new Array("Lasted", "JobsNr", "JobsLasted", "validation", "idle", "nosuccess", "badput","aggavg","aggwsum","aggavgf","affwsumf","fail");
@@ -524,9 +510,6 @@ Description:
 ////// from a URL link; in that case, use the link-specified elements and window selections. //
 ///////////////////////////////////////////////////////////////////////////////////////////////
 
-        var timezone_selection = document.getElementById("timezone");
-        timezone_num = timezone_selection.options[timezone_selection.selectedIndex].value;
-
         graph_info = getGraphInfo();
 
         //preserve window selection
@@ -679,7 +662,6 @@ Description:
  
           rrd_data1 = new RRDFilterOp(rrd_data1,op_list); //DS Filters (percentages, etc)
           rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
-          rrd_data1 = new RRAFilterShift(rrd_data1, timezone_num, [0,1,2,3,4,5]); //Used for timezone
 
           //Choose number of rows for Graph Type
           var x = 1;
@@ -689,7 +671,7 @@ Description:
           else {x=12;}
           }
 
-       var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{num_cb_rows:x, use_checked_DSs: true, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons:true});
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, num_cb_rows:x, use_checked_DSs: true, checked_DSs: checklist,use_rra:true,rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons:true});
 
         // Finally, update the files loaded so far
         files_loaded = files_loaded + 1;
@@ -930,15 +912,7 @@ Description:
                         else if(i==4) {specified_rra = paramSpecArry[i];}
                         else if(i==5) {local_window_min = paramSpecArry[i];}
                         else if(i==6) {local_window_max = paramSpecArry[i];}
-                        else if(i==7) {
-                           local_timezone = paramSpecArry[i];
-                           timezone_sel = document.getElementById("timezone");
-                           var t_idx=3;
-                           for(var j in timezone_sel.options) {
-                              if(local_timezone == timezone_sel.options[j].value) {t_idx=j;}
-                           }
-                           timezone_sel.selectedIndex = t_idx; 
-                        }
+                        else if(i==7) {timezone_num = paramSpecArry[i];}
 		}
 		if(urlValid)
 		{
@@ -957,15 +931,14 @@ Description:
 		var specifiedEntry;
 		var specifiedFrontend;
 		var specifiedGOption; 
-		var specified_win_max; 
-		var specified_win_min; 
 
                 //Graph data from rrdFlot.js
                 graph_info = getGraphInfo();
                 var local_checked_DSs_input= graph_info["dss"];
                 specified_rra = graph_info["rra"];
-                specified_win_min = graph_info["window_min"];
-                specified_win_max = graph_info["window_max"];
+                var specified_timezone = graph_info["timezone"];
+                var specified_win_min = graph_info["window_min"];
+                var specified_win_max = graph_info["window_max"];
                 
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
@@ -1001,10 +974,7 @@ Description:
                 for(var i=0;i<local_checked_DSs_input.length;i++) {
                    elem_string += local_checked_DSs_input[i]+",";
                 }
-                var timezone_selection = document.getElementById("timezone");
-                timezone_num = timezone_selection.options[timezone_selection.selectedIndex].value;
-
-                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+timezone_num; 
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
 
 		document.location.href = constructed; 
 	}  
