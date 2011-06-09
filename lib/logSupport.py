@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: logSupport.py,v 1.21.10.2.4.4 2011/06/06 16:20:44 tiradani Exp $
+#   $Id: logSupport.py,v 1.21.10.2.4.5 2011/06/09 16:04:09 tiradani Exp $
 #
 # Description: log support module
 #
@@ -11,39 +11,36 @@
 #  Igor Sfiligoi (Oct 25th 2006)
 #
 import os
-import os.path
-import stat
 import sys
 import timeConversion
 import time
-import re
 import logging
 from logging import config
 from logging.handlers import TimedRotatingFileHandler
 
 # this class can be used instead of a file for writing
 class DayLogFile:
-    def __init__(self,base_fname,extension="log"):
-        self.base_fname=base_fname
-        self.extension=extension
+    def __init__(self, base_fname, extension="log"):
+        self.base_fname = base_fname
+        self.extension = extension
         return
 
     def close(self):
         return # nothing to do, just a placeholder
 
-    def write(self,msg):
-        now=time.time()
-        fname=self.get_fname(now)
+    def write(self, msg):
+        now = time.time()
+        fname = self.get_fname(now)
         try:
-            fd=open(fname,"a")
+            fd = open(fname, "a")
         except:
-            self.write_on_exception("Cannot open %s"%fname,msg)
+            self.write_on_exception("Cannot open %s" % fname, msg)
             raise
         try:
             try:
-                fd.write(self.format_msg(now,msg)+"\n")
+                fd.write(self.format_msg(now, msg) + "\n")
             except:
-                self.write_on_exception("Cannot open %s"%fname,msg)
+                self.write_on_exception("Cannot open %s" % fname, msg)
                 raise
         finally:
             fd.close()
@@ -54,17 +51,17 @@ class DayLogFile:
     # these can be customized
     ##########################
 
-    def write_on_exception(self,exception_msg,msg):
-        print "%s: %s" % (exception_msg,msg)
+    def write_on_exception(self, exception_msg, msg):
+        print "%s: %s" % (exception_msg, msg)
         return
 
-    def get_fname(self,timestamp):
-        return "%s.%s.%s"%(self.base_fname,time.strftime("%Y%m%d",time.localtime(timestamp)),self.extension)
+    def get_fname(self, timestamp):
+        return "%s.%s.%s" % (self.base_fname, time.strftime("%Y%m%d", time.localtime(timestamp)), self.extension)
 
-    def format_msg(self,timestamp,msg):
-        return "[%s %s] %s"%(self.format_time(timestamp),os.getpid(),msg)
+    def format_msg(self, timestamp, msg):
+        return "[%s %s] %s" % (self.format_time(timestamp), os.getpid(), msg)
 
-    def format_time(self,timestamp):
+    def format_time(self, timestamp):
         return timeConversion.getISO8601_Local(timestamp)
 
 # Adding in the capability to use the built in Python logging Module
@@ -113,7 +110,7 @@ class GlideinHandler(TimedRotatingFileHandler):
         @param backupCount: Number of backups to keep
 
         """
-        when='D'
+        when = 'D'
         TimedRotatingFileHandler.__init__(self, filename, when, interval, backupCount, encoding=None)
         self.maxBytes = maxBytes * 1024.0 * 1024.0
 
