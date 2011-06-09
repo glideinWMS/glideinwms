@@ -1,5 +1,4 @@
 import os
-import sys
 import tarfile
 import cStringIO
 
@@ -31,18 +30,41 @@ class GlideinTar:
         self.files = []
 
     def add_file(self, filename, arc_dirname):
+        """
+        Add a filepath to the files list
+        
+        @type filename: string
+        @param filename: The file path to the file that will eventually be 
+        written to the tarball.
+        @type arc_dirname: string
+        @param arc_dirname: This is the directory that the file will show up 
+        under in the tarball
+        """
         if os.path.exists(filename):
             self.files.append((filename, arc_dirname))
         else:
             raise FileDoesNotExist(filename)
 
     def add_string(self, name, string_data):
+        """
+        Add a string to the string dictionary.
+        
+        @type name: string
+        @param name: A string specifying the "filename" within the tarball that 
+        the string_data will be written to.
+        @type string_data: string
+        @param string_data: The contents that will be written to a "file" within
+        the tarball.
+        """
         self.strings[name] = string_data
 
     def create_tar(self, tf):
         """Takes the provided tar file object and adds all the specified data
         to it.  The strings dictionary is parsed such that the key name is the
         file name and the value is the file data in the tar file.
+        
+        @type tf: Tar File
+        @param tf: The Tar File Object that will be written to
         """
         for file in self.files:
             file, dirname = file
@@ -92,7 +114,7 @@ class GlideinTar:
         from cStringIO import StringIO
         tar_mode = "w:%s" % compression
         file_out = StringIO()
-        tf = tarfile.open(fileobj=file_out, mode="w:gz")
+        tf = tarfile.open(fileobj=file_out, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
         return file_out.getvalue()
