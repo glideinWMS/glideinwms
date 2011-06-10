@@ -3,7 +3,7 @@
  *   glideinWMS
  *
  * File Version: 
- *   $Id: factory_support.js,v 1.5 2011/02/10 21:35:30 parag Exp $
+ *   $Id: factory_support.js,v 1.6 2011/06/10 19:34:18 sfiligoi Exp $
  *
  * Support javascript module for the gfactroy monitoring
  * Part of the gldieinWMS package
@@ -52,6 +52,29 @@ function loadMonitorConfig() {
   } catch (err) {
     return loadFactoryQStats;
   }
+}
+
+function getFactoryFrontends(factoryQStats){
+  var factoryQStats = loadFactoryQStats();
+  groups=new Array();
+  for (var elc=0; elc<factoryQStats.childNodes.length; elc++) {
+    var el=factoryQStats.childNodes[elc];
+    if (el.nodeName=="entries") {
+      for (var etc=0; etc<el.childNodes.length; etc++) {
+	var entry=el.childNodes[etc];
+	if (entry.nodeName=="entry") {
+	  var entry_name=entry.attributes.getNamedItem("name");
+          groups[entry_name.value]=new Array();
+          for (var a=0; a<entry.childNodes.length;a++) {
+	     var el2=entry.childNodes[a];
+             if(el2.nodeName=="frontends") {
+               for (var b=0; b<el2.childNodes.length;b++) {
+                 var el3=el2.childNodes[b];
+                 if(el3.nodeName=="frontend") { 
+                   var frontend_name=el3.attributes[0].nodeValue.toString();
+                   groups[entry_name.value].push(frontend_name);
+  }}}}}}}}
+  return groups;
 }
 
 // Extract group names from each entry XML object
