@@ -2,6 +2,9 @@
 
 import os
 import sys
+import tempfile
+import random
+import string
 import unittest
 
 # We assume that this module is in the unittest directory
@@ -122,6 +125,19 @@ class FakeLogger:
         @see: debug
         """
         print >> sys.stderr, str(msg) % args
+
+def create_temp_file(file_suffix='', file_prefix='tmp', file_dir='/tmp',
+                     text_access=True, write_path_to_file=True):
+    fd, path = tempfile.mkstemp(suffix=file_suffix, prefix=file_prefix,
+                                dir=file_dir, text=text_access)
+    if write_path_to_file:
+        os.write(fd, path)
+    os.close(fd)
+    return path
+
+def create_random_string(length=8):
+    char_set = string.ascii_uppercase + string.digits
+    return ''.join(random.choice(char_set) for x in range(length))
 
 if __name__ == "__main__":
     runAllTests()
