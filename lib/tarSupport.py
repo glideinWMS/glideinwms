@@ -82,7 +82,7 @@ class GlideinTar:
             ti.type = tarfile.REGTYPE
             tf.addfile(ti, fd_str)
 
-    def create_tar_file(self, fd, compression="gz"):
+    def create_tar_file(self, archive_full_path, compression="gz"):
         """Creates a tarball and writes it out to the file specified in fd
 
         @Note: we don't have to worry about ReadError, since we don't allow
@@ -95,7 +95,7 @@ class GlideinTar:
             invalid compression type has been passed in
         """
         tar_mode = "w:%s" % compression
-        tf = tarfile.open(fileobj=fd, mode=tar_mode)
+        tf = tarfile.open(archive_full_path, mode=tar_mode)
         self.create_tar(tf)
         tf.close()
 
