@@ -7,6 +7,8 @@ vNext	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
 	Bug fix frontend: Do not double count glideins when using multiple groups.
 	Bug fix frontend: Respect per-entry running limits.
 	Bug fix factory: The factory was not properly checking the security classes and setting downtimes.
+	Major improvements in the factory monitoring.
+	  Now requires javascriptRRD 0.6.0+.
 
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
