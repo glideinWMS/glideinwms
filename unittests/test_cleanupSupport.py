@@ -9,6 +9,7 @@ import unittest
 # path for us.
 from unittest_utils import runTest
 from unittest_utils import FakeLogger
+from unittest_utils import create_temp_file
 
 import logSupport
 import cleanupSupport
@@ -42,7 +43,7 @@ class TestCleanupSupport(unittest.TestCase):
         """
         shutil.rmtree(self.cleanup_dir)
 
-    def create_files(self, number_of_files, file_suffix=""):
+    def create_files(self, number_of_files, suffix=""):
         """
         Create temporary files using the tempfile module.  The absolute path toThe file extension to place on the temporary file
         the file is written to the file for content.
@@ -54,10 +55,7 @@ class TestCleanupSupport(unittest.TestCase):
         """
         files_created = 0
         while not (files_created == number_of_files):
-            fd, path = tempfile.mkstemp(suffix=file_suffix, prefix='tmp',
-                                        dir=self.cleanup_dir, text=True)
-            os.write(fd, path)
-            os.close(fd)
+            path = create_temp_file(file_suffix=suffix, file_dir=self.cleanup_dir)
             files_created += 1
 
     def create_cleanup_tempfiles(self):
