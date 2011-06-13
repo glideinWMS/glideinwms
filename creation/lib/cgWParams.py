@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.68 2011/06/03 20:10:47 parag Exp $
+#   $Id: cgWParams.py,v 1.69 2011/06/13 20:47:03 klarson1 Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -93,6 +93,8 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults['proxy_url']=(None,'proxy_url',"Squid cache to use",None)
         self.entry_defaults['verbosity']=('std','std|nodebug|fast',"Verbosity level and timeout setting",None)
         self.entry_defaults["enabled"]=("True","Bool","Is this entry enabled?",None)
+        self.entry_defaults["auth_method"]=("grid_proxy","string","What authentication method does this entry support?",None)
+        self.entry_defaults["trust_domain"]=("OSG","string","What trust domain does this entry belong to?",None)
         self.entry_defaults["config"]=entry_config_defaults
         self.entry_defaults["attrs"]=sub_defaults['attrs']
         self.entry_defaults["files"]=sub_defaults['files']

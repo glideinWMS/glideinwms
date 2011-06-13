@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.131 2011/06/03 20:10:47 parag Exp $
+#   $Id: cgWParamDict.py,v 1.132 2011/06/13 20:47:03 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -306,6 +306,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
+            self.dicts[dtype].add("GlideinSupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
+            self.dicts[dtype].add("GlideinTrustDomain",sub_params.trust_domain,allow_overwrite=True)
 
         # populate infosys
         for infosys_ref in sub_params.infosys_refs:
@@ -604,6 +606,8 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('Gatekeeper',sub_params.gatekeeper)
     if sub_params.rsl!=None:
         job_descript_dict.add('GlobusRSL',sub_params.rsl)
+    job_descript_dict.add('AuthMethod', sub_params.auth_method)
+    job_descript_dict.add('TrustDomain', sub_params.trust_domain)
     job_descript_dict.add('Schedd',sub_params.schedd_name)
     job_descript_dict.add('StartupDir',sub_params.work_dir)
     if sub_params.proxy_url!=None:
