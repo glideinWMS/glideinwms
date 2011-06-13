@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: ldapMonitor.py,v 1.2.12.2 2011/05/01 17:30:52 sfiligoi Exp $
+#   $Id: ldapMonitor.py,v 1.2.12.3 2011/06/13 16:39:22 klarson1 Exp $
 #
 # Description:
 #   This module implements classes to query the ldap server
@@ -14,6 +14,7 @@
 #
 
 import ldap
+import re
 
 class LDAPQuery:
     def __init__(self,
@@ -178,5 +179,126 @@ class SearchBDII:
                 print "\n"
                 print self.bdiiData[key]
                 print "\n\n"
-               
+
+class BdiiLdap:
+   def __init__(self, bdii="uscmsbd2.fnal.gov"):
+       self.bdii = bdii
+       self.DEBUG = 0
+       self.map_source = {'ceList': [], 'bdii': ''}
+       self.ce_to_cluster_map = {}
+       self.cluster_to_site_map = {}
+
+   def runldapquery(self, filter, attribute):
+       bdii = self.bdii
+       if self.DEBUG:
+           print "runldapquery ["+bdii+"]", filter, attribute
+       attribute = attribute.split(' ')
+       filter = filter.strip()
+       filter = filter.lstrip("'").rstrip("'")
+
+       bdiiuri = 'ldap://' + bdii + ':2170'
+       l = ldap.initialize(bdiiuri)
+
+       l.simple_bind_s('', '')
+
+       base = "o=grid"
+#        base = "mds-vo-name=USCMS-FNAL-WC1,mds-vo-name=local,o=grid"
+       scope = ldap.SCOPE_SUBTREE
+       timeout = 0
+       result_set = []
+       filter = filter.strip("'")
+
+       try:
+           result_id = l.search(base, scope, filter, attribute)
+           while 1:
+               result_type, result_data = l.result(result_id, timeout)
+               if (result_data == []):
+                   break
+               else:
+                   if result_type == ldap.RES_SEARCH_ENTRY:
+                       result_set.append(result_data)
+
+       except ldap.LDAPError, error_message:
+           print error_message
+           raise
+
+       return result_set
+
+   def clearMaps(self):
+       self.map_source['ceList'] = []
+       self.map_source['bdii'] = ''
+       self.ce_to_cluster_map.clear()
+       self.cluster_to_site_map.clear()
+
+   def generateMaps(self, ceList=[]):
+       """
+       Generate maps of CE to Cluster and Cluster to Site as 
+       ce_to_cluster_map, cluster_to_site_map
+
+       ceList: list of GlueCEUniqueIDs
+       bdii: BDII instance to query
+
+       If ceList is an empty list, generate a map for all CEs.
+       """
+
+       if self.bdii == self.map_source['bdii']: # check for cached maps
+           if (not ceList and self.map_source['ceList'] == 'ALL') or \
+              (ceList and self.map_source['ceList'] == ceList):
+               return
+
+       self.clearMaps()
+
+       if ceList:
+           query = self.buildOrQuery('GlueCEUniqueID', ceList)
+       else:
+           query = '(GlueCEUniqueID=*)'
+
+       pout = self.runldapquery(query, 'GlueCEUniqueID GlueForeignKey')
+
+       r = re.compile('^GlueClusterUniqueID\s*=\s*(.*)')
+       for x in pout:
+           host = x[0][1]['GlueCEUniqueID'][0]
+           clusterid = x[0][1]['GlueForeignKey'][0]
+           m = r.match(clusterid)
+           if m: self.ce_to_cluster_map[host] = m.groups()[0]
+
+       query = "(&(objectClass=GlueCluster)"
+       if ceList:
+           query += self.buildOrQuery('GlueClusterUniqueID', self.ce_to_cluster_map.values())
+       else:
+           query += '(GlueClusterUniqueID=*)'
+       query += ")"
+
+       pout = self.runldapquery(query, 'GlueClusterUniqueID GlueForeignKey')
+       r = re.compile('^GlueSiteUniqueID=(.*)')
+       for x in pout:
+           cluster = x[0][1]['GlueClusterUniqueID'][0]
+           foreign_keys = x[0][1]['GlueForeignKey']
+           for foreign_key in foreign_keys:
+               m = r.match(foreign_key)
+               if m:
+                   site = m.groups()[0]
+                   self.cluster_to_site_map[cluster] = site
+
+       # cache the list sources
+       if ceList:
+           self.map_source['ceList'] = ceList
+       else:
+           self.map_source['ceList'] = 'ALL'
+       self.map_source['bdii'] = self.bdii
+
+       if (self.DEBUG): print 40*'*', 'exit generateMaps', 40*'*'
+
+   def buildOrQuery(self, gluekey, list):
+       """
+       Returns a nugget of LDAP requesting the OR of all items
+       of the list equal to the gluekey
+       """
+
+       query = "(|"
+       for x in list:
+           query += "(%s=%s)" % (gluekey, x)
+       query += ")"
+       return query       
+             
         
