@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.4 2011/06/08 21:42:41 tiradani Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.5 2011/06/14 18:51:36 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -109,6 +109,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         factory_identity = factory_pool[1]
         my_identity_at_factory_pool = factory_pool[2]
         try:
+            factory_glidein_dict=glideinFrontendInterface.findGlobals(factory_pool_node,None,factory_constraint)
             factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint, x509_proxy_plugin != None, get_only_matching=True)
         except RuntimeError, e:
             if factory_pool_node != None:
@@ -217,22 +218,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             # elementDescript.merged_data['ProxyRefreshScripts']
             # To be implemented
 
-            try:
-                proxy_fd = open(proxy_fname, 'r')
-                try:
-                    proxy_data = proxy_fd.read()
-                finally:
-                    proxy_fd.close()
-                if proxy_security_classes.has_key(proxy_fname):
-                    proxy_security_class = proxy_security_classes[proxy_fname]
-                else:
-                    proxy_security_class = proxy_idx
-                x509_proxies_data.append((proxy_idx, proxy_data, proxy_security_class))
-            except:
-                # do nothing else, just warn
-                logSupport.log.warning("Could not read proxy file '%s'" % proxy_fname)
+            x509_proxies_data.append(glideinFrontendInterface.Credential(proxy_idx,proxy_fname,elementDescript))
+            logSupport.log.info("Adding credential '%s@%s'"%(proxy_idx,proxy_fname))
 
-        if len(x509_proxies_data) == 0:
+        if len(x509_proxies_data)==0:
             logSupport.log.warning("All proxies failed, not advertizing")
             return
 
@@ -275,8 +264,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     total_running = condorq_dict_types['Running']['total']
     logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, max_running))
 
-
-    advertizer = glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
+    advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
     log_factory_header()
     total_up_stats_arr = init_factory_stats_arr()
     total_down_stats_arr = init_factory_stats_arr()
@@ -295,9 +283,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
             glidein_in_downtime = (glidein_el['attrs']['GLIDEIN_In_Downtime'] == 'True')
 
-        count_jobs = {}     # straight match
-        prop_jobs = {}      # proportional subset for this entry
-        hereonly_jobs = {}  # can only run on this site
+        count_jobs={}     # straight match
+        prop_jobs={}      # proportional subset for this entry
+        hereonly_jobs={}  # can only run on this site
+
         for dt in condorq_dict_types.keys():
             count_jobs[dt] = condorq_dict_types[dt]['count'][glideid]
             prop_jobs[dt] = condorq_dict_types[dt]['prop'][glideid]
@@ -464,11 +453,21 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 # if no proxies, encryption is not required
                 key_obj = None
 
+        if glidein_el['attrs'].has_key('GlideinTrustDomain'):
+            trust_domain=glidein_el['attrs']['GlideinTrustDomain']
+        else:
+            trust_domain="Grid"
+        if glidein_el['attrs'].has_key('GlideinSupportedAuthenticationMethods'):
+            auth_method=glidein_el['attrs']['GlideinSupportedAuthenticationMethods']
+        else:
+            auth_method="grid_proxy"
+
         advertizer.add(factory_pool_node,
                        request_name, request_name,
                        glidein_min_idle, glidein_max_run, glidein_params, glidein_monitors,
                        remove_excess_str=remove_excess_str,
-                       key_obj=key_obj, glidein_params_to_encrypt=None, security_name=security_name)
+                       key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name,
+                       trust_domain=trust_domain,auth_method=auth_method)
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
     # Print the totals
@@ -487,6 +486,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     log_and_sum_factory_line('Unmatched', True, this_stats_arr, total_down_stats_arr)
 
     try:
+        logSupport.log.info("Advertizing global requests")
+        advertizer.do_global_advertize()
         logSupport.log.info("Advertizing %i requests" % advertizer.get_queue_len())
         advertizer.do_advertize()
         logSupport.log.info("Done advertizing")
