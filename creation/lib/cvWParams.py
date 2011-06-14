@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.6 2010/11/05 17:08:14 parag Exp $
+#   $Id: cvWParams.py,v 1.40.2.6.2.1 2011/06/14 18:43:25 dstrain Exp $
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -96,13 +96,16 @@ class VOFrontendParams(cWParams.CommonParams):
 
         proxy_defaults=cWParams.commentedOrderedDict()
         proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_count)",None)
+        proxy_defaults["keyabsfname"]=(None,"fname","for key files, file name of the key pair",None)
+        proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,x509_cert_pair,key_pair,username_password",None)
+        proxy_defaults["trust_domain"]=("Grid","grid_type","Trust Domain",None)
         proxy_defaults["pool_count"]=(None,"count","If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count",None)
         proxy_defaults["proxy_refresh_script"]=(None,"fname","If not None, the script will be called every time before using a proxy",None)
         proxy_defaults["security_class"]=(None,"id","Proxies in the same security class can potentially access each other (Default: proxy_nr)",None)
 
         security_defaults=cWParams.commentedOrderedDict()
         security_defaults["proxy_selection_plugin"]=(None,"proxy_name","Which proxy selection plugin should I use (ProxyAll if None)",None)
-        security_defaults["proxies"]=([],'List of proxies',"Each proxy element contains",proxy_defaults)
+        security_defaults["credentials"]=([],'List of credentials',"Each proxy element contains",proxy_defaults)
         security_defaults["security_name"]=(None,"frontend_name","What name will we advertize for security purposes?",None)
         
         self.group_defaults=cWParams.commentedOrderedDict()
@@ -226,15 +229,15 @@ class VOFrontendParams(cWParams.CommonParams):
             self.data['security']['security_name']=self.frontend_name
 
         ####################
-        for i in range(len(self.security.proxies)):
-            pel=self.subparams.data['security']['proxies'][i]
+        for i in range(len(self.security.credentials)):
+            pel=self.subparams.data['security']['credentials'][i]
             if pel['security_class']==None:
                 # define an explicit security, so the admin is aware of it
                 pel['security_class']="frontend"
         group_names=self.groups.keys()
         for group_name in group_names:
-            for i in range(len(self.groups[group_name].security.proxies)):
-                pel=self.subparams.data['groups'][group_name]['security']['proxies'][i]
+            for i in range(len(self.groups[group_name].security.credentials)):
+                pel=self.subparams.data['groups'][group_name]['security']['credentials'][i]
                 if pel['security_class']==None:
                     # define an explicit security, so the admin is aware of it
                     pel['security_class']="group_%s"%group_name
@@ -268,7 +271,7 @@ class VOFrontendParams(cWParams.CommonParams):
         return {'lists_params':{'files':{'el_name':'file','subtypes_params':{'class':{}}},
                                 'collectors':{'el_name':'collector','subtypes_params':{'class':{}}},
                                 'schedds':{'el_name':'schedd','subtypes_params':{'class':{}}},
-                                'proxies':{'el_name':'proxy','subtypes_params':{'class':{}}}},
+                                'credentials':{'el_name':'credential','subtypes_params':{'class':{}}}},
                 'dicts_params':{'attrs':{'el_name':'attr','subtypes_params':{'class':{}}},
                                 'groups':{'el_name':'group','subtypes_params':{'class':{}}},
                                 'match_attrs':{'el_name':'match_attr','subtypes_params':{'class':{}}}}}
