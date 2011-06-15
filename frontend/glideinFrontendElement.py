@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.26 2011/06/03 19:10:31 burt Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.27 2011/06/15 19:13:35 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -438,6 +438,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     glideid_list.sort() # sort for the sake of monitoring
 
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
+    resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser(multi_support=glideinFrontendInterface.frontendConfig.advertise_use_multi)
+    
     log_factory_header()
     total_up_stats_arr=init_factory_stats_arr()
     total_down_stats_arr=init_factory_stats_arr()
@@ -633,6 +635,21 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                        glidein_min_idle,glidein_max_run,glidein_params,glidein_monitors,
                        remove_excess_str=remove_excess_str,
                        key_obj=key_obj,glidein_params_to_encrypt=None,security_name=security_name)
+
+        
+        # Create the resource classad and populate the required information
+        resource_classad = glideinFrontendInterface.ResourceClassad(request_name, client_name)
+        resource_classad.setInDownTime(glidein_in_downtime)
+        resource_classad.setEntryInfo(glidein_el['attrs'])
+        resource_classad.setGlideFactoryMonitorInfo(glidein_el['monitor'])
+        try:
+            resource_classad.setGlideClientMonitorInfo(this_stats_arr)
+        except RuntimeError, e:
+            glideinFrontendLib.log_files.logWarning("Error populating GlideClientMonitor info in the resource classad. See debug log for more details.")
+            glideinFrontendLib.log_files.logDebug("Populating GlideClientMonitor info in resource classad failed: %s"%e)
+                    
+        resource_advertiser.addClassad(resource_classad.adParams['Name'], resource_classad)
+
     # end for glideid in condorq_dict_types['Idle']['count'].keys()
 
     # Print the totals
@@ -650,6 +667,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                     0,0)   # requested... none, since not matching
     log_and_sum_factory_line('Unmatched',True,this_stats_arr,total_down_stats_arr)
         
+    # Advertise glideclient classads
     try:
         glideinFrontendLib.log_files.logActivity("Advertizing %i requests"%advertizer.get_queue_len())
         advertizer.do_advertize()
@@ -658,15 +676,30 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         glideinFrontendLib.log_files.logWarning("Advertizing failed for %i requests. See debug log for more details."%len(e.arr))
         for ee in e.arr:
             glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%ee)
-        
     except RuntimeError, e:
-      glideinFrontendLib.log_files.logWarning("Advertizing failed. See debug log for more details.")
-      glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%e)
+        glideinFrontendLib.log_files.logWarning("Advertizing failed. See debug log for more details.")
+        glideinFrontendLib.log_files.logDebug("Advertizing failed: %s"%e)
     except:
-      glideinFrontendLib.log_files.logWarning("Advertizing failed: Reason unknown")
-      tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+        glideinFrontendLib.log_files.logWarning("Advertizing failed: Reason unknown")
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
+                                        sys.exc_info()[2])
+        glideinFrontendLib.log_files.logDebug("Advertizing failed: %s" % tb)
+
+
+    # Advertise glideresource classads
+    try:
+        glideinFrontendLib.log_files.logActivity("Advertising %i glideresource classads to the user pool" %  len(resource_advertiser.classads))
+        #glideinFrontendLib.log_files.logActivity("glideresource classads to advertise -\n%s" % resource_advertiser.getAllClassads())
+        resource_advertiser.advertiseAllClassads()
+        glideinFrontendLib.log_files.logActivity("Done advertising glideresource classads")
+    except RuntimeError, e:
+        glideinFrontendLib.log_files.logWarning("Advertising failed. See debug log for more details.")
+        glideinFrontendLib.log_files.logDebug("Advertising failed: %s"%e)
+    except:
+        glideinFrontendLib.log_files.logWarning("Advertising failed: Reason unknown")
+        tb = traceback.format_exception(sys.exc_info()[0],sys.exc_info()[1],
                                       sys.exc_info()[2])
-      glideinFrontendLib.log_files.logDebug("Advertizing failed: %s" % tb)
+        glideinFrontendLib.log_files.logDebug("Advertising failed: %s" % tb)
 
     return
 
@@ -738,6 +771,15 @@ def iterate(parent_pid,elementDescript,paramsDescript,signatureDescript,x509_pro
                 glideinFrontendInterface.deadvertizeAllWork(factory_pool_node,published_frontend_name)
             except:
                 pass # just ignore errors... this was cleanup
+
+        # Invalidate all resource classads
+        try:
+            resource_advertiser = glideinFrontendInterface.ResourceClassadAdvertiser()
+            resource_advertiser.invalidateConstrainedClassads('GlideClientName == "%s"' % published_frontend_name)
+        except:
+            # Ignore all errors
+            pass
+            
 
 ############################################################
 def main(parent_pid, work_dir, group_name):
