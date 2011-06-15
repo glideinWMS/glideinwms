@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.6 2011/06/08 16:40:04 tiradani Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.7 2011/06/15 15:17:44 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -352,7 +352,7 @@ def main(startup_dir):
         restart_attempts = int(glideinDescript.data['RestartAttempts'])
         restart_interval = int(glideinDescript.data['RestartInterval'])
 
-        entries = ",".split(glideinDescript.data['Entries'])
+        entries = glideinDescript.data['Entries'].split(',')
         entries.sort()
 
         glideFactoryMonitorAggregator.monitorAggregatorConfig.config_factory(os.path.join(startup_dir, "monitor"), entries)
