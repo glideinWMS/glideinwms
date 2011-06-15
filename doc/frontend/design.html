@@ -117,7 +117,9 @@ job[&quot;HasData&quot;] or (glidein[&quot;site&quot;] in string.split(job[&quot
 
 Finally, the advertise procedure loops over the counts and converts
 them into appropriate <A HREF="../factory/design_data_exchange.html#frontend_classads">Condor
-Class Ads</A>.<BR><BR>The glue code is responsible of parsing the
+Class Ads</A>.<BR><BR>
+For every factory entry classad, frontend also advertises resource classads to the User Pool<BR><BR>
+The glue code is responsible of parsing the
 input parameters, loading the configuration values and loop over the
 above steps.</P>
 <P>The frontend also can handle multiple proxies. The proxy selection

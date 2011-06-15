@@ -1,4 +1,6 @@
-vNext	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
+vNext	Frontend published glideresource classad to the pool collector. This
+	  is useful for the users to do match making for their jobs.
+	Default GLEXEC_JOB = True when GLEXEC_BIN is set to use glexec
 	Factory can now resue old public key after startup to decrypt
 	  frontend requests. Grace time for old public key is configurable.
 	The frontend now can set global limits on number of glideins.

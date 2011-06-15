@@ -89,8 +89,14 @@ Factory Design Topics: <br/>
 <p>In the previous section we described the general architecture of
 the WMS. Let now have a look at the type of information that the two
 pieces publish.</p>
-<h3><a name="factory_classads"></a>The Glidein&nbsp;Factory Class-Ad</h3>
-<p>A&nbsp;factory publishes one class-ad per glidein entry. The
+<h3><a name="factory_classads"></a>The Glideini Factory Class-Ad</h3>
+<p>Factory publishes two types of classads</p>
+<ul>
+    <li>glidefactory classads</li>
+    <li>glidefactoryclient classads</li>
+</ul>
+<h4><a name="glidefactory_classads"></a>The glidefactory class-ad:</h4>
+<p>A factory publishes one class-ad per glidein entry. The
 class-ad contains 
 </p>
 <ul>
@@ -111,16 +117,28 @@ notice that the glidein attributes can be completely arbitrary; the
 only predefined attributes are the glidein and factory name, plus the
 convention that anything that starts with <font face="monospace"><b>GlideinParam</b></font>
 is a parameter and anything that starts with <font face="monospace"><b>GlideinMonitor</b></font>
-is a monitoring attribute.<br><br>Once the&nbsp;factory starts
+is a monitoring attribute.<br><br>
+
+<h4><a name="glidefactoryclient_classads"></a>The glidefactoryclient class-ad:</h4>
+Once the factory starts
 serving frontends, it will publish also another ClassAd for every
 frontend served. This ClassAd contains only monitoring information,
 and is not used by the glideinWMS itself.<br>Find below a graphical
 representation of these ClassAds.<br><img src="../images/factory_client_publish.png" name="graphics4" align="BOTTOM" border="0"></p>
+
+
 <h3><a name="frontend_classads"></a>The VO Frontend Class-Ad</h3>
+<p>Frontend publishes two types of classads</p>
+<ul>
+    <li>glideclient classads</li>
+    <li>glideresource classads</li>
+</ul>
+
+<h4><a name="glideclient_classads"></a>The glideclient class-ad:</h4>
 <p>A VO frontend will obtain the list all available glideins and
 select the ones that fit its needs, based on the published
-attributes. For each fitting glidein, a frontend class-ad will be
-published. Such a class-ad will contain 
+attributes. For each fitting glidein, a frontend glideclient class-ad will be
+published to the respective WMS Collector. Such a class-ad will contain 
 </p>
 
 <ul>
@@ -171,6 +189,19 @@ Future versions may contain more sophisticated
 controls, like the maximum number of glideins to keep in the queue or
 the maximum rate at which the glideins should be submitted.</p>
 
+<h4><a name="glideresource_classads"></a>The glideresource class-ad:</h4>
+<p>For every factory entry that accepts requests from the VO frontend, frontend will
+publish glideresource class-ads to the User Pool Collector. Such a class-ad will contains
+</p>
+<ul>
+	<li>Information about the factory and frontend element served and the downtime status</li>
+	<li>Monitoring information from the factory available in glidefactoryclient classad</li>
+	<li>Monitoring information from the frontend about the glideins and jobs</li>
+	<li>Any custom information about the entry that is available through the glidefactory class-ad that a user can use for match-making purposes</li>
+</ul>
+<p>Picture below shows a glideresource classad<br>
+<img src="../images/frontend_publish_resource.png" name="graphics5c" align="BOTTOM" border="0"></p>
+</p>
 </div>
 </body>
 </html>
