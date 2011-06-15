@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.16 2011/06/15 15:31:12 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.17 2011/06/15 15:39:06 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -942,9 +942,9 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     logSupport.log.debug("Adding directory cleaners")
     cleaner = cleanupSupport.PrivsepDirCleanupWSpace(None, logSupport.log_dir,
                                       "(condor_activity_.*\.log\..*\.ftstpk)",
-                                      int(glideinDescript.data['CondorLogRetentionMaxDays'] * 24 * 3600),
-                                      int(glideinDescript.data['CondorLogRetentionMinDays'] * 24 * 3600),
-                                      long(glideinDescript.data['CondorLogRetentionMaxMBs'] * (1024.0 * 1024.0)))
+                                      int(glideinDescript.data['CondorLogRetentionMaxDays']) * 24 * 3600,
+                                      int(glideinDescript.data['CondorLogRetentionMinDays']) * 24 * 3600,
+                                      long(glideinDescript.data['CondorLogRetentionMaxMBs']) * (1024.0 * 1024.0))
     cleanupSupport.cleaners.add_cleaner(cleaner)
 
     # add cleaners for the user log directories
@@ -952,15 +952,15 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
         user_log_dir = glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, username)
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(username, user_log_dir,
                                           "(job\..*\.out)|(job\..*\.err)",
-                                          int(glideinDescript.data['JobLogRetentionMaxDays'] * 24 * 3600),
-                                          int(glideinDescript.data['JobLogRetentionMinDays'] * 24 * 3600),
-                                          long(glideinDescript.data['JobLogRetentionMaxMBs'] * (1024.0 * 1024.0)))
+                                          int(glideinDescript.data['JobLogRetentionMaxDays']) * 24 * 3600,
+                                          int(glideinDescript.data['JobLogRetentionMinDays']) * 24 * 3600,
+                                          long(glideinDescript.data['JobLogRetentionMaxMBs']) * (1024.0 * 1024.0))
         cleanupSupport.cleaners.add_cleaner(cleaner)
         cleaner = cleanupSupport.PrivsepDirCleanupWSpace(username, user_log_dir,
                                           "(condor_activity_.*\.log)|(condor_activity_.*\.log.ftstpk)|(submit_.*\.log)",
-                                          int(glideinDescript.data['CondorLogRetentionMaxDays'] * 24 * 3600),
-                                          int(glideinDescript.data['CondorLogRetentionMinDays'] * 24 * 3600),
-                                          long(glideinDescript.data['CondorLogRetentionMaxMBs'] * (1024.0 * 1024.0)))
+                                          int(glideinDescript.data['CondorLogRetentionMaxDays']) * 24 * 3600,
+                                          int(glideinDescript.data['CondorLogRetentionMinDays']) * 24 * 3600,
+                                          long(glideinDescript.data['CondorLogRetentionMaxMBs']) * (1024.0 * 1024.0))
         cleanupSupport.cleaners.add_cleaner(cleaner)
 
     logSupport.log.debug("Set advertiser parameters")
