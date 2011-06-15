@@ -371,7 +371,7 @@ source %(condor_location)s/condor.sh
       allow_proxy = "factory,frontend"
 
     data = """
-%(indent1)s<security allow_proxy="%(allow_proxy)s" key_length="2048" pub_key="RSA" >
+%(indent1)s<security key_length="2048" pub_key="RSA" >
 %(indent2)s<frontends>""" % \
 { "indent1":common.indent(1),
   "indent2":common.indent(2),

@@ -98,7 +98,7 @@ for a more detailed description.
     </blockquote>
     <a href="#">&lt;/log_retention &gt;</a><br/>
     <a href="#monitor">&lt;monitor base_dir="/var/www/html/glidefactory/monitor" flot_dir="/opt/javascriptrrd-0.5.0/flot" javascriptRRD_dir="/opt/javascriptrrd-0.5.0" jquery_dir="/opt/javascriptrrd-0.5.0/flot" /&gt;</a><br/>
-    <a href="#security">&lt;security allow_proxy="frontend" key_length="2048" pub_key="RSA"&gt;</a><br/>
+    <a href="#security">&lt;security key_length="2048" pub_key="RSA"&gt;</a><br/>
     <blockquote>
         <a href="#security">&lt;frontends &gt;</a><br/>
         <blockquote>
@@ -334,22 +334,10 @@ individual entry point configuration.
         <a name="security" />
         <div class="xml">
         &lt;glidein&gt;&lt;security 
-        allow_proxy=&quot;<I>frontend[,factory]</I>&quot;
         pub_key=&quot;<I>RSA</I>&quot;/&gt;
 
         </div>
-    <p><b>Recommended</b> Enable
-    the proxy passing between <A HREF="../frontend/index.html">frontend</A>
-    and factory. Define if the frontend needs to pass a proxy
-    (<EM>&quot;frontend&quot;</EM>), if it must use the factory one
-    (<EM>&quot;factory&quot;</EM>), or if both methods are supported
-    (<EM>&quot;frontend,factory&quot;</EM>).</P>
     </li>
-    <P>
-      <b>Important:</b> If you configure to use a factory proxy (even optionally), you will need to export
-         the X509_USER_PROXY variable with the location of the proxy file
-         prior to starting the Factory service.
-    </P>
     <LI>
         <a name="security_frontend" />
         <div class="xml">
@@ -377,14 +365,8 @@ individual entry point configuration.
 
     <p><b>Required</b> Tells the class and user name the factory uses for this frontend.<br/></p>
     <ul>
-    If the <b>allow_proxy</b> attribute of the <b>security</b> element contains <i>&quot;frontend&quot;</i>, you must have
         <div class="xml">-  <b>&lt;security_class name=&quot;frontend&quot; username=&quot;<I>username_usedby_factory</I>&quot;/&gt;</b></div>
 
-    If the <b>allow_proxy</b> attribute of the <b>security</b> element contains <i>&quot;factory&quot;</i>, you must have
-       <div class="xml">-  <b>&lt;security_class name=&quot;factory&quot; username=&quot;<I>factory_username</I>&quot;/&gt;</b></div>
-
-    If the <b>allow_proxy</b> attribute of the <b>security</b> element specifies <i>&quot;factory,frontend&quot;</i>,<br/>
-    you must have both.
        </ul> 
     </li>
     <LI>
