@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactory.py,v 1.97 2011/06/03 20:10:47 parag Exp $
+#   $Id: glideFactory.py,v 1.98 2011/06/15 22:06:27 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -390,14 +390,6 @@ def main(startup_dir):
         if not os.environ.has_key('X509_CERT_DIR'):
             glideFactoryLib.log_files.logWarning("Environment variable X509_CERT_DIR not set. Need X509_CERT_DIR to work!")
             raise RuntimeError, "Need X509_CERT_DIR to work!"
-
-        allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
-        if 'factory' in allowed_proxy_source:
-            if not os.environ.has_key('X509_USER_PROXY'):
-                glideFactoryLib.log_files.logWarning("Factory is supposed to allow provide a proxy, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
-                raise RuntimeError, "Factory is supposed to allow provide a proxy. Need X509_USER_PROXY to work!"
-            
-
 
         glideFactoryInterface.factoryConfig.advertise_use_tcp=(glideinDescript.data['AdvertiseWithTCP'] in ('True','1'))
         glideFactoryInterface.factoryConfig.advertise_use_multi=(glideinDescript.data['AdvertiseWithMultiple'] in ('True','1'))

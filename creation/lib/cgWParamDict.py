@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.132 2011/06/13 20:47:03 klarson1 Exp $
+#   $Id: cgWParamDict.py,v 1.133 2011/06/15 22:06:26 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -306,8 +306,6 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
-            self.dicts[dtype].add("GlideinSupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
-            self.dicts[dtype].add("GlideinTrustDomain",sub_params.trust_domain,allow_overwrite=True)
 
         # populate infosys
         for infosys_ref in sub_params.infosys_refs:
@@ -568,8 +566,6 @@ def populate_factory_descript(work_dir,
         glidein_dict.add('RestartAttempts',params.restart_attempts)
         glidein_dict.add('RestartInterval',params.restart_interval)
         glidein_dict.add('AdvertiseDelay',params.advertise_delay)
-        validate_job_proxy_source(params.security.allow_proxy)
-        glidein_dict.add('AllowedJobProxySource',params.security.allow_proxy)
         glidein_dict.add('LogDir',params.log_dir)
         glidein_dict.add('ClientLogBaseDir',params.submit.base_client_log_dir)
         glidein_dict.add('ClientProxiesBaseDir',params.submit.base_client_proxies_dir)
@@ -658,17 +654,6 @@ def populate_frontend_descript(frontend_dict,     # will be modified
         frontend_dict.add(fe,{'ident':ident,'usermap':maps})
 
     
-#################################
-# Check that it is a string list
-# containing only valid entries
-def validate_job_proxy_source(allow_proxy):
-    recognized_sources=('factory','frontend')
-    ap_list=allow_proxy.split(',')
-    for source in ap_list:
-        if not (source in recognized_sources):
-            raise RuntimeError, "'%s' not a valid proxy source (valid list = %s)"%(source,recognized_sources)
-    return
-
 #####################
 # Simply copy a file
 def copy_file(infile,outfile):

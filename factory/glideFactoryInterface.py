@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.47 2011/05/19 21:19:07 parag Exp $
+#   $Id: glideFactoryInterface.py,v 1.48 2011/06/15 22:06:26 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -240,10 +240,10 @@ advertizeGlideinCounter=0
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
-def advertizeGlidein(factory_name, glidein_name, entry_name,
+def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_method,
                      supported_signtypes,
                      glidein_attrs={}, glidein_params={}, glidein_monitors={},
-                     pub_key_obj=None, allowed_proxy_source=None):
+                     pub_key_obj=None):
     
     """
     Creates the glideclient classad and advertises.
@@ -254,6 +254,10 @@ def advertizeGlidein(factory_name, glidein_name, entry_name,
     @param glidein_name: name of the glidein
     @type entry_name: string
     @param entry_name: name of the entry
+    @type trust_domain: string
+    @param trust_domain: trust domain for this entry
+    @type auth_method: string
+    @param auth_method: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
     @type supported_signtypes: string
     @param supported_signtypes: suppported sign types, i.e. sha1
     @type glidein_attrs: dict 
@@ -264,8 +268,6 @@ def advertizeGlidein(factory_name, glidein_name, entry_name,
     @param glidein_monitors: monitor attrs to be published
     @type pub_key_obj: GlideinKey
     @param pub_key_obj: for the frontend to use in encryption
-    @type allowed_proxy_source: list
-    @param allowed_proxy_source: allowed sources for the glidein proxy
     """
     
     global factoryConfig,advertizeGlideinCounter
@@ -283,14 +285,19 @@ def advertizeGlidein(factory_name, glidein_name, entry_name,
             fd.write('FactoryName = "%s"\n'%factory_name)
             fd.write('GlideinName = "%s"\n'%glidein_name)
             fd.write('EntryName = "%s"\n'%entry_name)
+            fd.write('GlideinSupportedAuthenticationMethod = "%s"\n'%auth_method)
+            fd.write('GlideinTrustDomain = "%s"\n'%trust_domain)
             fd.write('%s = "%s"\n'%(factoryConfig.factory_signtype_id,string.join(supported_signtypes,',')))
             if pub_key_obj!=None:
                 fd.write('PubKeyID = "%s"\n'%pub_key_obj.get_pub_key_id())
                 fd.write('PubKeyType = "%s"\n'%pub_key_obj.get_pub_key_type())
                 fd.write('PubKeyValue = "%s"\n'%string.replace(pub_key_obj.get_pub_key_value(),'\n','\\n'))
-                if allowed_proxy_source!=None:
-                    fd.write('GlideinAllowx509_Proxy = %s\n'%('frontend' in allowed_proxy_source))
-                    fd.write('GlideinRequirex509_Proxy = %s\n'%(not ('factory' in allowed_proxy_source)))
+                if 'grid_proxy' in auth_method:
+                    fd.write('GlideinAllowx509_Proxy = %s\n' % True)
+                    fd.write('GlideinRequirex509_Proxy = %s\n' % True)
+                else:
+                    fd.write('GlideinAllowx509_Proxy = %s\n' % False)
+                    fd.write('GlideinRequirex509_Proxy = %s\n' % False)
             fd.write('DaemonStartTime = %li\n'%start_time)
             fd.write('UpdateSequenceNumber = %i\n'%advertizeGlideinCounter)
             advertizeGlideinCounter+=1

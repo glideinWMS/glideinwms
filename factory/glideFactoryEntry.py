@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.107 2011/06/03 20:10:47 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.108 2011/06/15 22:06:27 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -653,7 +653,8 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
 ############################################################
 def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
     entry_name=jobDescript.data['EntryName']
-    allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
+    trust_domain=jobDescript.data['TrustDomain']
+    auth_method=jobDescript.data['AuthMethod']
     pub_key_obj=glideinDescript.data['PubKeyObj']
 
     glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor()
@@ -668,9 +669,10 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
         myJobAttributes=jobAttributes.data.copy()
         myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
+                                               trust_domain, auth_method,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                myJobAttributes,jobParams.data.copy(),glidein_monitors.copy(),
-                                               pub_key_obj,allowed_proxy_source)
+                                               pub_key_obj)
     except:
         glideFactoryLib.log_files.logWarning("Advertize failed")
 
