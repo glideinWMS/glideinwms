@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.15 2011/06/08 16:46:43 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.16 2011/06/15 15:31:12 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -896,8 +896,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
 
     # Configure the process to use the proper LogDir as soon as you get the info
     logSupport.add_glideinlog_handler(entry_name, logSupport.log_dir,
-                                      int(glideinDescript.data['LogRetentionMaxDays']),
-                                      int(glideinDescript.data['LogRetentionMaxMBs']))
+                                      int(float(glideinDescript.data['LogRetentionMaxDays'])),
+                                      int(float(glideinDescript.data['LogRetentionMaxMBs'])))
     logSupport.log = logging.getLogger(entry_name)
     logSupport.log.debug("Logging initialized")
 
