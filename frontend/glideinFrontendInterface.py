@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.4 2011/06/14 18:51:36 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.5 2011/06/15 14:47:31 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -273,7 +273,7 @@ class Credential:
             if proxy_security_classes.has_key(proxy_fname):
                     self.security_class=proxy_security_classes[proxy_fname]
             else:
-                    self.security_class=proxy_idx
+                    self.security_class=proxy_id
             if proxy_trust_domains.has_key(proxy_fname):
                     self.trust_domain=proxy_trust_domains[proxy_fname]
             else:
@@ -300,7 +300,7 @@ class Credential:
                     proxy_fd.close()
                 
         except:
-           glideinFrontendLib.log_files.logWarning("Could not read credential file '%s'"%proxy_fname)
+           logSupport.log.error("Could not read credential file '%s'"%proxy_fname)
            pass
     def file_id(self,filename):
         return str(abs(hash(filename))%100000)
