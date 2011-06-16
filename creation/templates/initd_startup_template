@@ -155,7 +155,7 @@ case $1 in
         RETVAL=$?
         ;;
     *)
-        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}"\n')
+        echo $"Usage: factory_startup {start|stop|restart|status|info|reconfig|down|up|infosysdown|statusdown}"
         exit 1
 esac
 
