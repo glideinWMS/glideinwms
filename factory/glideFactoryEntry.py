@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.19 2011/06/16 18:23:24 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.20 2011/06/16 20:45:17 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -690,7 +690,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
 
     glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor() #@UndefinedVariable
 
-    current_qc_total = glideFactoryLib.factoryConfig.client_stats.get_total #@UndefinedVariable()
+    current_qc_total = glideFactoryLib.factoryConfig.client_stats.get_total() #@UndefinedVariable
 
     glidein_monitors = {}
     for w in current_qc_total.keys():
