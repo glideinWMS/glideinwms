@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.109 2011/06/16 19:10:51 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.110 2011/06/16 19:37:55 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -733,18 +733,6 @@ def iterate_one(do_advertize,in_downtime,
     done_something=0
     jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
     
-    # Advertise the globals classad with the factory keys
-    try:
-        pub_key_obj=glideinDescript.data['PubKeyObj']
-        # KEL TODO need to add factory downtime?????
-        glideFactoryInterface.advertizeGlobals(glideFactoryLib.factoryConfig.factory_name,
-                                               glideFactoryLib.factoryConfig.glidein_name,
-                                               glideFactoryLib.factoryConfig.supported_signtypes,
-                                               pub_key_obj)
-        #def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_obj):
-
-    except Exception, e:
-        glideFactoryLib.log_files.logWarning("Error occurred while trying to advertize globals.")
     
     # Process requests from the frontends
     try:
