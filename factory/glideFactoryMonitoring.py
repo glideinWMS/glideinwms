@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.5 2011/06/08 16:54:04 tiradani Exp $
+#   $Id: glideFactoryMonitoring.py,v 1.304.8.11.2.6 2011/06/16 21:16:00 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -1155,7 +1155,7 @@ class FactoryStatusData:
 
         # create a string containing the total data
         total_xml_str = self.tab + '<total>\n'
-        #get_data_total = self.getData(self.total) # Apparently unused
+        get_data_total = self.getData(self.total) 
         try:
             total_data = self.data[rrd][self.total]
             total_xml_str += (xmlFormat.dict2string(total_data, dict_name='periods', el_name='period', subtypes_params={"class":{}}, indent_tab=self.tab, leading_tab=2 * self.tab) + "\n")
