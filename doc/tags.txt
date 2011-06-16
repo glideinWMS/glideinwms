@@ -12,6 +12,10 @@ vNext	Frontend published glideresource classad to the pool collector. This
 	Major improvements in the factory monitoring.
 	  Now requires javascriptRRD 0.6.0+.
 	Added tools for comparing the Factory configuration file with what is published in information systems.
+	Limit the max number of glideins per frontend
+	Use DAEMON_SHUTDOWN to shutdown glidein daemons
+	Allow factory to specify if an entry point (CE) requires voms proxies 
+	  only for pilot and user jobs
 
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
