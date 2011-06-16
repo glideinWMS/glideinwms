@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cgWDictFile.py,v 1.105.8.5.4.1 2011/05/31 21:32:49 tiradani Exp $
+#   $Id: cgWDictFile.py,v 1.105.8.5.4.2 2011/06/16 20:40:00 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module Classes and functions needed to
@@ -150,13 +150,14 @@ class CondorJDLDictFile(cWDictFile.DictFile):
             return
 
         # should be a regular line
-        if len(arr)<2:
-            raise RuntimeError,"Not a valid Condor JDL line, too short: '%s'"%line
-        if arr[1]!='=':
-            raise RuntimeError,"Not a valid Condor JDL line, no =: '%s'"%line
+        # KEL commented out since this foo=bar format no longer applies in v3+ factories
+        #if len(arr)<2:
+        #    raise RuntimeError,"Not a valid Condor JDL line, too short: '%s'"%line
+        #if arr[1]!='=':
+        #    raise RuntimeError,"Not a valid Condor JDL line, no =: '%s'"%line
 
-        if len(arr)==2:
-            return self.add(arr[0],"") # key = <empty>
+        if len(arr) <= 2:
+            return self.add(arr[0],"") # key = <empty> or placeholder for env variable
         else:
             return self.add(arr[0],arr[2])
 
