@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.108 2011/06/15 22:06:27 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.109 2011/06/16 19:10:51 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -35,7 +35,6 @@ import glideFactoryMonitoring
 import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
-import logSupport
 import glideinWMSVersion
 
 ############################################################
@@ -67,12 +66,19 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
                                                  jobDescript.data['EntryName'])	 
     except:
         glideFactoryLib.log_files.logWarning("Failed to deadvertize myself")
+        
     try:
         glideFactoryInterface.deadvertizeAllGlideinClientMonitoring(glideinDescript.data['FactoryName'],	 
                                                                     glideinDescript.data['GlideinName'],	 
                                                                     jobDescript.data['EntryName'])	 
     except:
         glideFactoryLib.log_files.logWarning("Failed to deadvertize my monitoring")
+        
+    try:
+        glideFactoryInterface.deadvertizeGlobals(glideinDescript.data['FactoryName'],     
+                                                 glideinDescript.data['GlideinName'])     
+    except:
+        glideFactoryLib.log_files.logWarning("Failed to deadvertize my globals")
 
     raise KeyboardInterrupt,"Parent died"
 
@@ -230,6 +236,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     """
     
     entry_name=jobDescript.data['EntryName']
+    auth_method = jobDescript.data['AuthMethod']
+    trust_domain = jobDescript.data['TrustDomain']
     pub_key_obj=glideinDescript.data['PubKeyObj']
     old_pub_key_obj = glideinDescript.data['OldPubKeyObj']
 
@@ -248,14 +256,13 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 security_list[entry_part[0]]=[entry_part[1]];
    
-    allowed_proxy_source=glideinDescript.data['AllowedJobProxySource'].split(',')
     glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime)
     glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)
     
     #glideFactoryLib.log_files.logActivity("Find work")
     work = glideFactoryInterface.findWork(glideFactoryLib.factoryConfig.factory_name,glideFactoryLib.factoryConfig.glidein_name,entry_name,
                                           glideFactoryLib.factoryConfig.supported_signtypes,
-                                          pub_key_obj,allowed_proxy_source)
+                                          pub_key_obj)
     
     if (len(work.keys())==0) and (old_pub_key_obj != None):
         # Could not find work to do using pub key and we do have a valid old 
@@ -266,7 +273,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                    glideFactoryLib.factoryConfig.factory_name,
                    glideFactoryLib.factoryConfig.glidein_name, entry_name,
                    glideFactoryLib.factoryConfig.supported_signtypes,
-                   old_pub_key_obj, allowed_proxy_source)
+                   old_pub_key_obj)
         if len(work.keys())>0:
             glideFactoryLib.log_files.logActivity("Found work to do using old factory key.")
     if len(work.keys())==0:
@@ -335,9 +342,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         if ((frontend_whitelist == "On") and (not security_list.has_key(client_security_name))):
             glideFactoryLib.log_files.logWarning("Client name '%s' not in whitelist. Preventing glideins from %s "% (client_security_name,client_int_name))
             in_downtime=True
-        # Check if proxy passing is compatible with allowed_proxy_source
+        # Check if proxy passing is compatible with auth method
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
-            if not ('frontend' in allowed_proxy_source):
+            if not ('grid_proxy' in auth_method):
                 glideFactoryLib.log_files.logWarning("Client %s provided proxy, but cannot use it. Skipping request"%client_int_name)
                 continue #skip request
 
@@ -355,7 +362,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue #skip request
 
         else:
-            if not ('factory' in allowed_proxy_source):
+            if not ('factory' in auth_method):
                 glideFactoryLib.log_files.logWarning("Client %s did not provide a proxy, but cannot use factory one. Skipping request"%client_int_name)
                 continue #skip request
 
@@ -652,6 +659,9 @@ def write_descript(entry_name,entryDescript,entryAttributes,entryParams,monitor_
 
 ############################################################
 def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams):
+    """
+    Advertise the glidefactory and glidefactoryclient classads
+    """
     entry_name=jobDescript.data['EntryName']
     trust_domain=jobDescript.data['TrustDomain']
     auth_method=jobDescript.data['AuthMethod']
@@ -716,15 +726,33 @@ def advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobPa
 ############################################################
 def iterate_one(do_advertize,in_downtime,
                 glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams):
+    """
+    Do one iteration of advertising and processing of requests.
+    """
     
     done_something=0
     jobAttributes.data['GLIDEIN_In_Downtime']=in_downtime
     
+    # Advertise the globals classad with the factory keys
+    try:
+        pub_key_obj=glideinDescript.data['PubKeyObj']
+        # KEL TODO need to add factory downtime?????
+        glideFactoryInterface.advertizeGlobals(glideFactoryLib.factoryConfig.factory_name,
+                                               glideFactoryLib.factoryConfig.glidein_name,
+                                               glideFactoryLib.factoryConfig.supported_signtypes,
+                                               pub_key_obj)
+        #def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_obj):
+
+    except Exception, e:
+        glideFactoryLib.log_files.logWarning("Error occurred while trying to advertize globals.")
+    
+    # Process requests from the frontends
     try:
         done_something = find_and_perform_work(in_downtime,glideinDescript,frontendDescript,jobDescript,jobAttributes,jobParams)
     except:
         glideFactoryLib.log_files.logWarning("Error occurred while trying to find and do work.  ")
-        
+    
+    # Only advertise if work was done or if the nth iteration
     if do_advertize or done_something:
         glideFactoryLib.log_files.logActivity("Advertize")
         advertize_myself(in_downtime,glideinDescript,jobDescript,jobAttributes,jobParams)

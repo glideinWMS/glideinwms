@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.48 2011/06/15 22:06:26 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.49 2011/06/16 19:10:51 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -19,6 +19,8 @@ import condorManager
 import os
 import time
 import string
+import glideFactoryLib
+
 
 ############################################################
 #
@@ -39,6 +41,7 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
+        self.factory_globals = 'glidefactoryglobals'
 
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
@@ -103,7 +106,7 @@ class MultiExeError(condorExe.ExeError):
 
 def findWork(factory_name, glidein_name, entry_name,
              supported_signtypes,
-             pub_key_obj=None, allowed_proxy_source=('factory','frontend'),
+             pub_key_obj=None, 
              get_only_matching=True,
              additional_constraints=None):
     """
@@ -119,8 +122,6 @@ def findWork(factory_name, glidein_name, entry_name,
     @param supported_signtypes: only support one kind of signtype, 'sha1', default is None
     @type pub_key_obj: string
     @param pub_key_obj: only support 'RSA'
-    @type allowed_proxy_source: list
-    @param allowed_proxy_source: types of sources the proxy is allowed to come from
     @type get_only_matching: boolean
     @param get_only_matching: if this is false, return also glideins I cannot use
     @type additional_constraints: string
@@ -142,12 +143,6 @@ def findWork(factory_name, glidein_name, entry_name,
             # get only classads that have my key or no key at all
             # any other key will not work
             status_constraint+=' && (((ReqPubKeyID=?="%s") && (ReqEncKeyCode=!=Undefined) && (ReqEncIdentity=!=Undefined)) || (ReqPubKeyID=?=Undefined))'%pub_key_obj.get_pub_key_id()
-            if not ('factory' in allowed_proxy_source):
-                # the proxy is required, so look for it 
-                status_constraint+=' && ((GlideinEncParamx509_proxy =!= UNDEFINED) || (GlideinEncParamx509_proxy_0 =!= UNDEFINED))'
-            if not ('frontend' in allowed_proxy_source):
-                # the proxy is not allowed, so ignore such requests 
-                status_constraint+=' && (GlideinEncParamx509_proxy =?= UNDEFINED) && (GlideinEncParamx509_proxy_0 =?= UNDEFINED)'
 
     if additional_constraints!=None:
         status_constraint="(%s)&&(%s)"%(status_constraint,additional_constraints)
@@ -235,8 +230,10 @@ def findWork(factory_name, glidein_name, entry_name,
 #
 # Define global variables that keep track of the Daemon lifetime
 #
-start_time=time.time()
-advertizeGlideinCounter=0
+start_time = time.time()
+advertizeGlideinCounter = 0
+advertizeGlobalsCounter = 0
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -321,21 +318,95 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
     finally:
         os.remove(tmpnam)
 
-# remove add from Collector
-def deadvertizeGlidein(factory_name,glidein_name,entry_name):
+def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_obj):
+    
+    """
+    Creates the glidefactoryglobals classad and advertises.
+    
+    @type factory_name: string
+    @param factory_name: the name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein
+    @type supported_signtypes: string
+    @param supported_signtypes: suppported sign types, i.e. sha1
+    @type pub_key_obj: GlideinKey
+    @param pub_key_obj: for the frontend to use in encryption
+    
+    @todo add factory downtime?
+    """
+    
+    advertizeGlobalsCounter = 0
+    global factoryConfig
+
     # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
-    fd=file(tmpnam,"w")
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
+
+    try:
+        try:
+            fd.write('MyType = "%s"\n' % factoryConfig.factory_globals)
+            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_globals)
+            fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
+            fd.write('Name = "%s@%s"\n' % (glidein_name, factory_name))
+            fd.write('FactoryName = "%s"\n' % factory_name)
+            fd.write('GlideinName = "%s"\n' % glidein_name)
+            fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
+            fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
+            fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
+            fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
+            fd.write('DaemonStartTime = %li\n' % start_time)
+            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalsCounter)
+            advertizeGlobalsCounter += 1
+        finally:
+            fd.close()
+            
+        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD")
+               
+    finally:
+        os.remove(tmpnam)
+
+
+
+
+def deadvertizeGlidein(factory_name, glidein_name, entry_name):
+    """
+    Removes the glidefactory classad advertising the entry from the WMS Collector.
+    """
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
     try:
         try:
             fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
-            fd.write('Requirements = Name == "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
+            fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
+            fd.write('Requirements = Name == "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
+        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS")
+    finally:
+        os.remove(tmpnam)
+
+        
+def deadvertizeGlobals(factory_name, glidein_name):
+    """
+    Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
+    """
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
+            fd.write('Requirements = Name == "%s@%s"\n' % (glidein_name, factory_name))
+        finally:
+            fd.close()
+
+        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS")
     finally:
         os.remove(tmpnam)
     
