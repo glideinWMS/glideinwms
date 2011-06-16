@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.5 2011/06/14 18:51:36 dstrain Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.6 2011/06/16 18:23:24 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -458,7 +458,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         else:
             trust_domain="Grid"
         if glidein_el['attrs'].has_key('GlideinSupportedAuthenticationMethods'):
-            auth_method=glidein_el['attrs']['GlideinSupportedAuthenticationMethods']
+            auth_method=glidein_el['attrs']['GlideinSupportedAuthenticationMethod']
         else:
             auth_method="grid_proxy"
 

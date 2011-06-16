@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParams.py,v 1.63.2.7.4.3 2011/05/06 16:00:36 klarson1 Exp $
+#   $Id: cgWParams.py,v 1.63.2.7.4.4 2011/06/16 18:19:13 klarson1 Exp $
 #
 # Desscription:
 #   This module contains the create_glidein params class
@@ -88,7 +88,7 @@ class GlideinParams(cWParams.CommonParams):
         self.entry_defaults["gatekeeper"] = (None, 'gatekeeper', 'Grid gatekeeper/resource', None)
         self.entry_defaults["gridtype"] = ('gt2', 'grid_type', 'Condor Grid type', None)
         self.entry_defaults["trust_domain"] = ('OSG', 'trust_domain', 'Entry trust domain', None)
-        self.entry_defaults["auth_methods"] = ('grid_proxy', 'auth_methods', 'Type of auth method this entry supports', None)
+        self.entry_defaults["auth_method"] = ('grid_proxy', 'auth_method', 'Type of auth method this entry supports', None)
         self.entry_defaults["rsl"] = (None, 'RSL', 'Globus gt2 RSL option', None)
         self.entry_defaults['schedd_name'] = (None, "ScheddName", "Which schedd to use (Overrides the global one if specified)", None)
         self.entry_defaults["work_dir"] = (".", ".|Condor|OSG|TMPDIR", "Where to start glidein", None)

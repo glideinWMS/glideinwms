@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14.4.4 2011/05/06 16:00:36 klarson1 Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14.4.5 2011/06/16 18:19:13 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -585,7 +585,7 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('EntryName', sub_name)
     job_descript_dict.add('GridType', sub_params.gridtype)
     job_descript_dict.add('Gatekeeper', sub_params.gatekeeper)
-    job_descript_dict.add('AuthMethods', sub_params.auth_methods)
+    job_descript_dict.add('AuthMethod', sub_params.auth_method)
     job_descript_dict.add('TrustDomain', sub_params.trust_domain)
     if sub_params.rsl != None:
         job_descript_dict.add('GlobusRSL', sub_params.rsl)

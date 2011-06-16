@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.18 2011/06/15 15:57:02 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.19 2011/06/16 18:23:24 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -272,7 +272,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
     entry_name = jobDescript.data['EntryName']
     pub_key_obj = glideinDescript.data['PubKeyObj']
-    auth_methods = jobDescript.data['AuthMethods'].split(',')
+    auth_method = jobDescript.data['AuthMethod']
 
     # Get information about which VOs to allow for this entry point.
     # This will be a comma-delimited list of pairs
@@ -376,7 +376,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         ##### BEGIN - PROXY HANDLING - BEGIN #####
         # Check if proxy passing is compatible with supported authentication methods
         if decrypted_params.has_key('x509_proxy') or decrypted_params.has_key('x509_proxy_0'):
-            if not ('grid_proxy' in auth_methods):
+            if not ('grid_proxy' in auth_method):
                 logSupport.log.warning("Client %s provided proxy, but but only factory supplied proxy is allowed. Skipping bad request" % client_int_name)
                 continue #skip request
 
@@ -396,7 +396,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue #skip request
 
         else:
-            if not ('factory' in auth_methods):
+            if not ('factory' in auth_method):
                 logSupport.log.warning("Client %s did not provide a proxy, but cannot use factory one. Skipping bad request" % client_int_name)
                 continue #skip request
 
@@ -685,7 +685,7 @@ def write_descript(entry_name, entryDescript, entryAttributes, entryParams, moni
 def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, jobParams):
     entry_name = jobDescript.data['EntryName']
     trust_domain = jobDescript.data['TrustDomain']
-    auth_methods = jobDescript.data['AuthMethods']
+    auth_method = jobDescript.data['AuthMethod']
     pub_key_obj = glideinDescript.data['PubKeyObj']
 
     glideFactoryLib.factoryConfig.client_stats.finalizeClientMonitor() #@UndefinedVariable
@@ -703,7 +703,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
                                                glideFactoryLib.factoryConfig.glidein_name,
                                                entry_name,
                                                trust_domain,
-                                               auth_methods,
+                                               auth_method,
                                                glideFactoryLib.factoryConfig.supported_signtypes,
                                                pub_key_obj,
                                                myJobAttributes,
@@ -990,8 +990,8 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     logSupport.log.debug("Set Condor security environment")
 
     # If authentication method is factory, verify that the environ is set
-    auth_methods = jobDescript.data['AuthMethods'].split(',')
-    if 'factory' in auth_methods:
+    auth_method = jobDescript.data['AuthMethods']
+    if 'factory' in auth_method:
         if not os.environ.has_key('X509_USER_PROXY'):
             logSupport.log.warning("Factory is supposed to provide a proxy for this entry, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
             # KEL TODO - raise error or just log warning????
