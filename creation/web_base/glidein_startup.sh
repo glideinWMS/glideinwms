@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glidein_startup.sh,v 1.85.2.8 2011/02/22 02:48:36 dstrain Exp $
+#   $Id: glidein_startup.sh,v 1.85.2.9 2011/06/16 19:08:29 parag Exp $
 #
 
 export LANG=C
@@ -97,7 +97,12 @@ done
 work_dir_created=0
 function glidein_exit {
   if [ $1 -ne 0 ]; then
+    if [ $1 -ne 99 ]; then
       sleep $sleep_time 
+      # wait a bit in case of error, to reduce lost glideins
+      # note: exit code 99 means DAEMON_SHUTDOWN encountered
+      # This should be considered a normal shutdown
+    fi
   fi
   cd "$start_dir"
   if [ "$work_dir_created" -eq "1" ]; then
@@ -295,7 +300,7 @@ function params2file {
 ################
 # Parse arguments
 set_debug=1
-sleep_time=1200
+sleep_time=1199
 if [ "$operation_mode" == "nodebug" ]; then
  set_debug=0
 elif [ "$operation_mode" == "fast" ]; then
@@ -1069,7 +1074,11 @@ let last_script_time=$last_startup_end_time-$last_startup_time
 echo "=== Last script ended `date` ($last_startup_end_time) with code $ret after $last_script_time ==="
 echo
 if [ $ret -ne 0 ]; then
+  if [ $ret -eq 99 ]; then
+    warn "Normal DAEMON_SHUTDOWN encountered while '$last_script'" 1>&2
+  else
     warn "Error running '$last_script'" 1>&2
+  fi
 fi
 
 #########################

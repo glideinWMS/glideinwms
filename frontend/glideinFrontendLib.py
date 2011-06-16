@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendLib.py,v 1.29.2.8 2011/05/10 00:16:57 sfiligoi Exp $
+#   $Id: glideinFrontendLib.py,v 1.29.2.9 2011/06/16 19:08:29 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -79,6 +79,17 @@ def getCondorQ(schedd_names,constraint=None,format_list=None):
     if format_list!=None:
         format_list=condorMonitor.complete_format_list(format_list,[('JobStatus','i'),('EnteredCurrentStatus','i'),('ServerTime','i'),('RemoteHost','s')])
     return getCondorQConstrained(schedd_names,"(JobStatus=?=1)||(JobStatus=?=2)",constraint,format_list)
+
+def getIdleVomsCondorQ(condorq_dict):
+    out={}
+    for schedd_name in condorq_dict.keys():
+        sq=condorMonitor.SubQuery(condorq_dict[schedd_name],lambda el:(el.has_key('JobStatus') and (el['JobStatus']==1) and (el.has_key('x509UserProxyFirstFQAN'))))
+        sq.load()
+        out[schedd_name]=sq
+    return out
+
+
+
 
 #
 # Return a dictionary of schedds containing idle jobs

@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.27 2011/06/15 19:13:35 parag Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.28 2011/06/16 19:08:29 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -195,6 +195,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             if x509_proxy_plugin!=None:
                 condorq_format_list=list(condorq_format_list)+list(x509_proxy_plugin.get_required_job_attributes())
 
+            ### Add in elements to help in determining if jobs have voms creds
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFirstFQAN','s'),))
+            condorq_format_list=list(condorq_format_list)+list((('x509UserProxyFQAN','s'),))
             condorq_dict=glideinFrontendLib.getCondorQ(elementDescript.merged_data['JobSchedds'],
                                                        elementDescript.merged_data['JobQueryExpr'],
                                                        condorq_format_list)
@@ -220,7 +223,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
             if x509_proxy_plugin!=None:
                 status_format_list=list(status_format_list)+list(x509_proxy_plugin.get_required_classad_attributes())
 
-            status_dict=glideinFrontendLib.getCondorStatus([None],'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),status_format_list) # use the main collector... all adds must go there
+            # use the main collector... all adds must go there
+            status_dict=glideinFrontendLib.getCondorStatus([None],
+                                                           'GLIDECLIENT_Name=?="%s.%s"'%(frontend_name,group_name),
+                                                           status_format_list)
 
             os.write(w,cPickle.dumps(status_dict))
         finally:
@@ -246,12 +252,14 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     condorq_dict=pipe_out['jobs']
     status_dict=pipe_out['startds']
 
+    condorq_dict_voms=glideinFrontendLib.getIdleVomsCondorQ(condorq_dict)
     condorq_dict_idle=glideinFrontendLib.getIdleCondorQ(condorq_dict)
     condorq_dict_old_idle=glideinFrontendLib.getOldCondorQ(condorq_dict_idle,600)
     condorq_dict_running=glideinFrontendLib.getRunningCondorQ(condorq_dict)
-
+    
     condorq_dict_types={'Idle':{'dict':condorq_dict_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_idle)},
                         'OldIdle':{'dict':condorq_dict_old_idle,'abs':glideinFrontendLib.countCondorQ(condorq_dict_old_idle)},
+                        'VomsIdle':{'dict':condorq_dict_voms,'abs':glideinFrontendLib.countCondorQ(condorq_dict_voms)},
                         'Running':{'dict':condorq_dict_running,'abs':glideinFrontendLib.countCondorQ(condorq_dict_running)}}
     condorq_dict_abs=glideinFrontendLib.countCondorQ(condorq_dict);
     
@@ -261,8 +269,9 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
                             'OldIdle':condorq_dict_types['OldIdle']['abs'],
                             'Running':condorq_dict_types['Running']['abs']})
 
-    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i) running %i"%(condorq_dict_abs,
+    glideinFrontendLib.log_files.logActivity("Jobs found total %i idle %i (old %i, voms %i) running %i"%(condorq_dict_abs,
                                                                                                 condorq_dict_types['Idle']['abs'],
+                                                                                                condorq_dict_types['VomsIdle']['abs'],
                                                                                                 condorq_dict_types['OldIdle']['abs'],
                                                                                                 condorq_dict_types['Running']['abs']))
 
@@ -455,6 +464,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         glidein_in_downtime=False
         if glidein_el['attrs'].has_key('GLIDEIN_In_Downtime'):
             glidein_in_downtime=(glidein_el['attrs']['GLIDEIN_In_Downtime']=='True')
+            
 
         count_jobs={}     # straight match
         prop_jobs={}      # proportional subset for this entry
@@ -466,9 +476,17 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
 
         count_status=count_status_multi[request_name]
 
+        #If the glidein requires a voms proxy, only match voms idle jobs
+        if glidein_el['attrs'].has_key('GLIDEIN_REQUIRE_VOMS'):
+            #glideinFrontendLib.log_files.logActivity("Require VOMS found: %s" % glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS'])
+            if (glidein_el['attrs']['GLIDEIN_REQUIRE_VOMS']=="True"):
+                prop_jobs['Idle']=prop_jobs['VomsIdle']
+                glideinFrontendLib.log_files.logActivity("Voms proxy required, limiting idle glideins to: %i" % prop_jobs['Idle'])
+
         # effective idle is how much more we need
         # if there are idle slots, subtract them, they should match soon
         effective_idle=prop_jobs['Idle']-count_status['Idle']
+
         if effective_idle<0:
             effective_idle=0
 

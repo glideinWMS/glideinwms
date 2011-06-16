@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.45 2011/06/07 18:59:44 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.46 2011/06/16 19:08:29 parag Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -274,6 +274,32 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     factory_max_running=int(jobDescript.data['MaxRunning'])
     factory_max_idle=int(jobDescript.data['MaxIdle'])
     factory_max_held=int(jobDescript.data['MaxHeld'])
+    
+    frontend_max_running={}
+    frontend_max_idle={}
+    frontend_max_held={}
+
+    # Get factory parameters for frontend-specific limits
+    # they are in the format:
+    # frontend1:sec_class1:number,frontend2:sec_class2:number
+    # we will turn them into a dictionary
+    # frontend_max_held['frontend1:sec_class1']=number
+    fe_running_param=jobDescript.data['MaxRunningFrontends']
+    fe_idle_param=jobDescript.data['MaxIdleFrontends']
+    fe_held_param=jobDescript.data['MaxHeldFrontends']
+    if (fe_running_param.find(";")!=-1):
+        for el in fe_running_param.split(","):
+            el_list=el.split(";")
+            frontend_max_running[el_list[0]]=int(el_list[1])
+    if (fe_idle_param.find(";")!=-1):
+        for el in fe_idle_param.split(","):
+            el_list=el.split(";")
+            frontend_max_idle[el_list[0]]=int(el_list[1])
+    if (fe_held_param.find(";")!=-1):
+        for el in fe_held_param.split(","):
+            el_list=el.split(";")
+            frontend_max_held[el_list[0]]=int(el_list[1])
+
 
     try:
         condorQ=glideFactoryLib.getCondorQData(entry_name,None,schedd_name)
@@ -511,6 +537,25 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     max_running=factory_max_running
             else:
                 max_running=factory_max_running
+            
+            # If there is a frontend specific limit for this entry on max_jobs
+            # then reduce idle,max_jobs and held_jobs based on frontend specific limits
+            s_id=client_security_name+":"+x509_proxy_security_class
+            s_all=client_security_name+":All"
+            #glideFactoryLib.log_files.logActivity("Before check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
+            if (frontend_max_running.has_key(s_id) and (max_running>frontend_max_running[s_id])):
+                max_running=frontend_max_running[s_id]
+            if (frontend_max_running.has_key(s_all) and (max_running>frontend_max_running[s_all])):
+                max_running=frontend_max_running[s_all]
+            if (frontend_max_idle.has_key(s_id) and (idle_glideins>frontend_max_idle[s_id])):
+                idle_glideins=frontend_max_idle[s_id]
+            if (frontend_max_idle.has_key(s_all) and (idle_glideins>frontend_max_idle[s_all])):
+                idle_glideins=frontend_max_idle[s_all]
+            if (frontend_max_held.has_key(s_id) and (factory_max_held>frontend_max_held[s_id])):
+                factory_max_held=frontend_max_held[s_id]
+            if (frontend_max_held.has_key(s_all) and (factory_max_held>frontend_max_held[s_all])):
+                factory_max_held=frontend_max_held[s_all]
+            #glideFactoryLib.log_files.logActivity("After check: %i %i %i"% (max_running,idle_glideins,factory_max_held))
 
             # Validate that project id is supplied when required (as specified in the rsl string)
             if jobDescript.data.has_key('GlobusRSL'):
