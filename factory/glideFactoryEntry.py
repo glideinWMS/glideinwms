@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.20 2011/06/16 20:45:17 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.21 2011/06/16 20:53:25 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -990,8 +990,7 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     logSupport.log.debug("Set Condor security environment")
 
     # If authentication method is factory, verify that the environ is set
-    auth_method = jobDescript.data['AuthMethods']
-    if 'factory' in auth_method:
+    if 'factory' in jobDescript.data['AuthMethod']:
         if not os.environ.has_key('X509_USER_PROXY'):
             logSupport.log.warning("Factory is supposed to provide a proxy for this entry, but environment variable X509_USER_PROXY not set. Need X509_USER_PROXY to work!")
             # KEL TODO - raise error or just log warning????
