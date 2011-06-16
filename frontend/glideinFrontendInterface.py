@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.11 2011/06/15 19:13:35 parag Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.12 2011/06/16 19:13:43 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -775,7 +775,6 @@ class ResourceClassad(Classad):
         eliminate_attrs = set([
                  'CurrentTime', 'USE_CCB', 'PubKeyValue', 'PubKeyType',
                  'AuthenticatedIdentity', 'GlideinName', 'FactoryName', 
-                 'GlideinRequirex509_Proxy', 'GlideinAllowx509_Proxy',
                  'EntryName', 'GlideinWMSVersion', 'PubKeyObj', 
                  'LastHeardFrom', 'PubKeyID', 'SupportedSignTypes',
                  'GLIDEIN_In_Downtime'
