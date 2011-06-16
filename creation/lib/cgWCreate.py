@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWCreate.py,v 1.54 2011/04/26 19:34:18 klarson1 Exp $
+#   $Id: cgWCreate.py,v 1.55 2011/06/16 19:48:51 parag Exp $
 #
 # Description:
 #   Functions needed to create files used by the glidein entry points
@@ -35,12 +35,18 @@ def create_condor_tar_fd(condor_base_dir):
                 raise RuntimeError, "Cannot find %s"%os.path.join(condor_base_dir,f)
 
         # check if optional binaries exist, if they do, include
-        for f in ['sbin/condor_procd','sbin/gcb_broker_query','libexec/glexec_starter_setup.sh','libexec/condor_glexec_wrapper',
-                  'libexec/condor_glexec_cleanup','libexec/condor_glexec_job_wrapper','libexec/condor_glexec_kill',
-                  'libexec/condor_glexec_run','libexec/condor_glexec_setup',
-                  'sbin/condor_fetchlog',
-                  'libexec/condor_ssh_to_job_sshd_setup','libexec/condor_ssh_to_job_shell_setup','lib/condor_ssh_to_job_sshd_config_template',
-                  'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class','lib/scimark2lib.jar']:
+        for f in ['sbin/condor_procd','sbin/gcb_broker_query',
+                  'libexec/glexec_starter_setup.sh',
+                  'libexec/condor_glexec_wrapper',
+                  'libexec/condor_glexec_cleanup', 
+                  'libexec/condor_glexec_job_wrapper',
+                  'libexec/condor_glexec_kill','libexec/condor_glexec_run',
+                  'libexec/condor_glexec_setup','sbin/condor_fetchlog',
+                  'libexec/condor_ssh_to_job_sshd_setup',
+                  'libexec/condor_ssh_to_job_shell_setup',
+                  'lib/condor_ssh_to_job_sshd_config_template',
+                  'lib/CondorJavaInfo.class','lib/CondorJavaWrapper.class',
+                  'lib/scimark2lib.jar','libexec/condor_kflops']:
             if os.path.isfile(os.path.join(condor_base_dir,f)):
                 condor_bins.append(f)
         
