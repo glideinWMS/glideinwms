@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.6 2011/06/16 18:23:24 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.7 2011/06/17 15:02:57 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -40,6 +40,7 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
+        self.factory_globals = 'glidefactoryglobals'
 
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
@@ -219,8 +220,10 @@ def findWork(factory_name, glidein_name, entry_name,
 #
 # Define global variables that keep track of the Daemon lifetime
 #
-start_time=time.time()
-advertizeGlideinCounter=0
+start_time = time.time()
+advertizeGlideinCounter = 0
+advertizeGlobalsCounter = 0
+
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
 # similar for glidein_params and glidein_monitor_monitors
@@ -239,8 +242,8 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
     @param entry_name: name of the entry
     @type trust_domain: string
     @param trust_domain: trust domain for this entry
-    @type auth_methods: string
-    @param auth_methods: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
+    @type auth_method: string
+    @param auth_method: the authentication methods this entry supports in glidein submission, i.e. grid_proxy
     @type supported_signtypes: string
     @param supported_signtypes: suppported sign types, i.e. sha1
     @type glidein_attrs: dict 
@@ -251,7 +254,6 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
     @param glidein_monitors: monitor attrs to be published
     @type pub_key_obj: GlideinKey
     @param pub_key_obj: for the frontend to use in encryption
-    @todo: will need to move proxy requirements from the factory to the entry
     """
     global factoryConfig, advertizeGlideinCounter
 
@@ -275,8 +277,12 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
                 fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
                 fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
                 fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
-                fd.write('GlideinAllowx509_Proxy = TRUE\n')
-                fd.write('GlideinRequirex509_Proxy = TRUE\n')
+            if 'grid_proxy' in auth_method:
+                fd.write('GlideinAllowx509_Proxy = %s\n' % True)
+                fd.write('GlideinRequirex509_Proxy = %s\n' % True)
+            else:
+                fd.write('GlideinAllowx509_Proxy = %s\n' % False)
+                fd.write('GlideinRequirex509_Proxy = %s\n' % False)
             fd.write('DaemonStartTime = %li\n' % start_time)
             fd.write('UpdateSequenceNumber = %i\n' % advertizeGlideinCounter)
             advertizeGlideinCounter += 1
@@ -300,21 +306,95 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
     finally:
         os.remove(tmpnam)
 
-# remove add from Collector
-def deadvertizeGlidein(factory_name,glidein_name,entry_name):
+def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_obj):
+    
+    """
+    Creates the glidefactoryglobals classad and advertises.
+    
+    @type factory_name: string
+    @param factory_name: the name of the factory
+    @type glidein_name: string
+    @param glidein_name: name of the glidein
+    @type supported_signtypes: string
+    @param supported_signtypes: suppported sign types, i.e. sha1
+    @type pub_key_obj: GlideinKey
+    @param pub_key_obj: for the frontend to use in encryption
+    
+    @todo add factory downtime?
+    """
+    
+    advertizeGlobalsCounter = 0
+    global factoryConfig
+
     # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time()-1.05e9
-    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
-    fd=file(tmpnam,"w")
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
+
+    try:
+        try:
+            fd.write('MyType = "%s"\n' % factoryConfig.factory_globals)
+            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_globals)
+            fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
+            fd.write('Name = "%s@%s"\n' % (glidein_name, factory_name))
+            fd.write('FactoryName = "%s"\n' % factory_name)
+            fd.write('GlideinName = "%s"\n' % glidein_name)
+            fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
+            fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())
+            fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
+            fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
+            fd.write('DaemonStartTime = %li\n' % start_time)
+            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalsCounter)
+            advertizeGlobalsCounter += 1
+        finally:
+            fd.close()
+            
+        exe_condor_advertise(tmpnam, "UPDATE_MASTER_AD")
+               
+    finally:
+        os.remove(tmpnam)
+
+
+
+
+def deadvertizeGlidein(factory_name, glidein_name, entry_name):
+    """
+    Removes the glidefactory classad advertising the entry from the WMS Collector.
+    """
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
     try:
         try:
             fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
-            fd.write('Requirements = Name == "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
+            fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
+            fd.write('Requirements = Name == "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
+        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS")
+    finally:
+        os.remove(tmpnam)
+
+        
+def deadvertizeGlobals(factory_name, glidein_name):
+    """
+    Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
+    """
+    # get a 9 digit number that will stay 9 digit for the next 25 years
+    short_time = time.time() - 1.05e9
+    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
+    fd = file(tmpnam, "w")
+    try:
+        try:
+            fd.write('MyType = "Query"\n')
+            fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
+            fd.write('Requirements = Name == "%s@%s"\n' % (glidein_name, factory_name))
+        finally:
+            fd.close()
+
+        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS")
     finally:
         os.remove(tmpnam)
     

@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.7 2011/06/15 15:17:44 klarson1 Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.8 2011/06/17 15:02:57 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -36,6 +36,7 @@ import glideFactoryInterface
 import glideFactoryMonitorAggregator
 import glideFactoryMonitoring
 import glideFactoryDowntimeLib
+import glideFactoryLib
 
 import logSupport
 
@@ -253,7 +254,18 @@ def spawn(sleep_time, advertize_rate, startup_dir,
 
             logSupport.log.info("Aggregate monitoring data")
             aggregate_stats(factory_downtimes.checkDowntime())
-
+            
+            # Advertise the globals classad with the factory keys
+            try:
+                # KEL TODO need to add factory downtime?????
+                glideFactoryInterface.advertizeGlobals(glideinDescript.data['FactoryName'],
+                                                       glideinDescript.data['GlideinName'],
+                                                       glideFactoryLib.factoryConfig.supported_signtypes,
+                                                       glideinDescript.data['PubKeyObj'])
+        
+            except Exception, e:
+                logSupport.log.warning("Error occurred while trying to advertize globals.")
+                
             # do it just before the sleep - commenting out - I think that only logs are cleaned up here
             #glideFactoryLib.cleaners.cleanup()
 
