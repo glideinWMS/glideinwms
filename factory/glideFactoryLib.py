@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.9 2011/06/08 16:49:25 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.10 2011/06/17 20:08:20 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -46,8 +46,10 @@ class FactoryConfig:
         self.glidein_schedd_attribute = "GlideinName"
         self.entry_schedd_attribute = "GlideinEntryName"
         self.client_schedd_attribute = "GlideinClient"
-        self.x509id_schedd_attribute = "GlideinX509Identifier"
-        self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
+        #self.x509id_schedd_attribute = "GlideinX509Identifier"
+        self.credential_id_schedd_attribute = "GlideinCredentialIdentifier"
+        #self.x509secclass_schedd_attribute = "GlideinX509SecurityClass"
+        self.credential_secclass_schedd_attribute = "GlideinCredentialSecurityClass"
 
         self.factory_startd_attribute = "GLIDEIN_Factory"
         self.glidein_startd_attribute = "GLIDEIN_Name"
@@ -122,6 +124,7 @@ class FactoryConfig:
         log_dir = os.path.join(self.client_log_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return log_dir
 
+    # KEL TODO refactor to usernames and ignore entries?
     def get_client_proxies_dir(self, entry_name, username):
         proxy_dir = os.path.join(self.client_proxies_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return proxy_dir
@@ -153,7 +156,7 @@ def getCondorQData(entry_name,
                    glidein_schedd_attribute=None, # if None, use the global one
                    entry_schedd_attribute=None, # if None, use the global one
                    client_schedd_attribute=None, # if None, use the global one
-                   x509secclass_schedd_attribute=None): # if None, use the global one
+                   credential_secclass_schedd_attribute=None): # if None, use the global one
     global factoryConfig
 
     if factory_schedd_attribute == None:
@@ -176,22 +179,22 @@ def getCondorQData(entry_name,
     else:
         csa_str = client_schedd_attribute
 
-    if x509secclass_schedd_attribute == None:
-        xsa_str = factoryConfig.x509secclass_schedd_attribute
+    if credential_secclass_schedd_attribute == None:
+        xsa_str = factoryConfig.credential_secclass_schedd_attribute
     else:
-        xsa_str = x509secclass_schedd_attribute
+        xsa_str = credential_secclass_schedd_attribute
 
     if client_name == None:
         client_constraint = ""
     else:
         client_constraint = ' && (%s =?= "%s")' % (csa_str, client_name)
 
-    x509id_str = factoryConfig.x509id_schedd_attribute
+    x509id_str = factoryConfig.credential_id_schedd_attribute
 
     q_glidein_constraint = '(%s =?= "%s") && (%s =?= "%s") && (%s =?= "%s")%s && (%s =!= UNDEFINED)' % \
         (fsa_str, factoryConfig.factory_name, gsa_str, factoryConfig.glidein_name, esa_str, entry_name, client_constraint, x509id_str)
     q_glidein_format_list = [("JobStatus", "i"), ("GridJobStatus", "s"), ("ServerTime", "i"), ("EnteredCurrentStatus", "i"),
-                             (factoryConfig.x509id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
+                             (factoryConfig.credential_id_schedd_attribute, "s"), ("HoldReasonCode", "i"), ("HoldReasonSubCode", "i"),
                              (csa_str, "s"), (xsa_str, "s")]
 
     q = condorMonitor.CondorQ(schedd_name)
@@ -202,20 +205,23 @@ def getCondorQData(entry_name,
     q.load(q_glidein_constraint, q_glidein_format_list)
     return q
 
-# fiter only a specific client and proxy security class
+
 def getQProxSecClass(condorq, client_name, proxy_security_class,
                      client_schedd_attribute=None, # if None, use the global one
-                     x509secclass_schedd_attribute=None): # if None, use the global one
+                     credential_secclass_schedd_attribute=None): # if None, use the global one
+    """
+    Get the current queue status for client and security class.
+    """
 
     if client_schedd_attribute == None:
         csa_str = factoryConfig.client_schedd_attribute
     else:
         csa_str = client_schedd_attribute
 
-    if x509secclass_schedd_attribute == None:
-        xsa_str = factoryConfig.x509secclass_schedd_attribute
+    if credential_secclass_schedd_attribute == None:
+        xsa_str = factoryConfig.credential_secclass_schedd_attribute
     else:
-        xsa_str = x509secclass_schedd_attribute
+        xsa_str = credential_secclass_schedd_attribute
 
     entry_condorQ = condorMonitor.SubQuery(condorq, lambda d:(d.has_key(csa_str) and (d[csa_str] == client_name) and
                                                            d.has_key(xsa_str) and (d[xsa_str] == proxy_security_class)))
@@ -345,6 +351,80 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
 
     # end of update_x509_proxy_file
     # should never reach this point
+
+def update_credential_file(entry_name, username, client_id, proxy_data):
+    """
+    Updates the credential file.  
+    
+    KEL TODO:  Need to convert from entry dirs
+    """
+    proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username) 
+    fname_short = 'credential_%s' % escapeParam(client_id)
+    fname = os.path.join(proxy_dir, fname_short)
+
+    if username != MY_USERNAME:
+        # use privsep
+        # all args go through the environment, so they are protected
+        update_credential_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
+        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
+            if os.environ.has_key(var):
+                update_credential_env.append('%s=%s' % (var, os.environ[var]))
+
+        try:
+            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
+        except condorPrivsep.ExeError, e:
+            raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
+        except:
+            raise RuntimeError, "Failed to update credenital %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+        return fname
+    else:
+        # do it natively when you can
+        if not os.path.isfile(fname):
+            # new file, create
+            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
+            try:
+                os.write(fd, proxy_data)
+            finally:
+                os.close(fd)
+            return fname
+
+        # old file exists, check if same content
+        fl = open(fname, 'r')
+        try:
+            old_data = fl.read()
+        finally:
+            fl.close()
+        if proxy_data == old_data:
+            # nothing changed, done
+            return fname
+
+        #
+        # proxy changed, neeed to update
+        #
+
+        # remove any previous backup file
+        try:
+            os.remove(fname + ".old")
+        except:
+            pass # just protect
+
+        # create new file
+        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
+        try:
+            os.write(fd, proxy_data)
+        finally:
+            os.close(fd)
+
+        # move the old file to a tmp and the new one into the official name
+        try:
+            os.rename(fname, fname + ".old")
+        except:
+            pass # just protect
+        os.rename(fname + ".new", fname)
+        return fname
+
+
+
 #
 # Main function
 #   Will keep the required number of Idle glideins
@@ -386,20 +466,21 @@ def keepIdleGlideins(client_condorq, client_int_name,
                      in_downtime, remove_excess_wait, remove_excess_idle, remove_excess_running,
                      min_nr_idle, max_nr_running, max_held,
                      submit_attrs,
-                     x509_proxy_identifier, x509_proxy_fname, x509_proxy_username, x509_proxy_security_class,
+                     #x509_proxy_identifier, x509_proxy_fname, x509_proxy_username, x509_proxy_security_class,
+                     credentials_id, credentials, credential_username, credential_security_class,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
     global factoryConfig
-
+    
     # filter out everything but the proper x509_proxy_identifier
-    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.x509id_schedd_attribute] == x509_proxy_identifier))
+    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.credential_id_schedd_attribute] == credentials_id))
     condorq.schedd_name = client_condorq.schedd_name
     condorq.factory_name = client_condorq.factory_name
     condorq.glidein_name = client_condorq.glidein_name
     condorq.entry_name = client_condorq.entry_name
     condorq.client_name = client_condorq.client_name
     condorq.load()
-    condorq.x509_proxy_identifier = x509_proxy_identifier
+    condorq.credentials_id = credentials_id
 
     #
     # First check if we have enough glideins in the queue
@@ -444,8 +525,8 @@ def keepIdleGlideins(client_condorq, client_int_name,
             # never exceed max_nr_running
             add_glideins = max_nr_running - (running_glideins + idle_glideins)
         try:
-            #submitGlideins(condorq.entry_name, x509_proxy_username, client_int_name, add_glideins,
-            #               submit_attrs, x509_proxy_security_class, security_dict, client_web,
+            #submitGlideins(condorq.entry_name, credential_username, client_int_name, add_glideins,
+            #               submit_attrs, credential_security_class, security_dict, client_web,
             #               params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
