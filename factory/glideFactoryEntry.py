@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.22 2011/06/17 15:02:57 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.23 2011/06/17 15:09:23 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -704,7 +704,7 @@ def advertize_myself(in_downtime, glideinDescript, jobDescript, jobAttributes, j
             glidein_monitors['Total%s%s' % (w, a)] = current_qc_total[w][a]
     try:
         myJobAttributes = jobAttributes.data.copy()
-        #myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
+        myJobAttributes['GLIDEIN_In_Downtime']=in_downtime
         glideFactoryInterface.advertizeGlidein(glideFactoryLib.factoryConfig.factory_name,
                                                glideFactoryLib.factoryConfig.glidein_name,
                                                entry_name,
