@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.53 2011/06/16 19:15:33 parag Exp $
+#   $Id: glideinFrontendInterface.py,v 1.54 2011/06/20 15:15:43 parag Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -21,6 +21,7 @@ import copy
 import time
 import string
 import pubCrypto,symCrypto
+from sets import Set
 
 ############################################################
 #
@@ -772,14 +773,14 @@ class ResourceClassad(Classad):
         @param info: Useful info from the glidefactory classad  
         """
         
-        eliminate_attrs = set([
+        eliminate_attrs = Set([
                  'CurrentTime', 'USE_CCB', 'PubKeyValue', 'PubKeyType',
                  'AuthenticatedIdentity', 'GlideinName', 'FactoryName', 
                  'EntryName', 'GlideinWMSVersion', 'PubKeyObj', 
                  'LastHeardFrom', 'PubKeyID', 'SupportedSignTypes',
                  'GLIDEIN_In_Downtime'
                 ])
-        available_attrs = set(info.keys())
+        available_attrs = Set(info.keys())
         publish_attrs = available_attrs - eliminate_attrs
         for attr in publish_attrs:
             self.adParams[attr] = info[attr]
