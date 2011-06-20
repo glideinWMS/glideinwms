@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.46 2011/06/16 19:08:29 parag Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.47 2011/06/20 17:16:53 weigand Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -266,6 +266,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         if len(work.keys())>0:
             glideFactoryLib.log_files.logActivity("Found work to do using old factory key.")
     if len(work.keys())==0:
+        glideFactoryLib.log_files.logActivity("No work found.")
         return 0 # nothing to be done
 
     #glideFactoryLib.log_files.logActivity("Perform work")
