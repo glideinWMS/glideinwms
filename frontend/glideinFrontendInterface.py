@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.5 2011/06/15 14:47:31 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.6 2011/06/21 19:30:59 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -506,7 +506,7 @@ class MultiAdvertizeWork:
         if not self.factory_queue.has_key(factory_pool):
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
-        self.factory_constraint[factory_pool]=(trust_domain, auth_method)
+        self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
         self.global_key[factory_pool]=key_obj
 
     # retirn the queue depth
@@ -625,13 +625,13 @@ class MultiAdvertizeWork:
                 
                 if descript_obj.x509_proxies_data!=None:
                     credential_el=descript_obj.x509_proxies_data[i]
-                    if (factory_pool in self.factory_constraint):
-                        factory_trust,factory_auth=self.factory_constraint[factory_pool]
+                    if (params_obj.request_name in self.factory_constraint):
+                        factory_trust,factory_auth=self.factory_constraint[params_obj.request_name]
                         if (credential_el.type!=factory_auth) and (factory_auth!="Any"):
-                            logSupport.log.debug("Credential %s does not match auth method %s, skipping..."%(credential_el.type,factory_auth))
+                            logSupport.log.debug("Credential %s does not match auth method %s (for %s), skipping..."%(credential_el.type,factory_auth,params_obj.request_name))
                             continue
                         if (credential_el.trust_domain!=factory_trust) and (factory_trust!="Any"):
-                            logSupport.log.debug("Credential %s does not match %s domain, skipping..."%(credential_el.trust_domain,factory_trust))
+                            logSupport.log.debug("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
                     glidein_params_to_encrypt['SecurityClass']=credential_el.security_class
                     classad_name=credential_el.security_class+"_"+classad_name
