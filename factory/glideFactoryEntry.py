@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.110 2011/06/16 19:37:55 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.111 2011/06/21 19:39:47 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -75,7 +75,7 @@ def check_parent(parent_pid, glideinDescript, jobDescript):
         glideFactoryLib.log_files.logWarning("Failed to deadvertize my monitoring")
         
     try:
-        glideFactoryInterface.deadvertizeGlobals(glideinDescript.data['FactoryName'],     
+        glideFactoryInterface.deadvertizeGlobal(glideinDescript.data['FactoryName'],     
                                                  glideinDescript.data['GlideinName'])     
     except:
         glideFactoryLib.log_files.logWarning("Failed to deadvertize my globals")

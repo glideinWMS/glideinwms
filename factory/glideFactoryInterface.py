@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.49 2011/06/16 19:10:51 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.50 2011/06/21 19:39:47 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -41,7 +41,7 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
-        self.factory_globals = 'glidefactoryglobals'
+        self.factory_globals = 'glidefactoryglobal'
 
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
@@ -232,7 +232,7 @@ def findWork(factory_name, glidein_name, entry_name,
 #
 start_time = time.time()
 advertizeGlideinCounter = 0
-advertizeGlobalsCounter = 0
+advertizeGlobalCounter = 0
 
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
@@ -318,10 +318,10 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
     finally:
         os.remove(tmpnam)
 
-def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_obj):
+def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj):
     
     """
-    Creates the glidefactoryglobals classad and advertises.
+    Creates the glidefactoryglobal classad and advertises.
     
     @type factory_name: string
     @param factory_name: the name of the factory
@@ -356,7 +356,7 @@ def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_ob
             fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
             fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
             fd.write('DaemonStartTime = %li\n' % start_time)
-            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalsCounter)
+            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalCounter)
             advertizeGlobalsCounter += 1
         finally:
             fd.close()
@@ -390,7 +390,7 @@ def deadvertizeGlidein(factory_name, glidein_name, entry_name):
         os.remove(tmpnam)
 
         
-def deadvertizeGlobals(factory_name, glidein_name):
+def deadvertizeGlobal(factory_name, glidein_name):
     """
     Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
     """
