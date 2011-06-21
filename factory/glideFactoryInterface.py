@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.50 2011/06/21 19:39:47 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.51 2011/06/21 19:44:13 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -41,7 +41,7 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
-        self.factory_globals = 'glidefactoryglobal'
+        self.factory_global = 'glidefactoryglobal'
 
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
@@ -335,7 +335,6 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj
     @todo add factory downtime?
     """
     
-    advertizeGlobalsCounter = 0
     global factoryConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -345,8 +344,8 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj
 
     try:
         try:
-            fd.write('MyType = "%s"\n' % factoryConfig.factory_globals)
-            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_globals)
+            fd.write('MyType = "%s"\n' % factoryConfig.factory_global)
+            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_global)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
             fd.write('Name = "%s@%s"\n' % (glidein_name, factory_name))
             fd.write('FactoryName = "%s"\n' % factory_name)
@@ -357,7 +356,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj
             fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
             fd.write('DaemonStartTime = %li\n' % start_time)
             fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalCounter)
-            advertizeGlobalsCounter += 1
+            advertizeGlobalCounter += 1
         finally:
             fd.close()
             
