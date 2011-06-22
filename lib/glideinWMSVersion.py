@@ -77,8 +77,8 @@ class GlideinWMSDistro:
                         if fd:
                             fd.close()
             
-            if len(modifiedFiles) > 0:
-                print "Modified files: %s" % string.join(modifiedFiles)
+            #if len(modifiedFiles) > 0:
+            #    print "Modified files: %s" % string.join(modifiedFiles)
             
             self._version = string.strip("glideinWMS %s %s" % (ver, patch))
 
