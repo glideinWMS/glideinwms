@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.6 2011/06/21 19:30:59 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.7 2011/06/22 16:25:22 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -106,6 +106,7 @@ def findGlobals(factory_pool,factory_identity,
         status_constraint="%s && (%s)"%(status_constraint,additional_constraint)
     status=condorMonitor.CondorStatus("any",pool_name=factory_pool)
     status.require_integrity(True) #important, especially for proxy passing
+    status.load(status_constraint)
     data=status.fetchStored()
 
     reserved_names=frontendConfig.condor_reserved_names
@@ -541,12 +542,12 @@ class MultiAdvertizeWork:
                     data_fd=open(cred_el.filename)
                     cred_data=data_fd.read()
                     data_fd.close()
-                    glidein_params_to_encrypt['GlideinEncParam'+cred_el.file_id(cred_el.filename)]=cred_data
+                    glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
                 if (hasattr(cred_el,'key_fname')):
                     data_fd=open(cred_el.key_fname)
                     cred_data=data_fd.read()
                     data_fd.close()
-                    glidein_params_to_encrypt['GlideinEncParam'+cred_el.file_id(cred_el.key_fname)]=cred_data
+                    glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
             if key_obj!=None:

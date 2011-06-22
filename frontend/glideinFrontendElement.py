@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.6 2011/06/16 18:23:24 klarson1 Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.7 2011/06/22 16:25:22 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -109,7 +109,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         factory_identity = factory_pool[1]
         my_identity_at_factory_pool = factory_pool[2]
         try:
-            factory_glidein_dict=glideinFrontendInterface.findGlobals(factory_pool_node,None,factory_constraint)
+            factory_globals_dict=glideinFrontendInterface.findGlobals(factory_pool_node,None,None)
             factory_glidein_dict = glideinFrontendInterface.findGlideins(factory_pool_node, None, signatureDescript.signature_type, factory_constraint, x509_proxy_plugin != None, get_only_matching=True)
         except RuntimeError, e:
             if factory_pool_node != None:
@@ -120,6 +120,24 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 logSupport.log.debug("Failed to talk to factory_pool: %s" % e)
             # failed to talk, like empty... maybe the next factory will have something
             factory_glidein_dict = {}
+            factory_globals_dict = {}
+
+        # ********
+        for X in factory_globals_dict:
+            globals_el=factory_globals_dict[X]
+            if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
+                pass # no public key, nothing to do
+            elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
+                try:
+                    globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
+                except:
+                    # if no valid key, just notify...
+                    # if key needed, will handle the error later on
+                    logSupport.log.warning("Factory Globals '%s': invalid RSA key" % X)
+            else:
+                # don't know what to do with this key, notify the admin
+                # if key needed, will handle the error later on
+                logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
 
         for glidename in factory_glidein_dict.keys():
             if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
@@ -185,22 +203,23 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                                                                                            status_dict_types['Idle']['abs'],
                                                                                            status_dict_types['Running']['abs']))
 
+
     # extract the public key, if present
-    for glideid in glidein_dict.keys():
-        glidein_el = glidein_dict[glideid]
-        if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
-            pass # no public key, nothing to do
-        elif glidein_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
-            try:
-                glidein_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'], '\\n', '\n')))
-            except:
-                # if no valid key, just notify...
-                # if key needed, will handle the error later on
-                logSupport.log.warning("Factory '%s@%s': invalid RSA key" % (glideid[1], glideid[0]))
-        else:
-            # don't know what to do with this key, notify the admin
-            # if key needed, will handle the error later on
-            logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
+    #for glideid in glidein_dict.keys():
+    #    glidein_el = glidein_dict[glideid]
+    #    if not glidein_el['attrs'].has_key('PubKeyType'): # no pub key at all
+    #        pass # no public key, nothing to do
+    #    elif glidein_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
+    #        try:
+    #            glidein_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(glidein_el['attrs']['PubKeyValue'], '\\n', '\n')))
+    #        except:
+    #            # if no valid key, just notify...
+    #            # if key needed, will handle the error later on
+    #            logSupport.log.warning("Factory '%s@%s': invalid RSA key" % (glideid[1], glideid[0]))
+    #    else:
+    #        # don't know what to do with this key, notify the admin
+    #        # if key needed, will handle the error later on
+    #        logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
 
     # get the proxy
     x509_proxies_data = None
@@ -229,8 +248,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
         # have no way to give them the proxy
         for glideid in glidein_dict.keys():
             glidein_el = glidein_dict[glideid]
-            if not glidein_el['attrs'].has_key('PubKeyObj'):
-                logSupport.log.info("Ignoring factory '%s@%s': does not have a valid key, but x509_proxy specified" % (glideid[1], glideid[0]))
+            if not globals_el['attrs'].has_key('PubKeyObj'):
+                logSupport.log.info("Ignoring factory '%s@%s': did not provide a valid global key, but x509_proxy specified" % (glideid[1], glideid[0]))
                 del glidein_dict[glideid]
 
 
@@ -441,16 +460,10 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
 
         for t in count_status.keys():
             glidein_monitors['Glideins%s' % t] = count_status[t]
-        if descript_obj.need_encryption():
-            key_obj = key_builder.get_key_obj(my_identity,
-                                            glidein_el['attrs']['PubKeyID'], glidein_el['attrs']['PubKeyObj'])
+        
+        if (globals_el['attrs'].has_key('PubKeyObj') and globals_el['attrs'].has_key('PubKeyID')):
+                key_obj = key_builder.get_key_obj(my_identity, globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
         else:
-            if (glidein_el['attrs'].has_key('PubKeyObj') and glidein_el['attrs'].has_key('PubKeyID')):
-                # still want to encript the security_name
-                key_obj = key_builder.get_key_obj(my_identity,
-                                                glidein_el['attrs']['PubKeyID'], glidein_el['attrs']['PubKeyObj'])
-            else:
-                # if no proxies, encryption is not required
                 key_obj = None
 
         if glidein_el['attrs'].has_key('GlideinTrustDomain'):
