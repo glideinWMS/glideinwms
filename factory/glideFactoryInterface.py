@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.7 2011/06/17 15:02:57 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.8 2011/06/22 20:18:01 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -40,7 +40,7 @@ class FactoryConfig:
         self.factory_id = "glidefactory"
         self.client_id = "glideclient"
         self.factoryclient_id = "glidefactoryclient"
-        self.factory_globals = 'glidefactoryglobals'
+        self.factory_global = 'glidefactoryglobal'
 
         #Default the glideinWMS version string
         self.glideinwms_version = "glideinWMS UNKNOWN"
@@ -222,7 +222,7 @@ def findWork(factory_name, glidein_name, entry_name,
 #
 start_time = time.time()
 advertizeGlideinCounter = 0
-advertizeGlobalsCounter = 0
+advertizeGlobalCounter = 0
 
 # glidein_attrs is a dictionary of values to publish
 #  like {"Arch":"INTEL","MinDisk":200000}
@@ -283,6 +283,7 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
             else:
                 fd.write('GlideinAllowx509_Proxy = %s\n' % False)
                 fd.write('GlideinRequirex509_Proxy = %s\n' % False)
+                fd.write('GlideinRequireGlideinProxy = %s\n' % True)
             fd.write('DaemonStartTime = %li\n' % start_time)
             fd.write('UpdateSequenceNumber = %i\n' % advertizeGlideinCounter)
             advertizeGlideinCounter += 1
@@ -306,10 +307,10 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
     finally:
         os.remove(tmpnam)
 
-def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_obj):
+def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj):
     
     """
-    Creates the glidefactoryglobals classad and advertises.
+    Creates the glidefactoryglobal classad and advertises.
     
     @type factory_name: string
     @param factory_name: the name of the factory
@@ -323,7 +324,6 @@ def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_ob
     @todo add factory downtime?
     """
     
-    advertizeGlobalsCounter = 0
     global factoryConfig
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
@@ -333,8 +333,8 @@ def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_ob
 
     try:
         try:
-            fd.write('MyType = "%s"\n' % factoryConfig.factory_globals)
-            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_globals)
+            fd.write('MyType = "%s"\n' % factoryConfig.factory_global)
+            fd.write('GlideinMyType = "%s"\n' % factoryConfig.factory_global)
             fd.write('GlideinWMSVersion = "%s"\n' % factoryConfig.glideinwms_version)
             fd.write('Name = "%s@%s"\n' % (glidein_name, factory_name))
             fd.write('FactoryName = "%s"\n' % factory_name)
@@ -344,8 +344,8 @@ def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_ob
             fd.write('PubKeyType = "%s"\n' % pub_key_obj.get_pub_key_type())
             fd.write('PubKeyValue = "%s"\n' % string.replace(pub_key_obj.get_pub_key_value(), '\n', '\\n'))
             fd.write('DaemonStartTime = %li\n' % start_time)
-            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalsCounter)
-            advertizeGlobalsCounter += 1
+            fd.write('UpdateSequenceNumber = %i\n' % advertizeGlobalCounter)
+            advertizeGlobalCounter += 1
         finally:
             fd.close()
             
@@ -356,31 +356,27 @@ def advertizeGlobals(factory_name, glidein_name, supported_signtypes, pub_key_ob
 
 
 
-
-def deadvertizeGlidein(factory_name, glidein_name, entry_name):
-    """
-    Removes the glidefactory classad advertising the entry from the WMS Collector.
-    """
+# remove add from Collector
+def deadvertizeGlidein(factory_name,glidein_name,entry_name):
     # get a 9 digit number that will stay 9 digit for the next 25 years
-    short_time = time.time() - 1.05e9
-    tmpnam = "/tmp/gfi_ag_%li_%li" % (short_time, os.getpid())
-    fd = file(tmpnam, "w")
+    short_time = time.time()-1.05e9
+    tmpnam="/tmp/gfi_ag_%li_%li"%(short_time,os.getpid())
+    fd=file(tmpnam,"w")
     try:
         try:
             fd.write('MyType = "Query"\n')
-            fd.write('TargetType = "%s"\n' % factoryConfig.factory_id)
-            fd.write('Requirements = Name == "%s@%s@%s"\n' % (entry_name, glidein_name, factory_name))
+            fd.write('TargetType = "%s"\n'%factoryConfig.factory_id)
+            fd.write('Requirements = Name == "%s@%s@%s"\n'%(entry_name,glidein_name,factory_name))
         finally:
             fd.close()
 
-        exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS")
+        exe_condor_advertise(tmpnam,"INVALIDATE_MASTER_ADS")
     finally:
         os.remove(tmpnam)
 
-        
-def deadvertizeGlobals(factory_name, glidein_name):
+def deadvertizeGlobal(factory_name, glidein_name):
     """
-    Removes the glidefactoryglobal classad advertising the factory globals from the WMS Collector.
+    Removes the glidefactoryglobal classad advertising the factory global from the WMS Collector.
     """
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time() - 1.05e9
@@ -397,7 +393,7 @@ def deadvertizeGlobals(factory_name, glidein_name):
         exe_condor_advertise(tmpnam, "INVALIDATE_MASTER_ADS")
     finally:
         os.remove(tmpnam)
-    
+
 def deadvertizeFactory(factory_name,glidein_name):
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time()-1.05e9

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.10 2011/06/17 20:08:20 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.11 2011/06/22 20:18:01 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -124,7 +124,7 @@ class FactoryConfig:
         log_dir = os.path.join(self.client_log_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return log_dir
 
-    # KEL TODO refactor to usernames and ignore entries?
+    # This applies only to v2+ protocol, v3+ protocol credentials are saved in user_%s/glidein_%s
     def get_client_proxies_dir(self, entry_name, username):
         proxy_dir = os.path.join(self.client_proxies_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return proxy_dir
@@ -356,7 +356,6 @@ def update_credential_file(entry_name, username, client_id, proxy_data):
     """
     Updates the credential file.  
     
-    KEL TODO:  Need to convert from entry dirs
     """
     proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username) 
     fname_short = 'credential_%s' % escapeParam(client_id)
@@ -375,7 +374,7 @@ def update_credential_file(entry_name, username, client_id, proxy_data):
         except condorPrivsep.ExeError, e:
             raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
         except:
-            raise RuntimeError, "Failed to update credenital %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
+            raise RuntimeError, "Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
         return fname
     else:
         # do it natively when you can
@@ -399,7 +398,7 @@ def update_credential_file(entry_name, username, client_id, proxy_data):
             return fname
 
         #
-        # proxy changed, neeed to update
+        # proxy changed, need to update
         #
 
         # remove any previous backup file
@@ -460,31 +459,57 @@ class ClientWeb(ClientWebNoGroup):
                 ["-clientgroup", self.group_name, "-clientwebgroup", self.group_url, "-clientsigngroup",
                  self.group_sign, "-clientdescriptgroup", self.group_descript])
 
-# Returns number of newely submitted glideins
-# Can throw a condorExe.ExeError exception
+
 def keepIdleGlideins(client_condorq, client_int_name,
                      in_downtime, remove_excess_wait, remove_excess_idle, remove_excess_running,
                      min_nr_idle, max_nr_running, max_held,
-                     submit_attrs,
-                     #x509_proxy_identifier, x509_proxy_fname, x509_proxy_username, x509_proxy_security_class,
-                     credentials_id, credentials, credential_username, credential_security_class,
+                     submit_credentials,
                      client_web, # None means client did not pass one, backwards compatibility
                      params):
-    global factoryConfig
+    """
+    Looks at the status of the queue and determines how many glideins to submit.  Returns the number of newly submitted glideins.
     
-    # filter out everything but the proper x509_proxy_identifier
-    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.credential_id_schedd_attribute] == credentials_id))
+    @type client_condorq: CondorQ 
+    @param client_condorq: Condor queue filtered by security class
+    @type client_int_name: string
+    @param client_int_name: internal representation of the client name
+    @type in_downtime: boolean    
+    @param in_downtime: is this entry in downtime
+    @type remove_excess_wait: boolean
+    @param remove_excess_wait: remove unsubmitted glideins
+    @type remove_excess_idle: boolean
+    @param remove_excess_idle: remove idle glideins
+    @type remove_excess_running: boolean 
+    @param remove_excess_running: remove running glideins
+    @type min_nr_idle: int
+    @param min_nr_idle: min number of idle glideins needed
+    @type max_nr_running: int
+    @param max_nr_running: max number of running glideins allowed
+    @type max_held: int
+    @param max_held: max number of held glidiens allowed
+    @type submit_credentials: SubmitCredentials
+    @param submit_credentials: all the information needed to submit the glideins
+    @type client_web: glideFactoryLib.ClientWeb or glideFactoryLib.ClientWebNoGroup 
+    @param client_web: client web values
+    @type params: dict
+    @param params: params from the entry configuration or frontend to be passed to the glideins
+    
+    Can throw a condorExe.ExeError
+    """
+    
+    global factoryConfig       
+    
+    # filter out everything but the proper credential identifier
+    condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.credential_id_schedd_attribute] == submit_credentials.id))
     condorq.schedd_name = client_condorq.schedd_name
     condorq.factory_name = client_condorq.factory_name
     condorq.glidein_name = client_condorq.glidein_name
     condorq.entry_name = client_condorq.entry_name
     condorq.client_name = client_condorq.client_name
     condorq.load()
-    condorq.credentials_id = credentials_id
+    condorq.credentials_id = submit_credentials.id
 
-    #
     # First check if we have enough glideins in the queue
-    #
 
     # Count glideins by status
     qc_status = getQStatus(condorq)
@@ -524,10 +549,11 @@ def keepIdleGlideins(client_condorq, client_int_name,
         if ((max_nr_running != None) and ((running_glideins + idle_glideins + add_glideins) > max_nr_running)):
             # never exceed max_nr_running
             add_glideins = max_nr_running - (running_glideins + idle_glideins)
+            
         try:
-            #submitGlideins(condorq.entry_name, credential_username, client_int_name, add_glideins,
-            #               submit_attrs, credential_security_class, security_dict, client_web,
-            #               params)
+            #submitGlideins(condorq.entry_name, client_int_name, add_glideins,
+            #               submit_attrs, submit_credentials,      
+            #               client_web, params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
             logSupport.log.warning("%s" % e)
