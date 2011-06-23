@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.24 2011/06/22 20:18:01 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.25 2011/06/23 14:43:56 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -1350,15 +1350,14 @@ class SubmitCredentials:
         output += "username = ", self.username
         output += "security class = ", self.security_class
         output += "id = ", self.id
+        output += "cedential dir = ", self.cred_dir
         output += "security credentials: "
-        for c in self.security_credentials.keys():
-            output += "    %s : %s" % (c, security_credentials[c])
+        for sc in self.security_credentials.keys():
+            output += "    %s : %s" % (sc, self.security_credentials[sc])
         output += "identity credentials: "
-        for c in self.identity_credentials.keys():
-            output += "    %s : %s" % (c, identity_credentials[c])
+        for ic in self.identity_credentials.keys():
+            output += "    %s : %s" % (ic, self.identity_credentials[ic])
         return output
-
-
 
 ############################################################
 #
