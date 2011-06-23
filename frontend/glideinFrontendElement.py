@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.7 2011/06/22 16:25:22 dstrain Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.8 2011/06/23 15:52:44 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -123,8 +123,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             factory_globals_dict = {}
 
         # ********
-        for X in factory_globals_dict:
-            globals_el=factory_globals_dict[X]
+        for globalid in factory_globals_dict:
+            globals_el=factory_globals_dict[globalid]
             if not globals_el['attrs'].has_key('PubKeyType'): # no pub key at all
                 pass # no public key, nothing to do
             elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
@@ -133,11 +133,11 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 except:
                     # if no valid key, just notify...
                     # if key needed, will handle the error later on
-                    logSupport.log.warning("Factory Globals '%s': invalid RSA key" % X)
+                    logSupport.log.warning("Factory Globals '%s': invalid RSA key" % globalid)
             else:
                 # don't know what to do with this key, notify the admin
                 # if key needed, will handle the error later on
-                logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (glideid[1], glideid[0], glidein_el['attrs']['PubKeyType']))
+                logSupport.log.info("Factory '%s@%s': unsupported pub key type '%s'" % (globalid[1], globalid[0], globals_el['attrs']['PubKeyType']))
 
         for glidename in factory_glidein_dict.keys():
             if (not factory_glidein_dict[glidename]['attrs'].has_key('AuthenticatedIdentity')) or (factory_glidein_dict[glidename]['attrs']['AuthenticatedIdentity'] != factory_identity):
