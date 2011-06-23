@@ -120,11 +120,11 @@ Click on any piece for a more detailed description.
         <a href="#monitor">&lt;monitor base_dir="/var/www/html/vofrontend/monitor" flot_dir="/opt/javascriptrrd-0.5.0/flot" javascriptRRD_dir="/opt/javascriptrrd-0.5.0" jquery_dir="/opt/javascriptrrd-0.5.0/flot"&gt;</a><br/><br/>
         <a href="#security">&lt;security classad_proxy="/etc/grid-security/vocert.pem" proxy_DN="/DC=org/DC=doegrids/OU=Services/CN=frontend-server.fnal.gov" proxy_selection_plugin="ProxyAll" security_name="frontenduser" sym_key="aes_256_cbc"&gt;</a><br/>
         <blockquote>
-        <a href="#proxies">&lt;proxies&gt;</a><br/>
+        <a href="#proxies">&lt;credentials&gt;</a><br/>
         <blockquote>
-            <a href="#proxies">&lt;proxy absfname="/tmp/x509up_u" security_class="frontend"&gt;</a><br/>
+            <a href="#proxies">&lt;credential absfname="/tmp/x509up_u" security_class="frontend" trust_domain="OSG" type="grid_proxy" &gt;</a><br/>
         </blockquote>
-        <a href="#proxies">&lt;/proxies&gt;</a><br/>
+        <a href="#proxies">&lt;/credentials&gt;</a><br/>
     </blockquote>
     <a href="#stage">&lt;stage base_dir="/var/www/html/vofrontend/stage" use_symlink="True" web_base url="http://frontend-server.fnal.gov:9000/vofrontend/stage"&gt;</a><br/>
     <a href="#work">&lt;work base_dir="/opt/vofrontend" base_log_dir="/opt/vofrontend/logs"&gt;</a><br/>
@@ -166,7 +166,7 @@ Click on any piece for a more detailed description.
             </blockquote>
             <a href="#group_security_proxies">&lt;security&gt;</a><br/>
                 <blockquote>
-                    <a href="#group_security_proxies">&lt;proxies /&gt;</a><br/>
+                    <a href="#group_security_proxies">&lt;credentials /&gt;</a><br/>
                 </blockquote>
             <a href="#">&lt;/security&gt;</a><br/>
             <a href="#">&lt;attrs /&gt;</a><br/>
@@ -289,14 +289,28 @@ Finally, advertise_with_tcp defines if TCP should be use to advertise the ClassA
     <LI><P>
         <a name="proxies" />
         <div class="xml">
-        &lt;frontend&gt;&lt;security&gt;&lt;proxies&gt;&lt;proxy
-        absfname=&quot;<I>proxy</I>&quot;
-        security_class=&quot;<I>frontend</I>&quot;/&gt;
-
+        &lt;frontend&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
+        type=&quot;<i>grid_proxy</I>&quot;
+        absfname=&quot;<I>proxyfile</I>&quot;
+        [keyabsfname=&quot;<I>keyfile</I>&quot;]
+        security_class=&quot;<I>frontend</I>&quot;
+        trust_domain=&quot;<I>id</I>&quot;
+        /&gt;
         </div>
-    The location of the proxy the Glidein Frontend forwards to the factory for
-    use in submitting glideins. You can have multiple proxy entries
-    listed here and they are used by all groups.
+    This section lists credentials used by the whole frontend.  You can
+    have multiple credentials listed here and they are used by all groups.
+    The type can be one of the following:
+    <ul>
+        <li><b>grid_proxy</b>: A x509 proxy stored in the <i>absfname</i> location.</li>
+        <li><b>cert_pair</b>: A x509 certificate pair with the cert in the <i>absfname</i> location and the certkey in the <i>keyabsfname</i> location.</li>
+        <li><b>key_pair</b>: A key pair stored with the public key in <i>absfname</i> location and the private key in <i>keyabsfname</i> location.</li>
+        <li><b>username_password</b>: A username/password combination with the username stored in a text at the <i>absfname</i> location and a password stored in a text file in the <i>keyabsfname</i> location.</li>
+    </ul>
+    Security class determines what user the credential is associated with
+    on the factory side.  The trust domain determines which entries this
+    credential will be used on.  The credential will only be submitted to 
+    sites that match this trust domain.  Coordinate with your factory operator
+    in order to properly determine these values.
     </P></li>
     <LI><P>
         <a name="stage" />
@@ -544,12 +558,16 @@ glideins.  Groups are used to group users with similar requirements, such as pro
     <LI><P>
         <a name="group_security_proxies" />
         <div class="xml">
-        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;security&gt;&lt;proxies&gt;&lt;proxy
-        absfname=&quot;<I>proxy</I>&quot;
-        security_class=&quot;<I>classname</I>&quot; &gt;
+        &lt;frontend&gt;&lt;groups&gt;&lt;group&gt;&lt;security&gt;&lt;credentials&gt;&lt;credential
+        type=&quot;<i>grid_proxy</i>&quot;
+        absfname=&quot;<I>proxyfile</I>&quot;
+        [keyabsfname=&quot;<I>keyfile</I>&quot;]
+        security_class=&quot;<I>classname</I>&quot; 
+        trust_domain=&quot;<I>id</I>&quot; 
+        /&gt;
 
         </div>
-        Group-specific proxies for submitting glideins can be defined that will be passed to the factory in addition to any globally defined proxies.
+        Group-specific credentials (e.g. proxies) for submitting glideins can be defined that will be passed to the factory in addition to any <a href="#proxies">globally defined credentials</a>.
     </P></li>
     <LI><P>
         <a name="collectors" />
@@ -671,7 +689,7 @@ can compete on a more equal footing with Charlie.
 </p>
 <p>
 Proxies can be specified in the 
-<tt>&lt;security&gt;&lt;proxies&gt;&lt;proxy&gt;</tt> tags.  Multiple proxy tags can be entered, one for each proxy file.  These can found in the security section at the top of the xml, in which case, the proxies are shared for all securitty groups.  They can also be found within <tt>&lt;group&gt;</tt> tags, in which case they are used only by that security group.
+<tt>&lt;security&gt;&lt;credentials&gt;&lt;credential&gt;</tt> tags.  Multiple proxy tags can be entered, one for each proxy file.  These can found in the security section at the top of the xml, in which case, the proxies are shared for all securitty groups.  They can also be found within <tt>&lt;group&gt;</tt> tags, in which case they are used only by that security group.
 </p>
 <p>
 One example follows:
@@ -679,13 +697,13 @@ One example follows:
 <blockquote>
          &lt;security&gt;<br/>
 <blockquote>
-            &lt;proxies&gt;<br/>
+            &lt;credentials&gt;<br/>
 <blockquote>
-               &lt;proxy absfname="/home/frontend/.globus/x509_pilot05_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
-               &lt;proxy absfname="/home/frontend/.globus/x509_pilot06_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
-               &lt;proxy absfname="/home/frontend/.globus/x509_pilot07_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
-               &lt;proxy absfname="/home/frontend/.globus/x509_pilot08_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
-               &lt;proxy absfname="/home/frontend/.globus/x509_pilot09_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot05_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot06_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot07_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot08_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
+               &lt;credential type="grid_proxy" trust_domain="OSG" absfname="/home/frontend/.globus/x509_pilot09_cms_prio.proxy" security_class="cmsprio"/&gt;<br/>
 </blockquote>
             &lt;proxies&gt;<br/>
 </blockquote>
