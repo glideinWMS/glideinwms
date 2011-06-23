@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.26 2011/06/23 18:58:30 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.27 2011/06/23 19:47:41 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -398,25 +398,23 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             logSupport.log.warning("Client name '%s' not in whitelist. Preventing glideins from %s " % (client_security_name, client_int_name))
             in_downtime = True        
                       
-        # Check if project id is required    
-        if 'project_id' in auth_method:
-            # Validate project id exists
-            if decrypted_params.has_key('ProjectId'):
-                project_id = decrypted_params['ProjectId']
-                # just add to params for now, not a security issue
-                params['ProjectId'] = project_id  # for v2+ protocol only?
-                submit_credentials.add_identity_credential('ProjectId', project_id)
-            else:
-                # project id is required, cannot service request
-                logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                continue  
-
         # ========= v2+ protocol ==============
         if decrypted_params.has_key('x509_proxy_0'):
             if not ('grid_proxy' in auth_method):
                 logSupport.log.warning("Client %s provided proxy, but a client supplied proxy is not allowed. Skipping bad request" % client_int_name)
                 continue #skip request
     
+            # Check if project id is required    
+            if 'project_id' in auth_method:
+                # Validate project id exists
+                if decrypted_params.has_key('ProjectId'):
+                    # just add to params for now, not a security issue
+                    params['ProjectId'] = decrypted_params['ProjectId']  # for v2+ protocol only?
+                else:
+                    # project id is required, cannot service request
+                    logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                    continue  
+                
             client_expected_identity = frontendDescript.get_identity(client_security_name)
             if client_expected_identity == None:
                 logSupport.log.warning("Client %s (secid: %s) not in white list. Skipping request" % (client_int_name, client_security_name))
@@ -566,6 +564,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                 
             # Determine the credential location  
             submit_credentials.cred_dir = os.path.join(client_proxies_base_dir, "user_%s/glidein_%s" % (credential_username, glidein_name))
+            
+            # Check if project id is required    
+            if 'project_id' in auth_method:
+                # Validate project id exists
+                if decrypted_params.has_key('ProjectId'):
+                    submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
+                else:
+                    # project id is required, cannot service request
+                    logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                    continue  
             
             # Validate authentication/authorization according to auth methods listed 
             # Grid sites do not require VM id or type.  All have proxy in their auth method
