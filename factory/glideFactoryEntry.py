@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.25 2011/06/23 14:43:56 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.26 2011/06/23 18:58:30 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -614,8 +614,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         continue  
                 else:
                     # Validate factory provided vm id exists
-                    if jobDescript.has_key('FactoryVMId'): 
-                        submit_credentials.add_identity_credential('VMId', jobDescript['FactoryVMId'])
+                    if jobDescript.has_key('EntryVMId'): 
+                        submit_credentials.add_identity_credential('VMId', jobDescript['EntryVMId'])
                     else:
                         logSupport.log.info("Entry does not specify a VM Id, this is required by entry %s, skipping "% jobDescript.data['EntryName'])
                         continue  
@@ -629,36 +629,36 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         continue
                 else:
                     # Validate factory provided vm type exists
-                    if jobDescript.has_key('FactoryVMType'): 
-                        submit_credentials.add_identity_credential('VMType', jobDescript['FactoryVMType'])
+                    if jobDescript.has_key('EntryVMType'): 
+                        submit_credentials.add_identity_credential('VMType', jobDescript['EntryVMType'])
                     else:
                         logSupport.log.info("Entry does not specify a VM Type, this is required by entry %s, skipping "% jobDescript.data['EntryName'])
                         continue
                 
-                if 'x509_cert_pair' in auth_method :
+                if 'cert_pair' in auth_method :
                     # Validate both the public and private certs were passed
-                    if decrypted_params.has_key('Publicx509Cert') and decrypted_params.has_key('Privatex509Cert'):
-                        
-                        public_cert_id = decrypted_params['Publicx509Cert']
-                        if not submit_credentials.add_security_credential('Publicx509Cert', public_cert_id):
-                            logSupport.log.warning("Credential %s for the public x509 certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
+                    if decrypted_params.has_key('PublicCert') and decrypted_params.has_key('PrivateCert'):                        
+                        public_cert_id = decrypted_params['PublicCert']
+                        submit_credentials.id = public_cert_id
+                        if not submit_credentials.add_security_credential('PublicCert', public_cert_id):
+                            logSupport.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
                             continue #skip   
                         
-                        private_cert_id = decrypted_params['Privatex509Cert']
-                        if not submit_credentials.add_security_credential('Privatex509Cert', private_cert_id):
-                            logSupport.log.warning("Credential %s for the private x509 certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
+                        private_cert_id = decrypted_params['PrivateCert']
+                        if not submit_credentials.add_security_credential('PrivateCert', private_cert_id):
+                            logSupport.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
                             continue #skip   
                         
                     else:
                         # project id is required, cannot service request
-                        logSupport.log.warning("Client '%s' did not specify the x509 certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        logSupport.log.warning("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
                         continue
                         
                 elif 'key_pair' in auth_method:
                     # Validate both the public and private keys were passed
-                    if decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey'):
-                        
+                    if decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey'):                        
                         public_key_id = decrypted_params['PublicKey']
+                        submit_credentials.id = public_key_id
                         if not submit_credentials.add_security_credential('PublicKey', public_key_id):
                             logSupport.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
                             continue #skip   
@@ -676,6 +676,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     # Validate both the public and private keys were passed
                     if decrypted_params.has_key('Username') and decrypted_params.has_key('Password'):                        
                         username_id = decrypted_params['Username']
+                        submit_credentials.id = username_id
                         if not submit_credentials.add_security_credential('Username', username_id):
                             logSupport.log.warning("Credential %s for the username is not safe for client %s, skipping request" % (username_id, client_int_name))
                             continue    
@@ -691,17 +692,16 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         continue
                     
                 else:
-                    # only method left allowed is factory
-                    if not ('factory' in auth_method):
-                        logSupport.log.warning("Factory has invalid authentication method. Skipping bad request.")
-                        continue #skip request
-                    
+                    logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry_name, client_int_name))
+                    continue
+                ''' 
+                elif auth_method == 'factory_grid_proxy':
                     # Check no crendentials were passed in the request 
                     if decrypted_params.has_key('x509SubmitProxy') or decrypted_params.has_key('GlideinProxy') or \
-                            decrypted_params.has_key('Publicx509Cert') or decrypted_params.has_key('Privatex509Cert') or \
+                            decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
                             decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey') or \
                             decrypted_params.has_key('Username') or decrypted_params.has_key('Password'):
-                        logSupport.log.warning("Client %s provided credentials but only factory credentials are allowed. Skipping bad request" % client_int_name)
+                        logSupport.log.warning("Client %s provided credentials but only factory proxy is allowed. Skipping bad request" % client_int_name)
                         continue #skip request
                     
                     # only support factory supplying one credential set (list of proxies not supported)
@@ -711,81 +711,23 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     if credential_username == None:
                         logSupport.log.warning("No mapping for security class %s for %s (secid: %s), skipping " % (credential_security_class, client_int_name, client_security_name))
                         continue # cannot map, frontend
-                    
-                    # Check factory has needed credentials
-                    if auth_method == 'factory_grid_proxy':     
-            
-                        if glideinDescript.has_key('FactoryProxy'):
-                            # KEL TODO - should the installer put the proxy into the correct location and we just verify it exists?
-                            # if glideinDescript has the filepath, then how does keepIdleGlideins and submitGlideins know the difference?
-                            proxy_id = glideinDescript['FactoryProxy']                         
-                            if not submit_credentials.add_security_credential('SubmitProxy', proxy_id):
-                                logSupport.log.warning("Could not find factory proxy %s for client %s, skipping request" % (proxy_id, client_int_name))
-                                continue   
-                             
-                        else: 
-                            # project id is required, cannot service request
-                            logSupport.log.warning("The Factory did not specify the submit proxy in the config, this is required by entry %s, skipping " %jobDescript.data['EntryName'])
-                            continue        
+                                
+                    if glideinDescript.has_key('FactoryProxy'):
+                        proxy_absfname = glideinDescript['FactoryProxy']    
+                        submit_credentials.id = os.path.split(proxy_absfname)[1]                    
+                        if not submit_credentials.add_factory_credential('SubmitProxy', proxy_absfname):
+                            logSupport.log.warning("Could not find factory proxy for client %s, skipping request" % client_int_name)
+                            continue                               
+                    else: 
+                        # project id is required, cannot service request
+                        logSupport.log.warning("The Factory did not specify the submit proxy in the config, this is required by entry %s, skipping " %jobDescript.data['EntryName'])
+                        continue        
                           
-                        # Check if voms_attr is required
-                        if 'voms_attr' in auth_method:
-                            # TODO determine how to verify voms attribute on a proxy
-                            pass                    
-                    
-                    elif auth_method == 'factory_x509_cert_pair':
-                        # Validate that the public/private cert pair was configured
-                        if glideinDescript.has_key('FactoryPublicx509Cert') and glideinDescript.has_key('FactoryPrivatex509Cert'):
-                            public_cert_id = glideinDescript['FactoryPublicx509Cert']
-                            if not submit_credentials.add_security_credential('Publicx509Cert', public_cert_id):
-                                logSupport.log.warning("Credential %s for the Factory provided public x509 certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
-                                continue    
-                            
-                            private_cert_id = glideinDescript['FactoryPrivatex509Cert']
-                            if not submit_credentials.add_security_credential('Privatex509Cert', private_cert_id):
-                                logSupport.log.warning("Credential %s for the Factory provided private x509 certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
-                                continue    
-                        else:
-                            # project id is required, cannot service request
-                            logSupport.log.warning("The Factory did not specify the x509 certificate pair in the config, this is required by entry %s, skipping " %jobDescript.data['EntryName'])
-                            continue
-                            
-                    elif auth_method == 'factory_key_pair':
-                        # Validate that the public/private key pair was configured
-                        if jobDescript.has_key('FactoryPublicKey') and jobDescript.has_key('FactoryPrivateKey'):
-                            public_key_id = jobDescript['FactoryPublicKey']
-                            if not submit_credentials.add_security_credential('PublicKey', public_key_id):
-                                logSupport.log.warning("Credential %s for the Factory provided public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
-                                continue    
-                            
-                            private_key_id = jobDescript['FactoryPrivateKey']
-                            if not submit_credentials.add_security_credential('PrivateKey', private_key_id):
-                                logSupport.log.warning("Credential %s for the Factory provided private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
-                                continue   
-                        else:
-                            # project id is required, cannot service request
-                            logSupport.log.warning("The Factory did not specify the key pair in the config, this is required by entry %s, skipping " % jobDescript.data['EntryName'])
-                            continue
-                            
-                    elif auth_method == 'factory_username_password':
-                        # Validate that the username and password were configured
-                        if jobDescript.has_key('FactoryUsername') and jobDescript.has_key('FactoryPassword'):
-                            username_id = jobDescript['FactoryUsername']
-                            if not submit_credentials.add_security_credential('Username', username_id):
-                                logSupport.log.warning("Credential %s for the Factory provided username is not safe for client %s, skipping request" % (username_id, client_int_name))
-                                continue    
-                        
-                            password_id = jobDescript['FactoryPassword']
-                            if not submit_credentials.add_security_credential('Password', password_id):
-                                logSupport.log.warning("Credential %s for the Factory provided password is not safe for client %s, skipping request" % (password_id, client_int_name))
-                                continue    
-                        else:
-                            # project id is required, cannot service request
-                            logSupport.log.warning("The Factory did not specify the username and password in the config, this is required by entry %s, skipping " %jobDescript.data['EntryName'])
-                            continue
-                        
-                    else:
-                        pass
+                    # Check if voms_attr is required
+                    if 'voms_attr' in auth_method:
+                        # TODO determine how to verify voms attribute on a proxy
+                        pass                    
+                ''' 
             
             # ========== end of v3+ proxy protocol ===============
             ##### END - CREDENTIAL HANDLING - END #####
@@ -1326,7 +1268,7 @@ class SubmitCredentials:
     
     def add_security_credential(self, cred_type, filename):
         """
-        Return the full path to the credential.
+        Adds a security credential.
         """
         if not is_str_safe(filename):
             return False 
@@ -1337,10 +1279,20 @@ class SubmitCredentials:
   
         self.security_credentials[cred_type] = cred_fname
         return True
+    
+    def add_factory_credential(self, cred_type, absfname):
+        """
+        Adds a factory provided security credential.
+        """
+        if not os.path.isfile(absfname):
+            return False 
+        
+        self.security_credentials[cred_type] = absfname
+        return True
         
     def add_identity_credential(self, cred_type, cred_str):
         """
-        Return the full path to the credential.
+        Adds an identity credential.
         """
         self.identity_credentials[cred_type] = cred_str
         return True
