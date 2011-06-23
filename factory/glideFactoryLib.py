@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.11 2011/06/22 20:18:01 klarson1 Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.12 2011/06/23 19:20:54 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -354,10 +354,10 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
 
 def update_credential_file(entry_name, username, client_id, proxy_data):
     """
-    Updates the credential file.  
-    
+    Updates the credential file.
+
     """
-    proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username) 
+    proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username)
     fname_short = 'credential_%s' % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 
@@ -468,18 +468,18 @@ def keepIdleGlideins(client_condorq, client_int_name,
                      params):
     """
     Looks at the status of the queue and determines how many glideins to submit.  Returns the number of newly submitted glideins.
-    
-    @type client_condorq: CondorQ 
+
+    @type client_condorq: CondorQ
     @param client_condorq: Condor queue filtered by security class
     @type client_int_name: string
     @param client_int_name: internal representation of the client name
-    @type in_downtime: boolean    
+    @type in_downtime: boolean
     @param in_downtime: is this entry in downtime
     @type remove_excess_wait: boolean
     @param remove_excess_wait: remove unsubmitted glideins
     @type remove_excess_idle: boolean
     @param remove_excess_idle: remove idle glideins
-    @type remove_excess_running: boolean 
+    @type remove_excess_running: boolean
     @param remove_excess_running: remove running glideins
     @type min_nr_idle: int
     @param min_nr_idle: min number of idle glideins needed
@@ -489,16 +489,16 @@ def keepIdleGlideins(client_condorq, client_int_name,
     @param max_held: max number of held glidiens allowed
     @type submit_credentials: SubmitCredentials
     @param submit_credentials: all the information needed to submit the glideins
-    @type client_web: glideFactoryLib.ClientWeb or glideFactoryLib.ClientWebNoGroup 
+    @type client_web: glideFactoryLib.ClientWeb or glideFactoryLib.ClientWebNoGroup
     @param client_web: client web values
     @type params: dict
     @param params: params from the entry configuration or frontend to be passed to the glideins
-    
+
     Can throw a condorExe.ExeError
     """
-    
-    global factoryConfig       
-    
+
+    global factoryConfig
+
     # filter out everything but the proper credential identifier
     condorq = condorMonitor.SubQuery(client_condorq, lambda d:(d[factoryConfig.credential_id_schedd_attribute] == submit_credentials.id))
     condorq.schedd_name = client_condorq.schedd_name
@@ -549,10 +549,10 @@ def keepIdleGlideins(client_condorq, client_int_name,
         if ((max_nr_running != None) and ((running_glideins + idle_glideins + add_glideins) > max_nr_running)):
             # never exceed max_nr_running
             add_glideins = max_nr_running - (running_glideins + idle_glideins)
-            
+
         try:
             #submitGlideins(condorq.entry_name, client_int_name, add_glideins,
-            #               submit_attrs, submit_credentials,      
+            #               submit_credentials,
             #               client_web, params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
@@ -1082,10 +1082,13 @@ def escapeParam(param_str):
 
 
 # submit N new glideins
-def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
-                   security_class, security_dict, client_web, # None means client did not pass one, backwards compatibility
+def submitGlideins(entry_name, client_name, nr_glideins,
+                   submit_credentials, client_web, # None means client did not pass one, backwards compatibility
                    params):
     global factoryConfig
+
+    # get the username
+    username = submit_credentials.username
 
     # Need information from glidein.descript, job.descript, and signatures.sha1
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
@@ -1100,13 +1103,7 @@ def submitGlideins(entry_name, username, client_name, nr_glideins, submit_attrs,
     if nr_glideins > factoryConfig.max_submits:
         nr_glideins = factoryConfig.max_submits
 
-    exe_env = get_submit_environment(entry_name,
-                                     username,
-                                     client_name,
-                                     security_class,
-                                     security_dict,
-                                     client_web,
-                                     params)
+    exe_env = get_submit_environment(entry_name, client_name, submit_credentials, client_web, params)
     try:
         nr_submitted = 0
         while (nr_submitted < nr_glideins):
@@ -1229,7 +1226,7 @@ def releaseGlideins(schedd_name, jid_list):
             break # limit reached, stop
     logSupport.log.info("Released %i glideins on %s: %s" % (len(released_jids), schedd_name, released_jids))
 
-def get_submit_environment(entry_name, username, client_name, security_class, security_dict, client_web, params):
+def get_submit_environment(entry_name, client_name, submit_credentials, client_web, params):
     # Need information from glidein.descript, job.descript, and signatures.sha1
     glideinDescript = glideFactoryConfig.GlideinDescript()
     jobDescript = glideFactoryConfig.JobDescript(entry_name)
@@ -1245,10 +1242,10 @@ def get_submit_environment(entry_name, username, client_name, security_class, se
         params_str += " -param_%s %s" % (k, params[k])
 
 
-    exe_env = ['X509_USER_PROXY=%s' % security_dict["x509Proxy"]]
+    exe_env = ['X509_USER_PROXY=%s' % submit_credentials.security_credentials["SubmitProxy"]]
     exe_env.append('GLIDEIN_ENTRY_NAME=%s' % entry_name)
     exe_env.append('GLIDEIN_CLIENT=%s' % client_name)
-    exe_env.append('GLIDEIN_SEC_CLASS=%s' % security_class)
+    exe_env.append('GLIDEIN_SEC_CLASS=%s' % submit_credentials.security_class)
 
     # Entry Params (job.descript)
     schedd = jobDescript.data["Schedd"]
@@ -1295,17 +1292,17 @@ def get_submit_environment(entry_name, username, client_name, security_class, se
     if grid_type == "ec2":
         exe_env.append('AMI_ID=%s' % params["AmiId"])
         exe_env.append('INSTANCE_TYPE=%s' % params["InstanceType"])
-        exe_env.append('ACCESS_KEY_FILE=%s' % security_dict["AccessKey"])
-        exe_env.append('SECRET_KEY_FILE=%s' % security_dict["SecretKey"])
+        exe_env.append('ACCESS_KEY_FILE=%s' % submit_credentials.security_credentials["PublicKey"])
+        exe_env.append('SECRET_KEY_FILE=%s' % submit_credentials.security_credentials["PrivateKey"])
 
         # get the proxy
-        full_path_to_proxy = security_dict["x509Proxy"]
+        full_path_to_proxy = submit_credentials.security_credentials["SubmitProxy"]
         proxy_file = os.path.basename(full_path_to_proxy)
         proxy_dir = os.path.dirname(full_path_to_proxy)
 
         cat_cmd = "/bin/cat"
         args = [cat_cmd, proxy_file]
-        proxy_contents = condorPrivsep.execute(username, proxy_dir, cat_cmd, args)
+        proxy_contents = condorPrivsep.execute(submit_credentials.username, proxy_dir, cat_cmd, args)
 
         ini_template = "[glidein_startup]\n" \
                         "args = %s\n" \
