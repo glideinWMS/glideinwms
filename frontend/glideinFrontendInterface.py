@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.7 2011/06/22 16:25:22 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.8 2011/06/23 15:53:11 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -293,7 +293,7 @@ class Credential:
             if self.type=="grid_proxy+voms_attr":
                 pass
             ### Read second file for private key / password file
-            if (self.type=="x509_cert_pair")or (self.type=="key_pair") or (self.type=="username_password"):
+            if (self.type=="cert_pair")or (self.type=="key_pair") or (self.type=="username_password"):
                 if proxy_keyfiles.has_key(proxy_fname):
                     self.key_fname=proxy_keyfiles[proxy_fname]
                     proxy_fd=open(self.key_fname,'r')
@@ -641,7 +641,7 @@ class MultiAdvertizeWork:
                         glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname);
                     if (credential_el.type.startswith("grid_proxy")):
                         glidein_params_to_encrypt['x509SubmitProxy']=credential_el.file_id(credential_el.filename);
-                    if (credential_el.type.startswith("x509_cert_pair")):
+                    if (credential_el.type.startswith("cert_pair")):
                         glidein_params_to_encrypt['PublicCert']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['PrivateCert']=credential_el.file_id(credential_el.key_fname);
                     if (credential_el.type.startswith("key_pair")):

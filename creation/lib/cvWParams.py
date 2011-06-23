@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParams.py,v 1.40.2.6.2.1 2011/06/14 18:43:25 dstrain Exp $
+#   $Id: cvWParams.py,v 1.40.2.6.2.2 2011/06/23 15:53:34 dstrain Exp $
 #
 # Description:
 #   This module contains the create_frontend params class
@@ -97,7 +97,7 @@ class VOFrontendParams(cWParams.CommonParams):
         proxy_defaults=cWParams.commentedOrderedDict()
         proxy_defaults["absfname"]=(None,"fname","x509 proxy file name (see also pool_count)",None)
         proxy_defaults["keyabsfname"]=(None,"fname","for key files, file name of the key pair",None)
-        proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,x509_cert_pair,key_pair,username_password",None)
+        proxy_defaults["type"]=("grid_proxy","proxy_type","Type of credential: grid_proxy,cert_pair,key_pair,username_password",None)
         proxy_defaults["trust_domain"]=("Grid","grid_type","Trust Domain",None)
         proxy_defaults["pool_count"]=(None,"count","If not None, there are count proxies involved. absfname must contain a printf modifier and the pool files will be from 1 to count",None)
         proxy_defaults["proxy_refresh_script"]=(None,"fname","If not None, the script will be called every time before using a proxy",None)
