@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.5 2011/05/31 21:56:23 tiradani Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.6 2011/06/24 21:26:26 klarson1 Exp $
 #
 
 import string
@@ -72,6 +72,12 @@ class ConfigFile:
 
     def has_key(self, key_name):
         return self.data.has_key(key_name)
+    
+    def __str__(self):
+        output = '\n'
+        for key in self.data.keys():
+            output += '%s = %s, (%s)\n' % (key, str(self.data[key]), type(self.data[key]))
+        return output
 
 # load from the entry subdir
 class EntryConfigFile(ConfigFile):
