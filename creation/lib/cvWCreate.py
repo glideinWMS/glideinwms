@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: cvWCreate.py,v 1.11 2011/02/10 21:35:30 parag Exp $
+#   $Id: cvWCreate.py,v 1.12 2011/06/24 15:08:29 parag Exp $
 #
 # Description:
 #   Functions needed to create files used by the VO Frontend
@@ -288,6 +288,8 @@ def filter_unwanted_config_attrs(attrs):
     unwanted_attrs.append('TOOL.GSI_DAEMON_NAME')
 
     unwanted_attrs.append('LOCAL_CONFIG_FILE')
+    unwanted_attrs.append('LOCAL_CONFIG_DIR')
+
     unwanted_attrs.append('GRIDMAP')
     unwanted_attrs.append('GSI_DAEMON_NAME')
 
