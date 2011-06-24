@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.8 2011/06/23 15:53:11 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.9 2011/06/24 15:24:58 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -543,11 +543,15 @@ class MultiAdvertizeWork:
                     cred_data=data_fd.read()
                     data_fd.close()
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.filename)]=cred_data
+                    if (hasattr(cred_el,'security_class')):
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.filename)]=cred_el.security_class
                 if (hasattr(cred_el,'key_fname')):
                     data_fd=open(cred_el.key_fname)
                     cred_data=data_fd.read()
                     data_fd.close()
                     glidein_params_to_encrypt[cred_el.file_id(cred_el.key_fname)]=cred_data
+                    if (hasattr(cred_el,'security_class')):
+                        glidein_params_to_encrypt["SecurityClass"+cred_el.file_id(cred_el.key_fname)]=cred_el.security_class
             if (factory_pool in self.global_key):
                 key_obj=self.global_key[factory_pool]
             if key_obj!=None:
