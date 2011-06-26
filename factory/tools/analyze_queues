@@ -268,10 +268,12 @@ Status Attributes analysis for %s - %s
 
          for entry, elements in entries.iteritems():
             entry_data[period][frontend][entry] = {}
-            entry_data_all_frontends[period][entry] = {}
+            if entry not in entry_data_all_frontends[period]:
+               entry_data_all_frontends[period][entry] = {}
+               for a in attributes.keys(): entry_data_all_frontends[period][entry][a]=0 
+
             for a in attributes.keys(): 
                entry_data[period][frontend][entry][a]=0
-               entry_data_all_frontends[period][entry][a]=0
 
             for a in attributes.keys():
                entry_data[period][frontend][entry][a] += elements[a]  
