@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: factoryStatus.html,v 1.13.8.6 2011/06/10 19:23:45 sfiligoi Exp $
+  $Id: factoryStatus.html,v 1.13.8.7 2011/06/26 23:12:16 sfiligoi Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -55,7 +55,7 @@ Description:
      <tr>
        <th>Entry</th>
        <td valing="middle">
-         <select id="entries" onchange="setOptions(document.getElementById('entries').options[document.getElementById('entries').selectedIndex].value);">
+         <select id="entries" onchange="setFrontendMenu(document.getElementById('entries').options[document.getElementById('entries').selectedIndex].value);">
 	  <option value="total">total</option>
 	 </select>
        </td>
@@ -77,7 +77,12 @@ Description:
        </form></td>
      </tr>
      <tr>
-      <td colspan=2><button onClick="fname_update()">Update</button><button onClick="showLink()" style="float:right">Link</button></td>
+       <td colspan=2>
+         <button onClick="nonlink_update()">Update</button>
+         <button onClick="defaults()" style="float:right">Defaults</button>
+         <button onClick="unlink()" style="float:right">Unlink</button>
+         <button onClick="showLink()" style="float:right">Link</button>
+       </td>
      </tr>
     </table>
 
@@ -100,11 +105,21 @@ Description:
 	
 
 
-	  var infoGroupOptions = new Array("running", "idle", "other");
-	  var entriesTable;   
-	  var gtype_format;
-	  var ENTRY; 
-	  
+      var infoGroupOptions = new Array("running", "idle", "other");
+      var entriesTable;   
+      var gtype_format;
+      var ENTRY; 
+      var graph_info;
+      var specified_rra = 0;
+      var local_checked_DSs = [];
+      var link_checked_DSs = [];
+      var coming_from_link = true;
+      var windows = true;
+      var local_window_min=0;
+      var local_window_max=0;
+      var coming_from_defaults = false;
+      var timezone_num=0;
+
       // Remove the Javascript warning
       document.getElementById("infotable").deleteRow(0);
       // Load the status of the factory
@@ -162,7 +177,7 @@ Description:
       rrd_group_data=[];
 	  checkUrl(); 
 
-      function setOptions(entry) {
+      function setFrontendMenu(entry) {
         var fes = document.getElementById("frontends");
         //Remove frontends from previous entry choices, add back 'total'
         // and this entry's frontends. 
@@ -184,6 +199,22 @@ Description:
           return gname;
       }
 
+      //RRA Filter - leaves it alone.
+      function RRADoNothing(rra_idx) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return null;}
+      }
+      
+      /* RRA Filter - Creates a new RRA with a different step size (in seconds) 
+      / based on another RRA, whose data the new RRA averages. 
+      / rra_idx should be index of RRA with largest step size that doesn't exceed new step size.
+      */
+      function RRA_Avg(rra_idx,new_step_in_seconds) {
+         this.getIdx = function() {return rra_idx;}
+         this.getStep = function() {return new_step_in_seconds;}
+      }
+
+//---------------------------------------------------------------------------------------
 
       // This function updates the Web Page with the data from the RRD archive header
       // when a new file is selected
@@ -220,6 +251,62 @@ Description:
                                 'StatusIdleOther':{title: 'Glidein jobs in unknown state', label:'Unknown', color: "#ff00ff"},
                                 'StatusIdle':{title: 'Total idle glidein jobs', label:'Idle', color: "#0000ff"}};
 
+ /////////////////////////////////////////////////////////////////////////////////
+        
+        //check previously defined checked DSs, if any match this new gtype, then preserve them
+        //also preserve rra and window selection across info group updates
+        graph_info = getGraphInfo();
+
+        //preserve window selection
+        if(!coming_from_link) { //get from graph
+           windows = true;
+           local_window_max = graph_info['window_max'];
+           local_window_min = graph_info['window_min'];
+        } //if coming from link, use link params (which are already set)
+
+        if(coming_from_defaults) {
+           windows=false;
+        }
+
+        //preserve rra
+        if(specified_rra==null || coming_from_defaults) {specified_rra=0;}
+        else if (!coming_from_link) {specified_rra = graph_info["rra"];}
+        
+        local_checked_DSs = [];
+        //preserve same-named elements
+        var elem, link_elem, trunc1, trunc2;
+        for(var a in graph_info["dss"]) {
+           for(var b in gtype_formats[gtype_id]) {
+              elem = b;              
+              link_elem = graph_info["dss"][a];
+              //truncate names, only compare ends like "500m" to preserve checks across
+              //groups with same-named elements, like "Lasted_500m" and "JobsLasted_500m". 
+              var trunc1 = elem.split("_");
+              var trunc2 = link_elem.split("_");
+              if(elem=="Average") {if (link_elem=="Average") {local_checked_DSs.push(elem);}}
+              else if(elem=="WeightedSum") {if (link_elem=="WeightedSum") {local_checked_DSs.push(elem);}}
+              else {
+                 //for aggregated names, like Wallclock_time_per_glidien, disregard this truncation
+                 if(trunc2.length>2) {if (elem==link_elem) {local_checked_DSs.push(elem);}}
+                 else if(trunc1[1]!=null && trunc1[1]==trunc2[1]) {
+                    local_checked_DSs.push(elem);
+                 }
+              }
+           } 
+        } 
+        //if coming from link, used DS elements provided in link
+        //else, use preserved elements across link
+        if(!coming_from_link) {
+           checklist = local_checked_DSs;
+        }
+        else { //if coming from link
+           checklist = link_checked_DSs;
+        }   
+
+        if (local_window_max==0 && local_window_min==0) {windows=false;}
+
+ /////////////////////////////////////////////////////////////////////////////////
+	  
         var rrd_data1 = undefined;
         if (rrd_group_data.length == 0) {
             rrd_data1=new RRDFilterDS(rrd_data,gtype_DSs[gtype_id]);
@@ -227,7 +314,20 @@ Description:
             var rrd_data_sum = new RRDFileSum(rrd_group_data, false);
             rrd_data1=new RRDFilterDS(rrd_data_sum,gtype_DSs[gtype_id]);
         }
-        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id]);
+  
+        //Add RRA filters for longer averaged-out RRAs
+        var rra_op_list = [];
+        for(var i=0; i<rrd_data1.getNrRRAs();i++) {
+           if(i==2) {rra_op_list.push(new RRA_Avg(1,14400));} //4 hours, based on rra at idx 1 (added here for ordering)
+           rra_op_list.push(new RRADoNothing(i));
+        }
+        rra_op_list.push(new RRA_Avg(2,86400)); //24 hours - base off rra at index 2
+        rra_op_list.push(new RRA_Avg(2,604800)); //1 week
+
+        rrd_data1 = new RRDRRAFilterAvg(rrd_data1,rra_op_list); //Adds 2 extra RRAs (averaged)
+
+        var f=new rrdFlot("mygraph",rrd_data1,null,gtype_formats[gtype_id],{timezone: timezone_num, use_checked_DSs: true, checked_DSs: checklist, use_rra:true, rra:specified_rra, use_windows: windows, window_min:local_window_min, window_max: local_window_max, use_element_buttons: false });
+
 
         // Finally, update the files loaded so far
         files_loaded = files_loaded + 1;
@@ -238,6 +338,9 @@ Description:
         else {
             document.getElementById("fname").firstChild.data="Loaded files " + files_loaded + "/" + total_file_to_load + ": " + fname;
         }
+
+
+        coming_from_defaults = false;
       }
 	
       // This is the callback function that,
@@ -279,6 +382,10 @@ Description:
           }
       }
 
+      function nonlink_update() {
+         coming_from_link = false; 
+         fname_update();
+      }
 
       // this function is invoked when the RRD file name changes
       function fname_update() {
@@ -350,16 +457,19 @@ Description:
 	function checkUrl()
 	{
 		var url = window.location.search;
-		parameterArry = new Array("entry","frontend","infoGroup"); 
+                parameterArry = new Array("entry", "frontend", "infoGroup","elements","rra","window_min","window_max","timezone"); 
 		groups = new Array("CMST1", "CMS", "CMST2", "US", "CMST3", "HCC");
 		group = 0;  
 		var entrySpec; 
 		var infoGroupSpec;
+                link_checked_DSs=[];
+                specified_rra = 0;
 		urlValid = 0; 
 		paramSpecArry = new Array(); 
 		if(url)
 		{
 			url = url.substring(1);
+
 			urlSplit = url.split('&'); 
 			i = 0; 
 			while(i < urlSplit.length)
@@ -388,7 +498,7 @@ Description:
 							if(entry == groups[j])
 							{
 								document.getElementById("entries").selectedIndex = counter + 1; 
-                                                                setOptions(entry);
+                                                                setFrontendMenu(entry);
 								group = 1;
 								break;  
 							}	
@@ -396,7 +506,7 @@ Description:
 						if(!group)
 						{
 							document.getElementById("entries").selectedIndex = counter; 
-                                                        setOptions(entry);
+                                                        setFrontendMenu(entry);
                                                         var frontend = paramSpecArry[1];
                                                         var fe_list = document.getElementById("frontends").childNodes; 
                                                         var fe_idx=0;
@@ -412,7 +522,7 @@ Description:
 					{
 						urlValid = 1; 
 						document.getElementById("entries").selectedIndex = 0; 
-                                                setOptions(entry);
+                                                setFrontendMenu(entry);
 						break;  	
 					}
 					counter++; 
@@ -421,9 +531,9 @@ Description:
 			else if(i == 2)
 			{
 				child = 1; 
-				for(i = 0; i< infoGroupOptions.length; i++)
+				for(var k = 0; k< infoGroupOptions.length; k++)
 				{
-					if(infoGroupOptions[i] == paramSpecArry[2])
+					if(infoGroupOptions[k] == paramSpecArry[2])
 					{
 						document.getElementById("gtypes").childNodes[child].checked = true;
 						urlValid = 1; 
@@ -431,6 +541,16 @@ Description:
 					child+=2;	
 				}
 			}
+                        else if(i==3) {
+                           var elems = paramSpecArry[i].split(",");
+                           for(var j=0;j<elems.length;j++){
+                              link_checked_DSs.push(elems[j]);
+                           } 
+                        }
+                        else if(i==4) {specified_rra = paramSpecArry[i];}
+                        else if(i==5) {local_window_min = paramSpecArry[i];}
+                        else if(i==6) {local_window_max = paramSpecArry[i];}
+                        else if(i==7) {timezone_num = paramSpecArry[i];}
 		}
 		if(urlValid)
 		{
@@ -446,6 +566,17 @@ Description:
 		var specifiedEntry;
 		var specifiedFrontend; 
 		var specifiedGOption; 
+                var specified_win_max; 
+                var specified_win_min; 
+
+                //Graph data from rrdFlot.js
+                graph_info = getGraphInfo();
+                var local_checked_DSs_input= graph_info["dss"];
+                specified_rra = graph_info["rra"];
+                var specified_timezone = graph_info["timezone"];
+                specified_win_min = graph_info["window_min"];
+                specified_win_max = graph_info["window_max"];
+
 		/* Find the current entry specified. */
 		for(i = 0; i < entriesTable.options.length; i++)
 		{
@@ -473,9 +604,28 @@ Description:
 			}
 			j++; 	
 		}
-		constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption; 
+                var elem_string = "";
+                for(var i=0;i<local_checked_DSs_input.length;i++) {
+                   elem_string += local_checked_DSs_input[i]+",";
+                }
+                constructed = constructed[0]+"?entry="+specifiedEntry+"&frontend="+specifiedFrontend+"&infoGroup="+specifiedGOption+"&elements="+elem_string+"&rra="+specified_rra+"&window_min="+specified_win_min+"&window_max="+specified_win_max+"&timezone="+specified_timezone; 
+
 		document.location.href = constructed; 
 	}
+
+        function unlink() {
+           document.location.href= document.URL.split('?')[0];
+        }
+   
+        function defaults() {
+           local_checked_DSs = [];
+           link_checked_DSs = [];
+           specified_rra = null;
+           coming_from_defaults = true;
+           resetWindow();
+           update_plot();
+        }
+
 	/* Function to handle changing Glidein tools. */
 	function goToDestination(option)
 	{
