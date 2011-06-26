@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.12 2011/05/26 23:12:39 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.13 2011/06/26 22:39:02 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -649,6 +649,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     unmatched_idle=condorq_dict_types['Idle']['count'][(None,None,None)]
     unmatched_oldidle=condorq_dict_types['OldIdle']['count'][(None,None,None)]
     unmatched_running=condorq_dict_types['Running']['count'][(None,None,None)]
+
+    stats['group'].logMatchedJobs(
+        'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
+        unmatched_running, 0)
+    
+    stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
+    stats['group'].logFactAttrs('Unmatched', [], (,)) # just for completeness
+    stats['group'].logFactDown('Unmatched', True)
+
     this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
                     0,0,0, # glideins... none, since no matching
                     0,0)   # requested... none, since not matching
