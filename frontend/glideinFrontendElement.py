@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.28 2011/06/16 19:08:29 parag Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.29 2011/06/26 22:40:20 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -490,6 +490,10 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         if effective_idle<0:
             effective_idle=0
 
+        effective_oldidle=prop_jobs['OldIdle']-count_status['Idle']
+        if effective_oldidle<0:
+            effective_oldidle=0
+
         if count_status['Total']>=max_running:
             # have all the running jobs I wanted
             glidein_min_idle=0
@@ -502,7 +506,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         elif (effective_idle>0):
             glidein_min_idle = effective_idle
             glidein_min_idle=glidein_min_idle/3 # since it takes a few cycles to stabilize, ask for only one third
-            glidein_idle_reserve=prop_jobs['OldIdle']/3 # do not reserve any more than the number of old idles for reserve (/3)
+            glidein_idle_reserve=effective_oldidle/3 # do not reserve any more than the number of old idles for reserve (/3)
             if glidein_idle_reserve>reserve_idle:
                 glidein_idle_reserve=reserve_idle
 
@@ -680,6 +684,15 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     unmatched_idle=condorq_dict_types['Idle']['count'][(None,None,None)]
     unmatched_oldidle=condorq_dict_types['OldIdle']['count'][(None,None,None)]
     unmatched_running=condorq_dict_types['Running']['count'][(None,None,None)]
+
+    stats['group'].logMatchedJobs(
+        'Unmatched', unmatched_idle, unmatched_idle, unmatched_oldidle,
+        unmatched_running, 0)
+    
+    stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
+    stats['group'].logFactAttrs('Unmatched', [], (,)) # just for completeness
+    stats['group'].logFactDown('Unmatched', True)
+
     this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
                     0,0,0, # glideins... none, since no matching
                     0,0)   # requested... none, since not matching

@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitoring.py,v 1.8.8.4 2011/01/26 19:25:24 parag Exp $
+#   $Id: glideinFrontendMonitoring.py,v 1.8.8.5 2011/06/26 22:40:21 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -17,7 +17,6 @@ import os,os.path
 import re,time,copy,string,math,random,fcntl
 import xmlFormat,timeConversion
 import rrdSupport
-
 ############################################################
 #
 # Configuration
@@ -273,7 +272,7 @@ class groupStats:
 
     def write_file(self):
         global monitoringConfig
-
+ 
         if (self.files_updated!=None) and ((self.updated-self.files_updated)<5):
             # files updated recently, no need to redo it
             return 
@@ -289,21 +288,41 @@ class groupStats:
 
         monitoringConfig.write_file("frontend_status.xml",xml_str)
 
-        total_el = self.get_total()
         # update RRDs
+        total_el = self.get_total()
+        self.write_one_rrd("total",total_el)
+
+        data = self.get_data()
+        for fact in data.keys():
+            self.write_one_rrd("factory_%s"%sanitize(fact),data[fact],1)
+
+        self.files_updated=self.updated        
+        return
+
+    ###############################
+    # PRIVATE - Used by write_file
+    # Write one RRD
+    def write_one_rrd(self,name,data,fact=0):
+        global monitoringConfig
+
         val_dict={}
-        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+        if fact==0:
+            type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                 'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+        else:
+            type_strings={'MatchedJobs':'MatchJob',
                       'MatchedGlideins':'MatchGlidein','Requested':'Req'}
 
-        #init, so tha all get created properly
+        #init, so that all get created properly
         for tp in self.attributes.keys():
-            tp_str=type_strings[tp]
-            attributes_tp=self.attributes[tp]
-            for a in attributes_tp:
-                val_dict["%s%s"%(tp_str,a)]=None
+            if tp in type_strings.keys():
+                tp_str=type_strings[tp]
+                attributes_tp=self.attributes[tp]
+                for a in attributes_tp:
+                    val_dict["%s%s"%(tp_str,a)]=None
             
         
-        for tp in total_el:
+        for tp in data:
             # type - Jobs,Slots
             if not (tp in self.attributes.keys()):
                 continue
@@ -312,20 +331,17 @@ class groupStats:
 
             attributes_tp=self.attributes[tp]
                 
-            fe_el_tp=total_el[tp]
+            fe_el_tp=data[tp]
             for a in fe_el_tp.keys():
                 if a in attributes_tp:
                     a_el=fe_el_tp[a]
                     if type(a_el)!=type({}): # ignore subdictionaries
                         val_dict["%s%s"%(tp_str,a)]=a_el
 
-        monitoringConfig.establish_dir("total")
-        monitoringConfig.write_rrd_multi("total/Status_Attributes",
+        monitoringConfig.establish_dir("%s"%name)
+        monitoringConfig.write_rrd_multi("%s/Status_Attributes"%name,
                                          "GAUGE",self.updated,val_dict)
-
-        self.files_updated=self.updated        
-        return
-
+   
 ########################################################################
     
 class factoryStats:
@@ -589,6 +605,17 @@ def tmp2final(fname):
       print "Failed renaming %s.tmp into %s"%(fname,fname)
     return
 
+
+##################################################
+def sanitize(name):
+    good_chars=string.ascii_letters+string.digits+".-"
+    outarr=[]
+    for i in range(len(name)):
+        if name[i] in good_chars:
+            outarr.append(name[i])
+        else:
+            outarr.append("_")
+    return string.join(outarr,"")
 
 ##################################################
 
