@@ -16,6 +16,8 @@ vNext	Frontend published glideresource classad to the pool collector. This
 	Use DAEMON_SHUTDOWN to shutdown glidein daemons
 	Allow factory to specify if an entry point (CE) requires voms proxies 
 	  only for pilot and user jobs
+        Documentation added:
+          - Secondary WMS/User Collector documentation added to Advanced Condor Configuration
 
 v2_5_1	Factory now can remove excessive glideins
 	  New ClassAd attribute - RemoveExcess
