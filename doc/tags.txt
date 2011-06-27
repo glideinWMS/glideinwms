@@ -9,7 +9,7 @@ vNext	Frontend published glideresource classad to the pool collector. This
 	Bug fix frontend: Do not double count glideins when using multiple groups.
 	Bug fix frontend: Respect per-entry running limits.
 	Bug fix factory: The factory was not properly checking the security classes and setting downtimes.
-	Major improvements in the factory monitoring.
+	Major improvements in the factory and frontend monitoring.
 	  Now requires javascriptRRD 0.6.0+.
 	Added tools for comparing the Factory configuration file with what is published in information systems.
 	Limit the max number of glideins per frontend
