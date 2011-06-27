@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.35 2011/06/16 19:08:29 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.36 2011/06/27 16:21:06 sfiligoi Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -267,6 +267,32 @@ def schedd_node_install():
         finally:
             config_fd.close()
 
+    # Don't even ask... nobody uses 6.8.X anymore
+    #if not QUILL_CONFIG_DONE:
+    #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
+    #    if yn=='y':
+    #        setup_quill()
+
+    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
+    try:
+        config_fd.write('\n#####################################\n')
+        config_fd.write('# Enable Job/glidein information \n')
+        config_fd.write('#####################################\n')
+        config_fd.write('JOB_Site = "$$(GLIDEIN_Site:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Name = "$$(GLIDEIN_Name:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Factory = "$$(GLIDEIN_Factory:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Schedd = "$$(GLIDEIN_Schedd:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_ClusterId = "$$(GLIDEIN_ClusterId:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_ProcId = "$$(GLIDEIN_ProcId:Unknown)"\n')
+        config_fd.write('JOB_GLIDEIN_Site = "$$(GLIDEIN_Site:Unknown)"\n')
+        config_fd.write('SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site\n')
+    finally:
+        config_fd.close()
+
+    if not MAIN_SCHEDD_INSTALLED:
+        setup_main_schedd()
+
     # USE SHARED PORT
     print
     print "Condor 7.5.3 and up support the use of a shared_port_daemon"
@@ -310,32 +336,6 @@ def schedd_node_install():
             config_fd.write("DAEMON_LIST = $(DAEMON_LIST) SHARED_PORT\n")
         finally:
             config_fd.close()
-
-    # Don't even ask... nobody uses 6.8.X anymore
-    #if not QUILL_CONFIG_DONE:
-    #    yn=raw_input("Do you want to Use Quill (works for 6.8.X only)?: (y/n) [n]")
-    #    if yn=='y':
-    #        setup_quill()
-
-    config_fd=open(CONDOR_UPD_CONFIG_FILE,"a")
-    try:
-        config_fd.write('\n#####################################\n')
-        config_fd.write('# Enable Job/glidein information \n')
-        config_fd.write('#####################################\n')
-        config_fd.write('JOB_Site = "$$(GLIDEIN_Site:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_Entry_Name = "$$(GLIDEIN_Entry_Name:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_Name = "$$(GLIDEIN_Name:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_Factory = "$$(GLIDEIN_Factory:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_Schedd = "$$(GLIDEIN_Schedd:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_ClusterId = "$$(GLIDEIN_ClusterId:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_ProcId = "$$(GLIDEIN_ProcId:Unknown)"\n')
-        config_fd.write('JOB_GLIDEIN_Site = "$$(GLIDEIN_Site:Unknown)"\n')
-        config_fd.write('SUBMIT_EXPRS = $(SUBMIT_EXPRS) JOB_Site JOB_GLIDEIN_Entry_Name JOB_GLIDEIN_Name JOB_GLIDEIN_Factory JOB_GLIDEIN_Schedd JOB_GLIDEIN_Schedd JOB_GLIDEIN_ClusterId JOB_GLIDEIN_ProcId JOB_GLIDEIN_Site\n')
-    finally:
-        config_fd.close()
-
-    if not MAIN_SCHEDD_INSTALLED:
-        setup_main_schedd()
 
     ###################################
     # configure the GCB routing tables
