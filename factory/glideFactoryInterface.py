@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.9 2011/06/27 18:37:20 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.10 2011/06/27 18:51:17 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -278,6 +278,7 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
             if 'grid_proxy' in auth_method:
                 fd.write('GlideinAllowx509_Proxy = %s\n' % True)
                 fd.write('GlideinRequirex509_Proxy = %s\n' % True)
+                fd.write('GlideinRequireGlideinProxy = %s\n' % False)
             else:
                 fd.write('GlideinAllowx509_Proxy = %s\n' % False)
                 fd.write('GlideinRequirex509_Proxy = %s\n' % False)
