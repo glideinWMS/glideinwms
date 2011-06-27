@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.8 2011/06/22 20:18:01 klarson1 Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.9 2011/06/27 18:37:20 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -270,8 +270,6 @@ def advertizeGlidein(factory_name, glidein_name, entry_name, trust_domain, auth_
             fd.write('FactoryName = "%s"\n' % factory_name)
             fd.write('GlideinName = "%s"\n' % glidein_name)
             fd.write('EntryName = "%s"\n' % entry_name)
-            fd.write('GlideinTrustDomain = "%s"\n' % trust_domain)
-            fd.write('GlideinSupportedAuthenticationMethod = "%s"\n' % auth_method)
             fd.write('%s = "%s"\n' % (factoryConfig.factory_signtype_id, string.join(supported_signtypes, ',')))
             if pub_key_obj != None:
                 fd.write('PubKeyID = "%s"\n' % pub_key_obj.get_pub_key_id())

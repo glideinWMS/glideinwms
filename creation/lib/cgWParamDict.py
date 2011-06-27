@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cgWParamDict.py,v 1.123.2.14.4.5 2011/06/16 18:19:13 klarson1 Exp $
+#   $Id: cgWParamDict.py,v 1.123.2.14.4.6 2011/06/27 18:37:20 klarson1 Exp $
 #
 # Description:
 #   Glidein creation module
@@ -290,6 +290,8 @@ class glideinEntryDicts(cgWDictFile.glideinEntryDicts):
         for dtype in ('attrs','consts'):
             self.dicts[dtype].add("GLIDEIN_Gatekeeper",sub_params.gatekeeper,allow_overwrite=True)
             self.dicts[dtype].add("GLIDEIN_GridType",sub_params.gridtype,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_TrustDomain",sub_params.trust_domain,allow_overwrite=True)
+            self.dicts[dtype].add("GLIDEIN_SupportedAuthenticationMethod",sub_params.auth_method,allow_overwrite=True)
             if sub_params.rsl!=None:
                 self.dicts[dtype].add('GLIDEIN_GlobusRSL',sub_params.rsl,allow_overwrite=True)
 
@@ -587,6 +589,10 @@ def populate_job_descript(work_dir, job_descript_dict,
     job_descript_dict.add('Gatekeeper', sub_params.gatekeeper)
     job_descript_dict.add('AuthMethod', sub_params.auth_method)
     job_descript_dict.add('TrustDomain', sub_params.trust_domain)
+    if sub_params.vm_id != None:
+        job_descript_dict.add('EntryVMId', sub_params.vm_id)
+    if sub_params.vm_type != None:
+        job_descript_dict.add('EntryVMType', sub_params.vm_type)
     if sub_params.rsl != None:
         job_descript_dict.add('GlobusRSL', sub_params.rsl)
     job_descript_dict.add('Schedd', sub_params.schedd_name)

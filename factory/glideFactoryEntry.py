@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.28 2011/06/24 16:30:22 burt Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.29 2011/06/27 18:37:20 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -577,11 +577,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             
             # Validate authentication/authorization according to auth methods listed 
             # Grid sites do not require VM id or type.  All have proxy in their auth method
-            if 'grid_proxy' in auth_method:
-                            
+            if 'grid_proxy' in auth_method:                            
                 # Get proxy id and make safe to write files
-                if decrypted_params.has_key('x509SubmitProxy'):
-                    
+                if decrypted_params.has_key('x509SubmitProxy'):                    
                     # Determine identifier for file name and add to credentials to be passed to submit
                     proxy_id = decrypted_params['x509SubmitProxy']
                     if not submit_credentials.add_security_credential('SubmitProxy', proxy_id):
@@ -594,8 +592,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     # Check if voms_attr is required
                     if 'voms_attr' in auth_method:
                         # TODO determine how to verify voms attribute on a proxy
-                        pass   
-                                
+                        pass                                   
                 else:
                     logSupport.log.warning("Client %s did not provide the required submit proxy, skipping request" % client_int_name)
                     continue #skip proxy
@@ -622,8 +619,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         continue  
                 else:
                     # Validate factory provided vm id exists
-                    if jobDescript.has_key('EntryVMId'): 
-                        submit_credentials.add_identity_credential('VMId', jobDescript['EntryVMId'])
+                    if jobDescript.data.has_key('EntryVMId'): 
+                        submit_credentials.add_identity_credential('VMId', jobDescript.data['EntryVMId'])
                     else:
                         logSupport.log.info("Entry does not specify a VM Id, this is required by entry %s, skipping "% jobDescript.data['EntryName'])
                         continue  
@@ -637,8 +634,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         continue
                 else:
                     # Validate factory provided vm type exists
-                    if jobDescript.has_key('EntryVMType'): 
-                        submit_credentials.add_identity_credential('VMType', jobDescript['EntryVMType'])
+                    if jobDescript.data.has_key('EntryVMType'): 
+                        submit_credentials.add_identity_credential('VMType', jobDescript.data['EntryVMType'])
                     else:
                         logSupport.log.info("Entry does not specify a VM Type, this is required by entry %s, skipping "% jobDescript.data['EntryName'])
                         continue
