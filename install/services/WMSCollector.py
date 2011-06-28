@@ -16,7 +16,9 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-wmscollector_options = [ "hostname", 
+wmscollector_options = [ 
+"install_type",
+"hostname", 
 "username", 
 "service_name", 
 "condor_location", 
@@ -29,7 +31,6 @@ wmscollector_options = [ "hostname",
 "x509_gsi_dn", 
 "condor_tarball", 
 "condor_admin_email", 
-"split_condor_config", 
 "number_of_schedds",
 "glideinwms_location",
 "install_vdt_client",
@@ -50,9 +51,12 @@ usercollector_options = [ "hostname",
 "number_of_secondary_collectors",
 ]
 
+submit_options = []
+
 valid_options = { "WMSCollector"  : wmscollector_options,
                   "Factory"       : factory_options,
                   "UserCollector" : usercollector_options,
+                  "Submit"        : submit_options,
                   "VOFrontend"    : frontend_options,
 }
 
@@ -61,13 +65,13 @@ valid_options = { "WMSCollector"  : wmscollector_options,
 
 class WMSCollector(Condor):
 
-  def __init__(self,inifile,options=None):
+  def __init__(self,inifile,optionsDict=None):
     global valid_options
     self.inifile = inifile
     self.ini_section = "WMSCollector"
-    if options == None:
-      options = valid_options[self.ini_section]
-    Condor.__init__(self,self.inifile,self.ini_section,options)
+    if optionsDict != None:
+      valid_options = optionsDict
+    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     #self.certificates = self.option_value(self.ini_section,"certificates")
     #self.certificates = None
     self.schedd_name_suffix = "glideins"
@@ -81,15 +85,15 @@ class WMSCollector(Condor):
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
     if self.factory == None:
-      self.factory = Factory.Factory(self.inifile,valid_options["Factory"])
+      self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options["UserCollector"])
+      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
   #--------------------------------
   def get_privsep(self):
     if self.privilege_separation() == "y":
@@ -115,51 +119,64 @@ class WMSCollector(Condor):
   def install(self):
     self.get_factory()
     self.get_frontend()
+    self.get_privsep()
     common.logit("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
+    self.validate()
+    self.__install_condor__()
+    self.configure()
+    common.logit("======== %s install complete ==========" % self.ini_section)
+    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+
+  #-----------------------------
+  def validate(self):
+    self.get_factory()
+    self.get_frontend()
     self.get_privsep()
     self.verify_no_conflicts()
     ##  self.validate_install_location()
     self.install_vdtclient()
     self.install_certificates()
     self.validate_condor_install()
-    self.install_condor()
-    self.configure_condor()
-    if self.privsep <> None:
-      self.privsep.update()
-    common.logit("======== %s install complete ==========" % self.ini_section)
-    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+    
+  #-----------------------------
+  def configure(self):
+    self.validate()
+    common.logit("Configuring Condor")
+    self.get_condor_config_data()
+    self.__create_condor_mapfile__(self.condor_mapfile_users())
+    self.__create_condor_config__()
+    self.__create_initd_script__()
+    common.logit("Configuration complete")
 
   #-----------------------------
   def validate_install_location(self):
     common.validate_install_location(self.condor_location())
 
-  #-----------------------------
-  def condor_config_privsep_data(self):
-    data = ""
-    if self.privsep <> None:
-      data =  self.privsep.condor_config_data()
-    return data
+  #--------------------------------
+  def condor_mapfile_users(self):
+    users = []
+    users.append([self.frontend.service_name(),self.frontend.x509_gsi_dn(),self.frontend.service_name()])
+    users.append(["WMS Collector",self.x509_gsi_dn(), self.username()])
+    return users
 
   #--------------------------------
-  def configure_gsi_security(self):
-    common.logit("\nConfiguring GSI security")
-    condor_entries = ""
-    #-- frontends ---
-    condor_entries += common.mapfile_entry(self.frontend.x509_gsi_dn(), self.frontend.service_name())
-    #--- wms entry ---
-    condor_entries += common.mapfile_entry(self.x509_gsi_dn(), self.username())
-    self.__create_condor_mapfile__(condor_entries) 
+  def condor_config_daemon_users(self):
+    users = []
+    users.append(["VOFrontend",self.frontend.x509_gsi_dn(),self.frontend.service_name()])
+    users.append(["WMSCollector",self.x509_gsi_dn(), self.username()])
+    return users
 
-    #-- update the condor config file entries ---
-    gsi_daemon_entries = """\
-# --- WMS collector user: %s ---
-GSI_DAEMON_NAME=%s
-# --- VOFrontend user: %s ---
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % (       self.username(),        self.x509_gsi_dn(),
-     self.frontend.service_name(),     self.frontend.x509_gsi_dn())
-    self.__update_gsi_daemon_names__(gsi_daemon_entries) 
+  #-----------------------------
+  def condor_config_privsep_data(self):
+    if self.privilege_separation() == "n":
+      return  # no privilege separation in effect
+    if self.privsep == None:
+      common.logerr("""System error: privilege separation is in effect but there
+the PrivilegeSeparation class has not been instantiated""")
+    type = "03_gwms_privsep"
+    self.condor_config_data[type] = self.privsep.condor_config_data()
+
 
 
   #--------------------------------
@@ -171,6 +188,8 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
       common.logerr("The WMS collector and User collector are being installed \non the same node. They both are trying to use the same port: %s." % self.collector_port())
     if int(self.collector_port()) in self.usercollector.secondary_collector_ports():
       common.logerr("The WMS collector and User collector are being installed \non the same node. The WMS collector port (%s) conflicts with one of the\nsecondary User collector ports that will be assigned: %s." % (self.collector_port(),self.usercollector.secondary_collector_ports()))
+
+#### end of class ####
 
 #---------------------------
 def show_line():

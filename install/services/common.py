@@ -20,12 +20,14 @@ def logwarn(message):
    logit("Warning: %s" % message)
 
 #--------------------------
-def write_file(mode,perm,filename,data):
+def write_file(mode,perm,filename,data,SILENT=False):
   if mode == "w":
-    logit("Creating: %s" % filename)
-    make_backup(filename)
+    if not SILENT:
+      logit("    writing: %s" % filename)
+    make_backup(filename,SILENT)
   elif mode == "a":
-    logit("Appending to file: %s" % filename)
+    if not SILENT:
+      logit("Appending to file: %s" % filename)
   else:
     logerr("Internal error in accessing write_file method: Invalid mode(%s)" % mode)
   fd = open(filename,mode)
@@ -123,17 +125,27 @@ def remove_dir_path(dirname):
     logit( "... directory does not exist: %s" % dirname)
 
 #--------------------------
-def make_backup(filename):
+def make_backup(filename,SILENT=False):
   if os.path.isfile(filename):
-    backup = "%s.%s" % (filename,time_suffix())
+    save_dir = "%s/saved.%s"  % (os.path.dirname(filename),day_suffix())
+    if not os.path.exists(save_dir):
+      os.mkdir(save_dir)
+    backup = "%(save_dir)s/%(time)s-%(filename)s" % \
+                 { "save_dir" : save_dir,
+                   "filename" : os.path.basename(filename),
+                   "time"     : time_suffix(), 
+                 }
     shutil.copy2(filename,backup)
-    logit( "... backup of %s created: %s" % (filename,backup))
+    if not SILENT:
+      logit( "    backup created: %s" % (backup))
   #else:
-  #  logit( "... no backup required, file does not exist: %s" % (filename))
+  #  logit( "    no backup required, file does not exist: %s" % (filename))
 
 #--------------------------
 def time_suffix():
-  return time.strftime("%Y%m%d_%H%M%S",time.localtime())
+  return time.strftime("%Y%m%d_%H%M",time.localtime())
+def day_suffix():
+  return time.strftime("%Y%m%d",time.localtime())
 
 
 #--------------------------------------
@@ -166,11 +178,37 @@ def cron_append(lines,tmp_dir='/tmp'):
   logit("\n... %s's crontab updated" % (getpass.getuser()))
 
 #--------------------------------------
+def find_fullpath(search_path,name):
+  """ Given a search path, determine if the given file/directory exists 
+      somewhere in the path.
+      Returns: if not found. returns None
+               if found. returns the full path/name
+  """
+  for root, dirs, files in os.walk(search_path,topdown=True):
+    if os.path.basename(root) == name:
+      return root
+    for dir in dirs:
+      if dir == name:
+        return os.path.join(root,dir,name)
+    for file in files:
+      if file == name:
+        return os.path.join(root,file)
+  return None
+    
+#--------------------------------------
 def module_exists(module_name):
   err = os.system("python -c 'import %s' >/dev/null 2>&1" % module_name)
   if err != 0:
     return False
   return True
+
+#--------------------------------
+def validate_install_type(type):
+  logit("... validating install_type: %s" % type)
+  types = ["rpm","tarball",]
+  if type not in types:
+    logerr("Invalid install_type. Valid values are: %s)" % (types))
+
 
 #--------------------------------
 def validate_email(email):
@@ -229,8 +267,11 @@ def validate_installer_user(user):
     logerr("You are installing as user(%s).\n       The ini file says it should be user(%s)." % (install_user,user))
 
 #--------------------------------
-def validate_gsi_for_proxy(dn_to_validate,proxy):
-  install_user = pwd.getpwuid(os.getuid())[0]
+def validate_gsi_for_proxy(dn_to_validate,proxy,real_user=None):
+  if real_user == None:
+    install_user = pwd.getpwuid(os.getuid())[0]
+  else:
+    install_user = real_user
   #-- check proxy ---
   logit("... validating x509_proxy: %s" % proxy)
   if not os.path.isfile(proxy):
@@ -240,7 +281,7 @@ not found or has wrong permissions/ownership.""" % \
      "owner" : install_user,})
   #-- check dn ---
   logit("... validating x509_gsi_dn: %s" % dn_to_validate)
-  dn_in_file = get_gsi_dn("proxy",proxy)
+  dn_in_file = get_gsi_dn("proxy",proxy,install_user)
   if dn_in_file <> dn_to_validate:
     logerr("""The DN of the x509_proxy option does not match the x509_gsi_dn 
 option value in your ini file:
@@ -282,12 +323,15 @@ You should reinstall any services already complete.""" % \
       "dn_to_validate" : dn_to_validate,})
 
 #--------------------------------
-def get_gsi_dn(type,filename):
+def get_gsi_dn(type,filename,real_user=None):
   """ Returns the 'identity' of the user for a certificate
       or proxy.  Using openssl, If it is a proxy, use the -issuer argument.
       If a certificate, use the -subject argument.
   """
-  install_user = pwd.getpwuid(os.getuid())[0]
+  if real_user == None:
+    install_user = pwd.getpwuid(os.getuid())[0]
+  else:
+    install_user = real_user
   if type == "proxy":
     arg = "-issuer"
     if not os.path.isfile(filename):
@@ -299,8 +343,7 @@ def get_gsi_dn(type,filename):
 
   if not os.path.isfile(filename):
     logerr("%s '%s' not found" % (type,filename))
-
-  if os.stat(filename).st_uid <> os.getuid():
+  if os.stat(filename).st_uid <> pwd.getpwnam(install_user)[2]:
     logerr("The %s specified (%s)\nhas to be owned by %s user" % (type,filename,install_user))
 
   #-- read the cert/proxy --

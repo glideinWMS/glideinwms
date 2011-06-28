@@ -3,6 +3,7 @@
 import common
 import WMSCollector
 import VOFrontend
+from Condor        import Condor
 from Glidein       import Glidein
 from Configuration import Configuration
 from Configuration import ConfigurationError
@@ -51,41 +52,48 @@ wmscollector_options = [ "hostname",
 "x509_cert_dir",
 ]
 
+usercollector_options = []
+submit_options        = []
+
 frontend_options = [ 
-"glidein_proxy_files", 
-"glidein_proxy_dns", 
 ]
+## "glidein_proxy_files", 
+## "glidein_proxy_dns", 
 
 valid_options = { "Factory"       : factory_options,
                   "WMSCollector"  : wmscollector_options,
+                  "UserCollector" : usercollector_options,
+                  "Submit"        : submit_options,
                   "VOFrontend"    : frontend_options,
 }
 
 
-class Factory(Configuration):
+class Factory(Condor):
 
-  def __init__(self,inifile,options=None):
+  def __init__(self,inifile,optionsDict=None):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Factory"
-    if options == None:
-      options = valid_options[self.ini_section]
-    Configuration.__init__(self,inifile)
-    self.validate_section(self.ini_section,options)
-    self.glidein = Glidein(self.inifile,self.ini_section,options)
+    if optionsDict != None:
+      valid_options = optionsDict
+    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
+    ##   Configuration.__init__(self,inifile)
+    ##  self.validate_section(self.ini_section,valid_options[self.ini_section])
+    self.glidein = Glidein(self.inifile,self.ini_section,valid_options[self.ini_section])
     self.config_entries_list = {} # Config file entries elements
     self.wms      = None
     self.frontend = None
     self.get_wms()
+    self.not_validated = True
 
   #-- get service instances --------
   def get_wms(self):
     if self.wms == None:
-      self.wms = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+      self.wms = WMSCollector.WMSCollector(self.inifile,valid_options)
 
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
 
   #---------------------
   def glideinwms_location(self):
@@ -146,54 +154,65 @@ class Factory(Configuration):
     self.get_wms()
     self.get_frontend()
     common.ask_continue("Continue")
-    self.validate_install()
-    self.get_config_entries_data()
-    self.create_env_script()
-    self.create_config()
-    common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
-    self.create_glideins()
-    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
-      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
- 
-  #-----------------------
-  def validate_install(self):
-    common.logit( "\nDependency and validation checking starting\n")
-    if os.getuid() <> pwd.getpwnam(self.username())[2]:
-      common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.username())
-    # check to see if there will be a problem with client files during the
-    # create factory step.
-    common.validate_hostname(self.hostname())
-    common.validate_user(self.username())
-    common.validate_installer_user(self.username())
-    self.glidein.validate_web_location()
-    self.validate_use_vofrontend_proxy()
-    self.glidein.preinstallation_software_check()
-    self.glidein.__install_vdt_client__()
-    self.validate_logs_dir()
-    common.validate_install_location(self.install_location())
+    self.validate()
     self.glidein.create_web_directories()
     common.make_directory(self.install_location(),self.username(),0755,empty_required=True)
     self.create_factory_dirs(self.username(),0755)
     if self.wms.privilege_separation() <> "y":
       #-- done in WMS collector install if privilege separation is used --
       self.create_factory_client_dirs(self.username(),0755)
-    common.logit( "\nDependency and validation checking complete\n")
+    self.configure()
+    common.logit ("\n======== %s install complete ==========\n" % self.ini_section)
+    self.create_glideins()
+    if os.path.isdir(self.glidein_dir()): #indicates the glideins have been created
+      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
+ 
+  #-----------------------
+  def validate(self):
+    if self.not_validated:
+      common.logit( "Verifying Factory options")
+      if os.getuid() <> pwd.getpwnam(self.username())[2]:
+        common.logerr("You need to install this as the Factory unix acct (%s) so\nfiles and directories can be created correctly" % self.username())
+      # check to see if there will be a problem with client files during the
+      # create factory step.
+      self.install_vdtclient()
+      self.install_certificates()
+      common.logit( "\nVerifying Factory options")
+      common.validate_hostname(self.hostname())
+      common.validate_user(self.username())
+      common.validate_installer_user(self.username())
+      self.glidein.validate_web_location()
+      self.glidein.validate_software_requirements()
+      self.validate_logs_dir()
+      self.validate_use_vofrontend_proxy()
+      ## common.validate_install_location(self.install_location())
+      common.logit( "Verification complete\n")
+    self.not_validated = False
+
+  #----------------------------
+  def configure(self):
+    self.validate()
+    self.get_config_entries_data()
+    self.create_env_script()
+    self.create_config()
 
   #---------------------------------
   def validate_use_vofrontend_proxy(self):
     option =  self.use_vofrontend_proxy()
     common.logit("... validating use_vofrontend_proxy: %s" % option)
-    if option not in ("y","n"):
-      common.logerr("use_vofrontend_proxy must be 'y' or 'n'")
+    if option not in ("y",):
+      common.logerr("use_vofrontend_proxy must be 'y'.  This option will be depreated fully in V3.")
     if option == "y":  # using vofrontend 
       if len(self.x509_proxy())  > 0 or \
          len(self.x509_gsi_dn()) > 0:
         common.logerr("""You have said you want to use the Frontend proxies only.
 The x509_proxy and x509_gsi_dn option must be empty.""")
-      if len(self.frontend.glidein_proxy_files())  == 0 or \
-         len(self.frontend.glidein_proxy_dns()[0]) == 0:
-        common.logerr("""You have said you want to use the Frontend proxies only.
-The VOFrontend glidein_proxy_files & glidein_proxy_dns are not fully populated.""")
+
+##--- take out if I don't care... waffling on this ---
+##      if len(self.frontend.glidein_proxy_files())  == 0:
+##        common.logerr("""You have said you want to use the Frontend proxies only.
+##The VOFrontend glidein_proxy_dns is not populated.""")
+
       
     else:  # use factory proxy if no vofrontend proxy provided
       self.validate_factory_proxy()
@@ -278,7 +297,7 @@ source %(condor_location)s/condor.sh
   #-----------------------
   def schedds(self):
     collector_hostname = self.wms.hostname()
-    schedd_list = []
+    schedd_list = [self.wms.hostname(),]
     for filename in os.listdir(self.wms.condor_local()):
       if filename[0:6] == "schedd":
         schedd_list.append("%s@%s" % (filename,collector_hostname))
@@ -340,7 +359,10 @@ source %(condor_location)s/condor.sh
   #---------------
   def config_submit_data(self): 
     return """
-%(indent1)s<submit base_dir="%(install_location)s" base_log_dir="%(factory_logs)s" base_client_log_dir="%(client_log_dir)s" base_client_proxies_dir="%(client_proxy_dir)s"/> """ % \
+%(indent1)s<submit base_dir="%(install_location)s" 
+%(indent1)s        base_log_dir="%(factory_logs)s" 
+%(indent1)s        base_client_log_dir="%(client_log_dir)s" 
+%(indent1)s        base_client_proxies_dir="%(client_proxy_dir)s"/> """ % \
 { "indent1"          : common.indent(1),
   "install_location" : self.install_location(),
   "factory_logs"     : self.logs_dir(),
@@ -350,7 +372,9 @@ source %(condor_location)s/condor.sh
   #---------------
   def config_stage_data(self): 
     return """
-%(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage" use_symlink="True" base_dir="%(web_location)s/stage"/>""" % \
+%(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage" 
+%(indent1)s       use_symlink="True" 
+%(indent1)s       base_dir="%(web_location)s/stage"/>""" % \
 { "indent1"       : common.indent(1),
   "web_url"       : self.glidein.web_url(),
   "web_dir"       : os.path.basename(self.glidein.web_location()), 
@@ -360,11 +384,15 @@ source %(condor_location)s/condor.sh
   def config_monitor_data(self): 
     indent = common.indent(1)
     return """
-%(indent1)s<monitor base_dir="%(web_location)s/monitor" javascriptRRD_dir="%(javascriptrrd)s" flot_dir="%(flot)s" jquery_dir="%(flot)s"/>"""  % \
-{ "indent1"         : common.indent(1),
-  "web_location"    : self.glidein.web_location(),  
-  "javascriptrrd"   : self.glidein.javascriptrrd(), 
-  "flot"            : self.glidein.flot(), 
+%(indent1)s<monitor base_dir="%(web_location)s/monitor" 
+%(indent1)s        javascriptRRD_dir="%(javascriptrrd)s" 
+%(indent1)s        flot_dir="%(flot)s" 
+%(indent1)s        jquery_dir="%(jquery)s"/>"""  % \
+{ "indent1"       : common.indent(1),
+  "web_location"  : self.glidein.web_location(),  
+  "javascriptrrd" : self.glidein.javascriptrrd_dir, 
+  "jquery"        : self.glidein.jquery_dir,
+  "flot"          : self.glidein.flot_dir,
 }
 
   #---------------
@@ -523,18 +551,18 @@ source %(condor_location)s/condor.sh
     common.logit("Using %s" % (os.environ["CONDOR_CONFIG"])) 
     self.config_entries_list = {}  # config files entries elements
     while 1:
-      yn=raw_input("Do you want to fetch entries from RESS?: (y/n) [n] ")
+      yn = common.ask_yn("Do you want to fetch entries from RESS")
       if yn == 'y':
         ress_data     = self.get_ress_data()
         filtered_data = self.apply_filters_to_ress(ress_data)
         self.ask_user(filtered_data)
       ## - tmp/permanent removal of BDII query as too may results occur 12/14/10 -
-      ## yn=raw_input("Do you want to fetch entries from BDII?: (y/n) [n] ")
+      ## yn = common.ask_yn("Do you want to fetch entries from BDII")
       ## if yn == 'y':
       ##   bdii_data     = self.get_bdii_data()
       ##   filtered_data = self.apply_filters_to_bdii(bdii_data)
       ##   self.ask_user(filtered_data)
-      yn=raw_input("Do you want to add manual entries?: (y/n) [n] ")
+      yn = common.ask_yn("Do you want to add manual entries")
       if yn == 'y':
         self.additional_entry_points()
       if len(self.config_entries_list) > 0:
@@ -551,8 +579,8 @@ source %(condor_location)s/condor.sh
     print "Found %i additional entries" % len(ress_keys)
     if len(ress_keys) == 0:
       return
-    yn = raw_input("Do you want to use them all?: (y/n) ")
-    if yn=="y":
+    yn = common.ask_yn("Do you want to use them all")
+    if yn == "y":
         # simply copy all of them
         for key in ress_keys:
             self.config_entries_list[key] = ress_entries[key]
@@ -579,12 +607,12 @@ source %(condor_location)s/condor.sh
       # got them
       break
 
-    yn=raw_input("Do you want to customize them?: (y/n) ")
+    yn = common.ask_yn("Do you want to customize them")
     if yn == "y":
       # customize them
       for idx in idx_arr:
-        work_dir=raw_input("Work dir for '%s': [%s] " % (idx,ress_entries[idx]['work_dir']))
-        if work_dir!="":
+        work_dir = raw_input("Work dir for '%s': [%s] " % (idx,ress_entries[idx]['work_dir']))
+        if work_dir != "":
           ress_entries[idx]['work_dir'] = work_dir
         site_name=raw_input("Site name for '%s': [%s] " % (idx,ress_entries[idx]['site_name']))
         if site_name != "":

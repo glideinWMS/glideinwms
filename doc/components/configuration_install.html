@@ -79,15 +79,17 @@
 This installer uses a configuration file (ini format) to perform the installation of the glideinWMS services in lieu of a question/answer (q/a) type installer. It requires knowledge and planning of the glideinWMS services just as the the q/a installer did. The major difference is that you essentially pre-answer all the questions previously asked and document them in the ini file. In addition to having them documented, this performs the actual installation faster and allows for re-installs more quickly when some of the attribute values are incorrect (an inevitable consequence of a complex set of services such as these).
 </p><p>
 Another major difference, with this installer, is that it does NOT modify any scripts that set a user environment upon log in, e.g., .bashrc file, /etc/profile.d files, et al. Instead, an environment script is created for each service in its respective "home" location. If inclusion of these scripts is required at a location, it will need to be performed manually. The only exception to this is when privilege separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in Condor and cannot be changed. 
-
-</p>
-<p>
+For each of the glideinsWMS services, the scripts for setting the environment are:
 <ul>
 <li><b>wmscollector, usercollector, submit</b>: condor_location/condor.sh</li>
 <li><b>factory</b>: install_location/factory.sh</li>
 <li><b>vofrontend</b>: install_location/frontend.sh</li>
 </ul>
 </p>
+</p><p>
+For glideinWMS services using Condor, the CONDOR_LOCATION/config.d directory
+will contain the Condor attributes required for that service.
+
 </div>
 
 <div class="section">
@@ -103,6 +105,8 @@ Installation proceeds in the same order as the dialog installer:
 </ol>
 Services have dependencies between them.  If you get an error or change
 the ini file, it is recommended that you go back and re-install ALL services.
+Prior to actually doing the install, it is suggested you use the '--validate'
+option on all nodes to resolve any errors affecting dependencies.
 </div>
 
 <div class="section">
@@ -118,10 +122,15 @@ This usage can be used to install, start, stop or check the status of
 the glidein services based on the configuration in the specified ini file.
 <p> 
 <b>OPTION</b> can be one of:</br>
+ - <b>validate</b>: Allows you to validate the ini file prior to installation</br>
  - <b>install</b>: Install the service</br>
- - <b>start</b>: Start the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</br>
- - <b>stop</b>: Stop the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</br>
- - <b>status</b>: Return the status of the service
+ - <b>configure</b>: This allows  you to reconfigure your service based on 
+     changes to the ini file without re-installing condor.<br/>
+     For services using Condor, it will update the config.d local config files,<br/> 
+     For the factory and vofrontend, it will update the respective xml config files.</br>
+ - <b>start</b>: Start the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+ - <b>stop</b>: Stop the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+ - <b>status</b>: Return the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
 </p><p>
 
 <b>SERVICE</b> can be one of:</br>
@@ -130,7 +139,9 @@ the glidein services based on the configuration in the specified ini file.
  - factory</br>
  - submit</br>
  - vofrontend</br>
+ - rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</br>
  - all: can only be used with start/stop/status actions</br>
+</p><p>
 </p><p>
 <b>--ssh</b>: allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
@@ -998,15 +1009,6 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>split_condor_config     </td>
-        <td align="center">y   </td>
-        <td>Split the condor_config file.</td>
-        <td>Valid values:<br/>
-            * <b>y</b> - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
-            * <b>n</b> - will append to the CONDOR_LOCATION/etc/condor_config  </td>
-        </tr>
-
-        <tr>
         <td>number_of_schedds   </td>
         <td align="center">5   </td>
         <td>The desired number of schedds to be used.    
@@ -1132,19 +1134,6 @@ glideinWMS frontend requires:<br/><br/>
         </tr>
 
         <tr>
-        <td>frontend_identity   </td>
-        <td>vo_frontend_identity    </td>
-        <td>
-            Identity of the Frontend service when communicating with the 
-            Factory service.
-        </td>
-        <td>   
-            Used in the frontend config file to identify this VOFrontend 
-            to the factory.
-        </td>
-        </tr>
-
-        <tr>
         <td>install_location    </td>
         <td>/path/to/vofrontend   </td>
         <td>HOME directory for the frontend software.   </td>
@@ -1194,15 +1183,6 @@ It must be a zipped tarball with a *.tg.tz name.
         <td>whomever@email.com</td>
         <td>The email address to get Condor notifications in the event of a problem.</td>
         <td>Used in the condor_config.local only.    </td>
-        </tr>
-
-        <tr>
-        <td>split_condor_config     </td>
-        <td align="center">y   </td>
-        <td>Split the condor_config file.</td>
-        <td>Valid values:<br/>
-            * <b>y</b> - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
-            * <b>n</b> - will append to the CONDOR_LOCATION/etc/condor_config  </td>
         </tr>
 
         <tr>
@@ -1471,7 +1451,6 @@ javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
 tarballs = /opt/install_packages
 condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
 condor_admin_email = condor-admin@fnal.gov
-split_condor_config = y
 
 vdt_location =
 install_vdt_client = n
@@ -1533,7 +1512,6 @@ number_of_secondary_collectors = 5
 [Submit]
 
 service_name = submit_service
-split_condor_config = y
 number_of_schedds = 5
 schedd_shared_port =
 match_authentication = y
@@ -1544,7 +1522,6 @@ condor_location = %(install_dir)s/condor-therest
 [VOFrontend]
 
 service_name = frontend_service
-frontend_identity = frontend_identity
 
 install_location = %(install_dir)s/frontend
 logs_dir         = %(install_dir)s/frontend-logs
@@ -1592,7 +1569,6 @@ install_vdt_client = n
 x509_cert_dir=/opt/vdt/globus/TRUSTED_CA
 
 condor_admin_email = condor-admin@fnal.gov
-split_condor_config = y
 
 ;--------------------------------------------------
 [WMSCollector]
@@ -1680,7 +1656,6 @@ instance_name = v2_5_1-cream-cloud
 hostname = cms-xen7.fnal.gov
 username    = tony_xen_cms_frontend
 service_name = frontend_service
-frontend_identity = cms_frontend
 
 install_location = %(install_dir)s/Frontend
 logs_dir     = %(install_dir)s/frontend-logs
@@ -1739,7 +1714,6 @@ condor_tarball = /home/gfactoryuser/installers/condor-7.5.5-x86_64_rhap_5-stripp
 condor_admin_email = condor-admin@fnal.gov
 x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv97.fnal.gov
 number_of_schedds = 5
-split_condor_config = y
 
 ;--------------------------------------------------
 [Factory]
@@ -1845,7 +1819,6 @@ x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
 condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
 number_of_secondary_collectors = 2
 condor_admin_email = condor-admin@fnal.gov
-split_condor_config = y
 
 ;--------------------------------------------------
 [Submit]
@@ -1913,7 +1886,6 @@ x509_key = /etc/grid-security/cmssrv99testusercondorkey.pem
 x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
 condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
 condor_admin_email = condor-admin@fnal.gov
-split_condor_config = y
 number_of_schedds = 2
 schedd_shared_port = 4444
 match_authentication = y
@@ -1956,14 +1928,12 @@ use_vofrontend_proxy = y
 hostname = cmssrv99.fnal.gov
 username = frontenduser
 service_name = Frontend-v2_5_1-cmssrv99
-frontend_identity = test1user@cmssrv97.fnal.gov
 install_location = /home/frontenduser/v2.5.1/frontstage
 logs_dir = /home/frontenduser/v2.5.1/frontlogs
 instance_name = v1_0
 condor_location = /home/frontenduser/v2.5.1/glidecondor
 condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
 condor_admin_email = condor-admin@fnal.gov
-split_condor_config = y
 x509_proxy = /home/frontenduser/security/grid_proxy
 x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
 glidein_proxy_files = %(x509_proxy)s

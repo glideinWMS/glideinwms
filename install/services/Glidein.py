@@ -17,13 +17,22 @@ class Glidein(Configuration):
   def __init__(self,inifile,ini_section,ini_options):
     self.ini_section = ini_section
     self.inifile     = inifile
-    Configuration.__init__(self,inifile)
-    self.validate_section(ini_section,ini_options)
+    Configuration.__init__(self,self.inifile)
+    self.validate_section(self.ini_section,ini_options)
 
-    self.vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
+    self.vdt = None
+
+    self.javascriptrrd_dir = None
+    self.flot_dir          = None
+    self.jquery_dir        = None
 
   #---------------------
+  def get_vdt(self):
+    if self.vdt == None:
+      self.vdt = VDTClient.VDTClient(self.ini_section,self.inifile)
+  #---------------------
   def vdt_location(self):
+    self.get_vdt()
     return self.vdt.vdt_location()
   #---------------------
   def glideinwms_location(self):
@@ -109,11 +118,12 @@ class Glidein(Configuration):
   def web_url(self):
     return self.option_value(self.ini_section,"web_url")
   #---------------------
-  def javascriptrrd(self):
-    return self.option_value(self.ini_section,"javascriptrrd_location")
-  #---------------------
-  def flot(self):
-    return os.path.join(self.javascriptrrd(),"flot")
+  def javascriptrrd_location(self):
+    default = "/usr/share/javascriptrrd"
+    location = self.option_value(self.ini_section,"javascriptrrd_location")
+    if len(location) == 0:
+      location = default
+    return location
   #---------------------
   def match_authentication(self):
     return self.option_value(self.ini_section,"match_authentication")
@@ -121,6 +131,7 @@ class Glidein(Configuration):
   #--------------------------------
   def __install_vdt_client__(self):
     if self.install_vdt_client() == "y":
+      self.get_vdt()
       self.vdt.install()
     else:
       common.logit("... VDT client install not requested.")
@@ -135,58 +146,36 @@ class Glidein(Configuration):
       common.logerr("web location (%s) has wrong\n       ownership/permissions. It needs to be owned and writable by user(%s)" % (dir,self.username()))
 
   #---------------------
-  def preinstallation_software_check(self):
-    errors = 0
-    ##-- rrdtool --
-    msg = ""
-    module = "rrdtool"
+  def validate_software_requirements(self):
+    self.javascriptrrd_dir = self.set_javascriptrrd_dir("rrdMultiFile.js")
+    self.jquery_dir        = self.set_javascriptrrd_dir("jquery.flot.js")
+    self.flot_dir          = self.set_javascriptrrd_dir("flot")
+    self.verify_python_module("rrdtool")
+    self.verify_python_module("M2Crypto")
+
+  #-----------------------
+  def verify_python_module(self,module):
+    msg = "... validating %s: " % module
     if common.module_exists(module):
-      script = "rrdtool"
-      err = os.system("which %s >/dev/null 2>&1" % script)
-      if err == 0:
-        msg = "available"
-      else:
-        errors = errors + 1
-        msg = "ERROR: %s script needs to be available in PATH" % script
+      msg += "available"
+      common.logit(msg)
     else:
-      errors = errors + 1
-      msg = "ERROR: %s not installed or not in PYTHONPATH" % module
-    common.logit("... validating rrdtool: %s" % msg)
+      common.logit(msg)
+      common.logerr("This python module is required and not available.")
 
-    ##-- M2Crypto --
-    msg = ""
-    module = "M2Crypto"
-    if common.module_exists(module):
-      msg = "available"
-    else:
-      errors = errors + 1
-      msg = "ERROR: This python module is required and not available."
-    common.logit("... validating M2Crypto: %s" % msg)
-
-    ##-- javascriptrrd --
-    msg = ""
-    filename = os.path.join(self.javascriptrrd(),"src/lib/rrdMultiFile.js")
-    if os.path.exists(filename):
-      msg = "available in %s" % filename
-    else:
-      errors = errors + 1
-      msg = "ERROR: not installed: %s not found" % filename
-    common.logit("... validating javascriptrrd_location: %s" % msg)
-
-    ##-- flot --
-    msg = ""
-    filename =  os.path.join(self.flot(),"jquery.flot.js")
-    if os.path.exists(filename):
-      msg = "available in %s" % filename
-    else:
-      errors = errors + 1
-      msg = "ERROR: not installed: %s not found" % filename
-    common.logit("... validating flot: %s" % msg)
-
-    if errors > 0:
-      common.logerr("%i required software modules not available." % errors)
-
-    return 
+  #-----------------------
+  def set_javascriptrrd_dir(self,filename):
+    msg =  "... validating javascriptrrd_location for %s: " % filename
+    fullpath = common.find_fullpath(self.javascriptrrd_location(), filename)
+    if fullpath == None:
+      common.logit(msg)
+      common.logerr("""%s not found in %s path
+Did you install the correct javascriptrrd rpm?
+""" % (filename,self.javascriptrrd_location()))
+    dir = os.path.dirname(fullpath)
+    msg +="available"
+    common.logit(msg)
+    return dir
 
   #---------------------
   def create_web_directories(self):
