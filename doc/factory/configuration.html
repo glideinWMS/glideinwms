@@ -565,7 +565,10 @@ override the global arguments if present.
     <b>Required</b> Please check the Grid site documentation and/or ask the Grid
     site administrator for the proper rsl and queue name for the site.<br/>
     (example: '<tt>(condorsubmit=(universe
-    vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>').
+    vanilla)(requirements \&quot;(ISMINOSAFS=?=True)\&quot;))</tt>').  <br/>
+    NOTE:  If a Corral Frontend is using a TeraGrid entry, a placeholder can be 
+    specified in the rsl (project=TG_PROJECT_ID) and the Factory will replace this 
+    with the project id passed by Corral.  This does not apply to VO Frontends.
     </li>
     <li>
         <div class="xml">
