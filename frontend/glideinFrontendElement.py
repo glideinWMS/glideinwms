@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.8 2011/06/23 15:52:44 dstrain Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.9 2011/06/28 16:36:54 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -130,6 +130,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
             elif globals_el['attrs']['PubKeyType'] == 'RSA': # only trust RSA for now
                 try:
                     globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
+                    globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
                 except:
                     # if no valid key, just notify...
                     # if key needed, will handle the error later on
@@ -262,6 +263,8 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     # reuse between loops might be a good idea, but this will work for now
     key_builder = glideinFrontendInterface.Key4AdvertizeBuilder()
 
+
+
     logSupport.log.info("Match")
 
     #glideinFrontendLib.log_files.logDebug("realcount: %s\n\n" % glideinFrontendLib.countRealRunning(elementDescript.merged_data['MatchExprCompiledObj'],condorq_dict_running,glidein_dict))
@@ -284,6 +287,14 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     logSupport.log.info("Total matching idle %i (old %i) running %i limit %i" % (condorq_dict_types['Idle']['total'], condorq_dict_types['OldIdle']['total'], total_running, max_running))
 
     advertizer=glideinFrontendInterface.MultiAdvertizeWork(descript_obj)
+
+    # Add globals
+    for globalid in factory_globals_dict:
+        globals_el=factory_globals_dict[globalid]
+        if globals_el['attrs'].has_key('PubKeyObj'):
+            key_obj = key_builder.get_key_obj("global_id_not_used", globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
+            advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,security_name,key_obj)
+
     log_factory_header()
     total_up_stats_arr = init_factory_stats_arr()
     total_down_stats_arr = init_factory_stats_arr()

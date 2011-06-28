@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.9 2011/06/24 15:24:58 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.10 2011/06/28 16:36:54 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -483,7 +483,9 @@ class MultiAdvertizeWork:
                  descript_obj):        # must be of type FrontendDescript
         self.descript_obj=descript_obj
         self.factory_queue={}          # will have a queue x factory, each element is list of tuples (params_obj, key_obj)
+        self.global_pool=[]
         self.global_key={}
+        self.global_params={}
         self.factory_constraint={}
 
     # add a request to the list
@@ -508,7 +510,11 @@ class MultiAdvertizeWork:
             self.factory_queue[factory_pool] = []
         self.factory_queue[factory_pool].append((params_obj, key_obj))
         self.factory_constraint[params_obj.request_name]=(trust_domain, auth_method)
+
+    def add_global(self,factory_pool,request_name,security_name,key_obj):
+        self.global_pool.append(factory_pool)
         self.global_key[factory_pool]=key_obj
+        self.global_params[factory_pool]=(request_name,security_name)
 
     # retirn the queue depth
     def get_queue_len(self):
@@ -521,7 +527,7 @@ class MultiAdvertizeWork:
         """
         Advertize globals with credentials
         """
-        for factory_pool in self.factory_queue.keys():
+        for factory_pool in self.global_pool:
             short_time = time.time()-1.05e9
             tmpname="/tmp/globaliad_%li_%li"%(short_time,os.getpid())
             glidein_params_to_encrypt={}
@@ -531,7 +537,11 @@ class MultiAdvertizeWork:
                 glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_credentials
             else:
                 nr_credentials=0
-            classad_name="%s@%s"%("Global",self.descript_obj.my_name)
+            request_name="Global"
+            if (factory_pool in self.global_params):
+                request_name,security_name=self.global_params[factory_pool]
+                glidein_params_to_encrypt['SecurityName']=security_name
+            classad_name="%s@%s"%(request_name,self.descript_obj.my_name)
             fd.write('MyType = "%s"\n'%frontendConfig.client_global)
             fd.write('GlideinMyType = "%s"\n'%frontendConfig.client_global)
             fd.write('GlideinWMSVersion = "%s"\n'%frontendConfig.glideinwms_version)
