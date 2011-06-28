@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.11 2011/06/28 18:33:20 tiradani Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.12 2011/06/28 19:45:22 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -177,6 +177,7 @@ def findWork(factory_name, glidein_name, entry_name,
             sym_key_obj = None # have no key, will not decrypt
 
         if sym_key_obj != None:
+            # this is verifying that the identity that the client claims to be is the identity that Condor thinks it is
             try:
                 enc_identity = sym_key_obj.decrypt_hex(kel['ReqEncIdentity'])
             except:
