@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.30 2011/06/28 18:33:43 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.31 2011/06/28 19:46:40 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -556,7 +556,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
                                                 
             # Determine the credential location  
-            submit_credentials.cred_dir = os.path.join(client_proxies_base_dir, "user_%s/glidein_%s" % (credential_username, glidein_name))
+            submit_credentials.cred_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(credential_username) 
+            #submit_credentials.cred_dir = os.path.join(client_proxies_base_dir, "user_%s/glidein_%s" % (credential_username, glidein_name))
             
             # Check if project id is required    
             if 'project_id' in auth_method:
