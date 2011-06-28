@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.9 2011/06/22 20:18:01 klarson1 Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.10 2011/06/28 18:34:10 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -37,8 +37,10 @@ import glideFactoryMonitorAggregator
 import glideFactoryMonitoring
 import glideFactoryDowntimeLib
 import glideFactoryLib
+import glideFactoryCredentials
 
 import logSupport
+import cleanupSupport
 
 ############################################################
 def aggregate_stats(in_downtime):
@@ -86,8 +88,8 @@ def write_descript(glideinDescript, frontendDescript, monitor_dir):
         entry_data[entry]['params'] = entryParams.data
 
     descript2XML = glideFactoryMonitoring.Descript2XML()
-    xml_str = (descript2XML.glideinDescript(glidein_data) +
-               descript2XML.frontendDescript(frontend_data) +
+    xml_str = (descript2XML.glideinDescript(glidein_data) + 
+               descript2XML.frontendDescript(frontend_data) + 
                descript2XML.entryDescript(entry_data))
 
     try:
@@ -179,7 +181,7 @@ def clean_exit(childs):
 
 ############################################################
 def spawn(sleep_time, advertize_rate, startup_dir,
-          glideinDescript, entries, restart_attempts, restart_interval):
+          glideinDescript, frontendDescript, entries, restart_attempts, restart_interval):
 
     global STARTUP_DIR
     childs = {}
@@ -205,11 +207,22 @@ def spawn(sleep_time, advertize_rate, startup_dir,
             childs[entry_name].tochild.close()
             # set it in non blocking mode
             # since we will run for a long time, we do not want to block
-            for fd  in (childs[entry_name].fromchild.fileno(), childs[entry_name].childerr.fileno()):
+            for fd in (childs[entry_name].fromchild.fileno(), childs[entry_name].childerr.fileno()):
                 fl = fcntl.fcntl(fd, fcntl.F_GETFL)
                 fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
 
         while 1:
+            logSupport.log.info("Checking for credentials %s" % entries)
+            try:
+                # read in the frontend globals classad
+                # Do this first so that the credentials are immediately available when the Entries startup
+                glideFactoryCredentials.process_globals(glideinDescript, frontendDescript)
+            except:
+                tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+                error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
+                logSupport.log.warning(error_str)
+
+            
             logSupport.log.info("Checking entries %s" % entries)
             for entry_name in childs.keys():
                 child = childs[entry_name]
@@ -264,10 +277,10 @@ def spawn(sleep_time, advertize_rate, startup_dir,
                                                        glideinDescript.data['PubKeyObj'])
         
             except Exception, e:
-                logSupport.log.warning("Error occurred while trying to advertize global.")
-                
+                logSupport.log.warning("Error occurred while trying to advertize global.\nError is: %s" % str(e))
+
             # do it just before the sleep - commenting out - I think that only logs are cleaned up here
-            #glideFactoryLib.cleaners.cleanup()
+            cleanupSupport.cleaners.cleanup()
 
             logSupport.log.info("Sleep %s secs" % sleep_time)
             time.sleep(sleep_time)
@@ -288,14 +301,12 @@ def spawn(sleep_time, advertize_rate, startup_dir,
         finally:
             logSupport.log.info("Deadvertize myself")
             try:
-                glideFactoryInterface.deadvertizeFactory(glideinDescript.data['FactoryName'],
-                                                         glideinDescript.data['GlideinName'])
+                glideFactoryInterface.deadvertizeFactory(glideinDescript.data['FactoryName'], glideinDescript.data['GlideinName'])
             except:
                 # just warn
                 logSupport.log.warning("Factory deadvertize failed!")
             try:
-                glideFactoryInterface.deadvertizeFactoryClientMonitoring(glideinDescript.data['FactoryName'],
-                                                                         glideinDescript.data['GlideinName'])
+                glideFactoryInterface.deadvertizeFactoryClientMonitoring(glideinDescript.data['FactoryName'], glideinDescript.data['GlideinName'])
             except:
                 # just warn
                 logSupport.log.warning("Factory Monitoring deadvertize failed!")
@@ -382,12 +393,11 @@ def main(startup_dir):
     try:
         try:
             spawn(sleep_time, advertize_rate, startup_dir,
-                  glideinDescript, entries, restart_attempts, restart_interval)
+                  glideinDescript, frontendDescript, entries, restart_attempts, restart_interval)
         except KeyboardInterrupt, e:
             raise e
         except:
-            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                            sys.exc_info()[2])
+            tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
             logSupport.log.warning("Exception occurred: %s" % tb)
     finally:
         pid_obj.relinquish()
@@ -407,6 +417,6 @@ if __name__ == '__main__':
 
     try:
         main(sys.argv[1])
-    except KeyboardInterrupt, e:
-        logSupport.log.info("Terminating: %s" % e)
+    except KeyboardInterrupt, ki:
+        logSupport.log.info("Terminating: %s" % ki)
 
