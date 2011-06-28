@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.29 2011/06/27 18:37:20 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.30 2011/06/28 18:33:43 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -41,6 +41,7 @@ import glideFactoryInterface
 import glideFactoryLogParser
 import glideFactoryDowntimeLib
 import glideinWMSVersion
+import glideFactoryCredentials
 
 import logSupport
 import cleanupSupport
@@ -201,7 +202,7 @@ def perform_work(entry_name, condorQ,
     for x509_proxy_id in x509_proxy_keys:
         security_credentials = {}
         security_credentials['SubmitProxy'] = x509_proxy_fnames[x509_proxy_id]
-        submit_credentials = SubmitCredentials(credential_username, credential_security_class)
+        submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
         submit_credentials.id = x509_proxy_id
         submit_credentials.security_credentials = security_credentials
         submit_credentials.identity_credentials = identity_credentials
@@ -221,14 +222,6 @@ def perform_work(entry_name, condorQ,
         glideFactoryLib.sanitizeGlideinsSimple(condorQ)
 
     return 0
-
-############################################################
-# only allow simple strings
-def is_str_safe(s):
-    for c in s:
-        if not c in ('._-@' + string.ascii_letters + string.digits):
-            return False
-    return True
 
 ############################################################
 class X509Proxies:
@@ -311,8 +304,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 security_list[entry_part[0]] = [entry_part[1]]
 
     # Set downtime in the stats
-    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) 
-    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) 
+    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) #@UndefinedVariable
+    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) #@UndefinedVariable
 
     # ===========  Finding work requests and queue data ==========
     logSupport.log.debug("Finding work")
@@ -361,7 +354,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         credential_username = None     
         
         # Key name may be used to write files... make sure it is reasonable
-        if not is_str_safe(work_key):
+        if not glideFactoryLib.is_str_safe(work_key):
             logSupport.log.warning("Request name '%s' not safe. Skipping request" % work_key)
             continue #skip request
 
@@ -381,7 +374,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         except:
             client_int_name = "DummyName"
             client_int_req = "DummyReq"
-        if not is_str_safe(client_int_name):
+        if not glideFactoryLib.is_str_safe(client_int_name):
             # may be used to write files... make sure it is reasonable
             logSupport.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
             continue #skip request
@@ -462,7 +455,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 x509_proxy_identifier = decrypted_params['x509_proxy_%i_identifier' % i]
     
                 # Make sure proxy id is safe to write files... make sure it is reasonable
-                if not is_str_safe(x509_proxy_identifier):
+                if not glideFactoryLib.is_str_safe(x509_proxy_identifier):
                     logSupport.log.warning("Identifier for x509_proxy_%i for %s is not safe ('%s), skipping and trying the others" % (i, client_int_name, x509_proxy_identifier))
                     continue #skip proxy
     
@@ -560,7 +553,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 continue 
             
             # Initialize submit credential object
-            submit_credentials = SubmitCredentials(credential_username, credential_security_class)
+            submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
                                                 
             # Determine the credential location  
             submit_credentials.cred_dir = os.path.join(client_proxies_base_dir, "user_%s/glidein_%s" % (credential_username, glidein_name))
@@ -1258,63 +1251,6 @@ def main(parent_pid, sleep_time, advertize_rate, startup_dir, entry_name):
     finally:
         pid_obj.relinquish()
 
-    
-class SubmitCredentials:
-    """
-    Data class containing all information needed to submit a glidein.
-    """
-    def __init__(self, username, security_class):
-        self.username = username # are we using privsep or not
-        self.security_class = security_class # is this needed?  why are we passing this?
-        self.id = None # id used for tracking the credentials used for submitting in the schedd
-        self.cred_dir = ''  # location of credentials
-        self.security_credentials = {} # dict of credentials
-        self.identity_credentials = {} # identity informatin passed by frontend
-    
-    def add_security_credential(self, cred_type, filename):
-        """
-        Adds a security credential.
-        """
-        if not is_str_safe(filename):
-            return False 
-        
-        cred_fname = os.path.join(self.cred_dir, 'credential_%s' % filename)
-        if not os.path.isfile(cred_fname):
-            return False 
-  
-        self.security_credentials[cred_type] = cred_fname
-        return True
-    
-    def add_factory_credential(self, cred_type, absfname):
-        """
-        Adds a factory provided security credential.
-        """
-        if not os.path.isfile(absfname):
-            return False 
-        
-        self.security_credentials[cred_type] = absfname
-        return True
-        
-    def add_identity_credential(self, cred_type, cred_str):
-        """
-        Adds an identity credential.
-        """
-        self.identity_credentials[cred_type] = cred_str
-        return True
-    
-    def __repr__(self):
-        output = "SubmitCredentials"
-        output += "username = ", self.username
-        output += "security class = ", self.security_class
-        output += "id = ", self.id
-        output += "credential dir = ", self.cred_dir
-        output += "security credentials: "
-        for sc in self.security_credentials.keys():
-            output += "    %s : %s" % (sc, self.security_credentials[sc])
-        output += "identity credentials: "
-        for ic in self.identity_credentials.keys():
-            output += "    %s : %s" % (ic, self.identity_credentials[ic])
-        return output
 
 ############################################################
 #
