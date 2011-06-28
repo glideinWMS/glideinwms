@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.12 2011/06/28 19:45:22 tiradani Exp $
+#   $Id: glideFactoryInterface.py,v 1.44.4.4.2.13 2011/06/28 20:17:00 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -324,7 +324,7 @@ def advertizeGlobal(factory_name, glidein_name, supported_signtypes, pub_key_obj
     @todo add factory downtime?
     """
     
-    global factoryConfig
+    global factoryConfig, advertizeGlobalCounter
 
     # get a 9 digit number that will stay 9 digit for the next 25 years
     short_time = time.time() - 1.05e9
