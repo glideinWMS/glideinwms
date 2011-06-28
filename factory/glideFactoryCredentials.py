@@ -170,11 +170,7 @@ def process_globals(glidein_descript, frontend_descript):
         classads = get_globals_classads()
         for classad in classads:
             # Get the frontend security name so that we can look up the username
-            frontend_sec_name = validate_frontend(classad, frontend_descript)
-            
-            # we can get classads from multiple frontends, each with their own
-            # sym keys.  So get the sym_key_obj for each classad
-            sym_key_obj = get_key_obj(pub_key_obj, classad)
+            sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
             
             # get all the credential ids by filtering keys by regex
             # this makes looking up specific values in the dict easier
@@ -206,15 +202,33 @@ def get_key_obj(pub_key_obj, classad):
         error_str = "Classad does not contain a key.  We cannot decrypt."
         raise CredentialError(error_str)
 
-def validate_frontend(classad, frontend_descript):
+def validate_frontend(classad, frontend_descript, pub_key_obj):
+    # we can get classads from multiple frontends, each with their own
+    # sym keys.  So get the sym_key_obj for each classad
+    sym_key_obj = get_key_obj(pub_key_obj, classad)
+    authenticated_identity = classad["AuthenticatedIdentity"]
     frontend_sec_name = classad["SecurityName"] 
+
+    # verify that the identity that the client claims to be is the identity that Condor thinks it is 
+    try:
+        enc_identity = sym_key_obj.decrypt_hex(classad['ReqEncIdentity'])
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        error_str = "Cannot decrypt ReqEncIdentity.  \nTraceback: \n%s" % tb
+        raise CredentialError(error_str)
+        
+    if enc_identity != authenticated_identity:
+        error_str = "Client provided invalid ReqEncIdentity(%s!=%s). " \
+                    "Skipping for security reasons." % (enc_identity, authenticated_identity)
+        raise CredentialError(error_str)
+        
+    # verify that the frontend is authorized to talk to the factory
     expected_identity = frontend_descript.get_identity(frontend_sec_name)
     if expected_identity == None:
         error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name 
         raise CredentialError(error_str)
-    authenticated_identity = classad["AuthenticatedIdentity"]
     if authenticated_identity != expected_identity:
         error_str = "This frontend Authenticated Identity, does not match the expected identity"   
         raise CredentialError(error_str)
     
-    return frontend_sec_name
+    return sym_key_obj, frontend_sec_name
