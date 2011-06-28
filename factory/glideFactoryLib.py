@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.13 2011/06/28 18:33:00 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.14 2011/06/28 19:45:46 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -125,7 +125,6 @@ class FactoryConfig:
         log_dir = os.path.join(self.client_log_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
         return log_dir
 
-    # This applies only to v2+ protocol, v3+ protocol credentials are saved in user_%s/glidein_%s
     def get_client_proxies_dir(self, username):
         proxy_dir = os.path.join(self.client_proxies_base_dir, "user_%s/glidein_%s" % (username, self.glidein_name))
         return proxy_dir
