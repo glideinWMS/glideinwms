@@ -163,7 +163,7 @@ def get_globals_classads():
 def process_globals(glidein_descript, frontend_descript):
     # Factory public key must exist for decryption 
     pub_key_obj = glidein_descript.data['PubKeyObj']
-    if pub_key_obj != None:
+    if pub_key_obj == None:
         raise CredentialError("Factory has no public key.  We cannot decrypt.")
 
     try:
