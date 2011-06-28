@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.31 2011/06/28 19:46:40 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.32 2011/06/28 21:22:38 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -206,6 +206,7 @@ def perform_work(entry_name, condorQ,
         submit_credentials.id = x509_proxy_id
         submit_credentials.security_credentials = security_credentials
         submit_credentials.identity_credentials = identity_credentials
+        logSupport.log.info("Requesting glideins using v2+ protocol, using credential %s" % submit_credentials.id)
         nr_submitted += glideFactoryLib.keepIdleGlideins(condorQ, client_int_name, in_downtime,
                                                          remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                          idle_glideins_pproxy, max_running_pproxy, max_held,
@@ -304,8 +305,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 security_list[entry_part[0]] = [entry_part[1]]
 
     # Set downtime in the stats
-    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) #@UndefinedVariable
-    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) #@UndefinedVariable
+    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) 
+    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) 
 
     # ===========  Finding work requests and queue data ==========
     logSupport.log.debug("Finding work")
@@ -346,13 +347,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     logSupport.log.debug("Validating requests and doing work")
     done_something = 0
     for work_key in work.keys():
-    
-        # Initialize credentials for each request
-        security_credentials = {}      
-        identity_credentials = {}  
-        credential_security_class = None   
-        credential_username = None     
-        
+            
         # Key name may be used to write files... make sure it is reasonable
         if not glideFactoryLib.is_str_safe(work_key):
             logSupport.log.warning("Request name '%s' not safe. Skipping request" % work_key)
@@ -379,12 +374,17 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             logSupport.log.warning("Client name '%s' not safe. Skipping request" % client_int_name)
             continue #skip request
         
+        # Check request has the required credentials and nothing else
+        if not check_security_credentials(auth_method, decrypted_params, client_int_name, jobDescript.data['EntryName']):
+            # skip request, errs logged in method
+            continue
+        
         # ======== validate security and whitelist information ================
         # Check whether the frontend is on the whitelist for the entry point
         if decrypted_params.has_key('SecurityName'):
             client_security_name = decrypted_params['SecurityName']
         else:
-            logSupport.log.warning("Client %s did not provide th security name, skipping request" % client_int_name)
+            logSupport.log.warning("Client %s did not provide the security name, skipping request" % client_int_name)
             continue
 
         if frontend_whitelist == "On" and not security_list.has_key(client_security_name):
@@ -392,7 +392,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             in_downtime = True        
                       
         # ========= v2+ protocol ==============
-        if decrypted_params.has_key('x509_proxy_0'):
+        # Initialize credentials for each request
+        security_credentials = {}       
+        identity_credentials = {}   
+        if decrypted_params.has_key('x509_proxy_0'):            
+            
             if not ('grid_proxy' in auth_method):
                 logSupport.log.warning("Client %s provided proxy, but a client supplied proxy is not allowed. Skipping bad request" % client_int_name)
                 continue #skip request
@@ -402,12 +406,17 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 # Validate project id exists
                 if decrypted_params.has_key('ProjectId'):
                     # just add to params for now, not a security issue
-                    params['ProjectId'] = decrypted_params['ProjectId']  # for v2+ protocol only?
+                    identity_credentials = decrypted_params['ProjectId']
                 else:
                     # project id is required, cannot service request
                     logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
                     continue  
-                
+                           
+            # Check if voms_attr required
+            if 'voms_attr' in auth_method:
+                # TODO determine how to verify voms attribute on a proxy
+                pass   
+            
             client_expected_identity = frontendDescript.get_identity(client_security_name)
             if client_expected_identity == None:
                 logSupport.log.warning("Client %s (secid: %s) not in white list. Skipping request" % (client_int_name, client_security_name))
@@ -520,7 +529,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         else:
             # ========== v3+ proxy protocol ===============
             
-            # Get credential security class 
+            # Get credential security class
+            credential_security_class = None  
             if decrypted_params.has_key('SecurityClass'):
                 credential_security_class = decrypted_params['SecurityClass']
             else:
@@ -559,38 +569,32 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             submit_credentials.cred_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(credential_username) 
             #submit_credentials.cred_dir = os.path.join(client_proxies_base_dir, "user_%s/glidein_%s" % (credential_username, glidein_name))
             
-            # Check if project id is required    
-            if 'project_id' in auth_method:
-                # Validate project id exists
-                if decrypted_params.has_key('ProjectId'):
-                    submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
-                else:
-                    # project id is required, cannot service request
-                    logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                    continue  
-            
-            # Validate authentication/authorization according to auth methods listed 
             # Grid sites do not require VM id or type.  All have proxy in their auth method
-            if 'grid_proxy' in auth_method:                            
-                # Get proxy id and make safe to write files
-                if decrypted_params.has_key('x509SubmitProxy'):                    
-                    # Determine identifier for file name and add to credentials to be passed to submit
-                    proxy_id = decrypted_params['x509SubmitProxy']
-                    if not submit_credentials.add_security_credential('SubmitProxy', proxy_id):
-                        logSupport.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request" % (proxy_id, client_int_name))
-                        continue #skip proxy
-                    
-                    # Set the id used for tracking what is in the factory queue       
-                    submit_credentials.id = proxy_id
-                                                                      
-                    # Check if voms_attr is required
-                    if 'voms_attr' in auth_method:
-                        # TODO determine how to verify voms attribute on a proxy
-                        pass                                   
-                else:
-                    logSupport.log.warning("Client %s did not provide the required submit proxy, skipping request" % client_int_name)
+            if 'grid_proxy' in auth_method:   
+                                
+                # Check if project id is required    
+                if 'project_id' in auth_method:
+                    if decrypted_params.has_key('ProjectId'):
+                        submit_credentials.add_identity_credential('ProjectId', decrypted_params['ProjectId'])
+                    else:
+                        # project id is required, cannot service request
+                        logSupport.log.info("Client '%s' did not specify a Project Id in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                        continue 
+                                   
+                # Check if voms_attr required
+                if 'voms_attr' in auth_method:
+                    # TODO determine how to verify voms attribute on a proxy
+                    pass 
+                          
+                # Determine identifier for file name and add to credentials to be passed to submit
+                proxy_id = decrypted_params['SubmitProxy']
+                if not submit_credentials.add_security_credential('SubmitProxy', proxy_id):
+                    logSupport.log.warning("Credential %s for the submit proxy cannot be found for client %s, skipping request" % (proxy_id, client_int_name))
                     continue #skip proxy
-                
+                    
+                # Set the id used for tracking what is in the factory queue       
+                submit_credentials.id = proxy_id
+                                     
             else:
                 # All non proxy auth methods are cloud sites. 
                 
@@ -635,68 +639,48 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                         continue
                 
                 if 'cert_pair' in auth_method :
-                    # Validate both the public and private certs were passed
-                    if decrypted_params.has_key('PublicCert') and decrypted_params.has_key('PrivateCert'):                        
-                        public_cert_id = decrypted_params['PublicCert']
-                        submit_credentials.id = public_cert_id
-                        if not submit_credentials.add_security_credential('PublicCert', public_cert_id):
-                            logSupport.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
-                            continue #skip   
+                    public_cert_id = decrypted_params['PublicCert']
+                    submit_credentials.id = public_cert_id
+                    if not submit_credentials.add_security_credential('PublicCert', public_cert_id):
+                        logSupport.log.warning("Credential %s for the public certificate is not safe for client %s, skipping request" % (public_cert_id, client_int_name))
+                        continue #skip   
                         
-                        private_cert_id = decrypted_params['PrivateCert']
-                        if not submit_credentials.add_security_credential('PrivateCert', private_cert_id):
-                            logSupport.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
-                            continue #skip   
-                        
-                    else:
-                        # project id is required, cannot service request
-                        logSupport.log.warning("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue
+                    private_cert_id = decrypted_params['PrivateCert']
+                    if not submit_credentials.add_security_credential('PrivateCert', private_cert_id):
+                        logSupport.log.warning("Credential %s for the private certificate is not safe for client %s, skipping request" % (private_cert_id, client_int_name))
+                        continue #skip   
                         
                 elif 'key_pair' in auth_method:
-                    # Validate both the public and private keys were passed
-                    if decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey'):                        
-                        public_key_id = decrypted_params['PublicKey']
-                        submit_credentials.id = public_key_id
-                        if not submit_credentials.add_security_credential('PublicKey', public_key_id):
-                            logSupport.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
-                            continue #skip   
+                    public_key_id = decrypted_params['PublicKey']
+                    submit_credentials.id = public_key_id
+                    if not submit_credentials.add_security_credential('PublicKey', public_key_id):
+                        logSupport.log.warning("Credential %s for the public key is not safe for client %s, skipping request" % (public_key_id, client_int_name))
+                        continue #skip   
                         
-                        private_key_id = decrypted_params['PrivateKey']
-                        if not submit_credentials.add_security_credential('PrivateKey', private_key_id):
-                            logSupport.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
-                            continue #skip  
-                    else:
-                        # project id is required, cannot service request
-                        logSupport.log.warning("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue
+                    private_key_id = decrypted_params['PrivateKey']
+                    if not submit_credentials.add_security_credential('PrivateKey', private_key_id):
+                        logSupport.log.warning("Credential %s for the private key is not safe for client %s, skipping request" % (private_key_id, client_int_name))
+                        continue #skip 
                     
                 elif 'username_password' in auth_method:
-                    # Validate both the public and private keys were passed
-                    if decrypted_params.has_key('Username') and decrypted_params.has_key('Password'):                        
-                        username_id = decrypted_params['Username']
-                        submit_credentials.id = username_id
-                        if not submit_credentials.add_security_credential('Username', username_id):
-                            logSupport.log.warning("Credential %s for the username is not safe for client %s, skipping request" % (username_id, client_int_name))
-                            continue    
+                    username_id = decrypted_params['Username']
+                    submit_credentials.id = username_id
+                    if not submit_credentials.add_security_credential('Username', username_id):
+                        logSupport.log.warning("Credential %s for the username is not safe for client %s, skipping request" % (username_id, client_int_name))
+                        continue    
                         
-                        password_id = decrypted_params['Password']
-                        if not submit_credentials.add_security_credential('Password', password_id):
-                            logSupport.log.warning("Credential %s for the password is not safe for client %s, skipping request" % (password_id, client_int_name))
-                            continue    
-                        
-                    else:
-                        # project id is required, cannot service request
-                        logSupport.log.warning("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
-                        continue
-                    
+                    password_id = decrypted_params['Password']
+                    if not submit_credentials.add_security_credential('Password', password_id):
+                        logSupport.log.warning("Credential %s for the password is not safe for client %s, skipping request" % (password_id, client_int_name))
+                        continue    
+                                            
                 else:
                     logSupport.log.warning("Factory entry %s has invalid authentication method. Skipping request for client %s." % (entry_name, client_int_name))
                     continue
                 ''' 
                 elif auth_method == 'factory_grid_proxy':
                     # Check no crendentials were passed in the request 
-                    if decrypted_params.has_key('x509SubmitProxy') or decrypted_params.has_key('GlideinProxy') or \
+                    if decrypted_params.has_key('SubmitProxy') or decrypted_params.has_key('GlideinProxy') or \
                             decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
                             decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey') or \
                             decrypted_params.has_key('Username') or decrypted_params.has_key('Password'):
@@ -730,9 +714,9 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             
             # ========== end of v3+ proxy protocol ===============
             ##### END - CREDENTIAL HANDLING - END #####
-
+        
         jobAttributes.data['GLIDEIN_In_Downtime'] = in_downtime
-        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) #@UndefinedVariable
+        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) 
 
         if work[work_key]['requests'].has_key('RemoveExcess'):
             remove_excess = work[work_key]['requests']['RemoveExcess']
@@ -789,7 +773,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 # old style
                 client_web = None
-            
+                        
             if security_credentials.has_key('x509_proxy_list'):
                 # ======= v2+ support for multiple proxies ==========
                 x509_proxies = security_credentials['x509_proxy_list']
@@ -824,6 +808,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 # ======= end of v2+ support for multiple proxies ==========
                 
             else:
+                # ======= v3+ protocol =============
+                
                 # do one iteration for the credential set (maps to a single security class)
                 glideFactoryLib.factoryConfig.client_internals[client_int_name] = {"CompleteName":client_int_name, "ReqName":client_int_req}
                 condorStatus = None       
@@ -834,10 +820,10 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                                                                                           logSupport.log_dir, client_int_name, credential_username)
                 # should not need privsep for reading logs
                 log_stats[credential_username].load()  
-            
-                glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, credential_security_class)   
+                
+                glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, credential_security_class) 
                 client_log_name = glideFactoryLib.secClass2Name(client_security_name, credential_security_class)   
-                glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats) #@UndefinedVariable  
+                glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats)                  
             
                 remove_excess_wait = False
                 remove_excess_idle = False
@@ -857,11 +843,13 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     # nothing to do
                     logSupport.log.info("Unknown RemoveExcess '%s', assuming 'NO'" % remove_excess)
                 
+                logSupport.log.info("Requesting glideins using v3+ protocol, using credential %s" % submit_credentials.id)
                 nr_submitted = glideFactoryLib.keepIdleGlideins(condorQ, client_int_name, in_downtime,
                                                              remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                              idle_glideins, max_running, factory_max_held,
                                                              submit_credentials, 
                                                              client_web, params)
+                # ======= end of v3+ protocol =============
 
     logSupport.log.debug("Updating statistics")
     for sec_el in all_security_names:
@@ -876,6 +864,100 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
 
     return done_something
+
+
+def check_security_credentials(auth_method, decrypted_params, client_int_name, entry_name):
+    """
+    Verify no additional credential except those for the auth method are passed.
+    """
+    logSupport.log.debug("Checking security credentials for client %s " % client_int_name)
+    
+    if 'grid_proxy' in auth_method:
+        if decrypted_params.has_key('x509_proxy_0'):
+            # v2+ protocol
+            if decrypted_params.has_key('SubmitProxy') or decrypted_params.has_key('GlideinProxy') or \
+                            decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
+                            decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey') or \
+                            decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
+                            decrypted_params.has_key('VMId') or decrypted_params.has_key('VMType'):
+                logSupport.log.warning("Request from client %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                return False
+                
+        elif decrypted_params.has_key('SubmitProxy'):
+            # v3+ protocol
+            if decrypted_params.has_key('GlideinProxy') or \
+                            decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
+                            decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey') or \
+                            decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
+                            decrypted_params.has_key('VMId') or decrypted_params.has_key('VMType') or \
+                            decrypted_params.has_key('x509_proxy_0'):
+                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                return False
+                           
+        else:
+            # No proxy sent
+            logSupport.log.warning("Request from client %s did not provide a proxy as required by the entry %s, skipping request" % (client_int_name, entry_name))
+            return False
+                 
+    else:
+        # Only v3+ protocol supports non grid entries
+        
+        # Verify that the glidein proxy was provided for the non-proxy auth methods
+        if not decrypted_params.has_key('GlideinProxy'):
+            logSupport.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
+            return False
+        
+        if 'cert_pair' in auth_method :
+            # Validate both the public and private certs were passed
+            if not (decrypted_params.has_key('PublicCert') and decrypted_params.has_key('PrivateCert')): 
+                # cert pair is required, cannot service request
+                logSupport.log.warning("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                return False
+            
+            # Verify no other credentials were passed
+            if decrypted_params.has_key('SubmitProxy') or \
+                    decrypted_params.has_key('PublicKey') or decrypted_params.has_key('PrivateKey') or \
+                    decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
+                    decrypted_params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                return False
+                        
+        elif 'key_pair' in auth_method:
+            # Validate both the public and private keys were passed
+            if not (decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey')):  
+                # key pair is required, cannot service request
+                logSupport.log.warning("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                return False
+            
+            # Verify no other credentials were passed
+            if decrypted_params.has_key('SubmitProxy') or \
+                    decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
+                    decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
+                    decrypted_params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                return False
+                    
+        elif 'username_password' in auth_method:
+            # Validate both the public and private keys were passed
+            if not (decrypted_params.has_key('Username') and decrypted_params.has_key('Password')):                        
+                # username and password is required, cannot service request
+                logSupport.log.warning("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                return False
+                        
+            # Verify no other credentials were passed
+            if decrypted_params.has_key('SubmitProxy') or \
+                    decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
+                    decrypted_params.has_key('PublicKey') or decrypted_params.has_key('PrivateKey') or \
+                    decrypted_params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                return False    
+    
+        else:
+            # invalid authentication method
+            pass
+            
+    # No invalid credentials found
+    return True
 
 ############################################################
 def write_stats():
