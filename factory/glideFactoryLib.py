@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryLib.py,v 1.55.2.8.4.12 2011/06/23 19:20:54 tiradani Exp $
+#   $Id: glideFactoryLib.py,v 1.55.2.8.4.13 2011/06/28 18:33:00 tiradani Exp $
 #
 # Description:
 #   This module implements the functions needed to keep the
@@ -25,6 +25,7 @@ import logSupport
 import condorMonitor
 import glideFactoryConfig
 import base64
+import string
 
 from tarSupport import GlideinTar
 
@@ -125,8 +126,8 @@ class FactoryConfig:
         return log_dir
 
     # This applies only to v2+ protocol, v3+ protocol credentials are saved in user_%s/glidein_%s
-    def get_client_proxies_dir(self, entry_name, username):
-        proxy_dir = os.path.join(self.client_proxies_base_dir, "user_%s/glidein_%s/entry_%s" % (username, self.glidein_name, entry_name))
+    def get_client_proxies_dir(self, username):
+        proxy_dir = os.path.join(self.client_proxies_base_dir, "user_%s/glidein_%s" % (username, self.glidein_name))
         return proxy_dir
 
 
@@ -284,7 +285,7 @@ def getCondorStatusData(entry_name, client_name, pool_name=None,
 # returns the proxy fname
 def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
 
-    proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username)
+    proxy_dir = factoryConfig.get_client_proxies_dir(username)
     fname_short = 'x509_%s.proxy' % escapeParam(client_id)
     fname = os.path.join(proxy_dir, fname_short)
 
@@ -351,78 +352,6 @@ def update_x509_proxy_file(entry_name, username, client_id, proxy_data):
 
     # end of update_x509_proxy_file
     # should never reach this point
-
-def update_credential_file(entry_name, username, client_id, proxy_data):
-    """
-    Updates the credential file.
-
-    """
-    proxy_dir = factoryConfig.get_client_proxies_dir(entry_name, username)
-    fname_short = 'credential_%s' % escapeParam(client_id)
-    fname = os.path.join(proxy_dir, fname_short)
-
-    if username != MY_USERNAME:
-        # use privsep
-        # all args go through the environment, so they are protected
-        update_credential_env = ['HEXDATA=%s' % binascii.b2a_hex(proxy_data), 'FNAME=%s' % fname]
-        for var in ('PATH', 'LD_LIBRARY_PATH', 'PYTHON_PATH'):
-            if os.environ.has_key(var):
-                update_credential_env.append('%s=%s' % (var, os.environ[var]))
-
-        try:
-            condorPrivsep.execute(username, factoryConfig.submit_dir, os.path.join(factoryConfig.submit_dir, 'update_proxy.py'), ['update_proxy.py'], update_credential_env)
-        except condorPrivsep.ExeError, e:
-            raise RuntimeError, "Failed to update credential %s in %s (user %s): %s" % (client_id, proxy_dir, username, e)
-        except:
-            raise RuntimeError, "Failed to update credential %s in %s (user %s): Unknown privsep error" % (client_id, proxy_dir, username)
-        return fname
-    else:
-        # do it natively when you can
-        if not os.path.isfile(fname):
-            # new file, create
-            fd = os.open(fname, os.O_CREAT | os.O_WRONLY, 0600)
-            try:
-                os.write(fd, proxy_data)
-            finally:
-                os.close(fd)
-            return fname
-
-        # old file exists, check if same content
-        fl = open(fname, 'r')
-        try:
-            old_data = fl.read()
-        finally:
-            fl.close()
-        if proxy_data == old_data:
-            # nothing changed, done
-            return fname
-
-        #
-        # proxy changed, need to update
-        #
-
-        # remove any previous backup file
-        try:
-            os.remove(fname + ".old")
-        except:
-            pass # just protect
-
-        # create new file
-        fd = os.open(fname + ".new", os.O_CREAT | os.O_WRONLY, 0600)
-        try:
-            os.write(fd, proxy_data)
-        finally:
-            os.close(fd)
-
-        # move the old file to a tmp and the new one into the official name
-        try:
-            os.rename(fname, fname + ".old")
-        except:
-            pass # just protect
-        os.rename(fname + ".new", fname)
-        return fname
-
-
 
 #
 # Main function
@@ -551,9 +480,7 @@ def keepIdleGlideins(client_condorq, client_int_name,
             add_glideins = max_nr_running - (running_glideins + idle_glideins)
 
         try:
-            #submitGlideins(condorq.entry_name, client_int_name, add_glideins,
-            #               submit_credentials,
-            #               client_web, params)
+            submitGlideins(condorq.entry_name, client_int_name, add_glideins, submit_credentials, client_web, params)
             return add_glideins # exit, some submitted
         except RuntimeError, e:
             logSupport.log.warning("%s" % e)
@@ -1370,3 +1297,11 @@ def isGlideinUnrecoverable(jobInfo):
         if (unrecoverableCodes.has_key(code) and (subCode in unrecoverableCodes[code])):
             unrecoverable = True
     return unrecoverable
+
+############################################################
+# only allow simple strings
+def is_str_safe(s):
+    for c in s:
+        if not c in ('._-@' + string.ascii_letters + string.digits):
+            return False
+    return True
