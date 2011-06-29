@@ -58,6 +58,7 @@
         <li> <a href="#overview">Overview</a></li>
         <li> <a href="#procedure">Procedure</a></li>
         <li> <a href="#manage_script">manage-glideins script</a></li>
+        <li> <a href="#ini_examples">Sample ini-files</a></li>
     </ol>
     </div>
 
@@ -78,15 +79,17 @@
 This installer uses a configuration file (ini format) to perform the installation of the glideinWMS services in lieu of a question/answer (q/a) type installer. It requires knowledge and planning of the glideinWMS services just as the the q/a installer did. The major difference is that you essentially pre-answer all the questions previously asked and document them in the ini file. In addition to having them documented, this performs the actual installation faster and allows for re-installs more quickly when some of the attribute values are incorrect (an inevitable consequence of a complex set of services such as these).
 </p><p>
 Another major difference, with this installer, is that it does NOT modify any scripts that set a user environment upon log in, e.g., .bashrc file, /etc/profile.d files, et al. Instead, an environment script is created for each service in its respective "home" location. If inclusion of these scripts is required at a location, it will need to be performed manually. The only exception to this is when privilege separation is in effect, in which case, the /etc/condor/privsep_config file is created. This location is hard-coded in Condor and cannot be changed. 
-
-</p>
-<p>
+For each of the glideinsWMS services, the scripts for setting the environment are:
 <ul>
 <li><b>wmscollector, usercollector, submit</b>: condor_location/condor.sh</li>
 <li><b>factory</b>: install_location/factory.sh</li>
 <li><b>vofrontend</b>: install_location/frontend.sh</li>
 </ul>
 </p>
+</p><p>
+For glideinWMS services using Condor, the CONDOR_LOCATION/config.d directory
+will contain the Condor attributes required for that service.
+
 </div>
 
 <div class="section">
@@ -102,6 +105,8 @@ Installation proceeds in the same order as the dialog installer:
 </ol>
 Services have dependencies between them.  If you get an error or change
 the ini file, it is recommended that you go back and re-install ALL services.
+Prior to actually doing the install, it is suggested you use the '--validate'
+option on all nodes to resolve any errors affecting dependencies.
 </div>
 
 <div class="section">
@@ -117,10 +122,15 @@ This usage can be used to install, start, stop or check the status of
 the glidein services based on the configuration in the specified ini file.
 <p> 
 <b>OPTION</b> can be one of:</br>
+ - <b>validate</b>: Allows you to validate the ini file prior to installation</br>
  - <b>install</b>: Install the service</br>
- - <b>start</b>: Start the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</br>
- - <b>stop</b>: Stop the service.  Remote starting of services is possible is remote access (via ssh) is allowed.</br>
- - <b>status</b>: Return the status of the service
+ - <b>configure</b>: This allows  you to reconfigure your service based on 
+     changes to the ini file without re-installing condor.<br/>
+     For services using Condor, it will update the config.d local config files,<br/> 
+     For the factory and vofrontend, it will update the respective xml config files.</br>
+ - <b>start</b>: Start the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+ - <b>stop</b>: Stop the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
+ - <b>status</b>: Return the status of the service.  Remote starting of services is possible if remote access (via ssh) is allowed.</br>
 </p><p>
 
 <b>SERVICE</b> can be one of:</br>
@@ -129,7 +139,9 @@ the glidein services based on the configuration in the specified ini file.
  - factory</br>
  - submit</br>
  - vofrontend</br>
+ - rpm (Used for OSG Frontend RPM sites. Note: The 'install' action is not allowed for this service.)</br>
  - all: can only be used with start/stop/status actions</br>
+</p><p>
 </p><p>
 <b>--ssh</b>: allows the start/stop/status actions to be performed 
 remotely providing the user has valid access to the other service's node via 
@@ -178,6 +190,12 @@ when the DEFAULT section is used to apply values to all sections/services.
 <p>
 The ini file determines the installation and configuration of the various services.  All ini file attributes are required. However, in several cases the value may be left empty. These should be noted in the comments column of the tables. 
 </p>
+<p><b>
+The configuration based installer <b>requires</b> that the same ini file be used
+for all service installations.  There are several areas where data is required
+from other services.  Since most services can be installed on separate hosts, the installer can only valididate data for the node being installed.
+</p></b>
+
 
 <h3>Default Section</h3>
 <p>
@@ -186,13 +204,20 @@ The attributes in this section apply to all subsequent sections in the ini file 
 <h4>Pacman options</h4>
 The 2 pacman related attributes are used to bring down the OSG/VDT client software 
 and CA certificates if they are not already installed on the node. 
-If you already have the OSG/VDT client and CA certificates installed on a host, then these options will never if used.
+If you already have the OSG/VDT client and CA certificates installed on a host
+or you have already installed the CA certificates and are using other non-VDT client software for proxy renewals, then:<br/>
+&nbsp;- these options are still required but may be empty, i.e., contain no value.<br/>
+&nbsp;- the vdt_location option is still required but may be empty.<br/>
+&nbsp;- the install_vdt_client should be set to 'n'.<br/>
 </p><p>
-<b>These should not be changed unless advised to by glideinwms-support as there 
-may be compatiblity issues between pacman and VDT distributions.</b>
+<b>These are parts of the pacman related options below that should not be 
+changed unless advised to by glideinwms-support as there 
+may be compatiblity issues between pacman and VDT distributions. 
+The comments column will provide the specifics.
+</b>
 
 </p>
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -206,10 +231,16 @@ may be compatiblity issues between pacman and VDT distributions.</b>
             <td>This will be the directory in which pacman is installed.</br>
             </td>
             <td>
-                The base level (e.g., pacman-3.28) will be used to select the
-                pacman tarball from the pacman_url option.</br>
-                The format is pacman-version.tar.gz.</br>
-                The tarball will be retrieved, extracted and then removed.  
+             The base level (e.g., pacman-3.28) will be used to select the
+             pacman tarball from the pacman_url option.</br>
+             The format is pacman-version.tar.gz.</br>
+	     The tarball will be retrieved using the <b>pacman_url</b> option, 
+             extracted and then removed.</br></br>
+             You will need to specify the path to the directory, <b>pacman-3.28</b>.  
+             If you already have pacman-3.28 installed on your node, the installer
+             will not attempt to bring a new pacman down.  You may utitize that 
+             directory.
+                <b>
             </td>
         </tr>
 
@@ -219,6 +250,7 @@ may be compatiblity issues between pacman and VDT distributions.</b>
             <td>URL to retrieve pacman.</br>
             </td>
             <td>
+             <b>This is the one pacman option you should not change.</b>
             </td>
         </tr>
     </tbody></table>
@@ -237,7 +269,7 @@ to be owned by root in order to properly use privilege separation.
 
 See below for the ini file attributes that installing/running WMS collector requires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -260,7 +292,7 @@ See below for the ini file attributes that installing/running WMS collector requ
             For security purposes, this value should always be a non-root user.<br/>
             <b>However</b>, if privilege separation is used 
             (see the <b>privilege_separation</b> option), the manage-glideins 
-            script itself will be need to be run as root (see above), since
+            script itself will need to be run as root (see above), since
             the Condor switchboard requires some files to be 
             owned by root and some files to
             be owned by the non-superuser <b>username</b> for privilege separation
@@ -292,7 +324,7 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td> <a name="privilege_separation"/> privilege_separation</td>
         <td align="center">y</td>
-        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor Privilege Seperation  Documentation</a> for more information</td>
+        <td>See the <a target="_blank" href="http://www.cs.wisc.edu/condor/manual/v7.2/3_6Security.html#SECTION004612000000000000000">Condor Privilege Separation  Documentation</a> for more information</td>
         <td>Valid values:<br/>
             * <b>y</b> - privilege separation is used<br/>
             * <b>n</b> - privilege separation is not used <br/>
@@ -302,9 +334,13 @@ See below for the ini file attributes that installing/running WMS collector requ
         <tr>
         <td>frontend_users </td>
         <td>frontend_service_name : unix_account </td>
-        <td>The vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install. 
+        <td>Maps the vofrontend's service name to the UNIX account that has been created for it.  Only one frontend service can be specified on install. 
         </td>
-        <td>The format is: <b>service_name : unix account </b>
+        <td>The format is: <b>service_name : unix account </b><br/>
+        If <b>privilege_separation</b> is specified, this must specify
+        the unique UNIX user account you set up for that frontend service.</br>
+        If <b>privilege_separation</b> is <b>not</b> specified, this must be the
+        factory username.</br>
         </td>
         </tr>
 
@@ -319,43 +355,39 @@ See below for the ini file attributes that installing/running WMS collector requ
         </tr>
 
         <tr>
-        <td>gsi_credential_type </td>
-        <td align="center">cert</td>
-        <td>Used to identify this service to the other glideinWMS services.</td>
+        <td>x509_cert</td>
+        <td>/path-to-cert-location/cert.pm</td>
+        <td>The location of the certificate file being used.</td>
         <td>
-            Valid values:<br/>
-            * <b>cert</b> - certificate used<br/>
-            * <b>proxy</b> - proxy used 
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 644 or 600.
         </td>
         </tr>
 
         <tr>
-        <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
-        <td>
-            /path-to-cert/cert.pm<br/>
-            /path-to-cert/key.pm<br/>
-            /path-to-proxy/x509_proxyfile
-         </td>
-         <td>The location of the certificate or proxy being used.
-         </td>
-         <td>If the <b>gsi_credential_type</b> option is:<br/>
-             <b>* cert</b> - x509_cert and x509_key are required.<br/>
-             <b>* proxy</b> - then x509_proxy is required. 
+        <td>x509_key</td>
+        <td> /path-to-cert-location/key.pm </td>
+         <td>The location of the certificate key file being used and 
+             associated with the certtificate defined by the <b>x509_cert</b>
+             option above.
+        </td>
+         <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 600 or 400.
         </td>
         </tr>
 
         <tr>
         <td>x509_gsi_dn</td>
-        <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
+        <td>dn-subject-of-x509_cert-using-openssl</td>
         <td>
-            This is the identity used by this service to contact the other
-            Condor based glideinWMS services.
+            This is the identity of the certificate used by this service to 
+            contact the other Condor based glideinWMS services.
         <td>
-            If the <b>gsi_credential_type</b> option is:<br/>
-            * <b>cert</b>, the subject of the certificate<br/>
-            * <b>proxy</b>, the issuer of the proxy 
+            This is the <i>subject</i> of the certificate 
+            (<b>x509_cert</b> option).
             <blockquote>
-            openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/>
+            openssl x509 -subject -noout -in [<b>x509_cert</b>]<br/>
             </blockquote>
             It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
         </td>
@@ -383,7 +415,7 @@ It must be a zipped tarball with a *.tg.tz name.
         <td>number_of_schedds</td>
         <td align="center">   5</td>
         <td>The desired number of schedds to be used.    </td>
-        <td>.</td>
+        <td>There must be at least 1 schedd.</td>
         </tr>
 
         <tr>
@@ -392,20 +424,26 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.  
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
-            <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td>
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>/path/to/glidein/vdt</td>
+            <td>The location of the OSG/VDT client software.</td>
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
+            </td>
         </tr>
 
         <tr>
@@ -429,7 +467,7 @@ the WMS Factory (see the <b>username</b> option below).
 See below for the ini file attributes that installing/running WMS factory 
 requires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -526,7 +564,7 @@ requires:<br/><br/>
 
         <tr>
           <td>x509_gsi_dn</td>
-          <td>/DC=org/DC=doegrids/OU=Services/CN=[authorized_user] </td>
+          <td>dn-issuer-of-x509_proxy-using-openssl</td>
           <td>The issuer of the Factory pilot proxy specified by the 
               Factory <b>x509_proxy</b> option</td>
           <td>If the Factory <b>use_vofrontend_proxy</b> option is:</br>
@@ -613,20 +651,26 @@ requires:<br/><br/>
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
-            <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>/path/to/glidein/vdt</td>
+            <td>The location of the OSG/VDT client software.</td> 
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
+            </td>
         </tr> 
 
 
@@ -691,7 +735,7 @@ There is no real advantage to install as root, so non-privileged installation is
 See below for the ini file attributes that installing/running user collector requ
 ires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -745,45 +789,45 @@ ires:<br/><br/>
         </tr>
 
         <tr>
-        <td>gsi_credential_type </td>
-        <td align="center">cert</td>
-        <td>Used to identify this service to the other glideinWMS services.</td>
+        <td>x509_cert</td>
+        <td>/path-to-cert-location/cert.pm</td>
+        <td>The location of the certificate file being used.</td>
         <td>
-            Valid values:<br/>
-            * <b>cert</b> - certificate used<br/>
-            * <b>proxy</b> - proxy used
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 644 or 600.
         </td>
         </tr>
 
-            <tr>
-            <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
-            <td>
-            /path-to-cert/cert.pm<br/>
-            /path-to-cert/key.pm<br/>
-            /path-to-proxy/x509_proxyfile
-            </td>
-            <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
-            <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
-                If a <b>proxy</b>, then x509_proxy is required. </td>
-            </tr>
+        <tr>
+        <td>x509_key</td>
+        <td> /path-to-cert-location/key.pm </td>
+         <td>The location of the certificate key file being used and
+             associated with the certtificate defined by the <b>x509_cert</b>
+             option above.
+        </td>
+         <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 600 or 400.
+        </td>
+        </tr>
 
         <tr>
         <td>x509_gsi_dn</td>
-        <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
+        <td>dn-subject-of-x509_cert-using-openssl</td>
         <td>
-            This is the identity used by this service to contact the other
-            Condor based glideinWMS services.
+            This is the identity of the certificate used by this service to
+            contact the other Condor based glideinWMS services.
         <td>
-            If the <b>gsi_credential_type</b> option is:<br/>
-            * <b>cert</b>, the subject of the certificate<br/>
-            * <b>proxy</b>, the issuer of the proxy
+            This is the <i>subject</i> of the certificate
+            (<b>x509_cert</b> option).
             <blockquote>
-            openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/>
+            openssl x509 -subject -noout -in [<b>x509_cert</b>]<br/>
             </blockquote>
             It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
         </td>
         </td>
         </tr>
+
 
         <tr>
         <td>condor_tarball</td>
@@ -805,8 +849,9 @@ It must be a zipped tarball with a *.tg.tz name.
         <tr>
             <td>number_of_secondary_collectors  </td>
             <td align="center">5   </td>
-            <td>The desired number of secondary collectors to be used.   </td>
-            <td>.</td>
+            <td>The desired number of secondary collectors to be used.  </td>
+            <td>A rough estimate is to use one collector per 100 glideins 
+            with a hard limit on 200 glideins per collector.</td>
             </tr>
 
         <tr>
@@ -815,20 +860,25 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
         <tr>
             <td>vdt_location</td>
-            <td>    /path/to/glidein/vdt</td>
-            <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>/path/to/glidein/vdt</td>
+            <td>The location of the OSG/VDT client software.</td> 
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
         </tr> 
 
         <tr>
@@ -854,7 +904,7 @@ requires:
 
 <br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -900,45 +950,43 @@ requires:
         </td>
         </tr>
 
+
         <tr>
-        <td>gsi_credential_type </td>
-        <td align="center">cert</td>
-        <td>Used to identify this service to the other glideinWMS services.</td>
+        <td>x509_cert</td>
+        <td>/path-to-cert-location/cert.pm</td>
+        <td>The location of the certificate file being used.</td>
         <td>
-            Valid values:<br/>
-            * <b>cert</b> - certificate used<br/>
-            * <b>proxy</b> - proxy used
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 644 or 600.
         </td>
         </tr>
 
-            <tr>
-            <td>x509_cert<br/>x509_key<br/>x509_proxy </td>
-            <td>
-            /path-to-cert/cert.pm<br/>
-            /path-to-cert/key.pm<br/>
-            /path-to-proxy/x509_proxyfile
-            </td>
-            <td>The location of the certificate or proxy based on the <b>gsi_credential_type</b> option. </td>
-            <td>If a <b>cert</b>, x509_cert and x509_key are required.</br>
-                If a <b>proxy</b>, then x509_proxy is required. </td>
+        <tr>
+        <td>x509_key</td>
+        <td> /path-to-cert-location/key.pm </td>
+         <td>The location of the certificate key file being used and
+             associated with the certtificate defined by the <b>x509_cert</b>
+             option above.
+        </td>
+         <td>
+           This file must be owned by the user installing (starting/stopping)
+           this service.  Permissions should be 600 or 400.
+        </td>
         </tr>
 
         <tr>
         <td>x509_gsi_dn</td>
-        <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
+        <td>dn-subject-of-x509_cert-using-openssl</td>
         <td>
-            This is the identity used by this service to contact the other
-            Condor based glideinWMS services.
+            This is the identity of the certificate used by this service to
+            contact the other Condor based glideinWMS services.
         <td>
-            If the <b>gsi_credential_type</b> option is:<br/>
-            * <b>cert</b>, the subject of the certificate<br/>
-            * <b>proxy</b>, the issuer of the proxy
+            This is the <i>subject</i> of the certificate
+            (<b>x509_cert</b> option).
             <blockquote>
-            openssl x509 -issuer -subject -noout -in [cert_proxy_location]<br/>
+            openssl x509 -subject -noout -in [<b>x509_cert</b>]<br/>
             </blockquote>
-            It is used to populate the condor_config file GSI_DAEMON_NAME and 
-            condor_mapfile entries of this and the other glideinWMS services 
-            as needed.
+            It is used to populate the condor_config file GSI_DAEMON_NAME and condor_mapfile entries of this and the other glideinWMS services as needed.
         </td>
         </td>
         </tr>
@@ -961,19 +1009,30 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>split_condor_config     </td>
-        <td align="center">y   </td>
-        <td>Split the condor_config file.</td>
-        <td>Valid values:<br/>
-            * <b>y</b> - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
-            * <b>n</b> - will append to the CONDOR_LOCATION/etc/condor_config  </td>
-        </tr>
-
-        <tr>
         <td>number_of_schedds   </td>
         <td align="center">5   </td>
         <td>The desired number of schedds to be used.    
-        <td>.</td>
+        <td>There must be at least 1 schedd.</td>
+        </tr>
+
+        <tr>
+        <td>schedd_shared_port</td>
+        <td align="center">9615</td>
+        <td>
+        Specifies the port number to be used by the shared port daemon
+        for schedds.
+        </td>
+        <td>
+        This is only available in Condor 7.5.3+.</br>
+        This can drastically reduce the number of ports used and thus improves
+        scalability.</br>
+        The default port is 9615.</br>
+        Leave this option blank if you do not wish to utilize this feature or
+        if is is not supported in the version of Condor being used.<br/>
+        For more information on use of the shared_port_daemon, see the
+        <a href="condor.html#schedds">GlideinWMS - Advanced Condor Configuration manual</a>.
+        </br>
+        </td>
         </tr>
 
         <tr>
@@ -997,10 +1056,11 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
@@ -1008,9 +1068,13 @@ Valid values:</br>
             <td>vdt_location</td>
             <td>    /path/to/glidein/vdt</td>
             <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
         </tr> 
 
         <tr>
@@ -1036,7 +1100,7 @@ The installation of the frontend should be done as the frontend user
 See below for the ini file attributes that installing/running the 
 glideinWMS frontend requires:<br/><br/>
 
-    <table width="90%" class="attributes">
+    <table class="attributes">
         <tbody><tr class="head">
         <td>Attribute</td>
         <td>Example</td>
@@ -1066,19 +1130,6 @@ glideinWMS frontend requires:<br/><br/>
         <td>   
           This name MUST correspond to frontend service name listed the factory
           configuration for the frontend to be able to talk to the factory.  
-        </td>
-        </tr>
-
-        <tr>
-        <td>frontend_identity   </td>
-        <td>vo_frontend_identity    </td>
-        <td>
-            Identity of the Frontend service when communicating with the 
-            Factory service.
-        </td>
-        <td>   
-            Used in the frontend config file to identify this VOFrontend 
-            to the factory.
         </td>
         </tr>
 
@@ -1135,15 +1186,6 @@ It must be a zipped tarball with a *.tg.tz name.
         </tr>
 
         <tr>
-        <td>split_condor_config     </td>
-        <td align="center">y   </td>
-        <td>Split the condor_config file.</td>
-        <td>Valid values:<br/>
-            * <b>y</b> - will create a CONDOR_LOCATION/condor_local/condor_config.local<br/>
-            * <b>n</b> - will append to the CONDOR_LOCATION/etc/condor_config  </td>
-        </tr>
-
-        <tr>
         <td>x509_cert_dir</td>
         <td>/path/to/certificates-location </td>
         <td>The directory where the CA certificates are maintained.
@@ -1160,19 +1202,24 @@ It must be a zipped tarball with a *.tg.tz name.
             </td>
             <td>The location of the proxy used to identify this service to the other glideinWMS services. </td>
             <td>
-              .
+             This is the only glideinWMS service that currently requires a proxy
+             to communicate with the other glideinWMS services. 
+             This is <b>NOT</b> the glidein pilot proxy.</br>
+             The <b>x509_gsi_dn</b> option that follows should be
+             populated with the <i>issuer</i> of this proxy.
             </td>
         </tr>
 
         <tr>
         <td>x509_gsi_dn</td>
-        <td>/DC=org/DC=doegrids/OU=Services/CN=wmscollector.domain.name </td>
+        <td>dn-issuer-of-x509_proxy-using-openssl</td>
         <td>
             This is the identity used by this service to contact the other
             Condor based glideinWMS services.
         <td>
-          This is the issuer of the proxy.
-          <blockquote>openssl x509 -issuer -noout -in [x509_proxy]</blockquote>
+          This is the <i>issuer</i> of the proxy identified by the 
+          <b>x509_proxy</b> option above.
+          <blockquote>openssl x509 -issuer -noout -in [<b>x509_proxy</b>]</blockquote>
           It is used to populate the condor_config file GSI_DAEMON_NAME and 
           condor_mapfile entries of this and the other glideinWMS services 
           as needed.
@@ -1182,7 +1229,7 @@ It must be a zipped tarball with a *.tg.tz name.
 
         <tr>
         <td>glidein_proxy_files     </td>
-        <td>/path/to/proxyfile1</td>
+        <td>/path-to-proxy/proxyfile1</td>
         <td>Identifies the proxy(s) to be used to submit the glidein pilot jobs.
         </td>
         <td>
@@ -1195,12 +1242,17 @@ It must be a zipped tarball with a *.tg.tz name.
 
         <tr>
         <td>glidein_proxy_dns</td>
-        <td> /DC=org/DC=doegrids/OU=Services/CN=proxy1/vofrontend.domain.name
+        <td>dn-issuer-of-glidein_proxy_files-using-openssl
         </td>
         <td>Identifies the issuer(s) of each proxy specified in the 
             <b>glidein_proxy_files</b> option.
         </td>
         <td>
+        This is the <i>issuer</i> of the proxy.
+            (<b>x509_cert</b> option).
+            <blockquote>
+            openssl x509 -issuer -noout -in [<b>glidein_proxy_files</b>]<br/>
+            </blockquote>
         Validation is performed based on the relative position of each 
         entry in those options.</br>
         This is used in the UserCollector condor_mapfile and condor_config.local        so the glidein pilot can communicate with the UserCollector. 
@@ -1298,10 +1350,11 @@ It must be a zipped tarball with a *.tg.tz name.
           <td>Indicates if an OSG/VDT client should be installed if it is not already present in the <b>vdt_location</b> option location.
             </td>
           <td>
-This installer will not attempt to reinstalled this software if it is already present.</br>
 Valid values:</br>
 * <b>y</b> - installer will install a VDT client using the <b>vdt_location</b> and <b>pacman_location/_url</b> options specified.</br>
-* <b>n</b> - will not attempt to install the VDT client</br>
+* <b>n</b> - will not attempt to install the VDT client<br/><br/>
+This installer will not attempt to reinstall this software if it is already 
+present.</br>
           </td>
         </tr>
 
@@ -1309,9 +1362,13 @@ Valid values:</br>
             <td>vdt_location</td>
             <td>    /path/to/glidein/vdt</td>
             <td>   The location of the OSG/VDT client software.</td> 
-            <td>    The installer looks for the existence of 2 files to verify if this is an OSG/VDT client installation:</br>
+            <td>
+The installer looks for the existence of 2 files to verify if this is a valid 
+OSG/VDT client installation:</br>
 1. setup.sh</br>
-2. existence of a voms-proxy-init executable.</td>
+2. existence of a voms-proxy-init executable.</br></br>
+If the <b>install_vdt_client</b> option is 'n', then this option's value should 
+be empty/blank.</br>
         </tr> 
 
 
@@ -1361,6 +1418,558 @@ Valid values:</br>
 
 </tbody></table>
 </div>
+
+<!- ---------- Ini Examples ------------ -->
+<div class="section">
+<a name="ini_examples" />
+<h2>Sample ini-files</h2>
+<p>
+Sample ini-files cover following three use cases:
+  <ul>
+    <li>CASE 1: Single node install with single ini files</li>
+    <li>CASE 2: Multiple node install with single ini file</li>
+    <li>CASE 3: Multiple node install with different init files</li>
+  </ul>
+</p>
+
+<h4>CASE 1: Single node install with single ini files</h4>
+<pre>
+; ## Global options
+[DEFAULT]
+pacman_location =
+pacman_url      =
+
+hostname = cms-xen38.fnal.gov
+username = glidein
+
+version = v2_5_1
+instance_name = all_four_node
+install_dir = /opt/no-vdt-glideinWMS
+glideinwms_location = %(install_dir)s/glideinWMS
+javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
+
+tarballs = /opt/install_packages
+condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+
+vdt_location =
+install_vdt_client = n
+
+x509_cert = /etc/grid-security/hostcert.pem
+x509_key  = /etc/grid-security/hostkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=cms-xen38.fnal.gov
+x509_cert_dir  = /etc/grid-security/certificates
+
+;--------------------------------------------------
+[WMSCollector]
+
+service_name = wms_service
+
+condor_location = %(install_dir)s/condor-wms
+collector_port = 9618
+number_of_schedds = 5
+
+privilege_separation = y
+frontend_users = frontend_service : vo_cms,
+
+;--------------------------------------------------
+[Factory]
+
+service_name = factory_service
+
+install_location = %(install_dir)s/factory
+logs_dir         = %(install_dir)s/factory-logs
+
+client_log_dir   = %(install_dir)s/client-logs
+client_proxy_dir = %(install_dir)s/client-proxies
+
+use_vofrontend_proxy = y
+x509_proxy  =
+x509_gsi_dn =
+
+use_glexec = n
+use_ccb    = n
+match_authentication = y
+
+ress_host = osg-ress-4.fnal.gov
+entry_vos = cms
+entry_filters = (int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)<(72*60))
+
+
+web_url       = http://%(hostname)s:8319
+web_location  = /var/www/html/factory
+
+;--------------------------------------------------
+[UserCollector]
+
+service_name = userpool_service
+
+condor_location = %(install_dir)s/condor-therest
+collector_port = 9640
+number_of_secondary_collectors = 5
+
+;--------------------------------------------------
+[Submit]
+
+service_name = submit_service
+number_of_schedds = 5
+schedd_shared_port =
+match_authentication = y
+
+condor_location = %(install_dir)s/condor-therest
+
+;--------------------------------------------------
+[VOFrontend]
+
+service_name = frontend_service
+
+install_location = %(install_dir)s/frontend
+logs_dir         = %(install_dir)s/frontend-logs
+
+condor_location = %(install_dir)s/condor-therest
+
+x509_proxy = /etc/grid-security/tony_pilot_proxy
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+glidein_proxy_files = /etc/grid-security/tony_pilot_proxy
+glidein_proxy_dns = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+group_name   = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+
+glexec_use = never
+match_authentication = y
+expose_grid_env = True
+
+web_location  = /var/www/html/frontend
+web_url       = http://%(hostname)s:8319
+</pre>
+
+<h4>CASE 2: Multiple node install with single ini file</h4>
+<pre>
+; ## Global options
+[DEFAULT]
+
+pacman_location = /opt/pacman/pacman-3.28
+pacman_url      = http://physics.bu.edu/pacman/sample_cache/tarballs
+
+version = v2.5.1
+instance_name = v2.5.1-cream-cloud
+install_dir = /opt/glideinWMS-v2plus
+glideinwms_location = %(install_dir)s/glideinWMS
+javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
+
+tarballs = /opt/install_packages
+condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
+
+vdt_location = /opt/vdt
+install_vdt_client = n
+
+x509_cert_dir=/opt/vdt/globus/TRUSTED_CA
+
+condor_admin_email = condor-admin@fnal.gov
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cms-xen6.fnal.gov
+username    = tony_xen_factory
+service_name = wms_service
+
+condor_location = %(install_dir)s/condor-wms
+collector_port = 9618
+
+privilege_separation = y
+frontend_users = frontend_service : tony_xen_cms_frontend
+
+x509_cert = /etc/grid-security/glideincerts/cms-xen6glideinwmscollectorcert.pem
+x509_key = /etc/grid-security/glideincerts/cms-xen6glideinwmscollectorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinwmscollector/cms-xen6.fnal.gov
+
+number_of_schedds = 5
+
+;--------------------------------------------------
+[Factory]
+
+hostname = cms-xen6.fnal.gov
+username    = tony_xen_factory
+service_name = factory_service
+
+install_location = %(install_dir)s/Factory
+logs_dir = %(install_dir)s/factory-logs
+client_log_dir = %(install_dir)s/client-logs
+client_proxy_dir = %(install_dir)s/client-proxies
+
+use_vofrontend_proxy = y
+x509_proxy =
+x509_gsi_dn =
+use_glexec = n
+use_ccb    = y
+match_authentication = y
+
+ress_host       = osg-ress-4.fnal.gov
+entry_vos = cms
+entry_filters = (int(GlueCEPolicyMaxCPUTime)==0) or (int(GlueCEPolicyMaxCPUTime)<=(24*60))
+
+web_url       = http://%(hostname)s:8319
+web_location  = /var/www/html/Factory
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cms-xen8.fnal.gov
+username    = tony_xen_pool_collector
+service_name = userpool_service
+
+condor_location = %(install_dir)s/condor-userpool
+collector_port = 9618
+
+x509_cert = /etc/grid-security/glideincerts/cms-xen8glideinpoolcollectorcert.pem
+x509_key = /etc/grid-security/glideincerts/cms-xen8glideinpoolcollectorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinpoolcollector/cms-xen8.fnal.gov
+
+number_of_secondary_collectors = 0
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cms-xen8.fnal.gov
+username    = condor
+service_name = submit_service
+
+condor_location = %(install_dir)s/condor-submit
+
+x509_cert = /etc/grid-security/glideincerts/cms-xen8glideinsubmittercmscert.pem
+x509_key = /etc/grid-security/glideincerts/cms-xen8glideinsubmittercmskey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=glideinsubmittercms/cms-xen8.fnal.gov
+
+number_of_schedds = 5
+schedd_shared_port = 9615
+match_authentication = y
+
+;--------------------------------------------------
+[VOFrontend]
+
+instance_name = v2_5_1-cream-cloud
+
+hostname = cms-xen7.fnal.gov
+username    = tony_xen_cms_frontend
+service_name = frontend_service
+
+install_location = %(install_dir)s/Frontend
+logs_dir     = %(install_dir)s/frontend-logs
+
+condor_location = %(install_dir)s/condor-frontend
+
+gsi_credential_type = proxy
+x509_proxy = /etc/grid-security/glideincerts/tony_pilot_proxy
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+glidein_proxy_files = /etc/grid-security/glideincerts/tony_pilot_proxy
+glidein_proxy_dns = /DC=org/DC=doegrids/OU=People/CN=Anthony Tiradani 329103
+
+group_name = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+
+glexec_use = never
+match_authentication = y
+expose_grid_env = True
+
+web_url       = http://%(hostname)s:8319
+web_location  = /var/www/html/Frontend
+
+</pre>
+
+<h4>CASE 3: Multiple node install with different ini files</h4>
+
+Multiple node install with services using their own ini files is a work in progress. Sample ini files for different services for a working installation is shown below.
+
+<b>WMSCollector and Factory configuration</b>
+<pre>
+[DEFAULT]
+
+installation_version = v2.5.1
+install_vdt_client = n
+vdt_location = /home/gfactoryuser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/gfactoryuser/v2.5.1/glideinWMS
+pacman_location =
+pacman_url      =
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+username = condoruser
+service_name = WMS_Collector
+condor_location = /home/condoruser/%(installation_version)s/glidecondor
+collector_port = 8618
+privilege_separation = y
+frontend_users = Frontend-v2_5_1-cmssrv99:test1user
+x509_cert = /etc/grid-security/cmssrv97condorcert.pem
+x509_key = /etc/grid-security/cmssrv97condorkey.pem
+condor_tarball = /home/gfactoryuser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv97.fnal.gov
+number_of_schedds = 5
+
+;--------------------------------------------------
+[Factory]
+
+hostname = cmssrv97.fnal.gov
+username = gfactoryuser
+service_name = GlideinFactory-v2.5.1-cmssrv97
+install_location = /home/gfactoryuser/v2.5.1/glideinsubmit
+logs_dir = /var/gfactory/v2.5.1/glideinlogs
+client_log_dir = /var/gfactory/v2.5.1/clientlogs
+client_proxy_dir = /var/gfactory/v2.5.1/clientproxies
+instance_name = v1_0
+use_vofrontend_proxy = y
+use_glexec = y
+use_ccb = y
+match_authentication = y
+ress_host = osg-ress-4.fnal.gov
+entry_vos = dzero
+entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
+web_location = /var/www/html/glidefactory-v2.5.1
+web_url = http://%(hostname)s:8000
+javascriptrrd_location = /home/gfactoryuser/javascriptrrd-0.5.0
+x509_proxy =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+service_name =
+x509_gsi_dn =
+condor_location =
+collector_port =
+number_of_secondary_collectors =
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cmssrv99.fnal.gov
+service_name =
+condor_location =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+glidein_proxy_files = /tmp
+glidein_proxy_dns = %(x509_gsi_dn)s
+</pre>
+
+<b>User Collector ini file</b>
+<pre>
+[DEFAULT]
+
+pacman_url      =
+pacman_location =
+install_vdt_client = n
+vdt_location = /home/frontenduser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+collector_port =
+username =
+privilege_separation =
+condor_location =
+frontend_users =
+service_name =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[Factory]
+
+use_vofrontend_proxy =
+x509_gsi_dn =
+service_name =
+username =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+service_name = GlideinFactory-v2.5.1-cmssrv97
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+glidein_proxy_dns = %(x509_gsi_dn)s
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+username = condoruser
+service_name = User_Pool
+condor_location = /home/condoruser/v2.5.1/glidecondor
+collector_port = 9618
+x509_cert = /etc/grid-security/cmssrv99condorcert.pem
+x509_key = /etc/grid-security/cmssrv99condorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+number_of_secondary_collectors = 2
+condor_admin_email = condor-admin@fnal.gov
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cmssrv99.fnal.gov
+service_name = UserSchedd
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+condor_location =
+
+</pre>
+
+<b>Submit ini file</b>
+<pre>
+[DEFAULT]
+pacman_url      =
+pacman_location =
+install_vdt_client = n
+vdt_location = /home/frontenduser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+username =
+privilege_separation =
+condor_location =
+frontend_users =
+service_name =
+x509_gsi_dn =
+
+;--------------------------------------------------
+[Factory]
+
+username =
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+service_name = GlideinFactory-v2.5.1-cmssrv97
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+service_name = User_Pool
+condor_location =
+collector_port = 9618
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+number_of_secondary_collectors =
+
+;--------------------------------------------------
+[Submit]
+
+hostname = cmssrv99.fnal.gov
+username = testuser
+service_name = UserSchedd
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+condor_location = /home/testuser/v2.5.1/glidecondor
+x509_cert = /etc/grid-security/cmssrv99testusercondorcert.pem
+x509_key = /etc/grid-security/cmssrv99testusercondorkey.pem
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+number_of_schedds = 2
+schedd_shared_port = 4444
+match_authentication = y
+
+</pre>
+
+<b>VO Frontend ini file</b>
+<pre>
+[DEFAULT]
+pacman_version  =
+pacman_url      =
+pacman_location =
+install_vdt_client = n
+vdt_location = /home/frontenduser/vdt
+x509_cert_dir = %(vdt_location)s/globus/share/certificates
+glideinwms_location = /home/frontenduser/v2.5.1/glideinWMS
+
+;--------------------------------------------------
+[WMSCollector]
+
+hostname = cmssrv97.fnal.gov
+service_name = WMS_Collector
+collector_port = 8618
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv97.fnal.gov
+username = condoruser
+privilege_separation = y
+frontend_users = Frontend-v2_5_1-cmssrv99:test1user
+condor_location =
+
+;--------------------------------------------------
+[Factory]
+
+hostname = cmssrv97.fnal.gov
+username = gfactoryuser
+use_vofrontend_proxy = y
+
+;--------------------------------------------------
+[VOFrontend]
+
+hostname = cmssrv99.fnal.gov
+username = frontenduser
+service_name = Frontend-v2_5_1-cmssrv99
+install_location = /home/frontenduser/v2.5.1/frontstage
+logs_dir = /home/frontenduser/v2.5.1/frontlogs
+instance_name = v1_0
+condor_location = /home/frontenduser/v2.5.1/glidecondor
+condor_tarball = /home/frontenduser/installers/condor-7.5.5-x86_64_rhap_5-stripped.tar.gz
+condor_admin_email = condor-admin@fnal.gov
+x509_proxy = /home/frontenduser/security/grid_proxy
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+glidein_proxy_files = %(x509_proxy)s
+glidein_proxy_dns = %(x509_gsi_dn)s
+glexec_use = optional
+expose_grid_env = True
+match_authentication = y
+group_name = main
+userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_Monitor =!= TRUE)
+match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
+web_url = http://cmssrv99.fnal.gov:8000
+web_location = /var/www/html/vofrontend-v2.5.1
+javascriptrrd_location = /home/frontenduser/javascriptrrd-0.5.0
+
+;--------------------------------------------------
+[UserCollector]
+
+hostname = cmssrv99.fnal.gov
+service_name = User_Pool
+x509_gsi_dn = /DC=org/DC=doegrids/OU=Services/CN=condor/cmssrv99.fnal.gov
+collector_port = 9618
+condor_location =
+number_of_secondary_collectors = 2
+
+;--------------------------------------------------
+[Submit]
+
+x509_gsi_dn = /DC=org/DC=doegrids/OU=People/CN=Parag Mhashilkar 209917
+hostname = cmssrv99.fnal.gov
+service_name = UserSchedd
+condor_location =
+</pre>
+
+</div>
+
+
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>

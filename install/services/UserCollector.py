@@ -17,18 +17,18 @@ from Configuration import ConfigurationError
 #-------------------------
 os.environ["PYTHONPATH"] = ""
 
-usercollector_options = [ "hostname", 
+usercollector_options = [ "install_type",
+"hostname", 
 "username",
 "service_name", 
 "condor_tarball", 
 "condor_location", 
-"split_condor_config", 
 "condor_admin_email", 
 "collector_port", 
 "number_of_secondary_collectors",
 "x509_cert_dir",
-"gsi_credential_type", 
-"cert_proxy_location", 
+"x509_cert", 
+"x509_key", 
 "x509_gsi_dn", 
 "install_vdt_client",
 "vdt_location",
@@ -66,113 +66,95 @@ valid_options = { "UserCollector" : usercollector_options,
 
 class UserCollector(Condor):
 
-  def __init__(self,inifile,options=None):
+  def __init__(self,inifile,optionsDict=None):
     global valid_options
     self.inifile = inifile
     self.ini_section = "UserCollector"
-    if options == None:
-      options = valid_options[self.ini_section]
-    Condor.__init__(self,self.inifile,self.ini_section,options)
+    if optionsDict != None:
+      valid_options = optionsDict
+    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     #self.certificates = self.option_value(self.ini_section,"certificates")
+    self.daemon_list = "COLLECTOR, NEGOTIATOR"
+    self.colocated_services = []
+
     self.wmscollector = None  # WMS collector object
     self.factory      = None  # Factory object
     self.submit       = None  # submit object
     self.frontend     = None  # VOFrontend object
-    self.daemon_list = "COLLECTOR, NEGOTIATOR"
-    self.colocated_services = []
+
+    self.not_validated = True
 
   #--------------------------------
   def get_wmscollector(self):
     if self.wmscollector == None:
-      self.wmscollector = WMSCollector.WMSCollector(self.inifile,valid_options["WMSCollector"])
+      self.wmscollector = WMSCollector.WMSCollector(self.inifile,valid_options)
   #--------------------------------
   def get_factory(self):
     if self.factory == None:
-      self.factory = Factory.Factory(self.inifile,valid_options["Factory"])
+      self.factory = Factory.Factory(self.inifile,valid_options)
   #--------------------------------
   def get_submit(self):
     if self.submit == None:
-      self.submit = Submit.Submit(self.inifile,valid_options["Submit"])
+      self.submit = Submit.Submit(self.inifile,valid_options)
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
-
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
+ 
   #--------------------------------
   def install(self):
-    self.get_wmscollector()
-    self.get_factory()
-    self.get_submit()
-    self.get_frontend()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
-    self.install_vdtclient()
-    self.install_certificates()
-    self.validate_condor_install()
-    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
-    self.verify_no_conflicts()
-    self.validate_install_location()
-    self.install_condor()
-    self.configure_condor()
+    self.validate()
+    self.__install_condor__()
+    self.configure()
     common.logit ("======== %s install complete ==========" % self.ini_section)
     common.start_service(self.glideinwms_location(),self.ini_section,self.inifile)
+
+  #-----------------------------
+  def validate(self):
+    if self.not_validated: 
+      self.get_wmscollector() 
+      self.get_factory() 
+      self.get_submit() 
+      self.get_frontend()
+      self.verify_no_conflicts()
+      ##  self.validate_install_location()
+      self.install_vdtclient()
+      self.install_certificates()   
+      self.validate_condor_install()
+    self.not_validated = False
+
+  #-----------------------------
+  def configure(self):
+    self.validate()
+    common.logit("Configuring Condor")
+    self.get_condor_config_data()
+    self.__create_condor_mapfile__(self.condor_mapfile_users())
+    self.__create_condor_config__()
+    self.__create_initd_script__()
+    common.logit("Configuration complete")
 
   #-----------------------------
   def validate_install_location(self):
     common.validate_install_location(self.condor_location())
 
   #--------------------------------
-  def configure_gsi_security(self):
-    common.logit("")
-    common.logit("Configuring GSI security")
-    common.logit("... updating condor_mapfile")
-    #--- create condor_mapfile entries if service is not collocated ---
-    #--- if collocated, file system authentication is used          --- 
-    condor_entries = ""
-    for service in [self.frontend, self.submit,]:
-      if service.hostname() <> self.hostname():
-        condor_entries += common.mapfile_entry(service.x509_gsi_dn(),service.service_name())
-    #--- add in factory proxy dn for pilots if needed --
-    if self.factory.use_vofrontend_proxy() == "n":
-      service_name = "%s_pilot" % (self.factory.service_name())
-      condor_entries += common.mapfile_entry(self.factory.x509_gsi_dn(),service_name)
-    #--- add in frontend proxy dns for pilots --
-    cnt = 0
-    for dn in self.frontend.glidein_proxy_dns():
-      cnt = cnt + 1
-      frontend_service_name = "%s_pilot_%d" % (self.frontend.service_name(),cnt)
-      condor_entries += common.mapfile_entry(dn,frontend_service_name)
-    self.__create_condor_mapfile__(condor_entries) 
+  def condor_mapfile_users(self):
+    users = []
+    users.append(["Submit",      self.submit.x509_gsi_dn(),   self.submit.service_name()])
+    users.append(["VOFrontend",self.frontend.x509_gsi_dn(), self.frontend.service_name()])
+    #-- frontend pilot proxies ---
+    for user in self.frontend.pilot_proxy_users():
+      users.append(user)
+    return users
 
-    #-- create the condor config file entries ---
-    common.logit("... updating condor_config for GSI_DAEMON_NAMEs")
-    gsi_daemon_entries = """\
-# --- User collector user: %s
-GSI_DAEMON_NAME=%s
-# --- Submit user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Frontend user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
-       (self.service_name(),                self.x509_gsi_dn(),
-      self.submit.service_name(),    self.submit.x509_gsi_dn(),
-    self.frontend.service_name(),  self.frontend.x509_gsi_dn())
-
-    #-- add in the factory glidein pilot proxies if necessary --
-    if self.factory.use_vofrontend_proxy() == "n":
-      gsi_daemon_entries += """
-# --- Factory pilot proxy: %s --
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (self.factory.service_name(),self.factory.x509_gsi_dn())
-
-    #-- add in the frontend glidein pilot proxies --
-    cnt = 0
-    for dn in self.frontend.glidein_proxy_dns():
-      cnt = cnt + 1
-      gsi_daemon_entries += """
-# --- Frontend pilot proxy: %s --
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
-
-    #-- update the condor config file entries ---
-    self.__update_gsi_daemon_names__(gsi_daemon_entries) 
+  #--------------------------------
+  def condor_config_daemon_users(self): 
+    users = []
+    users.append(["Submit",      self.submit.x509_gsi_dn(),  self.submit.service_name()])
+    users.append(["VOFrontend",self.frontend.x509_gsi_dn(),self.frontend.service_name()]) 
+    return users
 
   #--------------------------------
   def verify_no_conflicts(self):
@@ -180,9 +162,17 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (cnt,dn)
     if self.hostname() <> self.wmscollector.hostname():
       return  # -- no problem, on separate hosts --
     if self.collector_port() == self.wmscollector.collector_port():
-      common.logerr("The WMS collector and User collector are being installed \non the same node. They both are trying to use the same port: %s." % self.collector_port())
+      common.logerr("""The WMS collector and User collector are being installed 
+on the same node. They both are trying to use the same port: %(port)s.
+""" %  { "port" : self.collector_port(),})
+
     if int(self.wmscollector.collector_port()) in self.secondary_collector_ports():
-      common.logerr("The WMS collector and User collector are being installed \non the same node. The WMS collector port (%s) conflicts with one of the\nsecondary User collector ports that will be assigned: %s." % (self.wmscollector.collector_port(),self.secondary_collector_ports()))
+      common.logerr("""The WMS collector and User collector are being installed 
+on the same node. The WMS collector port (%(wms_port)s) conflicts with one of the
+secondary User Collector ports that will be assigned: %(secondary_ports)s.
+""" % \
+      { "wms_port"        : self.wmscollector.collector_port(),
+        "secondary_ports" : self.secondary_collector_ports(), })
 
 #--- END OF CLASS ---
 ###########################################

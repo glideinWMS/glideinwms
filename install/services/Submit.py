@@ -19,20 +19,21 @@ submit_options = [ "hostname",
 "service_name", 
 "condor_location", 
 "x509_cert_dir",
-"gsi_credential_type", 
-"cert_proxy_location", 
+"x509_cert", 
+"x509_key", 
 "x509_gsi_dn", 
 "match_authentication", 
 "condor_tarball", 
 "condor_admin_email", 
-"split_condor_config", 
 "number_of_schedds",
+"schedd_shared_port",
 "install_vdt_client",
 "vdt_location",
 "pacman_location",
 ]
 
 usercollector_options = [ "hostname", 
+"collector_port",
 "service_name", 
 "x509_gsi_dn",
 "condor_location",
@@ -43,57 +44,81 @@ frontend_options = [ "hostname",
 "x509_gsi_dn",
 ]
 
+wmscollector_options = [] 
+factory_options = [] 
+
 valid_options = { "Submit"        : submit_options,
                   "UserCollector" : usercollector_options,
                   "VOFrontend"    : frontend_options,
+                  "WMSCollector"  : wmscollector_options,
+                  "Factory"       : factory_options,
 }
 
 class Submit(Condor):
 
-  def __init__(self,inifile,options=None):
+  def __init__(self,inifile,optionsDict=None):
     global valid_options
     self.inifile = inifile
     self.ini_section = "Submit"
-    if options == None:
-      options = valid_options[self.ini_section]
-    Condor.__init__(self,self.inifile,self.ini_section,options)
-    #self.certificates = self.option_value(self.ini_section,"certificates")
-    self.certificates = None
+    if optionsDict != None:
+      valid_options = optionsDict
+    Condor.__init__(self,self.inifile,self.ini_section,valid_options[self.ini_section])
     self.schedd_name_suffix = "jobs"
     self.daemon_list = "SCHEDD"
     self.frontend      = None     # VOFrontend object
     self.usercollector = None     # User collector object
     self.colocated_services = []
 
-
+    self.not_validated = True
 
   #--------------------------------
   def get_frontend(self):
     if self.frontend == None:
-      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options["VOFrontend"])
+      self.frontend = VOFrontend.VOFrontend(self.inifile,valid_options)
   #--------------------------------
   def get_usercollector(self):
     if self.usercollector == None:
-      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options["UserCollector"])
+      self.usercollector = UserCollector.UserCollector(self.inifile,valid_options)
  
   #--------------------------------
   def install(self):
-    self.get_frontend()
-    self.get_usercollector()
     common.logit ("======== %s install starting ==========" % self.ini_section)
     common.ask_continue("Continue")
-    self.install_vdtclient()
-    self.install_certificates()
-    self.determine_co_located_services()
-    self.validate_condor_install()
+    self.validate()
     if "usercollector" not in self.colocated_services:
-      self.install_condor()
-    self.configure_condor()
+      self.__install_condor__()
+    self.configure()
     common.logit ("======== %s install complete ==========" % self.ini_section)
-    common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+    if "usercollector" not in self.colocated_services:
+      common.start_service(self.glideinwms_location(),self.ini_section,self.inifile) 
+    else:
+      self.stop_condor()
+      self.start_condor()
 
   #-----------------------------
-  def determine_co_located_services(self):
+  def validate(self):
+    if self.not_validated:
+      self.get_frontend()
+      self.get_usercollector() 
+      ##  self.validate_install_location()
+      self.install_vdtclient()
+      self.install_certificates() 
+      self.determine_colocated_services()
+      self.validate_condor_install()
+    self.not_validated = False
+
+  #-----------------------------
+  def configure(self):
+    self.validate()   
+    common.logit("Configuring Condor")
+    self.get_condor_config_data()
+    self.__create_condor_mapfile__(self.condor_mapfile_users())
+    self.__create_condor_config__()
+    self.__create_initd_script__()
+    common.logit("Configuration complete")
+
+  #-----------------------------
+  def determine_colocated_services(self):
     """ The submit/schedd service can share the same instance of Condor with
         the UserCollector and/or VOFrontend.  So we want to check and see if
         this is the case.  We will skip the installation of Condor and just
@@ -120,61 +145,28 @@ The condor_location for UserCollector service is different.
 Do you really want to keep them separate?  
 If not, stop and fix your ini file condor_location.
 Do you want to continue""")
-    
-    #--- Certificates ---
-#    if self.certificates == self.usercollector.certificates:
-#      self.colocated_services.append("certificates") 
-#      common.logit("... Certificates are shared: %s" % self.certificates())
-#    else:
-#      common.ask_continue("""
-#The certificates for both services is different. Do you really want to keep
-#them separate?  If not, stop and fix your ini file certificates option.
-#Do you want to continue""")
-#
-#    #--- VDTClient ---
-#    if self.vdt_location() == self.usercollector.vdt_location():
-#      self.colocated_services.append("vdtclient") 
-#      common.logit("... VDT client is shared: %s" % self.vdt_location())
-#    else:
-#      common.ask_continue("""
-#The vdt_location for both services is different. Do you really want to keep
-#them separate?  If not, stop and fix your ini file vdt_location option.
-#Do you want to continue""")
-
 
   #--------------------------------
-  def configure_gsi_security(self):
-    common.logit("")
-    common.logit("Configuring GSI security")
+  def condor_mapfile_users(self):
+    users = []
     if len(self.colocated_services) > 0:
       common.logit("... submit/schedd service colocated with UserCollector")
       common.logit("... no updates to condor mapfile required")
-      return
-    common.validate_gsi(self.x509_gsi_dn(),self.gsi_credential_type(),self.gsi_location())
-    common.logit("... updating condor_mapfile")
-    #--- create condor_mapfile entries ---
-    condor_entries = ""
-    condor_entries += common.mapfile_entry(self.usercollector.x509_gsi_dn(), self.usercollector.service_name())
-    condor_entries += common.mapfile_entry( self.frontend.x509_gsi_dn(),     self.frontend.service_name())
-    self.__create_condor_mapfile__(condor_entries)
+      return users
+    users.append(["User Collector", self.usercollector.x509_gsi_dn(), self.usercollector.service_name()])
+    users.append(["VOFrontend",     self.frontend.x509_gsi_dn(),      self.frontend.service_name()])
+    return users
 
-    #-- create the condor config file entries ---
-    common.logit("... updating condor_config for GSI_DAEMON_NAMEs")
-    gsi_daemon_entries = """\
-# --- Submit user: %s
-GSI_DAEMON_NAME=%s
-# --- Userpool user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-# --- Frontend user: %s
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s
-""" % \
-                 (self.username(),               self.x509_gsi_dn(),
-    self.usercollector.service_name(), self.usercollector.x509_gsi_dn(),
-         self.frontend.service_name(),      self.frontend.x509_gsi_dn())
-
-    #-- update the condor config file entries ---
-    self.__update_gsi_daemon_names__(gsi_daemon_entries)
-
+  #--------------------------------
+  def condor_config_daemon_users(self):
+    users = []
+    if len(self.colocated_services) > 0:
+      common.logit("... no updates to condor mapfile required")
+      return users
+    users.append(["Submit",        self.x509_gsi_dn(),               self.service_name()])
+    users.append(["UserCollector", self.usercollector.x509_gsi_dn(), self.usercollector.service_name()])
+    users.append(["VOFrontend",    self.frontend.x509_gsi_dn(),      self.frontend.service_name()])
+    return users
 
 #---------------------------
 def show_line():
