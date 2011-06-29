@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.14 2011/06/27 14:22:41 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.18.4.15 2011/06/29 14:32:57 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -657,6 +657,7 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
     stats['group'].logMatchedGlideins('Unmatched', 0,0,0) # Nothing running
     stats['group'].logFactAttrs('Unmatched', [], ()) # just for completeness
     stats['group'].logFactDown('Unmatched', True)
+    stats['group'].logFactReq('Unmatched', 0, 0, {})
 
     this_stats_arr=(unmatched_idle,unmatched_idle,unmatched_idle,unmatched_oldidle,unmatched_idle,unmatched_running,0,0,
                     0,0,0, # glideins... none, since no matching
