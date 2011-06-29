@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.32 2011/06/28 21:22:38 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.33 2011/06/29 14:20:37 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -911,7 +911,7 @@ def check_security_credentials(auth_method, decrypted_params, client_int_name, e
             # Validate both the public and private certs were passed
             if not (decrypted_params.has_key('PublicCert') and decrypted_params.has_key('PrivateCert')): 
                 # cert pair is required, cannot service request
-                logSupport.log.warning("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                logSupport.log.warning("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
                 return False
             
             # Verify no other credentials were passed
@@ -926,7 +926,7 @@ def check_security_credentials(auth_method, decrypted_params, client_int_name, e
             # Validate both the public and private keys were passed
             if not (decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey')):  
                 # key pair is required, cannot service request
-                logSupport.log.warning("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                logSupport.log.warning("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
                 return False
             
             # Verify no other credentials were passed
@@ -941,7 +941,7 @@ def check_security_credentials(auth_method, decrypted_params, client_int_name, e
             # Validate both the public and private keys were passed
             if not (decrypted_params.has_key('Username') and decrypted_params.has_key('Password')):                        
                 # username and password is required, cannot service request
-                logSupport.log.warning("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, jobDescript.data['EntryName']))
+                logSupport.log.warning("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
                 return False
                         
             # Verify no other credentials were passed
