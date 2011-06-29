@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.34 2011/06/29 18:08:07 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.35 2011/06/29 20:05:16 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -376,6 +376,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
         
         # Check request has the required credentials and nothing else
         try:
+            logSupport.log.debug("Checking security credentials for client %s " % client_int_name)
             glideFactoryCredentials.check_security_credentials(auth_method, decrypted_params, client_int_name, jobDescript.data['EntryName'])
         except glideFactoryCredentials.CredentialError, e:
             # skip request

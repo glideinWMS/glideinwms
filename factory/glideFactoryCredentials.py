@@ -13,7 +13,6 @@ import traceback
 import glideFactoryLib
 import condorPrivsep
 import condorMonitor
-import logSupport
 
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -250,7 +249,6 @@ def check_security_credentials(auth_method, params, client_int_name, entry_name)
 
     @raise CredentialError: if the credentials in params don't match what is defined for the auth method
     """
-    logSupport.log.debug("Checking security credentials for client %s " % client_int_name)
     
     if 'grid_proxy' in auth_method:
         if params.has_key('x509_proxy_0'):
