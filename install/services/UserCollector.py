@@ -39,7 +39,7 @@ wmscollector_options = [ "hostname",
 "collector_port",
 ]
 
-factory_options = [ "use_vofrontend_proxy",
+factory_options = [ 
 "x509_gsi_dn",
 "service_name",
 ]
@@ -131,10 +131,6 @@ class UserCollector(Condor):
     for service in [self.frontend, self.submit,]:
       if service.hostname() <> self.hostname():
         condor_entries += common.mapfile_entry(service.x509_gsi_dn(),service.service_name())
-    #--- add in factory proxy dn for pilots if needed --
-    if self.factory.use_vofrontend_proxy() == "n":
-      service_name = "%s_pilot" % (self.factory.service_name())
-      condor_entries += common.mapfile_entry(self.factory.x509_gsi_dn(),service_name)
     #--- add in frontend proxy dns for pilots --
     cnt = 0
     for dn in self.frontend.glidein_proxy_dns():
@@ -155,12 +151,6 @@ GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" % \
        (self.service_name(),                self.x509_gsi_dn(),
       self.submit.service_name(),    self.submit.x509_gsi_dn(),
     self.frontend.service_name(),  self.frontend.x509_gsi_dn())
-
-    #-- add in the factory glidein pilot proxies if necessary --
-    if self.factory.use_vofrontend_proxy() == "n":
-      gsi_daemon_entries += """
-# --- Factory pilot proxy: %s --
-GSI_DAEMON_NAME=$(GSI_DAEMON_NAME),%s""" %  (self.factory.service_name(),self.factory.x509_gsi_dn())
 
     #-- add in the frontend glidein pilot proxies --
     cnt = 0
