@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.9 2011/06/28 16:36:54 dstrain Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.10 2011/06/29 15:24:15 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -292,7 +292,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     for globalid in factory_globals_dict:
         globals_el=factory_globals_dict[globalid]
         if globals_el['attrs'].has_key('PubKeyObj'):
-            key_obj = key_builder.get_key_obj("global_id_not_used", globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
+            key_obj = key_builder.get_key_obj(security_name+"@"+globals_el['attrs']['FactoryPoolNode'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
             advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,security_name,key_obj)
 
     log_factory_header()
