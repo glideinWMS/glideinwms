@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.33 2011/06/29 14:20:37 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.34 2011/06/29 18:08:07 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -375,8 +375,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             continue #skip request
         
         # Check request has the required credentials and nothing else
-        if not check_security_credentials(auth_method, decrypted_params, client_int_name, jobDescript.data['EntryName']):
-            # skip request, errs logged in method
+        try:
+            glideFactoryCredentials.check_security_credentials(auth_method, decrypted_params, client_int_name, jobDescript.data['EntryName'])
+        except glideFactoryCredentials.CredentialError, e:
+            # skip request
+            logSupport.log.warning("%s" % e)
             continue
         
         # ======== validate security and whitelist information ================
@@ -865,99 +868,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
 
     return done_something
 
-
-def check_security_credentials(auth_method, decrypted_params, client_int_name, entry_name):
-    """
-    Verify no additional credential except those for the auth method are passed.
-    """
-    logSupport.log.debug("Checking security credentials for client %s " % client_int_name)
-    
-    if 'grid_proxy' in auth_method:
-        if decrypted_params.has_key('x509_proxy_0'):
-            # v2+ protocol
-            if decrypted_params.has_key('SubmitProxy') or decrypted_params.has_key('GlideinProxy') or \
-                            decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
-                            decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey') or \
-                            decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
-                            decrypted_params.has_key('VMId') or decrypted_params.has_key('VMType'):
-                logSupport.log.warning("Request from client %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                return False
-                
-        elif decrypted_params.has_key('SubmitProxy'):
-            # v3+ protocol
-            if decrypted_params.has_key('GlideinProxy') or \
-                            decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
-                            decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey') or \
-                            decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
-                            decrypted_params.has_key('VMId') or decrypted_params.has_key('VMType') or \
-                            decrypted_params.has_key('x509_proxy_0'):
-                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                return False
-                           
-        else:
-            # No proxy sent
-            logSupport.log.warning("Request from client %s did not provide a proxy as required by the entry %s, skipping request" % (client_int_name, entry_name))
-            return False
-                 
-    else:
-        # Only v3+ protocol supports non grid entries
-        
-        # Verify that the glidein proxy was provided for the non-proxy auth methods
-        if not decrypted_params.has_key('GlideinProxy'):
-            logSupport.log.warning("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
-            return False
-        
-        if 'cert_pair' in auth_method :
-            # Validate both the public and private certs were passed
-            if not (decrypted_params.has_key('PublicCert') and decrypted_params.has_key('PrivateCert')): 
-                # cert pair is required, cannot service request
-                logSupport.log.warning("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
-                return False
-            
-            # Verify no other credentials were passed
-            if decrypted_params.has_key('SubmitProxy') or \
-                    decrypted_params.has_key('PublicKey') or decrypted_params.has_key('PrivateKey') or \
-                    decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
-                    decrypted_params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
-                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                return False
-                        
-        elif 'key_pair' in auth_method:
-            # Validate both the public and private keys were passed
-            if not (decrypted_params.has_key('PublicKey') and decrypted_params.has_key('PrivateKey')):  
-                # key pair is required, cannot service request
-                logSupport.log.warning("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
-                return False
-            
-            # Verify no other credentials were passed
-            if decrypted_params.has_key('SubmitProxy') or \
-                    decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
-                    decrypted_params.has_key('Username') or decrypted_params.has_key('Password') or \
-                    decrypted_params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
-                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                return False
-                    
-        elif 'username_password' in auth_method:
-            # Validate both the public and private keys were passed
-            if not (decrypted_params.has_key('Username') and decrypted_params.has_key('Password')):                        
-                # username and password is required, cannot service request
-                logSupport.log.warning("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
-                return False
-                        
-            # Verify no other credentials were passed
-            if decrypted_params.has_key('SubmitProxy') or \
-                    decrypted_params.has_key('PublicCert') or decrypted_params.has_key('PrivateCert') or \
-                    decrypted_params.has_key('PublicKey') or decrypted_params.has_key('PrivateKey') or \
-                    decrypted_params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
-                logSupport.log.warning("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
-                return False    
-    
-        else:
-            # invalid authentication method
-            pass
-            
-    # No invalid credentials found
-    return True
 
 ############################################################
 def write_stats():

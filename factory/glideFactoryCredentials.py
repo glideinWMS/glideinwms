@@ -13,6 +13,7 @@ import traceback
 import glideFactoryLib
 import condorPrivsep
 import condorMonitor
+import logSupport
 
 
 MY_USERNAME = pwd.getpwuid(os.getuid())[0]
@@ -232,3 +233,98 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
         raise CredentialError(error_str)
     
     return sym_key_obj, frontend_sec_name
+
+
+def check_security_credentials(auth_method, params, client_int_name, entry_name):
+    """
+    Verify only the credentials for the given authentication method are in the params.
+    
+    @type auth_method: string
+    @param auth_method: authentication method of an entry, defined in the config
+    @type params: dictionary
+    @param params: decrypted params passed in a frontend (client) request
+    @type client_int_name: string
+    @param client_int_name: internal client name
+    @type entry_name: string
+    @param entry_name: name of the entry
+
+    @raise CredentialError: if the credentials in params don't match what is defined for the auth method
+    """
+    logSupport.log.debug("Checking security credentials for client %s " % client_int_name)
+    
+    if 'grid_proxy' in auth_method:
+        if params.has_key('x509_proxy_0'):
+            # v2+ protocol
+            if params.has_key('SubmitProxy') or params.has_key('GlideinProxy') or \
+                            params.has_key('PublicCert') or params.has_key('PrivateCert') or \
+                            params.has_key('PublicKey') and params.has_key('PrivateKey') or \
+                            params.has_key('Username') or params.has_key('Password') or \
+                            params.has_key('VMId') or params.has_key('VMType'):
+                raise CredentialError("Request from client %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                
+        elif params.has_key('SubmitProxy'):
+            # v3+ protocol
+            if params.has_key('GlideinProxy') or \
+                            params.has_key('PublicCert') or params.has_key('PrivateCert') or \
+                            params.has_key('PublicKey') and params.has_key('PrivateKey') or \
+                            params.has_key('Username') or params.has_key('Password') or \
+                            params.has_key('VMId') or params.has_key('VMType') or \
+                            params.has_key('x509_proxy_0'):
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                           
+        else:
+            # No proxy sent
+            raise CredentialError("Request from client %s did not provide a proxy as required by the entry %s, skipping request" % (client_int_name, entry_name))
+                 
+    else:
+        # Only v3+ protocol supports non grid entries
+        
+        # Verify that the glidein proxy was provided for the non-proxy auth methods
+        if not params.has_key('GlideinProxy'):
+            raise CredentialError("Glidein proxy cannot be found for client %s, skipping request" % client_int_name)
+        
+        if 'cert_pair' in auth_method :
+            # Validate both the public and private certs were passed
+            if not (params.has_key('PublicCert') and params.has_key('PrivateCert')): 
+                # cert pair is required, cannot service request
+                raise CredentialError("Client '%s' did not specify the certificate pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+            
+            # Verify no other credentials were passed
+            if params.has_key('SubmitProxy') or \
+                    params.has_key('PublicKey') or params.has_key('PrivateKey') or \
+                    params.has_key('Username') or params.has_key('Password') or \
+                    params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                        
+        elif 'key_pair' in auth_method:
+            # Validate both the public and private keys were passed
+            if not (params.has_key('PublicKey') and params.has_key('PrivateKey')):  
+                # key pair is required, cannot service request
+                raise CredentialError("Client '%s' did not specify the key pair in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+            
+            # Verify no other credentials were passed
+            if params.has_key('SubmitProxy') or \
+                    params.has_key('PublicCert') or params.has_key('PrivateCert') or \
+                    params.has_key('Username') or params.has_key('Password') or \
+                    params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))
+                    
+        elif 'username_password' in auth_method:
+            # Validate both the public and private keys were passed
+            if not (params.has_key('Username') and params.has_key('Password')):                        
+                # username and password is required, cannot service request
+                raise CredentialError("Client '%s' did not specify the username and password in the request, this is required by entry %s, skipping "%(client_int_name, entry_name))
+                        
+            # Verify no other credentials were passed
+            if params.has_key('SubmitProxy') or \
+                    params.has_key('PublicCert') or params.has_key('PrivateCert') or \
+                    params.has_key('PublicKey') or params.has_key('PrivateKey') or \
+                    params.has_key('x509_proxy_0'): # x509_proxy_0 is v2+ protocol
+                raise CredentialError("Request from %s has credentials not required by the entry %s, skipping request" % (client_int_name, entry_name))  
+    
+        else:
+            # undefined authentication method
+            pass
+            
+    # No invalid credentials found
+    return 
