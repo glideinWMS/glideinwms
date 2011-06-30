@@ -147,6 +147,8 @@ class WMSCollector(Condor):
     self.__create_condor_mapfile__(self.condor_mapfile_users())
     self.__create_condor_config__()
     self.__create_initd_script__()
+    if self.privsep <> None:
+      self.privsep.update()
     common.logit("Configuration complete")
 
   #-----------------------------

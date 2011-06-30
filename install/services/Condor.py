@@ -734,8 +734,8 @@ exit $RETVAL
 ######################################################
 # Base configuration values for glideinWMS
 ######################################################
-#-- Condor uiser: %(user)s
-## CONDOR_IDS = %(condor_ids)s
+#-- Condor user: %(user)s
+CONDOR_IDS = %(condor_ids)s
 #--  Contact (via email) when problems occur
 CONDOR_ADMIN = %(admin_email)s
 
