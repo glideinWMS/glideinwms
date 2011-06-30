@@ -827,10 +827,11 @@ please verify and correct if needed.
   #---------------------------
   def config_stage_data(self):
     return """
-%(indent1)s<stage web_base_url="%(web_url)s/stage" 
+%(indent1)s<stage web_base_url="%(web_url)s/%(web_dir)s/stage" 
 %(indent1)s       base_dir="%(web_location)s/stage"/>""" % \
 { "indent1"      : common.indent(1),
   "web_url"      : self.glidein.web_url(),
+  "web_dir"      : os.path.basename(self.glidein.web_location()),
   "web_location" : self.glidein.web_location(),
 }
   #---------------------------
