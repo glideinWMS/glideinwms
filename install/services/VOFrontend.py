@@ -251,14 +251,9 @@ class VOFrontend(Condor):
       self.determine_colocated_services()
       self.install_vdtclient()
       self.install_certificates()   
-      self.validate_condor()
+      self.validate_condor_install()
       self.validate_frontend()
     self.not_validated = False
-
-  #---------------------------------
-  def validate_condor(self):
-    if not self.condor_is_installed():
-      self.validate_condor_install()
 
   #---------------------------------
   def validate_frontend(self):
