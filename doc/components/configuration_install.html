@@ -278,6 +278,17 @@ See below for the ini file attributes that installing/running WMS collector requ
         </tr>
 
         <tr>
+        <td>install_type</td>
+        <td>tarball</td>
+        <td>Indicates this is a Condor tarball installation.<br/>
+            At this time, for the WMS Collector, only tarball installations
+            are supported.
+        </td>
+        <td>Valid values: tarball<br/>
+        </td>
+        </tr>
+
+        <tr>
         <td>hostname</td>
         <td>wmscollectornode.domain.name</td>
         <td>     hostname for WMS Collector. </td>
@@ -473,6 +484,17 @@ requires:<br/><br/>
         <td>Example</td>
         <td>Description</td>
         <td>Comments</td>
+        </tr>
+
+        <tr>
+        <td>install_type</td>
+        <td>tarball</td>
+        <td>Indicates this is a Condor tarball installation.</br>
+            At this time, for the Factory, only tarball installations
+            are supported.
+        </td>
+        <td>Valid values: tarball.<br/>
+        </td>
         </tr>
 
         <tr>
@@ -744,6 +766,19 @@ ires:<br/><br/>
         </tr>
 
         <tr>
+        <td>install_type</td>
+        <td>tarball or rpm</td>
+        <td>
+            If this is a VOFrontend RPM installation and you are doing a
+            '--configure', then rpm should be specified.<br/>
+            If this is a stand-alone User Collector install, only tarball 
+            installations are supported.<br/>
+        </td>
+        <td>Valid values: tarball, rpm.<br/>
+        </td>
+        </tr>
+
+        <tr>
             <td>hostname</td>
             <td>usercollector.domain.name</td>
             <td>hostname for User Collector.    </td>
@@ -910,6 +945,19 @@ requires:
         <td>Example</td>
         <td>Description</td>
         <td>Comments</td>
+        </tr>
+
+        <tr>
+        <td>install_type</td>
+        <td>tarball or rpm</td>
+        <td>
+            If this is a VOFrontend RPM installation and you are doing a
+            '--configure', then rpm should be specified.<br/>
+            If this is a stand-alone Submit install, only tarball 
+            installations are supported.<br/>
+        </td>
+        <td>Valid values: tarball, rpm.<br/>
+        </td>
         </tr>
 
         <tr>
@@ -1107,6 +1155,20 @@ glideinWMS frontend requires:<br/><br/>
         <td>Description</td>
         <td>Comments</td>
         </tr>
+
+        <tr>
+        <td>install_type</td>
+        <td>tarball or rpm</td>
+        <td>
+            If this is a VOFrontend RPM installation and you are doing a
+            '--configure', then rpm should be specified.<br/>
+            If this is a stand-alone VOFrontend install, only tarball
+            installations are supported.<br/>
+        </td>
+        <td>Valid values: tarball, rpm.<br/>
+        </td>
+        </tr>
+
 
         <tr>
         <td>hostname     </td>
@@ -1439,6 +1501,8 @@ Sample ini-files cover following three use cases:
 pacman_location =
 pacman_url      =
 
+install_type = tarball
+
 hostname = cms-xen38.fnal.gov
 username = glidein
 
@@ -1553,6 +1617,8 @@ web_url       = http://%(hostname)s:8319
 
 pacman_location = /opt/pacman/pacman-3.28
 pacman_url      = http://physics.bu.edu/pacman/sample_cache/tarballs
+
+install_type = tarball
 
 version = v2.5.1
 instance_name = v2.5.1-cream-cloud
@@ -1689,6 +1755,7 @@ Multiple node install with services using their own ini files is a work in progr
 <b>WMSCollector and Factory configuration</b>
 <pre>
 [DEFAULT]
+install_type = tarball
 
 installation_version = v2.5.1
 install_vdt_client = n
