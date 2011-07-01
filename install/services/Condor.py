@@ -32,7 +32,6 @@ class Condor(Configuration):
 
     self.condor_version      = None
     self.condor_first_dir    = None
-    self.certificates        = None
 
     #--- secondary schedd files --
     ## self.schedd_setup_file   = "new_schedd_setup.sh"
@@ -54,7 +53,6 @@ class Condor(Configuration):
   def get_certs(self):
     if self.certs == None:
       self.certs = Certificates.Certificates(self.inifile,self.ini_section)
-    self.certificates = self.certs.x509_cert_dir()
 
   #----------------------------------
   # methods for returning attributes
@@ -134,6 +132,9 @@ class Condor(Configuration):
   #---------------------
   def admin_email(self):
     return self.option_value(self.ini_section,"condor_admin_email")
+  #---------------------
+  def x509_cert_dir(self):
+    return self.cert.x509_cert_dir()
   #---------------------
   def x509_cert(self):
     return self.option_value(self.ini_section,"x509_cert")
@@ -780,8 +781,8 @@ SEC_CLIENT_ENCRYPTION = OPTIONAL
 # GSI Security config
 ############################
 #-- Grid Certificate directory
-GSI_DAEMON_TRUSTED_CA_DIR=%(certificates)s
-""" % { "certificates"   : self.certificates,
+GSI_DAEMON_TRUSTED_CA_DIR=%(x509_cert_dir)s
+""" % { "x509_cert_dir"   : self.x509_cert_dir(),
       }
 
     if self.client_only_install == True:
