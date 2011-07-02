@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: frontendStatus.html,v 1.2.8.3.12.1 2011/06/10 23:52:13 amccrea Exp $
+  $Id: frontendStatus.html,v 1.2.8.3.12.2 2011/07/02 01:51:44 sfiligoi Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -175,13 +175,14 @@ Description:
         
 
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle',
+        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle',
                                        'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
         gtype_DSs['idle']=new Array('MatchJobIdle','JobsIdle','JobsOldIdle','GlideinTotal');
 
         var gtype_formats=new Object();
-        gtype_formats['running']={'MatchJobRunning':{ title: 'Running Jobs', label:'Running',color: "#00f800", checked:true, 
-                                                  lines: { show: true, fill: true, fillColor:"#00ff00"} },
+        gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running Jobs', label:'Running',color: "#00f800", checked:true, 
+							  lines: { show: true, fill: true, fillColor:"#00ff00"} },
+                                  'MatchJobRunning':{title: 'Matched running', label:'MatchRun', color: "#004000"},
                                   'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
                                   'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff",checked:true},
                                   'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00",checked:true},
