@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: frontendStatus.html,v 1.2.8.3.12.2 2011/07/02 01:51:44 sfiligoi Exp $
+  $Id: frontendStatus.html,v 1.2.8.3.12.3 2011/07/02 02:39:09 sfiligoi Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -175,18 +175,20 @@ Description:
         
 
         var gtype_DSs=new Object();
-        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle',
-                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
-        gtype_DSs['idle']=new Array('MatchJobIdle','JobsIdle','JobsOldIdle','GlideinTotal');
+        gtype_DSs['running']=new Array('MatchJobRunningHere','MatchJobRunning','MatchGlideinTotal','MatchGlideinRunning','MatchGlideinIdle','MatchJobIdle','ReqIdle','ReqMaxRun');
+//                                       'JobsRunning',    'GlideinTotal',     'GlideinRunning',     'GlideinIdle',     'JobsIdle');
+        gtype_DSs['idle']=new Array('MatchJobIdle','MatchJobOldIdle','MatchJobEffIdle','MatchJobRunningHere','MatchGlideinRunning','MatchGlideinIdle','ReqIdle','ReqMaxRun');
 
         var gtype_formats=new Object();
-        gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running Jobs', label:'Running',color: "#00f800", checked:true, 
+        gtype_formats['running']={'MatchJobRunningHere':{ title: 'Running jobs', label:'Running',color: "#00f800", checked:true, 
 							  lines: { show: true, fill: true, fillColor:"#00ff00"} },
                                   'MatchJobRunning':{title: 'Matched running', label:'MatchRun', color: "#004000"},
                                   'MatchGlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#000000"},
                                   'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff",checked:true},
                                   'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00",checked:true},
-                                  'MatchJobIdle':{title: 'Idle Jobs', label:'JobsIdle', color: "#ffff00"},
+                                  'MatchJobIdle':{title: 'Idle jobs', label:'JobsIdle', color: "#00ffff"},
+                                  'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080"},
+                                  'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
 
                                   'JobRunning':{title: 'Global Running Jobs', label:'GlobalRunning', color:"#00f800", fillColor:"#00ff00", checked:true},
                                   'GlideinTotal':{title: 'Global Glideins at Collecter', label:'GlobalGlideins'},
@@ -197,7 +199,14 @@ Description:
 
         gtype_formats['idle']={'MatchJobIdle':{ title: 'Idle jobs', label:'Idle', color: "#00f8f8", checked:true, 
                                            lines: { show: true, fill: true, fillColor:"#00ffff"} },
-                               'JobsOldIdle':{title: 'Idle old jobs', label:'OldIdle', color: "#0000ff", checked:true},
+                               'MatchJobOldIdle':{title: 'Idle old jobs', label:'OldIdle', color: "#0000ff"},
+                               'MatchJobEffIdle':{title: 'Effective idle jobs', label:'EffIdle', color: "#000080"},
+                               'MatchJobRunningHere':{title: 'Running jobs', label:'MatchRun', color: "#004000"},
+                               'MatchGlideinRunning':{title: 'Glideins claimed by jobs', label:'Claimed', color: "#8000ff"},
+                               'MatchGlideinIdle':{title: 'Glideins not matched', label:'Unmatched', color: "#ffff00"},
+                               'ReqIdle':{title: 'Requested idle glideins', label:'Requested', color: "#ff8080", checked:true},
+                               'ReqMaxIdle':{title: 'Max requested glideins', label:'Max requested', color: "#c00000"},
+
                                'JobIdle':{title: 'Global Idle Jobs', label:'GlobalJobsIdle', checked:true},
                                'GlideinTotal':{title: 'Glideins at Collector', label:'Glideins', color: "#ff00ff", yaxis:2}};
 
