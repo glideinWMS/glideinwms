@@ -3,7 +3,7 @@
  *   glideinWMS
  * 
  * File Version: 
- *   $Id: frontend_support.js,v 1.2.8.2 2011/07/02 01:30:44 sfiligoi Exp $
+ *   $Id: frontend_support.js,v 1.2.8.3 2011/07/05 19:25:55 sfiligoi Exp $
  *
  * Support javascript module for the frontend monitoring
  * Part of the gldieinWMS package
@@ -87,4 +87,17 @@ function getFrontendGroupFactories(frontendStats, group_name) {
     }
   }
   return factories;
+}
+
+function sanitize(name) {
+ var out="";
+ for (var i=0; i<name.length; i++) {
+  var c=name.charAt(i);
+  if (c.search('[A-z0-9\-.]')==-1) {
+    out=out.concat('_');
+  } else {
+    out=out.concat(c);
+  }
+ }
+ return out; 
 }

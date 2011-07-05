@@ -5,7 +5,7 @@ Project:
   glideinWMS
 
 File Version: 
-  $Id: frontendStatus.html,v 1.2.8.5 2011/07/02 02:45:22 sfiligoi Exp $
+  $Id: frontendStatus.html,v 1.2.8.6 2011/07/05 19:25:55 sfiligoi Exp $
 
 Description:
   Browse the glideinWMS RRDs
@@ -45,8 +45,7 @@ Description:
      <td><h1 id="title">VO frontend status</h1>
      <td align="right">[ 
 	    <a href="frontendRRDBrowse.html">Browse</a> |
-	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> | 
-        <a href="frontendGroupGraphStatusNow.html">Group Graphs</a>
+	    <a href="frontendRRDGroupMatrix.html">Group Matrix</a> 
 	    ]
     </tr>
     </table>
@@ -147,7 +146,7 @@ Description:
         var factories = getFrontendGroupFactories(frontendStats, group);
         
         for(var factory in factories) {
-           factory_name = factories[factory].split("@")[0];
+           factory_name = factories[factory];
            fac.appendChild(new Option(factory_name, factory_name));
         }
       }
@@ -322,11 +321,11 @@ Description:
         if (group_name=="total" && factory_name=="total") {
           fname="total/"+rrd_fname+".rrd";
         } else if(group_name=="total" && factory_name!="total") {
-          fname="total/factory_"+factory_name+"_Production_v4_0_UCSD_glidein-1.t2.ucsd.edu/"+rrd_fname+".rrd";
+          fname="total/factory_"+sanitize(factory_name)+"/"+rrd_fname+".rrd";
         } else if(group_name!="total" && factory_name=="total") {
           fname="group_"+group_name+"/total/"+rrd_fname+".rrd";
         } else if(group_name!="total" && factory_name!="total") {
-          fname="group_"+group_name+"/factory_"+factory_name+"_Production_v4_0_UCSD_glidein-1.t2.ucsd.edu/"+rrd_fname+".rrd";
+          fname="group_"+group_name+"/factory_"+sanitize(factory_name)+"/"+rrd_fname+".rrd";
         }
 
         document.getElementById("fname").firstChild.data="Loading "+fname;
