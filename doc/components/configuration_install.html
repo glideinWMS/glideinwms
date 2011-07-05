@@ -733,7 +733,7 @@ be empty/blank.</br>
 
         <tr>
             <td>javascriptrrd_location</td>
-            <td>/path/to/javascriptrrd-0.5.0</td>
+            <td>/path/to/javascriptrrd</td>
             <td>Identifies the location of the javascript rrd software. </td>
             <td>This installation must include the <i>flot</i> processes in the
                 parent directory.
@@ -1471,7 +1471,7 @@ be empty/blank.</br>
 
         <tr>
             <td>javascriptrrd_location</td>
-            <td>/path/to/javascriptrrd-0.5.0</td>
+            <td>/path/to/javascriptrrd</td>
             <td>Identifies the location of the javascript rrd software. </td>
             <td>This installation must include the <i>flot</i> processes in the
                 parent directory.
@@ -1510,7 +1510,7 @@ version = v2_5_1
 instance_name = all_four_node
 install_dir = /opt/no-vdt-glideinWMS
 glideinwms_location = %(install_dir)s/glideinWMS
-javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
+javascriptrrd_location = %(install_dir)s/javascriptrrd
 
 tarballs = /opt/install_packages
 condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
@@ -1624,7 +1624,7 @@ version = v2.5.1
 instance_name = v2.5.1-cream-cloud
 install_dir = /opt/glideinWMS-v2plus
 glideinwms_location = %(install_dir)s/glideinWMS
-javascriptrrd_location = %(install_dir)s/javascriptrrd-0.5.0
+javascriptrrd_location = %(install_dir)s/javascriptrrd
 
 tarballs = /opt/install_packages
 condor_tarball = %(tarballs)s/condor-7.5.5-x86_rhap_5-stripped.tar.gz
@@ -1802,7 +1802,7 @@ entry_vos = dzero
 entry_filters = (int(GlueCEPolicyMaxCPUTime)<(25*60))
 web_location = /var/www/html/glidefactory-v2.5.1
 web_url = http://%(hostname)s:8000
-javascriptrrd_location = /home/gfactoryuser/javascriptrrd-0.5.0
+javascriptrrd_location = /home/gfactoryuser/javascriptrrd
 x509_proxy =
 x509_gsi_dn =
 
@@ -2013,7 +2013,7 @@ userjob_constraints = (JobUniverse==5)&&(GLIDEIN_Is_Monitor =!= TRUE)&&(JOB_Is_M
 match_string = glidein["attrs"]["GLIDEIN_Site"] in job["DESIRED_Sites"].split(",")
 web_url = http://cmssrv99.fnal.gov:8000
 web_location = /var/www/html/vofrontend-v2.5.1
-javascriptrrd_location = /home/frontenduser/javascriptrrd-0.5.0
+javascriptrrd_location = /home/frontenduser/javascriptrrd
 
 ;--------------------------------------------------
 [UserCollector]
