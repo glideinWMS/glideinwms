@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.31 2011/06/29 14:33:37 sfiligoi Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.32 2011/07/05 23:11:06 sfiligoi Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -529,6 +529,8 @@ def iterate_one(client_name,elementDescript,paramsDescript,signatureDescript,x50
         else:
             # no idle, make sure the glideins know it
             glidein_min_idle=0 
+
+        glidein_min_idle=int(glidein_min_idle)
 
         # we don't need more slots than number of jobs in the queue (unless the fraction is positive)
         if (prop_jobs['Idle']+count_jobs['Running'])>0:
