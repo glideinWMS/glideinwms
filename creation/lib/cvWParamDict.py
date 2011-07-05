@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: cvWParamDict.py,v 1.47.2.10 2011/05/27 01:19:30 sfiligoi Exp $
+#   $Id: cvWParamDict.py,v 1.47.2.11 2011/07/05 19:12:13 tiradani Exp $
 #
 # Description: 
 #   Frontend creation module
@@ -95,6 +95,7 @@ class frontendMainDicts(cvWDictFile.frontendMainDicts):
 
         for mfarr in ((params.src_dir,'frontendRRDBrowse.html'),
                       (params.src_dir,'frontendRRDGroupMatrix.html'),
+                      (params.src_dir,'frontendGroupGraphStatusNow.html'),
                       (params.src_dir,'frontendStatus.html')):
             mfdir,mfname=mfarr
             mfobj=cWDictFile.SimpleFile(mfdir,mfname)
