@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.7 2011/05/24 19:17:30 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.8 2011/07/05 19:20:12 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -56,6 +56,49 @@ status_attributes={'Jobs':("Idle","OldIdle","Running","Total"),
                    'MatchedGlideins':("Total","Idle","Running"),
                    'Requested':("Idle","MaxRun")}
 
+####################################
+# PRIVATE - Used by aggregateStatus
+# Write one RRD
+def write_one_rrd(name,updated,data,fact=0):
+    if fact==0:
+        type_strings={'Jobs':'Jobs','Glideins':'Glidein','MatchedJobs':'MatchJob',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+    else:
+        type_strings={'MatchedJobs':'MatchJob',
+                      'MatchedGlideins':'MatchGlidein','Requested':'Req'}
+        
+    # initialize the RRD dictionary, so it gets created properly
+    val_dict={}
+    for tp in data.keys():
+        # type - status or requested
+        if not (tp in status_attributes.keys()):
+            continue
+
+        tp_str=type_strings[tp]
+
+        attributes_tp=status_attributes[tp]
+        for a in attributes_tp:
+            val_dict["%s%s"%(tp_str,a)]=None
+
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
+    for tp in data.keys():
+        # type - status or requested
+        if not (tp in status_attributes.keys()):
+            continue
+
+        tp_str=type_strings[tp]
+        attributes_tp=status_attributes[tp]
+                
+        tp_el=data[tp]
+
+        for a in tp_el.keys():
+            if a in attributes_tp:
+                a_el=int(tp_el[a])
+                val_dict["%s%s"%(tp_str,a)]=a_el
+                
+    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s"%name,
+                                                               "GAUGE",updated,val_dict)
+
 ##############################################################################
 # create an aggregate of status files, write it in an aggregate status file
 # end return the values
@@ -68,19 +111,6 @@ def aggregateStatus():
     status={'groups':{},'total':global_total}
     global_fact_totals={}
     
-    # initialize the RRD dictionary, so it gets created properly
-    val_dict={}
-    for tp in global_total.keys():
-        # type - status or requested
-        if not (tp in status_attributes.keys()):
-            continue
-
-        tp_str=type_strings[tp]
-
-        attributes_tp=status_attributes[tp]
-        for a in attributes_tp:
-            val_dict["%s%s"%(tp_str,a)]=None
-
     nr_groups=0
     for group in monitorAggregatorConfig.groups:
         # load group status file
@@ -185,48 +215,14 @@ def aggregateStatus():
     glideinFrontendMonitoring.monitoringConfig.write_file(monitorAggregatorConfig.status_relname,xml_str)
 
     # Write rrds
-    
+
     glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
-    for tp in global_total.keys():
-        # type - status or requested
-        if not (tp in status_attributes.keys()):
-            continue
-
-        tp_str=type_strings[tp]
-        attributes_tp=status_attributes[tp]
-                
-        tp_el=global_total[tp]
-
-        for a in tp_el.keys():
-            if a in attributes_tp:
-                a_el=int(tp_el[a])
-                val_dict["%s%s"%(tp_str,a)]=a_el
-                
-    glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("total/Status_Attributes",
-                                                               "GAUGE",updated,val_dict)
+    write_one_rrd("total/Status_Attributes",updated,global_total,0)
 
     for fact in global_fact_totals.keys():
         fe_dir="total/factory_%s"%glideinFrontendMonitoring.sanitize(fact)
         glideinFrontendMonitoring.monitoringConfig.establish_dir(fe_dir)
-
-        for tp in global_fact_totals[fact].keys():
-            if not (tp in status_attributes.keys()):
-                continue
-
-            tp_str=type_strings[tp]
-            attributes_tp=status_attributes[tp]
-
-            tp_el=global_total[tp]
-
-            for a in tp_el.keys():
-                if a in attributes_tp:
-                    a_el=int(tp_el[a])
-                    val_dict["%s%s"%(tp_str,a)]=a_el
-
-
-        glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s/Status_Attributes"%fe_dir,
-                                                               "GAUGE",updated,val_dict)
-
+        write_one_rrd("%s/Status_Attributes"%fe_dir,updated,global_fact_totals[fact],1)
 
     return status
 
