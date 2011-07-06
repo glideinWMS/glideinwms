@@ -134,7 +134,7 @@ class Condor(Configuration):
     return self.option_value(self.ini_section,"condor_admin_email")
   #---------------------
   def x509_cert_dir(self):
-    return self.cert.x509_cert_dir()
+    return self.certs.x509_cert_dir()
   #---------------------
   def x509_cert(self):
     return self.option_value(self.ini_section,"x509_cert")
