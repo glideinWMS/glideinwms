@@ -276,7 +276,7 @@ Are you sure this is a proxy and not a certificate?""" % \
     data = """#!/bin/bash
 export X509_CERT_DIR=%(x509_cert_dir)s
 source %(condor_location)s/condor.sh
-""" % { "x509_cert_dir"   : self.wms.certificates, 
+""" % { "x509_cert_dir"   : self.wms.x509_cert_dir(), 
         "condor_location" : self.wms.condor_location(),}
     if self.use_vofrontend_proxy() == "n":
       data += "export X509_USER_PROXY=%s" % self.x509_proxy()
