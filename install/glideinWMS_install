@@ -5,7 +5,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinWMS_install,v 1.265.2.33 2011/03/02 21:48:49 parag Exp $
+#   $Id: glideinWMS_install,v 1.265.2.33.2.1 2011/07/06 22:52:47 sfiligoi Exp $
 #
 # Description:
 #   glideinWMS Installer
@@ -2071,7 +2071,7 @@ def query_vdt():
 
     ###################################
     # find out where is voms-proxy-info
-    fd=os.popen("source %s/setup.sh;which voms-proxy-info"%VDT_BASE_PATH)
+    fd=os.popen(". %s/setup.sh;which voms-proxy-info"%VDT_BASE_PATH)
     lines=fd.readlines()
     err=fd.close()
     if err==None: # found
@@ -2140,7 +2140,7 @@ def install_vdt(minimal):
         package_list=['http://software.grid.iu.edu/osg-1.2:client']
 
     # ask user about the appropriate platform
-    tested_platforms=('linux-rhel-4','SL-4','linux-rhel-5','SL-5')
+    tested_platforms=('linux-rhel-4','SL-4','linux-rhel-5','SL-5','Debian-5')
     print "VDT client installation tends to be very picky about the platforms it installs under"
     print "Most of the time, one needs to pretent to be one of the tested platforms"
     print "The platforms known to work are: %s"%string.join(tested_platforms,',')
@@ -2168,14 +2168,14 @@ def install_vdt(minimal):
     print
 
     # install the VDT client
-    err=os.system("cd %s/pacman-%s;source setup.sh;cd %s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,' '.join(package_list)))
+    err=os.system("cd %s/pacman-%s;. ./setup.sh;cd %s&&pacman -trust-all-caches %s -get %s"%(user_dir,pacman_version,user_dir,platform_str,' '.join(package_list)))
     if err!=0:
         raise RuntimeError,"Failed to install the VDT client!"
     
     # remove the condor component
     # ignore any error
     if not minimal:
-        os.system("cd %s/pacman-%s;source setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,pacman_version,user_dir))
+        os.system("cd %s/pacman-%s;. ./setup.sh;cd %s&&pacman -remove Condor >/dev/null"%(user_dir,pacman_version,user_dir))
 
     # initialize CA CRL config
     print "VDT does not provide a default URL for CA fetching"
@@ -2186,20 +2186,20 @@ def install_vdt(minimal):
     if crl_url=="":
         crl_url=default_crl_url
 
-    err=os.system("cd %s;source setup.sh; vdt-ca-manage setupca --location local --url %s"%(user_dir, crl_url))
+    err=os.system("cd %s;. ./setup.sh; vdt-ca-manage setupca --location local --url %s"%(user_dir, crl_url))
     if err!=0:
         raise RuntimeError,"Failed to initalize the CAs!"
 
     # initialize the VDT client
     if os.getuid()==0:
         # automatic if root
-        err=os.system("cd %s;source setup.sh;vdt-control --enable vdt-update-certs;vdt-control --enable fetch-crl;vdt-control --enable vdt-rotate-logs;vdt-control --on"%user_dir)
+        err=os.system("cd %s;. ./setup.sh;vdt-control --enable vdt-update-certs;vdt-control --enable fetch-crl;vdt-control --enable vdt-rotate-logs;vdt-control --on"%user_dir)
         if err!=0:
             raise RuntimeError,"Failed to initalize the VDT client!"
     else:
         # else need to do it by hand
         # make VDT create the template
-        err=os.system("cd %s;source setup.sh;vdt-register-service --enable --name fetch-crl&&vdt-register-service --enable --name vdt-rotate-logs&&vdt-register-service --enable --name vdt-update-certs"%user_dir)
+        err=os.system("cd %s;. ./setup.sh;vdt-register-service --enable --name fetch-crl&&vdt-register-service --enable --name vdt-rotate-logs&&vdt-register-service --enable --name vdt-update-certs"%user_dir)
         if err!=0:
             raise RuntimeError,"Failed to initalize the VDT client!"
 
@@ -2388,7 +2388,7 @@ def install_gridftp():
     vdt_data=extract_vdt_data()
 
     # install gridFTP code
-    err=os.system("cd %s;source setup.sh;cd %s&&pacman -trust-all-caches -get %s:Globus-Base-Data-Server"%(vdt_data['pacman_dir'],VDT_BASE_PATH,vdt_data['cache_location']))
+    err=os.system("cd %s;. ./setup.sh;cd %s&&pacman -trust-all-caches -get %s:Globus-Base-Data-Server"%(vdt_data['pacman_dir'],VDT_BASE_PATH,vdt_data['cache_location']))
     if err!=0:
         raise RuntimeError,"Failed to install gridFTP!"
 
@@ -2434,7 +2434,7 @@ def install_gridftp():
     fd.close()
 
     # enable gridFTP
-    err=os.system("cd %s&&source setup.sh&&vdt-control --enable gsiftp&&vdt-control --on"%VDT_BASE_PATH)
+    err=os.system("cd %s&&. ./setup.sh&&vdt-control --enable gsiftp&&vdt-control --on"%VDT_BASE_PATH)
     if err!=0:
         raise RuntimeError,"Failed to enable gridFTP!"
 
@@ -2581,7 +2581,8 @@ def install_condor():
         try:
             try:
                 first_entry=fd.getnames()[0]
-                if (len(first_entry.split('/'))<2):
+                first_el=fd.getmember(first_entry)
+                if (not first_el.isdir()):
                     print "File '%s' is not a condor tarball! (found '%s', expected a subdirectory'"%(condor_tarball,first_entry)
                     continue
                 first_dir=first_entry.split('/')[0]+'/'
@@ -4053,7 +4054,7 @@ def create_secondary_schedd_support_files():
     fd=open("%s/init_schedd.sh"%CONDOR_BASE_PATH,"w")
     try:
         fd.write("#!/bin/sh\n")
-        fd.write("source %s/new_schedd_setup.sh $1\n"%CONDOR_BASE_PATH)
+        fd.write(". %s/new_schedd_setup.sh $1\n"%CONDOR_BASE_PATH)
         fd.write("# add whatever other config you need\n")
         fd.write("# create needed directories\n")
         fd.write("%s/sbin/condor_init\n"%CONDOR_BASE_PATH)
@@ -4070,7 +4071,7 @@ def create_secondary_schedd_support_files():
     fd=open("%s/start_master_schedd.sh"%CONDOR_BASE_PATH,"w")
     try:
         fd.write("#!/bin/sh\n")
-        fd.write("source %s/new_schedd_setup.sh $1\n"%CONDOR_BASE_PATH)
+        fd.write(". %s/new_schedd_setup.sh $1\n"%CONDOR_BASE_PATH)
         fd.write("# add whatever other config you need\n")
         fd.write("%s/sbin/condor_master\n"%CONDOR_BASE_PATH)
     finally:
