@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitoring.py,v 1.8.8.4.4.3 2011/07/05 23:07:46 sfiligoi Exp $
+#   $Id: glideinFrontendMonitoring.py,v 1.8.8.4.4.4 2011/07/07 16:53:27 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -326,6 +326,8 @@ class groupStats:
         for tp in data:
             # type - Jobs,Slots
             if not (tp in self.attributes.keys()):
+                continue
+            if not (tp in type_strings.keys()):
                 continue
 
             tp_str=type_strings[tp]

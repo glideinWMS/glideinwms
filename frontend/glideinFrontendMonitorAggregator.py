@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.8 2011/07/05 19:20:12 sfiligoi Exp $
+#   $Id: glideinFrontendMonitorAggregator.py,v 1.10.8.3.12.9 2011/07/07 16:53:27 sfiligoi Exp $
 #
 # Description:
 #   This module implements the functions needed
@@ -69,21 +69,18 @@ def write_one_rrd(name,updated,data,fact=0):
         
     # initialize the RRD dictionary, so it gets created properly
     val_dict={}
+    for tp in status_attributes.keys():
+        if tp in type_strings.keys():
+            tp_str=type_strings[tp]
+            attributes_tp=status_attributes[tp]
+            for a in attributes_tp:
+                val_dict["%s%s"%(tp_str,a)]=None
+
     for tp in data.keys():
         # type - status or requested
         if not (tp in status_attributes.keys()):
             continue
-
-        tp_str=type_strings[tp]
-
-        attributes_tp=status_attributes[tp]
-        for a in attributes_tp:
-            val_dict["%s%s"%(tp_str,a)]=None
-
-    glideinFrontendMonitoring.monitoringConfig.establish_dir("total")
-    for tp in data.keys():
-        # type - status or requested
-        if not (tp in status_attributes.keys()):
+        if not (tp in type_strings.keys()):
             continue
 
         tp_str=type_strings[tp]
@@ -94,8 +91,10 @@ def write_one_rrd(name,updated,data,fact=0):
         for a in tp_el.keys():
             if a in attributes_tp:
                 a_el=int(tp_el[a])
-                val_dict["%s%s"%(tp_str,a)]=a_el
+                if type(a_el)!=type({}): # ignore subdictionaries
+                    val_dict["%s%s"%(tp_str,a)]=a_el
                 
+    glideinFrontendMonitoring.monitoringConfig.establish_dir("%s"%name)
     glideinFrontendMonitoring.monitoringConfig.write_rrd_multi("%s"%name,
                                                                "GAUGE",updated,val_dict)
 
