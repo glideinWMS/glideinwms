@@ -68,11 +68,16 @@ class TestInfosysLib(unittest.TestCase):
         """
         Test querying RESS
         """  
-        # Condor path and config location must be set.  
-        # These are specific to the machine Condor is installed in.  This test may need to be updated per machine.
-        os.environ["CONDOR_CONFIG"] = "/opt/glidecondor/etc/condor_config"
-        condorExe.set_path("/opt/glidecondor/bin", "/opt/glidecondor/sbin")
-        
+        # Condor path and config location
+        # These will be set correctly as long as the test is run in the same environment
+        # as what is needed to run the factory/wms collector
+        if not os.environ.has_key("CONDOR_CONFIG"):
+            condor_config="/etc/condor/condor_config"
+            
+        condorExe.init()
+        self.assertTrue(condorExe.condor_bin_path != None and condorExe.condor_sbin_path != None)
+        condorExe.set_path(condorExe.condor_bin_path, condorExe.condor_sbin_path)
+                           
         # Test that information is retrieved and is populated correctly
         infosys_entries = query_ress("osg-ress-1.fnal.gov", "engage")
         self.assertNotEqual(infosys_entries, {})
