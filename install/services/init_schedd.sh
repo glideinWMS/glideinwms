@@ -28,7 +28,7 @@ function validate {
   fi
 
   CONFIG_VAL="condor_config_val -h $(hostname -s)"
-  OWNER=$($CONFIG_VAL -dump 2>/dev/null | grep CONDOR_IDS | awk '{print $3}')
+  OWNER=$($CONFIG_VAL CONDOR_IDS 2>/dev/null)
   if [ ! -n "$OWNER" ]; then
     logerr "Error determining who should own the Condor-related directories.
 Either create a "condor" account, or set the CONDOR_IDS environment
