@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.35 2011/06/29 20:05:16 klarson1 Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.36 2011/07/11 21:26:26 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -283,8 +283,6 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
     entry_name = jobDescript.data['EntryName']
     pub_key_obj = glideinDescript.data['PubKeyObj']
     auth_method = jobDescript.data['AuthMethod']
-    glidein_name = glideFactoryLib.factoryConfig.glidein_name
-    client_proxies_base_dir = glideFactoryLib.factoryConfig.client_proxies_base_dir
 
     # Get the factory and entry downtimes
     factory_downtimes = glideFactoryDowntimeLib.DowntimeFile(glideinDescript.data['DowntimesFile'])
@@ -305,8 +303,8 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 security_list[entry_part[0]] = [entry_part[1]]
 
     # Set downtime in the stats
-    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) 
-    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) 
+    glideFactoryLib.factoryConfig.client_stats.set_downtime(in_downtime) #@UndefinedVariable
+    glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) #@UndefinedVariable
 
     # ===========  Finding work requests and queue data ==========
     logSupport.log.debug("Finding work")
@@ -720,7 +718,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             ##### END - CREDENTIAL HANDLING - END #####
         
         jobAttributes.data['GLIDEIN_In_Downtime'] = in_downtime
-        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime) 
+        glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)#@UndefinedVariable
 
         if work[work_key]['requests'].has_key('RemoveExcess'):
             remove_excess = work[work_key]['requests']['RemoveExcess']
@@ -823,11 +821,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                 log_stats[credential_username] = glideFactoryLogParser.dirSummaryTimingsOut(glideFactoryLib.factoryConfig.get_client_log_dir(entry_name, credential_username),
                                                                                           logSupport.log_dir, client_int_name, credential_username)
                 # should not need privsep for reading logs
-                log_stats[credential_username].load()  
+                log_stats[credential_username].load()
                 
                 glideFactoryLib.logStats(condorQ, condorStatus, client_int_name, client_security_name, credential_security_class) 
-                client_log_name = glideFactoryLib.secClass2Name(client_security_name, credential_security_class)   
-                glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats)                  
+                client_log_name = glideFactoryLib.secClass2Name(client_security_name, credential_security_class)
+                glideFactoryLib.factoryConfig.log_stats.logSummary(client_log_name, log_stats) #@UndefinedVariable
             
                 remove_excess_wait = False
                 remove_excess_idle = False
