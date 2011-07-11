@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.10 2011/06/28 16:36:54 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.11 2011/07/11 16:32:51 klarson1 Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -534,7 +534,7 @@ class MultiAdvertizeWork:
             fd=file(tmpname,"w")
             if self.descript_obj.x509_proxies_data!=None:
                 nr_credentials=len(self.descript_obj.x509_proxies_data)
-                glidein_params_to_encrypt['nr_x509_proxies']="%s"%nr_credentials
+                glidein_params_to_encrypt['NumberOfCredentials']="%s"%nr_credentials
             else:
                 nr_credentials=0
             request_name="Global"
