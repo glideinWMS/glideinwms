@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactory.py,v 1.89.2.10.2.10 2011/06/28 18:34:10 tiradani Exp $
+#   $Id: glideFactory.py,v 1.89.2.10.2.11 2011/07/11 21:25:56 tiradani Exp $
 #
 # Description:
 #   This is the main of the glideinFactory
@@ -345,16 +345,7 @@ def main(startup_dir):
     try:
         os.chdir(startup_dir)
     except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
-        logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir, tb))
-        raise
-
-    try:
-        os.chdir(startup_dir)
-    except:
-        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1],
-                                        sys.exc_info()[2])
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         logSupport.log.warning("Unable to change to startup_dir %s: %s" % (startup_dir, tb))
         raise
 
