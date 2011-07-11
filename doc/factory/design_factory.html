@@ -70,6 +70,7 @@
     <LI><A HREF="#flow">Program flow</A></li>
     <LI><A HREF="#source">Source code distribution</A></li>
     <LI><A HREF="#config">Configuration files</A></li>
+    <LI><A HREF="#encryption">Encryption</A></li>
 </ol>
 </div>
 <div class="related">
@@ -131,7 +132,63 @@ is executable.</P>
 hand. It is generated and maintained by 
 <A HREF="index.html#create_entry">a dedicated tool.</A></P>
 </div>
+<div class="section">
+<h2><a name="encryption" />Encryption Overview</h2>
+<p>
+The glidenWMS Factory creates an RSA public/private keypair.  The public
+key is advertised so that the Frontend can use it.
+</p>
+<p>
+When the Frontend advertises requests and credentials, it performs the
+following steps:
+<ol>
+    <li> Create a symmetric key for each classad</li>
+    <li> Encrypt all applicable information using the symmetric key</li>
+    <li> Encrypt the symmetric key with the Factory public key</li>
+    <li> Advertise the classad</li>
+</ol>
+The Factory performs the following steps to decrypt the Frontend values:
+<ol>
+    <li>Extract the Frontend symmetric key by decrypting it using the Factory
+       private key</li>
+    <li> Use the Frontend symmetric key to decrypt all remaining encrypted
+       parameters</li>
+</ol>
+Specific code modules that handle these functions can be found below.
+</p>
+<p>
+glideFactory.main()
+<ul>
+    <li> Creates glideFactoryConfig.GlideinKey with <i>recreate == True</i></li>
+    <li> glideFactoryConfig.GlideinKey creates a new RSA private/public
+      keypair</li>
+    <li> It is assumed that the Frontend symmetric key can be loaded using the
+      symCrypto.AutoSymKey class</li>
+</ul>
+glideFactoryInterface.findwork and the glideFactoryCredentials module share
+similar logic for decrypting classads:
+<ul>
+    <li> Get classads</li>
+    <li> For each classad:</li>
+    <ul>
+        <li> Extract the Frontend symmetric key using the Factory private key</li>
+        <li> Use the symmetric key to decrypt the 'ReqEncIdentity' field</li>
+        <li> Compare 'ReqEncIdentity' to 'AuthenticatedIdentity'</li>
+        <ul>
+            <li> 'AuthenticatedIdentity' is the identity that Condor places
+                in the classad.</li>
+            <li> The two must match to prove that someone isn't spoofing the
+              classad</li>
+        </ul>
+        <li> Compare 'ReqEncIdentity' to the expected identity listed in the
+          frontend.descript (to check that the Frontend advertising is
+          authorized by the Factory)</li>
+        <li> Loop through the encrypted parameters and decrypt them</li>
+    </ul>
+</ul>
 
+
+</div>
 <div class="footer">
 Banner image by
 <a href="http://www.flickr.com/people/leafwarbler/">Madhusudan Katti</a>
