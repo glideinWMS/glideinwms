@@ -168,28 +168,38 @@ def process_globals(glidein_descript, frontend_descript):
 
     try:
         classads = get_globals_classads()
-        for classad in classads:
+        for classad_key in classads.keys():
+            classad = classads[classad_key]
+
             # Get the frontend security name so that we can look up the username
             sym_key_obj, frontend_sec_name = validate_frontend(classad, frontend_descript, pub_key_obj)
-            
+
             # get all the credential ids by filtering keys by regex
             # this makes looking up specific values in the dict easier
             r = re.compile("^GlideinEncParamSecurityClass")
             mkeys = filter(r.match, classad.keys())
             for key in mkeys:
-                proxy_id = key.lstrip("GlideinEncParamSecurityClass")
+                cred_id = key.lstrip("GlideinEncParamSecurityClass")
                 
-                proxy_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % proxy_id])
+                cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
                 security_class = sym_key_obj.decrypt_hex(classad[key])
                 username = frontend_descript.get_username(security_class, frontend_sec_name)
-                
-                update_credential_file(username, proxy_id, proxy_data)
+
+                update_credential_file(username, cred_id, cred_data)
     except:
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         error_str = "Error occurred processing the globals classads. \nTraceback: \n%s" % tb
         raise CredentialError(error_str)
 
 def get_key_obj(pub_key_obj, classad):
+    """
+    Gets the symmetric key object from the request classad
+
+    @type pub_key_obj: object
+    @param pub_key_obj: The factory public key object.  This contains all the encryption and decryption methods
+    @type classad: dictionary
+    @param classad: a dictionary representation of the classad
+    """
     if classad.has_key('ReqEncKeyCode'):
         try:
             sym_key_obj = pub_key_obj.extract_sym_key(classad['ReqEncKeyCode'])
@@ -203,11 +213,26 @@ def get_key_obj(pub_key_obj, classad):
         raise CredentialError(error_str)
 
 def validate_frontend(classad, frontend_descript, pub_key_obj):
+    """
+    Validates that the frontend advertising the classad is allowed and that it
+    claims to have the same identity that Condor thinks it has.
+
+    @type classad: dictionary
+    @param classad: a dictionary representation of the classad
+    @type frontend_descript: class object
+    @param frontend_descript: class object containing all the frontend information
+    @type pub_key_obj: object
+    @param pub_key_obj: The factory public key object.  This contains all the encryption and decryption methods
+
+    @return: sym_key_obj - the object containing the symmetric key used for decryption
+    @return: frontend_sec_name - the frontend security name, used for determining
+    the username to use when privilege separation is enabled.
+    """
+
     # we can get classads from multiple frontends, each with their own
     # sym keys.  So get the sym_key_obj for each classad
     sym_key_obj = get_key_obj(pub_key_obj, classad)
     authenticated_identity = classad["AuthenticatedIdentity"]
-    frontend_sec_name = classad["SecurityName"] 
 
     # verify that the identity that the client claims to be is the identity that Condor thinks it is 
     try:
@@ -216,21 +241,28 @@ def validate_frontend(classad, frontend_descript, pub_key_obj):
         tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
         error_str = "Cannot decrypt ReqEncIdentity.  \nTraceback: \n%s" % tb
         raise CredentialError(error_str)
-        
+
     if enc_identity != authenticated_identity:
         error_str = "Client provided invalid ReqEncIdentity(%s!=%s). " \
                     "Skipping for security reasons." % (enc_identity, authenticated_identity)
         raise CredentialError(error_str)
-        
+
+    try:
+        frontend_sec_name = sym_key_obj.decrypt_hex(classad['GlideinEncParamSecurityName'])
+    except:
+        tb = traceback.format_exception(sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])
+        error_str = "Cannot decrypt GlideinEncParamSecurityName.  \nTraceback: \n%s" % tb
+        raise CredentialError(error_str)
+
     # verify that the frontend is authorized to talk to the factory
     expected_identity = frontend_descript.get_identity(frontend_sec_name)
     if expected_identity == None:
         error_str = "This frontend is not authorized by the factory.  Supplied security name: %s" % frontend_sec_name 
         raise CredentialError(error_str)
     if authenticated_identity != expected_identity:
-        error_str = "This frontend Authenticated Identity, does not match the expected identity"   
+        error_str = "This frontend Authenticated Identity, does not match the expected identity"
         raise CredentialError(error_str)
-    
+
     return sym_key_obj, frontend_sec_name
 
 
