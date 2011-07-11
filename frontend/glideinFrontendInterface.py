@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.12 2011/07/11 22:30:32 dstrain Exp $
+#   $Id: glideinFrontendInterface.py,v 1.47.2.7.2.13 2011/07/11 22:34:33 dstrain Exp $
 #
 # Description:
 #   This module implements the functions needed to advertize
@@ -648,7 +648,7 @@ class MultiAdvertizeWork:
                             logSupport.log.debug("Credential %s does not match %s (for %s) domain, skipping..."%(credential_el.trust_domain,factory_trust,params_obj.request_name))
                             continue
                     glidein_params_to_encrypt['SecurityClass']=credential_el.security_class
-                    classad_name=credential_el.security_class+"_"+classad_name
+                    classad_name=credential_el.file_id(credential_el.filename)+"_"+classad_name
                     if (credential_el.type.startswith("username_password")):
                         glidein_params_to_encrypt['Username']=credential_el.file_id(credential_el.filename);
                         glidein_params_to_encrypt['Password']=credential_el.file_id(credential_el.key_fname);
