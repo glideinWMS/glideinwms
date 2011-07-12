@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.6 2011/06/24 21:26:26 klarson1 Exp $
+#   $Id: glideFactoryConfig.py,v 1.21.10.4.4.7 2011/07/12 21:34:47 tiradani Exp $
 #
 
 import string
@@ -279,11 +279,11 @@ class SignatureFile(ConfigFile):
                     continue # comment
                 if len(string.strip(line)) == 0:
                     continue # empty line
-                larr = string.split(line, None, 1)
+                larr = string.split(line, None)
                 lsign = larr[0]
-                ldescript = [1]
+                ldescript = larr[1]
                 lname = larr[2]
                 self.data["%s_sign" % str(lname)] = str(lsign)
-                self.data["%s_descript" % lname] = str(ldescript)
+                self.data["%s_descript" % str(lname)] = str(ldescript)
         finally:
             fd.close()
