@@ -506,6 +506,9 @@ You can only use the '--configure/--validate' options for this type.
           Condor release with a format 'condor-*'.
         - the tarball contains the condor-*/configure_condor script.
     """
+    if self.install_type() == "rpm":
+      self.__check_condor_version__()
+      return
     common.logit("... validating condor tarball: %s" % tarball)
     if not os.path.isfile(tarball):
       common.logerr("File (%s) not found" % (tarball))
