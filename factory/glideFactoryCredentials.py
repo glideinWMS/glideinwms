@@ -182,7 +182,7 @@ def process_globals(glidein_descript, frontend_descript):
                 
                 cred_data = sym_key_obj.decrypt_hex(classad["GlideinEncParam%s" % cred_id])
                 security_class = sym_key_obj.decrypt_hex(classad[key])
-                username = frontend_descript.get_username(security_class, frontend_sec_name)
+                username = frontend_descript.get_username(frontend_sec_name, security_class)
 
                 update_credential_file(username, cred_id, cred_data)
     except:
