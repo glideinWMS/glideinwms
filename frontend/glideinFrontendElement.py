@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version: 
-#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.10 2011/06/29 15:24:15 dstrain Exp $
+#   $Id: glideinFrontendElement.py,v 1.52.2.11.2.11 2011/07/12 15:36:08 dstrain Exp $
 #
 # Description:
 #   This is the main of the glideinFrontend
@@ -131,6 +131,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
                 try:
                     globals_el['attrs']['PubKeyObj'] = pubCrypto.PubRSAKey(str(string.replace(globals_el['attrs']['PubKeyValue'], '\\n', '\n')))
                     globals_el['attrs']['FactoryPoolNode'] = factory_pool_node
+                    globals_el['attrs']['FactoryPoolId'] = my_identity_at_factory_pool
                 except:
                     # if no valid key, just notify...
                     # if key needed, will handle the error later on
@@ -292,7 +293,7 @@ def iterate_one(client_name, elementDescript, paramsDescript, signatureDescript,
     for globalid in factory_globals_dict:
         globals_el=factory_globals_dict[globalid]
         if globals_el['attrs'].has_key('PubKeyObj'):
-            key_obj = key_builder.get_key_obj(security_name+"@"+globals_el['attrs']['FactoryPoolNode'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
+            key_obj = key_builder.get_key_obj(globals_el['attrs']['FactoryPoolId'], globals_el['attrs']['PubKeyID'], globals_el['attrs']['PubKeyObj'])
             advertizer.add_global(globals_el['attrs']['FactoryPoolNode'],globalid,security_name,key_obj)
 
     log_factory_header()
