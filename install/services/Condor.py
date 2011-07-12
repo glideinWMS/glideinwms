@@ -348,8 +348,8 @@ Check the condor_location ini option for correctness.""" % version_script)
       common.logerr("""Your 'install_type' option indicates this is an RPM install of Condor.
 You can only use the '--configure/--validate' options for this type.
 """)
-    self.__validate_tarball__(self.condor_tarball())
     self.__validate_needed_directories__()
+    self.__verify_directories_empty__()
     common.logit("\nCondor installation starting\n")
     common.logit("... install location: %s" % (self.condor_location()))
     try:
@@ -427,7 +427,7 @@ You can only use the '--configure/--validate' options for this type.
     common.ask_continue("... can we remove their contents")
     for option in dirs.keys(): 
       common.remove_dir_contents(dirs[option])
-    self.validate_needed_directories()
+    self.__validate_needed_directories__()
 
   #--------------------------------
   def __validate_schedds__(self):
