@@ -3,7 +3,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: condorExe.py,v 1.6.12.3.2.1 2011/06/01 14:16:33 tiradani Exp $
+#   $Id: condorExe.py,v 1.6.12.3.2.2 2011/07/12 15:48:30 tiradani Exp $
 #
 # Description:
 #   This module implements the functions to execute condor commands
@@ -103,7 +103,6 @@ def iexe_cmd(cmd, stdin_data=None):
         outfd = stdout.fileno()
         errfd = stderr.fileno()
 
-        outeof = erreof = 0
         outdata = cStringIO.StringIO()
         errdata = cStringIO.StringIO()
 
