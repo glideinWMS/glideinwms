@@ -4,7 +4,7 @@
 #   glideinWMS
 #
 # File Version:
-#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.36 2011/07/11 21:26:26 tiradani Exp $
+#   $Id: glideFactoryEntry.py,v 1.96.2.24.2.37 2011/07/12 17:39:42 klarson1 Exp $
 #
 # Description:
 #   This is the main of the glideinFactoryEntry
@@ -558,11 +558,11 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             else:
                 pass # already checked security name      
               
-            # Check that security class maps to a username for submission                   
+            # Check that security class maps to a username for submission          
             credential_username = frontendDescript.get_username(client_security_name, credential_security_class)
             if credential_username == None:
-                logSupport.log.warning("No username mapping for security class %s of x509_proxy_%i for %s (secid: %s), skipping and trying the others" % (credential_security_class, i, client_int_name, client_security_name))
-                continue 
+                logSupport.log.warning("No username mapping for security class %s of credential for %s (secid: %s), skipping " % (credential_security_class, client_int_name, client_security_name))
+                continue
             
             # Initialize submit credential object
             submit_credentials = glideFactoryCredentials.SubmitCredentials(credential_username, credential_security_class)
@@ -570,7 +570,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             # Determine the credential location  
             submit_credentials.cred_dir = glideFactoryLib.factoryConfig.get_client_proxies_dir(credential_username) 
             #submit_credentials.cred_dir = os.path.join(client_proxies_base_dir, "user_%s/glidein_%s" % (credential_username, glidein_name))
-            
+                        
             # Grid sites do not require VM id or type.  All have proxy in their auth method
             if 'grid_proxy' in auth_method:   
                                 
@@ -716,7 +716,7 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
             
             # ========== end of v3+ proxy protocol ===============
             ##### END - CREDENTIAL HANDLING - END #####
-        
+                
         jobAttributes.data['GLIDEIN_In_Downtime'] = in_downtime
         glideFactoryLib.factoryConfig.qc_stats.set_downtime(in_downtime)#@UndefinedVariable
 
@@ -845,18 +845,25 @@ def find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDes
                     # nothing to do
                     logSupport.log.info("Unknown RemoveExcess '%s', assuming 'NO'" % remove_excess)
                 
+                # Should log here or in perform_work
+                glideFactoryLib.logWorkRequest(client_int_name, client_security_name, x509_proxy_security_class,
+                                                   idle_glideins, max_running, work[work_key], x509_proxy_frac)
+    
+                all_security_names.add((client_security_name, credential_security_class))
+                entry_condorQ = glideFactoryLib.getQProxSecClass(condorQ, client_int_name, credential_security_class)
+
                 logSupport.log.info("Requesting glideins using v3+ protocol, using credential %s" % submit_credentials.id)
-                nr_submitted = glideFactoryLib.keepIdleGlideins(condorQ, client_int_name, in_downtime,
+                nr_submitted = glideFactoryLib.keepIdleGlideins(entry_condorQ, client_int_name, in_downtime,
                                                              remove_excess_wait, remove_excess_idle, remove_excess_run,
                                                              idle_glideins, max_running, factory_max_held,
                                                              submit_credentials, 
                                                              client_web, params)
                 # ======= end of v3+ protocol =============
-
+    
     logSupport.log.debug("Updating statistics")
     for sec_el in all_security_names:
         try:
-            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el) #@UndefinedVariable
+            glideFactoryLib.factoryConfig.rrd_stats.getData("%s_%s" % sec_el) 
         except glideFactoryLib.condorExe.ExeError, e:
             # never fail for monitoring... just log
             logSupport.log.warning("get_RRD_data failed: %s" % e)
@@ -987,8 +994,9 @@ def iterate_one(do_advertize, in_downtime, glideinDescript, frontendDescript, jo
 
     try:
         done_something = find_and_perform_work(in_downtime, glideinDescript, frontendDescript, jobDescript, jobAttributes, jobParams)
-    except:
-        logSupport.log.warning("Error occurred while trying to find and do work.")
+    except Exception, e:
+        logSupport.log.warning("Error occurred while trying to find and do work")
+        logSupport.log.debug("Error occurred while trying to find and do work: %s" % e)
 
     if do_advertize or done_something:
         logSupport.log.info("Advertize")
